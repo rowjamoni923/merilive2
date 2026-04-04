@@ -5297,6 +5297,1617 @@ export type Database = {
         }
         Relationships: []
       }
+      pk_competition_rewards: {
+        Row: {
+          competition_id: string
+          created_at: string
+          id: string
+          is_active: boolean | null
+          rank_from: number
+          rank_to: number
+          reward_badge: string | null
+          reward_beans: number
+          reward_coins: number
+          reward_diamonds: number
+        }
+        Insert: {
+          competition_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          rank_from?: number
+          rank_to?: number
+          reward_badge?: string | null
+          reward_beans?: number
+          reward_coins?: number
+          reward_diamonds?: number
+        }
+        Update: {
+          competition_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          rank_from?: number
+          rank_to?: number
+          reward_badge?: string | null
+          reward_beans?: number
+          reward_coins?: number
+          reward_diamonds?: number
+        }
+        Relationships: []
+      }
+      pk_competitions: {
+        Row: {
+          banner_image_url: string | null
+          competition_type: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          end_date: string
+          id: string
+          is_active: boolean | null
+          max_participants: number | null
+          start_date: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          banner_image_url?: string | null
+          competition_type?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date: string
+          id?: string
+          is_active?: boolean | null
+          max_participants?: number | null
+          start_date: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          banner_image_url?: string | null
+          competition_type?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date?: string
+          id?: string
+          is_active?: boolean | null
+          max_participants?: number | null
+          start_date?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pk_participants: {
+        Row: {
+          competition_id: string
+          id: string
+          joined_at: string
+          rank_position: number | null
+          reward_distributed: boolean | null
+          score: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          competition_id: string
+          id?: string
+          joined_at?: string
+          rank_position?: number | null
+          reward_distributed?: boolean | null
+          score?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          competition_id?: string
+          id?: string
+          joined_at?: string
+          rank_position?: number | null
+          reward_distributed?: boolean | null
+          score?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      pk_reward_banners: {
+        Row: {
+          banner_image_url: string | null
+          created_at: string
+          description: string | null
+          display_order: number | null
+          end_date: string | null
+          id: string
+          is_active: boolean | null
+          reward_details: Json | null
+          start_date: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          banner_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          end_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          reward_details?: Json | null
+          start_date?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          banner_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          end_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          reward_details?: Json | null
+          start_date?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pk_reward_history: {
+        Row: {
+          competition_id: string
+          distributed_at: string
+          id: string
+          rank_position: number
+          reward_beans: number | null
+          reward_coins: number | null
+          reward_diamonds: number | null
+          user_id: string
+        }
+        Insert: {
+          competition_id: string
+          distributed_at?: string
+          id?: string
+          rank_position: number
+          reward_beans?: number | null
+          reward_coins?: number | null
+          reward_diamonds?: number | null
+          user_id: string
+        }
+        Update: {
+          competition_id?: string
+          distributed_at?: string
+          id?: string
+          rank_position?: number
+          reward_beans?: number | null
+          reward_coins?: number | null
+          reward_diamonds?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      popup_event_banners: {
+        Row: {
+          auto_dismiss_seconds: number
+          created_at: string
+          description: string | null
+          display_duration_seconds: number
+          display_order: number | null
+          end_date: string | null
+          id: string
+          image_url: string
+          is_active: boolean | null
+          link_type: string | null
+          link_url: string | null
+          skip_delay_seconds: number
+          start_date: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          auto_dismiss_seconds?: number
+          created_at?: string
+          description?: string | null
+          display_duration_seconds?: number
+          display_order?: number | null
+          end_date?: string | null
+          id?: string
+          image_url: string
+          is_active?: boolean | null
+          link_type?: string | null
+          link_url?: string | null
+          skip_delay_seconds?: number
+          start_date?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          auto_dismiss_seconds?: number
+          created_at?: string
+          description?: string | null
+          display_duration_seconds?: number
+          display_order?: number | null
+          end_date?: string | null
+          id?: string
+          image_url?: string
+          is_active?: boolean | null
+          link_type?: string | null
+          link_url?: string | null
+          skip_delay_seconds?: number
+          start_date?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      poster_images: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          image_url: string
+          is_primary: boolean | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_url: string
+          is_primary?: boolean | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          image_url?: string
+          is_primary?: boolean | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      private_call_security_logs: {
+        Row: {
+          action_taken: string | null
+          call_id: string | null
+          detected_at: string | null
+          device_info: Json | null
+          event_type: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          action_taken?: string | null
+          call_id?: string | null
+          detected_at?: string | null
+          device_info?: Json | null
+          event_type: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          action_taken?: string | null
+          call_id?: string | null
+          detected_at?: string | null
+          device_info?: Json | null
+          event_type?: string
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      private_calls: {
+        Row: {
+          admin_notes: string | null
+          caller_id: string
+          caller_rating: number | null
+          coins_per_minute: number | null
+          coins_spent: number | null
+          connected_at: string | null
+          created_at: string
+          duration_seconds: number | null
+          end_reason: string | null
+          ended_at: string | null
+          host_earned: number | null
+          host_earnings_amount: number | null
+          host_earnings_credited: boolean | null
+          host_earnings_credited_at: string | null
+          host_earnings_credited_by: string | null
+          host_id: string
+          host_rating: number | null
+          id: string
+          last_billing_at: string | null
+          started_at: string | null
+          status: string
+          stream_id: string | null
+          total_coins_deducted: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          caller_id: string
+          caller_rating?: number | null
+          coins_per_minute?: number | null
+          coins_spent?: number | null
+          connected_at?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          end_reason?: string | null
+          ended_at?: string | null
+          host_earned?: number | null
+          host_earnings_amount?: number | null
+          host_earnings_credited?: boolean | null
+          host_earnings_credited_at?: string | null
+          host_earnings_credited_by?: string | null
+          host_id: string
+          host_rating?: number | null
+          id?: string
+          last_billing_at?: string | null
+          started_at?: string | null
+          status?: string
+          stream_id?: string | null
+          total_coins_deducted?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          caller_id?: string
+          caller_rating?: number | null
+          coins_per_minute?: number | null
+          coins_spent?: number | null
+          connected_at?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          end_reason?: string | null
+          ended_at?: string | null
+          host_earned?: number | null
+          host_earnings_amount?: number | null
+          host_earnings_credited?: boolean | null
+          host_earnings_credited_at?: string | null
+          host_earnings_credited_by?: string | null
+          host_id?: string
+          host_rating?: number | null
+          id?: string
+          last_billing_at?: string | null
+          started_at?: string | null
+          status?: string
+          stream_id?: string | null
+          total_coins_deducted?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          active_session_id: string | null
+          age: number | null
+          agency_id: string | null
+          app_uid: string | null
+          avatar_url: string | null
+          beans: number | null
+          beans_balance: number | null
+          bio: string | null
+          blocked_at: string | null
+          blocked_reason: string | null
+          call_rate_per_minute: number | null
+          city: string | null
+          coins: number | null
+          country_code: string | null
+          country_flag: string | null
+          country_name: string | null
+          cover_url: string | null
+          created_at: string | null
+          current_call_id: string | null
+          current_vip_tier_id: string | null
+          deletion_requested_at: string | null
+          deletion_scheduled_at: string | null
+          device_id: string | null
+          diamonds: number | null
+          display_name: string | null
+          equipped_bubble_id: string | null
+          equipped_entrance_id: string | null
+          equipped_entry_banner_id: string | null
+          equipped_entry_name_bar_id: string | null
+          equipped_frame_id: string | null
+          equipped_medal_id: string | null
+          equipped_noble_card_id: string | null
+          equipped_vehicle_id: string | null
+          face_hash: string | null
+          face_verification_image: string | null
+          face_verified_at: string | null
+          frame_id: string | null
+          gender: string | null
+          hide_location: boolean
+          host_level: number | null
+          host_status: string | null
+          host_verified_at: string | null
+          id: string
+          is_agency_owner: boolean | null
+          is_blocked: boolean | null
+          is_deleted: boolean | null
+          is_face_verified: boolean | null
+          is_host: boolean | null
+          is_in_call: boolean | null
+          is_online: boolean | null
+          is_verified: boolean | null
+          last_login_at: string | null
+          last_login_device: string | null
+          last_login_device_info: Json | null
+          last_login_ip: string | null
+          last_seen_at: string | null
+          max_user_level: number | null
+          pending_earnings: number | null
+          phone_violation_count: number | null
+          previous_bubble_id: string | null
+          previous_entrance_id: string | null
+          previous_entry_banner_id: string | null
+          previous_entry_name_bar_id: string | null
+          previous_frame_id: string | null
+          previous_host_level: number | null
+          previous_medal_id: string | null
+          previous_noble_card_id: string | null
+          previous_vehicle_id: string | null
+          region: string | null
+          registration_device_info: Json | null
+          registration_ip: string | null
+          registration_user_agent: string | null
+          tags: string[] | null
+          total_call_minutes: number | null
+          total_calls_made: number | null
+          total_calls_received: number | null
+          total_consumption: number | null
+          total_earnings: number | null
+          total_recharged: number | null
+          updated_at: string | null
+          user_level: number | null
+          username: string | null
+          vip_expires_at: string | null
+          weekly_earnings: number | null
+          weekly_reset_at: string | null
+        }
+        Insert: {
+          active_session_id?: string | null
+          age?: number | null
+          agency_id?: string | null
+          app_uid?: string | null
+          avatar_url?: string | null
+          beans?: number | null
+          beans_balance?: number | null
+          bio?: string | null
+          blocked_at?: string | null
+          blocked_reason?: string | null
+          call_rate_per_minute?: number | null
+          city?: string | null
+          coins?: number | null
+          country_code?: string | null
+          country_flag?: string | null
+          country_name?: string | null
+          cover_url?: string | null
+          created_at?: string | null
+          current_call_id?: string | null
+          current_vip_tier_id?: string | null
+          deletion_requested_at?: string | null
+          deletion_scheduled_at?: string | null
+          device_id?: string | null
+          diamonds?: number | null
+          display_name?: string | null
+          equipped_bubble_id?: string | null
+          equipped_entrance_id?: string | null
+          equipped_entry_banner_id?: string | null
+          equipped_entry_name_bar_id?: string | null
+          equipped_frame_id?: string | null
+          equipped_medal_id?: string | null
+          equipped_noble_card_id?: string | null
+          equipped_vehicle_id?: string | null
+          face_hash?: string | null
+          face_verification_image?: string | null
+          face_verified_at?: string | null
+          frame_id?: string | null
+          gender?: string | null
+          hide_location?: boolean
+          host_level?: number | null
+          host_status?: string | null
+          host_verified_at?: string | null
+          id: string
+          is_agency_owner?: boolean | null
+          is_blocked?: boolean | null
+          is_deleted?: boolean | null
+          is_face_verified?: boolean | null
+          is_host?: boolean | null
+          is_in_call?: boolean | null
+          is_online?: boolean | null
+          is_verified?: boolean | null
+          last_login_at?: string | null
+          last_login_device?: string | null
+          last_login_device_info?: Json | null
+          last_login_ip?: string | null
+          last_seen_at?: string | null
+          max_user_level?: number | null
+          pending_earnings?: number | null
+          phone_violation_count?: number | null
+          previous_bubble_id?: string | null
+          previous_entrance_id?: string | null
+          previous_entry_banner_id?: string | null
+          previous_entry_name_bar_id?: string | null
+          previous_frame_id?: string | null
+          previous_host_level?: number | null
+          previous_medal_id?: string | null
+          previous_noble_card_id?: string | null
+          previous_vehicle_id?: string | null
+          region?: string | null
+          registration_device_info?: Json | null
+          registration_ip?: string | null
+          registration_user_agent?: string | null
+          tags?: string[] | null
+          total_call_minutes?: number | null
+          total_calls_made?: number | null
+          total_calls_received?: number | null
+          total_consumption?: number | null
+          total_earnings?: number | null
+          total_recharged?: number | null
+          updated_at?: string | null
+          user_level?: number | null
+          username?: string | null
+          vip_expires_at?: string | null
+          weekly_earnings?: number | null
+          weekly_reset_at?: string | null
+        }
+        Update: {
+          active_session_id?: string | null
+          age?: number | null
+          agency_id?: string | null
+          app_uid?: string | null
+          avatar_url?: string | null
+          beans?: number | null
+          beans_balance?: number | null
+          bio?: string | null
+          blocked_at?: string | null
+          blocked_reason?: string | null
+          call_rate_per_minute?: number | null
+          city?: string | null
+          coins?: number | null
+          country_code?: string | null
+          country_flag?: string | null
+          country_name?: string | null
+          cover_url?: string | null
+          created_at?: string | null
+          current_call_id?: string | null
+          current_vip_tier_id?: string | null
+          deletion_requested_at?: string | null
+          deletion_scheduled_at?: string | null
+          device_id?: string | null
+          diamonds?: number | null
+          display_name?: string | null
+          equipped_bubble_id?: string | null
+          equipped_entrance_id?: string | null
+          equipped_entry_banner_id?: string | null
+          equipped_entry_name_bar_id?: string | null
+          equipped_frame_id?: string | null
+          equipped_medal_id?: string | null
+          equipped_noble_card_id?: string | null
+          equipped_vehicle_id?: string | null
+          face_hash?: string | null
+          face_verification_image?: string | null
+          face_verified_at?: string | null
+          frame_id?: string | null
+          gender?: string | null
+          hide_location?: boolean
+          host_level?: number | null
+          host_status?: string | null
+          host_verified_at?: string | null
+          id?: string
+          is_agency_owner?: boolean | null
+          is_blocked?: boolean | null
+          is_deleted?: boolean | null
+          is_face_verified?: boolean | null
+          is_host?: boolean | null
+          is_in_call?: boolean | null
+          is_online?: boolean | null
+          is_verified?: boolean | null
+          last_login_at?: string | null
+          last_login_device?: string | null
+          last_login_device_info?: Json | null
+          last_login_ip?: string | null
+          last_seen_at?: string | null
+          max_user_level?: number | null
+          pending_earnings?: number | null
+          phone_violation_count?: number | null
+          previous_bubble_id?: string | null
+          previous_entrance_id?: string | null
+          previous_entry_banner_id?: string | null
+          previous_entry_name_bar_id?: string | null
+          previous_frame_id?: string | null
+          previous_host_level?: number | null
+          previous_medal_id?: string | null
+          previous_noble_card_id?: string | null
+          previous_vehicle_id?: string | null
+          region?: string | null
+          registration_device_info?: Json | null
+          registration_ip?: string | null
+          registration_user_agent?: string | null
+          tags?: string[] | null
+          total_call_minutes?: number | null
+          total_calls_made?: number | null
+          total_calls_received?: number | null
+          total_consumption?: number | null
+          total_earnings?: number | null
+          total_recharged?: number | null
+          updated_at?: string | null
+          user_level?: number | null
+          username?: string | null
+          vip_expires_at?: string | null
+          weekly_earnings?: number | null
+          weekly_reset_at?: string | null
+        }
+        Relationships: []
+      }
+      provider_games: {
+        Row: {
+          created_at: string | null
+          display_order: number | null
+          game_category: string | null
+          game_code: string
+          game_name: string
+          house_edge: number | null
+          id: string
+          is_active: boolean | null
+          max_bet: number | null
+          min_bet: number | null
+          provider_id: string
+          thumbnail_url: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number | null
+          game_category?: string | null
+          game_code: string
+          game_name: string
+          house_edge?: number | null
+          id?: string
+          is_active?: boolean | null
+          max_bet?: number | null
+          min_bet?: number | null
+          provider_id: string
+          thumbnail_url?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number | null
+          game_category?: string | null
+          game_code?: string
+          game_name?: string
+          house_edge?: number | null
+          id?: string
+          is_active?: boolean | null
+          max_bet?: number | null
+          min_bet?: number | null
+          provider_id?: string
+          thumbnail_url?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      ranking_rewards: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          rank_position: number
+          ranking_type: string
+          reward_badge_url: string | null
+          reward_beans: number | null
+          reward_coins: number | null
+          reward_diamonds: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          rank_position: number
+          ranking_type: string
+          reward_badge_url?: string | null
+          reward_beans?: number | null
+          reward_coins?: number | null
+          reward_diamonds?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          rank_position?: number
+          ranking_type?: string
+          reward_badge_url?: string | null
+          reward_beans?: number | null
+          reward_coins?: number | null
+          reward_diamonds?: number | null
+        }
+        Relationships: []
+      }
+      rate_limit_attempts: {
+        Row: {
+          action_type: string
+          attempted_at: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          attempted_at?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          attempted_at?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      rate_limits: {
+        Row: {
+          action_type: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          lockout_duration_seconds: number | null
+          max_attempts: number
+          window_seconds: number
+        }
+        Insert: {
+          action_type: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          lockout_duration_seconds?: number | null
+          max_attempts?: number
+          window_seconds?: number
+        }
+        Update: {
+          action_type?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          lockout_duration_seconds?: number | null
+          max_attempts?: number
+          window_seconds?: number
+        }
+        Relationships: []
+      }
+      rating_reward_claims: {
+        Row: {
+          claimed_at: string
+          id: string
+          platform: string
+          reward_coins: number
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string
+          id?: string
+          platform: string
+          reward_coins?: number
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string
+          id?: string
+          platform?: string
+          reward_coins?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      recharge_transactions: {
+        Row: {
+          admin_notes: string | null
+          amount: number
+          bonus_coins: number | null
+          coins_amount: number
+          created_at: string
+          currency: string | null
+          exchange_rate: number | null
+          helper_id: string | null
+          id: string
+          order_id: string | null
+          payment_method: string | null
+          payment_method_id: string | null
+          payment_proof_url: string | null
+          processed_at: string | null
+          processed_by: string | null
+          status: string
+          updated_at: string
+          usd_amount: number | null
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          amount: number
+          bonus_coins?: number | null
+          coins_amount: number
+          created_at?: string
+          currency?: string | null
+          exchange_rate?: number | null
+          helper_id?: string | null
+          id?: string
+          order_id?: string | null
+          payment_method?: string | null
+          payment_method_id?: string | null
+          payment_proof_url?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          status?: string
+          updated_at?: string
+          usd_amount?: number | null
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          amount?: number
+          bonus_coins?: number | null
+          coins_amount?: number
+          created_at?: string
+          currency?: string | null
+          exchange_rate?: number | null
+          helper_id?: string | null
+          id?: string
+          order_id?: string | null
+          payment_method?: string | null
+          payment_method_id?: string | null
+          payment_proof_url?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          status?: string
+          updated_at?: string
+          usd_amount?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      recovery_tokens: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          token: string
+          token_type: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          token: string
+          token_type?: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          token?: string
+          token_type?: string
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reel_categories: {
+        Row: {
+          created_at: string
+          display_order: number | null
+          icon_url: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number | null
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number | null
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      reel_comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          likes_count: number | null
+          parent_id: string | null
+          reel_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          likes_count?: number | null
+          parent_id?: string | null
+          reel_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          likes_count?: number | null
+          parent_id?: string | null
+          reel_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reel_likes: {
+        Row: {
+          created_at: string
+          id: string
+          reel_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reel_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reel_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reel_reports: {
+        Row: {
+          created_at: string
+          id: string
+          reason: string
+          reel_id: string
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reason: string
+          reel_id: string
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reason?: string
+          reel_id?: string
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reel_shares: {
+        Row: {
+          created_at: string
+          id: string
+          platform: string | null
+          reel_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          platform?: string | null
+          reel_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          platform?: string | null
+          reel_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reels: {
+        Row: {
+          caption: string | null
+          category_id: string | null
+          comments_count: number | null
+          created_at: string
+          duration_seconds: number | null
+          id: string
+          is_active: boolean | null
+          is_public: boolean | null
+          likes_count: number | null
+          music_id: string | null
+          shares_count: number | null
+          thumbnail_url: string | null
+          updated_at: string
+          user_id: string
+          video_url: string
+          views_count: number | null
+        }
+        Insert: {
+          caption?: string | null
+          category_id?: string | null
+          comments_count?: number | null
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_public?: boolean | null
+          likes_count?: number | null
+          music_id?: string | null
+          shares_count?: number | null
+          thumbnail_url?: string | null
+          updated_at?: string
+          user_id: string
+          video_url: string
+          views_count?: number | null
+        }
+        Update: {
+          caption?: string | null
+          category_id?: string | null
+          comments_count?: number | null
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_public?: boolean | null
+          likes_count?: number | null
+          music_id?: string | null
+          shares_count?: number | null
+          thumbnail_url?: string | null
+          updated_at?: string
+          user_id?: string
+          video_url?: string
+          views_count?: number | null
+        }
+        Relationships: []
+      }
+      role_frames: {
+        Row: {
+          created_at: string | null
+          display_order: number | null
+          frame_url: string
+          id: string
+          is_active: boolean | null
+          min_level: number | null
+          name: string
+          role_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number | null
+          frame_url: string
+          id?: string
+          is_active?: boolean | null
+          min_level?: number | null
+          name: string
+          role_type: string
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number | null
+          frame_url?: string
+          id?: string
+          is_active?: boolean | null
+          min_level?: number | null
+          name?: string
+          role_type?: string
+        }
+        Relationships: []
+      }
+      room_welcome_messages: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean | null
+          message_text: string
+          room_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          message_text: string
+          room_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          message_text?: string
+          room_id?: string
+        }
+        Relationships: []
+      }
+      roulette_bets: {
+        Row: {
+          bet_amount: number
+          bet_type: string
+          bet_value: string
+          created_at: string
+          id: string
+          is_winner: boolean | null
+          session_id: string
+          user_id: string
+          win_amount: number | null
+        }
+        Insert: {
+          bet_amount: number
+          bet_type: string
+          bet_value: string
+          created_at?: string
+          id?: string
+          is_winner?: boolean | null
+          session_id: string
+          user_id: string
+          win_amount?: number | null
+        }
+        Update: {
+          bet_amount?: number
+          bet_type?: string
+          bet_value?: string
+          created_at?: string
+          id?: string
+          is_winner?: boolean | null
+          session_id?: string
+          user_id?: string
+          win_amount?: number | null
+        }
+        Relationships: []
+      }
+      roulette_sessions: {
+        Row: {
+          created_at: string
+          ended_at: string | null
+          id: string
+          room_id: string | null
+          started_at: string
+          status: string
+          total_bets: number | null
+          total_pool: number | null
+          winning_color: string | null
+          winning_number: number | null
+        }
+        Insert: {
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          room_id?: string | null
+          started_at?: string
+          status?: string
+          total_bets?: number | null
+          total_pool?: number | null
+          winning_color?: string | null
+          winning_number?: number | null
+        }
+        Update: {
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          room_id?: string | null
+          started_at?: string
+          status?: string
+          total_bets?: number | null
+          total_pool?: number | null
+          winning_color?: string | null
+          winning_number?: number | null
+        }
+        Relationships: []
+      }
+      seat_invitations: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          invitee_id: string
+          inviter_id: string
+          room_id: string
+          seat_number: number
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          invitee_id: string
+          inviter_id: string
+          room_id: string
+          seat_number: number
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          invitee_id?: string
+          inviter_id?: string
+          room_id?: string
+          seat_number?: number
+          status?: string
+        }
+        Relationships: []
+      }
+      seat_requests: {
+        Row: {
+          created_at: string
+          id: string
+          responded_at: string | null
+          room_id: string
+          seat_number: number
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          responded_at?: string | null
+          room_id: string
+          seat_number: number
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          responded_at?: string | null
+          room_id?: string
+          seat_number?: number
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      security_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string
+          description: string
+          id: string
+          ip_address: string | null
+          is_resolved: boolean | null
+          metadata: Json | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          user_id: string | null
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string
+          description: string
+          id?: string
+          ip_address?: string | null
+          is_resolved?: boolean | null
+          metadata?: Json | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          user_id?: string | null
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string
+          description?: string
+          id?: string
+          ip_address?: string | null
+          is_resolved?: boolean | null
+          metadata?: Json | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      security_audit_log: {
+        Row: {
+          created_at: string
+          details: Json | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          severity: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          details?: Json | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          severity?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          details?: Json | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          severity?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      session_security_logs: {
+        Row: {
+          created_at: string
+          details: Json | null
+          device_fingerprint: string | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          details?: Json | null
+          device_fingerprint?: string | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          details?: Json | null
+          device_fingerprint?: string | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      shop_items: {
+        Row: {
+          animation_url: string | null
+          category: string
+          created_at: string
+          description: string | null
+          display_order: number | null
+          duration_days: number | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          is_permanent: boolean | null
+          is_vip_exclusive: boolean | null
+          item_type: string
+          level_required: number | null
+          name: string
+          preview_url: string | null
+          price_coins: number | null
+          price_diamonds: number | null
+          svga_url: string | null
+          tag: string | null
+          updated_at: string
+          vip_discount_percent: number | null
+        }
+        Insert: {
+          animation_url?: string | null
+          category: string
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          duration_days?: number | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_permanent?: boolean | null
+          is_vip_exclusive?: boolean | null
+          item_type: string
+          level_required?: number | null
+          name: string
+          preview_url?: string | null
+          price_coins?: number | null
+          price_diamonds?: number | null
+          svga_url?: string | null
+          tag?: string | null
+          updated_at?: string
+          vip_discount_percent?: number | null
+        }
+        Update: {
+          animation_url?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          duration_days?: number | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_permanent?: boolean | null
+          is_vip_exclusive?: boolean | null
+          item_type?: string
+          level_required?: number | null
+          name?: string
+          preview_url?: string | null
+          price_coins?: number | null
+          price_diamonds?: number | null
+          svga_url?: string | null
+          tag?: string | null
+          updated_at?: string
+          vip_discount_percent?: number | null
+        }
+        Relationships: []
+      }
+      site_content: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_published: boolean | null
+          language: string | null
+          page_key: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_published?: boolean | null
+          language?: string | null
+          page_key: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_published?: boolean | null
+          language?: string | null
+          page_key?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      site_settings: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          setting_key: string
+          setting_value: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          setting_key: string
+          setting_value?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          setting_key?: string
+          setting_value?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sports: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          source: string | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          source?: string | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          source?: string | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
+      stream_chat: {
+        Row: {
+          created_at: string
+          id: string
+          is_deleted: boolean | null
+          is_pinned: boolean | null
+          message: string
+          message_type: string | null
+          stream_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_deleted?: boolean | null
+          is_pinned?: boolean | null
+          message: string
+          message_type?: string | null
+          stream_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_deleted?: boolean | null
+          is_pinned?: boolean | null
+          message?: string
+          message_type?: string | null
+          stream_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       topup_payment_methods: {
         Row: {
           account_name: string | null
