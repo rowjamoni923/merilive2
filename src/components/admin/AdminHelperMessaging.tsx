@@ -247,8 +247,8 @@ const AdminHelperMessaging = () => {
           message_id: selectedMessage.id,
           sender_id: user.id,
           sender_type: 'admin',
-          content: replyContent.trim()
-        });
+          reply_text: replyContent.trim()
+        } as any);
 
       if (error) throw error;
 

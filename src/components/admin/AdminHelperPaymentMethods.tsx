@@ -267,7 +267,7 @@ export default function AdminHelperPaymentMethods() {
     } else {
       const { error: insertError } = await supabase
         .from('helper_country_payment_methods')
-        .insert(payload);
+        .insert(payload as any);
       error = insertError;
     }
 

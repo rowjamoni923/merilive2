@@ -79,7 +79,7 @@ export default function DeviceApprovalSection() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setDevices(data || []);
+      setDevices((data || []) as unknown as DeviceRecord[]);
     } catch (error) {
       console.error('Error fetching devices:', error);
       toast.error('Failed to load devices');

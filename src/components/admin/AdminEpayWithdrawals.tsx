@@ -127,10 +127,10 @@
  
        if (error) throw error;
  
-       const enrichedData = (data || []).map(w => ({
-         ...w,
-         payment_details: w.payment_details as PaymentDetails | null,
-       })) as EpayWithdrawal[];
+      const enrichedData = (data || []).map(w => ({
+          ...w,
+          payment_details: w.payment_details as PaymentDetails | null,
+        })) as unknown as EpayWithdrawal[];
  
        setWithdrawals(enrichedData);
      } catch (error) {

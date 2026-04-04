@@ -73,7 +73,7 @@ const AdminTencentBeautySettings = () => {
       for (const entry of entries) {
         const { error } = await supabase
           .from("app_settings")
-          .upsert(entry, { onConflict: "setting_key" });
+          .upsert({ setting_key: entry.setting_key, setting_value: String(entry.setting_value), description: entry.description } as any, { onConflict: "setting_key" });
         if (error) throw error;
       }
 
