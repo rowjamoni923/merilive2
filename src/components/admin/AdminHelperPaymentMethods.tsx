@@ -181,7 +181,7 @@ export default function AdminHelperPaymentMethods() {
       .order('created_at', { ascending: false });
 
     if (!methodsError && methodsData) {
-      setMethods(methodsData as HelperPaymentMethod[]);
+      setMethods(methodsData as unknown as HelperPaymentMethod[]);
     }
 
     setLoading(false);
