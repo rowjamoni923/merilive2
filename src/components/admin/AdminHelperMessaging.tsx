@@ -81,7 +81,7 @@ const AdminHelperMessaging = () => {
       .eq('payroll_enabled', true)
       .eq('is_active', true);
     
-    setHelpers((data || []) as Level5Helper[]);
+    setHelpers((data || []) as unknown as Level5Helper[]);
     setLoading(false);
   };
 
@@ -102,10 +102,10 @@ const AdminHelperMessaging = () => {
   };
 
   const loadUnreadRepliesCount = async () => {
-    const { count } = await supabase
+    const { count } = await (supabase
       .from('helper_message_replies')
       .select('*', { count: 'exact', head: true })
-      .eq('sender_type', 'helper')
+      .eq('sender_type', 'helper') as any)
       .eq('is_read', false);
     
     setUnreadRepliesCount(count || 0);
@@ -121,14 +121,14 @@ const AdminHelperMessaging = () => {
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setMessageReplies(data || []);
+      setMessageReplies((data || []) as unknown as MessageReply[]);
       
       // Mark helper replies as read
-      const unreadHelperReplies = (data || []).filter(r => r.sender_type === 'helper' && !r.is_read);
+      const unreadHelperReplies = (data || []).filter(r => r.sender_type === 'helper' && !(r as any).is_read);
       if (unreadHelperReplies.length > 0) {
         await supabase
           .from('helper_message_replies')
-          .update({ is_read: true, read_at: new Date().toISOString() })
+          .update({ is_read: true, read_at: new Date().toISOString() } as any)
           .in('id', unreadHelperReplies.map(r => r.id));
         
         loadUnreadRepliesCount();
@@ -247,8 +247,8 @@ const AdminHelperMessaging = () => {
           message_id: selectedMessage.id,
           sender_id: user.id,
           sender_type: 'admin',
-          content: replyContent.trim()
-        });
+          reply_text: replyContent.trim()
+        } as any);
 
       if (error) throw error;
 

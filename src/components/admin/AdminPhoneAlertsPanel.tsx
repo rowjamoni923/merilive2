@@ -103,9 +103,9 @@ export function AdminAlertBell() {
             return {
               id: log.id,
               userId: log.user_id,
-              detectedContent: log.detected_content || 'Phone number detected',
-              contextType: log.conversation_id ? 'chat' : log.group_id ? 'group_chat' : 'unknown',
-              timestamp: log.created_at,
+              detectedContent: (log as any).detected_content || log.original_content || 'Phone number detected',
+              contextType: (log as any).conversation_id ? 'chat' : (log as any).group_id ? 'group_chat' : 'unknown',
+              timestamp: (log as any).created_at || log.detected_at,
               violationResult: { violation_count: 1, action_taken: log.action_taken || 'warning', is_banned: log.action_taken === 'ban' },
               userProfile: userProfile || undefined,
             } as PhoneAlert;

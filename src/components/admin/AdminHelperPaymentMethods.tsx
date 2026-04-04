@@ -162,7 +162,7 @@ export default function AdminHelperPaymentMethods() {
       .eq('is_verified', true);
 
     if (!helpersError && helpers) {
-      setLevel5Helpers(helpers as Level5Helper[]);
+      setLevel5Helpers(helpers as unknown as Level5Helper[]);
     }
 
     // Fetch all payment methods
@@ -181,7 +181,7 @@ export default function AdminHelperPaymentMethods() {
       .order('created_at', { ascending: false });
 
     if (!methodsError && methodsData) {
-      setMethods(methodsData as HelperPaymentMethod[]);
+      setMethods(methodsData as unknown as HelperPaymentMethod[]);
     }
 
     setLoading(false);
@@ -267,7 +267,7 @@ export default function AdminHelperPaymentMethods() {
     } else {
       const { error: insertError } = await supabase
         .from('helper_country_payment_methods')
-        .insert(payload);
+        .insert(payload as any);
       error = insertError;
     }
 

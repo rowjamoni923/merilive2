@@ -639,7 +639,7 @@ const App = () => {
           // Hard block banned users immediately after any sign-in/session restore
           (async () => {
             try {
-              const { data: banStatus } = await supabase.rpc('check_ban_on_login', {
+              const { data: banStatus } = await (supabase.rpc as any)('check_ban_on_login', {
                 p_user_id: session.user.id,
               });
 

@@ -106,7 +106,7 @@ export const AdminAnalyticsCharts = memo(() => {
   const loadData = useCallback(async () => {
     try {
       const days = timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : 90;
-      const { data: result, error } = await supabase.rpc("get_admin_analytics_chart_data", { p_days: days });
+      const { data: result, error } = await (supabase.rpc as any)("get_admin_analytics_chart_data", { p_days: days });
       if (error) throw error;
       setData(result as unknown as AnalyticsData);
     } catch (e) {
