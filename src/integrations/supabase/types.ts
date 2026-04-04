@@ -8783,8 +8783,28 @@ export type Database = {
         Args: { _total_consumption: number }
         Returns: number
       }
+      claim_task_reward: {
+        Args: { _task_id: string; _user_id: string }
+        Returns: Json
+      }
       create_guest_profile: { Args: { _device_id: string }; Returns: Json }
+      create_sub_agent: {
+        Args: {
+          _agency_id: string
+          _commission_rate?: number
+          _name: string
+          _user_id: string
+        }
+        Returns: string
+      }
+      decline_private_call: { Args: { _call_id: string }; Returns: boolean }
+      end_private_call: { Args: { _call_id: string }; Returns: Json }
       generate_app_uid: { Args: never; Returns: string }
+      generate_sub_agent_referral_code: {
+        Args: { _agency_id: string }
+        Returns: string
+      }
+      get_admin_dashboard_stats: { Args: never; Returns: Json }
       get_agency_by_code: {
         Args: { agency_code: string }
         Returns: {
@@ -8792,6 +8812,38 @@ export type Database = {
           level: string
           name: string
           total_hosts: number
+        }[]
+      }
+      get_agency_rankings: {
+        Args: { _limit?: number; _period_type: string; _ranking_type: string }
+        Returns: {
+          agency_code: string
+          agency_id: string
+          agency_name: string
+          country_code: string
+          country_flag: string
+          metric_value: number
+          owner_avatar: string
+          rank_position: number
+          total_hosts: number
+        }[]
+      }
+      get_agency_transfer_history: {
+        Args: { _agency_id: string; _limit?: number; _offset?: number }
+        Returns: {
+          amount: number
+          call_earnings: number
+          commission_rate: number
+          created_at: string
+          gift_earnings: number
+          host_id: string
+          host_name: string
+          host_uid: string
+          id: string
+          period_end: string
+          period_start: string
+          status: string
+          transfer_type: string
         }[]
       }
       get_effective_host_percent: { Args: never; Returns: number }
@@ -8814,6 +8866,39 @@ export type Database = {
         }
         Returns: undefined
       }
+      process_weekly_agency_transfers: { Args: never; Returns: Json }
+      request_agency_withdrawal: {
+        Args: {
+          _agency_id: string
+          _amount: number
+          _payment_details?: Json
+          _payment_method?: string
+        }
+        Returns: Json
+      }
+      search_group_by_code: {
+        Args: { _code: string }
+        Returns: {
+          avatar_url: string
+          group_code: string
+          id: string
+          is_public: boolean
+          member_count: number
+          name: string
+        }[]
+      }
+      search_user_by_app_uid: {
+        Args: { _app_uid: string }
+        Returns: {
+          app_uid: string
+          avatar_url: string
+          display_name: string
+          id: string
+          is_host: boolean
+          is_online: boolean
+          user_level: number
+        }[]
+      }
       search_user_by_id: {
         Args: { _search_id: string }
         Returns: {
@@ -8826,6 +8911,14 @@ export type Database = {
           user_level: number
         }[]
       }
+      start_private_call: {
+        Args: {
+          p_call_type?: string
+          p_caller_id: string
+          p_receiver_id: string
+        }
+        Returns: Json
+      }
       transfer_coins_to_user: {
         Args: {
           _amount: number
@@ -8834,6 +8927,10 @@ export type Database = {
           _sender_id: string
         }
         Returns: boolean
+      }
+      validate_user_task_progress_claim: {
+        Args: { _task_id: string; _user_id: string }
+        Returns: Json
       }
     }
     Enums: {
