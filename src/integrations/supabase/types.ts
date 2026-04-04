@@ -8452,7 +8452,171 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      agencies_public: {
+        Row: {
+          agency_code: string | null
+          created_at: string | null
+          id: string | null
+          is_active: boolean | null
+          level: string | null
+          logo_url: string | null
+          name: string | null
+          owner_id: string | null
+          total_agents: number | null
+          total_hosts: number | null
+        }
+        Insert: {
+          agency_code?: string | null
+          created_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          level?: string | null
+          logo_url?: string | null
+          name?: string | null
+          owner_id?: string | null
+          total_agents?: number | null
+          total_hosts?: number | null
+        }
+        Update: {
+          agency_code?: string | null
+          created_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          level?: string | null
+          logo_url?: string | null
+          name?: string | null
+          owner_id?: string | null
+          total_agents?: number | null
+          total_hosts?: number | null
+        }
+        Relationships: []
+      }
+      profiles_public: {
+        Row: {
+          age: number | null
+          app_uid: string | null
+          avatar_url: string | null
+          bio: string | null
+          call_rate_per_minute: number | null
+          city: string | null
+          country_code: string | null
+          country_flag: string | null
+          country_name: string | null
+          cover_url: string | null
+          created_at: string | null
+          current_vip_tier_id: string | null
+          display_name: string | null
+          equipped_bubble_id: string | null
+          equipped_entrance_id: string | null
+          equipped_entry_banner_id: string | null
+          equipped_entry_name_bar_id: string | null
+          equipped_frame_id: string | null
+          equipped_medal_id: string | null
+          equipped_noble_card_id: string | null
+          equipped_vehicle_id: string | null
+          frame_id: string | null
+          gender: string | null
+          hide_location: boolean | null
+          host_level: number | null
+          id: string | null
+          is_blocked: boolean | null
+          is_face_verified: boolean | null
+          is_host: boolean | null
+          is_in_call: boolean | null
+          is_online: boolean | null
+          is_verified: boolean | null
+          last_seen_at: string | null
+          previous_host_level: number | null
+          region: string | null
+          tags: string[] | null
+          user_level: number | null
+          username: string | null
+          vip_expires_at: string | null
+        }
+        Insert: {
+          age?: number | null
+          app_uid?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          call_rate_per_minute?: number | null
+          city?: string | null
+          country_code?: string | null
+          country_flag?: string | null
+          country_name?: string | null
+          cover_url?: string | null
+          created_at?: string | null
+          current_vip_tier_id?: string | null
+          display_name?: string | null
+          equipped_bubble_id?: string | null
+          equipped_entrance_id?: string | null
+          equipped_entry_banner_id?: string | null
+          equipped_entry_name_bar_id?: string | null
+          equipped_frame_id?: string | null
+          equipped_medal_id?: string | null
+          equipped_noble_card_id?: string | null
+          equipped_vehicle_id?: string | null
+          frame_id?: string | null
+          gender?: string | null
+          hide_location?: boolean | null
+          host_level?: number | null
+          id?: string | null
+          is_blocked?: boolean | null
+          is_face_verified?: boolean | null
+          is_host?: boolean | null
+          is_in_call?: boolean | null
+          is_online?: boolean | null
+          is_verified?: boolean | null
+          last_seen_at?: string | null
+          previous_host_level?: number | null
+          region?: string | null
+          tags?: string[] | null
+          user_level?: number | null
+          username?: string | null
+          vip_expires_at?: string | null
+        }
+        Update: {
+          age?: number | null
+          app_uid?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          call_rate_per_minute?: number | null
+          city?: string | null
+          country_code?: string | null
+          country_flag?: string | null
+          country_name?: string | null
+          cover_url?: string | null
+          created_at?: string | null
+          current_vip_tier_id?: string | null
+          display_name?: string | null
+          equipped_bubble_id?: string | null
+          equipped_entrance_id?: string | null
+          equipped_entry_banner_id?: string | null
+          equipped_entry_name_bar_id?: string | null
+          equipped_frame_id?: string | null
+          equipped_medal_id?: string | null
+          equipped_noble_card_id?: string | null
+          equipped_vehicle_id?: string | null
+          frame_id?: string | null
+          gender?: string | null
+          hide_location?: boolean | null
+          host_level?: number | null
+          id?: string | null
+          is_blocked?: boolean | null
+          is_face_verified?: boolean | null
+          is_host?: boolean | null
+          is_in_call?: boolean | null
+          is_online?: boolean | null
+          is_verified?: boolean | null
+          last_seen_at?: string | null
+          previous_host_level?: number | null
+          region?: string | null
+          tags?: string[] | null
+          user_level?: number | null
+          username?: string | null
+          vip_expires_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
