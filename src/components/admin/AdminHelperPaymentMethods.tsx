@@ -162,7 +162,7 @@ export default function AdminHelperPaymentMethods() {
       .eq('is_verified', true);
 
     if (!helpersError && helpers) {
-      setLevel5Helpers(helpers as Level5Helper[]);
+      setLevel5Helpers(helpers as unknown as Level5Helper[]);
     }
 
     // Fetch all payment methods
