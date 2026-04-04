@@ -8619,7 +8619,153 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      _internal_add_beans: {
+        Args: { _amount: number; _user_id: string }
+        Returns: undefined
+      }
+      _internal_add_coins: {
+        Args: { _amount: number; _user_id: string }
+        Returns: undefined
+      }
+      _internal_add_diamonds:
+        | { Args: { _amount: number; _user_id: string }; Returns: undefined }
+        | { Args: { _amount: number; _user_id: string }; Returns: undefined }
+      add_beans_to_host: {
+        Args: {
+          p_beans_amount: number
+          p_host_id: string
+          p_host_level?: number
+          p_total_earnings?: number
+        }
+        Returns: undefined
+      }
+      add_beans_to_user: {
+        Args: { _amount: number; _user_id: string }
+        Returns: undefined
+      }
+      add_coins: {
+        Args: { p_amount: number; p_user_id: string }
+        Returns: Json
+      }
+      add_coins_to_user: {
+        Args: { _amount: number; _user_id: string }
+        Returns: undefined
+      }
+      add_diamonds_to_agency: {
+        Args: { _agency_id: string; _amount: number }
+        Returns: undefined
+      }
+      add_diamonds_to_user: {
+        Args: { _amount: number; _user_id: string }
+        Returns: undefined
+      }
+      add_to_helper_wallet: {
+        Args: { _amount: number; _helper_id: string }
+        Returns: undefined
+      }
+      admin_add_agency_coins: {
+        Args: { _agency_id: string; _amount: number; _note?: string }
+        Returns: boolean
+      }
+      admin_add_user_coins: {
+        Args: { _amount: number; _note?: string; _user_id: string }
+        Returns: Json
+      }
+      admin_add_violation: {
+        Args: {
+          p_admin_id: string
+          p_detected_content: string
+          p_detected_pattern: string
+          p_host_id: string
+          p_notes?: string
+          p_source_type: string
+        }
+        Returns: Json
+      }
+      admin_approve_helper: { Args: { _helper_id: string }; Returns: boolean }
+      admin_block_agency: {
+        Args: { _agency_id: string; _block: boolean; _reason?: string }
+        Returns: boolean
+      }
+      admin_block_user: {
+        Args: { _block: boolean; _reason?: string; _user_id: string }
+        Returns: boolean
+      }
+      admin_change_user_role: {
+        Args: { _new_role: string; _user_id: string }
+        Returns: boolean
+      }
+      admin_clear_frame_references: {
+        Args: { frame_id_to_clear: string }
+        Returns: undefined
+      }
+      admin_create_agency: {
+        Args: {
+          _agency_code: string
+          _commission_rate?: number
+          _level?: string
+          _name: string
+          _owner_id: string
+        }
+        Returns: string
+      }
+      admin_delete_user: { Args: { _user_id: string }; Returns: boolean }
+      calculate_user_level: {
+        Args: { _total_consumption: number }
+        Returns: number
+      }
+      create_guest_profile: { Args: { _device_id: string }; Returns: Json }
+      generate_app_uid: { Args: never; Returns: string }
+      get_agency_by_code: {
+        Args: { agency_code: string }
+        Returns: {
+          id: string
+          level: string
+          name: string
+          total_hosts: number
+        }[]
+      }
+      get_effective_host_percent: { Args: never; Returns: number }
+      has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_conversation_participant: {
+        Args: { _conversation_id: string; _user_id: string }
+        Returns: boolean
+      }
+      join_agency: {
+        Args: { _agency_code: string; _host_id: string; _joined_via?: string }
+        Returns: boolean
+      }
+      log_admin_action: {
+        Args: {
+          _action_type: string
+          _details?: Json
+          _target_id?: string
+          _target_type?: string
+        }
+        Returns: undefined
+      }
+      search_user_by_id: {
+        Args: { _search_id: string }
+        Returns: {
+          app_uid: string
+          avatar_url: string
+          display_name: string
+          id: string
+          is_host: boolean
+          is_online: boolean
+          user_level: number
+        }[]
+      }
+      transfer_coins_to_user: {
+        Args: {
+          _amount: number
+          _note?: string
+          _receiver_id: string
+          _sender_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       admin_device_status: "pending" | "approved" | "blocked"
