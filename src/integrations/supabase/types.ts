@@ -6908,6 +6908,576 @@ export type Database = {
         }
         Relationships: []
       }
+      stream_recordings: {
+        Row: {
+          channel_name: string | null
+          created_at: string | null
+          duration_seconds: number | null
+          ended_at: string | null
+          expires_at: string | null
+          file_size_bytes: number | null
+          host_id: string | null
+          host_name: string | null
+          host_uid: string | null
+          id: string
+          metadata: Json | null
+          recording_sid: string | null
+          recording_url: string | null
+          resource_id: string | null
+          started_at: string | null
+          status: string | null
+          stream_id: string | null
+          thumbnail_url: string | null
+          total_coins: number | null
+          total_gifts: number | null
+          total_viewers: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          channel_name?: string | null
+          created_at?: string | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          expires_at?: string | null
+          file_size_bytes?: number | null
+          host_id?: string | null
+          host_name?: string | null
+          host_uid?: string | null
+          id?: string
+          metadata?: Json | null
+          recording_sid?: string | null
+          recording_url?: string | null
+          resource_id?: string | null
+          started_at?: string | null
+          status?: string | null
+          stream_id?: string | null
+          thumbnail_url?: string | null
+          total_coins?: number | null
+          total_gifts?: number | null
+          total_viewers?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          channel_name?: string | null
+          created_at?: string | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          expires_at?: string | null
+          file_size_bytes?: number | null
+          host_id?: string | null
+          host_name?: string | null
+          host_uid?: string | null
+          id?: string
+          metadata?: Json | null
+          recording_sid?: string | null
+          recording_url?: string | null
+          resource_id?: string | null
+          started_at?: string | null
+          status?: string | null
+          stream_id?: string | null
+          thumbnail_url?: string | null
+          total_coins?: number | null
+          total_gifts?: number | null
+          total_viewers?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      stream_viewers: {
+        Row: {
+          id: string
+          joined_at: string | null
+          left_at: string | null
+          stream_id: string
+          viewer_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string | null
+          left_at?: string | null
+          stream_id: string
+          viewer_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string | null
+          left_at?: string | null
+          stream_id?: string
+          viewer_id?: string
+        }
+        Relationships: []
+      }
+      sub_agent_commissions: {
+        Row: {
+          commission_amount: number
+          commission_rate: number
+          created_at: string | null
+          gift_transaction_id: string | null
+          host_id: string
+          id: string
+          sub_agent_id: string
+        }
+        Insert: {
+          commission_amount: number
+          commission_rate: number
+          created_at?: string | null
+          gift_transaction_id?: string | null
+          host_id: string
+          id?: string
+          sub_agent_id: string
+        }
+        Update: {
+          commission_amount?: number
+          commission_rate?: number
+          created_at?: string | null
+          gift_transaction_id?: string | null
+          host_id?: string
+          id?: string
+          sub_agent_id?: string
+        }
+        Relationships: []
+      }
+      sub_agent_referrals: {
+        Row: {
+          commission_earned: number | null
+          created_at: string | null
+          id: string
+          referred_at: string | null
+          referred_host_id: string
+          status: string | null
+          sub_agent_id: string
+        }
+        Insert: {
+          commission_earned?: number | null
+          created_at?: string | null
+          id?: string
+          referred_at?: string | null
+          referred_host_id: string
+          status?: string | null
+          sub_agent_id: string
+        }
+        Update: {
+          commission_earned?: number | null
+          created_at?: string | null
+          id?: string
+          referred_at?: string | null
+          referred_host_id?: string
+          status?: string | null
+          sub_agent_id?: string
+        }
+        Relationships: []
+      }
+      sub_agents: {
+        Row: {
+          agency_id: string
+          commission_rate: number | null
+          created_at: string | null
+          id: string
+          joined_at: string | null
+          referral_code: string
+          referrer_id: string | null
+          status: string | null
+          total_earnings: number | null
+          total_referrals: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          agency_id: string
+          commission_rate?: number | null
+          created_at?: string | null
+          id?: string
+          joined_at?: string | null
+          referral_code: string
+          referrer_id?: string | null
+          status?: string | null
+          total_earnings?: number | null
+          total_referrals?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          agency_id?: string
+          commission_rate?: number | null
+          created_at?: string | null
+          id?: string
+          joined_at?: string | null
+          referral_code?: string
+          referrer_id?: string | null
+          status?: string | null
+          total_earnings?: number | null
+          total_referrals?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      subscription_orders: {
+        Row: {
+          admin_notes: string | null
+          amount: number
+          created_at: string
+          currency: string | null
+          customer_country: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string | null
+          id: string
+          order_number: string
+          payment_method_id: string | null
+          payment_method_name: string | null
+          payment_proof_url: string | null
+          plan_id: string | null
+          plan_name: string
+          processed_at: string | null
+          processed_by: string | null
+          status: string | null
+          transaction_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          amount: number
+          created_at?: string
+          currency?: string | null
+          customer_country: string
+          customer_email: string
+          customer_name: string
+          customer_phone?: string | null
+          id?: string
+          order_number: string
+          payment_method_id?: string | null
+          payment_method_name?: string | null
+          payment_proof_url?: string | null
+          plan_id?: string | null
+          plan_name: string
+          processed_at?: string | null
+          processed_by?: string | null
+          status?: string | null
+          transaction_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          amount?: number
+          created_at?: string
+          currency?: string | null
+          customer_country?: string
+          customer_email?: string
+          customer_name?: string
+          customer_phone?: string | null
+          id?: string
+          order_number?: string
+          payment_method_id?: string | null
+          payment_method_name?: string | null
+          payment_proof_url?: string | null
+          plan_id?: string | null
+          plan_name?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          status?: string | null
+          transaction_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      subscription_plans: {
+        Row: {
+          created_at: string
+          currency: string | null
+          description: string | null
+          display_order: number | null
+          duration_days: number | null
+          features: Json | null
+          id: string
+          is_active: boolean | null
+          is_popular: boolean | null
+          name: string
+          price: number
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          display_order?: number | null
+          duration_days?: number | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          is_popular?: boolean | null
+          name: string
+          price: number
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          display_order?: number | null
+          duration_days?: number | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          is_popular?: boolean | null
+          name?: string
+          price?: number
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      support_messages: {
+        Row: {
+          attachment_type: string | null
+          attachment_url: string | null
+          content: string
+          created_at: string
+          id: string
+          is_read: boolean
+          original_language: string | null
+          sender_id: string | null
+          sender_type: string
+          ticket_id: string
+          translated_content: string | null
+          voice_transcript: string | null
+        }
+        Insert: {
+          attachment_type?: string | null
+          attachment_url?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          original_language?: string | null
+          sender_id?: string | null
+          sender_type?: string
+          ticket_id: string
+          translated_content?: string | null
+          voice_transcript?: string | null
+        }
+        Update: {
+          attachment_type?: string | null
+          attachment_url?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          original_language?: string | null
+          sender_id?: string | null
+          sender_type?: string
+          ticket_id?: string
+          translated_content?: string | null
+          voice_transcript?: string | null
+        }
+        Relationships: []
+      }
+      support_tickets: {
+        Row: {
+          assigned_to: string | null
+          category: string
+          closed_at: string | null
+          created_at: string
+          id: string
+          priority: string
+          resolved_at: string | null
+          sender_sector: string | null
+          status: string
+          subject: string
+          ticket_number: string
+          updated_at: string
+          user_email: string | null
+          user_id: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          category?: string
+          closed_at?: string | null
+          created_at?: string
+          id?: string
+          priority?: string
+          resolved_at?: string | null
+          sender_sector?: string | null
+          status?: string
+          subject: string
+          ticket_number?: string
+          updated_at?: string
+          user_email?: string | null
+          user_id: string
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: string
+          closed_at?: string | null
+          created_at?: string
+          id?: string
+          priority?: string
+          resolved_at?: string | null
+          sender_sector?: string | null
+          status?: string
+          subject?: string
+          ticket_number?: string
+          updated_at?: string
+          user_email?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      system_error_logs: {
+        Row: {
+          browser_info: Json | null
+          component_name: string | null
+          created_at: string
+          error_message: string
+          error_stack: string | null
+          error_type: string
+          id: string
+          is_resolved: boolean | null
+          page_path: string | null
+          page_url: string | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          browser_info?: Json | null
+          component_name?: string | null
+          created_at?: string
+          error_message: string
+          error_stack?: string | null
+          error_type?: string
+          id?: string
+          is_resolved?: boolean | null
+          page_path?: string | null
+          page_url?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          browser_info?: Json | null
+          component_name?: string | null
+          created_at?: string
+          error_message?: string
+          error_stack?: string | null
+          error_type?: string
+          id?: string
+          is_resolved?: boolean | null
+          page_path?: string | null
+          page_url?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      topup_helpers: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          auto_receive_orders: boolean | null
+          buy_rate: number | null
+          commission_rate: number | null
+          contact_info: Json | null
+          country_code: string | null
+          created_at: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          is_verified: boolean | null
+          order_notification_email: string | null
+          order_notification_phone: string | null
+          payment_credentials: Json | null
+          payroll_applied_at: string | null
+          payroll_approved_at: string | null
+          payroll_approved_by: string | null
+          payroll_enabled: boolean | null
+          payroll_status: string | null
+          sell_rate: number | null
+          supported_countries: string[] | null
+          total_bought: number | null
+          total_earnings: number | null
+          total_level_upgrade_cost: number | null
+          total_sold: number | null
+          trader_level: number | null
+          updated_at: string | null
+          user_id: string
+          wallet_balance: number | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          auto_receive_orders?: boolean | null
+          buy_rate?: number | null
+          commission_rate?: number | null
+          contact_info?: Json | null
+          country_code?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          order_notification_email?: string | null
+          order_notification_phone?: string | null
+          payment_credentials?: Json | null
+          payroll_applied_at?: string | null
+          payroll_approved_at?: string | null
+          payroll_approved_by?: string | null
+          payroll_enabled?: boolean | null
+          payroll_status?: string | null
+          sell_rate?: number | null
+          supported_countries?: string[] | null
+          total_bought?: number | null
+          total_earnings?: number | null
+          total_level_upgrade_cost?: number | null
+          total_sold?: number | null
+          trader_level?: number | null
+          updated_at?: string | null
+          user_id: string
+          wallet_balance?: number | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          auto_receive_orders?: boolean | null
+          buy_rate?: number | null
+          commission_rate?: number | null
+          contact_info?: Json | null
+          country_code?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          order_notification_email?: string | null
+          order_notification_phone?: string | null
+          payment_credentials?: Json | null
+          payroll_applied_at?: string | null
+          payroll_approved_at?: string | null
+          payroll_approved_by?: string | null
+          payroll_enabled?: boolean | null
+          payroll_status?: string | null
+          sell_rate?: number | null
+          supported_countries?: string[] | null
+          total_bought?: number | null
+          total_earnings?: number | null
+          total_level_upgrade_cost?: number | null
+          total_sold?: number | null
+          trader_level?: number | null
+          updated_at?: string | null
+          user_id?: string
+          wallet_balance?: number | null
+        }
+        Relationships: []
+      }
       topup_payment_methods: {
         Row: {
           account_name: string | null
@@ -6953,6 +7523,930 @@ export type Database = {
           payment_instructions?: string | null
           payment_number?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      trader_level_purchases: {
+        Row: {
+          admin_notes: string | null
+          approved_at: string | null
+          approved_by: string | null
+          cost_usd: number
+          created_at: string | null
+          from_level: number
+          id: string
+          payment_method: string | null
+          payment_proof: string | null
+          status: string | null
+          to_level: number
+          trader_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          cost_usd: number
+          created_at?: string | null
+          from_level: number
+          id?: string
+          payment_method?: string | null
+          payment_proof?: string | null
+          status?: string | null
+          to_level: number
+          trader_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          cost_usd?: number
+          created_at?: string | null
+          from_level?: number
+          id?: string
+          payment_method?: string | null
+          payment_proof?: string | null
+          status?: string | null
+          to_level?: number
+          trader_id?: string
+        }
+        Relationships: []
+      }
+      trader_level_tiers: {
+        Row: {
+          badge_color: string | null
+          benefits: Json | null
+          commission_rate: number | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          level_name: string
+          level_number: number
+          max_withdrawal_amount: number | null
+          min_withdrawal_amount: number | null
+          updated_at: string | null
+          upgrade_cost_usd: number
+        }
+        Insert: {
+          badge_color?: string | null
+          benefits?: Json | null
+          commission_rate?: number | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          level_name: string
+          level_number: number
+          max_withdrawal_amount?: number | null
+          min_withdrawal_amount?: number | null
+          updated_at?: string | null
+          upgrade_cost_usd?: number
+        }
+        Update: {
+          badge_color?: string | null
+          benefits?: Json | null
+          commission_rate?: number | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          level_name?: string
+          level_number?: number
+          max_withdrawal_amount?: number | null
+          min_withdrawal_amount?: number | null
+          updated_at?: string | null
+          upgrade_cost_usd?: number
+        }
+        Relationships: []
+      }
+      user_beans_exchange_history: {
+        Row: {
+          beans_amount: number
+          created_at: string
+          diamonds_received: number
+          exchange_rate: number
+          id: string
+          tier_id: string | null
+          user_id: string
+        }
+        Insert: {
+          beans_amount: number
+          created_at?: string
+          diamonds_received: number
+          exchange_rate: number
+          id?: string
+          tier_id?: string | null
+          user_id: string
+        }
+        Update: {
+          beans_amount?: number
+          created_at?: string
+          diamonds_received?: number
+          exchange_rate?: number
+          id?: string
+          tier_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_beans_exchange_tiers: {
+        Row: {
+          bonus_percent: number | null
+          created_at: string
+          display_order: number | null
+          exchange_rate: number
+          id: string
+          is_active: boolean | null
+          max_beans: number | null
+          min_beans: number
+          tier_name: string
+          updated_at: string
+        }
+        Insert: {
+          bonus_percent?: number | null
+          created_at?: string
+          display_order?: number | null
+          exchange_rate: number
+          id?: string
+          is_active?: boolean | null
+          max_beans?: number | null
+          min_beans: number
+          tier_name: string
+          updated_at?: string
+        }
+        Update: {
+          bonus_percent?: number | null
+          created_at?: string
+          display_order?: number | null
+          exchange_rate?: number
+          id?: string
+          is_active?: boolean | null
+          max_beans?: number | null
+          min_beans?: number
+          tier_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_blocks: {
+        Row: {
+          blocked_id: string
+          blocker_id: string
+          created_at: string | null
+          id: string
+        }
+        Insert: {
+          blocked_id: string
+          blocker_id: string
+          created_at?: string | null
+          id?: string
+        }
+        Update: {
+          blocked_id?: string
+          blocker_id?: string
+          created_at?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
+      user_entry_banners: {
+        Row: {
+          entry_banner_id: string
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          purchased_at: string | null
+          user_id: string
+        }
+        Insert: {
+          entry_banner_id: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          purchased_at?: string | null
+          user_id: string
+        }
+        Update: {
+          entry_banner_id?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          purchased_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_invitations: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          invitation_code: string
+          invitee_id: string | null
+          inviter_id: string
+          reward_claimed: boolean | null
+          status: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          invitation_code: string
+          invitee_id?: string | null
+          inviter_id: string
+          reward_claimed?: boolean | null
+          status?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          invitation_code?: string
+          invitee_id?: string | null
+          inviter_id?: string
+          reward_claimed?: boolean | null
+          status?: string | null
+        }
+        Relationships: []
+      }
+      user_level_thresholds: {
+        Row: {
+          badge_color: string | null
+          badge_url: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          level: number
+          min_consumption: number
+          privileges: Json | null
+        }
+        Insert: {
+          badge_color?: string | null
+          badge_url?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          level: number
+          min_consumption: number
+          privileges?: Json | null
+        }
+        Update: {
+          badge_color?: string | null
+          badge_url?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          level?: number
+          min_consumption?: number
+          privileges?: Json | null
+        }
+        Relationships: []
+      }
+      user_level_tiers: {
+        Row: {
+          badge_color: string | null
+          badge_url: string | null
+          created_at: string | null
+          display_order: number | null
+          frame_url: string | null
+          id: string
+          is_active: boolean | null
+          level_name: string
+          level_number: number
+          max_consumption: number | null
+          min_consumption: number
+          privileges: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          badge_color?: string | null
+          badge_url?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          frame_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          level_name: string
+          level_number: number
+          max_consumption?: number | null
+          min_consumption?: number
+          privileges?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          badge_color?: string | null
+          badge_url?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          frame_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          level_name?: string
+          level_number?: number
+          max_consumption?: number | null
+          min_consumption?: number
+          privileges?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_login_streaks: {
+        Row: {
+          created_at: string | null
+          current_streak: number | null
+          id: string
+          last_login_date: string | null
+          longest_streak: number | null
+          total_logins: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          current_streak?: number | null
+          id?: string
+          last_login_date?: string | null
+          longest_streak?: number | null
+          total_logins?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          current_streak?: number | null
+          id?: string
+          last_login_date?: string | null
+          longest_streak?: number | null
+          total_logins?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_parcels: {
+        Row: {
+          claimed_at: string | null
+          coins_amount: number
+          created_at: string
+          expires_at: string | null
+          id: string
+          parcel_template_id: string | null
+          parcel_type: string
+          source: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          coins_amount?: number
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          parcel_template_id?: string | null
+          parcel_type?: string
+          source?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string | null
+          coins_amount?: number
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          parcel_template_id?: string | null
+          parcel_type?: string
+          source?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_purchased_backgrounds: {
+        Row: {
+          background_id: string
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          purchased_at: string
+          user_id: string
+        }
+        Insert: {
+          background_id: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          purchased_at?: string
+          user_id: string
+        }
+        Update: {
+          background_id?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          purchased_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_purchases: {
+        Row: {
+          currency_type: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          item_id: string
+          item_type: string
+          price_paid: number
+          purchased_at: string
+          user_id: string
+        }
+        Insert: {
+          currency_type?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          item_id: string
+          item_type: string
+          price_paid: number
+          purchased_at?: string
+          user_id: string
+        }
+        Update: {
+          currency_type?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          item_id?: string
+          item_type?: string
+          price_paid?: number
+          purchased_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_reports: {
+        Row: {
+          admin_notes: string | null
+          created_at: string | null
+          description: string | null
+          evidence_urls: string[] | null
+          id: string
+          reason: string
+          reported_id: string
+          reporter_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string | null
+          description?: string | null
+          evidence_urls?: string[] | null
+          id?: string
+          reason: string
+          reported_id: string
+          reporter_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string | null
+          description?: string | null
+          evidence_urls?: string[] | null
+          id?: string
+          reason?: string
+          reported_id?: string
+          reporter_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
+      user_role_frames: {
+        Row: {
+          equipped: boolean | null
+          expires_at: string | null
+          frame_id: string
+          id: string
+          purchased_at: string | null
+          user_id: string
+        }
+        Insert: {
+          equipped?: boolean | null
+          expires_at?: string | null
+          frame_id: string
+          id?: string
+          purchased_at?: string | null
+          user_id: string
+        }
+        Update: {
+          equipped?: boolean | null
+          expires_at?: string | null
+          frame_id?: string
+          id?: string
+          purchased_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          granted_at: string | null
+          granted_by: string | null
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_subscriptions: {
+        Row: {
+          auto_renew: boolean | null
+          created_at: string
+          expires_at: string
+          id: string
+          plan_id: string
+          started_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_renew?: boolean | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          plan_id: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_renew?: boolean | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          plan_id?: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_task_progress: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          current_count: number | null
+          id: string
+          is_completed: boolean | null
+          reward_claimed: boolean | null
+          task_date: string | null
+          task_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          current_count?: number | null
+          id?: string
+          is_completed?: boolean | null
+          reward_claimed?: boolean | null
+          task_date?: string | null
+          task_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          current_count?: number | null
+          id?: string
+          is_completed?: boolean | null
+          reward_claimed?: boolean | null
+          task_date?: string | null
+          task_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_vip_subscriptions: {
+        Row: {
+          amount_paid: number | null
+          auto_renew: boolean | null
+          created_at: string
+          expires_at: string
+          id: string
+          is_active: boolean | null
+          payment_method: string | null
+          started_at: string
+          updated_at: string
+          user_id: string
+          vip_tier_id: string
+        }
+        Insert: {
+          amount_paid?: number | null
+          auto_renew?: boolean | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          is_active?: boolean | null
+          payment_method?: string | null
+          started_at?: string
+          updated_at?: string
+          user_id: string
+          vip_tier_id: string
+        }
+        Update: {
+          amount_paid?: number | null
+          auto_renew?: boolean | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_active?: boolean | null
+          payment_method?: string | null
+          started_at?: string
+          updated_at?: string
+          user_id?: string
+          vip_tier_id?: string
+        }
+        Relationships: []
+      }
+      violation_penalty_tiers: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean | null
+          occurrence_number: number
+          penalty_action: string
+          penalty_duration_hours: number | null
+          violation_type: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          occurrence_number: number
+          penalty_action: string
+          penalty_duration_hours?: number | null
+          violation_type: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          occurrence_number?: number
+          penalty_action?: string
+          penalty_duration_hours?: number | null
+          violation_type?: string
+        }
+        Relationships: []
+      }
+      vip_exclusive_items: {
+        Row: {
+          created_at: string
+          discount_percent: number | null
+          id: string
+          is_active: boolean | null
+          is_free: boolean | null
+          item_id: string
+          item_type: string
+          min_vip_tier: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          discount_percent?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_free?: boolean | null
+          item_id: string
+          item_type: string
+          min_vip_tier?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          discount_percent?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_free?: boolean | null
+          item_id?: string
+          item_type?: string
+          min_vip_tier?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      vip_tiers: {
+        Row: {
+          badge_url: string | null
+          benefits: Json | null
+          created_at: string
+          display_order: number | null
+          entrance_url: string | null
+          frame_url: string | null
+          id: string
+          is_active: boolean | null
+          price_monthly: number
+          price_yearly: number | null
+          tier_level: number
+          tier_name: string
+          updated_at: string
+        }
+        Insert: {
+          badge_url?: string | null
+          benefits?: Json | null
+          created_at?: string
+          display_order?: number | null
+          entrance_url?: string | null
+          frame_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          price_monthly: number
+          price_yearly?: number | null
+          tier_level: number
+          tier_name: string
+          updated_at?: string
+        }
+        Update: {
+          badge_url?: string | null
+          benefits?: Json | null
+          created_at?: string
+          display_order?: number | null
+          entrance_url?: string | null
+          frame_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          price_monthly?: number
+          price_yearly?: number | null
+          tier_level?: number
+          tier_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      vpn_detection_logs: {
+        Row: {
+          action_taken: string | null
+          city: string | null
+          country_code: string | null
+          created_at: string
+          id: string
+          ip_address: string
+          is_vpn: boolean | null
+          isp: string | null
+          user_id: string | null
+          vpn_provider: string | null
+        }
+        Insert: {
+          action_taken?: string | null
+          city?: string | null
+          country_code?: string | null
+          created_at?: string
+          id?: string
+          ip_address: string
+          is_vpn?: boolean | null
+          isp?: string | null
+          user_id?: string | null
+          vpn_provider?: string | null
+        }
+        Update: {
+          action_taken?: string | null
+          city?: string | null
+          country_code?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string
+          is_vpn?: boolean | null
+          isp?: string | null
+          user_id?: string | null
+          vpn_provider?: string | null
+        }
+        Relationships: []
+      }
+      watchlist: {
+        Row: {
+          added_at: string
+          content_id: string
+          content_type: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          added_at?: string
+          content_id: string
+          content_type: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          added_at?: string
+          content_id?: string
+          content_type?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      welcome_bonuses: {
+        Row: {
+          bonus_amount: number
+          bonus_type: string
+          claimed: boolean | null
+          claimed_at: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          bonus_amount: number
+          bonus_type: string
+          claimed?: boolean | null
+          claimed_at?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          bonus_amount?: number
+          bonus_type?: string
+          claimed?: boolean | null
+          claimed_at?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      youtube_sources: {
+        Row: {
+          auto_fetch: boolean | null
+          category: string | null
+          channel_id: string | null
+          channel_name: string
+          channel_url: string
+          created_at: string
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          last_fetched_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          auto_fetch?: boolean | null
+          category?: string | null
+          channel_id?: string | null
+          channel_name: string
+          channel_url: string
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_fetched_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          auto_fetch?: boolean | null
+          category?: string | null
+          channel_id?: string | null
+          channel_name?: string
+          channel_url?: string
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_fetched_at?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
