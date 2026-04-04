@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Spacing -->
+    <dimen name="spacing_xs">4dp</dimen>
+    <dimen name="spacing_sm">8dp</dimen>
+    <dimen name="spacing_md">12dp</dimen>
+    <dimen name="spacing_lg">16dp</dimen>
+    <dimen name="spacing_xl">24dp</dimen>
+    <dimen name="spacing_xxl">32dp</dimen>
+
+    <!-- Corners -->
+    <dimen name="corner_sm">8dp</dimen>
+    <dimen name="corner_md">12dp</dimen>
+    <dimen name="corner_lg">16dp</dimen>
+    <dimen name="corner_xl">24dp</dimen>
+    <dimen name="corner_full">999dp</dimen>
+
+    <!-- Avatar Sizes -->
+    <dimen name="avatar_xs">28dp</dimen>
+    <dimen name="avatar_sm">36dp</dimen>
+    <dimen name="avatar_md">48dp</dimen>
+    <dimen name="avatar_lg">72dp</dimen>
+    <dimen name="avatar_xl">96dp</dimen>
+    <dimen name="avatar_profile">120dp</dimen>
+
+    <!-- Toolbar -->
+    <dimen name="toolbar_height">56dp</dimen>
+    <dimen name="bottom_nav_height">64dp</dimen>
+
+    <!-- Cards -->
+    <dimen name="card_elevation">2dp</dimen>
+    <dimen name="card_corner">12dp</dimen>
+
+    <!-- Live Stream -->
+    <dimen name="live_badge_height">24dp</dimen>
+    <dimen name="gift_item_size">72dp</dimen>
+    <dimen name="sticker_item_size">80dp</dimen>
+
+    <!-- Party Room -->
+    <dimen name="party_seat_size">80dp</dimen>
+    <dimen name="party_seat_avatar">56dp</dimen>
+
+    <!-- Bottom Sheet -->
+    <dimen name="bottom_sheet_peek">400dp</dimen>
+</resources>

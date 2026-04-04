@@ -1,0 +1,1 @@
+ALTER TABLE public.stream_recordings ALTER COLUMN expires_at SET DEFAULT (now() + INTERVAL '3 days');

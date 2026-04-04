@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="80dp" android:layout_height="100dp"
+    android:padding="4dp">
+    <!-- Empty seat indicator -->
+    <ImageView android:id="@+id/ivEmpty"
+        android:layout_width="56dp" android:layout_height="56dp"
+        android:layout_gravity="center_horizontal"
+        android:src="@drawable/ic_add_circle"
+        android:alpha="0.3" android:contentDescription="Empty Seat" />
+    <!-- Avatar -->
+    <ImageView android:id="@+id/ivAvatar"
+        android:layout_width="56dp" android:layout_height="56dp"
+        android:layout_gravity="center_horizontal"
+        android:visibility="gone" android:contentDescription="User" />
+    <!-- Muted icon -->
+    <ImageView android:id="@+id/ivMuted"
+        android:layout_width="16dp" android:layout_height="16dp"
+        android:layout_gravity="top|end"
+        android:src="@drawable/ic_mic_off"
+        android:visibility="gone" android:contentDescription="Muted" />
+    <!-- Speaking indicator -->
+    <View android:id="@+id/ivSpeaking"
+        android:layout_width="60dp" android:layout_height="60dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/bg_speaking_ring"
+        android:visibility="gone" />
+    <!-- Name -->
+    <TextView android:id="@+id/tvName"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:textColor="#FFFFFF" android:textSize="11sp"
+        android:maxLines="1" android:ellipsize="end"
+        android:visibility="gone" />
+</FrameLayout>

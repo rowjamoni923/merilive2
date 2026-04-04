@@ -1,0 +1,3575 @@
+import { useState, useEffect, useRef, useCallback } from "react";
+import { BeautyFilterPanel, generateBeautyCSS } from "@/components/live/BeautyFilterPanel";
+import type { BeautySettings } from "@/components/live/BeautyFilterPanel";
+import { useDeepARBeauty } from "@/hooks/useDeepARBeauty";
+import { detectAndProcessViolation } from "@/utils/contactDetection";
+import { scanImageForContactInfo } from "@/utils/imageContactDetection";
+import { NumberSharingWarningDialog, useNumberSharingWarning } from "@/components/moderation/NumberSharingWarningDialog";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+import {
+  Heart,
+  Share2,
+  X,
+  Send,
+  Phone,
+  Gift,
+  Grid3X3,
+  Users,
+  Eye,
+  Wand2,
+  Smile,
+  Sparkles,
+  RotateCcw,
+  Gamepad2,
+  Swords,
+  MessageCircle,
+  ClipboardList,
+  Gem,
+  Music,
+  LogOut,
+  WifiOff,
+  ChevronUp,
+  ChevronDown,
+  Mic,
+  MicOff,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { AnimatePresence, motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useAgoraClient } from "@/hooks/useAgoraClient";
+import { AgoraVideoPlayer } from "@/components/live/AgoraVideoPlayer";
+import { PKBattlePanel } from "@/components/live/PKBattlePanel";
+import { PKBattleRequest } from "@/components/live/PKBattleRequest";
+import { PKBattleActive } from "@/components/live/PKBattleActive";
+import { PKBattleResult } from "@/components/live/PKBattleResult";
+import { PKRandomMatchNotification } from "@/components/live/PKRandomMatchNotification";
+import { UnifiedViewerPanel } from "@/features/shared/viewers";
+import { MusicPlayerPanel } from "@/components/live/MusicPlayerPanel";
+import { useLiveStreamFilters } from "@/hooks/useLiveStreamFilters";
+import { cn } from "@/lib/utils";
+// UNIFIED ENTRY ANIMATION - Same architecture as Gift System
+import UnifiedEntryAnimation from "@/components/live/UnifiedEntryAnimation";
+import { EntryNameBarAnimation } from "@/components/live/EntryNameBarAnimation";
+import { useEntryAnimations } from "@/hooks/useEntryAnimations";
+import { RoomEndedModal } from "@/components/room/RoomEndedModal";
+import { CallButton } from "@/components/call/CallButton";
+import { CallConfirmModal } from "@/components/call/CallConfirmModal";
+import { useCall } from "@/features/call";
+import { GlobalGameOverlay, GlobalGameButton } from "@/components/games/GlobalGameOverlay";
+import { LiveGameSelector } from "@/components/games/LiveGameSelector";
+// UNIFIED GIFTING - SINGLE LINK for all sections (Live, Party, Call, Chat, Profile)
+// Change @/features/shared/gifting = Change everywhere automatically
+import { GiftPanel, GiftData, FlyingGiftAnimation, useFlyingGifts } from "@/features/shared/gifting";
+// UNIFIED Chat Overlay - ONE LINK for Live Stream + Party Room
+// Change RoomChatOverlay = Change everywhere (Live, Party Audio, Party Video, Party Game)
+import { RoomChatOverlay, type JoinNotification, type RoomChatMessage } from "@/features/shared/room";
+import { useBigoJoinNotifications, BigoJoinBannerContainer } from "@/components/live/BigoStyleJoinBanner";
+import { LevelBadge, InlineLevelBadge } from "@/components/common/LevelBadge";
+import FramedAvatar from "@/components/common/FramedAvatar";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
+import Premium3DFrame from "@/components/common/Premium3DFrame";
+import BeansIcon from "@/components/common/BeansIcon";
+import { PremiumViewerProfileCard, ViewerProfile } from "@/components/live/PremiumViewerProfileCard";
+import { useSound } from "@/hooks/useSound";
+import { useLiveStreamLifecycle } from "@/hooks/useLiveStreamLifecycle";
+import { fetchUserEntryAnimations } from "@/utils/fetchEntryAnimation";
+// Room protection - blocks back button, auto-closes on network loss
+import { useRoomProtection } from "@/hooks/useRoomProtection";
+// Task progress tracking
+import { trackTaskProgress } from "@/hooks/useTaskProgress";
+import NewHostBonusCard from "@/components/live/NewHostBonusCard";
+import LiveTasksCard from "@/components/live/LiveTasksCard";
+// TikTok-style swipe between live streams
+import { useLiveStreamSwipe } from "@/hooks/useLiveStreamSwipe";
+// Room Welcome Banner - Admin configurable
+import { RoomWelcomeBanner } from "@/components/room/RoomWelcomeBanner";
+import { useLiveFaceDetection } from "@/hooks/useLiveFaceDetection";
+import { consumePreparedHostPreviewStream } from "@/features/live/hostPreviewSession";
+import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
+import { Capacitor } from "@capacitor/core";
+import { consumePreloadedStream } from "@/services/liveStreamPreloader";
+// ChatMessage = RoomChatMessage from src/features/shared/room/types.ts
+
+interface PKBattleState {
+  isActive: boolean;
+  battleId: string | null;
+  isChallenger: boolean;
+  challengerInfo: {
+    name: string;
+    avatar: string;
+    level: number;
+    id: string;
+  } | null;
+  opponentInfo: {
+    name: string;
+    avatar: string;
+    level: number;
+    id: string;
+  } | null;
+}
+
+interface LiveEndStats {
+  duration: string;
+  audiences: number;
+  giftEarnings: number;
+  callEarnings: number;
+}
+
+const LiveStream = () => {
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const location = useLocation();
+  
+  // isHost will be verified from database, not just from location state
+  const [isHost, setIsHost] = useState(location.state?.isHost || false);
+  const numberWarning = useNumberSharingWarning();
+  const [isHostVerified, setIsHostVerified] = useState(false);
+  const [isHostMicMuted, setIsHostMicMuted] = useState(false);
+  const streamTitle = location.state?.title || "";
+  const [hostTransitionPreviewStream, setHostTransitionPreviewStream] = useState<MediaStream | null>(() => {
+    if (location.state?.isHost === true) {
+      return consumePreparedHostPreviewStream();
+    }
+    return null;
+  });
+  const hostTransitionVideoRef = useRef<HTMLVideoElement>(null);
+  const [hostInfo, setHostInfo] = useState<{
+    name: string;
+    avatar: string;
+    country: string;
+    language: string;
+    gender: string;
+    level: number;
+    id: string;
+    isVerifiedHost: boolean; // NEW: Track if streamer is a verified host (can receive calls)
+  } | null>(null);
+  
+  const [currentUser, setCurrentUser] = useState<{
+    gender: string;
+    id: string;
+    coins: number;
+    display_name?: string;
+    avatar_url?: string;
+    user_level?: number;
+    country_flag?: string;
+  } | null>(null);
+  
+  const [viewerCount, setViewerCount] = useState(0);
+  const [message, setMessage] = useState("");
+  const [showGiftPanel, setShowGiftPanel] = useState(false);
+  const [showMoreOptions, setShowMoreOptions] = useState(false);
+  // REAL DeepAR native beauty integration
+  const deepAR = useDeepARBeauty();
+  const [showBeautyPanel, setShowBeautyPanel] = useState(false);
+  const [showLiveEndSummary, setShowLiveEndSummary] = useState(false);
+  const [showCallConfirm, setShowCallConfirm] = useState(false);
+  const [userCoins, setUserCoins] = useState(0);
+  const [floatingHearts, setFloatingHearts] = useState<{ id: number; x: number }[]>([]);
+  const [streamStartTime, setStreamStartTime] = useState(Date.now());
+  const [streamData, setStreamData] = useState<any>(null);
+  const [totalBeans, setTotalBeans] = useState(0); // Total gifts/beans received
+  
+  // ✅ REAL-TIME ADMIN SETTINGS - Gift Commission from Admin Panel
+  const [adminGiftCommission, setAdminGiftCommission] = useState<number>(55);
+  
+  // PK Battle States
+  const [showPKPanel, setShowPKPanel] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [showPKRequest, setShowPKRequest] = useState(false);
+  const [incomingPKRequest, setIncomingPKRequest] = useState<{
+    battleId: string;
+    challengerName: string;
+    challengerAvatar: string;
+    challengerLevel: number;
+  } | null>(null);
+  const [pkBattleState, setPKBattleState] = useState<PKBattleState>({
+    isActive: false,
+    battleId: null,
+    isChallenger: false,
+    challengerInfo: null,
+    opponentInfo: null,
+  });
+  const [showPKResult, setShowPKResult] = useState(false);
+  const [pkResult, setPKResult] = useState<{
+    isWinner: boolean;
+    isDraw: boolean;
+    winnerName: string;
+    winnerAvatar: string;
+    winnerScore: number;
+    loserName: string;
+    loserAvatar: string;
+    loserScore: number;
+  } | null>(null);
+  
+  // Random PK Match state
+  const [randomPKRequest, setRandomPKRequest] = useState<{
+    challengerId: string;
+    challengerName: string;
+    challengerAvatar: string;
+    challengerLevel: number;
+    challengerStreamId: string;
+  } | null>(null);
+  const [showRandomPKNotification, setShowRandomPKNotification] = useState(false);
+  
+  const connectionInitiated = useRef(false);
+  const mountedRef = useRef(true);
+  const verifiedHostRef = useRef<boolean | null>(null); // Store verified host status
+  const streamEndedRef = useRef(false); // Track if stream has ended (for task progress safety)
+  
+  const [liveEndStats, setLiveEndStats] = useState<LiveEndStats>({
+    duration: "00:00:00",
+    audiences: 0,
+    giftEarnings: 0,
+    callEarnings: 0,
+  });
+  
+  // Real chat messages from database - UNIFIED type from shared/room
+  const [messages, setMessages] = useState<RoomChatMessage[]>([]);
+  
+  // Viewer list panel
+  const [showViewerList, setShowViewerList] = useState(false);
+  
+  // Recent viewer avatars for display in header
+  const [recentViewerAvatars, setRecentViewerAvatars] = useState<{id: string; app_uid?: string | null; avatar_url: string | null; name: string; user_level: number}[]>([]);
+  
+  // Music player panel
+  const [showMusicPlayer, setShowMusicPlayer] = useState(false);
+
+  const [showGamePanel, setShowGamePanel] = useState(false);
+  
+  // Flying gift animation
+  const { gifts: flyingGifts, addGift: addFlyingGift, removeGift: removeFlyingGift } = useFlyingGifts();
+  
+  // Bigo-style flying join notifications - shows one at a time, flies in from left
+  const { 
+    activeNotification: activeBigoJoin, 
+    addNotification: addBigoJoinNotification, 
+    completeNotification: completeBigoJoin 
+  } = useBigoJoinNotifications();
+  
+  // Sound hook
+  const { playSound } = useSound();
+  
+  // Call system - use unified call hook for proper call management
+  const { startCall: unifiedStartCall, isInCall } = useCall();
+  
+  // Host busy on call state - for viewer overlay
+  const [hostBusyOnCall, setHostBusyOnCall] = useState(false);
+  const [hostPhotos, setHostPhotos] = useState<string[]>([]);
+  
+  // ==================== UNIFIED ENTRY ANIMATION SYSTEM ====================
+  // Same queue-based architecture as Gift System
+  // Shows ONE animation at a time, priority: Vehicle > Entrance > NameBar
+  const { 
+    entryAnimations, 
+    nameBarAnimations,
+    addEntryAnimation, 
+    removeEntryAnimation,
+    removeNameBarAnimation,
+  } = useEntryAnimations();
+
+  // Deduplicate broadcast gift chat message vs DB stream_chat gift insert
+  const recentBroadcastGiftKeysRef = useRef<Map<string, number>>(new Map());
+
+  // Profile card states
+  const [showProfileCard, setShowProfileCard] = useState(false);
+  const [selectedProfile, setSelectedProfile] = useState<ViewerProfile | null>(null);
+
+  // Live stream lifecycle - auto end stream when host leaves app
+  const handleStreamEndCallback = async () => {
+    console.log('[LiveStream] Stream ended via lifecycle hook');
+    await leaveChannel();
+    navigate('/');
+  };
+  
+  useLiveStreamLifecycle({
+    streamId: id,
+    isHost,
+    isHostVerified,
+    onStreamEnd: handleStreamEndCallback,
+  });
+
+  // ========== AUTO-START LIVEKIT EGRESS RECORDING FOR HOST (7-day retention) ==========
+  const egressIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!isHost || !isHostVerified || !id) return;
+    
+    const startRecording = async () => {
+      try {
+        const roomName = `live_${id}`;
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+        
+        // Wait 3s for initial setup, then let the edge function handle room-ready checks
+        console.log('[LiveStream] ⏳ Waiting 3s before requesting recording...');
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        // Check if component is still mounted and stream is still active
+        if (!mountedRef.current) return;
+        
+        console.log('[LiveStream] 🎬 Requesting egress recording for room:', roomName);
+        
+        const { data, error } = await supabase.functions.invoke('livekit-egress/start-recording', {
+          body: {
+            streamId: id,
+            roomName,
+            hostId: session.user.id,
+          },
+        });
+        
+        if (error) {
+          console.warn('[LiveStream] ⚠️ Egress recording failed (non-blocking):', error);
+          return;
+        }
+        
+        if (data?.success && data?.egressId) {
+          egressIdRef.current = data.egressId;
+          console.log('[LiveStream] ✅ Egress recording started:', data.egressId);
+        } else {
+          console.log('[LiveStream] ℹ️ Recording skipped or not ready:', data?.error || 'unknown');
+        }
+      } catch (error) {
+        // Silent fail - recording is non-critical
+        console.warn('[LiveStream] Recording error (non-blocking):', error);
+      }
+    };
+    
+    startRecording();
+    
+    return () => {
+      if (egressIdRef.current) {
+        const egressId = egressIdRef.current;
+        
+        supabase.functions.invoke('livekit-egress/stop-recording', {
+          body: { egressId, streamId: id },
+        }).catch(e => console.error('[LiveStream] Failed to stop egress:', e));
+        
+        egressIdRef.current = null;
+      }
+    };
+  }, [isHost, isHostVerified, id]);
+
+  // ========== PERIODIC LIVE MINUTES TRACKER (every 60 seconds) ==========
+  const lastTrackedMinuteRef = useRef(0);
+  useEffect(() => {
+    // Only track when stream is ACTIVELY live (not after ending)
+    if (!isHost || !isHostVerified || !id || !streamData || showLiveEndSummary) return;
+    
+    // Reset tracking state for this stream session
+    lastTrackedMinuteRef.current = 0;
+    streamEndedRef.current = false; // Reset on new stream
+
+    const trackNow = async () => {
+      // ⛔ BULLETPROOF: Use ref to check if stream ended (avoids stale closure)
+      if (streamEndedRef.current) {
+        console.log('[LiveStream] ⛔ Stream ended - skipping task tracking');
+        return;
+      }
+      
+      const elapsedMinutes = Math.floor((Date.now() - streamStartTime) / 60000);
+      const minutesSinceLastTrack = elapsedMinutes - lastTrackedMinuteRef.current;
+      if (minutesSinceLastTrack > 0) {
+        // Final safety check before actually tracking
+        if (streamEndedRef.current) return;
+        
+        trackTaskProgress('live_minutes', { increment: minutesSinceLastTrack });
+        lastTrackedMinuteRef.current = elapsedMinutes;
+        console.log('[LiveStream] Tracked live minutes increment:', minutesSinceLastTrack, 'total this session:', elapsedMinutes);
+      }
+    };
+
+    trackNow();
+
+    const interval = setInterval(trackNow, 60000);
+
+    return () => {
+      clearInterval(interval);
+      console.log('[LiveStream] 🛑 Live minutes tracker stopped');
+    };
+  }, [isHost, isHostVerified, id, streamData, showLiveEndSummary]);
+
+  // Room protection - blocks back button, auto-closes on network loss
+  useRoomProtection({
+    roomType: 'live',
+    enabled: true,
+    onNetworkClose: async () => {
+      console.log('[LiveStream] Network lost - closing stream');
+      streamEndedRef.current = true; // Stop task tracking on network loss
+      if (isHost && id) {
+        // Mark stream as inactive
+        await supabase
+          .from('live_streams')
+          .update({ is_active: false, ended_at: new Date().toISOString() })
+          .eq('id', id);
+      }
+      await leaveChannel();
+    },
+  });
+
+  // TikTok-style swipe navigation between live streams
+  const {
+    hasNext,
+    hasPrevious,
+    handleTouchStart: swipeTouchStart,
+    handleTouchEnd: swipeTouchEnd,
+    currentIndex: streamIndex,
+    totalStreams,
+  } = useLiveStreamSwipe(id);
+
+  // ===== HORIZONTAL SWIPE: Hide/Show UI overlay (Chamet-style full-screen toggle) =====
+  const [isUIHidden, setIsUIHidden] = useState(false);
+  const hSwipeStartX = useRef(0);
+  const hSwipeStartY = useRef(0);
+
+  const handleCombinedTouchStart = useCallback((e: React.TouchEvent) => {
+    hSwipeStartX.current = e.touches[0].clientX;
+    hSwipeStartY.current = e.touches[0].clientY;
+    swipeTouchStart(e);
+  }, [swipeTouchStart]);
+
+  const handleCombinedTouchEnd = useCallback((e: React.TouchEvent) => {
+    const endX = e.changedTouches[0].clientX;
+    const endY = e.changedTouches[0].clientY;
+    const deltaX = endX - hSwipeStartX.current;
+    const deltaY = endY - hSwipeStartY.current;
+
+    // Only trigger horizontal swipe if horizontal movement > vertical and > 60px threshold
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 60) {
+      if (deltaX > 0) {
+        // Swipe right → hide UI
+        setIsUIHidden(true);
+      } else {
+        // Swipe left → show UI
+        setIsUIHidden(false);
+      }
+      return; // Don't trigger vertical swipe
+    }
+
+    swipeTouchEnd(e);
+  }, [swipeTouchEnd]);
+
+  const {
+    filterState,
+    setBeautyEnabled,
+    setBeautySettings,
+    updateFilter,
+    setActiveSticker,
+    generateFilterCSS: generateSyncedFilterCSS,
+  } = useLiveStreamFilters(id, isHost);
+
+  // Agora client
+  const {
+    isInitialized,
+    isJoined,
+    isLoading,
+    connectionState,
+    localVideoTrack,
+    remoteUsers,
+    error: agoraError,
+    isRemoteAudioMuted,
+    joinChannel,
+    leaveChannel,
+    getBeautyFilterCSS,
+    switchCamera,
+    toggleRemoteAudio,
+    toggleAudio,
+    retrySubscription,
+  } = useAgoraClient({
+    onUserJoined: (uid) => {
+      console.log('👤 Viewer joined (Agora RTC):', uid);
+    },
+    onUserLeft: (uid) => {
+      console.log('👋 Viewer left (Agora RTC):', uid);
+    },
+    onError: (error) => {
+      console.error('❌ Agora error:', error);
+    },
+  });
+
+  // ========== FACE DETECTION FOR HOST ==========
+  const faceDetection = useLiveFaceDetection({
+    localVideoTrack,
+    streamId: id || null,
+    userId: currentUser?.id || null,
+    isHost,
+    isStreaming: isJoined,
+    streamStartTimeMs: streamStartTime,
+    onAutoClose: () => {
+      console.log('[FaceDetection] Auto-closing stream due to face absence');
+      handleEndStream();
+    },
+  });
+
+  // Fetch current user and stream data from database - VERIFY host status
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!mountedRef.current) return;
+      
+      // PARALLEL: Fetch user auth + stream data simultaneously for instant load
+      const { getCachedUser } = await import('@/utils/cachedAuth');
+      
+      // Start BOTH fetches in parallel - don't wait for auth before fetching stream
+      const userPromise = getCachedUser();
+      const streamPromise = id ? supabase
+        .from("live_streams")
+        .select(`
+          *,
+          profiles!live_streams_host_id_fkey (
+            id, display_name, avatar_url, gender, user_level,
+            country_flag, country_name, pending_earnings, beans, is_host
+          )
+        `)
+        .eq("id", id)
+        .single() : null;
+      
+      const [cachedUser, streamResult] = await Promise.all([userPromise, streamPromise]);
+      let currentUserId: string | null = null;
+      
+      // Process stream data first to determine host
+      const stream = id && streamResult ? streamResult.data : null;
+      
+      if (cachedUser) {
+        currentUserId = cachedUser.id;
+        setCurrentUserId(cachedUser.id);
+      }
+      
+      // PARALLEL BATCH: user profile + session gifts + self profile (all independent)
+      const isActualHost = currentUserId !== null && stream?.host_id === currentUserId;
+      
+      const [userProfileRes, sessionGiftsRes, selfProfileRes] = await Promise.all([
+        // User profile
+        cachedUser ? supabase.from("profiles").select("id, gender, coins, display_name, avatar_url, user_level, country_flag").eq("id", cachedUser.id).single() : Promise.resolve({ data: null }),
+        // Session gifts
+        stream && id ? supabase.from("gift_transactions").select("coin_amount").eq("stream_id", id).eq("receiver_id", stream.host_id) : Promise.resolve({ data: null }),
+        // Self profile for viewer join notification
+        !isActualHost && currentUserId ? supabase.from("profiles").select("display_name, avatar_url, user_level, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id").eq("id", currentUserId).single() : Promise.resolve({ data: null }),
+      ]);
+      
+      // Process user profile
+      if (userProfileRes.data && mountedRef.current) {
+        const profile = userProfileRes.data;
+        setCurrentUser({
+          gender: profile.gender || "male",
+          id: cachedUser!.id,
+          coins: profile.coins || 0,
+          display_name: profile.display_name,
+          avatar_url: profile.avatar_url,
+          user_level: profile.user_level || 1,
+          country_flag: profile.country_flag,
+        });
+        setUserCoins(profile.coins || 0);
+      }
+      
+      // Process stream data
+      if (stream && mountedRef.current) {
+        setStreamData(stream);
+        setStreamStartTime(new Date(stream.started_at || stream.created_at).getTime());
+        setViewerCount(stream.viewer_count || 0);
+        
+        const sessionBeans = sessionGiftsRes.data?.reduce((sum: number, tx: any) => sum + (tx.coin_amount || 0), 0) || 0;
+        setTotalBeans(sessionBeans);
+        console.log('[LiveStream] Session beans calculated:', sessionBeans, 'from', sessionGiftsRes.data?.length, 'transactions');
+        
+        verifiedHostRef.current = isActualHost;
+        setIsHost(isActualHost);
+        setIsHostVerified(true);
+        console.log(`🔐 Host verification: currentUser=${currentUserId}, streamHost=${stream.host_id}, isHost=${isActualHost}`);
+        
+        if (stream.profiles) {
+          setHostInfo({
+            name: stream.profiles.display_name || "Host",
+            avatar: stream.profiles.avatar_url || "",
+            country: stream.profiles.country_flag || "🌍",
+            language: "English",
+            gender: stream.profiles.gender || "female",
+            level: stream.profiles.user_level || 1,
+            id: stream.profiles.id,
+            isVerifiedHost: stream.profiles.is_host === true,
+          });
+        }
+        
+        // If viewer, add to stream_viewers and show join notification
+        if (!isActualHost && currentUserId) {
+          const selfProfile = selfProfileRes.data;
+
+          // ⚡ INSTANT: Optimistically increment viewer count BEFORE DB write
+          setViewerCount(prev => prev + 1);
+
+          // Reliable join write (no silent fail)
+          void supabase
+            .from("stream_viewers")
+            .upsert(
+              {
+                stream_id: id!,
+                viewer_id: currentUserId,
+                joined_at: new Date().toISOString(),
+                left_at: null,
+              },
+              { onConflict: "stream_id,viewer_id" }
+            )
+            .then(async ({ error }) => {
+              if (error) {
+                console.error('[LiveStream] ❌ Viewer join upsert failed:', error);
+                // Revert optimistic update on failure
+                setViewerCount(prev => Math.max(0, prev - 1));
+                return;
+              }
+
+              console.log('[LiveStream] Viewer joined:', currentUserId);
+
+              // Sync accurate count from DB in background (non-blocking)
+              const { count } = await supabase
+                .from("stream_viewers")
+                .select("*", { count: "exact", head: true })
+                .eq("stream_id", id!)
+                .is("left_at", null);
+
+              if (mountedRef.current && typeof count === 'number') {
+                setViewerCount(count);
+              }
+            });
+          
+          // Show self-join notification (viewer sees their own entry)
+          if (selfProfile) {
+            const userName = selfProfile.display_name || "User";
+            const userLevel = selfProfile.user_level || 1;
+            const avatarUrl = selfProfile.avatar_url || undefined;
+            
+            console.log('[LiveStream] 🎬 Self profile equipped_entrance_id:', selfProfile.equipped_entrance_id);
+            
+            // Delay to let the component fully mount
+            setTimeout(async () => {
+              // Add Bigo-style flying join banner
+              addBigoJoinNotification({
+                userId: currentUserId,
+                userName,
+                userAvatar: avatarUrl,
+                userLevel,
+              });
+              
+              // Also add a welcome chat message with actual user level
+              setMessages(prev => [...prev, {
+                id: `welcome_${Date.now()}`,
+                user: userName,
+                initial: userName.charAt(0),
+                message: `entered the live room ✨`,
+                color: "text-green-400",
+                userLevel,
+                userAvatar: avatarUrl,
+              }]);
+              
+              // 🎬 TRIGGER SELF ENTRY ANIMATION - Viewer sees their own entrance effect!
+              console.log('[LiveStream] 🎬 Checking self entry animation for:', userName, 'entranceId:', selfProfile.equipped_entrance_id);
+              
+              // Fetch Entry Animation URL - uses centralized function that checks ALL tables
+              const { entranceAnimationUrl, entryNameBarUrl, vehicleAnimationUrl } = await fetchUserEntryAnimations(
+                selfProfile.equipped_entrance_id,
+                selfProfile.equipped_entry_name_bar_id,
+                selfProfile.equipped_vehicle_id,
+                userLevel
+              );
+              
+              console.log('[LiveStream] 📍 Animation fetch result:', { entranceAnimationUrl, entryNameBarUrl, vehicleAnimationUrl });
+              
+              if (entranceAnimationUrl || entryNameBarUrl || vehicleAnimationUrl) {
+                console.log('[LiveStream] 🚗 Self has equipped animation:', { entranceAnimationUrl, entryNameBarUrl, vehicleAnimationUrl });
+                addEntryAnimation({
+                  userId: currentUserId,
+                  displayName: userName,
+                  avatarUrl,
+                  level: userLevel,
+                  entranceUrl: entranceAnimationUrl || undefined,
+                  entryNameBarUrl: entryNameBarUrl || undefined,
+                  vehicleAnimationUrl: vehicleAnimationUrl || undefined,
+                });
+              } else {
+                console.log('[LiveStream] ⚠️ No animation URL found for self');
+              }
+              
+              // ⚡ INSTANT BROADCAST: Tell ALL other viewers about this join immediately
+              // This fires BEFORE postgres_changes reaches other clients (sub-100ms vs 1-3s)
+              const joinBroadcastChannel = supabase.channel(`join_broadcast_${id}`);
+              joinBroadcastChannel.subscribe((status) => {
+                if (status === 'SUBSCRIBED') {
+                  joinBroadcastChannel.send({
+                    type: 'broadcast',
+                    event: 'viewer_joined',
+                    payload: {
+                      userId: currentUserId,
+                      userName,
+                      userAvatar: avatarUrl,
+                      userLevel,
+                      entranceAnimationUrl: entranceAnimationUrl || null,
+                      entryNameBarUrl: entryNameBarUrl || null,
+                      vehicleAnimationUrl: vehicleAnimationUrl || null,
+                      timestamp: Date.now(),
+                    }
+                  });
+                  console.log('[LiveStream] ⚡ INSTANT join broadcast sent for:', userName);
+                }
+              });
+            }, 500);
+          }
+        }
+      }
+    };
+    
+    fetchData();
+    
+    return () => {
+      mountedRef.current = false;
+    };
+  }, [id, addBigoJoinNotification]);
+
+  // ✅ REAL-TIME ADMIN SETTINGS - Subscribe to gift_commission changes
+  useEffect(() => {
+    const fetchGiftCommission = async () => {
+      try {
+        const { data } = await supabase
+          .from('app_settings')
+          .select('setting_value')
+          .eq('setting_key', 'gift_commission')
+          .maybeSingle();
+        
+        if (data?.setting_value) {
+          const settings = data.setting_value as any;
+          let rate = 55;
+          if (settings.host_percent !== undefined) {
+            rate = settings.host_percent;
+          } else if (settings.company_percent !== undefined) {
+            rate = 100 - settings.company_percent;
+          }
+          console.log('[LiveStream] ✅ Gift commission loaded:', rate);
+          setAdminGiftCommission(rate);
+        }
+      } catch (err) {
+        console.error('[LiveStream] Error fetching gift commission:', err);
+      }
+    };
+    
+    fetchGiftCommission();
+    
+    // Real-time subscription for gift_commission changes
+    const commissionChannel = supabase
+      .channel('livestream-gift-commission-realtime')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'app_settings',
+        filter: 'setting_key=eq.gift_commission'
+      }, (payload: any) => {
+        console.log('[LiveStream] ⚡ Gift commission updated in real-time:', payload.new?.setting_value);
+        if (payload.new?.setting_value) {
+          const settings = payload.new.setting_value;
+          let rate = 55;
+          if (settings.host_percent !== undefined) {
+            rate = settings.host_percent;
+          } else if (settings.company_percent !== undefined) {
+            rate = 100 - settings.company_percent;
+          }
+          setAdminGiftCommission(rate);
+        }
+      })
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(commissionChannel);
+    };
+  }, []);
+
+  // Subscribe to real-time chat messages - FIXED: Proper deduplication and race condition handling
+  useEffect(() => {
+    if (!id || !streamData?.host_id) return; // Wait for streamData to be available
+    
+    const hostId = streamData.host_id;
+    
+    // Fetch existing chat messages
+    const fetchMessages = async () => {
+      const { data: chatMessages } = await supabase
+        .from("stream_chat")
+        .select(`
+          id,
+          content,
+          created_at,
+          sender_id,
+          profiles!stream_chat_sender_id_fkey (
+            display_name,
+            user_level,
+            avatar_url,
+            country_flag,
+            created_at
+          )
+        `)
+        .eq("stream_id", id)
+        .order("created_at", { ascending: true })
+        .limit(50);
+      
+      if (chatMessages) {
+        const now = new Date();
+        setMessages(chatMessages.map((msg: any) => {
+          const userCreatedAt = msg.profiles?.created_at ? new Date(msg.profiles.created_at) : null;
+          const isNewUser = userCreatedAt ? (now.getTime() - userCreatedAt.getTime()) < 7 * 24 * 60 * 60 * 1000 : false;
+          
+          return {
+            id: msg.id,
+            user: msg.profiles?.display_name || "User",
+            initial: (msg.profiles?.display_name || "U").charAt(0),
+            message: msg.content,
+            color: "text-white",
+            userLevel: msg.profiles?.user_level || 1,
+            userAvatar: msg.profiles?.avatar_url,
+            isHost: msg.sender_id === hostId,
+            isNewUser,
+            countryFlag: msg.profiles?.country_flag,
+          };
+        }));
+      }
+    };
+    
+    fetchMessages();
+    
+    // Subscribe to new messages - with deduplication
+    const channel = supabase
+      .channel(`stream_chat_${id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "stream_chat",
+          filter: `stream_id=eq.${id}`,
+        },
+        async (payload: any) => {
+          const newMessageId = payload.new.id;
+          const senderId = payload.new.sender_id;
+          
+          // Skip if this is our own message (optimistic update already added it)
+          if (senderId === currentUserId) {
+            // Replace temp message with real one (update ID)
+            setMessages(prev => {
+              // Find if we have a temp message with similar content
+              const hasTempMessage = prev.some(m => 
+                m.id.startsWith('temp_') && 
+                m.message === payload.new.content
+              );
+              
+              if (hasTempMessage) {
+                // Replace temp with real
+                return prev.map(m => 
+                  m.id.startsWith('temp_') && m.message === payload.new.content
+                    ? { ...m, id: newMessageId }
+                    : m
+                );
+              }
+              
+              // Check for duplicates
+              if (prev.some(m => m.id === newMessageId)) {
+                return prev; // Already exists
+              }
+              
+              return prev; // Our message, already added optimistically
+            });
+            return;
+          }
+          
+          // Check for duplicates before adding
+          setMessages(prev => {
+            if (prev.some(m => m.id === newMessageId)) {
+              return prev; // Already exists, skip
+            }
+            
+            return prev; // Will be added below after fetching sender info
+          });
+          
+          // Fetch sender info with all needed fields
+          const { data: sender } = await supabase
+            .from("profiles")
+            .select("display_name, user_level, avatar_url, country_flag, created_at")
+            .eq("id", senderId)
+            .single();
+          
+          const now = new Date();
+          const userCreatedAt = sender?.created_at ? new Date(sender.created_at) : null;
+          const isNewUser = userCreatedAt ? (now.getTime() - userCreatedAt.getTime()) < 7 * 24 * 60 * 60 * 1000 : false;
+          
+          // Add new message with deduplication check
+          setMessages(prev => {
+            // Final duplicate check
+            if (prev.some(m => m.id === newMessageId)) {
+              return prev;
+            }
+            
+            return [...prev, {
+              id: newMessageId,
+              user: sender?.display_name || "User",
+              initial: (sender?.display_name || "U").charAt(0),
+              message: payload.new.content,
+              color: "text-white",
+              userLevel: sender?.user_level || 1,
+              userAvatar: sender?.avatar_url,
+              isHost: senderId === hostId,
+              isNewUser,
+              countryFlag: sender?.country_flag,
+            }];
+          });
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id, streamData?.host_id, currentUserId]);
+
+  // Subscribe to real-time gift transactions for THIS session's bean count
+  // IMPORTANT: Only shows gifts received during THIS live session, NOT profile total
+  useEffect(() => {
+    if (!streamData?.host_id || !id) return;
+    
+    const channel = supabase
+      .channel(`session_beans_${id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "gift_transactions",
+        },
+        (payload: any) => {
+          // Only count gifts for THIS stream session
+          if (payload.new?.stream_id === id && payload.new?.receiver_id === streamData.host_id) {
+            const giftAmount = payload.new?.coin_amount || 0;
+            setTotalBeans(prev => prev + giftAmount);
+            console.log('[LiveStream] Session beans updated +', giftAmount);
+          }
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [streamData?.host_id, id]);
+
+  // ========== INSTANT GIFT BROADCAST RECEIVER ==========
+  // Uses Supabase broadcast (not postgres_changes) for sub-100ms delivery
+  // This replaces the slow DB-based realtime subscription for gift animations
+  useEffect(() => {
+    if (!id || !currentUserId) return;
+    
+    const broadcastChannel = supabase
+      .channel(`gift_broadcast_${id}`)
+      .on('broadcast', { event: 'gift_sent' }, (payload: any) => {
+        const data = payload.payload;
+        if (!data || !mountedRef.current) return;
+        
+        // Skip own gifts (already shown via optimistic UI)
+        if (data.senderId === currentUserId) return;
+        
+        console.log('[LiveStream] ⚡ INSTANT gift broadcast received:', data.giftName, 'from', data.senderName);
+        
+        // 1. INSTANT flying gift animation
+        addFlyingGift({
+          senderName: data.senderName || "User",
+          senderAvatar: data.senderAvatar || undefined,
+          giftName: data.giftName,
+          giftIcon: data.giftIcon || "🎁",
+          giftImageUrl: data.giftIconUrl || undefined,
+          animationUrl: data.giftAnimationUrl || data.giftIconUrl || undefined,
+          giftColor: "bg-pink-500/50",
+          count: data.count || 1,
+          coins: data.giftCoins || 0,
+        });
+        
+        // 2. INSTANT beans counter update for host
+        if (isHost) {
+          const giftAmount = (data.giftCoins || 0) * (data.count || 1);
+          setTotalBeans(prev => prev + giftAmount);
+          
+          // Track first gift received for task progress
+          trackTaskProgress('first_gift');
+        }
+        
+        // 3. INSTANT chat message
+        const giftChatMessage = `[GIFT:${data.giftIconUrl || ''}] sent ${data.giftName} x${data.count || 1}`;
+        const tempGiftMsgId = `broadcast_gift_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+        setMessages(prev => [...prev, {
+          id: tempGiftMsgId,
+          user: data.senderName || "User",
+          initial: (data.senderName || "U").charAt(0),
+          message: giftChatMessage,
+          color: "text-pink-400",
+          userLevel: data.senderLevel || 1,
+          userAvatar: data.senderAvatar,
+          isHost: false,
+          isNewUser: false,
+          giftIconUrl: data.giftIconUrl || undefined,
+        }]);
+        
+        // Play gift sound
+        playSound('gift');
+      })
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(broadcastChannel);
+    };
+  }, [id, currentUserId, addFlyingGift, playSound, isHost]);
+
+  // ========== INSTANT JOIN BROADCAST RECEIVER ==========
+  // Uses Supabase broadcast for sub-100ms delivery of viewer join events
+  // This fires BEFORE postgres_changes (1-3s) reaches this client
+  useEffect(() => {
+    if (!id || !currentUserId) return;
+    
+    // Track which joins we've already processed via broadcast to deduplicate with postgres_changes
+    const processedBroadcastJoins = new Set<string>();
+    
+    const joinBroadcastChannel = supabase
+      .channel(`join_broadcast_${id}`)
+      .on('broadcast', { event: 'viewer_joined' }, async (payload: any) => {
+        const data = payload.payload;
+        if (!data || !mountedRef.current) return;
+        
+        // Skip own join (already shown via optimistic UI)
+        if (data.userId === currentUserId) return;
+        
+        // Deduplicate
+        const joinKey = `${data.userId}_${Math.floor(data.timestamp / 5000)}`;
+        if (processedBroadcastJoins.has(joinKey)) return;
+        processedBroadcastJoins.add(joinKey);
+        
+        console.log('[LiveStream] ⚡ INSTANT join broadcast received:', data.userName);
+        
+        // 1. INSTANT viewer count increment
+        setViewerCount(prev => prev + 1);
+        
+        // 2. INSTANT flying join banner
+        addBigoJoinNotification({
+          userId: data.userId,
+          userName: data.userName,
+          userAvatar: data.userAvatar,
+          userLevel: data.userLevel,
+        });
+        
+        // 3. INSTANT chat message
+        setMessages(prev => {
+          const hasJoinMessage = prev.some(m => m.id.includes(`join_${data.userId}`) && Date.now() - parseInt(m.id.split('_')[1] || '0') < 5000);
+          if (hasJoinMessage) return prev;
+          
+          return [...prev, {
+            id: `join_${data.userId}_${Date.now()}`,
+            user: data.userName,
+            initial: data.userName.charAt(0),
+            message: "entered the live room 🎉",
+            color: "text-green-400",
+            userLevel: data.userLevel,
+          }];
+        });
+        
+        // 4. INSTANT entry animation (data already fetched by sender)
+        if ((data.entranceAnimationUrl || data.entryNameBarUrl || data.vehicleAnimationUrl) && mountedRef.current) {
+          addEntryAnimation({
+            userId: data.userId,
+            displayName: data.userName,
+            avatarUrl: data.userAvatar,
+            level: data.userLevel,
+            entranceUrl: data.entranceAnimationUrl || undefined,
+            entryNameBarUrl: data.entryNameBarUrl || undefined,
+            vehicleAnimationUrl: data.vehicleAnimationUrl || undefined,
+          });
+        }
+        
+        // 5. Refresh viewer avatars in background (inline fetch)
+      })
+      .subscribe();
+    
+    // Store the processed set on window for the postgres_changes handler to check
+    (window as any).__broadcastJoins = processedBroadcastJoins;
+    
+    return () => {
+      supabase.removeChannel(joinBroadcastChannel);
+      delete (window as any).__broadcastJoins;
+    };
+  }, [id, currentUserId, addBigoJoinNotification, addEntryAnimation]);
+
+  // This ensures no gifts are missed if broadcast fails
+  useEffect(() => {
+    if (!id) return;
+    
+    const giftChannel = supabase
+      .channel(`stream_gift_fallback_${id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "gift_transactions",
+        },
+        async (payload: any) => {
+          // Only process gifts for THIS stream
+          if (payload.new?.stream_id !== id) return;
+          
+          // Skip own gifts
+          if (payload.new?.sender_id === currentUserId) return;
+          
+          // The broadcast channel handles instant display
+          // This fallback only updates beans counter if broadcast was missed
+          if (isHost && payload.new?.receiver_id === streamData?.host_id) {
+            // Beans are already updated via broadcast, but sync with DB value
+            const { data: freshStream } = await supabase
+              .from("gift_transactions")
+              .select("coin_amount")
+              .eq("stream_id", id)
+              .eq("receiver_id", streamData.host_id);
+            
+            if (freshStream) {
+              const totalFromDb = freshStream.reduce((sum: number, tx: any) => sum + (tx.coin_amount || 0), 0);
+              setTotalBeans(totalFromDb);
+            }
+          }
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(giftChannel);
+    };
+  }, [id, streamData?.host_id, currentUserId, isHost]);
+
+  // State for stream ended modal (for viewers)
+  const [showStreamEndedModal, setShowStreamEndedModal] = useState(false);
+  const [streamEndedBy, setStreamEndedBy] = useState<string>("");
+
+  // Subscribe to viewer_count and stream status updates from live_streams table (real-time)
+  // DUAL: Broadcast (instant) + postgres_changes (reliable fallback)
+  useEffect(() => {
+    if (!id) return;
+    
+    // ⚡ METHOD 1: Broadcast channel for INSTANT stream close (sub-100ms)
+    const broadcastCloseChannel = supabase
+      .channel(`live-stream-close-${id}`)
+      .on('broadcast', { event: 'stream_closed' }, (payload) => {
+        if (!isHost) {
+          console.log('[LiveStream] ⚡ INSTANT stream_closed broadcast received!');
+          setStreamEndedBy(payload.payload?.hostName || hostInfo?.name || "Host");
+          setShowStreamEndedModal(true);
+          setTimeout(async () => {
+            await leaveChannel();
+            navigate('/');
+          }, 3000);
+        }
+      })
+      .subscribe();
+
+    // 🔵 METHOD 2: postgres_changes (reliable fallback)
+    const streamCountChannel = supabase
+      .channel(`stream_viewer_count_${id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "live_streams",
+        },
+        async (payload: any) => {
+          const changedStreamId = payload.new?.id ?? payload.old?.id;
+          if (changedStreamId !== id) return;
+
+          // viewer_count from live_streams is not used as source-of-truth here
+          // Source-of-truth is active rows in stream_viewers (see fetchRecentViewers)
+
+          
+          // CRITICAL: Check if stream was ended by host (viewers need to be notified)
+          if (payload.new?.is_active === false && !isHost && !showStreamEndedModal) {
+            console.log('[LiveStream] 🔵 DB fallback: Stream ended by host');
+            setStreamEndedBy(hostInfo?.name || "Host");
+            setShowStreamEndedModal(true);
+            
+            // Auto-close after 3 seconds
+            setTimeout(async () => {
+              await leaveChannel();
+              navigate('/');
+            }, 3000);
+          }
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(broadcastCloseChannel);
+      supabase.removeChannel(streamCountChannel);
+    };
+  }, [id, isHost, hostInfo?.name, leaveChannel, navigate, showStreamEndedModal]);
+
+  // VIEWER: Periodic stale stream detection (every 30s)
+  // If host crashed/exited and heartbeat stopped, server marks stream inactive
+  useEffect(() => {
+    if (!id || isHost) return;
+
+    const checkStaleStream = async () => {
+      try {
+        // Trigger server-side cleanup of stale streams (heartbeat > 60s ago)
+        await supabase.rpc('cleanup_stale_live_streams');
+        
+        // Check if this stream is still active
+        const { data } = await supabase
+          .from('live_streams')
+          .select('is_active')
+          .eq('id', id)
+          .single();
+        
+        if (data && !data.is_active) {
+          console.log('[LiveStream] Stream detected as stale/ended by heartbeat check');
+          setStreamEndedBy(hostInfo?.name || "Host");
+          setShowStreamEndedModal(true);
+          setTimeout(async () => {
+            await leaveChannel();
+            navigate('/');
+          }, 3000);
+        }
+      } catch (e) {
+        console.error('[LiveStream] Stale check error:', e);
+      }
+    };
+
+    const interval = setInterval(checkStaleStream, 30000);
+    return () => clearInterval(interval);
+  }, [id, isHost, hostInfo?.name, leaveChannel, navigate]);
+
+  // ========== VIEWER: Detect host busy on call ==========
+  // Source of truth = active private_calls (prevents stale is_in_call false positives)
+  useEffect(() => {
+    if (!id || isHost || !hostInfo?.id) return;
+
+    // Fetch host photos from verification submissions
+    const fetchHostPhotos = async () => {
+      try {
+        const { data } = await supabase
+          .from('face_verification_submissions' as any)
+          .select('host_photos')
+          .eq('user_id', hostInfo!.id)
+          .eq('status', 'approved')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        const photos = (data as any)?.host_photos;
+        if (photos && Array.isArray(photos) && photos.length > 0) {
+          setHostPhotos(photos);
+        }
+      } catch {
+        // silent fallback
+      }
+    };
+
+    const refreshHostBusyStatus = async () => {
+      const { data: activeCall } = await supabase
+        .from('private_calls')
+        .select('id')
+        .eq('host_id', hostInfo.id)
+        .in('status', ['pending', 'ringing', 'connected'])
+        .is('ended_at', null)
+        .limit(1)
+        .maybeSingle();
+
+      setHostBusyOnCall(!!activeCall);
+    };
+
+    fetchHostPhotos();
+    refreshHostBusyStatus();
+
+    const hostCallChannel = supabase
+      .channel(`host-call-status-${hostInfo.id}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'private_calls',
+        filter: `host_id=eq.${hostInfo.id}`,
+      }, () => {
+        refreshHostBusyStatus();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(hostCallChannel);
+    };
+  }, [id, isHost, hostInfo?.id]);
+
+  // Subscribe to stream viewers for entrance animation - Host MUST see viewer entries
+  useEffect(() => {
+    if (!id) return;
+    
+    const viewerChannel = supabase
+      .channel(`stream_viewers_entrance_${id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*", // Listen to INSERT AND UPDATE (for UPSERT returning viewers)
+          schema: "public",
+          table: "stream_viewers",
+        },
+        async (payload: any) => {
+          const changedStreamId = payload.new?.stream_id ?? payload.old?.stream_id;
+          if (changedStreamId !== id) return;
+
+          // Check if this is a returning viewer (UPDATE with left_at becoming null)
+          const isReturningViewer = payload.eventType === 'UPDATE' && 
+            payload.old?.left_at !== null && 
+            payload.new?.left_at === null;
+          
+          const isNewViewer = payload.eventType === 'INSERT';
+          
+          // Only process if this is a new viewer or returning viewer
+          if (!isNewViewer && !isReturningViewer) return;
+          
+          // Don't show animation for self
+          if (payload.new?.viewer_id === currentUserId) return;
+          
+          console.log('[LiveStream] Viewer joined/returned:', payload.new.viewer_id, isReturningViewer ? '(returning)' : '(new)');
+          
+          // Fetch viewer profile with entry effect info
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("display_name, avatar_url, user_level, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id")
+            .eq("id", payload.new.viewer_id)
+            .single();
+          
+          if (profile && mountedRef.current) {
+            const userName = profile.display_name || "User";
+            const userLevel = profile.user_level || 1;
+            const avatarUrl = profile.avatar_url || undefined;
+            
+            console.log('[LiveStream] 👤 Viewer entry details:', {
+              userName,
+              userLevel,
+              hasEntranceId: !!profile.equipped_entrance_id,
+              hasNameBarId: !!profile.equipped_entry_name_bar_id,
+              hasVehicleId: !!profile.equipped_vehicle_id
+            });
+            
+            // Fetch Entry Animation URLs - uses centralized function that checks ALL tables
+            // This returns entranceAnimationUrl, entryNameBarUrl, AND vehicleAnimationUrl
+            const { entranceAnimationUrl, entryNameBarUrl, vehicleAnimationUrl } = await fetchUserEntryAnimations(
+              profile.equipped_entrance_id,
+              profile.equipped_entry_name_bar_id,
+              profile.equipped_vehicle_id,
+              userLevel
+            );
+            
+            console.log('[LiveStream] 📍 Animation lookup result:', {
+              entranceUrl: entranceAnimationUrl || 'not found',
+              nameBarUrl: entryNameBarUrl || 'not found',
+              vehicleUrl: vehicleAnimationUrl || 'not found'
+            });
+            
+            // ==================== UNIFIED ENTRY ANIMATION (LIKE GIFTS) ====================
+            // Single animation, priority-based: Vehicle > Entrance > NameBar
+            if ((entranceAnimationUrl || entryNameBarUrl || vehicleAnimationUrl) && mountedRef.current) {
+              console.log('[LiveStream] 🎬 Using UNIFIED entry animation system for:', userName);
+              
+              addEntryAnimation({
+                userId: payload.new.viewer_id,
+                displayName: userName,
+                avatarUrl,
+                level: userLevel,
+                entranceUrl: entranceAnimationUrl || undefined,
+                entryNameBarUrl: entryNameBarUrl || undefined,
+                vehicleAnimationUrl: vehicleAnimationUrl || undefined,
+              });
+            }
+          }
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(viewerChannel);
+    };
+  }, [id, currentUserId]);
+
+  // Fetch recent viewer avatars for header display
+  useEffect(() => {
+    if (!id) return;
+    
+    const fetchRecentViewers = async () => {
+      const [{ data: streamViewers, error: streamViewersError }, { count, error: countError }] = await Promise.all([
+        supabase
+          .from("stream_viewers")
+          .select("viewer_id")
+          .eq("stream_id", id)
+          .is("left_at", null)
+          .order("joined_at", { ascending: false })
+          .limit(5),
+        supabase
+          .from("stream_viewers")
+          .select("*", { count: "exact", head: true })
+          .eq("stream_id", id)
+          .is("left_at", null),
+      ]);
+
+      if (streamViewersError) {
+        console.error('[LiveStream] Error fetching recent viewers:', streamViewersError);
+        return;
+      }
+
+      if (countError) {
+        console.error('[LiveStream] Error fetching viewer count:', countError);
+      }
+
+      const viewerIds = (streamViewers || [])
+        .map((sv: any) => sv.viewer_id)
+        .filter(Boolean);
+
+      const profileMap = new Map<string, any>();
+
+      if (viewerIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from("profiles")
+          .select("id, app_uid, display_name, avatar_url, user_level")
+          .in("id", viewerIds);
+
+        if (profilesError) {
+          console.error('[LiveStream] Error fetching recent viewer profiles:', profilesError);
+        }
+
+        profiles?.forEach((profile: any) => {
+          profileMap.set(profile.id, profile);
+        });
+      }
+
+      const avatars = viewerIds.map((viewerId: string) => {
+        const profile = profileMap.get(viewerId);
+
+        return {
+          id: profile?.id || viewerId,
+          app_uid: profile?.app_uid || null,
+          avatar_url: profile?.avatar_url || null,
+          name: profile?.display_name || "User",
+          user_level: profile?.user_level || 1,
+        };
+      });
+
+      if (mountedRef.current) {
+        setRecentViewerAvatars(avatars);
+
+        if (typeof count === 'number') {
+          setViewerCount(Math.max(count, avatars.length));
+        } else {
+          setViewerCount((prev) => Math.max(prev, avatars.length));
+        }
+      }
+    };
+
+    fetchRecentViewers();
+
+    // Poll fallback ensures count/avatar sync even when realtime packets are dropped
+    // ⚡ COST-OPTIMISED: 15s interval instead of 3s (saves ~80% DB reads)
+    const pollInterval = setInterval(() => {
+      void fetchRecentViewers();
+    }, 15000);
+
+    // Helper to handle viewer join (new or returning)
+    // ALL viewers (including host) see join notifications - Bigo/Chamet style
+    // DEDUP: Skip if already handled by instant broadcast
+    const handleViewerJoin = async (viewerId: string, isSelf: boolean = false) => {
+      // Check if this join was already handled by the instant broadcast channel
+      const broadcastJoins = (window as any).__broadcastJoins as Set<string> | undefined;
+      const joinKey = `${viewerId}_${Math.floor(Date.now() / 5000)}`;
+      if (broadcastJoins?.has(joinKey)) {
+        console.log('[LiveStream] Skipping postgres_changes join - already handled by broadcast:', viewerId);
+        fetchRecentViewers(); // Still refresh avatars
+        return;
+      }
+      
+      console.log('[LiveStream] Viewer join detected (fallback):', viewerId, isSelf ? '(self)' : '');
+      fetchRecentViewers();
+      
+      // Fetch viewer profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('display_name, avatar_url, user_level, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id')
+          .eq('id', viewerId)
+        .single();
+      
+      if (profile && mountedRef.current) {
+        const userName = profile.display_name || 'User';
+        const userLevel = profile.user_level || 1;
+        const avatarUrl = profile.avatar_url || undefined;
+        
+        console.log('[LiveStream] Showing flying join banner for:', userName, 'Level:', userLevel);
+        
+        // Show Flying Join Banner - Bigo style (flies in from left, stays, flies out right)
+        addBigoJoinNotification({
+          userId: viewerId,
+          userName,
+          userAvatar: avatarUrl,
+          userLevel,
+        });
+
+        // Also add join message to chat for visibility
+        setMessages(prev => {
+          // Avoid duplicate join messages
+          const hasJoinMessage = prev.some(m => m.id.includes(`join_${viewerId}`) && Date.now() - parseInt(m.id.split('_')[1] || '0') < 5000);
+          if (hasJoinMessage) return prev;
+          
+          return [...prev, {
+            id: `join_${viewerId}_${Date.now()}`,
+            user: userName,
+            initial: userName.charAt(0),
+            message: "entered the live room 🎉",
+            color: "text-green-400",
+            userLevel,
+          }];
+        });
+        
+        // Fetch Entry Animation URL - uses centralized function that checks ALL tables
+        // This ensures ALL viewers (including host and the joining user) see the animation
+        const { entranceAnimationUrl, entryNameBarUrl, vehicleAnimationUrl } = await fetchUserEntryAnimations(
+          profile.equipped_entrance_id,
+          profile.equipped_entry_name_bar_id,
+          profile.equipped_vehicle_id,
+          userLevel
+        );
+        
+        console.log('[LiveStream] 📍 Animation lookup result for', userName, ':', { 
+          entranceAnimationUrl: entranceAnimationUrl ? 'found' : 'not found',
+          entryNameBarUrl: entryNameBarUrl ? 'found' : 'not found'
+        });
+        
+        // ==================== UNIFIED ENTRY ANIMATION (LIKE GIFTS) ====================
+        if ((entranceAnimationUrl || entryNameBarUrl || vehicleAnimationUrl) && mountedRef.current) {
+          console.log('[LiveStream] 🎬 Using UNIFIED entry animation for ALL viewers:', userName);
+          
+          addEntryAnimation({
+            userId: viewerId,
+            displayName: userName,
+            avatarUrl,
+            level: userLevel,
+            entranceUrl: entranceAnimationUrl || undefined,
+            entryNameBarUrl: entryNameBarUrl || undefined,
+            vehicleAnimationUrl: vehicleAnimationUrl || undefined,
+          });
+        }
+      }
+    };
+
+    // Subscribe to viewer changes - with join notification support
+    console.log('[LiveStream] 📡 Setting up viewer realtime subscription for stream:', id);
+    
+    const channel = supabase
+      .channel(`stream_viewers_realtime_${id}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "stream_viewers" },
+        (payload: any) => {
+          if (payload.new?.stream_id !== id) return;
+
+          console.log('[LiveStream] 👤 Viewer INSERT detected:', payload.new?.viewer_id);
+
+          // ⚡ INSTANT: Optimistic increment before DB fetch
+          setViewerCount(prev => prev + 1);
+          fetchRecentViewers();
+
+          if (payload.new?.viewer_id) {
+            handleViewerJoin(payload.new.viewer_id);
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "stream_viewers" },
+        (payload: any) => {
+          if ((payload.new?.stream_id ?? payload.old?.stream_id) !== id) return;
+
+          console.log('[LiveStream] 👤 Viewer UPDATE detected:', payload.new?.viewer_id, 'left_at:', payload.new?.left_at);
+          const viewerLeft = payload.old?.left_at === null && payload.new?.left_at !== null;
+          const viewerReturned = payload.old?.left_at !== null && payload.new?.left_at === null;
+
+          // ⚡ INSTANT: Optimistic count adjustment
+          if (viewerLeft) {
+            setViewerCount(prev => Math.max(0, prev - 1));
+          } else if (viewerReturned) {
+            setViewerCount(prev => prev + 1);
+          }
+
+          fetchRecentViewers();
+
+          if (viewerLeft) {
+            console.log('[LiveStream] 👋 Viewer marked left:', payload.new?.viewer_id);
+            return;
+          }
+
+          if (viewerReturned && payload.new?.viewer_id) {
+            console.log('[LiveStream] 👤 Viewer returned:', payload.new.viewer_id);
+            handleViewerJoin(payload.new.viewer_id);
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "stream_viewers" },
+        (payload: any) => {
+          if (payload.old?.stream_id !== id) return;
+
+          console.log('[LiveStream] 👋 Viewer DELETE detected:', payload.old?.viewer_id);
+          // ⚡ INSTANT: Optimistic decrement
+          setViewerCount(prev => Math.max(0, prev - 1));
+          fetchRecentViewers();
+
+        }
+      )
+      .subscribe((status) => {
+        console.log('[LiveStream] 📡 Viewer subscription status:', status);
+      });
+
+    return () => {
+      clearInterval(pollInterval);
+      supabase.removeChannel(channel);
+    };
+  }, [id, currentUserId]);
+
+  // Listen for incoming PK requests (if this user is a host)
+  useEffect(() => {
+    if (!currentUserId || !isHost) return;
+
+    const channel = supabase
+      .channel(`pk_incoming_${currentUserId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "pk_battles",
+          filter: `opponent_id=eq.${currentUserId}`,
+        },
+        async (payload: any) => {
+          if (payload.new.status === "pending") {
+            // Fetch challenger info
+            const { data: challenger } = await supabase
+              .from("profiles")
+              .select("display_name, avatar_url, user_level")
+              .eq("id", payload.new.challenger_id)
+              .single();
+
+            if (challenger) {
+              setIncomingPKRequest({
+                battleId: payload.new.id,
+                challengerName: challenger.display_name || "Host",
+                challengerAvatar: challenger.avatar_url || "",
+                challengerLevel: challenger.user_level || 1,
+              });
+              setShowPKRequest(true);
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentUserId, isHost]);
+
+  // Listen for RANDOM PK match requests from other hosts via Broadcast
+  useEffect(() => {
+    if (!currentUserId || !isHost || !id) return;
+
+    const channel = supabase.channel("pk_random_match", {
+      config: { broadcast: { self: false } },
+    });
+
+    channel
+      .on("broadcast", { event: "random_pk_request" }, (msg) => {
+        const payload = msg.payload as any;
+        if (payload.challengerId === currentUserId) return;
+        if (pkBattleState.isActive || showPKRequest) return;
+
+        console.log("[LiveStream] ⚔️ Random PK request from:", payload.challengerName);
+        setRandomPKRequest({
+          challengerId: payload.challengerId,
+          challengerName: payload.challengerName,
+          challengerAvatar: payload.challengerAvatar,
+          challengerLevel: payload.challengerLevel,
+          challengerStreamId: payload.challengerStreamId,
+        });
+        setShowRandomPKNotification(true);
+      })
+      .on("broadcast", { event: "random_pk_matched" }, (msg) => {
+        const payload = msg.payload as any;
+        if (randomPKRequest?.challengerId === payload.challengerId) {
+          setShowRandomPKNotification(false);
+          setRandomPKRequest(null);
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentUserId, isHost, id, pkBattleState.isActive, showPKRequest]);
+
+  // Keep host preview visible while publishing starts (no second play flash)
+  useEffect(() => {
+    if (!isHost || !hostTransitionPreviewStream || !hostTransitionVideoRef.current) return;
+
+    const previewEl = hostTransitionVideoRef.current;
+    hardenVideoElementForNative(previewEl, { muted: true });
+    previewEl.srcObject = hostTransitionPreviewStream;
+
+    const playPreview = () => {
+      previewEl.play().catch(() => {});
+    };
+
+    playPreview();
+    previewEl.onloadedmetadata = playPreview;
+
+    return () => {
+      previewEl.onloadedmetadata = null;
+      if (previewEl.srcObject === hostTransitionPreviewStream) {
+        previewEl.srcObject = null;
+      }
+    };
+  }, [isHost, hostTransitionPreviewStream]);
+
+  useEffect(() => {
+    if (localVideoTrack && hostTransitionPreviewStream) {
+      setHostTransitionPreviewStream(null);
+    }
+  }, [localVideoTrack, hostTransitionPreviewStream]);
+
+  // ULTRA-FAST Channel join - Start connection IMMEDIATELY, don't wait for full verification
+  // This reduces connection time from 2-4 seconds to under 1 second
+  useEffect(() => {
+    // CRITICAL: Prevent multiple connection attempts
+    if (connectionInitiated.current) {
+      console.log('🔒 Connection already initiated, skipping...');
+      return;
+    }
+    
+    if (!id) return;
+    
+    const initialHostRole = location.state?.isHost === true;
+    
+    connectionInitiated.current = true;
+    const channelName = `live_${id}`;
+    
+    const startTime = performance.now();
+    console.log(`🚀 INSTANT JOIN: Starting as ${initialHostRole ? 'HOST' : 'VIEWER'}`);
+    
+    // 🚀 CHECK FOR PRELOADED ROOM FIRST (instant video!)
+    const preloaded = !initialHostRole ? consumePreloadedStream(id) : null;
+    
+    const preloadedVideoTrack = initialHostRole
+      ? hostTransitionPreviewStream?.getVideoTracks().find((track) => track.readyState === 'live')
+      : undefined;
+    const preloadedAudioTrack = initialHostRole
+      ? hostTransitionPreviewStream?.getAudioTracks().find((track) => track.readyState === 'live')
+      : undefined;
+
+    joinChannel({
+      channelName,
+      role: initialHostRole ? 'host' : 'audience',
+      preloadedVideoTrack,
+      preloadedAudioTrack,
+      preloadedRoom: preloaded?.room || undefined,
+    }).then(() => {
+      const elapsed = performance.now() - startTime;
+      console.log(`⚡ Connected in ${elapsed.toFixed(0)}ms${preloaded ? ' (PRELOADED!)' : ''}`);
+    }).catch(err => {
+      console.error('Join failed:', err);
+      connectionInitiated.current = false;
+    });
+
+    // Cleanup only on unmount
+    return () => {
+      console.log('🧹 Component unmounting, cleaning up...');
+      streamEndedRef.current = true; // Stop task tracking immediately on unmount
+      const wasHost = verifiedHostRef.current === true || initialHostRole;
+      if (connectionInitiated.current) {
+        leaveChannel();
+        connectionInitiated.current = false;
+        if (wasHost && id) {
+          supabase
+            .from('live_streams')
+            .update({ is_active: false, ended_at: new Date().toISOString() })
+            .eq('id', id);
+        }
+      }
+    };
+  }, [id, location.state?.isHost]); // Only depends on id and initial isHost
+
+  // Call button shows only for female hosts - visible to all viewers
+  const shouldShowCallButton = hostInfo?.isVerifiedHost && (hostInfo?.gender === "female" || hostInfo?.gender === "Female") && !isHost;
+
+  const handleLike = () => {
+    const newHeart = { id: Date.now(), x: Math.random() * 30 };
+    setFloatingHearts(prev => [...prev, newHeart]);
+    setTimeout(() => {
+      setFloatingHearts(prev => prev.filter(h => h.id !== newHeart.id));
+    }, 2000);
+  };
+
+  const handleSendMessage = async () => {
+    if (!message.trim() || !currentUserId || !id) return;
+    
+    const messageText = message.trim();
+    const tempId = `temp_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    
+    // 🔍 BLOCKING: Detect contact info BEFORE sending
+    const { detectContactInfo, maskContactContent } = await import('@/utils/contactDetection');
+    const detection = detectContactInfo(messageText);
+    
+    let contentToSend = messageText;
+    if (detection.hasViolation) {
+      contentToSend = maskContactContent(messageText, detection);
+      console.log('[ContactDetection] LiveStream BLOCKED, masked:', contentToSend);
+      
+      // Process violation (warning + bean deduction)
+      detectAndProcessViolation(currentUserId, messageText, 'live_stream', id)
+        .then(res => {
+          if (res.detected && res.violationNumber) {
+            numberWarning.showWarning(res.violationNumber, res.beansDeducted || 0, res.isBanned || false);
+          } else if (res.detected) {
+            numberWarning.showGenericWarning();
+          }
+        })
+        .catch(err => console.error('[ContactDetection] LiveStream error:', err));
+    }
+    
+    // Optimistic update - show MASKED message
+    setMessages(prev => [...prev, {
+      id: tempId,
+      user: currentUser?.display_name || "User",
+      initial: (currentUser?.display_name || "U").charAt(0),
+      message: contentToSend,
+      color: "text-white",
+      userLevel: currentUser?.user_level || 1,
+      userAvatar: currentUser?.avatar_url || undefined,
+      isHost: currentUserId === streamData?.host_id,
+      isNewUser: false,
+      countryFlag: currentUser?.country_flag || undefined,
+    }]);
+    
+    // Clear input immediately
+    setMessage("");
+    
+    // Save MASKED message to database
+    const { error } = await supabase.from("stream_chat").insert({
+      stream_id: id,
+      sender_id: currentUserId,
+      content: contentToSend,
+    });
+    
+    if (error) {
+      console.error('Failed to send message:', error);
+      setMessages(prev => prev.filter(m => m.id !== tempId));
+    } else {
+      trackTaskProgress('messages_sent', { increment: 1 });
+    }
+  };
+
+  const calculateDuration = () => {
+    const diff = Date.now() - streamStartTime;
+    const hours = Math.floor(diff / 3600000);
+    const minutes = Math.floor((diff % 3600000) / 60000);
+    const seconds = Math.floor((diff % 60000) / 1000);
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const handleEndStream = async () => {
+    // ⛔ IMMEDIATELY mark stream as ended to stop task progress tracking
+    streamEndedRef.current = true;
+
+    // Calculate SESSION-SPECIFIC earnings (only gifts received during THIS live stream)
+    let giftEarnings = 0;
+    let callEarnings = 0;
+    let audiences = viewerCount;
+
+    try {
+      if (id && streamData?.host_id) {
+        // SESSION-SPECIFIC: Get gift earnings only for THIS stream session
+        const { data: sessionGifts } = await supabase
+          .from("gift_transactions")
+          .select("coin_amount")
+          .eq("stream_id", id)
+          .eq("receiver_id", streamData.host_id);
+
+        if (sessionGifts && sessionGifts.length > 0) {
+          // Sum all coin_amount for this session
+          const totalCoins = sessionGifts.reduce((sum, tx) => sum + (tx.coin_amount || 0), 0);
+
+          // ✅ USE REAL-TIME adminGiftCommission from state (already synced with Admin Panel)
+          // No need to fetch again - using the live value from real-time subscription
+          const hostPercent = adminGiftCommission;
+
+          console.log('[LiveStream] Using real-time gift commission for earnings:', hostPercent);
+
+          // Calculate host's actual earnings after commission
+          giftEarnings = Math.floor((totalCoins * hostPercent) / 100);
+        }
+
+        // Call earnings for this session (if any)
+        // For now, use the real-time totalBeans as a fallback
+        // In future, implement session-specific call tracking
+
+        // Get unique viewers count
+        const { data: viewers } = await supabase
+          .from("stream_viewers")
+          .select("viewer_id")
+          .eq("stream_id", id);
+
+        if (viewers) {
+          audiences = viewers.length;
+        }
+
+        // Update stream with final stats
+        await supabase
+          .from('live_streams')
+          .update({
+            is_active: false,
+            ended_at: new Date().toISOString(),
+            total_coins_earned: giftEarnings,
+          })
+          .eq('id', id);
+
+        // ⚡ INSTANT: Broadcast stream ended to all viewers
+        try {
+          await supabase.channel(`live-stream-close-${id}`).send({
+            type: 'broadcast',
+            event: 'stream_closed',
+            payload: { streamId: id, hostName: hostInfo?.name || 'Host' }
+          });
+          console.log('[LiveStream] ⚡ Broadcast stream_closed sent to all viewers');
+        } catch (e) {
+          console.warn('[LiveStream] Broadcast send failed:', e);
+        }
+      }
+    } catch (error) {
+      console.error('[LiveStream] Error while ending stream stats flow:', error);
+    }
+
+    const stats: LiveEndStats = {
+      duration: calculateDuration(),
+      audiences,
+      giftEarnings, // SESSION-SPECIFIC: Only gifts from THIS live stream
+      callEarnings, // Call earnings (placeholder for future)
+    };
+    setLiveEndStats(stats);
+
+    // Note: live_minutes are now tracked periodically every 60s via useEffect below
+    try {
+      await leaveChannel();
+    } finally {
+      setShowLiveEndSummary(true);
+    }
+  };
+
+  const handleCloseSummary = () => {
+    setShowLiveEndSummary(false);
+    navigate('/');
+  };
+
+  // Handle viewer leaving the stream
+  const handleLeaveStream = async () => {
+    // Update stream_viewers to mark leave time
+    if (!isHost && currentUserId && id) {
+      await supabase
+        .from("stream_viewers")
+        .update({ left_at: new Date().toISOString() })
+        .eq("stream_id", id)
+        .eq("viewer_id", currentUserId);
+    }
+    
+    await leaveChannel();
+    // Navigate directly to home page - NOT navigate(-1) which causes double tab issue
+    navigate('/', { replace: true });
+  };
+
+  const handleCall = () => {
+    setShowCallConfirm(true);
+  };
+
+  const handleConfirmCall = async () => {
+    if (!hostInfo?.id || !currentUserId) return;
+    
+    setShowCallConfirm(false);
+    
+    // ✅ FIX: Use unified call system (useCall) instead of direct RPC
+    // This ensures proper call state management, billing, and prevents auto-close
+    try {
+      const callId = await unifiedStartCall(hostInfo.id, id || undefined);
+      if (callId) {
+        console.log('[LiveStream] Call started via unified system:', callId);
+      }
+    } catch (error: any) {
+      console.error("Error starting call:", error);
+      toast.error(error.message || "Failed to start call");
+    }
+  };
+
+  const handleShare = async () => {
+    // Use production domain for sharing
+    const { generateLiveStreamLink, shareLink } = await import('@/utils/shareLinks');
+    const link = generateLiveStreamLink(id || '');
+    const success = await shareLink(link, {
+      title: `${streamData?.host?.display_name || 'Host'}'s Live Stream`,
+      text: 'Join my live stream on MeriLive!'
+    });
+    if (success) toast.success("Share link copied!");
+  };
+
+  // Handle profile click - fetch full profile data and show premium card
+  const handleProfileClick = async (userId: string) => {
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
+      
+      if (profile) {
+        // Get follower/following counts
+        const [{ count: followersCount }, { count: followingCount }] = await Promise.all([
+          supabase.from("followers").select("*", { count: "exact", head: true }).eq("following_id", userId),
+          supabase.from("followers").select("*", { count: "exact", head: true }).eq("follower_id", userId),
+        ]);
+
+        // Check if current user follows this profile
+        let isFollowing = false;
+        if (currentUserId) {
+          const { data: followData } = await supabase
+            .from("followers")
+            .select("id")
+            .eq("follower_id", currentUserId)
+            .eq("following_id", userId)
+            .maybeSingle();
+          isFollowing = !!followData;
+        }
+
+        setSelectedProfile({
+          id: profile.id,
+          name: profile.display_name || "User",
+          avatar: profile.avatar_url || "",
+          level: profile.user_level || 1,
+          coins: profile.coins || 0,
+          beans: 0,
+          isFollowing,
+          isVIP: (profile.user_level || 1) >= 30,
+          isVerified: profile.is_verified || false,
+          totalGiftsSent: 0,
+          totalGiftsReceived: 0,
+          followers: followersCount || 0,
+          following: followingCount || 0,
+          country: profile.country_name,
+          countryFlag: profile.country_flag,
+          bio: profile.bio,
+          uid: profile.app_uid,
+        });
+        setShowProfileCard(true);
+      }
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    }
+  };
+
+  const handleFollowFromCard = async (viewerId: string) => {
+    if (!currentUserId) {
+      toast.error("Please login first");
+      return;
+    }
+    
+    try {
+      if (selectedProfile?.isFollowing) {
+        await supabase
+          .from("followers")
+          .delete()
+          .eq("follower_id", currentUserId)
+          .eq("following_id", viewerId);
+        toast.success("Unfollowed successfully");
+      } else {
+        await supabase
+          .from("followers")
+          .insert({ follower_id: currentUserId, following_id: viewerId });
+        toast.success("Following!");
+      }
+      
+      // Update local state
+      setSelectedProfile(prev => prev ? { ...prev, isFollowing: !prev.isFollowing } : null);
+    } catch (error) {
+      console.error("Error following:", error);
+    }
+  };
+
+  // Follow Host from header heart button
+  const [isFollowingHost, setIsFollowingHost] = useState(false);
+  
+  // Check if already following host on mount
+  useEffect(() => {
+    const checkFollowStatus = async () => {
+      if (!currentUserId || !hostInfo?.id) return;
+      
+      const { data } = await supabase
+        .from("followers")
+        .select("id")
+        .eq("follower_id", currentUserId)
+        .eq("following_id", hostInfo.id)
+        .maybeSingle();
+      
+      setIsFollowingHost(!!data);
+    };
+    checkFollowStatus();
+  }, [currentUserId, hostInfo?.id]);
+
+  const handleFollowHost = async () => {
+    if (!currentUserId) {
+      toast.error("Please login first");
+      return;
+    }
+    if (!hostInfo?.id) return;
+    
+    try {
+      if (isFollowingHost) {
+        await supabase
+          .from("followers")
+          .delete()
+          .eq("follower_id", currentUserId)
+          .eq("following_id", hostInfo.id);
+        setIsFollowingHost(false);
+        toast.success("Unfollowed");
+      } else {
+        await supabase
+          .from("followers")
+          .insert({ follower_id: currentUserId, following_id: hostInfo.id });
+        setIsFollowingHost(true);
+        toast.success("Following! ❤️");
+      }
+    } catch (error) {
+      console.error("Error following host:", error);
+    }
+  };
+
+  const handleMessageFromCard = (viewerId: string) => {
+    setShowProfileCard(false);
+    navigate(`/chat/${viewerId}`);
+  };
+
+  const handleGiftFromCard = (viewerId: string) => {
+    setShowProfileCard(false);
+    setShowGiftPanel(true);
+  };
+
+  const gifts = [
+    { id: "1", name: "Rose", icon: "🌹", coins: 10 },
+    { id: "2", name: "Heart", icon: "❤️", coins: 50 },
+    { id: "3", name: "Kiss", icon: "💋", coins: 100 },
+    { id: "4", name: "Diamond", icon: "💎", coins: 500 },
+    { id: "5", name: "Crown", icon: "👑", coins: 1000 },
+    { id: "6", name: "Rocket", icon: "🚀", coins: 5000 },
+  ];
+
+  // PK Battle handlers
+  const handleOpenPKPanel = () => {
+    if (!isHost) {
+      toast.error("Only hosts can start PK Battle");
+      return;
+    }
+    setShowMoreOptions(false);
+    setShowPKPanel(true);
+  };
+
+  const handlePKBattleStarted = (battleId: string, opponentInfo: any) => {
+    if (!hostInfo) return;
+    setShowPKPanel(false);
+    setPKBattleState({
+      isActive: true,
+      battleId,
+      isChallenger: true,
+      challengerInfo: {
+        name: hostInfo.name,
+        avatar: hostInfo.avatar,
+        level: hostInfo.level,
+        id: currentUserId || "",
+      },
+      opponentInfo: {
+        name: opponentInfo.display_name,
+        avatar: opponentInfo.avatar_url,
+        level: opponentInfo.user_level,
+        id: opponentInfo.id,
+      },
+    });
+  };
+
+  const handlePKRequestAccept = () => {
+    if (!incomingPKRequest || !hostInfo) return;
+    
+    setShowPKRequest(false);
+    setPKBattleState({
+      isActive: true,
+      battleId: incomingPKRequest.battleId,
+      isChallenger: false,
+      challengerInfo: {
+        name: incomingPKRequest.challengerName,
+        avatar: incomingPKRequest.challengerAvatar,
+        level: incomingPKRequest.challengerLevel,
+        id: "",
+      },
+      opponentInfo: {
+        name: hostInfo.name,
+        avatar: hostInfo.avatar,
+        level: hostInfo.level,
+        id: currentUserId || "",
+      },
+    });
+  };
+
+  const handlePKRequestDecline = () => {
+    setShowPKRequest(false);
+    setIncomingPKRequest(null);
+  };
+
+  // Random PK handlers
+  const handleRandomPKAccept = async () => {
+    if (!randomPKRequest || !hostInfo || !currentUserId || !id) return;
+    
+    setShowRandomPKNotification(false);
+    
+    // Send acceptance via broadcast
+    const channel = supabase.channel("pk_random_match", {
+      config: { broadcast: { self: false } },
+    });
+    
+    await channel.subscribe();
+    await channel.send({
+      type: "broadcast",
+      event: "random_pk_accepted",
+      payload: {
+        challengerId: randomPKRequest.challengerId,
+        acceptorId: currentUserId,
+        acceptorName: hostInfo.name,
+        acceptorAvatar: hostInfo.avatar,
+        acceptorLevel: hostInfo.level,
+        acceptorStreamId: id,
+      },
+    });
+    
+    // Wait a moment for the challenger to create the battle, then check
+    setTimeout(async () => {
+      const { data: battle } = await supabase
+        .from("pk_battles")
+        .select("*")
+        .or(`and(challenger_id.eq.${randomPKRequest.challengerId},opponent_id.eq.${currentUserId}),and(challenger_id.eq.${currentUserId},opponent_id.eq.${randomPKRequest.challengerId})`)
+        .eq("status", "accepted")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (battle) {
+        setPKBattleState({
+          isActive: true,
+          battleId: battle.id,
+          isChallenger: false,
+          challengerInfo: {
+            name: randomPKRequest.challengerName,
+            avatar: randomPKRequest.challengerAvatar,
+            level: randomPKRequest.challengerLevel,
+            id: randomPKRequest.challengerId,
+          },
+          opponentInfo: {
+            name: hostInfo.name,
+            avatar: hostInfo.avatar,
+            level: hostInfo.level,
+            id: currentUserId,
+          },
+        });
+      }
+      supabase.removeChannel(channel);
+    }, 2000);
+    
+    setRandomPKRequest(null);
+  };
+
+  const handleRandomPKDecline = () => {
+    setShowRandomPKNotification(false);
+    setRandomPKRequest(null);
+  };
+
+  const handlePKBattleEnd = (winnerId: string | null) => {
+    if (!pkBattleState.challengerInfo || !pkBattleState.opponentInfo) return;
+
+    const isDraw = winnerId === null;
+    const isWinner = winnerId === currentUserId;
+
+    setPKResult({
+      isWinner,
+      isDraw,
+      winnerName: isWinner || isDraw ? pkBattleState.challengerInfo.name : pkBattleState.opponentInfo.name,
+      winnerAvatar: isWinner || isDraw ? pkBattleState.challengerInfo.avatar : pkBattleState.opponentInfo.avatar,
+      winnerScore: 0, // Will be updated from battle data
+      loserName: isWinner ? pkBattleState.opponentInfo.name : pkBattleState.challengerInfo.name,
+      loserAvatar: isWinner ? pkBattleState.opponentInfo.avatar : pkBattleState.challengerInfo.avatar,
+      loserScore: 0,
+    });
+    
+    setPKBattleState({
+      isActive: false,
+      battleId: null,
+      isChallenger: false,
+      challengerInfo: null,
+      opponentInfo: null,
+    });
+    
+    setShowPKResult(true);
+  };
+
+  const handleClosePKResult = () => {
+    setShowPKResult(false);
+    setPKResult(null);
+  };
+
+  // Base options for all users (viewers)
+  const baseOptions = [
+    { id: "messages", name: "Messages", iconName: "MessageCircle" as const, color: "from-pink-400 to-rose-500", shadowColor: "shadow-pink-500/40", action: () => navigate("/chat") },
+    { id: "share", name: "Share", iconName: "Share2" as const, color: "from-cyan-400 to-blue-500", shadowColor: "shadow-cyan-500/40", action: handleShare },
+    { id: "tasks", name: "Tasks", iconName: "ClipboardList" as const, color: "from-amber-400 to-orange-500", shadowColor: "shadow-amber-500/40", action: () => navigate("/tasks") },
+    { id: "topup", name: "Top Up", iconName: "Gem" as const, color: "from-emerald-400 to-teal-500", shadowColor: "shadow-emerald-500/40", action: () => navigate("/recharge") },
+    { id: "music", name: "Music", iconName: "Music" as const, color: "from-fuchsia-400 to-pink-500", shadowColor: "shadow-fuchsia-500/40", action: () => { setShowMoreOptions(false); setShowMusicPlayer(true); } },
+  ];
+
+  // Host-only options: Flip
+  const hostOnlyOptions = [
+    { id: "beauty", name: "Beauty", iconName: "Sparkles" as const, color: "from-pink-400 to-purple-500", shadowColor: "shadow-pink-500/40", action: () => { setShowMoreOptions(false); if (deepAR.isNativeAndroid) { void deepAR.openBeautyPanel().then(ok => { if (ok) setShowBeautyPanel(true); }); } else { setShowBeautyPanel(true); } } },
+    { id: "sticker", name: "Sticker", iconName: "Smile" as const, color: "from-orange-400 to-amber-500", shadowColor: "shadow-orange-500/40", action: () => { setShowMoreOptions(false); if (deepAR.isNativeAndroid) { void deepAR.toggleSticker(); } else { toast.info("AR Stickers are available in the Android app only"); } } },
+    { id: "flip", name: "Flip", iconName: "RotateCcw" as const, color: "from-blue-500 to-cyan-600", shadowColor: "shadow-blue-500/40", action: () => { setShowMoreOptions(false); switchCamera(); } },
+  ];
+
+  // Combined options - host sees all, viewers see base only
+  const moreOptions = isHost ? [...hostOnlyOptions, ...baseOptions] : baseOptions;
+
+  const handleSendGift = async (gift: typeof gifts[0]) => {
+    if (!currentUserId || !hostInfo || !id) return;
+    
+    if (userCoins < gift.coins) {
+      toast.error("Not enough diamonds!");
+      return;
+    }
+    
+    // Atomic coin deduction (race-condition safe)
+    const { data: deductData, error: deductError } = await supabase.rpc('deduct_coins', {
+      p_user_id: currentUserId,
+      p_amount: gift.coins,
+    });
+    const deductResult = deductData as any;
+    
+    if (deductError || !deductResult?.success) {
+      toast.error(deductResult?.error || "Failed to deduct coins");
+      return;
+    }
+    
+    // Record gift transaction
+    await supabase.from("gift_transactions").insert({
+      gift_id: gift.id,
+      sender_id: currentUserId,
+      receiver_id: hostInfo.id,
+      stream_id: id,
+      coin_amount: gift.coins,
+    });
+    
+    // Add coins to host using RPC
+    try {
+      await supabase.rpc("transfer_coins_to_user", {
+        _receiver_id: hostInfo.id,
+        _amount: gift.coins,
+        _note: `Gift: ${gift.name}`,
+      });
+    } catch {
+      // If RPC fails, do nothing - coins already deducted
+      console.error("Failed to transfer coins to host");
+    }
+    
+    setUserCoins(prev => prev - gift.coins);
+    // Gift animation is already playing - no toast needed
+    setShowGiftPanel(false);
+  };
+
+  // Get remote video track (for viewers) - with logging for debugging
+  const firstRemoteUser = Array.from(remoteUsers.values())[0];
+  const remoteVideoTrack = firstRemoteUser?.videoTrack;
+  const showHostTransitionPreview = isHost && !localVideoTrack && !!hostTransitionPreviewStream;
+  // Debug: Log remote video state changes
+  useEffect(() => {
+    if (!isHost) {
+      console.log(`🎥 Viewer video state: remoteUsers=${remoteUsers.size}, hasVideoTrack=${!!remoteVideoTrack}, isJoined=${isJoined}, connectionState=${connectionState}`);
+    }
+  }, [remoteUsers.size, !!remoteVideoTrack, isJoined, connectionState, isHost]);
+
+  // Auto-retry subscription for viewers - ultra-fast early retries for first-frame speed
+  useEffect(() => {
+    if (isHost || !isJoined || remoteVideoTrack) return;
+
+    const retryDelays = [0, 90, 220, 420, 760, 1150];
+    const retryTimers = retryDelays.map((delay, index) =>
+      setTimeout(() => {
+        if (!remoteVideoTrack) {
+          console.log(`⏰ No remote video after ${delay}ms, retrying subscription (${index + 1}/${retryDelays.length})...`);
+          retrySubscription();
+        }
+      }, delay)
+    );
+
+    return () => {
+      retryTimers.forEach(clearTimeout);
+    };
+  }, [isHost, isJoined, remoteVideoTrack, retrySubscription]);
+  const syncedFilterCSS = generateSyncedFilterCSS();
+  const combinedFilterCSS = syncedFilterCSS || getBeautyFilterCSS();
+
+  // Live End Summary Modal
+  // Minimal loading state - show spinner in corner only (fast perceived load)
+  // Do NOT block the entire screen with heavy loading overlay
+
+  // ⚡ INSTANT ENGAGEMENT: No reconnecting overlay - video keeps playing in background
+  // Reconnection happens silently without blocking the user experience
+
+  if (showLiveEndSummary && hostInfo) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-950 via-purple-950 to-slate-950 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+        {/* Animated Background Orbs */}
+        <motion.div
+          animate={{
+            scale: [1, 1.3, 1],
+            opacity: [0.2, 0.4, 0.2],
+          }}
+          transition={{
+            duration: 4,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          className="absolute top-1/4 left-1/4 w-72 h-72 bg-purple-600/20 rounded-full"
+        />
+        <motion.div
+          animate={{
+            scale: [1.2, 1, 1.2],
+            opacity: [0.2, 0.4, 0.2],
+          }}
+          transition={{
+            duration: 5,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          className="absolute bottom-1/3 right-1/4 w-56 h-56 bg-pink-600/20 rounded-full"
+        />
+
+        {/* Close Button */}
+        <Button
+          size="icon"
+          variant="ghost"
+          className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/40 text-white hover:bg-black/60 z-10"
+          onClick={handleCloseSummary}
+        >
+          <X className="w-5 h-5" />
+        </Button>
+
+        {/* Host Avatar with Premium Ring */}
+        <motion.div
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", damping: 15 }}
+          className="relative mb-6"
+        >
+          {/* Animated Glow Ring */}
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+            className="absolute -inset-3 rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 opacity-60"
+          />
+          
+          <div className="relative w-28 h-28 rounded-full overflow-hidden border-4 border-white/20 shadow-2xl">
+            <img src={hostInfo.avatar || "/placeholder.svg"} alt={hostInfo.name} className="w-full h-full object-cover" />
+          </div>
+          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-400 to-amber-600 px-3 py-0.5 rounded-full shadow-lg">
+            <span className="text-xs font-bold text-black">Lv{hostInfo.level}</span>
+          </div>
+        </motion.div>
+
+        {/* Host Name - NO STARS */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="text-center mb-4"
+        >
+          <h2 className="text-2xl font-bold text-white mb-2">
+            {hostInfo.name}
+          </h2>
+          <div className="flex items-center justify-center gap-2">
+            <Badge className="bg-white/10 text-white border-white/10">
+              {hostInfo.country}
+            </Badge>
+            <Badge className="bg-white/10 text-white border-white/10">
+              🗣️ {hostInfo.language}
+            </Badge>
+          </div>
+        </motion.div>
+
+        {/* Live Ended Text */}
+        <motion.h3
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="text-lg text-white/50 mb-8"
+        >
+          Live Ended
+        </motion.h3>
+
+        {/* Premium Stats Card */}
+        <motion.div
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="w-full max-w-sm bg-gradient-to-br from-purple-600/90 via-purple-700/90 to-purple-800/90 rounded-3xl p-6 border border-white/10 shadow-2xl shadow-purple-500/20"
+        >
+          {/* Top Glow Line */}
+          <div className="absolute top-0 left-6 right-6 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+          
+          <div className="grid grid-cols-2 gap-4">
+            {/* Live Duration */}
+            <div className="text-center py-2">
+              <p className="text-white/60 text-xs mb-1 uppercase tracking-wide">Live Duration</p>
+              <p className="text-2xl font-bold text-white">{liveEndStats.duration}</p>
+            </div>
+            
+            {/* Audiences */}
+            <div className="text-center py-2">
+              <p className="text-white/60 text-xs mb-1 uppercase tracking-wide">Audiences</p>
+              <p className="text-2xl font-bold text-white">{liveEndStats.audiences}</p>
+            </div>
+            
+            {/* Gift Earnings */}
+            <div className="text-center py-2">
+              <p className="text-white/60 text-xs mb-1 uppercase tracking-wide">Gift Earnings</p>
+              <div className="flex items-center justify-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-amber-500 shadow-lg shadow-amber-500/50" />
+                <span className="text-2xl font-bold text-amber-400">{liveEndStats.giftEarnings}</span>
+              </div>
+            </div>
+            
+            {/* Call Earnings */}
+            <div className="text-center py-2">
+              <p className="text-white/60 text-xs mb-1 uppercase tracking-wide">Call Earnings</p>
+              <div className="flex items-center justify-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-amber-500 shadow-lg shadow-amber-500/50" />
+                <span className="text-2xl font-bold text-amber-400">{liveEndStats.callEarnings}</span>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Back to Home Button */}
+        <motion.div
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="w-full max-w-sm mt-6"
+        >
+          <Button
+            onClick={handleCloseSummary}
+            className="w-full relative overflow-hidden bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 hover:from-purple-500 hover:via-pink-500 hover:to-purple-500 text-white font-semibold rounded-2xl py-4 shadow-lg shadow-purple-500/20 transition-all duration-300 hover:shadow-purple-500/40"
+          >
+            {/* Shine Effect */}
+            <motion.div
+              animate={{
+                x: ['-100%', '200%'],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                repeatDelay: 3,
+                ease: "easeInOut",
+              }}
+              className="absolute inset-0 w-1/3 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12"
+            />
+            <span className="relative">Back to Home</span>
+          </Button>
+        </motion.div>
+      </div>
+    );
+  }
+
+  return (
+    <div 
+      className="room-viewport bg-muted flex flex-col overflow-hidden"
+      style={{ 
+        paddingTop: 'max(env(safe-area-inset-top, 0px), var(--min-top-inset, 20px))',
+        paddingBottom: 'max(env(safe-area-inset-bottom, 0px), var(--min-bottom-inset, 0px))'
+      }}
+      onTouchStart={handleCombinedTouchStart}
+      onTouchEnd={handleCombinedTouchEnd}
+    >
+      {/* Tap anywhere to restore UI when hidden */}
+      {isUIHidden && (
+        <div 
+          className="absolute inset-0 z-[100]" 
+          onClick={() => setIsUIHidden(false)}
+        />
+      )}
+
+      {/* Swipe navigation works via touch gestures - no visible indicators */}
+      {/* ==================== UNIFIED ENTRY ANIMATION ====================
+          Same architecture as Gift Animation - Queue-based, ONE at a time */}
+      <AnimatePresence>
+        {entryAnimations.length > 0 && (
+          <UnifiedEntryAnimation
+            key={entryAnimations[0].id}
+            entry={entryAnimations[0]}
+            onComplete={() => removeEntryAnimation(entryAnimations[0].id)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ==================== ENTRY NAME BAR (Compact Banner) ====================
+          Queue-based: shows ONE at a time, next plays after current completes */}
+      {nameBarAnimations.length > 0 && (
+        <EntryNameBarAnimation
+          key={nameBarAnimations[0].id}
+          userName={nameBarAnimations[0].displayName}
+          userLevel={nameBarAnimations[0].level}
+          avatarUrl={nameBarAnimations[0].avatarUrl}
+          animationUrl={nameBarAnimations[0].animationUrl}
+          onComplete={() => removeNameBarAnimation(nameBarAnimations[0].id)}
+        />
+      )}
+
+      {/* Bigo-Style Flying Join Banner - Shows when viewers join */}
+      <BigoJoinBannerContainer
+        activeNotification={activeBigoJoin}
+        onComplete={completeBigoJoin}
+      />
+
+      <div className="absolute inset-0 flex items-center justify-center" style={{ background: '#050208' }}>
+        {/* Instant blurred host avatar background — visible only until video track arrives */}
+        {!isHost && !remoteVideoTrack && hostInfo?.avatar && (
+          <div className="absolute inset-0 z-[0]">
+            <img
+              src={hostInfo.avatar}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover"
+              style={{ filter: 'blur(30px) brightness(0.4)', transform: 'scale(1.2)' }}
+              loading="eager"
+              draggable={false}
+            />
+          </div>
+        )}
+        {isHost && localVideoTrack ? (
+          <div 
+            className="w-full h-full relative flex items-center justify-center"
+            style={{ filter: combinedFilterCSS || undefined }}
+          >
+            <AgoraVideoPlayer
+              videoTrack={localVideoTrack}
+              mirror={true}
+              fit="cover"
+              className="absolute inset-0 w-full h-full"
+            />
+          </div>
+        ) : showHostTransitionPreview ? (
+          <video
+            ref={hostTransitionVideoRef}
+            autoPlay
+            playsInline
+            muted
+            controls={false}
+            disablePictureInPicture
+            disableRemotePlayback
+            controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
+            poster=""
+            // @ts-ignore
+            x5-video-player-type="h5"
+            x5-video-player-fullscreen="false"
+            x5-video-orientation="portrait"
+            x5-playsinline="true"
+            webkit-playsinline="true"
+            x-webkit-airplay="deny"
+            className="absolute inset-0 w-full h-full object-cover pointer-events-none camera-locked"
+            style={{
+              transform: 'scaleX(-1)',
+              filter: combinedFilterCSS || undefined,
+              WebkitAppearance: 'none',
+            }}
+          />
+        ) : isHost ? (
+          <div className="absolute inset-0 z-[1] flex flex-col items-center justify-center gap-4 px-6 text-center">
+            {hostInfo?.avatar ? (
+              <img
+                src={hostInfo.avatar}
+                alt="Host preview"
+                className="w-24 h-24 rounded-full object-cover border border-white/20"
+                loading="eager"
+                draggable={false}
+              />
+            ) : (
+              <div className="w-24 h-24 rounded-full bg-white/10 border border-white/20 flex items-center justify-center">
+                <span className="text-white text-2xl font-semibold">{hostInfo?.name?.charAt(0) || 'H'}</span>
+              </div>
+            )}
+            <p className="text-white/85 text-sm font-medium">Starting camera...</p>
+          </div>
+        ) : remoteVideoTrack ? (
+          <div 
+            className="w-full h-full relative flex items-center justify-center"
+            style={{ filter: combinedFilterCSS || undefined }}
+          >
+            <AgoraVideoPlayer
+              videoTrack={remoteVideoTrack}
+              mirror={false}
+              fit="cover"
+              onVideoStalled={() => {
+                console.log('⚠️ Remote video stalled, forcing resubscribe...');
+                retrySubscription();
+              }}
+              className="absolute inset-0 w-full h-full"
+            />
+          </div>
+        ) : null}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/80 pointer-events-none" />
+      </div>
+
+
+      {/* ⚡ INSTANT ENGAGEMENT: No loading spinners - stream loads instantly */}
+
+      {/* New Host Bonus Card - Host Only, positioned above chat - HIDE when stream ended */}
+      {isHost && currentUserId && !showLiveEndSummary && (
+        <div className="absolute left-3 z-35" style={{ bottom: '280px' }}>
+          <NewHostBonusCard hostId={currentUserId} streamStartTime={streamStartTime} isStreamActive={!showLiveEndSummary} onBeansClaimed={(amount) => setTotalBeans(prev => prev + amount)} />
+        </div>
+      )}
+
+      {/* Live Tasks Card - Bottom left, above chat - HIDE when stream ended */}
+      {isHost && currentUserId && !showLiveEndSummary && (
+        <div className="absolute left-3 z-35" style={{ bottom: '200px', maxWidth: '280px', width: '75%' }}>
+          <LiveTasksCard hostId={currentUserId} />
+        </div>
+      )}
+
+      {/* Floating Hearts */}
+      <div className="absolute right-16 bottom-40 w-12 h-40 pointer-events-none overflow-hidden z-30">
+        <AnimatePresence>
+          {floatingHearts.map((heart) => (
+            <motion.div
+              key={heart.id}
+              className="absolute bottom-0"
+              style={{ left: `${heart.x}%` }}
+              initial={{ y: 0, opacity: 1, scale: 1 }}
+              animate={{ y: -150, opacity: 0, scale: [1, 1.3, 0.9] }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 2, ease: "easeOut" }}
+            >
+              <Heart className="w-6 h-6 text-pink-500 fill-pink-500" />
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+
+      {/* Top Bar - Premium Professional Design */}
+      <motion.div 
+        animate={{ opacity: isUIHidden ? 0 : 1, y: isUIHidden ? -60 : 0 }}
+        transition={{ duration: 0.3, ease: 'easeInOut' }}
+        className="relative z-20 px-3 pt-4 pb-1 safe-area-top mt-1"
+        style={{ pointerEvents: isUIHidden ? 'none' : 'auto' }}
+      >
+        <div className="flex items-center justify-between">
+          {/* Left Section - Live Badge + Host Info */}
+          <div className="flex items-center gap-1.5">
+            {/* Host Info Pill with embedded LIVE indicator */}
+            {hostInfo && (
+              <motion.div 
+                className="flex items-center gap-1.5 rounded-full p-[3px] pr-2"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(30,20,50,0.75) 100%)',
+                  border: '1px solid rgba(255,255,255,0.12)',
+                  boxShadow: '0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)',
+                }}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ type: "spring", damping: 20, stiffness: 150 }}
+              >
+                {/* LIVE indicator dot - positioned on avatar */}
+                <div className="relative">
+                  <div 
+                    className="cursor-pointer"
+                    onClick={() => navigate(`/profile/${hostInfo.id}`)}
+                  >
+                    <AvatarWithFrame
+                      userId={hostInfo.id}
+                      src={hostInfo.avatar}
+                      name={hostInfo.name}
+                      level={hostInfo.level}
+                      isHost={true}
+                      size="xs"
+                      showFrame={true}
+                      showAnimation={true}
+                      showGlow={hostInfo.level >= 10}
+                    />
+                  </div>
+                  {/* Live pulse dot on avatar */}
+                  <div className="absolute -top-0.5 -left-0.5 z-20">
+                    <div className="relative flex items-center gap-[2px] px-[5px] py-[1px] rounded-full" 
+                      style={{ background: 'linear-gradient(135deg, #ff3b5c, #ff1744)' }}>
+                      <div className="w-[4px] h-[4px] bg-white rounded-full animate-pulse" />
+                      <span className="text-white text-[6px] font-black tracking-wider">LIVE</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div 
+                  className="flex flex-col min-w-0 cursor-pointer"
+                  onClick={() => navigate(`/profile/${hostInfo.id}`)}
+                >
+                  <span className="text-white font-semibold text-[11px] truncate max-w-[55px] leading-tight">{hostInfo.name}</span>
+                  {/* Beans Display */}
+                  <div className="flex items-center gap-0.5">
+                    <BeansIcon size={10} />
+                    <span className="text-[9px] font-bold leading-tight" style={{ color: '#ffb74d' }}>
+                      {totalBeans >= 1000 ? `${(totalBeans / 1000).toFixed(1)}K` : totalBeans}
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Follow/Love Button */}
+                {!isFollowingHost ? (
+                  <motion.button
+                    whileTap={{ scale: 0.85 }}
+                    onClick={handleFollowHost}
+                    className="relative w-[22px] h-[22px] flex items-center justify-center rounded-full overflow-hidden ml-0.5"
+                    style={{
+                      background: 'linear-gradient(135deg, #ec4899, #f43f5e)',
+                      boxShadow: '0 2px 8px rgba(236,72,153,0.5)',
+                    }}
+                  >
+                    <Heart className="w-3 h-3 text-white relative z-10" strokeWidth={2.5} />
+                  </motion.button>
+                ) : (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="w-[22px] h-[22px] rounded-full flex items-center justify-center ml-0.5"
+                    style={{ background: 'linear-gradient(135deg, #34d399, #10b981)' }}
+                  >
+                    <Heart className="w-3 h-3 text-white fill-white" strokeWidth={0} />
+                  </motion.div>
+                )}
+              </motion.div>
+            )}
+          </div>
+
+          {/* Right Section - Viewer Avatars + Count + Close */}
+          <div className="flex items-center gap-1">
+            {/* Recent Viewer Avatars + Count combined pill */}
+            <button
+              onClick={() => setShowViewerList(true)}
+              className="flex items-center gap-0.5 px-1 py-[3px] rounded-full"
+              style={{
+                background: 'linear-gradient(135deg, rgba(0,0,0,0.6), rgba(20,15,35,0.7))',
+                border: '1px solid rgba(255,255,255,0.12)',
+                boxShadow: '0 2px 12px rgba(0,0,0,0.3)',
+              }}
+            >
+              {/* Viewer Avatars inside the pill */}
+              <div className="flex items-center -space-x-1.5 ml-0.5">
+                {recentViewerAvatars.length > 0 ? (
+                  recentViewerAvatars.slice(0, 3).map((viewer, i) => (
+                    <div 
+                      key={viewer.id}
+                      className="relative"
+                      style={{ 
+                        zIndex: 4 - i,
+                        width: 34,
+                        height: 34,
+                      }}
+                    >
+                      <AvatarWithFrame
+                        userId={viewer.id}
+                        src={viewer.avatar_url}
+                        name={viewer.name}
+                        level={viewer.user_level || 1}
+                        size="xs"
+                        showAnimation={false}
+                        showFrame={true}
+                        showGlow={false}
+                      />
+                    </div>
+                  ))
+                ) : (
+                  <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center">
+                    <Users className="w-3 h-3 text-white/50" />
+                  </div>
+                )}
+              </div>
+              {/* Count */}
+              <div className="flex items-center gap-[3px] px-1.5">
+                <div className="w-[5px] h-[5px] rounded-full" style={{ background: '#4ade80', boxShadow: '0 0 6px #4ade80' }} />
+                <span className="text-white text-[10px] font-bold tabular-nums">{viewerCount}</span>
+              </div>
+            </button>
+
+            {/* Close Button */}
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={isHost ? handleEndStream : handleLeaveStream}
+              className="w-[28px] h-[28px] rounded-full flex items-center justify-center"
+              style={{
+                background: 'linear-gradient(135deg, rgba(0,0,0,0.6), rgba(20,15,35,0.7))',
+                
+                border: '1px solid rgba(255,255,255,0.1)',
+                boxShadow: '0 2px 12px rgba(0,0,0,0.3)',
+              }}
+            >
+              <X className="w-3.5 h-3.5 text-white/80" />
+            </motion.button>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* ==================== MESSAGES AREA - ABOVE INPUT BOX ==================== */}
+      {/* Public chat area visible to all viewers */}
+      {/* Welcome message at bottom, messages stack upward - SAME as Party Room */}
+      <motion.div 
+        animate={{ opacity: isUIHidden ? 0 : 1, y: isUIHidden ? 80 : 0 }}
+        transition={{ duration: 0.3, ease: 'easeInOut' }}
+        className="absolute left-0 right-0 z-30 flex flex-col justify-end pointer-events-none"
+        style={{ bottom: '72px', maxHeight: '40vh', pointerEvents: isUIHidden ? 'none' : undefined }}
+      >
+        <div className="px-3 pointer-events-auto" style={{ pointerEvents: isUIHidden ? 'none' : 'auto' }}>
+          {/* UNIFIED Chat Overlay - ONE LINK for Live + Party */}
+          {/* Change RoomChatOverlay in shared/room = Change here + Party Room */}
+          {/* All messages are PUBLIC and visible to everyone */}
+          <RoomChatOverlay 
+            messages={messages}
+            joinNotifications={[]}
+            maxMessages={20}
+            maxHeight="35vh"
+            showWelcome={true}
+            hostName={hostInfo?.name}
+            hostLevel={hostInfo?.level}
+            roomTitle={streamTitle || streamData?.title}
+            roomType="live"
+            adminBannerRoomType="live"
+          />
+        </div>
+      </motion.div>
+
+      {/* Bottom Section - Input Bar & Action Buttons */}
+      <motion.div 
+        animate={{ opacity: isUIHidden ? 0 : 1, y: isUIHidden ? 100 : 0 }}
+        transition={{ duration: 0.3, ease: 'easeInOut' }}
+        className="absolute bottom-0 left-0 right-0 z-20 pb-2 safe-area-bottom"
+        style={{ pointerEvents: isUIHidden ? 'none' : 'auto' }}
+      >
+
+        {/* Host Filter Controls - Ultra Compact */}
+        {/* Host filter controls moved to More Options panel */}
+
+        {/* Input & Action Buttons Bar - Professional Design */}
+        <div className="px-3 flex items-center gap-2 pt-2 pb-4 mb-1"
+          style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.2) 70%, transparent 100%)' }}
+        >
+          {/* Chat Input */}
+          <div className="flex-1 min-w-0 relative">
+            <Input
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Say something..."
+              className="w-full h-9 rounded-full text-white text-xs pl-3.5 pr-9"
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.12)',
+                color: 'white',
+              }}
+              onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+            />
+            <Button
+              size="icon"
+              variant="ghost"
+              className="absolute right-1 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full text-white/70 hover:text-white hover:bg-white/10"
+              onClick={handleSendMessage}
+            >
+              <Send className="w-3.5 h-3.5" />
+            </Button>
+          </div>
+
+          {/* Action Buttons - Consistent glassmorphic style */}
+          {shouldShowCallButton && (
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={handleCall}
+              className="w-9 h-9 rounded-full flex items-center justify-center"
+              style={{
+                background: 'linear-gradient(135deg, #22c55e, #10b981)',
+                boxShadow: '0 2px 12px rgba(34,197,94,0.4)',
+              }}
+            >
+              <Phone className="w-4 h-4 text-white" />
+            </motion.button>
+          )}
+
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setShowGamePanel(true)}
+            className="w-9 h-9 rounded-full flex items-center justify-center"
+            style={{
+              background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
+              boxShadow: '0 2px 12px rgba(139,92,246,0.4)',
+            }}
+          >
+            <Gamepad2 className="w-4 h-4 text-white" />
+          </motion.button>
+
+          {isHost && (
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={() => {
+                const newState = !isHostMicMuted;
+                setIsHostMicMuted(newState);
+                toggleAudio(!newState);
+              }}
+              className="w-9 h-9 rounded-full flex items-center justify-center"
+              style={{
+                background: isHostMicMuted 
+                  ? 'linear-gradient(135deg, #ef4444, #dc2626)' 
+                  : 'linear-gradient(135deg, #06b6d4, #0891b2)',
+                boxShadow: isHostMicMuted 
+                  ? '0 2px 12px rgba(239,68,68,0.4)' 
+                  : '0 2px 12px rgba(6,182,212,0.4)',
+              }}
+            >
+              {isHostMicMuted ? (
+                <MicOff className="w-4 h-4 text-white" />
+              ) : (
+                <Mic className="w-4 h-4 text-white" />
+              )}
+            </motion.button>
+          )}
+
+          {isHost && (
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={handleOpenPKPanel}
+              className="w-9 h-9 rounded-full flex items-center justify-center"
+              style={{
+                background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                boxShadow: '0 2px 12px rgba(245,158,11,0.4)',
+              }}
+            >
+              <Swords className="w-4 h-4 text-white" />
+            </motion.button>
+          )}
+
+          {/* Like/Heart Button */}
+          <motion.button
+            whileTap={{ scale: 0.85 }}
+            onClick={handleLike}
+            className="w-9 h-9 rounded-full flex items-center justify-center"
+            style={{
+              background: 'linear-gradient(135deg, #f43f5e, #e11d48)',
+              boxShadow: '0 2px 12px rgba(244,63,94,0.4)',
+            }}
+          >
+            <Heart className="w-4 h-4 text-white fill-white" />
+          </motion.button>
+
+          {/* Gift Button */}
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setShowGiftPanel(true)}
+            className="w-9 h-9 rounded-full flex items-center justify-center"
+            style={{
+              background: 'linear-gradient(135deg, #ec4899, #db2777)',
+              boxShadow: '0 2px 12px rgba(236,72,153,0.4)',
+            }}
+          >
+            <Gift className="w-4 h-4 text-white" />
+          </motion.button>
+
+          {/* More Options Button */}
+          <Sheet open={showMoreOptions} onOpenChange={setShowMoreOptions}>
+            <SheetTrigger asChild>
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                className="w-9 h-9 rounded-full flex items-center justify-center"
+                style={{
+                  background: 'rgba(255,255,255,0.12)',
+                  
+                  border: '1px solid rgba(255,255,255,0.15)',
+                }}
+              >
+                <Grid3X3 className="w-4 h-4 text-white/80" />
+              </motion.button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="rounded-t-[24px] h-auto p-0 border-0"
+              style={{
+                background: 'linear-gradient(180deg, rgba(15,10,30,0.97) 0%, rgba(10,8,25,0.99) 100%)',
+                
+                borderTop: '1px solid rgba(255,255,255,0.08)',
+              }}
+            >
+              {/* Handle */}
+              <div className="flex justify-center pt-3 pb-3">
+                <div className="w-8 h-[3px] rounded-full" style={{ background: 'rgba(255,255,255,0.2)' }} />
+              </div>
+              
+              <div className="pb-8 pt-1 px-4">
+                <div className="grid grid-cols-5 gap-y-5 gap-x-2">
+                  {moreOptions.map((option, index) => {
+                    const iconMap: Record<string, React.ReactNode> = {
+                      Wand2: <Wand2 className="w-6 h-6" strokeWidth={1.8} />,
+                      Smile: <Smile className="w-6 h-6" strokeWidth={1.8} />,
+                      RotateCcw: <RotateCcw className="w-6 h-6" strokeWidth={1.8} />,
+                      Gamepad2: <Gamepad2 className="w-6 h-6" strokeWidth={1.8} />,
+                      Phone: <Phone className="w-6 h-6" strokeWidth={1.8} />,
+                      Swords: <Swords className="w-6 h-6" strokeWidth={1.8} />,
+                      MessageCircle: <MessageCircle className="w-6 h-6" strokeWidth={1.8} />,
+                      Share2: <Share2 className="w-6 h-6" strokeWidth={1.8} />,
+                      ClipboardList: <ClipboardList className="w-6 h-6" strokeWidth={1.8} />,
+                      Gem: <Gem className="w-6 h-6" strokeWidth={1.8} />,
+                      Music: <Music className="w-6 h-6" strokeWidth={1.8} />,
+                      LogOut: <LogOut className="w-6 h-6" strokeWidth={1.8} />,
+                    };
+                    const IconComponent = iconMap[option.iconName];
+                    
+                    return (
+                      <motion.button
+                        key={option.id}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.02 }}
+                        className="flex flex-col items-center gap-1.5"
+                        whileTap={{ scale: 0.92 }}
+                        onClick={option.action}
+                      >
+                        <div 
+                          className={`w-[48px] h-[48px] rounded-2xl bg-gradient-to-br ${option.color} flex items-center justify-center`}
+                          style={{
+                            boxShadow: '0 4px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2)',
+                          }}
+                        >
+                          <div className="text-white" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))' }}>
+                            {IconComponent}
+                          </div>
+                        </div>
+                        <span className="text-white/75 text-[10px] font-medium">{option.name}</span>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
+      </motion.div>
+
+      {/* PK Battle Active Overlay */}
+      {pkBattleState.isActive && pkBattleState.battleId && pkBattleState.challengerInfo && pkBattleState.opponentInfo && (
+        <PKBattleActive
+          battleId={pkBattleState.battleId}
+          isChallenger={pkBattleState.isChallenger}
+          challengerName={pkBattleState.challengerInfo.name}
+          challengerAvatar={pkBattleState.challengerInfo.avatar}
+          challengerLevel={pkBattleState.challengerInfo.level}
+          opponentName={pkBattleState.opponentInfo.name}
+          opponentAvatar={pkBattleState.opponentInfo.avatar}
+          opponentLevel={pkBattleState.opponentInfo.level}
+          onBattleEnd={handlePKBattleEnd}
+        />
+      )}
+
+      {/* PK Battle Panel */}
+      <PKBattlePanel
+        isOpen={showPKPanel}
+        onClose={() => setShowPKPanel(false)}
+        currentStreamId={id || ""}
+        currentUserId={currentUserId || ""}
+        currentUserName={hostInfo?.name || ""}
+        currentUserAvatar={hostInfo?.avatar || ""}
+        currentUserLevel={hostInfo?.level || 1}
+        onBattleStarted={handlePKBattleStarted}
+      />
+
+      {/* Incoming PK Request */}
+      {showPKRequest && incomingPKRequest && (
+        <PKBattleRequest
+          battleId={incomingPKRequest.battleId}
+          challengerName={incomingPKRequest.challengerName}
+          challengerAvatar={incomingPKRequest.challengerAvatar}
+          challengerLevel={incomingPKRequest.challengerLevel}
+          onAccept={handlePKRequestAccept}
+          onDecline={handlePKRequestDecline}
+        />
+      )}
+
+      {/* Random PK Match Notification - In-stream beautiful notification */}
+      {showRandomPKNotification && randomPKRequest && (
+        <PKRandomMatchNotification
+          challengerName={randomPKRequest.challengerName}
+          challengerAvatar={randomPKRequest.challengerAvatar}
+          challengerLevel={randomPKRequest.challengerLevel}
+          challengerId={randomPKRequest.challengerId}
+          onAccept={handleRandomPKAccept}
+          onDecline={handleRandomPKDecline}
+        />
+      )}
+
+      {/* PK Battle Result */}
+      {showPKResult && pkResult && (
+        <PKBattleResult
+          isWinner={pkResult.isWinner}
+          isDraw={pkResult.isDraw}
+          winnerName={pkResult.winnerName}
+          winnerAvatar={pkResult.winnerAvatar}
+          winnerScore={pkResult.winnerScore}
+          loserName={pkResult.loserName}
+          loserAvatar={pkResult.loserAvatar}
+          loserScore={pkResult.loserScore}
+          onClose={handleClosePKResult}
+        />
+      )}
+
+      {/* Room Welcome Banner - Removed from here, now integrated into RoomChatOverlay */}
+
+      {/* Viewer List Panel - Unified (Same as Party Room) */}
+      {id && (
+        <UnifiedViewerPanel
+          isOpen={showViewerList}
+          onClose={() => setShowViewerList(false)}
+          streamId={id}
+          viewerCount={viewerCount}
+          roomType="live"
+          isHost={isHost}
+          onViewProfile={handleProfileClick}
+        />
+      )}
+
+      {/* Music Player Panel */}
+      <MusicPlayerPanel
+        isOpen={showMusicPlayer}
+        onClose={() => setShowMusicPlayer(false)}
+        isHost={isHost}
+      />
+
+
+      {/* Call Confirm Modal */}
+      {hostInfo && (
+        <CallConfirmModal
+          isOpen={showCallConfirm}
+          onClose={() => setShowCallConfirm(false)}
+          onConfirm={handleConfirmCall}
+          hostId={hostInfo.id}
+          hostName={hostInfo.name}
+          hostAvatar={hostInfo.avatar}
+          hostLevel={hostInfo.level}
+          userCoins={userCoins}
+        />
+      )}
+
+      {/* Gift Panel - INSTANT with optimistic updates */}
+      <GiftPanel
+        isOpen={showGiftPanel}
+        onClose={() => setShowGiftPanel(false)}
+        onSendGift={async (gift: GiftData, count: number) => {
+          if (!currentUserId || !hostInfo?.id || !id) return;
+          
+          // CRITICAL: Prevent self-gifting
+          if (currentUserId === hostInfo.id) {
+            toast.error("You cannot send gifts to yourself!");
+            return;
+          }
+          
+          const totalCost = gift.coins * count;
+          if (userCoins < totalCost) {
+            toast.error("Not enough diamonds!");
+            return;
+          }
+          
+          // ========== INSTANT UI UPDATE (< 100ms) ==========
+          // Close panel immediately
+          setShowGiftPanel(false);
+          
+          // Optimistic coin deduction (instant visual feedback)
+          setUserCoins(prev => prev - totalCost);
+          
+          // Play gift sound IMMEDIATELY
+          playSound('gift');
+          
+          // Get sender info for animation (from currentUser - already loaded)
+          const senderName = currentUser?.display_name || "User";
+          const senderAvatar = currentUser?.avatar_url || undefined;
+          const senderLevel = currentUser?.user_level || 1;
+          
+          // Trigger flying gift animation IMMEDIATELY
+          addFlyingGift({
+            senderName: senderName,
+            senderAvatar: senderAvatar,
+            giftName: gift.name,
+            giftIcon: gift.emoji || "🎁",
+            giftImageUrl: gift.icon_url || undefined,
+            animationUrl: gift.animation_url || gift.icon_url || undefined,
+            giftColor: "bg-pink-500/50",
+            count: count,
+            coins: gift.coins,
+          });
+          
+          // Add gift message to chat IMMEDIATELY (optimistic)
+          const giftChatMessage = `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${count}`;
+          const tempGiftMsgId = `gift_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+          setMessages(prev => [...prev, {
+            id: tempGiftMsgId,
+            user: senderName,
+            initial: senderName.charAt(0),
+            message: giftChatMessage,
+            color: "text-pink-400",
+            userLevel: senderLevel,
+            userAvatar: senderAvatar,
+            isHost: currentUserId === streamData?.host_id,
+            isNewUser: false,
+            giftIconUrl: gift.icon_url || undefined,
+          }]);
+          
+          // Gift animation is already playing - no toast needed
+          
+          // ========== INSTANT BROADCAST TO HOST & ALL VIEWERS (< 50ms) ==========
+          // This broadcasts BEFORE the DB write, so host sees it instantly
+          const broadcastChannel = supabase.channel(`gift_broadcast_${id}`);
+          broadcastChannel.send({
+            type: 'broadcast',
+            event: 'gift_sent',
+            payload: {
+              senderId: currentUserId,
+              senderName: senderName,
+              senderAvatar: senderAvatar,
+              senderLevel: senderLevel,
+              giftName: gift.name,
+              giftIcon: gift.emoji || "🎁",
+              giftIconUrl: gift.icon_url || undefined,
+              giftAnimationUrl: gift.animation_url || gift.icon_url || undefined,
+              giftCoins: gift.coins,
+              count: count,
+              streamId: id,
+              timestamp: Date.now(),
+            }
+          });
+          
+          // ========== BACKGROUND PROCESSING (fire-and-forget) ==========
+          (async () => {
+            try {
+              // Send all gifts in parallel for faster processing
+              const promises = Array.from({ length: count }, () => 
+                supabase.functions.invoke('gift-service', {
+                  body: {
+                    receiverId: hostInfo!.id,
+                    giftId: gift.id,
+                    streamId: id
+                  }
+                })
+              );
+              
+              const results = await Promise.allSettled(promises);
+              const successCount = results.filter(r => r.status === 'fulfilled' && !(r.value as any).error).length;
+              const failCount = count - successCount;
+              
+              console.log(`[Gift] Background: ${successCount}/${count} gifts processed`);
+              
+              // If some failed, refund the difference and notify
+              if (failCount > 0) {
+                const refundAmount = gift.coins * failCount;
+                setUserCoins(prev => prev + refundAmount);
+                toast.error(`${failCount} gift(s) failed - diamonds refunded`);
+              }
+              
+              // Refresh actual balance from server
+              const { data: updatedProfile } = await supabase
+                .from("profiles")
+                .select("coins")
+                .eq("id", currentUserId)
+                .single();
+              
+              if (updatedProfile) {
+                setUserCoins(updatedProfile.coins || 0);
+                // CRITICAL: Update global cached balance so Profile "My Diamonds" reflects instantly
+                const { updateCachedBalance } = await import("@/hooks/useUserBalance");
+                updateCachedBalance(updatedProfile.coins || 0);
+              }
+              
+              // Save gift message to database for other participants
+              if (successCount > 0) {
+                const finalGiftMessage = `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${successCount}`;
+                await supabase.from("stream_chat").insert({
+                  stream_id: id,
+                  sender_id: currentUserId,
+                  content: finalGiftMessage,
+                });
+              }
+            } catch (err) {
+              console.error('[Gift] Background processing error:', err);
+              // Refund coins on complete failure
+              setUserCoins(prev => prev + totalCost);
+              toast.error("Gift failed - diamonds refunded");
+            }
+          })();
+        }}
+        userCoins={userCoins}
+      />
+      
+      {/* Join Notifications moved to chat area - see bottom section */}
+
+      {/* ========== HOST BUSY ON CALL OVERLAY (for viewers) ========== */}
+      <AnimatePresence>
+        {hostBusyOnCall && !isHost && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-black/80"
+          >
+            {/* Host Avatar */}
+            <div className="relative mb-6">
+              <div className="w-24 h-24 rounded-full border-4 border-amber-400/60 overflow-hidden shadow-2xl">
+                <img
+                  src={hostInfo?.avatar || '/placeholder.svg'}
+                  alt={hostInfo?.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <motion.div
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center border-2 border-black"
+              >
+                <Phone className="w-4 h-4 text-white" />
+              </motion.div>
+            </div>
+
+            <h3 className="text-white text-xl font-bold mb-2">
+              {hostInfo?.name || 'Host'} is on a Private Call
+            </h3>
+            <p className="text-white/60 text-sm mb-8">
+              Please wait, the host will be back soon!
+            </p>
+
+            {/* Host Photos Gallery */}
+            {hostPhotos.length > 0 && (
+              <div className="flex gap-3 px-6">
+                {hostPhotos.slice(0, 3).map((photo, idx) => (
+                  <motion.div
+                    key={idx}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.15 }}
+                    className="w-24 h-32 rounded-xl overflow-hidden border-2 border-white/20 shadow-lg"
+                  >
+                    <img
+                      src={photo}
+                      alt={`${hostInfo?.name} photo ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </motion.div>
+                ))}
+              </div>
+            )}
+
+            <motion.div
+              animate={{ opacity: [0.4, 1, 0.4] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="mt-8 flex items-center gap-2 text-amber-400 text-sm"
+            >
+              <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+              Waiting for host...
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Premium Stream Ended Modal */}
+      <RoomEndedModal
+        isOpen={showStreamEndedModal}
+        hostName={hostInfo?.name || streamEndedBy}
+        hostAvatar={hostInfo?.avatar}
+        hostId={streamData?.host_id || hostInfo?.id}
+        roomType="live"
+        viewerCount={viewerCount}
+        duration={(() => {
+          const elapsed = Math.floor((Date.now() - streamStartTime) / 1000);
+          const mins = Math.floor(elapsed / 60);
+          const secs = elapsed % 60;
+          return `${mins}:${secs.toString().padStart(2, '0')}`;
+        })()}
+        onExit={async () => {
+          setShowStreamEndedModal(false);
+          await leaveChannel();
+          navigate('/');
+        }}
+      />
+
+      {/* Flying Gift Animations */}
+      <AnimatePresence>
+        {flyingGifts.map((gift) => (
+          <FlyingGiftAnimation
+            key={gift.id}
+            gift={gift}
+            onComplete={() => removeFlyingGift(gift.id)}
+          />
+        ))}
+      </AnimatePresence>
+
+      {/* Global Live Game Selector - All games available */}
+      <LiveGameSelector
+        isOpen={showGamePanel}
+        onClose={() => setShowGamePanel(false)}
+        roomId={id}
+        onOpenGifts={() => setShowGiftPanel(true)}
+      />
+
+      {/* Premium Viewer Profile Card */}
+      <PremiumViewerProfileCard
+        viewer={selectedProfile}
+        isOpen={showProfileCard}
+        onClose={() => setShowProfileCard(false)}
+        onFollow={handleFollowFromCard}
+        onMessage={handleMessageFromCard}
+        onGift={handleGiftFromCard}
+        onCall={(viewerId) => {
+          setShowProfileCard(false);
+          handleCall();
+        }}
+        onViewProfile={(viewerId) => {
+          setShowProfileCard(false);
+          navigate(`/profile/${viewerId}`);
+        }}
+      />
+      <NumberSharingWarningDialog
+        open={numberWarning.warningState.open}
+        onClose={numberWarning.closeWarning}
+        violationNumber={numberWarning.warningState.violationNumber}
+        beansDeducted={numberWarning.warningState.beansDeducted}
+        isBanned={numberWarning.warningState.isBanned}
+        isGenericWarning={numberWarning.warningState.isGenericWarning}
+      />
+      {/* Beauty Filter Panel for Host — REAL DeepAR Native */}
+      {isHost && (
+        <BeautyFilterPanel
+          isOpen={showBeautyPanel}
+          onClose={() => setShowBeautyPanel(false)}
+          settings={deepAR.beautySettings}
+          enabled={deepAR.beautyEnabled}
+          onSettingsChange={deepAR.handleBeautySettingsChange}
+          onEnabledChange={deepAR.handleBeautyEnabledChange}
+        />
+      )}
+    </div>
+  );
+};
+
+export default LiveStream;

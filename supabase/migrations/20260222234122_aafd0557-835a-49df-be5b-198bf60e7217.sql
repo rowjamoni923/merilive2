@@ -1,0 +1,1 @@
+INSERT INTO app_settings (setting_key, setting_value, category, description) VALUES ('platform_fee_percent', '10', 'finance', 'Withdrawal platform fee percentage');

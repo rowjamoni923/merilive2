@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/call_bg">
+    <io.livekit.android.renderer.SurfaceViewRenderer android:id="@+id/remoteVideoView" android:layout_width="match_parent" android:layout_height="match_parent" />
+    <io.livekit.android.renderer.SurfaceViewRenderer android:id="@+id/localVideoView" android:layout_width="120dp" android:layout_height="160dp" android:layout_gravity="top|end" android:layout_margin="16dp" />
+    <TextView android:id="@+id/tvStatus" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/white" android:textSize="16sp" android:layout_gravity="top|center_horizontal" android:layout_marginTop="40dp" />
+    <TextView android:id="@+id/tvDuration" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/white" android:textSize="20sp" android:textStyle="bold" android:visibility="gone" android:layout_gravity="top|center_horizontal" android:layout_marginTop="70dp" />
+    <TextView android:id="@+id/tvTotalCost" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/accent" android:textSize="18sp" android:visibility="gone" android:layout_gravity="center" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_gravity="bottom" android:padding="24dp" android:gravity="center">
+        <ImageButton android:id="@+id/btnMute" android:layout_width="56dp" android:layout_height="56dp" android:src="@drawable/ic_mic" android:background="@drawable/bg_circle_translucent" />
+        <ImageButton android:id="@+id/btnEndCall" android:layout_width="72dp" android:layout_height="72dp" android:src="@drawable/ic_call_end" android:background="@drawable/bg_circle_red" android:layout_marginHorizontal="24dp" />
+        <ImageButton android:id="@+id/btnFlipCamera" android:layout_width="56dp" android:layout_height="56dp" android:src="@drawable/ic_flip_camera" android:background="@drawable/bg_circle_translucent" />
+        <ImageButton android:id="@+id/btnSpeaker" android:layout_width="56dp" android:layout_height="56dp" android:src="@drawable/ic_speaker" android:background="@drawable/bg_circle_translucent" android:layout_marginStart="12dp" />
+    </LinearLayout>
+</FrameLayout>

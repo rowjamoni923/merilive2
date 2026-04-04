@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MeriLive</string>
+    <string name="title_activity_main">MeriLive</string>
+    <string name="package_name">com.merilive.app</string>
+    <string name="custom_url_scheme">com.merilive.app</string>
+    
+    <!-- 
+    =====================================================
+    GOOGLE SIGN-IN CONFIGURATION
+    =====================================================
+    
+    STEP 1: Google Cloud Console এ যান: https://console.cloud.google.com/
+    STEP 2: APIs & Services > Credentials এ যান
+    STEP 3: Create Credentials > OAuth Client ID ক্লিক করুন
+    STEP 4: Application Type = "Web application" সিলেক্ট করুন
+    STEP 5: Client ID কপি করে নিচে পেস্ট করুন
+    
+    =====================================================
+    -->
+    
+    <!-- এখানে আপনার Google Cloud Console থেকে পাওয়া Web Client ID দিন -->
+    <string name="server_client_id">973947856306-n6kjihap25bdffjv967evtt1i7j1vs38.apps.googleusercontent.com</string>
+    
+    <!-- 
+    =====================================================
+    IMPORTANT: SHA-1 Fingerprint যোগ করতে হবে
+    =====================================================
+    
+    Terminal/Command Prompt এ এই কমান্ড রান করুন:
+    
+    Debug Key (Development):
+    keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android
+    
+    Release Key (Production):
+    keytool -list -v -keystore your-release-key.keystore -alias your-alias
+    
+    SHA-1 কপি করে Google Cloud Console এ:
+    1. APIs & Services > Credentials
+    2. Create Credentials > OAuth Client ID
+    3. Application Type = "Android"
+    4. Package name = com.merilive.app
+    5. SHA-1 = আপনার SHA-1 পেস্ট করুন
+    
+    =====================================================
+    -->
+</resources>

@@ -1,0 +1,455 @@
+import { useEffect, useState, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { RealtimeChannel } from '@supabase/supabase-js';
+
+// Hook for real-time profile updates
+export function useRealtimeProfile(userId: string | null) {
+  const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+
+    let channel: RealtimeChannel;
+
+    const fetchProfile = async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      
+      if (!error && data) {
+        setProfile(data);
+      }
+      setLoading(false);
+    };
+
+    fetchProfile();
+
+    channel = supabase
+      .channel(`profile-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${userId}`
+        },
+        (payload) => {
+          console.log('[Realtime] Profile updated:', payload.new);
+          setProfile(payload.new);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId]);
+
+  return { profile, loading };
+}
+
+// Hook for real-time agency stats
+export function useRealtimeAgencyStats(agencyId: string | null) {
+  const [stats, setStats] = useState<any>(null);
+  const [performance, setPerformance] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!agencyId) {
+      setLoading(false);
+      return;
+    }
+
+    let agencyChannel: RealtimeChannel;
+    let performanceChannel: RealtimeChannel;
+
+    const fetchData = async () => {
+      // Fetch agency info
+      const { data: agencyData } = await supabase
+        .from('agencies')
+        .select('*')
+        .eq('id', agencyId)
+        .single();
+      
+      if (agencyData) {
+        setStats(agencyData);
+      }
+
+      // Fetch current week performance
+      const weekStart = getWeekStart();
+      const { data: perfData } = await supabase
+        .from('agency_performance')
+        .select('*')
+        .eq('agency_id', agencyId)
+        .eq('period_type', 'weekly')
+        .eq('period_start', weekStart)
+        .maybeSingle();
+      
+      if (perfData) {
+        setPerformance(perfData);
+      }
+      
+      setLoading(false);
+    };
+
+    fetchData();
+
+    // Subscribe to agency updates
+    agencyChannel = supabase
+      .channel(`agency-${agencyId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'agencies',
+          filter: `id=eq.${agencyId}`
+        },
+        (payload) => {
+          console.log('[Realtime] Agency updated:', payload.new);
+          setStats(payload.new);
+        }
+      )
+      .subscribe();
+
+    // Subscribe to performance updates
+    performanceChannel = supabase
+      .channel(`agency-perf-${agencyId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'agency_performance',
+          filter: `agency_id=eq.${agencyId}`
+        },
+        (payload) => {
+          console.log('[Realtime] Performance updated:', payload.new);
+          if (payload.eventType !== 'DELETE') {
+            setPerformance(payload.new);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(agencyChannel);
+      supabase.removeChannel(performanceChannel);
+    };
+  }, [agencyId]);
+
+  return { stats, performance, loading };
+}
+
+// Hook for real-time live stream stats
+export function useRealtimeLiveStream(streamId: string | null) {
+  const [stream, setStream] = useState<any>(null);
+  const [viewers, setViewers] = useState<any[]>([]);
+  const [gifts, setGifts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!streamId) {
+      setLoading(false);
+      return;
+    }
+
+    let streamChannel: RealtimeChannel;
+    let viewerChannel: RealtimeChannel;
+    let giftChannel: RealtimeChannel;
+
+    const fetchData = async () => {
+      // Fetch stream info
+      const { data: streamData } = await supabase
+        .from('live_streams')
+        .select('*')
+        .eq('id', streamId)
+        .single();
+      
+      if (streamData) {
+        setStream(streamData);
+      }
+
+      // Fetch current viewers
+      const { data: viewerData } = await supabase
+        .from('stream_viewers')
+        .select('*')
+        .eq('stream_id', streamId)
+        .is('left_at', null);
+      
+      if (viewerData) {
+        setViewers(viewerData);
+      }
+
+      // Fetch recent gifts
+      const { data: giftData } = await supabase
+        .from('gift_transactions')
+        .select('*')
+        .eq('stream_id', streamId)
+        .order('created_at', { ascending: false })
+        .limit(50);
+      
+      if (giftData) {
+        setGifts(giftData);
+      }
+      
+      setLoading(false);
+    };
+
+    fetchData();
+
+    // Subscribe to stream updates
+    streamChannel = supabase
+      .channel(`stream-${streamId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'live_streams',
+          filter: `id=eq.${streamId}`
+        },
+        (payload) => {
+          console.log('[Realtime] Stream updated:', payload.new);
+          setStream((prev: any) => ({ ...prev, ...payload.new }));
+        }
+      )
+      .subscribe();
+
+    // Subscribe to viewer changes
+    viewerChannel = supabase
+      .channel(`stream-viewers-${streamId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'stream_viewers',
+          filter: `stream_id=eq.${streamId}`
+        },
+        async (payload) => {
+          console.log('[Realtime] Viewer change:', payload);
+          
+          if (payload.eventType === 'INSERT') {
+            setViewers(prev => [...prev, payload.new]);
+          } else if (payload.eventType === 'UPDATE' && (payload.new as any).left_at) {
+            setViewers(prev => prev.filter(v => v.id !== (payload.new as any).id));
+          }
+        }
+      )
+      .subscribe();
+
+    // Subscribe to gift transactions
+    giftChannel = supabase
+      .channel(`stream-gifts-${streamId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'gift_transactions',
+          filter: `stream_id=eq.${streamId}`
+        },
+        async (payload) => {
+          console.log('[Realtime] New gift:', payload.new);
+          setGifts(prev => [payload.new, ...prev.slice(0, 49)]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(streamChannel);
+      supabase.removeChannel(viewerChannel);
+      supabase.removeChannel(giftChannel);
+    };
+  }, [streamId]);
+
+  return { stream, viewers, gifts, loading };
+}
+
+// Hook for real-time rankings
+export function useRealtimeRankings(rankingType: string, periodType: string) {
+  const [rankings, setRankings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+
+  const fetchRankings = useCallback(async () => {
+    const { data, error } = await supabase.rpc('get_agency_rankings', {
+      _ranking_type: rankingType,
+      _period_type: periodType,
+      _limit: 100
+    });
+    
+    if (!error && data) {
+      setRankings(data);
+      setLastUpdate(new Date());
+    }
+    setLoading(false);
+  }, [rankingType, periodType]);
+
+  useEffect(() => {
+    fetchRankings();
+
+    // Subscribe to performance changes that affect rankings
+    const channel = supabase
+      .channel(`rankings-${rankingType}-${periodType}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'agency_performance'
+        },
+        () => {
+          console.log('[Realtime] Performance changed, refreshing rankings');
+          fetchRankings();
+        }
+      )
+      .subscribe();
+
+    // No polling - realtime subscription handles updates
+    const interval: ReturnType<typeof setInterval> | null = null;
+
+    return () => {
+      supabase.removeChannel(channel);
+      if (interval) clearInterval(interval);
+    };
+  }, [fetchRankings]);
+
+  return { rankings, loading, lastUpdate, refresh: fetchRankings };
+}
+
+// Hook for real-time earnings tracker
+export function useRealtimeEarnings(userId: string | null) {
+  const [todayEarnings, setTodayEarnings] = useState(0);
+  const [weekEarnings, setWeekEarnings] = useState(0);
+  const [monthEarnings, setMonthEarnings] = useState(0);
+  const [totalEarnings, setTotalEarnings] = useState(0);
+  const [recentGifts, setRecentGifts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+
+  useEffect(() => {
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchEarnings = async () => {
+      const today = new Date().toISOString().split('T')[0];
+      const weekStart = getWeekStart();
+      const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+
+      // Fetch today's earnings
+      const { data: todayData } = await supabase
+        .from('gift_transactions')
+        .select('coin_amount')
+        .eq('receiver_id', userId)
+        .gte('created_at', today);
+      
+      setTodayEarnings(todayData?.reduce((sum, t) => sum + t.coin_amount, 0) || 0);
+
+      // Fetch week earnings
+      const { data: weekData } = await supabase
+        .from('gift_transactions')
+        .select('coin_amount')
+        .eq('receiver_id', userId)
+        .gte('created_at', weekStart);
+      
+      setWeekEarnings(weekData?.reduce((sum, t) => sum + t.coin_amount, 0) || 0);
+
+      // Fetch month earnings
+      const { data: monthData } = await supabase
+        .from('gift_transactions')
+        .select('coin_amount')
+        .eq('receiver_id', userId)
+        .gte('created_at', monthStart);
+      
+      setMonthEarnings(monthData?.reduce((sum, t) => sum + t.coin_amount, 0) || 0);
+
+      // Fetch total earnings from profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('total_earnings')
+        .eq('id', userId)
+        .single();
+      
+      setTotalEarnings(profileData?.total_earnings || 0);
+
+      // Fetch recent gifts
+      const { data: giftsData } = await supabase
+        .from('gift_transactions')
+        .select('*')
+        .eq('receiver_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(20);
+      
+      setRecentGifts(giftsData || []);
+      setLastUpdate(new Date());
+      setLoading(false);
+    };
+
+    fetchEarnings();
+
+    // Subscribe to new gifts
+    const channel = supabase
+      .channel(`earnings-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'gift_transactions',
+          filter: `receiver_id=eq.${userId}`
+        },
+        async (payload) => {
+          console.log('[Realtime] New earning:', payload.new);
+          const amount = (payload.new as any).coin_amount;
+          
+          setTodayEarnings(prev => prev + amount);
+          setWeekEarnings(prev => prev + amount);
+          setMonthEarnings(prev => prev + amount);
+          setTotalEarnings(prev => prev + amount);
+          setRecentGifts(prev => [payload.new, ...prev.slice(0, 19)]);
+          setLastUpdate(new Date());
+        }
+      )
+      .subscribe();
+
+    // No polling - realtime subscription handles updates
+    const interval: ReturnType<typeof setInterval> | null = null;
+
+    return () => {
+      supabase.removeChannel(channel);
+      if (interval) clearInterval(interval);
+    };
+  }, [userId]);
+
+  return { todayEarnings, weekEarnings, monthEarnings, totalEarnings, recentGifts, loading, lastUpdate };
+}
+
+// Helper function to get week start date
+function getWeekStart(): string {
+  const now = new Date();
+  const dayOfWeek = now.getDay();
+  const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+  const monday = new Date(now.setDate(diff));
+  return monday.toISOString().split('T')[0];
+}
+
+// Format last update time
+export function formatLastUpdate(date: Date): string {
+  const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
+  
+  if (seconds < 5) return 'Just now';
+  if (seconds < 60) return `${seconds} seconds ago`;
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`;
+  return `${Math.floor(seconds / 3600)} hours ago`;
+}

@@ -1,0 +1,1 @@
+UPDATE level_privileges SET unlock_level = 5 WHERE id = 'e1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c' AND privilege_type = 'entrance';

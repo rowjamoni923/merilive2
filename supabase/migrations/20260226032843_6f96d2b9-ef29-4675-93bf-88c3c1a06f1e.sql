@@ -1,0 +1,1 @@
+ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS is_ai_reply boolean DEFAULT false;

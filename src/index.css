@@ -1,0 +1,2483 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Poppins:wght@500;600;700;800&display=swap');
+
+/* Screenshot prevention for private calls */
+.no-screenshot {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ============================================
+   Global mobile behavior
+   ============================================ */
+
+html, body, #root {
+  -webkit-text-size-adjust: 100% !important;
+  -moz-text-size-adjust: 100% !important;
+  text-size-adjust: 100% !important;
+}
+
+/* Video elements: fully locked, no interaction, NO native controls */
+video {
+  touch-action: none !important;
+  -ms-touch-action: none !important;
+  pointer-events: none !important;
+  -webkit-touch-callout: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+/* ============================================
+   NUCLEAR: Kill ALL native video player controls
+   Android WebView injects shadow-DOM media controls
+   that show play/pause icons over video streams.
+   These rules target every known pseudo-element.
+   ============================================ */
+video::-webkit-media-controls,
+video::-webkit-media-controls-panel,
+video::-webkit-media-controls-play-button,
+video::-webkit-media-controls-start-playback-button,
+video::-webkit-media-controls-overlay-play-button,
+video::-webkit-media-controls-current-time-display,
+video::-webkit-media-controls-time-remaining-display,
+video::-webkit-media-controls-timeline,
+video::-webkit-media-controls-volume-slider,
+video::-webkit-media-controls-mute-button,
+video::-webkit-media-controls-fullscreen-button,
+video::-webkit-media-controls-enclosure,
+video::-webkit-media-controls-overlay-enclosure,
+video::-moz-media-controls,
+video::-ms-media-controls {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  z-index: -9999 !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+}
+
+/* Camera containers: extra lock layer */
+.camera-locked,
+.camera-locked * {
+  touch-action: none !important;
+  -ms-touch-action: none !important;
+  -webkit-touch-callout: none !important;
+}
+
+@media print {
+  .no-screenshot * {
+    display: none !important;
+  }
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   CHAMET-STYLE PROFESSIONAL DESIGN SYSTEM
+   Dark Theme with Vibrant Accents
+   ============================================ */
+
+@layer base {
+  :root {
+    /* Dark base theme - App default */
+    --background: 240 20% 4%;
+    --foreground: 0 0% 95%;
+
+    --card: 240 15% 8%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 240 15% 8%;
+    --popover-foreground: 0 0% 95%;
+
+    /* Vibrant Pink Primary */
+    --primary: 330 85% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Purple Secondary */
+    --secondary: 270 70% 55%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 240 10% 14%;
+    --muted-foreground: 215 16% 65%;
+
+    /* Gold Accent */
+    --accent: 45 93% 58%;
+    --accent-foreground: 20 14% 4%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 10% 18%;
+    --input: 240 10% 18%;
+    --ring: 330 85% 55%;
+
+    --radius: 1rem;
+
+    /* Premium Gradients - Dark */
+    --gradient-primary: linear-gradient(135deg, hsl(330 85% 55%) 0%, hsl(270 70% 55%) 50%, hsl(220 80% 55%) 100%);
+    --gradient-gold: linear-gradient(135deg, hsl(45 93% 58%) 0%, hsl(35 90% 55%) 50%, hsl(25 85% 50%) 100%);
+    --gradient-dark: linear-gradient(180deg, hsl(240 20% 6%) 0%, hsl(240 20% 3%) 100%);
+    --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(240 15% 10%) 0%, hsl(240 15% 6%) 100%);
+    --gradient-shine: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
+    --gradient-live: linear-gradient(135deg, hsl(0 72% 51%) 0%, hsl(330 85% 55%) 100%);
+    --gradient-online: linear-gradient(135deg, hsl(142 76% 45%) 0%, hsl(160 84% 39%) 100%);
+
+    /* Shadows - Dark */
+    --shadow-glow: 0 0 30px -5px hsl(330 85% 55% / 0.3);
+    --shadow-card: 0 4px 20px -4px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    --shadow-elevated: 0 20px 50px -15px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    --shadow-pink: 0 0 40px -10px hsl(330 85% 55% / 0.35);
+    --shadow-purple: 0 0 40px -10px hsl(270 70% 55% / 0.35);
+    --shadow-gold: 0 0 40px -10px hsl(45 93% 58% / 0.35);
+
+    --sidebar-background: 240 15% 8%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 330 85% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 10% 14%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 240 10% 18%;
+    --sidebar-ring: 330 85% 55%;
+  }
+
+  /* Light mode override - Clean and modern admin style */
+  .light {
+    --background: 0 0% 96%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 330 85% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 270 70% 55%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 45 93% 58%;
+    --accent-foreground: 20 14% 4%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 330 85% 55%;
+
+    /* Light theme gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(330 85% 55%) 0%, hsl(270 70% 55%) 50%, hsl(220 80% 55%) 100%);
+    --gradient-gold: linear-gradient(135deg, hsl(45 93% 58%) 0%, hsl(35 90% 55%) 50%, hsl(25 85% 50%) 100%);
+    
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 330 85% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 96%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 330 85% 55%;
+  }
+}
+
+/* Event Theme Global Overrides — when [data-event-theme] is set */
+[data-event-theme] .border,
+[data-event-theme] [class*="border-"] {
+  border-color: hsl(var(--event-card-border, var(--border)) / 0.3);
+}
+
+/* Hide ALL native video controls globally — prevents video player UI from appearing */
+video::-webkit-media-controls,
+video::-webkit-media-controls-panel,
+video::-webkit-media-controls-play-button,
+video::-webkit-media-controls-start-playback-button,
+video::-webkit-media-controls-overlay-play-button,
+video::-webkit-media-controls-overlay-enclosure,
+video::-webkit-media-controls-panel-container,
+video::-webkit-media-controls-container,
+video::-webkit-media-controls-enclosure,
+video::-webkit-media-controls-background,
+video::-webkit-media-controls-timeline,
+video::-webkit-media-controls-current-time-display,
+video::-webkit-media-controls-time-remaining-display,
+video::-webkit-media-controls-mute-button,
+video::-webkit-media-controls-volume-slider,
+video::-webkit-media-controls-fullscreen-button,
+video::-webkit-media-controls-toggle-closed-captions-button,
+video::-webkit-media-controls-volume-control-container,
+video::-webkit-media-controls-volume-control-hover-background,
+video::-internal-media-controls-overlay-cast-button {
+  display: none !important;
+  -webkit-appearance: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  position: absolute !important;
+  overflow: hidden !important;
+}
+
+video::-moz-media-controls {
+  display: none !important;
+}
+
+video {
+  -webkit-media-controls: none !important;
+  object-fit: cover;
+}
+
+/* Extra: hide Android Chrome's large center play button */
+video::-webkit-media-controls-overlay-play-button {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+  position: absolute !important;
+  z-index: -9999 !important;
+}
+
+/* Hide media controls container on Samsung/Android browsers */
+video::-webkit-media-controls-panel-container {
+  display: none !important;
+}
+
+/* NUCLEAR: Force hide ANY play button overlay on all browsers including WebView */
+video::-webkit-media-controls-start-playback-button {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  position: absolute !important;
+  width: 0 !important;
+  height: 0 !important;
+  z-index: -9999 !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
+/* Hide poster/placeholder play icon overlay in Android WebView */
+video::poster {
+  display: none !important;
+}
+
+/* Prevent any default media overlay on Capacitor/WebView */
+video[controls] {
+  -webkit-media-controls: none !important;
+}
+
+/* ABSOLUTE NUCLEAR — Block ALL possible video overlays on Android WebView/Capacitor */
+video *,
+video::before,
+video::after {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+  position: absolute !important;
+  pointer-events: none !important;
+  z-index: -9999 !important;
+}
+
+/* Force video to never show any UI chrome */
+video {
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none !important;
+  outline: none !important;
+}
+
+/* Android WebView specific — some versions use this pseudo */
+video::-webkit-media-text-track-container,
+video::-webkit-media-text-track-display,
+video::-webkit-media-controls-overlay-cast-button,
+video::-webkit-media-controls-cast-button {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+video {
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none !important;
+}
+
+/* ULTIMATE FIX: Transparent overlay to block native play button clicks */
+/* Works even when WebView ignores CSS pseudo-element hiding */
+.camera-locked::after {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 1 !important;
+  pointer-events: none !important;
+  background: transparent !important;
+}
+
+/* Force video elements to never trigger native player UI */
+video {
+  -webkit-media-playback-requires-user-action: false !important;
+  media-playback-requires-user-action: false !important;
+}
+
+/* Samsung Internet & MIUI Browser specific */
+video::-webkit-media-controls-panel-spacer,
+video::-webkit-media-controls-timeline-container,
+video::-webkit-media-controls-seek-back-button,
+video::-webkit-media-controls-seek-forward-button,
+video::-webkit-media-controls-rewind-button,
+video::-webkit-media-controls-return-to-realtime-button,
+video::-webkit-media-controls-toggle-closed-captions-button {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+  position: absolute !important;
+  pointer-events: none !important;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', 'Poppins', system-ui, -apple-system, sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    background-color: hsl(var(--background));
+    -webkit-overflow-scrolling: touch;
+    overflow-x: hidden;
+    font-size: 14px;
+  }
+
+  /* ============================================
+     MOBILE-FIRST RESPONSIVE UTILITIES
+     Universal Mobile Optimization for ALL Phones
+     ============================================ */
+
+  /* CSS Custom Properties for dynamic safe areas */
+  :root {
+    --safe-area-top: env(safe-area-inset-top, 0px);
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-left: env(safe-area-inset-left, 0px);
+    --safe-area-right: env(safe-area-inset-right, 0px);
+    
+    /* Dynamic viewport height (fixes 100vh mobile browser issue) */
+    --vh: 1vh;
+    --viewport-height: calc(var(--vh, 1vh) * 100);
+    
+    /* Bottom navigation bar height */
+    --bottom-nav-height: 64px;
+    
+    /* Content bottom padding (nav + safe area) */
+    --content-bottom-padding: calc(var(--bottom-nav-height) + 4px + max(env(safe-area-inset-bottom, 0px), var(--min-bottom-inset, 0px)));
+    
+    /* Default minimums for phones without proper env() support */
+    --min-top-inset: 20px;
+    --min-bottom-inset: 0px;
+  }
+
+  /* Safe area padding for notched devices - Universal */
+  .safe-area-top {
+    padding-top: max(var(--safe-area-top), var(--min-top-inset));
+  }
+
+  .safe-area-bottom {
+    padding-bottom: max(var(--safe-area-bottom), var(--min-bottom-inset));
+  }
+
+  .safe-area-left {
+    padding-left: var(--safe-area-left);
+  }
+
+  .safe-area-right {
+    padding-right: var(--safe-area-right);
+  }
+
+  /* Safe area for ALL sides at once */
+  .safe-area-all {
+    padding-top: max(var(--safe-area-top), var(--min-top-inset));
+    padding-bottom: max(var(--safe-area-bottom), var(--min-bottom-inset));
+    padding-left: var(--safe-area-left);
+    padding-right: var(--safe-area-right);
+  }
+
+  /* Full screen container that respects safe areas */
+  .mobile-fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for mobile browsers */
+    height: -webkit-fill-available; /* iOS Safari fallback */
+  }
+
+  /* Live/Party room full viewport */
+  .room-viewport {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    height: -webkit-fill-available;
+    overflow: hidden;
+  }
+
+  /* Mobile bottom padding to prevent content from being hidden by bottom nav */
+  .mobile-bottom-padding {
+    padding-bottom: var(--content-bottom-padding) !important;
+  }
+
+  /* Extra large bottom padding for profile pages with many items */
+  .mobile-bottom-padding-xl {
+    padding-bottom: calc(var(--bottom-nav-height) + 40px + max(env(safe-area-inset-bottom, 0px), var(--min-bottom-inset, 0px))) !important;
+  }
+
+  /* Mobile container - ensures content doesn't overflow */
+  .mobile-container {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  /* Mobile full height accounting for header and footer */
+  .mobile-full-height {
+    min-height: calc(100vh - 160px);
+    min-height: calc(100dvh - 160px);
+  }
+
+  /* Mobile screen height (viewport minus safe areas) */
+  .mobile-screen-height {
+    height: calc(100vh - var(--safe-area-top) - var(--safe-area-bottom));
+    height: calc(100dvh - var(--safe-area-top) - var(--safe-area-bottom));
+  }
+
+  /* Mobile scrollable content - ensures smooth native scrolling */
+  .mobile-scrollable {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    scroll-behavior: smooth;
+  }
+
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar visually but KEEP scroll functionality */
+  *::-webkit-scrollbar {
+    display: none;
+  }
+  
+  * {
+    scrollbar-width: none;
+  }
+
+  /* Better touch targets - Mobile optimized */
+  button, a, [role="button"] {
+    min-height: 40px;
+    min-width: 40px;
+  }
+
+  /* Small interactive elements (icons, badges) */
+  .touch-target-sm {
+    min-height: 36px;
+    min-width: 36px;
+  }
+
+/* Prevent text selection on interactive elements */
+  .no-select {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* ============================================
+     GLOBAL COPY & PASTE — Enable everywhere
+     ============================================ */
+  * {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+  
+  /* Keep select-none only on buttons, sliders, interactive controls */
+  button, [role="button"], [role="slider"], [role="scrollbar"],
+  .select-none, .no-select, .no-text-select {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  
+  /* Always allow selection in inputs, textareas, and content areas */
+  input, textarea, [contenteditable="true"], .select-text {
+    -webkit-user-select: text !important;
+    user-select: text !important;
+  }
+
+  /* ============================================
+     ANDROID NATIVE RIPPLE ANIMATION
+     Material Design 3 touch feedback
+     ============================================ */
+  @keyframes android-ripple {
+    0% {
+      transform: scale(0);
+      opacity: 0.6;
+    }
+    60% {
+      transform: scale(1);
+      opacity: 0.3;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 0;
+    }
+  }
+
+  .android-page-enter {
+    animation: android-page-in 200ms cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+  }
+
+  @keyframes android-page-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .native-scroll {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    scroll-behavior: smooth;
+  }
+
+  .elevation-1 { box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); }
+  .elevation-2 { box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23); }
+  .elevation-4 { box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23); }
+  .elevation-8 { box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22); }
+
+  /* ============================================
+     DEVICE-SPECIFIC OPTIMIZATIONS
+     ============================================ */
+
+  /* iPhone X, XS, 11 Pro, 12 Mini, 13 Mini (375px width, notch) */
+  @media screen and (max-width: 380px) and (min-height: 750px) {
+    :root {
+      --min-top-inset: 47px;
+      --min-bottom-inset: 34px;
+    }
+    html { font-size: 14px; }
+  }
+
+  /* iPhone XR, 11, 12, 13, 14 (390-414px width, notch) */
+  @media screen and (min-width: 381px) and (max-width: 430px) and (min-height: 800px) {
+    :root {
+      --min-top-inset: 47px;
+      --min-bottom-inset: 34px;
+    }
+  }
+
+  /* iPhone 14 Pro, 15 (Dynamic Island - 430px width) */
+  @media screen and (min-width: 390px) and (max-width: 430px) and (min-height: 850px) {
+    :root {
+      --min-top-inset: 59px; /* Dynamic Island is taller */
+      --min-bottom-inset: 34px;
+    }
+  }
+
+  /* iPhone SE, older iPhones (no notch) */
+  @media screen and (max-width: 375px) and (max-height: 700px) {
+    :root {
+      --min-top-inset: 20px;
+      --min-bottom-inset: 0px;
+    }
+  }
+
+  /* Modern Android phones with notch (typical 360-412px width) */
+  @media screen and (min-width: 360px) and (max-width: 480px) and (min-height: 700px) {
+    :root {
+      --min-top-inset: 28px;
+      --min-bottom-inset: 20px;
+    }
+  }
+
+  /* Android phones with gesture navigation */
+  @media screen and (min-width: 360px) and (max-width: 480px) and (min-height: 800px) {
+    :root {
+      --min-top-inset: 32px;
+      --min-bottom-inset: 24px;
+    }
+  }
+
+  /* Small Android phones (320-360px width) */
+  @media screen and (max-width: 360px) {
+    :root {
+      --min-top-inset: 24px;
+      --min-bottom-inset: 0px;
+    }
+    html { font-size: 13px; }
+  }
+
+  /* Tablets (768px+) */
+  @media screen and (min-width: 768px) {
+    :root {
+      --min-top-inset: 20px;
+      --min-bottom-inset: 0px;
+    }
+  }
+
+  /* Landscape mobile adjustments */
+  @media (max-height: 500px) and (orientation: landscape) {
+    :root {
+      --min-top-inset: 0px;
+      --min-bottom-inset: 0px;
+    }
+    .safe-area-top {
+      padding-top: max(var(--safe-area-top), 8px);
+    }
+    .safe-area-bottom {
+      padding-bottom: max(var(--safe-area-bottom), 4px);
+    }
+  }
+}
+
+@layer utilities {
+  /* Premium Gradients */
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+
+  .gradient-gold {
+    background: var(--gradient-gold);
+  }
+
+  .gradient-dark {
+    background: var(--gradient-dark);
+  }
+
+  .gradient-glass {
+    background: var(--gradient-glass);
+    backdrop-filter: blur(20px);
+  }
+
+  .gradient-card {
+    background: var(--gradient-card);
+  }
+
+  .gradient-live {
+    background: var(--gradient-live);
+  }
+
+  .gradient-online {
+    background: var(--gradient-online);
+  }
+
+  /* Premium Shadows */
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+
+  .shadow-elevated {
+    box-shadow: var(--shadow-elevated);
+  }
+
+  .shadow-pink {
+    box-shadow: var(--shadow-pink);
+  }
+
+  .shadow-purple {
+    box-shadow: var(--shadow-purple);
+  }
+
+  .shadow-gold {
+    box-shadow: var(--shadow-gold);
+  }
+
+  /* Text Effects */
+  .text-gradient {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gold {
+    background: var(--gradient-gold);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Glass Cards - Chamet Style */
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-2xl border border-white/10 shadow-elevated;
+    background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
+  }
+
+  .glass-dark {
+    @apply bg-black/40 backdrop-blur-2xl border border-white/5;
+  }
+
+  .glass-premium {
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 100%);
+    backdrop-filter: blur(40px);
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+  }
+
+  /* Animated Effects */
+  .pulse-live {
+    animation: pulse-live 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-live {
+    0%, 100% {
+      box-shadow: 0 0 0 0 hsl(0 72% 51% / 0.7);
+    }
+    50% {
+      box-shadow: 0 0 0 12px hsl(0 72% 51% / 0);
+    }
+  }
+
+  .pulse-online {
+    animation: pulse-online 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-online {
+    0%, 100% {
+      box-shadow: 0 0 0 0 hsl(142 76% 45% / 0.6);
+    }
+    50% {
+      box-shadow: 0 0 0 8px hsl(142 76% 45% / 0);
+    }
+  }
+
+  .pulse-pink {
+    animation: pulse-pink 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-pink {
+    0%, 100% {
+      box-shadow: 0 0 0 0 hsl(330 85% 60% / 0.6);
+    }
+    50% {
+      box-shadow: 0 0 0 10px hsl(330 85% 60% / 0);
+    }
+  }
+
+  .float-animation {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 0%,
+      hsl(var(--muted-foreground) / 0.2) 50%,
+      hsl(var(--muted)) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  .shine-effect {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .shine-effect::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: var(--gradient-shine);
+    animation: shine 3s infinite;
+  }
+
+  @keyframes shine {
+    0% {
+      left: -100%;
+    }
+    50%, 100% {
+      left: 100%;
+    }
+  }
+
+  /* Card Hover Effects */
+  .card-hover {
+    @apply transition-all duration-300;
+  }
+
+  .card-hover:hover {
+    @apply shadow-elevated;
+    transform: translateY(-4px) scale(1.02);
+  }
+
+  .card-premium {
+    @apply relative overflow-hidden rounded-2xl;
+    background: linear-gradient(145deg, hsl(240 10% 10%) 0%, hsl(240 10% 6%) 100%);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .card-premium::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  }
+
+  /* Button Styles - Chamet */
+  .btn-primary {
+    @apply font-bold rounded-2xl transition-all duration-300 active:scale-[0.97];
+    background: var(--gradient-primary);
+    box-shadow: var(--shadow-glow);
+  }
+
+  .btn-primary:hover {
+    box-shadow: 0 0 50px -10px hsl(330 85% 60% / 0.6);
+    transform: translateY(-2px);
+  }
+
+  .btn-secondary {
+    @apply bg-white/10 text-white font-semibold rounded-2xl hover:bg-white/15 transition-all duration-300 border border-white/10;
+  }
+
+  .btn-gold {
+    @apply font-bold rounded-2xl transition-all duration-300;
+    background: var(--gradient-gold);
+    box-shadow: var(--shadow-gold);
+    color: hsl(20 14% 4%);
+  }
+
+  /* Badge Styles */
+  .badge-live {
+    @apply text-white font-bold text-xs px-3 py-1 rounded-full;
+    background: var(--gradient-live);
+    animation: pulse-live 2s ease-in-out infinite;
+  }
+
+  .badge-online {
+    @apply w-3.5 h-3.5 rounded-full border-2 border-background;
+    background: var(--gradient-online);
+    animation: pulse-online 2s ease-in-out infinite;
+  }
+
+  .badge-vip {
+    @apply text-xs font-bold px-2.5 py-1 rounded-full;
+    background: var(--gradient-gold);
+    color: hsl(20 14% 4%);
+  }
+
+  .badge-level {
+    @apply text-white text-xs font-bold px-2.5 py-1 rounded-full;
+    background: var(--gradient-primary);
+  }
+
+  /* Input Styles - Dark Theme */
+  .input-modern {
+    @apply bg-white/5 border border-white/10 rounded-2xl text-white placeholder:text-white/40;
+    @apply focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all duration-200;
+  }
+
+  .input-search {
+    @apply bg-white/5 border-0 rounded-full text-white placeholder:text-white/40 pl-12;
+    @apply focus:ring-2 focus:ring-primary/30 focus:bg-white/10 transition-all duration-200;
+  }
+
+  /* Avatar Styles */
+  .avatar-premium {
+    @apply ring-2 ring-offset-2 ring-offset-background;
+    --tw-ring-color: hsl(330 85% 60%);
+  }
+
+  .avatar-vip {
+    @apply ring-2 ring-offset-2 ring-offset-background;
+    --tw-ring-color: hsl(45 93% 58%);
+  }
+
+  /* Safe Area Utilities for Mobile */
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  
+  .pl-safe {
+    padding-left: env(safe-area-inset-left, 0px);
+  }
+  
+  .pr-safe {
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+
+  /* Navigation Bar - Bottom with safe area */
+  .nav-bottom {
+    background: linear-gradient(180deg, rgba(10, 10, 15, 0.98) 0%, rgba(5, 5, 10, 1) 100%);
+    backdrop-filter: blur(24px);
+    border-top: none;
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px);
+  }
+
+  /* Top Header Bar with safe area */
+  .header-glass {
+    background: linear-gradient(180deg, rgba(10, 10, 15, 0.95) 0%, rgba(10, 10, 15, 0.85) 100%);
+    backdrop-filter: blur(24px);
+    border-bottom: none;
+    padding-top: max(env(safe-area-inset-top, 0px), var(--min-top-inset, 20px));
+  }
+  
+  /* Avatar Styles */
+  .avatar-premium {
+    @apply ring-2 ring-offset-2 ring-offset-background;
+    --tw-ring-color: hsl(330 85% 60%);
+  }
+
+  .avatar-vip {
+    @apply ring-2 ring-offset-2 ring-offset-background;
+    --tw-ring-color: hsl(45 93% 58%);
+  }
+
+  /* ============================================
+     MOBILE RESPONSIVE COMPONENTS
+     ============================================ */
+
+  /* Mobile Card Grid - Responsive */
+  .mobile-grid-2 {
+    @apply grid grid-cols-2 gap-2;
+  }
+
+  @media (min-width: 480px) {
+    .mobile-grid-2 {
+      @apply gap-3;
+    }
+  }
+
+  /* Mobile Header - Fixed positioning with proper safe area */
+  .mobile-header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    /* Safe area padding now handled by .mobile-page parent */
+  }
+
+  /* Mobile Page Container - Optimized for native apps */
+  .mobile-page {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* Ensure background extends behind status bar on all devices */
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .mobile-page-scrollable {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    padding-bottom: var(--content-bottom-padding);
+  }
+
+  /* Mobile Modal/Sheet adjustments */
+  .mobile-sheet {
+    max-height: calc(90vh - env(safe-area-inset-bottom, 0px));
+    max-height: calc(90dvh - env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Mobile Button - Full width on small screens */
+  @media (max-width: 400px) {
+    .mobile-btn-full {
+      width: 100%;
+    }
+  }
+
+  /* Mobile Text Sizes */
+  .mobile-text-xs {
+    font-size: 0.65rem;
+    line-height: 1rem;
+  }
+
+  @media (min-width: 380px) {
+    .mobile-text-xs {
+      font-size: 0.75rem;
+      line-height: 1rem;
+    }
+  }
+
+  /* Mobile Spacing - Compact on small screens */
+  .mobile-p {
+    padding: 0.75rem;
+  }
+
+  @media (min-width: 400px) {
+    .mobile-p {
+      padding: 1rem;
+    }
+  }
+
+  /* Fixed Bottom Bar (for action bars) */
+  .mobile-bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 30;
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), var(--min-bottom-inset, 0px));
+    background: linear-gradient(180deg, rgba(10, 10, 15, 0.95) 0%, rgba(5, 5, 10, 1) 100%);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+
+  /* Mobile Overflow Container */
+  .mobile-overflow-x {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .mobile-overflow-x::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* ============================================
+     NATIVE APP SPECIFIC STYLES
+     ============================================ */
+
+  /* Native app container - DO NOT use position:fixed, it blocks scroll */
+  .native-container {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  /* Native scrollable content */
+  .native-scroll {
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Hide rubber band effect on iOS - only use on specific elements, not body */
+  .no-bounce {
+    overscroll-behavior-y: contain;
+  }
+
+  /* Fullscreen overlay for modals */
+  .native-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
+  }
+
+  /* Native action sheet style */
+  .native-action-sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 110;
+    background: hsl(240 10% 8%);
+    border-top-left-radius: 1.5rem;
+    border-top-right-radius: 1.5rem;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    max-height: 90vh;
+    max-height: 90dvh;
+  }
+
+  /* Pull indicator for action sheets */
+  .pull-indicator {
+    width: 36px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+    margin: 8px auto 16px;
+  }
+
+  /* Native button styles (larger touch targets) */
+  .native-btn {
+    min-height: 48px;
+    min-width: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 1rem;
+    transition: transform 0.1s ease, background 0.2s ease;
+  }
+
+  .native-btn:active {
+    transform: scale(0.95);
+  }
+
+  /* Status bar spacer */
+  .status-bar-spacer {
+    height: env(safe-area-inset-top, 0px);
+    min-height: 20px;
+    background: transparent;
+  }
+
+  /* Home indicator spacer (for iOS) */
+  .home-indicator-spacer {
+    height: env(safe-area-inset-bottom, 0px);
+    min-height: 8px;
+    background: transparent;
+  }
+
+  /* Native keyboard adjustments */
+  .keyboard-aware {
+    transition: padding-bottom 0.2s ease;
+  }
+
+  /* Prevent text selection on UI elements */
+  .no-text-select {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Native ripple effect */
+  .ripple {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ripple::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s ease, height 0.3s ease;
+  }
+
+  .ripple:active::after {
+    width: 200%;
+    height: 200%;
+  }
+
+  /* iOS style blur backgrounds */
+  .ios-blur-light {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: saturate(180%) blur(20px);
+  }
+
+  .ios-blur-dark {
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: saturate(180%) blur(20px);
+  }
+
+  /* Android elevation */
+  .android-elevation-1 {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  }
+
+  .android-elevation-2 {
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  }
+
+  .android-elevation-3 {
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+  }
+
+  /* Native FAB (Floating Action Button) */
+  .native-fab {
+    position: fixed;
+    bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+    right: 16px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gradient-primary);
+    box-shadow: 0 6px 20px -4px hsl(330 85% 60% / 0.5);
+    z-index: 50;
+  }
+
+  /* Native toast notification */
+  .native-toast {
+    position: fixed;
+    bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+    left: 16px;
+    right: 16px;
+    padding: 16px;
+    background: hsl(240 10% 15%);
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 200;
+    animation: slideUp 0.3s ease;
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  /* Haptic feedback visual indicator */
+  .haptic-press {
+    transition: transform 0.1s ease;
+  }
+
+  .haptic-press:active {
+    transform: scale(0.97);
+  }
+}
+
+/* ============================================
+   ADMIN PANEL — CLEAN DARK THEME
+   Cool obsidian + high-contrast text
+   ============================================ */
+
+/* CSS custom properties for admin scope */
+.admin-content {
+  --background: 230 15% 6%;
+  --foreground: 210 40% 96%;
+  --card: 230 14% 8%;
+  --card-foreground: 210 40% 96%;
+  --popover: 230 14% 8%;
+  --popover-foreground: 210 40% 96%;
+  --primary: 262 80% 60%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 230 12% 14%;
+  --secondary-foreground: 210 40% 96%;
+  --muted: 230 12% 12%;
+  --muted-foreground: 215 20% 55%;
+  --accent: 262 80% 60%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 225 15% 16%;
+  --input: 225 15% 16%;
+  --ring: 262 80% 60%;
+
+  /* Admin tokens */
+  --admin-text: 210 40% 96%;
+  --admin-text-secondary: 215 20% 72%;
+  --admin-text-muted: 215 15% 50%;
+  --admin-bg: 230 15% 6%;
+  --admin-card: 230 14% 8%;
+  --admin-card-alt: 230 12% 11%;
+  --admin-border: 225 15% 16%;
+  --admin-border-light: 225 15% 22%;
+  --admin-accent: 262 80% 60%;
+
+  filter: none !important;
+  -webkit-filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color-scheme: dark;
+}
+
+/* Admin content wrapper */
+.admin-content {
+  background: hsl(230 15% 6%);
+  color: hsl(210 40% 96%);
+  min-height: 100%;
+}
+
+/* ============================================
+   CARD & CONTAINER BACKGROUNDS
+   ============================================ */
+.admin-content .card,
+.admin-content [class*="bg-white"]:not([class*="bg-white/"]),
+.admin-content [class*="bg-slate-50"],
+.admin-content [class*="bg-slate-100"],
+.admin-content [class*="bg-gray-50"],
+.admin-content [class*="bg-gray-100"],
+.admin-content [class*="bg-zinc-50"],
+.admin-content [class*="bg-zinc-100"] {
+  background: hsl(230 14% 8%) !important;
+  border: 1px solid hsl(225 15% 16%) !important;
+  color: hsl(210 40% 96%) !important;
+}
+
+.admin-content [class*="bg-white/"] {
+  background: hsl(230 12% 12% / 0.6) !important;
+  color: hsl(210 40% 96%) !important;
+}
+
+/* ALL colored light backgrounds → dark admin */
+.admin-content [class*="bg-amber-50"],
+.admin-content [class*="bg-amber-100"],
+.admin-content [class*="bg-yellow-50"],
+.admin-content [class*="bg-yellow-100"],
+.admin-content [class*="bg-red-50"],
+.admin-content [class*="bg-red-100"],
+.admin-content [class*="bg-green-50"],
+.admin-content [class*="bg-green-100"],
+.admin-content [class*="bg-blue-50"],
+.admin-content [class*="bg-blue-100"],
+.admin-content [class*="bg-orange-50"],
+.admin-content [class*="bg-orange-100"],
+.admin-content [class*="bg-purple-50"],
+.admin-content [class*="bg-purple-100"],
+.admin-content [class*="bg-pink-50"],
+.admin-content [class*="bg-pink-100"],
+.admin-content [class*="bg-cyan-50"],
+.admin-content [class*="bg-cyan-100"],
+.admin-content [class*="bg-rose-50"],
+.admin-content [class*="bg-rose-100"],
+.admin-content [class*="bg-emerald-50"],
+.admin-content [class*="bg-emerald-100"],
+.admin-content [class*="bg-indigo-50"],
+.admin-content [class*="bg-indigo-100"],
+.admin-content [class*="bg-violet-50"],
+.admin-content [class*="bg-violet-100"],
+.admin-content [class*="bg-teal-50"],
+.admin-content [class*="bg-teal-100"],
+.admin-content [class*="bg-fuchsia-50"],
+.admin-content [class*="bg-fuchsia-100"],
+.admin-content [class*="bg-lime-50"],
+.admin-content [class*="bg-lime-100"] {
+  background: hsl(230 12% 11%) !important;
+  border-color: hsl(225 15% 18%) !important;
+  color: hsl(210 40% 96%) !important;
+}
+
+/* Secondary backgrounds */
+.admin-content [class*="bg-slate-200"],
+.admin-content [class*="bg-gray-200"],
+.admin-content [class*="bg-gray-300"],
+.admin-content [class*="bg-muted"] {
+  background: hsl(230 12% 13%) !important;
+  border-color: hsl(225 15% 20%) !important;
+}
+
+/* ============================================
+   TEXT — High contrast hierarchy
+   ============================================ */
+.admin-content h1,
+.admin-content h2,
+.admin-content h3,
+.admin-content h4,
+.admin-content h5,
+.admin-content h6 {
+  color: hsl(210 40% 97%) !important;
+  font-weight: 700;
+}
+
+.admin-content p,
+.admin-content span,
+.admin-content label,
+.admin-content div {
+  color: inherit;
+}
+
+/* Dark text classes → bright white */
+.admin-content [class*="text-white"],
+.admin-content [class*="text-slate-700"],
+.admin-content [class*="text-slate-800"],
+.admin-content [class*="text-slate-900"],
+.admin-content [class*="text-gray-700"],
+.admin-content [class*="text-gray-800"],
+.admin-content [class*="text-gray-900"],
+.admin-content [class*="text-zinc-700"],
+.admin-content [class*="text-zinc-800"],
+.admin-content [class*="text-zinc-900"],
+.admin-content [class*="text-black"],
+.admin-content [class*="text-foreground"] {
+  color: hsl(210 40% 97%) !important;
+}
+
+/* Muted/secondary text — clean gray */
+.admin-content [class*="text-slate-400"],
+.admin-content [class*="text-slate-500"],
+.admin-content [class*="text-slate-600"],
+.admin-content [class*="text-gray-400"],
+.admin-content [class*="text-gray-500"],
+.admin-content [class*="text-gray-600"],
+.admin-content [class*="text-zinc-400"],
+.admin-content [class*="text-zinc-500"],
+.admin-content [class*="text-zinc-600"],
+.admin-content [class*="text-muted"],
+.admin-content [class*="text-muted-foreground"] {
+  color: hsl(215 20% 58%) !important;
+}
+
+/* ============================================
+   INPUT, TEXTAREA, SELECT
+   ============================================ */
+.admin-content input,
+.admin-content textarea,
+.admin-content select,
+.admin-content [role="combobox"],
+.admin-content [role="listbox"],
+.admin-content .input {
+  background: hsl(230 14% 10%) !important;
+  border-color: hsl(225 15% 20%) !important;
+  color: hsl(210 40% 96%) !important;
+}
+
+.admin-content input::placeholder,
+.admin-content textarea::placeholder {
+  color: hsl(215 15% 42%) !important;
+}
+
+.admin-content input:focus,
+.admin-content textarea:focus,
+.admin-content select:focus,
+.admin-content [role="combobox"]:focus {
+  border-color: hsl(262 80% 60%) !important;
+  box-shadow: 0 0 0 3px hsl(262 80% 60% / 0.15) !important;
+  outline: none !important;
+}
+
+/* ============================================
+   DROPDOWNS — high z-index, solid bg
+   ============================================ */
+.admin-content [role="listbox"],
+.admin-content [role="menu"],
+.admin-content [data-radix-popper-content-wrapper],
+.admin-content [class*="SelectContent"],
+.admin-content [class*="DropdownMenuContent"] {
+  z-index: 9999 !important;
+  background: hsl(230 14% 10%) !important;
+  border: 1px solid hsl(225 15% 20%) !important;
+}
+
+.admin-content [role="listbox"] > *,
+.admin-content [role="menu"] > *,
+.admin-content [role="option"],
+.admin-content [role="menuitem"],
+.admin-content [class*="SelectItem"],
+.admin-content [class*="DropdownMenuItem"] {
+  background: transparent !important;
+  color: hsl(210 40% 96%) !important;
+}
+
+.admin-content [role="option"]:hover,
+.admin-content [role="option"]:focus,
+.admin-content [role="option"][data-highlighted],
+.admin-content [role="menuitem"]:hover,
+.admin-content [role="menuitem"]:focus,
+.admin-content [class*="SelectItem"]:hover,
+.admin-content [class*="SelectItem"]:focus,
+.admin-content [class*="SelectItem"][data-highlighted] {
+  background: hsl(262 50% 25%) !important;
+  color: white !important;
+}
+
+/* ============================================
+   DIALOG/MODAL — NO BLUR
+   ============================================ */
+.admin-content [data-radix-dialog-overlay],
+.admin-content [role="dialog"],
+[data-radix-dialog-overlay] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.admin-content button,
+.admin-content [role="button"],
+.admin-content a,
+.admin-content [role="option"],
+.admin-content [role="menuitem"],
+.admin-content [data-radix-collection-item] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.admin-content main,
+.admin-content .main-content,
+main.admin-content {
+  filter: none !important;
+  -webkit-filter: none !important;
+  transform: none;
+}
+
+body > [class*="backdrop-blur"],
+body > div[class*="fixed"][class*="backdrop-blur"] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* ============================================
+   TABLE — Clean dark
+   ============================================ */
+.admin-content table {
+  background: hsl(230 14% 7%) !important;
+  border-color: hsl(225 15% 16%) !important;
+}
+
+.admin-content thead,
+.admin-content th {
+  background: hsl(230 12% 12%) !important;
+  color: hsl(215 20% 75%) !important;
+  border-color: hsl(225 15% 16%) !important;
+  font-weight: 600;
+}
+
+.admin-content tbody tr {
+  border-color: hsl(225 12% 14%) !important;
+}
+
+.admin-content td {
+  border-color: hsl(225 12% 14%) !important;
+  color: hsl(210 40% 92%) !important;
+}
+
+.admin-content tr:hover,
+.admin-content tbody tr:hover {
+  background: hsl(230 12% 12%) !important;
+}
+
+/* ============================================
+   TABS — Violet active state
+   ============================================ */
+.admin-content [role="tablist"] {
+  background: hsl(230 14% 8%) !important;
+  border-color: hsl(225 15% 16%) !important;
+}
+
+.admin-content [role="tab"] {
+  color: hsl(215 20% 55%) !important;
+  transition: all 0.2s ease;
+}
+
+.admin-content [role="tab"]:hover {
+  color: hsl(215 20% 80%) !important;
+  background: hsl(230 12% 13%) !important;
+}
+
+.admin-content [role="tab"][data-state="active"],
+.admin-content [role="tab"][aria-selected="true"] {
+  background: linear-gradient(135deg, hsl(262 80% 58%) 0%, hsl(280 70% 50%) 100%) !important;
+  color: white !important;
+  font-weight: 600;
+}
+
+/* ============================================
+   DIALOG/MODAL — Portaled
+   ============================================ */
+[role="dialog"],
+[role="alertdialog"] {
+  --background: 230 15% 6%;
+  --foreground: 210 40% 96%;
+  --card: 230 14% 8%;
+  --card-foreground: 210 40% 96%;
+  --popover: 230 14% 8%;
+  --popover-foreground: 210 40% 96%;
+  --muted: 230 12% 12%;
+  --muted-foreground: 215 20% 55%;
+  --accent: 230 12% 14%;
+  --accent-foreground: 210 40% 96%;
+  --border: 225 15% 16%;
+  --input: 225 15% 16%;
+
+  background: hsl(230 14% 8%) !important;
+  border: 1px solid hsl(225 15% 18%) !important;
+  color: hsl(210 40% 96%) !important;
+}
+
+[role="dialog"] h2,
+[role="dialog"] h3,
+[role="dialog"] [class*="DialogTitle"],
+[role="alertdialog"] h2,
+[role="alertdialog"] h3,
+[role="alertdialog"] [class*="DialogTitle"] {
+  color: hsl(210 40% 97%) !important;
+}
+
+[role="dialog"] [class*="DialogDescription"],
+[role="alertdialog"] [class*="DialogDescription"] {
+  color: hsl(215 20% 58%) !important;
+}
+
+[role="dialog"] label,
+[role="alertdialog"] label {
+  color: hsl(215 20% 82%) !important;
+}
+
+[role="dialog"] input,
+[role="dialog"] textarea,
+[role="dialog"] select,
+[role="alertdialog"] input,
+[role="alertdialog"] textarea,
+[role="alertdialog"] select {
+  background: hsl(230 14% 7%) !important;
+  border-color: hsl(225 15% 20%) !important;
+  color: hsl(210 40% 96%) !important;
+}
+
+[role="dialog"] input::placeholder,
+[role="dialog"] textarea::placeholder,
+[role="alertdialog"] input::placeholder,
+[role="alertdialog"] textarea::placeholder {
+  color: hsl(215 15% 40%) !important;
+}
+
+[role="dialog"] p,
+[role="dialog"] span,
+[role="dialog"] div,
+[role="alertdialog"] p,
+[role="alertdialog"] span,
+[role="alertdialog"] div {
+  color: inherit;
+}
+
+[role="dialog"] button[class*="absolute"][class*="right"],
+[role="alertdialog"] button[class*="absolute"][class*="right"] {
+  color: hsl(215 20% 55%) !important;
+}
+
+[role="dialog"] button[class*="absolute"][class*="right"]:hover,
+[role="alertdialog"] button[class*="absolute"][class*="right"]:hover {
+  color: hsl(210 40% 96%) !important;
+}
+
+[role="dialog"] button[class*="outline"],
+[role="alertdialog"] button[class*="outline"] {
+  border-color: hsl(225 15% 25%) !important;
+  color: hsl(215 20% 85%) !important;
+}
+
+[role="dialog"] button[class*="outline"]:hover,
+[role="alertdialog"] button[class*="outline"]:hover {
+  background: hsl(230 12% 14%) !important;
+}
+
+[role="dialog"][class*="bg-white"],
+[role="alertdialog"][class*="bg-white"] {
+  background: hsl(230 14% 8%) !important;
+}
+
+[role="dialog"] [role="checkbox"],
+[role="dialog"] [role="switch"],
+[role="alertdialog"] [role="checkbox"],
+[role="alertdialog"] [role="switch"] {
+  border-color: hsl(225 15% 25%) !important;
+  background: hsl(230 14% 10%) !important;
+}
+
+[role="dialog"] [role="checkbox"][data-state="checked"],
+[role="dialog"] [role="switch"][data-state="checked"],
+[role="alertdialog"] [role="checkbox"][data-state="checked"],
+[role="alertdialog"] [role="switch"][data-state="checked"] {
+  background: hsl(262 80% 58%) !important;
+  border-color: hsl(262 80% 58%) !important;
+}
+
+[role="dialog"] [class*="Collapsible"],
+[role="dialog"] [class*="border rounded"],
+[role="alertdialog"] [class*="Collapsible"],
+[role="alertdialog"] [class*="border rounded"] {
+  border-color: hsl(225 15% 18%) !important;
+}
+
+[role="dialog"] [class*="text-muted"],
+[role="alertdialog"] [class*="text-muted"] {
+  color: hsl(215 20% 55%) !important;
+}
+
+[role="dialog"] [class*="Badge"][class*="outline"],
+[role="alertdialog"] [class*="Badge"][class*="outline"] {
+  border-color: hsl(225 15% 25%) !important;
+  color: hsl(215 20% 82%) !important;
+}
+
+[role="dialog"] [class*="hover:bg-accent"]:hover,
+[role="alertdialog"] [class*="hover:bg-accent"]:hover {
+  background: hsl(230 12% 14%) !important;
+}
+
+[role="dialog"] [role="tablist"],
+[role="alertdialog"] [role="tablist"] {
+  background: hsl(230 14% 8%) !important;
+  border-color: hsl(225 15% 16%) !important;
+}
+
+[role="dialog"] [role="tab"],
+[role="alertdialog"] [role="tab"] {
+  color: hsl(215 20% 55%) !important;
+}
+
+[role="dialog"] [role="tab"][data-state="active"],
+[role="alertdialog"] [role="tab"][data-state="active"] {
+  background: linear-gradient(135deg, hsl(262 80% 58%) 0%, hsl(280 70% 50%) 100%) !important;
+  color: white !important;
+}
+
+[role="dialog"] [class*="bg-green-"],
+[role="alertdialog"] [class*="bg-green-"] {
+  color: white !important;
+}
+
+[role="dialog"] [class*="bg-red-"],
+[role="alertdialog"] [class*="bg-red-"] {
+  color: white !important;
+}
+
+[role="dialog"] [class*="bg-blue-"],
+[role="alertdialog"] [class*="bg-blue-"] {
+  color: white !important;
+}
+
+.admin-content [role="dialog"],
+.admin-content [role="alertdialog"],
+.admin-content [class*="DialogContent"],
+.admin-content [class*="SheetContent"] {
+  background: hsl(230 14% 8%) !important;
+  border: 1px solid hsl(225 15% 18%) !important;
+  color: hsl(210 40% 96%) !important;
+}
+
+.admin-content [class*="DialogHeader"] h2,
+.admin-content [class*="DialogTitle"],
+.admin-content [class*="SheetTitle"] {
+  color: hsl(210 40% 97%) !important;
+}
+
+.admin-content [class*="DialogDescription"],
+.admin-content [class*="SheetDescription"] {
+  color: hsl(215 20% 58%) !important;
+}
+
+/* ============================================
+   BADGE
+   ============================================ */
+.admin-content .badge,
+.admin-content [class*="Badge"] {
+  border: 1px solid hsl(225 15% 22%);
+  font-weight: 600;
+}
+
+/* ============================================
+   SWITCH
+   ============================================ */
+.admin-content [role="switch"] {
+  background: hsl(230 12% 16%) !important;
+  border: 1px solid hsl(225 15% 22%) !important;
+}
+
+.admin-content [role="switch"][data-state="checked"] {
+  background: linear-gradient(135deg, hsl(262 80% 58%) 0%, hsl(280 70% 50%) 100%) !important;
+}
+
+/* ============================================
+   SCROLL AREA
+   ============================================ */
+.admin-content [data-radix-scroll-area-viewport] {
+  background: transparent !important;
+}
+
+.admin-content [data-radix-scroll-area-scrollbar] {
+  background: hsl(230 12% 12%) !important;
+}
+
+.admin-content [data-radix-scroll-area-thumb] {
+  background: hsl(225 15% 30%) !important;
+}
+
+/* ============================================
+   GRADIENT CARDS — preserve colors, white text
+   ============================================ */
+.admin-content [class*="from-blue-500"],
+.admin-content [class*="from-blue-600"],
+.admin-content [class*="from-pink-500"],
+.admin-content [class*="from-pink-600"],
+.admin-content [class*="from-purple-500"],
+.admin-content [class*="from-purple-600"],
+.admin-content [class*="from-violet-500"],
+.admin-content [class*="from-violet-600"],
+.admin-content [class*="from-emerald-500"],
+.admin-content [class*="from-emerald-600"],
+.admin-content [class*="from-green-500"],
+.admin-content [class*="from-green-600"],
+.admin-content [class*="from-red-500"],
+.admin-content [class*="from-red-600"],
+.admin-content [class*="from-rose-500"],
+.admin-content [class*="from-rose-600"],
+.admin-content [class*="from-amber-500"],
+.admin-content [class*="from-amber-600"],
+.admin-content [class*="from-yellow-400"],
+.admin-content [class*="from-yellow-500"],
+.admin-content [class*="from-cyan-500"],
+.admin-content [class*="from-cyan-600"],
+.admin-content [class*="from-teal-500"],
+.admin-content [class*="from-teal-600"],
+.admin-content [class*="from-fuchsia-500"],
+.admin-content [class*="from-fuchsia-600"],
+.admin-content [class*="from-indigo-500"],
+.admin-content [class*="from-indigo-600"],
+.admin-content [class*="from-orange-500"],
+.admin-content [class*="from-orange-600"],
+.admin-content [class*="from-sky-500"],
+.admin-content [class*="from-sky-600"],
+.admin-content [class*="from-lime-500"],
+.admin-content [class*="from-lime-600"] {
+  color: white !important;
+}
+
+/* ============================================
+   LIGHT BACKGROUND OVERRIDES → dark
+   ============================================ */
+.admin-content [class*="from-yellow-50"],
+.admin-content [class*="from-red-50"],
+.admin-content [class*="from-orange-50"],
+.admin-content [class*="from-green-50"],
+.admin-content [class*="from-blue-50"],
+.admin-content [class*="from-purple-50"],
+.admin-content [class*="from-pink-50"],
+.admin-content [class*="from-slate-50"],
+.admin-content [class*="from-gray-50"],
+.admin-content [class*="bg-white"],
+.admin-content [class*="bg-slate-50"],
+.admin-content [class*="bg-gray-50"],
+.admin-content [class*="bg-slate-100"],
+.admin-content [class*="bg-gray-100"] {
+  background: hsl(230 12% 11%) !important;
+  border-color: hsl(225 15% 18%) !important;
+}
+
+.admin-content [class*="from-yellow-50"] *,
+.admin-content [class*="from-red-50"] *,
+.admin-content [class*="from-orange-50"] *,
+.admin-content [class*="from-green-50"] *,
+.admin-content [class*="from-blue-50"] *,
+.admin-content [class*="from-purple-50"] *,
+.admin-content [class*="from-pink-50"] *,
+.admin-content [class*="bg-green-100"] *,
+.admin-content [class*="bg-blue-100"] *,
+.admin-content [class*="bg-red-100"] *,
+.admin-content [class*="bg-yellow-100"] *,
+.admin-content [class*="bg-purple-100"] *,
+.admin-content [class*="bg-pink-100"] *,
+.admin-content [class*="bg-emerald-100"] *,
+.admin-content [class*="bg-white"] *,
+.admin-content [class*="bg-slate-50"] *,
+.admin-content [class*="bg-gray-50"] *,
+.admin-content [class*="bg-slate-100"] *,
+.admin-content [class*="bg-amber-100"] *,
+.admin-content [class*="bg-amber-50"] *,
+.admin-content [class*="bg-rose-100"] * {
+  color: hsl(210 40% 96%) !important;
+}
+
+/* ============================================
+   DARK TEXT ON DARK BG FIX
+   ============================================ */
+.admin-content [class*="text-slate-600"],
+.admin-content [class*="text-slate-700"],
+.admin-content [class*="text-slate-800"],
+.admin-content [class*="text-slate-900"],
+.admin-content [class*="text-gray-600"],
+.admin-content [class*="text-gray-700"],
+.admin-content [class*="text-gray-800"],
+.admin-content [class*="text-gray-900"],
+.admin-content [class*="text-zinc-600"],
+.admin-content [class*="text-zinc-700"],
+.admin-content [class*="text-zinc-800"],
+.admin-content [class*="text-neutral-600"],
+.admin-content [class*="text-neutral-700"],
+.admin-content [class*="text-neutral-800"] {
+  color: hsl(215 25% 82%) !important;
+}
+
+/* Dark colored text in badges → brighten */
+.admin-content [class*="text-green-700"],
+.admin-content [class*="text-green-800"],
+.admin-content [class*="text-blue-700"],
+.admin-content [class*="text-blue-800"],
+.admin-content [class*="text-red-700"],
+.admin-content [class*="text-red-800"],
+.admin-content [class*="text-amber-700"],
+.admin-content [class*="text-amber-800"],
+.admin-content [class*="text-purple-700"],
+.admin-content [class*="text-purple-800"],
+.admin-content [class*="text-pink-700"],
+.admin-content [class*="text-pink-800"],
+.admin-content [class*="text-orange-700"],
+.admin-content [class*="text-orange-800"],
+.admin-content [class*="text-yellow-700"],
+.admin-content [class*="text-yellow-800"],
+.admin-content [class*="text-cyan-700"],
+.admin-content [class*="text-emerald-700"],
+.admin-content [class*="text-emerald-800"],
+.admin-content [class*="text-rose-700"],
+.admin-content [class*="text-violet-700"],
+.admin-content [class*="text-indigo-700"],
+.admin-content [class*="text-teal-700"] {
+  filter: brightness(1.5) !important;
+}
+
+/* Border color fixes */
+.admin-content [class*="border-slate-200"],
+.admin-content [class*="border-slate-300"],
+.admin-content [class*="border-gray-200"],
+.admin-content [class*="border-gray-300"],
+.admin-content [class*="border-green-200"],
+.admin-content [class*="border-blue-200"],
+.admin-content [class*="border-red-200"],
+.admin-content [class*="border-amber-200"],
+.admin-content [class*="border-purple-200"],
+.admin-content [class*="border-pink-200"],
+.admin-content [class*="border-orange-200"],
+.admin-content [class*="border-yellow-200"] {
+  border-color: hsl(225 15% 22%) !important;
+}
+
+/* ============================================
+   PRESERVE SEMANTIC COLORED TEXT
+   ============================================ */
+.admin-content [class*="text-yellow-700"],
+.admin-content [class*="text-red-700"],
+.admin-content [class*="text-orange-700"],
+.admin-content [class*="text-green-700"],
+.admin-content [class*="text-emerald-700"],
+.admin-content [class*="text-blue-700"],
+.admin-content [class*="text-purple-700"],
+.admin-content [class*="text-pink-700"],
+.admin-content [class*="text-cyan-700"] {
+  filter: brightness(1.4) !important;
+}
+
+/* Gradient card children text → white */
+.admin-content [class*="from-blue-500"] *,
+.admin-content [class*="from-pink-500"] *,
+.admin-content [class*="from-purple-500"] *,
+.admin-content [class*="from-emerald-500"] *,
+.admin-content [class*="from-amber-500"] *,
+.admin-content [class*="from-red-500"] *,
+.admin-content [class*="from-cyan-500"] *,
+.admin-content [class*="from-fuchsia-500"] *,
+.admin-content [class*="from-green-500"] *,
+.admin-content [class*="from-indigo-500"] *,
+.admin-content [class*="from-rose-500"] *,
+.admin-content [class*="from-orange-500"] *,
+.admin-content [class*="from-yellow-400"] *,
+.admin-content [class*="from-teal-500"] *,
+.admin-content [class*="from-violet-500"] *,
+.admin-content [class*="from-sky-500"] *,
+.admin-content [class*="from-lime-500"] * {
+  color: white !important;
+}
+
+/* ============================================
+   RECHARTS
+   ============================================ */
+.admin-content .recharts-wrapper text,
+.admin-content .recharts-cartesian-axis-tick text {
+  fill: hsl(215 20% 65%) !important;
+}
+
+.admin-content .recharts-legend-item-text {
+  color: hsl(215 20% 75%) !important;
+}
+
+.admin-content .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background: hsl(230 14% 10%) !important;
+  border-color: hsl(225 15% 20%) !important;
+}
+
+.admin-content .recharts-tooltip-label {
+  color: hsl(210 40% 92%) !important;
+}
+
+.admin-content .recharts-tooltip-item {
+  color: hsl(210 40% 82%) !important;
+}
+
+/* ============================================
+   ADDITIONAL OVERRIDES
+   ============================================ */
+.admin-content button:not([class*="gradient"]):not([class*="bg-"]) {
+  color: hsl(210 40% 96%);
+}
+
+.admin-content [class*="CardContent"] p,
+.admin-content [class*="CardContent"] span,
+.admin-content [class*="CardContent"] div {
+  color: inherit;
+}
+
+.admin-content button[class*="border-slate-200"],
+.admin-content button[class*="border-slate-300"] {
+  border-color: hsl(225 15% 28%) !important;
+  color: hsl(210 40% 92%) !important;
+}
+
+.admin-content button[class*="border-slate-200"]:hover,
+.admin-content button[class*="border-slate-300"]:hover {
+  background: hsl(230 12% 16%) !important;
+  border-color: hsl(262 60% 50%) !important;
+}
+
+.admin-content [class*="CardDescription"],
+.admin-content .card-description {
+  color: hsl(215 20% 65%) !important;
+}
+
+.admin-content [class*="Separator"],
+.admin-content hr {
+  background: hsl(225 15% 20%) !important;
+  border-color: hsl(225 15% 20%) !important;
+}
+
+.admin-content [role="alert"],
+.admin-content [class*="Alert"] {
+  background: hsl(230 12% 12%) !important;
+  border-color: hsl(225 15% 22%) !important;
+  color: hsl(210 40% 96%) !important;
+}
+
+.admin-content [role="progressbar"],
+.admin-content [class*="Progress"] {
+  background: hsl(230 12% 16%) !important;
+}
+
+.admin-content [role="checkbox"],
+.admin-content [role="radio"] {
+  border-color: hsl(225 15% 30%) !important;
+  background: hsl(230 14% 10%) !important;
+}
+
+.admin-content [role="checkbox"][data-state="checked"],
+.admin-content [role="radio"][data-state="checked"] {
+  background: hsl(262 80% 58%) !important;
+  border-color: hsl(262 80% 58%) !important;
+}
+
+.admin-content [role="tooltip"] {
+  background: hsl(230 14% 12%) !important;
+  border: 1px solid hsl(225 15% 22%) !important;
+  color: hsl(210 40% 98%) !important;
+}
+
+.admin-content [class*="AvatarFallback"] {
+  background: hsl(262 50% 35%) !important;
+  color: white !important;
+}
+
+.admin-content [class*="Skeleton"] {
+  background: hsl(230 12% 16%) !important;
+}
+
+.admin-content [class*="AccordionTrigger"],
+.admin-content [class*="AccordionContent"] {
+  border-color: hsl(225 15% 20%) !important;
+}
+
+.admin-content [class*="AccordionTrigger"] {
+  color: hsl(210 40% 96%) !important;
+}
+
+.admin-content [class*="PopoverContent"] {
+  background: hsl(230 14% 10%) !important;
+  border: 1px solid hsl(225 15% 22%) !important;
+}
+
+.admin-content [class*="CommandInput"] {
+  background: hsl(230 14% 10%) !important;
+  border-color: hsl(225 15% 22%) !important;
+  color: hsl(210 40% 98%) !important;
+}
+
+.admin-content [class*="CommandItem"] {
+  color: hsl(210 40% 96%) !important;
+}
+
+.admin-content [class*="CommandItem"]:hover,
+.admin-content [class*="CommandItem"][data-highlighted] {
+  background: hsl(262 50% 28%) !important;
+}
+
+/* Select & Dropdown popovers - global */
+[data-radix-popper-content-wrapper] {
+  z-index: 9999 !important;
+}
+
+.admin-content + [data-radix-popper-content-wrapper],
+body > [data-radix-popper-content-wrapper] {
+  --background: 230 15% 8%;
+  --foreground: 210 40% 96%;
+  --popover: 230 14% 10%;
+  --popover-foreground: 210 40% 96%;
+  --muted: 230 12% 14%;
+  --muted-foreground: 215 20% 65%;
+  --accent: 230 12% 16%;
+  --accent-foreground: 210 40% 96%;
+  --border: 225 15% 20%;
+  --input: 225 15% 20%;
+}
+
+.admin-content + [data-radix-popper-content-wrapper] [role="listbox"],
+.admin-content + [data-radix-popper-content-wrapper] [role="menu"],
+body > [data-radix-popper-content-wrapper] [role="listbox"],
+body > [data-radix-popper-content-wrapper] [role="menu"] {
+  background: hsl(230 14% 10%) !important;
+  border: 1px solid hsl(225 15% 20%) !important;
+}
+
+.admin-content + [data-radix-popper-content-wrapper] [role="option"],
+.admin-content + [data-radix-popper-content-wrapper] [role="menuitem"],
+body > [data-radix-popper-content-wrapper] [role="option"],
+body > [data-radix-popper-content-wrapper] [role="menuitem"] {
+  color: hsl(210 40% 96%) !important;
+}
+
+.admin-content + [data-radix-popper-content-wrapper] [role="option"]:hover,
+.admin-content + [data-radix-popper-content-wrapper] [role="option"]:focus,
+body > [data-radix-popper-content-wrapper] [role="option"]:hover,
+body > [data-radix-popper-content-wrapper] [role="option"]:focus {
+  background: hsl(262 50% 28%) !important;
+}
+
+/* Loading spinner */
+.admin-content .animate-spin {
+  border-color: hsl(262 80% 60%) !important;
+  border-top-color: transparent !important;
+}
+
+/* Empty state icons */
+.admin-content [class*="text-slate-400"] svg,
+.admin-content [class*="text-slate-500"] svg {
+  opacity: 0.8;
+}
+
+/* ============================================
+   ADMIN PANEL — MOBILE OPTIMIZATION
+   Comprehensive responsive styles for all admin pages
+   ============================================ */
+
+/* Tables: horizontal scroll wrapper on mobile */
+@media (max-width: 768px) {
+  .admin-content table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .admin-content table thead,
+  .admin-content table tbody,
+  .admin-content table tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  .admin-content table {
+    min-width: 600px;
+  }
+
+  .admin-content table th,
+  .admin-content table td {
+    padding: 8px 10px !important;
+    font-size: 12px !important;
+    white-space: nowrap;
+  }
+
+  .admin-content table th:first-child,
+  .admin-content table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: hsl(230 14% 8%) !important;
+  }
+
+  /* Scrollable table container */
+  .admin-content .overflow-x-auto,
+  .admin-content [class*="overflow-auto"] {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  /* Cards & stat grids: stack on mobile */
+  .admin-content .grid-cols-2,
+  .admin-content .grid-cols-3,
+  .admin-content .grid-cols-4,
+  .admin-content .md\:grid-cols-2,
+  .admin-content .md\:grid-cols-3,
+  .admin-content .md\:grid-cols-4,
+  .admin-content .lg\:grid-cols-3,
+  .admin-content .lg\:grid-cols-4,
+  .admin-content .xl\:grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  /* Single column for very small cards */
+  .admin-content .grid-cols-1 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Compact card padding */
+  .admin-content .p-6 {
+    padding: 12px !important;
+  }
+
+  .admin-content .p-8 {
+    padding: 14px !important;
+  }
+
+  /* Page headers - smaller on mobile */
+  .admin-content h1 {
+    font-size: 1.25rem !important;
+    line-height: 1.4 !important;
+  }
+
+  .admin-content h2 {
+    font-size: 1.1rem !important;
+    line-height: 1.3 !important;
+  }
+
+  .admin-content h3 {
+    font-size: 0.95rem !important;
+  }
+
+  /* Flex layouts: wrap on mobile */
+  .admin-content .flex.items-center.justify-between {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .admin-content .flex.items-center.gap-4,
+  .admin-content .flex.items-center.gap-6 {
+    gap: 8px !important;
+  }
+
+  /* Buttons: more compact */
+  .admin-content button,
+  .admin-content .btn,
+  .admin-content [role="button"] {
+    font-size: 12px;
+  }
+
+  /* Badge: compact */
+  .admin-content .badge,
+  .admin-content [class*="Badge"] {
+    font-size: 10px !important;
+    padding: 2px 6px !important;
+  }
+
+  /* Input fields: full width */
+  .admin-content input[type="text"],
+  .admin-content input[type="search"],
+  .admin-content input[type="email"],
+  .admin-content input[type="number"],
+  .admin-content select,
+  .admin-content textarea {
+    font-size: 14px !important; /* Prevent iOS zoom */
+    width: 100% !important;
+  }
+
+  /* Search/filter bars: stack vertically */
+  .admin-content .flex.gap-2 > input,
+  .admin-content .flex.gap-3 > input,
+  .admin-content .flex.gap-4 > input {
+    min-width: 0 !important;
+    flex: 1 !important;
+  }
+
+  /* Dialog/Modal: full width on mobile */
+  .admin-content [role="dialog"],
+  .admin-content [data-state="open"][class*="DialogContent"],
+  .admin-content [data-state="open"][class*="SheetContent"] {
+    max-width: 95vw !important;
+    width: 95vw !important;
+    margin: 0 auto;
+  }
+
+  /* Tabs: scrollable on mobile */
+  .admin-content [role="tablist"] {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    flex-wrap: nowrap !important;
+    white-space: nowrap;
+  }
+
+  .admin-content [role="tablist"]::-webkit-scrollbar {
+    display: none;
+  }
+
+  .admin-content [role="tab"] {
+    font-size: 11px !important;
+    padding: 6px 10px !important;
+    flex-shrink: 0;
+  }
+
+  /* Charts: prevent overflow */
+  .admin-content .recharts-wrapper,
+  .admin-content .recharts-surface {
+    max-width: 100% !important;
+  }
+
+  /* Avatar/Profile sections: compact */
+  .admin-content .w-16.h-16,
+  .admin-content .w-20.h-20 {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  /* Notification dropdown: full width on mobile */
+  .admin-content .absolute.right-0.top-full.mt-2.w-80,
+  .admin-content .absolute.right-0.top-full.mt-2.w-96 {
+    width: calc(100vw - 16px) !important;
+    right: -60px !important;
+  }
+
+  /* Rounded corners: slightly less on mobile for space efficiency */
+  .admin-content .rounded-3xl {
+    border-radius: 16px !important;
+  }
+
+  .admin-content .rounded-2xl {
+    border-radius: 12px !important;
+  }
+
+  /* Spacing between sections */
+  .admin-content .space-y-6 > * + * {
+    margin-top: 12px !important;
+  }
+
+  .admin-content .space-y-8 > * + * {
+    margin-top: 14px !important;
+  }
+
+  .admin-content .gap-6 {
+    gap: 10px !important;
+  }
+
+  .admin-content .gap-8 {
+    gap: 12px !important;
+  }
+
+  /* Stat card values: smaller on mobile */
+  .admin-content .text-4xl {
+    font-size: 1.5rem !important;
+  }
+
+  .admin-content .text-3xl {
+    font-size: 1.25rem !important;
+  }
+
+  .admin-content .text-2xl {
+    font-size: 1.1rem !important;
+  }
+
+  /* Scroll areas inside admin pages */
+  .admin-content .max-h-96,
+  .admin-content .max-h-\[400px\],
+  .admin-content .max-h-\[500px\],
+  .admin-content .max-h-\[600px\] {
+    max-height: 300px !important;
+  }
+
+  /* Side-by-side layouts: stack */
+  .admin-content .flex.flex-row {
+    flex-direction: column !important;
+  }
+
+  .admin-content .md\:flex-row {
+    flex-direction: column !important;
+  }
+
+  /* Fixed width elements: responsive */
+  .admin-content .w-64,
+  .admin-content .w-72,
+  .admin-content .w-80,
+  .admin-content .w-96 {
+    width: 100% !important;
+  }
+
+  /* Image previews: smaller */
+  .admin-content img[class*="w-24"],
+  .admin-content img[class*="w-32"],
+  .admin-content img[class*="w-40"] {
+    width: 60px !important;
+    height: 60px !important;
+    object-fit: cover;
+  }
+
+  /* Extra bottom padding so buttons aren't hidden by browser chrome */
+  .admin-content {
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 32px) !important;
+  }
+}
+
+/* Extra small screens (< 400px) */
+@media (max-width: 400px) {
+  .admin-content .grid-cols-2,
+  .admin-content .md\:grid-cols-2,
+  .admin-content .md\:grid-cols-3,
+  .admin-content .md\:grid-cols-4 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .admin-content .text-4xl {
+    font-size: 1.25rem !important;
+  }
+
+  .admin-content .p-6,
+  .admin-content .p-5 {
+    padding: 10px !important;
+  }
+}

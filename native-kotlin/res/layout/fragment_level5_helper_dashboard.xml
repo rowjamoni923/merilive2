@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/background">
+    <!-- Header -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="56dp"
+        android:orientation="horizontal" android:gravity="center_vertical" android:paddingHorizontal="12dp" android:background="@color/surface">
+        <ImageButton android:id="@+id/btnBack" android:layout_width="40dp" android:layout_height="40dp"
+            android:src="@drawable/ic_back" android:background="?attr/selectableItemBackgroundBorderless" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:text="👑 Payroll Helper" android:textSize="18sp" android:textStyle="bold"
+            android:textColor="@color/text_primary" android:layout_marginStart="8dp" />
+    </LinearLayout>
+    <!-- Stats Cards -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:padding="12dp">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:orientation="vertical" android:gravity="center" android:background="@drawable/bg_card_rounded"
+            android:padding="12dp" android:layout_marginEnd="6dp">
+            <TextView android:id="@+id/tvWalletBalance" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="💰 $0.00" android:textSize="16sp" android:textStyle="bold" android:textColor="@color/text_primary" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Wallet" android:textSize="11sp" android:textColor="@color/text_secondary" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:orientation="vertical" android:gravity="center" android:background="@drawable/bg_card_rounded"
+            android:padding="12dp" android:layout_marginStart="6dp">
+            <TextView android:id="@+id/tvTotalEarnings" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="📈 $0.00" android:textSize="16sp" android:textStyle="bold" android:textColor="@color/text_primary" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Earnings" android:textSize="11sp" android:textColor="@color/text_secondary" />
+        </LinearLayout>
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:paddingHorizontal="12dp">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:orientation="vertical" android:gravity="center" android:background="@drawable/bg_card_rounded"
+            android:padding="12dp" android:layout_marginEnd="6dp">
+            <TextView android:id="@+id/tvPendingOrders" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="⏳ 0" android:textSize="16sp" android:textStyle="bold" android:textColor="@color/text_primary" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Pending" android:textSize="11sp" android:textColor="@color/text_secondary" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:orientation="vertical" android:gravity="center" android:background="@drawable/bg_card_rounded"
+            android:padding="12dp" android:layout_marginStart="6dp">
+            <TextView android:id="@+id/tvCompletedOrders" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="✅ 0" android:textSize="16sp" android:textStyle="bold" android:textColor="@color/text_primary" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Completed" android:textSize="11sp" android:textColor="@color/text_secondary" />
+        </LinearLayout>
+    </LinearLayout>
+    <!-- Tabs -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="44dp"
+        android:orientation="horizontal" android:paddingHorizontal="12dp" android:layout_marginTop="12dp">
+        <TextView android:id="@+id/tabPending" android:layout_width="0dp" android:layout_height="match_parent"
+            android:layout_weight="1" android:text="⏳ Pending" android:textSize="13sp" android:textStyle="bold"
+            android:gravity="center" android:textColor="@color/primary" android:selected="true" />
+        <TextView android:id="@+id/tabProcessed" android:layout_width="0dp" android:layout_height="match_parent"
+            android:layout_weight="1" android:text="✅ Processed" android:textSize="13sp"
+            android:gravity="center" android:textColor="@color/text_secondary" />
+        <TextView android:id="@+id/tabWithdrawals" android:layout_width="0dp" android:layout_height="match_parent"
+            android:layout_weight="1" android:text="💸 Withdrawals" android:textSize="13sp"
+            android:gravity="center" android:textColor="@color/text_secondary" />
+    </LinearLayout>
+    <!-- Order List -->
+    <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvOrders"
+        android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
+        android:clipToPadding="false" android:padding="8dp" />
+</LinearLayout>

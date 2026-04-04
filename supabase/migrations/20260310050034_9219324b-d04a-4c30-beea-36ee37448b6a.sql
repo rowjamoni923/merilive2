@@ -1,0 +1,1 @@
+INSERT INTO app_settings (setting_key, setting_value, category, description) VALUES ('rating_popup_enabled', 'false', 'features', 'Enable/disable rating reward popup for users');

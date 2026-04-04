@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="72dp"
+    android:orientation="horizontal" android:gravity="center_vertical"
+    android:paddingHorizontal="16dp" android:background="?attr/selectableItemBackground">
+    <ImageView android:id="@+id/ivAvatar" android:layout_width="44dp" android:layout_height="44dp"
+        android:background="@drawable/bg_avatar_placeholder" android:scaleType="centerCrop" />
+    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+        android:layout_weight="1" android:orientation="vertical" android:layout_marginStart="12dp">
+        <TextView android:id="@+id/tvName" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:textColor="@color/text_primary" android:textSize="14sp" android:textStyle="bold" />
+        <TextView android:id="@+id/tvUid" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:textColor="@color/text_secondary" android:textSize="12sp" />
+    </LinearLayout>
+    <com.google.android.material.button.MaterialButton android:id="@+id/btnApprove"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        android:layout_width="wrap_content" android:layout_height="36dp"
+        android:text="✅" android:textSize="18sp" android:minWidth="48dp" />
+    <com.google.android.material.button.MaterialButton android:id="@+id/btnReject"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        android:layout_width="wrap_content" android:layout_height="36dp"
+        android:text="❌" android:textSize="18sp" android:minWidth="48dp" />
+</LinearLayout>

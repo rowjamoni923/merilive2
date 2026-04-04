@@ -1,0 +1,1446 @@
+import { useState, useEffect, useRef, useCallback } from "react";
+import { getAdminCache, setAdminCache } from "@/utils/adminDataCache";
+import { useLocation } from "react-router-dom";
+import useAdminRealtime from "@/hooks/useAdminRealtime";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Gift,
+  Plus,
+  Edit,
+  Trash2,
+  Search,
+  Save,
+  Upload,
+  Play,
+  Sparkles,
+  Heart,
+  Star,
+  Crown,
+  Flower2,
+  PartyPopper,
+  Gem,
+  Rocket,
+  Music,
+  Gamepad2,
+  Pizza,
+  Car,
+  Plane,
+  Building,
+  Flame,
+  Zap,
+  Wand2,
+  Check,
+  Volume2,
+  X
+} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { defaultGiftAnimations, animationCategories, type DefaultAnimation } from "@/data/defaultGiftAnimations";
+import Lottie from "lottie-react";
+import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
+
+interface GiftItem {
+  id: string;
+  name: string;
+  coin_value: number;
+  icon_url: string | null;
+  animation_type: string | null;
+  animation_url: string | null;
+  category: string | null;
+  display_order: number | null;
+  is_active: boolean | null;
+  created_at: string | null;
+  sound_url: string | null;
+  sound_duration_ms: number | null;
+}
+
+// Gift categories with icons - English labels
+const giftCategories = [
+  { id: "all", name: "All Gifts", icon: Gift, color: "from-pink-500 to-purple-500" },
+  { id: "popular", name: "Popular", icon: Star, color: "from-amber-500 to-orange-500" },
+  { id: "love", name: "Love", icon: Heart, color: "from-red-500 to-pink-500" },
+  { id: "luxury", name: "Luxury", icon: Crown, color: "from-yellow-500 to-amber-500" },
+  { id: "nature", name: "Nature", icon: Flower2, color: "from-green-500 to-emerald-500" },
+  { id: "party", name: "Party", icon: PartyPopper, color: "from-purple-500 to-pink-500" },
+  { id: "gems", name: "Gems", icon: Gem, color: "from-cyan-500 to-blue-500" },
+  { id: "vehicles", name: "Vehicles", icon: Car, color: "from-slate-500 to-gray-600" },
+  { id: "travel", name: "Travel", icon: Plane, color: "from-sky-500 to-blue-500" },
+  { id: "music", name: "Music", icon: Music, color: "from-violet-500 to-purple-500" },
+  { id: "gaming", name: "Gaming", icon: Gamepad2, color: "from-indigo-500 to-blue-500" },
+  { id: "food", name: "Food", icon: Pizza, color: "from-orange-500 to-red-500" },
+  { id: "building", name: "Building", icon: Building, color: "from-gray-500 to-slate-600" },
+  { id: "fire", name: "Fire", icon: Flame, color: "from-orange-600 to-red-600" },
+  { id: "power", name: "Power", icon: Zap, color: "from-yellow-400 to-amber-500" },
+];
+
+const animationTypes = [
+  { value: "none", label: "No Animation" },
+  { value: "svga", label: "SVGA Animation" },
+  { value: "lottie", label: "Lottie Animation" },
+  { value: "vap", label: "VAP (Transparent Video)" },
+  { value: "float", label: "Float" },
+  { value: "burst", label: "Burst" },
+  { value: "rain", label: "Rain" },
+  { value: "fireworks", label: "Fireworks" },
+  { value: "confetti", label: "Confetti" },
+  { value: "bounce", label: "Bounce" },
+  { value: "sparkle", label: "Sparkle" },
+  { value: "fly", label: "Flying" },
+  { value: "custom", label: "Custom (GIF/Video)" },
+];
+
+export default function AdminGifts() {
+  const location = useLocation();
+  const [gifts, setGifts] = useState<GiftItem[]>(() => getAdminCache<GiftItem[]>('admin_gifts') || []);
+  const [loading, setLoading] = useState(() => !getAdminCache('admin_gifts'));
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingGift, setEditingGift] = useState<GiftItem | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  
+  const iconInputRef = useRef<HTMLInputElement>(null);
+  const animationInputRef = useRef<HTMLInputElement>(null);
+
+  // Default animation picker state
+  const [showDefaultAnimations, setShowDefaultAnimations] = useState(false);
+  const [defaultAnimCategory, setDefaultAnimCategory] = useState('all');
+  const [selectedDefaultAnim, setSelectedDefaultAnim] = useState<DefaultAnimation | null>(null);
+
+  const [formData, setFormData] = useState({
+    name: "",
+    coin_value: 10,
+    icon_url: "",
+    animation_type: "svga",
+    animation_url: "",
+    animation_data: null as object | null, // For Lottie JSON
+    category: "popular",
+    display_order: 0,
+    is_active: true,
+    sound_url: "",
+    sound_duration_ms: 3000,
+  });
+
+  const soundInputRef = useRef<HTMLInputElement>(null);
+
+  const fetchGifts = useCallback(async () => {
+    try {
+      if (gifts.length === 0) setLoading(true);
+      const { data, error } = await supabase
+        .from("gifts")
+        .select("*")
+        .order("display_order", { ascending: true })
+        .order("coin_value", { ascending: true });
+
+      if (error) throw error;
+      setGifts((data || []) as unknown as GiftItem[]);
+      setAdminCache('admin_gifts', (data || []) as unknown as GiftItem[]);
+    } catch (error) {
+      console.error("Error fetching gifts:", error);
+      toast.error("Failed to load gifts");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchGifts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
+  // Real-time updates
+  useAdminRealtime(['gifts', 'gift_categories'], fetchGifts, 'admin-gifts-rt');
+
+  // Upload to Cloudflare R2 for large files using proxy multipart upload (avoids CORS issues)
+  // R2 requires minimum 5MB per part (except last part) for multipart uploads
+  const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB parts - R2 minimum requirement
+  const R2_FUNCTION_URL = 'https://pppcwawjjpwwrmvezcdy.supabase.co/functions/v1/r2-upload';
+
+  const uploadToR2Multipart = async (file: File, folder: string, onProgress?: (pct: number) => void): Promise<string> => {
+    const totalParts = Math.ceil(file.size / CHUNK_SIZE);
+    console.log(`[R2 Multipart] Starting upload: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB, ${totalParts} parts)`);
+    
+    // Step 1: Initialize multipart upload
+    const initResponse = await fetch(R2_FUNCTION_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'init-multipart',
+        folder,
+        fileName: file.name,
+        fileType: file.type || 'application/octet-stream',
+        fileSize: file.size,
+      }),
+    });
+    
+    const initResult = await initResponse.json();
+    if (!initResponse.ok || !initResult.success) {
+      throw new Error(initResult.error || 'Failed to initialize upload');
+    }
+    
+    const { uploadId, key } = initResult;
+    console.log(`[R2 Multipart] Initialized: uploadId=${uploadId.substring(0, 20)}..., key=${key}`);
+    
+    const uploadedParts: { PartNumber: number; ETag: string }[] = [];
+    
+    // Step 2: Upload each part via edge function proxy (avoids CORS)
+    for (let partNumber = 1; partNumber <= totalParts; partNumber++) {
+      const start = (partNumber - 1) * CHUNK_SIZE;
+      const end = Math.min(start + CHUNK_SIZE, file.size);
+      const chunk = file.slice(start, end);
+      
+      // Convert chunk to base64 for JSON transport
+      const arrayBuffer = await chunk.arrayBuffer();
+      const bytes = new Uint8Array(arrayBuffer);
+      let binary = '';
+      for (let i = 0; i < bytes.length; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      const base64 = btoa(binary);
+      
+      // Upload part via edge function proxy
+      const uploadResponse = await fetch(R2_FUNCTION_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'upload-part',
+          uploadId,
+          key,
+          partNumber,
+          partData: base64,
+        }),
+      });
+      
+      const uploadResult = await uploadResponse.json();
+      if (!uploadResponse.ok || !uploadResult.success) {
+        throw new Error(uploadResult.error || `Failed to upload part ${partNumber}`);
+      }
+      
+      uploadedParts.push({ PartNumber: partNumber, ETag: uploadResult.etag });
+      
+      const progress = Math.round((partNumber / totalParts) * 95);
+      onProgress?.(progress);
+      console.log(`[R2 Multipart] Part ${partNumber}/${totalParts} uploaded (ETag: ${uploadResult.etag})`);
+    }
+    
+    // Step 3: Complete the multipart upload
+    console.log('[R2 Multipart] All parts uploaded, completing...');
+    onProgress?.(98);
+    
+    const completeResponse = await fetch(R2_FUNCTION_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'complete-multipart',
+        uploadId,
+        key,
+        parts: uploadedParts,
+      }),
+    });
+    
+    const completeResult = await completeResponse.json();
+    if (!completeResponse.ok || !completeResult.success) {
+      throw new Error(completeResult.error || 'Failed to complete upload');
+    }
+    
+    onProgress?.(100);
+    console.log(`[R2 Multipart] Upload complete: ${completeResult.url}`);
+    return completeResult.url;
+  };
+
+  const handleUpload = async (file: File, type: 'icon' | 'animation') => {
+    if (!file) return;
+
+    // Validate file type - Added SVGA support for both icon and animation
+    const allowedIconTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml'];
+    const allowedAnimationTypes = ['image/gif', 'video/mp4', 'video/webm', 'application/json', 'application/octet-stream'];
+
+    // Also check file extension for SVGA
+    const fileExt = file.name.split('.').pop()?.toLowerCase();
+    const isSVGA = fileExt === 'svga';
+    const isLottieFile = fileExt === 'json';
+
+    // For icon uploads, we now also accept SVGA files
+    const allowedTypes = type === 'icon' 
+      ? [...allowedIconTypes, 'application/octet-stream'] // Include octet-stream for SVGA
+      : allowedAnimationTypes;
+
+    if (!allowedTypes.includes(file.type) && !isSVGA && !(type === 'icon' && isLottieFile)) {
+      toast.error(`Allowed file types: ${type === 'icon' ? 'PNG, JPG, GIF, WEBP, SVG, SVGA' : 'SVGA, GIF, MP4, WEBM, JSON (Lottie)'}`);
+      return;
+    }
+
+    // Show file size info
+    const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+    console.log(`[Upload] Starting ${type} upload: ${file.name} (${fileSizeMB}MB)`);
+    
+    // Validate file size (max 150MB)
+    if (file.size > 150 * 1024 * 1024) {
+      toast.error("File size must be less than 150MB");
+      return;
+    }
+
+    setUploading(true);
+    setUploadProgress(0);
+    
+    try {
+      let publicUrl: string;
+      
+      // Use R2 for files > 50MB (Supabase limit), Supabase for smaller files
+      const useR2 = file.size > 50 * 1024 * 1024;
+      
+      if (useR2) {
+        // Upload to Cloudflare R2 using S3 multipart upload (bypasses memory limit)
+        toast.info(`Large file (${fileSizeMB}MB) - Uploading to R2...`, { duration: 60000 });
+        publicUrl = await uploadToR2Multipart(file, 'gifts', (pct) => setUploadProgress(pct));
+        console.log('[Upload] R2 multipart upload completed:', publicUrl);
+      } else {
+        // Upload to Supabase Storage
+        const fileName = `${type}_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `gifts/${fileName}`;
+
+        // Get the current session for auth
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) {
+          throw new Error('Not authenticated. Please login again.');
+        }
+
+        // Upload with XMLHttpRequest for progress tracking
+        const uploadPromise = new Promise<boolean>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          
+          xhr.upload.addEventListener('progress', (event) => {
+            if (event.lengthComputable) {
+              const progress = Math.round((event.loaded / event.total) * 100);
+              setUploadProgress(progress);
+            }
+          });
+          
+          xhr.addEventListener('load', () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              resolve(true);
+            } else {
+              console.error(`[Upload] XHR failed: ${xhr.status} - ${xhr.responseText}`);
+              reject(new Error(`Upload failed: ${xhr.status}`));
+            }
+          });
+          
+          xhr.addEventListener('error', () => {
+            reject(new Error('Network error during upload'));
+          });
+          
+          xhr.addEventListener('timeout', () => {
+            reject(new Error('Upload timeout'));
+          });
+          
+          // Set timeout based on file size (1MB = 10 seconds, max 10 minutes)
+          xhr.timeout = Math.min(Math.max(file.size / (1024 * 1024) * 10000, 60000), 600000);
+          
+          xhr.open('POST', `https://pppcwawjjpwwrmvezcdy.supabase.co/storage/v1/object/chat-media/${filePath}`);
+          xhr.setRequestHeader('Authorization', `Bearer ${session.access_token}`);
+          xhr.setRequestHeader('x-upsert', 'true');
+          xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+          xhr.send(file);
+        });
+        
+        const success = await uploadPromise;
+        if (!success) {
+          throw new Error('Upload failed');
+        }
+
+        const { data: { publicUrl: supabaseUrl } } = supabase.storage
+          .from('chat-media')
+          .getPublicUrl(filePath);
+        
+        publicUrl = supabaseUrl;
+        console.log('[Upload] Supabase upload completed:', publicUrl);
+      }
+
+      if (type === 'icon') {
+        // When uploading animation file as icon, auto-clear emoji and set proper icon_url
+        // Also auto-set animation_url if it's an SVGA/Lottie file
+        if (isSVGA || isLottieFile) {
+          const detectedType = isSVGA ? 'svga' : 'lottie';
+          setFormData(prev => ({ 
+            ...prev, 
+            icon_url: publicUrl,
+            animation_url: publicUrl,
+            animation_type: detectedType
+          }));
+          toast.success("Animation uploaded as icon! Emoji removed automatically.");
+        } else {
+          setFormData(prev => ({ ...prev, icon_url: publicUrl }));
+          toast.success("Icon uploaded successfully");
+        }
+      } else {
+        // Animation file upload - also update icon_url if it's currently an emoji
+        const detectedType = isSVGA ? 'svga' : 
+                            fileExt === 'json' ? 'lottie' : 
+                            (fileExt === 'mp4' || fileExt === 'webm') ? 'custom' : 'custom';
+        
+        setFormData(prev => {
+          // If icon_url is currently an emoji (not starting with http), auto-replace it with animation
+          const shouldReplaceIcon = !prev.icon_url || !prev.icon_url.startsWith('http');
+          return { 
+            ...prev, 
+            animation_url: publicUrl, 
+            animation_type: detectedType,
+            // Auto-set icon_url to animation_url if icon was emoji
+            icon_url: shouldReplaceIcon ? publicUrl : prev.icon_url
+          };
+        });
+        
+        toast.success(useR2 ? "Animation uploaded to R2!" : "Animation uploaded!");
+      }
+    } catch (error: any) {
+      console.error("[Upload] Final error:", error);
+      const errorMessage = error?.message || 'Unknown error';
+      toast.error(`Upload failed: ${errorMessage}`);
+    } finally {
+      setUploading(false);
+      setUploadProgress(0);
+    }
+  };
+
+  // Sound file upload handler
+  const handleSoundUpload = async (file: File) => {
+    if (!file) return;
+
+    // Validate audio file type
+    const allowedTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/webm'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Invalid audio type. Please upload MP3, WAV, OGG, or WebM audio files.");
+      return;
+    }
+
+    // Validate file size (150MB max for audio)
+    if (file.size > 150 * 1024 * 1024) {
+      toast.error("Audio file too large. Maximum size is 150MB.");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop()?.toLowerCase();
+      const fileName = `gift_sound_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('sounds')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('sounds')
+        .getPublicUrl(fileName);
+
+      setFormData(prev => ({
+        ...prev,
+        sound_url: publicUrl
+      }));
+      toast.success("Sound file uploaded successfully!");
+    } catch (error: any) {
+      toast.error(`Sound upload failed: ${error.message}`);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleEdit = (gift: GiftItem) => {
+    setEditingGift(gift);
+    setSelectedDefaultAnim(null);
+    
+    // If animation_url exists and icon_url is emoji, use animation_url as icon for display
+    const effectiveIconUrl = (gift.animation_url?.startsWith('http') && !gift.icon_url?.startsWith('http'))
+      ? gift.animation_url
+      : (gift.icon_url || "");
+    
+    setFormData({
+      name: gift.name,
+      coin_value: gift.coin_value,
+      icon_url: effectiveIconUrl,
+      animation_type: gift.animation_type || "svga",
+      animation_url: gift.animation_url || "",
+      animation_data: null,
+      category: gift.category || "popular",
+      display_order: gift.display_order || 0,
+      is_active: gift.is_active ?? true,
+      sound_url: gift.sound_url || "",
+      sound_duration_ms: gift.sound_duration_ms || 3000,
+    });
+    setShowEditDialog(true);
+  };
+
+  const handleCreate = () => {
+    setEditingGift(null);
+    setSelectedDefaultAnim(null);
+    setFormData({
+      name: "",
+      coin_value: 10,
+      icon_url: "",
+      animation_type: "svga",
+      animation_url: "",
+      animation_data: null,
+      category: selectedCategory === "all" ? "popular" : selectedCategory,
+      display_order: 0,
+      is_active: true,
+      sound_url: "",
+      sound_duration_ms: 3000,
+    });
+    setShowEditDialog(true);
+  };
+
+  const handleSelectDefaultAnimation = (anim: DefaultAnimation) => {
+    setSelectedDefaultAnim(anim);
+    setFormData(prev => ({
+      ...prev,
+      icon_url: anim.previewEmoji,
+      animation_type: "lottie",
+      animation_data: anim.animationData
+    }));
+    setShowDefaultAnimations(false);
+    toast.success(`${anim.name} animation selected`);
+  };
+
+  const handleSave = async () => {
+    if (!formData.name.trim()) {
+      toast.error("Please enter a name");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      // Refresh session before saving to ensure latest permissions
+      await supabase.auth.refreshSession();
+      
+      const giftData = {
+        name: formData.name,
+        coin_value: formData.coin_value,
+        icon_url: formData.icon_url || null,
+        animation_type: formData.animation_type,
+        animation_url: formData.animation_url || null,
+        category: formData.category,
+        display_order: formData.display_order,
+        is_active: formData.is_active,
+        sound_url: formData.sound_url || null,
+        sound_duration_ms: formData.sound_duration_ms || 3000,
+      };
+
+      if (editingGift) {
+        const { error, data } = await supabase
+          .from("gifts")
+          .update(giftData)
+          .eq("id", editingGift.id)
+          .select();
+
+        if (error) {
+          console.error("Update error details:", error);
+          throw error;
+        }
+        console.log("Gift updated:", data);
+        toast.success("Gift updated successfully");
+      } else {
+        const { error, data } = await supabase
+          .from("gifts")
+          .insert(giftData)
+          .select();
+
+        if (error) {
+          console.error("Insert error details:", error);
+          throw error;
+        }
+        console.log("Gift created:", data);
+        toast.success("New gift created successfully");
+      }
+
+      setShowEditDialog(false);
+      fetchGifts();
+    } catch (error: any) {
+      console.error("Error saving gift:", error);
+      if (error?.message?.includes("row-level security") || error?.code === "42501") {
+        toast.error("Permission denied. Please logout and login again.");
+      } else {
+        toast.error(`Failed to save gift: ${error?.message || 'Unknown error'}`);
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this gift?")) return;
+
+    try {
+      const { error } = await supabase
+        .from("gifts")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+      toast.success("Gift deleted successfully");
+      fetchGifts();
+    } catch (error) {
+      console.error("Error deleting gift:", error);
+      toast.error("Failed to delete gift");
+    }
+  };
+
+  const toggleActive = async (gift: GiftItem) => {
+    try {
+      const { error } = await supabase
+        .from("gifts")
+        .update({ is_active: !gift.is_active })
+        .eq("id", gift.id);
+
+      if (error) throw error;
+      toast.success(gift.is_active ? "Gift deactivated" : "Gift activated");
+      fetchGifts();
+    } catch (error) {
+      console.error("Error toggling gift:", error);
+    }
+  };
+
+  const filteredGifts = gifts.filter(g => {
+    const matchesSearch = g.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === "all" || g.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  const getCategoryCount = (categoryId: string) => {
+    if (categoryId === "all") return gifts.length;
+    return gifts.filter(g => g.category === categoryId).length;
+  };
+
+  const isVideoOrGif = (url: string | null) => {
+    if (!url) return false;
+    return url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.gif');
+  };
+
+  const isSVGA = (url: string | null) => {
+    if (!url) return false;
+    return url.toLowerCase().endsWith('.svga');
+  };
+
+  const isLottie = (url: string | null) => {
+    if (!url) return false;
+    return url.toLowerCase().endsWith('.json');
+  };
+
+  return (
+    <div className="space-y-3 md:space-y-6 px-2 md:px-0">
+      {/* Header */}
+      <div className="flex flex-col gap-2 md:gap-3 p-3 md:p-6 bg-gradient-to-r from-white via-purple-50/50 to-pink-50/50 rounded-xl md:rounded-2xl shadow-lg border border-slate-200/50">
+        <div className="flex flex-row items-center justify-between gap-2 md:gap-3">
+          <div>
+            <h1 className="text-lg md:text-2xl font-bold text-slate-800">
+              Gift Management
+            </h1>
+            <p className="text-slate-600 text-xs md:text-sm">Total {gifts.length} gifts</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={fetchGifts}
+              disabled={loading}
+              className="bg-white/50 border-slate-200 text-slate-600 hover:bg-white text-xs md:text-sm"
+            >
+              <svg className={`w-3 h-3 md:w-4 md:h-4 mr-1 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span className="hidden sm:inline">Refresh</span>
+            </Button>
+            <Button onClick={handleCreate} size="sm" className="bg-gradient-to-r from-pink-500 to-purple-600 shadow-lg text-xs md:text-sm px-2 md:px-4">
+              <Plus className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+              <span className="hidden sm:inline">New Gift</span>
+              <span className="sm:hidden">Add</span>
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Category Tabs */}
+      <Card className="bg-white border-slate-200 shadow-lg">
+        <CardContent className="p-2 md:p-4">
+          <ScrollArea className="w-full whitespace-nowrap">
+            <div className="flex gap-1.5 md:gap-2 pb-2">
+              {giftCategories.map((cat) => {
+                const Icon = cat.icon;
+                const isSelected = selectedCategory === cat.id;
+                const count = getCategoryCount(cat.id);
+                
+                return (
+                  <motion.button
+                    key={cat.id}
+                    onClick={() => setSelectedCategory(cat.id)}
+                    whileTap={{ scale: 0.95 }}
+                    className={`flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2.5 rounded-lg md:rounded-xl font-medium transition-all whitespace-nowrap text-xs md:text-sm ${
+                      isSelected 
+                        ? `bg-gradient-to-r ${cat.color} text-white shadow-lg` 
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    <Icon className="w-3 h-3 md:w-4 md:h-4" />
+                    <span className="hidden sm:inline">{cat.name}</span>
+                    <Badge 
+                      variant="secondary" 
+                      className={`text-[10px] md:text-xs ${isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'}`}
+                    >
+                      {count}
+                    </Badge>
+                  </motion.button>
+                );
+              })}
+            </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+        </CardContent>
+      </Card>
+
+      {/* Search */}
+      <Card className="bg-white border-slate-200 shadow-lg">
+        <CardContent className="p-2 md:p-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Input
+              placeholder="Search gifts..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 bg-white border-slate-200 text-slate-800 text-sm"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Gifts Grid */}
+      {loading ? (
+        <div className="flex flex-col items-center justify-center h-64 gap-4">
+          <div className="w-10 h-10 border-4 border-pink-500 border-t-transparent rounded-full animate-spin" />
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => {
+              setLoading(false);
+              fetchGifts();
+            }}
+            className="text-xs"
+          >
+            Refresh
+          </Button>
+        </div>
+      ) : filteredGifts.length === 0 ? (
+        <Card className="bg-white border-slate-200 shadow-lg">
+          <CardContent className="flex flex-col items-center justify-center h-48 md:h-64 text-slate-400">
+            <Gift className="w-10 h-10 md:w-12 md:h-12 mb-3 md:mb-4" />
+            <p className="text-sm md:text-base">No gifts found</p>
+            <Button onClick={handleCreate} variant="outline" className="mt-3 md:mt-4 text-xs md:text-sm">
+              <Plus className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+              Add gift to this category
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 md:gap-4">
+          <AnimatePresence mode="popLayout">
+            {filteredGifts.map((gift, i) => (
+              <motion.div
+                key={gift.id}
+                layout
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ delay: i * 0.02 }}
+              >
+                <Card className={`bg-white border-slate-200 hover:shadow-xl transition-all overflow-hidden group ${!gift.is_active && "opacity-50"}`}>
+                  <CardContent className="p-2 md:p-4 text-center">
+                    {/* Gift Icon/Animation */}
+                    <div className="relative w-12 h-12 md:w-16 md:h-16 mx-auto mb-2 md:mb-3 rounded-lg md:rounded-xl bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center shadow-md overflow-hidden">
+                      {gift.animation_url && isSVGA(gift.animation_url) ? (
+                        <UniversalFramePlayer
+                          src={gift.animation_url}
+                          type="svga"
+                          className="w-full h-full"
+                          loop={true}
+                          autoPlay={true}
+                        />
+                      ) : gift.animation_url && isLottie(gift.animation_url) ? (
+                        <UniversalFramePlayer
+                          src={gift.animation_url}
+                          type="lottie"
+                          className="w-full h-full"
+                          loop={true}
+                          autoPlay={true}
+                        />
+                      ) : gift.animation_url && isVideoOrGif(gift.animation_url) ? (
+                        gift.animation_url.endsWith('.gif') ? (
+                          <img src={gift.animation_url} alt={gift.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <video 
+                            src={gift.animation_url} 
+                            className="w-full h-full object-cover"
+                            autoPlay 
+                            loop 
+                            muted 
+                            playsInline
+                          />
+                        )
+                      ) : gift.icon_url ? (
+                        gift.icon_url.startsWith('http') ? (
+                          <img src={gift.icon_url} alt={gift.name} className="w-12 h-12 object-contain" />
+                        ) : (
+                          <span className="text-3xl">{gift.icon_url}</span>
+                        )
+                      ) : (
+                        <Gift className="w-8 h-8 text-pink-500" />
+                      )}
+                      
+                      {/* Animation indicator */}
+                      {gift.animation_url && (
+                        <div className="absolute top-0 right-0 p-1 bg-purple-500 rounded-bl-lg">
+                          <Play className="w-2.5 h-2.5 text-white" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Name */}
+                    <p className="text-slate-800 font-medium text-xs md:text-sm mb-1 truncate">{gift.name}</p>
+
+                    {/* Category Badge */}
+                    <div className="mb-1 md:mb-2">
+                      <Badge variant="outline" className="text-[10px] md:text-xs text-purple-600 border-purple-200 px-1 md:px-2">
+                        {giftCategories.find(c => c.id === gift.category)?.name || gift.category}
+                      </Badge>
+                    </div>
+
+                    {/* Price */}
+                    <Badge className="bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-bold border-amber-300 mb-2 md:mb-3 text-[10px] md:text-xs shadow-sm">
+                      {gift.coin_value?.toLocaleString()} coins
+                    </Badge>
+
+                    {/* Animation Type - Hide on mobile */}
+                    {gift.animation_type && gift.animation_type !== "none" && (
+                      <div className="hidden md:flex items-center justify-center gap-1 text-xs text-purple-600 mb-3">
+                        <Sparkles className="w-3 h-3" />
+                        {animationTypes.find(a => a.value === gift.animation_type)?.label}
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="flex items-center justify-center gap-1 md:gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEdit(gift)}
+                        className="w-6 h-6 md:w-8 md:h-8 text-slate-500 hover:text-slate-800 hover:bg-slate-100"
+                      >
+                        <Edit className="w-3 h-3 md:w-4 md:h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => toggleActive(gift)}
+                        className={`w-6 h-6 md:w-8 md:h-8 ${gift.is_active ? "text-green-500" : "text-slate-400"}`}
+                      >
+                        <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full ${gift.is_active ? "bg-green-500" : "bg-slate-400"}`} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(gift.id)}
+                        className="w-6 h-6 md:w-8 md:h-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+      )}
+
+      {/* Hidden file inputs - Icon now also accepts SVGA/Lottie */}
+      <input
+        ref={iconInputRef}
+        type="file"
+        accept="image/*,.svga,.json"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) handleUpload(file, 'icon');
+        }}
+      />
+      <input
+        ref={animationInputRef}
+        type="file"
+        accept=".svga,.gif,.mp4,.webm,.json,.png,.webp,image/gif,video/mp4,video/webm,application/json,application/octet-stream"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) handleUpload(file, 'animation');
+        }}
+      />
+
+      {/* Edit/Create Dialog - Improved scrolling and visibility */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="bg-slate-900 border-slate-700 shadow-2xl w-[95vw] max-w-2xl h-[90vh] max-h-[90vh] flex flex-col p-0">
+          <DialogHeader className="p-4 md:p-6 pb-2 flex-shrink-0 border-b border-slate-700">
+            <DialogTitle className="text-white text-lg md:text-xl font-bold">
+              {editingGift ? "Edit Gift" : "Create New Gift"}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto overscroll-contain px-4 md:px-6" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <div className="space-y-3 md:space-y-4 py-4">
+            {/* Category Selection */}
+            <div>
+              <Label className="text-slate-300 font-medium text-sm md:text-base">Category</Label>
+              <ScrollArea className="w-full whitespace-nowrap mt-1.5 md:mt-2">
+                <div className="flex gap-1.5 md:gap-2 pb-2">
+                  {giftCategories.filter(c => c.id !== 'all').map((cat) => {
+                    const Icon = cat.icon;
+                    const isSelected = formData.category === cat.id;
+                    
+                    return (
+                      <motion.button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, category: cat.id })}
+                        whileTap={{ scale: 0.95 }}
+                        className={`flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-medium transition-all whitespace-nowrap ${
+                          isSelected 
+                            ? `bg-gradient-to-r ${cat.color} text-white shadow-md` 
+                            : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                        }`}
+                      >
+                        <Icon className="w-3 h-3 md:w-3.5 md:h-3.5" />
+                        <span>{cat.name}</span>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+                <ScrollBar orientation="horizontal" />
+              </ScrollArea>
+            </div>
+
+            {/* Name */}
+            <div>
+              <Label className="text-slate-300 font-medium text-sm md:text-base">Name</Label>
+              <Input
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                placeholder="Gift name"
+                className="bg-slate-800 border-slate-600 text-white mt-1.5 md:mt-2 text-sm"
+              />
+            </div>
+
+            {/* Coin Value */}
+            <div>
+              <Label className="text-slate-300 font-medium text-sm md:text-base">Coin Value</Label>
+              <Input
+                type="number"
+                value={formData.coin_value}
+                onChange={(e) => setFormData({ ...formData, coin_value: parseInt(e.target.value) || 0 })}
+                className="bg-slate-800 border-slate-600 text-white mt-1.5 md:mt-2 text-sm"
+              />
+            </div>
+
+            {/* Icon Upload - Primary Upload Button (SVGA/Lottie supported) */}
+            <div className="border-2 border-dashed border-pink-500/50 rounded-xl p-3 md:p-4 bg-pink-500/5">
+              <Label className="text-pink-400 font-medium text-sm md:text-base flex items-center gap-2 mb-3">
+                <Heart className="w-4 h-4" />
+                Gift Icon (PNG/JPG/GIF/WEBP/SVGA/Lottie)
+              </Label>
+              
+              {formData.icon_url ? (
+                <div className="p-3 md:p-4 bg-gradient-to-r from-pink-500/10 to-rose-500/10 rounded-xl border border-pink-500/30">
+                  <div className="flex items-center gap-3 md:gap-4">
+                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden bg-slate-800 shadow-lg flex items-center justify-center">
+                      {formData.icon_url.startsWith('http') ? (
+                        // Check if it's an SVGA or Lottie animation
+                        isSVGA(formData.icon_url) ? (
+                          <UniversalFramePlayer
+                            src={formData.icon_url}
+                            type="svga"
+                            className="w-full h-full"
+                            loop={true}
+                            autoPlay={true}
+                          />
+                        ) : isLottie(formData.icon_url) ? (
+                          <UniversalFramePlayer
+                            src={formData.icon_url}
+                            type="lottie"
+                            className="w-full h-full"
+                            loop={true}
+                            autoPlay={true}
+                          />
+                        ) : (
+                          <img src={formData.icon_url} alt="Icon" className="w-full h-full object-contain" />
+                        )
+                      ) : (
+                        <span className="text-4xl md:text-5xl">{formData.icon_url}</span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-pink-300 flex items-center gap-2">
+                        <Check className="w-4 h-4 text-green-500" />
+                        {formData.icon_url.startsWith('http') 
+                          ? (isSVGA(formData.icon_url) 
+                              ? 'SVGA Animation ✓' 
+                              : isLottie(formData.icon_url) 
+                                ? 'Lottie Animation ✓' 
+                                : 'Image Icon ✓')
+                          : 'Emoji Icon ✓'
+                        }
+                      </p>
+                      <p className="text-xs text-pink-400 truncate mt-1">
+                        {formData.icon_url.startsWith('http') 
+                          ? formData.icon_url.split('/').pop() 
+                          : 'Text Emoji - Upload file to replace'}
+                      </p>
+                      {formData.icon_url.startsWith('http') && (
+                        <p className="text-xs text-green-400 mt-1 flex items-center gap-1">
+                          <Sparkles className="w-3 h-3" />
+                          {isSVGA(formData.icon_url) || isLottie(formData.icon_url) 
+                            ? 'Animated icon will show in gift panels'
+                            : 'Static image icon'}
+                        </p>
+                      )}
+                    </div>
+                    <Button
+                      size="icon"
+                      variant="destructive"
+                      className="w-8 h-8"
+                      onClick={() => setFormData(prev => ({ ...prev, icon_url: "", animation_url: prev.animation_url === prev.icon_url ? "" : prev.animation_url }))}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {/* Upload Button - Now accepts SVGA/Lottie too */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full h-16 md:h-20 border-2 border-pink-500/50 border-dashed bg-slate-800 hover:bg-slate-700 text-pink-400 flex flex-col items-center justify-center gap-2"
+                    onClick={() => iconInputRef.current?.click()}
+                    disabled={uploading}
+                  >
+                    {uploading ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" />
+                        <span className="text-sm">Uploading...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-6 h-6" />
+                        <div className="text-center">
+                          <p className="text-sm font-semibold">Upload Icon / Animation</p>
+                          <p className="text-xs text-pink-500">PNG, JPG, GIF, SVGA, Lottie JSON (max 100MB)</p>
+                        </div>
+                      </>
+                    )}
+                  </Button>
+                  
+                  {/* Info about SVGA replacing emoji */}
+                  <div className="p-2 bg-green-500/10 rounded-lg border border-green-500/30">
+                    <p className="text-xs text-green-400 flex items-center gap-1">
+                      <Sparkles className="w-3 h-3" />
+                      <strong>Tip:</strong> Upload SVGA/Lottie file here to replace emoji with animated icon
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Default Animations Picker */}
+            <div>
+              <Label className="text-slate-300 font-medium text-sm md:text-base flex items-center gap-1.5 md:gap-2">
+                <Wand2 className="w-3.5 h-3.5 md:w-4 md:h-4 text-purple-500" />
+                Default Luxury Animation
+              </Label>
+              <div className="mt-1.5 md:mt-2 space-y-2 md:space-y-3">
+                {selectedDefaultAnim ? (
+                  <div className="p-2 md:p-3 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg md:rounded-xl border-2 border-purple-500/30">
+                    <div className="flex items-center gap-2 md:gap-3">
+                      <div className="w-12 h-12 md:w-16 md:h-16 rounded-lg overflow-hidden bg-slate-800 shadow-lg flex items-center justify-center">
+                        <Lottie 
+                          animationData={selectedDefaultAnim.animationData} 
+                          loop 
+                          className="w-10 h-10 md:w-14 md:h-14"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs md:text-sm font-bold text-purple-300">{selectedDefaultAnim.name}</p>
+                        <Badge className="mt-1 text-[10px] md:text-xs" style={{ backgroundColor: selectedDefaultAnim.previewColor }}>
+                          {selectedDefaultAnim.tier}
+                        </Badge>
+                      </div>
+                      <Check className="w-4 h-4 md:w-5 md:h-5 text-green-500" />
+                    </div>
+                  </div>
+                ) : null}
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowDefaultAnimations(!showDefaultAnimations)}
+                  className="w-full bg-gradient-to-r from-purple-500/10 to-pink-500/10 border-purple-500/30 text-purple-300 hover:from-purple-500/20 hover:to-pink-500/20 text-xs md:text-sm"
+                >
+                  <Sparkles className="w-3 h-3 md:w-4 md:h-4 mr-1.5 md:mr-2" />
+                  {showDefaultAnimations ? 'Close' : 'Choose Default Animation'}
+                </Button>
+
+                {showDefaultAnimations && (
+                  <div className="p-2 md:p-3 bg-slate-800 rounded-lg md:rounded-xl border border-slate-700 space-y-2 md:space-y-3">
+                    {/* Category filter */}
+                    <div className="flex gap-1 flex-wrap">
+                      {animationCategories.map(cat => (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => setDefaultAnimCategory(cat.id)}
+                          className={`px-1.5 md:px-2 py-0.5 md:py-1 text-[10px] md:text-xs rounded-full transition-all ${
+                            defaultAnimCategory === cat.id
+                              ? 'bg-purple-500 text-white'
+                              : 'bg-slate-700 text-slate-400 hover:bg-slate-600'
+                          }`}
+                        >
+                          {cat.name}
+                        </button>
+                      ))}
+                    </div>
+                    
+                    {/* Animations grid */}
+                    <div className="grid grid-cols-4 md:grid-cols-5 gap-1.5 md:gap-2 max-h-36 md:max-h-48 overflow-y-auto">
+                      {defaultGiftAnimations
+                        .filter(a => defaultAnimCategory === 'all' || a.category === defaultAnimCategory)
+                        .map(anim => (
+                          <motion.button
+                            key={anim.id}
+                            type="button"
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => handleSelectDefaultAnimation(anim)}
+                            className={`p-1.5 md:p-2 rounded-lg border-2 transition-all flex flex-col items-center ${
+                              selectedDefaultAnim?.id === anim.id
+                                ? 'border-purple-500 bg-purple-500/10'
+                                : 'border-slate-700 bg-slate-800 hover:border-purple-500/50'
+                            }`}
+                          >
+                            <div className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center">
+                              <Lottie 
+                                animationData={anim.animationData} 
+                                loop 
+                                className="w-6 h-6 md:w-8 md:h-8"
+                              />
+                            </div>
+                            <span className="text-[8px] md:text-[10px] text-slate-400 mt-0.5 md:mt-1 truncate w-full text-center">
+                              {anim.previewEmoji}
+                            </span>
+                          </motion.button>
+                        ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Animation File Upload - Primary Upload Button */}
+            <div className="border-2 border-dashed border-purple-500/50 rounded-xl p-3 md:p-4 bg-purple-500/5">
+              <Label className="text-purple-400 font-medium text-sm md:text-base flex items-center gap-2 mb-3">
+                <Sparkles className="w-4 h-4" />
+                Animation File (SVGA/GIF/MP4/WebM/PNG)
+              </Label>
+              
+              {formData.animation_url ? (
+                <div className="p-3 md:p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl border border-purple-500/30">
+                  <div className="flex items-center gap-3 md:gap-4">
+                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden bg-slate-800 shadow-lg flex items-center justify-center">
+                      {isSVGA(formData.animation_url) ? (
+                        <UniversalFramePlayer
+                          src={formData.animation_url}
+                          type="svga"
+                          className="w-full h-full"
+                          loop={true}
+                          autoPlay={true}
+                        />
+                      ) : isLottie(formData.animation_url) ? (
+                        <UniversalFramePlayer
+                          src={formData.animation_url}
+                          type="lottie"
+                          className="w-full h-full"
+                          loop={true}
+                          autoPlay={true}
+                        />
+                      ) : formData.animation_url.endsWith('.gif') || formData.animation_url.endsWith('.png') || formData.animation_url.endsWith('.webp') ? (
+                        <img src={formData.animation_url} alt="Animation" className="w-full h-full object-cover" />
+                      ) : formData.animation_url.endsWith('.mp4') || formData.animation_url.endsWith('.webm') ? (
+                        <video 
+                          src={formData.animation_url} 
+                          className="w-full h-full object-cover"
+                          autoPlay 
+                          loop 
+                          muted 
+                          playsInline
+                        />
+                      ) : (
+                        <Play className="w-8 h-8 text-purple-500" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-purple-300 flex items-center gap-2">
+                        <Check className="w-4 h-4 text-green-500" />
+                        Animation Uploaded ✓
+                      </p>
+                      <p className="text-xs text-purple-400 truncate mt-1">{formData.animation_url.split('/').pop()}</p>
+                      <Badge className="mt-2 text-xs bg-purple-600">
+                        {isSVGA(formData.animation_url) ? 'SVGA' : 
+                         isLottie(formData.animation_url) ? 'Lottie' :
+                         formData.animation_url.endsWith('.gif') ? 'GIF' :
+                         formData.animation_url.endsWith('.mp4') ? 'MP4' :
+                         formData.animation_url.endsWith('.webm') ? 'WebM' : 'Image'}
+                      </Badge>
+                    </div>
+                    <Button
+                      size="icon"
+                      variant="destructive"
+                      className="w-8 h-8"
+                      onClick={() => setFormData(prev => ({ ...prev, animation_url: "" }))}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  
+                  {/* SVGA Audio Notice */}
+                  {isSVGA(formData.animation_url) && (
+                    <div className="mt-3 p-2 bg-green-500/10 rounded-lg border border-green-500/30 text-xs text-green-400 flex items-center gap-2">
+                      <Music className="w-4 h-4" />
+                      <span>If the SVGA file has embedded audio, it will play automatically!</span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full h-20 md:h-24 border-2 border-purple-500/50 border-dashed bg-slate-800 hover:bg-slate-700 text-purple-400 flex flex-col items-center justify-center gap-2"
+                  onClick={() => animationInputRef.current?.click()}
+                  disabled={uploading}
+                >
+                  {uploading ? (
+                    <>
+                      <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+                      <span className="text-sm">Uploading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-8 h-8" />
+                      <div className="text-center">
+                        <p className="text-sm font-semibold">Click to Upload Animation</p>
+                        <p className="text-xs text-purple-500 mt-1">SVGA, GIF, MP4, WebM, PNG, Lottie JSON</p>
+                      </div>
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
+
+            {/* Animation Type */}
+            <div>
+              <Label className="text-slate-300 font-medium text-sm md:text-base">Animation Type</Label>
+              <Select
+                value={formData.animation_type}
+                onValueChange={(val) => setFormData({ ...formData, animation_type: val })}
+              >
+                <SelectTrigger className="bg-slate-800 border-slate-600 text-white mt-1.5 md:mt-2 text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {animationTypes.map(type => (
+                    <SelectItem key={type.value} value={type.value} className="text-sm">
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Sound Upload Section - Optional for SVGA */}
+            <div className={`border-2 border-dashed rounded-xl p-3 md:p-4 ${
+              isSVGA(formData.animation_url) 
+                ? 'border-green-500/50 bg-green-500/5' 
+                : 'border-amber-500/50 bg-amber-500/5'
+            }`}>
+              <Label className={`font-medium text-sm md:text-base flex items-center gap-2 mb-2 ${
+                isSVGA(formData.animation_url) ? 'text-green-400' : 'text-amber-400'
+              }`}>
+                🔊 Sound Effect {isSVGA(formData.animation_url) ? '(Optional - SVGA has built-in audio)' : '(Required)'}
+              </Label>
+              
+              {/* SVGA Auto Audio Notice */}
+              {isSVGA(formData.animation_url) && (
+                <div className="mb-3 p-2 bg-green-500/10 rounded-lg border border-green-500/30 text-xs text-green-400 flex items-center gap-2">
+                  <Volume2 className="w-4 h-4" />
+                  <span>If the SVGA file has embedded audio, it will play automatically! No need to upload separate sound.</span>
+                </div>
+              )}
+              
+              {formData.sound_url ? (
+                <div className="flex items-center gap-2 md:gap-3 p-2 md:p-3 bg-green-500/10 rounded-lg border border-green-500/30">
+                  <audio src={formData.sound_url} controls className="flex-1 h-8 md:h-10" />
+                  <Button
+                    size="icon"
+                    variant="destructive"
+                    className="w-7 h-7 md:w-8 md:h-8"
+                    onClick={() => setFormData(prev => ({ ...prev, sound_url: "" }))}
+                  >
+                    <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full h-12 md:h-14 border-amber-500/50 text-amber-400 hover:bg-amber-500/10"
+                  onClick={() => soundInputRef.current?.click()}
+                  disabled={uploading}
+                >
+                  {uploading ? (
+                    <>
+                      <Sparkles className="w-4 h-4 mr-2 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4 mr-2" />
+                      <div className="text-left">
+                        <p className="text-sm font-medium">Upload Sound Effect</p>
+                        <p className="text-xs text-amber-400">MP3, WAV, OGG (max 100MB)</p>
+                      </div>
+                    </>
+                  )}
+                </Button>
+              )}
+              <input
+                ref={soundInputRef}
+                type="file"
+                accept="audio/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleSoundUpload(file);
+                }}
+              />
+            </div>
+
+            {/* Display Order */}
+            <div>
+              <Label className="text-slate-300 font-medium text-sm md:text-base">Display Order</Label>
+              <Input
+                type="number"
+                value={formData.display_order}
+                onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) || 0 })}
+                placeholder="0 = show first"
+                className="bg-slate-800 border-slate-600 text-white mt-1.5 md:mt-2 text-sm"
+              />
+            </div>
+
+            {/* Active Toggle */}
+            <div className="flex items-center justify-between p-3 md:p-4 bg-gradient-to-r from-slate-800 to-purple-500/10 rounded-lg md:rounded-xl border border-slate-700">
+              <Label className="text-white font-medium text-sm md:text-base">Active</Label>
+              <Switch
+                checked={formData.is_active}
+                onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+              />
+            </div>
+          </div>
+          </div>
+
+          <DialogFooter className="p-4 md:p-6 pt-4 flex-shrink-0 border-t border-slate-700">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSaving(false);
+                setShowEditDialog(false);
+              }}
+              className="bg-slate-800 border-slate-600 text-slate-300 hover:bg-slate-700"
+            >
+              Cancel
+            </Button>
+            {saving ? (
+              <Button 
+                variant="outline"
+                onClick={() => setSaving(false)}
+                className="border-orange-500/30 text-orange-400 hover:bg-orange-500/10"
+              >
+                <X className="w-4 h-4 mr-2" />
+                Cancel
+              </Button>
+            ) : null}
+            <Button 
+              onClick={handleSave} 
+              disabled={saving || uploading} 
+              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {saving ? "Saving..." : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Upload Loading Overlay - with real progress tracking */}
+      {uploading && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
+          <div className="bg-slate-900 rounded-2xl p-6 flex flex-col items-center gap-4 shadow-2xl min-w-[320px] border border-slate-700">
+            <div className="relative">
+              <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
+              <Upload className="w-6 h-6 text-purple-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+            </div>
+            <div className="text-center">
+              <p className="text-white font-medium text-lg">Uploading...</p>
+              <p className="text-slate-400 text-sm mt-1">
+                {uploadProgress > 0 ? `${uploadProgress}% complete` : 'Large files may take some time'}
+              </p>
+            </div>
+            <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-300" 
+                style={{ width: uploadProgress > 0 ? `${uploadProgress}%` : '10%' }} 
+              />
+            </div>
+            <p className="text-xs text-slate-500">
+              {uploadProgress > 0 ? 'Resumable Upload - Large files supported' : 'Please wait...'}
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

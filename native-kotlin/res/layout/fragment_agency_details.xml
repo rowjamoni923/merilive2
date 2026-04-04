@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/background">
+
+    <!-- Toolbar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="16dp"
+        android:background="@color/surface">
+        <ImageButton android:id="@+id/btnBack"
+            android:layout_width="40dp" android:layout_height="40dp"
+            android:src="@drawable/ic_back" android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Back" />
+        <TextView
+            android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:text="Agency Details"
+            android:textSize="18sp" android:textStyle="bold"
+            android:textColor="@color/text_primary" android:gravity="center" />
+        <View android:layout_width="40dp" android:layout_height="40dp" />
+    </LinearLayout>
+
+    <ProgressBar android:id="@+id/progressBar"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_gravity="center" android:layout_marginTop="32dp" />
+
+    <ScrollView android:id="@+id/contentLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Agency Name Card -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                app:cardCornerRadius="12dp" app:cardElevation="2dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="vertical" android:padding="16dp">
+                    <TextView android:id="@+id/tvAgencyName"
+                        android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:textSize="22sp" android:textStyle="bold" android:textColor="@color/text_primary" />
+                    <TextView android:id="@+id/tvAgencyCode"
+                        android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:textColor="@color/text_secondary" android:layout_marginTop="4dp" />
+                    <TextView android:id="@+id/tvLevel"
+                        android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:textColor="@color/primary" android:layout_marginTop="4dp" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Stats Grid -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginBottom="12dp">
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical"
+                    android:gravity="center" android:padding="12dp"
+                    android:background="@drawable/bg_card">
+                    <TextView android:id="@+id/tvTotalHosts" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:textSize="20sp"
+                        android:textStyle="bold" android:textColor="@color/primary" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Hosts" android:textColor="@color/text_secondary" />
+                </LinearLayout>
+                <View android:layout_width="8dp" android:layout_height="0dp" />
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical"
+                    android:gravity="center" android:padding="12dp"
+                    android:background="@drawable/bg_card">
+                    <TextView android:id="@+id/tvTotalAgents" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:textSize="20sp"
+                        android:textStyle="bold" android:textColor="@color/primary" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Agents" android:textColor="@color/text_secondary" />
+                </LinearLayout>
+                <View android:layout_width="8dp" android:layout_height="0dp" />
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:orientation="vertical"
+                    android:gravity="center" android:padding="12dp"
+                    android:background="@drawable/bg_card">
+                    <TextView android:id="@+id/tvCommissionRate" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:textSize="20sp"
+                        android:textStyle="bold" android:textColor="@color/primary" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Commission" android:textColor="@color/text_secondary" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Balance -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                app:cardCornerRadius="12dp" app:cardElevation="2dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="vertical" android:padding="16dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Total Beans Balance" android:textColor="@color/text_secondary" />
+                    <TextView android:id="@+id/tvBeansBalance"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:textSize="28sp" android:textStyle="bold" android:textColor="@color/accent" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Contact -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                app:cardCornerRadius="12dp" app:cardElevation="2dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="vertical" android:padding="16dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Contact" android:textStyle="bold" android:textColor="@color/text_primary"
+                        android:layout_marginBottom="8dp" />
+                    <TextView android:id="@+id/tvWhatsapp"
+                        android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:textColor="@color/text_secondary" android:drawablePadding="8dp" />
+                    <TextView android:id="@+id/tvEmail"
+                        android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:textColor="@color/text_secondary" android:layout_marginTop="4dp" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

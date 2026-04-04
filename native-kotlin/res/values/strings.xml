@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MeriLive</string>
+    <string name="app_tagline">Go Live. Get Famous.</string>
+
+    <!-- Bottom Nav -->
+    <string name="nav_home">Home</string>
+    <string name="nav_explore">Explore</string>
+    <string name="nav_go_live">Go Live</string>
+    <string name="nav_chat">Chat</string>
+    <string name="nav_profile">Profile</string>
+
+    <!-- Auth -->
+    <string name="login_title">Welcome to MeriLive</string>
+    <string name="login_guest">Continue as Guest</string>
+    <string name="login_whatsapp">Login with WhatsApp</string>
+    <string name="login_gmail">Login with Gmail</string>
+    <string name="enter_phone">Enter WhatsApp number</string>
+    <string name="enter_otp">Enter OTP</string>
+    <string name="verify">Verify</string>
+    <string name="select_gender">Select Gender</string>
+    <string name="male">Male</string>
+    <string name="female">Female</string>
+
+    <!-- Home -->
+    <string name="popular">Popular</string>
+    <string name="nearby">Nearby</string>
+    <string name="new_label">New</string>
+    <string name="trending">Trending</string>
+    <string name="viewers">viewers</string>
+
+    <!-- Live -->
+    <string name="go_live">Go Live</string>
+    <string name="live">LIVE</string>
+    <string name="end_stream">End Stream</string>
+    <string name="stream_title_hint">Enter stream title…</string>
+    <string name="beauty">Beauty</string>
+    <string name="stickers">Stickers</string>
+    <string name="flip_camera">Flip</string>
+    <string name="mute">Mute</string>
+    <string name="gifts">Gifts</string>
+    <string name="send_gift">Send Gift</string>
+    <string name="type_message">Type a message…</string>
+
+    <!-- Party -->
+    <string name="party_room">Party Room</string>
+    <string name="create_party">Create Party</string>
+    <string name="join_party">Join</string>
+    <string name="seats">Seats</string>
+
+    <!-- Chat -->
+    <string name="messages">Messages</string>
+    <string name="no_messages">No messages yet</string>
+    <string name="send">Send</string>
+    <string name="online">Online</string>
+    <string name="offline">Offline</string>
+
+    <!-- Profile -->
+    <string name="edit_profile">Edit Profile</string>
+    <string name="followers">Followers</string>
+    <string name="following">Following</string>
+    <string name="follow">Follow</string>
+    <string name="unfollow">Unfollow</string>
+    <string name="display_name">Display Name</string>
+    <string name="bio">Bio</string>
+    <string name="save">Save</string>
+
+    <!-- Wallet -->
+    <string name="wallet">Wallet</string>
+    <string name="diamonds">Diamonds</string>
+    <string name="beans">Beans</string>
+    <string name="coins">Coins</string>
+    <string name="recharge">Recharge</string>
+    <string name="balance">Balance</string>
+
+    <!-- Settings -->
+    <string name="settings">Settings</string>
+    <string name="language">Language</string>
+    <string name="privacy">Privacy</string>
+    <string name="about">About</string>
+    <string name="blocked_users">Blocked Users</string>
+    <string name="account_security">Account Security</string>
+    <string name="logout">Logout</string>
+    <string name="delete_account">Delete Account</string>
+
+    <!-- Leaderboard -->
+    <string name="leaderboard">Leaderboard</string>
+    <string name="daily">Daily</string>
+    <string name="weekly">Weekly</string>
+    <string name="monthly">Monthly</string>
+
+    <!-- Shop -->
+    <string name="shop">Shop</string>
+    <string name="frames">Frames</string>
+    <string name="entrance_effects">Entrance Effects</string>
+    <string name="chat_bubbles">Chat Bubbles</string>
+
+    <!-- Level / VIP -->
+    <string name="level">Level</string>
+    <string name="vip">VIP</string>
+    <string name="vip_benefits">VIP Benefits</string>
+
+    <!-- Agency -->
+    <string name="agency">Agency</string>
+    <string name="host_dashboard">Host Dashboard</string>
+    <string name="transfer_history">Transfer History</string>
+
+    <!-- Call -->
+    <string name="private_call">Private Call</string>
+    <string name="incoming_call">Incoming Call</string>
+    <string name="accept">Accept</string>
+    <string name="decline">Decline</string>
+    <string name="calling">Calling…</string>
+    <string name="call_ended">Call Ended</string>
+
+    <!-- Search -->
+    <string name="search">Search</string>
+    <string name="search_hint">Search users, rooms…</string>
+
+    <!-- Notifications -->
+    <string name="notifications">Notifications</string>
+    <string name="no_notifications">No notifications</string>
+
+    <!-- Help -->
+    <string name="help">Help &amp; Support</string>
+
+    <!-- Common -->
+    <string name="loading">Loading…</string>
+    <string name="retry">Retry</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="error_generic">Something went wrong</string>
+    <string name="no_internet">No internet connection</string>
+    <string name="empty_list">Nothing to show</string>
+
+    <!-- Notification Channels -->
+    <string name="channel_gifts">Gifts</string>
+    <string name="channel_calls">Calls</string>
+    <string name="channel_messages">Messages</string>
+    <string name="channel_live">Live Streams</string>
+    <string name="channel_system">System</string>
+    <string name="channel_party">Party Rooms</string>
+    <string name="channel_follow">Followers</string>
+    <string name="channel_wallet">Wallet</string>
+    <string name="channel_agency">Agency</string>
+</resources>

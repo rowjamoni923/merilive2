@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/background">
+    <!-- Toolbar -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="56dp"
+        android:orientation="horizontal" android:gravity="center_vertical" android:paddingHorizontal="12dp" android:background="@color/surface">
+        <ImageButton android:id="@+id/btnBack" android:layout_width="40dp" android:layout_height="40dp"
+            android:src="@drawable/ic_back" android:background="?attr/selectableItemBackgroundBorderless" />
+        <TextView android:id="@+id/tvTitle" android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:text="🔍 Search" android:textSize="18sp" android:textStyle="bold"
+            android:textColor="@color/text_primary" android:layout_marginStart="8dp" />
+    </LinearLayout>
+    <!-- Search Input -->
+    <com.google.android.material.textfield.TextInputEditText android:id="@+id/etSearch"
+        android:layout_width="match_parent" android:layout_height="44dp"
+        android:hint="Search users or rooms..." android:background="@drawable/bg_input"
+        android:paddingHorizontal="16dp" android:layout_marginHorizontal="16dp" android:layout_marginTop="8dp"
+        android:inputType="text" android:maxLines="1" android:imeOptions="actionSearch" />
+    <!-- Search Tabs -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="40dp"
+        android:orientation="horizontal" android:paddingHorizontal="16dp" android:layout_marginTop="8dp">
+        <TextView android:id="@+id/tabUsers" android:layout_width="0dp" android:layout_height="match_parent"
+            android:layout_weight="1" android:text="👤 Users" android:gravity="center"
+            android:textSize="14sp" android:textColor="@color/text_primary" android:background="?attr/selectableItemBackground" />
+        <TextView android:id="@+id/tabRooms" android:layout_width="0dp" android:layout_height="match_parent"
+            android:layout_weight="1" android:text="🎉 Rooms" android:gravity="center"
+            android:textSize="14sp" android:textColor="@color/text_secondary" android:background="?attr/selectableItemBackground" />
+    </LinearLayout>
+    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" />
+    <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvResults" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:clipToPadding="false" android:padding="8dp" />
+</LinearLayout>

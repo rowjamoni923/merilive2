@@ -1,0 +1,302 @@
+import { useState, useEffect } from "react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
+import { getEquippedPrivilegesForUser, EquippedPrivileges } from "@/hooks/useUserPrivileges";
+import { motion } from "framer-motion";
+import Premium3DFrame from "./Premium3DFrame";
+
+interface FramedAvatarWithPrivilegesProps {
+  userId: string;
+  src?: string | null;
+  name?: string;
+  level?: number;
+  size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
+  showFrame?: boolean;
+  showAnimation?: boolean;
+  showGlow?: boolean;
+  className?: string;
+  avatarClassName?: string;
+  fallbackClassName?: string;
+  onClick?: () => void;
+}
+
+const avatarSizeClasses = {
+  xs: "w-6 h-6",
+  sm: "w-10 h-10",
+  md: "w-14 h-14",
+  lg: "w-20 h-20",
+  xl: "w-28 h-28",
+  "2xl": "w-36 h-36",
+};
+
+// Frame should be slightly larger than avatar to wrap around it
+const frameSizeClasses = {
+  xs: "w-9 h-9",
+  sm: "w-14 h-14",
+  md: "w-[72px] h-[72px]",
+  lg: "w-28 h-28",
+  xl: "w-36 h-36",
+  "2xl": "w-44 h-44",
+};
+
+const fallbackTextSizes = {
+  xs: "text-[8px]",
+  sm: "text-xs",
+  md: "text-sm",
+  lg: "text-xl",
+  xl: "text-2xl",
+  "2xl": "text-3xl",
+};
+
+// Glow colors based on level
+const getGlowColor = (level: number) => {
+  if (level >= 50) return "rgba(251, 191, 36, 0.6)"; // Gold
+  if (level >= 40) return "rgba(249, 115, 22, 0.5)"; // Orange
+  if (level >= 30) return "rgba(236, 72, 153, 0.5)"; // Pink
+  if (level >= 20) return "rgba(168, 85, 247, 0.5)"; // Purple
+  if (level >= 10) return "rgba(59, 130, 246, 0.4)"; // Blue
+  return "rgba(139, 92, 246, 0.3)"; // Light purple
+};
+
+/**
+ * FramedAvatarWithPrivileges - Avatar component that shows purchased/unlocked frames
+ * The frame itself is animated with effects around it (not below or separate)
+ */
+const FramedAvatarWithPrivileges = ({
+  userId,
+  src,
+  name = "U",
+  level = 1,
+  size = "md",
+  showFrame = true,
+  showAnimation = true,
+  showGlow = true,
+  className,
+  avatarClassName,
+  fallbackClassName,
+  onClick,
+}: FramedAvatarWithPrivilegesProps) => {
+  const [privileges, setPrivileges] = useState<EquippedPrivileges | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (userId) {
+      loadPrivileges();
+    }
+  }, [userId]);
+
+  const loadPrivileges = async () => {
+    setIsLoading(true);
+    const equipped = await getEquippedPrivilegesForUser(userId);
+    setPrivileges(equipped);
+    setIsLoading(false);
+  };
+
+  const displayName = name?.charAt(0)?.toUpperCase() || "U";
+  const glowColor = getGlowColor(level);
+
+  // Check if user has a custom frame
+  const customFrame = privileges?.frame || privileges?.portrait_frame;
+  const frameUrl = customFrame?.animation_file_url || customFrame?.animation_url || customFrame?.preview_url;
+
+  const avatarContent = (
+    <Avatar
+      className={cn(
+        avatarSizeClasses[size],
+        "border-2 border-white/30 shadow-lg",
+        avatarClassName
+      )}
+      onClick={onClick}
+    >
+      <AvatarImage
+        src={src || undefined}
+        className="object-cover"
+      />
+      <AvatarFallback
+        className={cn(
+          "bg-gradient-to-br from-purple-500 to-pink-500 text-white font-bold",
+          fallbackTextSizes[size],
+          fallbackClassName
+        )}
+      >
+        {displayName}
+      </AvatarFallback>
+    </Avatar>
+  );
+
+  // If no frame should be shown
+  if (!showFrame || level < 1) {
+    return (
+      <div className={className} onClick={onClick}>
+        {avatarContent}
+      </div>
+    );
+  }
+
+  // If user has a custom purchased frame - show animated frame around avatar
+  if (frameUrl && !isLoading) {
+    return (
+      <div className={cn("relative inline-block", className)} onClick={onClick}>
+        {/* Main container with frame */}
+        <div className={cn("relative", frameSizeClasses[size])}>
+          
+          {/* Animated Glow Effect - Around the frame (outer ring) */}
+          {showGlow && showAnimation && level >= 5 && (
+            <motion.div
+              className="absolute -inset-1 rounded-full pointer-events-none"
+              style={{
+                background: `radial-gradient(circle, ${glowColor} 0%, transparent 70%)`,
+                filter: "blur(6px)",
+              }}
+              animate={{
+                opacity: [0.5, 0.9, 0.5],
+                scale: [1, 1.08, 1],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+          )}
+
+          {/* Rotating particle ring - Around the frame sides */}
+          {showAnimation && level >= 10 && (
+            <motion.div
+              className="absolute -inset-1 rounded-full pointer-events-none"
+              animate={{ rotate: 360 }}
+              transition={{
+                duration: 8,
+                repeat: Infinity,
+                ease: "linear",
+              }}
+            >
+              {[0, 60, 120, 180, 240, 300].map((angle, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-1.5 h-1.5 rounded-full"
+                  style={{
+                    background: glowColor,
+                    boxShadow: `0 0 6px ${glowColor}`,
+                    top: "50%",
+                    left: "50%",
+                    transform: `rotate(${angle}deg) translateX(${size === 'xs' ? 14 : size === 'sm' ? 20 : 24}px) translateY(-50%)`,
+                  }}
+                  animate={{
+                    scale: [0.8, 1.3, 0.8],
+                    opacity: [0.6, 1, 0.6],
+                  }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    delay: i * 0.2,
+                  }}
+                />
+              ))}
+            </motion.div>
+          )}
+
+          {/* Shimmer effect on frame - moves across the frame */}
+          {showAnimation && level >= 15 && (
+            <motion.div
+              className="absolute inset-0 rounded-full pointer-events-none overflow-hidden"
+              style={{ zIndex: 15 }}
+            >
+              <motion.div
+                className="absolute inset-0"
+                style={{
+                  background: `linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)`,
+                }}
+                animate={{
+                  x: ["-100%", "200%"],
+                }}
+                transition={{
+                  duration: 2.5,
+                  repeat: Infinity,
+                  ease: "linear",
+                  repeatDelay: 1.5,
+                }}
+              />
+            </motion.div>
+          )}
+
+          {/* The Animated Frame Image - wraps around avatar */}
+          <motion.img
+            src={frameUrl}
+            alt="Frame"
+            className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+            style={{ zIndex: 20 }}
+            animate={showAnimation ? {
+              scale: [1, 1.03, 1],
+              filter: level >= 20 
+                ? ["brightness(1)", "brightness(1.15)", "brightness(1)"] 
+                : undefined,
+            } : {}}
+            transition={{
+              duration: 2.5,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+          
+          {/* Avatar centered inside the frame */}
+          <div 
+            className="absolute inset-0 flex items-center justify-center"
+            style={{ 
+              padding: size === 'xs' ? '4px' : size === 'sm' ? '6px' : '8px',
+              zIndex: 10,
+            }}
+          >
+            {avatarContent}
+          </div>
+
+          {/* Sparkle effects on frame edges for high levels */}
+          {showAnimation && level >= 25 && (
+            <>
+              {[0, 90, 180, 270].map((angle, i) => (
+                <motion.div
+                  key={`sparkle-${i}`}
+                  className="absolute text-xs pointer-events-none"
+                  style={{
+                    top: "50%",
+                    left: "50%",
+                    transform: `rotate(${angle}deg) translateX(${size === 'xs' ? 16 : size === 'sm' ? 22 : 28}px)`,
+                    zIndex: 25,
+                  }}
+                  animate={{
+                    opacity: [0, 1, 0],
+                    scale: [0.5, 1.2, 0.5],
+                  }}
+                  transition={{
+                    duration: 1.8,
+                    repeat: Infinity,
+                    delay: i * 0.4,
+                  }}
+                >
+                  ✨
+                </motion.div>
+              ))}
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Fall back to Premium3DFrame (with 3D animation on the frame)
+  // Pass userId for unified frame fetching
+  return (
+    <Premium3DFrame
+      src={src}
+      name={name}
+      level={level}
+      size={size}
+      showAnimation={showAnimation}
+      className={className}
+      onClick={onClick}
+      userId={userId}
+    />
+  );
+};
+
+export default FramedAvatarWithPrivileges;

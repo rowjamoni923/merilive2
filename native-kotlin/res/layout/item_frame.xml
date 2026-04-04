@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:orientation="vertical" android:padding="12dp"
+    android:background="@drawable/bg_card" android:layout_margin="8dp">
+    <ImageView android:id="@+id/ivFrame" android:layout_width="80dp" android:layout_height="80dp"
+        android:layout_gravity="center" android:scaleType="centerInside" />
+    <TextView android:id="@+id/tvName" android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_gravity="center" android:textColor="@color/text_primary" android:textSize="13sp"
+        android:layout_marginTop="8dp" android:maxLines="1" />
+    <TextView android:id="@+id/tvPrice" android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_gravity="center" android:textColor="@color/secondary" android:textSize="12sp" android:layout_marginTop="2dp" />
+</LinearLayout>

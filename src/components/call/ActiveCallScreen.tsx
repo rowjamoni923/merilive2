@@ -1,0 +1,1036 @@
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useContentModeration } from "@/hooks/useContentModeration";
+import { createPortal } from "react-dom";
+import { PhoneOff, Mic, MicOff, Eye, EyeOff, Gift, Volume2, VolumeX, Maximize2, Minimize2, TrendingUp, SwitchCamera, ShieldCheck, Lock, MessageCircle, MoreVertical, Send, Sparkles, Smile } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { useAgoraCall } from "@/hooks/useAgoraCall";
+import { useDeepARBeauty } from "@/hooks/useDeepARBeauty";
+import { BeautyFilterPanel } from "@/components/live/BeautyFilterPanel";
+
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
+import { AgoraVideoPlayer } from "@/components/live/AgoraVideoPlayer";
+import { GiftPanel, GiftData, FlyingGiftAnimation, FlyingGift, useFlyingGifts, sendGift } from "@/features/shared/gifting";
+import BeansIcon from "@/components/common/BeansIcon";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useSound } from "@/hooks/useSound";
+import { ScreenSecuritySDK } from "@/sdk/ScreenSecuritySDK";
+
+
+interface ActiveCallScreenProps {
+  isOpen: boolean;
+  callId: string | null;
+  userId: string | null;
+  remoteUserId?: string | null;
+  remoteUserName: string;
+  remoteUserAvatar: string | null;
+  remoteUserLevel?: number;
+  duration: number;
+  coinsPerMinute: number;
+  totalCoinsSpent?: number;
+  hostEarned?: number;
+  callerRemainingCoins?: number;
+  callStatus?: 'idle' | 'calling' | 'ringing' | 'connected' | 'ended';
+  onEndCall: () => void;
+  onMediaConnected?: (callId: string) => void;
+  isHost?: boolean;
+}
+
+export function ActiveCallScreen({
+  isOpen,
+  callId,
+  userId,
+  remoteUserId,
+  remoteUserName,
+  remoteUserAvatar,
+  remoteUserLevel = 20,
+  duration,
+  coinsPerMinute,
+  totalCoinsSpent = 0,
+  hostEarned = 0,
+  callerRemainingCoins = 0,
+  callStatus = 'calling',
+  onEndCall,
+  onMediaConnected,
+  isHost = false,
+}: ActiveCallScreenProps) {
+  // REAL DeepAR native beauty integration
+  const deepAR = useDeepARBeauty();
+  const [isSpeakerOn, setIsSpeakerOn] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [callEnded, setCallEnded] = useState(false);
+  const [showGiftPanel, setShowGiftPanel] = useState(false);
+  const [userCoins, setUserCoins] = useState(0);
+  const [remoteStreamReady, setRemoteStreamReady] = useState(false);
+  const [showPrivacyWarning, setShowPrivacyWarning] = useState(false);
+  const [isSwapped, setIsSwapped] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [chatInput, setChatInput] = useState("");
+  const [chatMessages, setChatMessages] = useState<Array<{id: string; senderId: string; senderName: string; message: string; timestamp: number}>>([]);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
+  const chatInputRef = useRef<HTMLInputElement>(null);
+  const [myDisplayName, setMyDisplayName] = useState<string>("You");
+  const [myAvatarUrl, setMyAvatarUrl] = useState<string | null>(null);
+  const [myLevel, setMyLevel] = useState<number>(1);
+  
+  // Host photos for calling/ringing screen
+  const [hostPhotos, setHostPhotos] = useState<string[]>([]);
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  
+  // ✅ REAL-TIME Admin Settings - Gift Commission
+  const [adminGiftCommission, setAdminGiftCommission] = useState<number>(55);
+  
+  // Flying gift animations for real-time display
+  const { gifts: flyingGifts, addGift: addFlyingGift, removeGift: removeFlyingGift } = useFlyingGifts();
+  const mountedRef = useRef(true);
+  
+  // ✅ REAL-TIME: Fetch and subscribe to gift commission
+  useEffect(() => {
+    const fetchCommission = async () => {
+      const { data } = await supabase
+        .from('app_settings')
+        .select('setting_value')
+        .eq('setting_key', 'gift_commission')
+        .maybeSingle();
+      
+      if (data?.setting_value) {
+        const settings = data.setting_value as any;
+        const rate = settings.host_percent ?? (100 - (settings.company_percent ?? 45));
+        setAdminGiftCommission(rate);
+      }
+    };
+    fetchCommission();
+    
+    // Real-time subscription
+    const channel = supabase
+      .channel('activecall-gift-commission-realtime')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'app_settings',
+        filter: 'setting_key=eq.gift_commission'
+      }, (payload: any) => {
+        if (payload.new?.setting_value) {
+          const settings = payload.new.setting_value;
+          const rate = settings.host_percent ?? (100 - (settings.company_percent ?? 45));
+          setAdminGiftCommission(rate);
+        }
+      })
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+  
+  // BILLING DISPLAY LOGIC:
+  // The actual deduction happens on the backend every 60 seconds
+  // We only show the ACTUAL billed amounts from the database (updated every 5s)
+  // NO calculations or interpolation - Admin panel settings are the only source
+  // totalCoinsSpent = actual coins deducted from caller (set by admin: e.g., 2000/min)
+  // hostEarned = actual beans credited to host (admin commission: e.g., 60% = 1200 beans)
+  const displayedCoinsSpent = totalCoinsSpent;
+  const displayedHostEarned = hostEarned;
+
+  const chatChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  
+  
+  // Sound hook - must be before useEffects that use it
+  const { playSound, startRingtone, stopRingtone } = useSound();
+
+  // WebRTC hook
+  const {
+    localStream,
+    remoteStream,
+    remoteVideoTrack,
+    localVideoTrack,
+    isConnected,
+    isAudioEnabled,
+    isVideoEnabled,
+    connectionState,
+    toggleAudio,
+    toggleVideo,
+    cleanup,
+  } = useAgoraCall(isOpen ? callId : null, userId, isHost);
+  
+  const mediaConnectedNotifiedRef = useRef<string | null>(null);
+
+  // ✅ Track remote video readiness via AgoraVideoPlayer
+  useEffect(() => {
+    setRemoteStreamReady(!!remoteVideoTrack);
+  }, [remoteVideoTrack]);
+
+  const hasRemoteVideo = !!remoteVideoTrack && remoteStreamReady;
+  const primaryVideoTrack = isSwapped ? localVideoTrack : remoteVideoTrack;
+  const secondaryVideoTrack = isSwapped ? remoteVideoTrack : localVideoTrack;
+  const primaryHasVideo = isSwapped ? !!localVideoTrack && isVideoEnabled : hasRemoteVideo;
+  const secondaryHasVideo = isSwapped ? hasRemoteVideo : !!localVideoTrack && isVideoEnabled;
+  const primaryMirror = isSwapped;
+  const secondaryMirror = !isSwapped;
+  const primaryLabel = isSwapped ? 'You' : remoteUserName;
+  const secondaryLabel = isSwapped ? remoteUserName : 'You';
+  
+  // 🔥 AWS Comprehend content moderation
+  const { checkToxicContent: checkToxic } = useContentModeration(userId);
+  const isLiveConnected = callStatus === 'connected' && isConnected;
+  const connectionBadgeLabel = isLiveConnected ? 'LIVE' : callStatus === 'ringing' ? 'RINGING' : callStatus === 'calling' ? 'DIALING' : 'SYNC';
+  const connectionBadgeTone = isLiveConnected ? 'text-emerald-300' : 'text-amber-300';
+
+  // Start timer/billing only when actual media is live (camera+connection)
+  useEffect(() => {
+    if (!isOpen || !callId || callStatus !== 'connected') {
+      if (!callId) mediaConnectedNotifiedRef.current = null;
+      return;
+    }
+
+    const mediaLive = !!localStream && isConnected;
+    if (!mediaLive) return;
+    if (mediaConnectedNotifiedRef.current === callId) return;
+
+    mediaConnectedNotifiedRef.current = callId;
+    onMediaConnected?.(callId);
+  }, [isOpen, callId, callStatus, localStream, isConnected, onMediaConnected]);
+
+  // Fetch user coins, display name AND host photos
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      if (!userId) return;
+      const { data } = await supabase
+        .from('profiles')
+        .select('coins, display_name, avatar_url, user_level')
+        .eq('id', userId)
+        .single();
+      if (data) {
+        setUserCoins(data.coins || 0);
+        if (data.display_name) setMyDisplayName(data.display_name);
+        if (data.avatar_url) setMyAvatarUrl(data.avatar_url);
+        if (data.user_level) setMyLevel(data.user_level);
+      }
+    };
+    
+    // Fetch host photos for the remote user (shown during calling/ringing)
+    const fetchHostPhotos = async () => {
+      if (!remoteUserId) return;
+      const { data } = await supabase
+        .from('face_verification_submissions')
+        .select('host_photos, profile_photo_url')
+        .eq('user_id', remoteUserId)
+        .eq('status', 'approved')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      if (data) {
+        const photos: string[] = [];
+        if (data.host_photos?.length) photos.push(...data.host_photos);
+        if (data.profile_photo_url) photos.push(data.profile_photo_url);
+        setHostPhotos(photos);
+      }
+    };
+    
+    if (isOpen) {
+      fetchUserInfo();
+      fetchHostPhotos();
+    }
+  }, [isOpen, userId, remoteUserId]);
+  
+  // Auto-cycle host photos during calling/ringing
+  useEffect(() => {
+    if (hostPhotos.length <= 1 || isLiveConnected) return;
+    const interval = setInterval(() => {
+      setCurrentPhotoIndex(prev => (prev + 1) % hostPhotos.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [hostPhotos.length, isLiveConnected]);
+
+  // Real-time gift animation subscription - listen for gifts during call
+  useEffect(() => {
+    if (!isOpen || !callId || !remoteUserId) return;
+    
+    mountedRef.current = true;
+    
+    const giftChannel = supabase
+      .channel(`call_gift_animations_${callId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "gift_transactions",
+        },
+        async (payload: any) => {
+          // Only show for gifts between this call's participants
+          const senderId = payload.new?.sender_id;
+          const receiverId = payload.new?.receiver_id;
+          
+          const isRelevant = 
+            (senderId === userId && receiverId === remoteUserId) ||
+            (senderId === remoteUserId && receiverId === userId);
+          
+          if (!isRelevant) return;
+          
+          // ✅ FIX: Skip if I'm the sender (already showed local animation in handleSendGift)
+          if (senderId === userId) return;
+          
+          console.log('[ActiveCall] 🎁 Gift transaction detected, showing animation');
+          
+          // Fetch gift and sender info
+          const [giftResult, senderResult] = await Promise.all([
+            supabase
+              .from("gifts")
+              .select("name, icon_url, animation_url, coin_value")
+              .eq("id", payload.new.gift_id)
+              .single(),
+            supabase
+              .from("profiles")
+              .select("display_name, avatar_url")
+              .eq("id", payload.new.sender_id)
+              .single()
+          ]);
+          
+          if (giftResult.data && senderResult.data && mountedRef.current) {
+            const gift = giftResult.data;
+            const sender = senderResult.data;
+            
+            // Play gift sound
+            playSound('gift');
+            
+            // Trigger flying gift animation
+            addFlyingGift({
+              senderName: sender.display_name || "User",
+              senderAvatar: sender.avatar_url || undefined,
+              receiverName: remoteUserName,
+              giftName: gift.name,
+              giftIcon: "🎁",
+              giftImageUrl: gift.icon_url || undefined,
+              animationUrl: gift.animation_url || gift.icon_url || undefined,
+              giftColor: "bg-pink-500/50",
+              count: 1,
+              coins: gift.coin_value,
+            });
+          }
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      mountedRef.current = false;
+      supabase.removeChannel(giftChannel);
+    };
+  }, [isOpen, callId, remoteUserId, userId, remoteUserName, addFlyingGift, playSound]);
+
+  // Format helpers
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  };
+
+  const formatCoins = (coins: number) => {
+    if (coins >= 1000) return `${(coins / 1000).toFixed(1)}K`;
+    return coins.toString();
+  };
+
+  // Gift sending via unified gifting service (single source of truth)
+  const handleSendGift = async (gift: GiftData, count: number) => {
+    if (!userId || !remoteUserId) return;
+
+    const totalCost = gift.coins * count;
+    if (userCoins < totalCost) {
+      toast.error("Not enough diamonds!");
+      return;
+    }
+
+    const previousCoins = userCoins;
+
+    try {
+      // Optimistic balance update
+      setUserCoins(prev => prev - totalCost);
+      const { updateCachedBalance: updateBalance, getCachedBalance: getBalance } = await import("@/hooks/useUserBalance");
+      updateBalance(getBalance() - totalCost);
+
+      const result = await sendGift({
+        giftId: gift.id,
+        senderId: userId,
+        receiverId: remoteUserId,
+        quantity: count,
+        context: 'call',
+        callId: callId || undefined,
+      });
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to send gift');
+      }
+
+      // Show local animation for sender immediately
+      addFlyingGift({
+        senderName: "You",
+        giftName: gift.name,
+        giftIcon: "🎁",
+        giftImageUrl: gift.icon_url || undefined,
+        animationUrl: gift.animation_url || gift.icon_url || undefined,
+        giftColor: "bg-pink-500/50",
+        count,
+        coins: result.transaction?.coins_spent || totalCost,
+      });
+
+      setShowGiftPanel(false);
+      playSound('gift');
+    } catch (error) {
+      console.error("Gift send error:", error);
+      // Rollback optimistic update
+      setUserCoins(previousCoins);
+      const { updateCachedBalance } = await import("@/hooks/useUserBalance");
+      updateCachedBalance(previousCoins);
+      toast.error("Failed to send gift");
+    }
+  };
+  const handleEndCall = () => {
+    setCallEnded(true);
+    cleanup();
+    // End immediately on both sides (no waiting modal)
+    onEndCall();
+  };
+  useEffect(() => {
+    if (!isOpen || callEnded) return;
+    if (connectionState === 'failed' || connectionState === 'closed') {
+      console.log('[ActiveCall] ☠️ WebRTC died - auto-ending call (NO reconnect)');
+      handleEndCall();
+    }
+  }, [connectionState, isOpen, callEnded]);
+
+  // Enhanced Privacy Protection - Screen Recording & Screenshot Prevention
+  // ✅ Native FLAG_SECURE + Web CSS protection
+  useEffect(() => {
+    if (isOpen) {
+      // Screen black-out protection disabled by request (no app-wide black behavior)
+      
+      // Add CSS class for screenshot prevention
+      document.body.classList.add('no-screenshot', 'secure-call');
+      
+      // Prevent right-click
+      const preventContextMenu = (e: MouseEvent) => {
+        e.preventDefault();
+        setShowPrivacyWarning(true);
+        setTimeout(() => setShowPrivacyWarning(false), 2000);
+      };
+      document.addEventListener('contextmenu', preventContextMenu);
+
+      // Prevent screenshot keyboard shortcuts
+      const preventScreenshot = (e: KeyboardEvent) => {
+        if (
+          e.key === 'PrintScreen' ||
+          (e.ctrlKey && e.shiftKey && e.key === 'S') ||
+          (e.metaKey && e.shiftKey && (e.key === '3' || e.key === '4' || e.key === '5')) ||
+          (e.altKey && e.key === 'PrintScreen') ||
+          (e.ctrlKey && e.key === 'p') ||
+          (e.metaKey && e.key === 'p')
+        ) {
+          e.preventDefault();
+          e.stopPropagation();
+          setShowPrivacyWarning(true);
+          setTimeout(() => setShowPrivacyWarning(false), 2000);
+          return false;
+        }
+      };
+      document.addEventListener('keydown', preventScreenshot, true);
+      document.addEventListener('keyup', preventScreenshot, true);
+
+      // Detect visibility changes (potential screen recording)
+      const handleVisibilityChange = () => {
+        if (document.hidden) {
+          console.log('[Privacy] Screen may be recording - app went to background');
+        }
+      };
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+
+      // Prevent drag and drop
+      const preventDrag = (e: DragEvent) => {
+        e.preventDefault();
+      };
+      document.addEventListener('dragstart', preventDrag);
+      document.addEventListener('drop', preventDrag);
+
+      // Block media capture API detection
+      const originalGetDisplayMedia = navigator.mediaDevices?.getDisplayMedia;
+      if (navigator.mediaDevices && originalGetDisplayMedia) {
+        navigator.mediaDevices.getDisplayMedia = async () => {
+          setShowPrivacyWarning(true);
+          setTimeout(() => setShowPrivacyWarning(false), 2000);
+          throw new Error('Screen sharing is disabled during private calls');
+        };
+      }
+
+      // Add secure overlay style
+      const style = document.createElement('style');
+      style.id = 'secure-call-style';
+      style.textContent = `
+        .secure-call video {
+          -webkit-touch-callout: none;
+          -webkit-user-select: none;
+          user-select: none;
+          pointer-events: none;
+        }
+        .secure-call::before {
+          content: '';
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          pointer-events: none;
+          z-index: 99999;
+          background: transparent;
+        }
+        @media print {
+          .secure-call * {
+            display: none !important;
+          }
+        }
+      `;
+      document.head.appendChild(style);
+
+      return () => {
+        document.body.classList.remove('no-screenshot', 'secure-call');
+        document.removeEventListener('contextmenu', preventContextMenu);
+        document.removeEventListener('keydown', preventScreenshot, true);
+        document.removeEventListener('keyup', preventScreenshot, true);
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+        document.removeEventListener('dragstart', preventDrag);
+        document.removeEventListener('drop', preventDrag);
+        
+        if (navigator.mediaDevices && originalGetDisplayMedia) {
+          navigator.mediaDevices.getDisplayMedia = originalGetDisplayMedia;
+        }
+        
+        const styleEl = document.getElementById('secure-call-style');
+        if (styleEl) styleEl.remove();
+        
+        // Turn off native security after call ends to avoid global black-screen behavior
+        void ScreenSecuritySDK.disableSecureMode();
+      };
+    }
+  }, [isOpen]);
+
+  // Swap video views
+  const handleSwapVideos = () => {
+    setIsSwapped(!isSwapped);
+  };
+
+  // Auto-scroll chat
+  useEffect(() => {
+    if (chatScrollRef.current) {
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+    }
+  }, [chatMessages]);
+
+  // Subscribe to real-time chat via Supabase Broadcast
+  // ✅ Keep a persistent channel ref to avoid channel re-create lag on every message send
+  useEffect(() => {
+    if (!callId || !isOpen) return;
+
+    const channel = supabase
+      .channel(`call-chat-${callId}`)
+      .on("broadcast", { event: "call-message" }, (payload) => {
+        const msg = payload.payload as any;
+        if (msg.senderId !== userId) {
+          setChatMessages((prev) => [...prev, msg]);
+        }
+      })
+      .subscribe();
+
+    chatChannelRef.current = channel;
+
+    return () => {
+      chatChannelRef.current = null;
+      supabase.removeChannel(channel);
+    };
+  }, [callId, isOpen, userId]);
+
+  const sendChatMessage = async () => {
+    const text = chatInput.trim();
+    if (!text || !callId || !userId) return;
+
+    const msg = {
+      id: `${Date.now()}-${userId}`,
+      senderId: userId,
+      senderName: myDisplayName,
+      message: text,
+      timestamp: Date.now(),
+    };
+
+    setChatMessages((prev) => [...prev, msg]);
+    setChatInput("");
+
+    // 🔥 AWS Comprehend toxic content moderation (background)
+    checkToxic(text, { contextType: 'call', callId }).catch(() => {});
+
+    if (!chatChannelRef.current) return;
+
+    await chatChannelRef.current.send({
+      type: "broadcast",
+      event: "call-message",
+      payload: msg,
+    });
+  };
+
+  if (!isOpen || typeof document === 'undefined') return null;
+
+  const callUi = (
+    <div
+      className="fixed inset-0 z-[100] flex select-none overflow-hidden"
+      style={{ 
+        userSelect: 'none', 
+        WebkitUserSelect: 'none',
+        contain: 'layout style paint',
+        willChange: 'transform',
+        width: '100vw',
+        height: '100dvh',
+      }}
+    >
+      {/* Background - lightweight solid gradient (no animated orbs for performance) */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#050208] via-[#0d0520] to-[#080312]" />
+
+      {/* Privacy Warning Overlay */}
+      <AnimatePresence>
+        {showPrivacyWarning && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="absolute top-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-5 py-3 rounded-2xl bg-gradient-to-r from-red-600/90 to-rose-500/90 border border-red-400/30 shadow-2xl shadow-red-500/30"
+          >
+            <Lock className="w-5 h-5 text-white" />
+            <span className="text-white text-sm font-semibold">Screen capture is not allowed</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ===== TOP BAR - Ultra Premium Glassmorphic ===== */}
+      <div 
+        className="absolute top-0 left-0 right-0 z-10 safe-area-top"
+        style={{ contain: 'layout' }}
+      >
+        <div className="mx-3 mt-2 flex items-center justify-between gap-2">
+          {/* Left - User info pill */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-full"
+              style={{
+                background: 'linear-gradient(135deg, rgba(0,0,0,0.65) 0%, rgba(20,10,40,0.7) 100%)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                boxShadow: '0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)'
+              }}
+            >
+              {/* Live indicator dot */}
+              <div className="relative">
+                <div className={cn(
+                  "w-2 h-2 rounded-full",
+                  isLiveConnected ? "bg-red-500" : "bg-amber-500"
+                )} />
+                {isLiveConnected && (
+                  <div className="absolute inset-0 w-2 h-2 rounded-full bg-red-500 animate-ping opacity-75" />
+                )}
+              </div>
+              
+              {/* Remote user avatar mini */}
+              <div className="w-7 h-7 rounded-full overflow-hidden border border-white/20">
+                {remoteUserAvatar ? (
+                  <img src={remoteUserAvatar} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-[10px] text-white font-bold">
+                    {remoteUserName?.charAt(0)}
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex flex-col">
+                <span className="text-white text-[11px] font-semibold leading-tight max-w-[80px] truncate">{remoteUserName}</span>
+                <div className="flex items-center gap-1">
+                  <span className={cn(
+                    "text-[9px] font-bold tracking-wider uppercase",
+                    isLiveConnected ? "text-emerald-400" : "text-amber-400"
+                  )}>
+                    {connectionBadgeLabel}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Center - Duration timer */}
+          <div className="flex items-center gap-1.5 px-3.5 py-2 rounded-full"
+            style={{
+              background: 'linear-gradient(135deg, rgba(0,0,0,0.6) 0%, rgba(15,5,30,0.65) 100%)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.35)'
+            }}
+          >
+            <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+            <span className="text-white/95 font-mono font-bold text-xs tracking-wider">{formatDuration(duration)}</span>
+          </div>
+
+          {/* Right - Earnings/Coins + Connection */}
+          <div className="flex items-center gap-2">
+            {isHost ? (
+              <div className="flex items-center gap-1.5 px-3 py-2 rounded-full"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(245,158,11,0.15) 0%, rgba(234,88,12,0.12) 100%)',
+                  border: '1px solid rgba(245,158,11,0.25)',
+                  boxShadow: '0 0 20px rgba(245,158,11,0.1)'
+                }}
+              >
+                <BeansIcon size={14} />
+                <span className="text-amber-200 font-bold text-xs">+{formatCoins(displayedHostEarned)}</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5 px-3 py-2 rounded-full"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(0,0,0,0.6) 0%, rgba(15,5,30,0.65) 100%)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                }}
+              >
+                <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                <span className="text-[9px] font-bold text-emerald-300 tracking-wider uppercase">E2E</span>
+              </div>
+            )}
+
+            {/* Signal bars */}
+            <div className={cn(
+              "flex items-center gap-1 px-2.5 py-2 rounded-full",
+            )}
+              style={{
+                background: isConnected 
+                  ? 'linear-gradient(135deg, rgba(16,185,129,0.1) 0%, rgba(5,150,105,0.08) 100%)'
+                  : 'linear-gradient(135deg, rgba(245,158,11,0.1) 0%, rgba(234,88,12,0.08) 100%)',
+                border: `1px solid ${isConnected ? 'rgba(16,185,129,0.25)' : 'rgba(245,158,11,0.25)'}`,
+              }}
+            >
+              <div className="flex items-center gap-[2px]">
+                {[1,2,3].map(i => (
+                  <div key={i} className={cn(
+                    "w-[3px] rounded-full transition-all",
+                    i === 1 ? "h-1.5" : i === 2 ? "h-2.5" : "h-3",
+                    isConnected 
+                      ? "bg-emerald-400" 
+                      : i <= 1 ? "bg-amber-400" : "bg-white/15"
+                  )} />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ===== MAIN VIDEO VIEW ===== */}
+      <div 
+        className="absolute inset-0 flex items-center justify-center"
+        style={{ contain: 'layout' }}
+      >
+        {/* ===== CALLING/RINGING STATE: Show local camera feed immediately ===== */}
+        {!isLiveConnected && (
+          <div className="absolute inset-0 z-[2]">
+            {/* Show local camera feed as background during calling/ringing */}
+            {localVideoTrack ? (
+              <div className="absolute inset-0">
+                <AgoraVideoPlayer
+                  videoTrack={localVideoTrack}
+                  mirror={true}
+                  fit="cover"
+                  className="w-full h-full"
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/20 to-black/70" />
+              </div>
+            ) : (
+              <div className="absolute inset-0">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#050208] via-[#0d0520] to-[#080312]" />
+              </div>
+            )}
+            
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-[3]">
+              <AvatarWithFrame
+                userId={remoteUserId}
+                src={remoteUserAvatar}
+                name={remoteUserName}
+                level={remoteUserLevel}
+                size="xl"
+                showFrame={true}
+                showAnimation={false}
+              />
+              <h2 className="text-white text-xl font-bold mt-4 drop-shadow-lg">{remoteUserName}</h2>
+              <div className="flex items-center gap-2 mt-2">
+                <div className="flex gap-1">
+                  {[0,1,2].map(i => (
+                    <div key={i} className="w-1.5 h-1.5 rounded-full bg-white/70 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+                  ))}
+                </div>
+                <span className="text-white/70 text-sm font-medium drop-shadow">
+                  {callStatus === 'ringing' ? 'Ringing...' : callStatus === 'calling' ? 'Calling...' : 'Connecting...'}
+                </span>
+              </div>
+              {isHost && (
+                <div className="flex items-center gap-2.5 mt-4 bg-black/40 border border-white/10 px-5 py-2.5 rounded-2xl">
+                  <TrendingUp className="w-4 h-4 text-emerald-400" />
+                  <BeansIcon size={18} />
+                  <span className="text-emerald-200 text-lg font-bold">{formatCoins(displayedHostEarned)}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ===== LIVE CONNECTED VIDEO LAYOUT - Vertical Top/Bottom ===== */}
+        {isLiveConnected && (
+          <div className="absolute inset-0 z-[3]">
+            {/* Full-screen primary (remote) video */}
+            <div className="absolute inset-0">
+              {primaryHasVideo && primaryVideoTrack ? (
+                <AgoraVideoPlayer
+                  videoTrack={primaryVideoTrack}
+                  mirror={primaryMirror}
+                  fit="cover"
+                  className="w-full h-full"
+                />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 to-black">
+                  <AvatarWithFrame
+                    userId={isSwapped ? userId : remoteUserId}
+                    src={isSwapped ? myAvatarUrl : remoteUserAvatar}
+                    name={primaryLabel}
+                    level={isSwapped ? myLevel : remoteUserLevel}
+                    size="2xl"
+                    showFrame={true}
+                    showAnimation={false}
+                  />
+                  
+                </div>
+              )}
+            </div>
+
+            {/* PIP secondary (local) video - tap to swap */}
+            <motion.div
+              whileTap={{ scale: 0.93 }}
+              onClick={handleSwapVideos}
+              className="absolute top-24 right-4 w-[110px] h-[155px] rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl z-10 cursor-pointer"
+              style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}
+            >
+              {secondaryHasVideo && secondaryVideoTrack ? (
+                <AgoraVideoPlayer
+                  videoTrack={secondaryVideoTrack}
+                  mirror={secondaryMirror}
+                  fit="cover"
+                  className="w-full h-full"
+                />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 to-black">
+                  <AvatarWithFrame
+                    userId={isSwapped ? remoteUserId : userId}
+                    src={isSwapped ? remoteUserAvatar : myAvatarUrl}
+                    name={secondaryLabel}
+                    level={isSwapped ? remoteUserLevel : myLevel}
+                    size="md"
+                    showFrame={true}
+                    showAnimation={false}
+                  />
+                </div>
+              )}
+              <div className="absolute left-1.5 top-1.5 px-1.5 py-0.5 rounded-full bg-black/60 border border-white/10 text-[9px] font-semibold text-white/90">
+                {secondaryLabel}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </div>
+
+      {/* ===== INLINE CHAT MESSAGES (positioned above bottom controls) ===== */}
+      {chatMessages.length > 0 && (
+        <div
+          ref={chatScrollRef}
+          className="absolute bottom-[116px] left-3 right-16 z-10 max-h-[40vh] overflow-y-auto"
+          style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}
+        >
+          <div className="space-y-1.5 pb-1">
+            {chatMessages.slice(-30).map((msg) => {
+              const isMe = msg.senderId === userId;
+              return (
+                <motion.div
+                  key={msg.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="flex justify-start"
+                >
+                  <div className="max-w-[80%] px-3 py-1.5 rounded-2xl rounded-bl-sm text-xs bg-black/50 border border-white/5">
+                    <span className={cn(
+                      "text-[10px] font-bold block mb-0.5",
+                      isMe ? "text-purple-300" : "text-pink-300"
+                    )}>
+                      {msg.senderName}
+                    </span>
+                    <span className="text-white/90">{msg.message}</span>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Three dot menu - positioned on right side above bottom bar */}
+      <AnimatePresence>
+        {showMoreMenu && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.85, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.85, y: 20 }}
+            transition={{ type: "spring", damping: 20, stiffness: 300 }}
+            className="absolute bottom-24 right-3 z-30"
+            style={{
+              background: 'linear-gradient(135deg, rgba(0,0,0,0.9) 0%, rgba(15,5,30,0.92) 100%)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              borderRadius: '16px',
+              padding: '6px',
+              minWidth: '170px',
+              boxShadow: '0 12px 40px rgba(0,0,0,0.6), 0 0 20px rgba(168,85,247,0.08)'
+            }}
+          >
+            {/* Mic Toggle */}
+            <button onClick={() => { toggleAudio(); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/80 hover:bg-white/10 transition-colors">
+              {isAudioEnabled ? <Mic className="w-5 h-5 text-emerald-400" /> : <MicOff className="w-5 h-5 text-red-400" />}
+              <span className="text-xs font-medium">{isAudioEnabled ? 'Mute' : 'Unmute'}</span>
+            </button>
+            {/* Flip Camera */}
+            <button onClick={() => { handleSwapVideos(); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/80 hover:bg-white/10 transition-colors">
+              <SwitchCamera className="w-5 h-5 text-purple-400" />
+              <span className="text-xs font-medium">Flip Camera</span>
+            </button>
+            {/* Beauty — Cross-platform */}
+              <button onClick={() => { deepAR.setShowBeautyPanel(true); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/80 hover:bg-white/10 transition-colors">
+                <Sparkles className="w-5 h-5 text-pink-400" />
+                <span className="text-xs font-medium">Beauty</span>
+              </button>
+            {/* Sticker — REAL DeepAR Native */}
+            {deepAR.isNativeAndroid && (
+              <button onClick={() => { void deepAR.toggleSticker(); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/80 hover:bg-white/10 transition-colors">
+                <Smile className="w-5 h-5 text-orange-400" />
+                <span className="text-xs font-medium">{deepAR.stickerActive ? 'Remove Sticker' : 'Sticker'}</span>
+              </button>
+            )}
+            {/* Speaker */}
+            <button onClick={() => { setIsSpeakerOn(!isSpeakerOn); setShowMoreMenu(false); }} className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/80 hover:bg-white/10 transition-colors">
+              {isSpeakerOn ? <Volume2 className="w-5 h-5 text-amber-400" /> : <VolumeX className="w-5 h-5 text-red-400" />}
+              <span className="text-xs font-medium">{isSpeakerOn ? 'Speaker On' : 'Speaker Off'}</span>
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ===== BOTTOM BAR - Live Stream Style ===== */}
+      <div className="absolute bottom-0 left-0 right-0 z-20 safe-area-bottom">
+        <div className="px-3 pb-4 pt-2">
+          {/* Chat input row (always visible like live stream) */}
+          <div className="flex items-center gap-2">
+            {/* Message input pill */}
+            <div className="flex-1 flex items-center gap-2 px-3.5 py-2.5 rounded-full"
+              style={{
+                background: 'linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(15,5,30,0.5) 100%)',
+                border: '1px solid rgba(255,255,255,0.1)',
+              }}
+            >
+              <input
+                ref={chatInputRef}
+                type="text"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && sendChatMessage()}
+                placeholder="Say something..."
+                className="flex-1 bg-transparent text-white text-xs outline-none placeholder:text-white/35 min-w-0"
+              />
+              {chatInput.trim() && (
+                <motion.button
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  onClick={sendChatMessage}
+                  className="p-1 rounded-full"
+                >
+                  <Send className="w-4 h-4 text-white/70" />
+                </motion.button>
+              )}
+            </div>
+
+            {/* Call End button */}
+            <motion.button
+              whileTap={{ scale: 0.85 }}
+              onClick={handleEndCall}
+              className="w-11 h-11 rounded-full flex items-center justify-center shrink-0"
+              style={{
+                background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%)',
+                boxShadow: '0 0 24px rgba(239,68,68,0.4), 0 4px 12px rgba(0,0,0,0.3)',
+                border: '1px solid rgba(252,165,165,0.3)'
+              }}
+            >
+              <PhoneOff className="w-5 h-5 text-white" />
+            </motion.button>
+
+            {/* Gift button */}
+            <motion.button
+              whileTap={{ scale: 0.85 }}
+              onClick={() => setShowGiftPanel(true)}
+              className="w-11 h-11 rounded-full flex items-center justify-center shrink-0"
+              style={{
+                background: 'linear-gradient(135deg, rgba(236,72,153,0.2) 0%, rgba(168,85,247,0.2) 100%)',
+                border: '1px solid rgba(236,72,153,0.3)',
+                boxShadow: '0 0 16px rgba(236,72,153,0.15)'
+              }}
+            >
+              <Gift className="w-5 h-5 text-pink-400" />
+            </motion.button>
+
+            {/* Three dot menu */}
+            <motion.button
+              whileTap={{ scale: 0.85 }}
+              onClick={() => setShowMoreMenu(!showMoreMenu)}
+              className="w-11 h-11 rounded-full flex items-center justify-center shrink-0"
+              style={{
+                background: 'linear-gradient(135deg, rgba(0,0,0,0.5) 0%, rgba(15,5,30,0.45) 100%)',
+                border: '1px solid rgba(255,255,255,0.1)',
+              }}
+            >
+              <MoreVertical className="w-5 h-5 text-white/70" />
+            </motion.button>
+          </div>
+        </div>
+      </div>
+
+      <GiftPanel
+        isOpen={showGiftPanel}
+        onClose={() => setShowGiftPanel(false)}
+        onSendGift={handleSendGift}
+        userCoins={userCoins}
+      />
+      
+      {/* Flying Gift Animations */}
+      <AnimatePresence>
+        {flyingGifts.map((gift) => (
+          <FlyingGiftAnimation
+            key={gift.id}
+            gift={gift}
+            onComplete={() => removeFlyingGift(gift.id)}
+          />
+        ))}
+      </AnimatePresence>
+
+      {/* Beauty Filter Panel — REAL DeepAR Native */}
+      <BeautyFilterPanel
+        isOpen={deepAR.showBeautyPanel}
+        onClose={() => deepAR.setShowBeautyPanel(false)}
+        settings={deepAR.beautySettings}
+        enabled={deepAR.beautyEnabled}
+        onSettingsChange={deepAR.handleBeautySettingsChange}
+        onEnabledChange={deepAR.handleBeautyEnabledChange}
+      />
+    </div>
+  );
+
+  return createPortal(callUi, document.body);
+}

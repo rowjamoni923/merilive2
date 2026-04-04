@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "No direct agency inserts" ON public.agencies;

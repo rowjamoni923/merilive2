@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/background_dark" android:orientation="vertical">
+    <RelativeLayout android:layout_width="match_parent" android:layout_height="56dp" android:paddingHorizontal="16dp">
+        <ImageButton android:id="@+id/btnBack" android:layout_width="40dp" android:layout_height="40dp" android:layout_centerVertical="true" android:background="?selectableItemBackgroundBorderless" android:src="@drawable/ic_back" android:tint="@color/text_primary" android:contentDescription="Back" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerInParent="true" android:text="Agency Withdrawal" android:textColor="@color/text_primary" android:textSize="18sp" android:textStyle="bold" />
+    </RelativeLayout>
+    <ProgressBar android:id="@+id/progressBar" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:visibility="gone" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_vip_gradient" android:padding="16dp" android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Available Balance" android:textColor="@color/white" android:textSize="14sp" />
+            <TextView android:id="@+id/tvBalance" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0 Beans" android:textColor="@color/white" android:textSize="24sp" android:textStyle="bold" android:layout_marginTop="4dp" />
+        </LinearLayout>
+        <EditText android:id="@+id/etAmount" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="16dp" android:background="@drawable/bg_input_field" android:hint="Amount" android:textColor="@color/text_primary" android:textColorHint="@color/text_secondary" android:paddingHorizontal="12dp" android:inputType="number" android:textSize="14sp" />
+        <Button android:id="@+id/btnSubmitWithdrawal" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="16dp" android:background="@drawable/bg_primary_button" android:text="Submit Withdrawal" android:textColor="@color/white" android:textSize="15sp" android:textStyle="bold" />
+    </LinearLayout>
+</LinearLayout>

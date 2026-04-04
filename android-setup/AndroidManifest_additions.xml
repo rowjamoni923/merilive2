@@ -1,0 +1,92 @@
+<!--
+=====================================================
+ANDROID MANIFEST ADDITIONS FOR INCOMING CALL SYSTEM
+=====================================================
+
+এই permissions এবং components গুলো আপনার AndroidManifest.xml এ যুক্ত করতে হবে।
+Location: android/app/src/main/AndroidManifest.xml
+
+=====================================================
+-->
+
+<!-- ======== PERMISSIONS (Add inside <manifest> tag) ======== -->
+
+<!-- Wake lock for incoming calls -->
+<uses-permission android:name="android.permission.WAKE_LOCK" />
+
+<!-- Foreground service for calls -->
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
+
+<!-- Full screen intent for lock screen calls -->
+<uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+
+<!-- System alert window for overlay -->
+<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+<!-- Vibration -->
+<uses-permission android:name="android.permission.VIBRATE" />
+
+<!-- Disable keyguard temporarily -->
+<uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
+
+<!-- Receive boot completed for starting services -->
+<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+
+<!-- ======== SERVICES & ACTIVITIES (Add inside <application> tag) ======== -->
+
+<!-- Incoming Call Activity - Shows over lock screen -->
+<activity
+    android:name=".IncomingCallActivity"
+    android:excludeFromRecents="true"
+    android:launchMode="singleTop"
+    android:screenOrientation="portrait"
+    android:showOnLockScreen="true"
+    android:showWhenLocked="true"
+    android:turnScreenOn="true"
+    android:theme="@style/Theme.IncomingCall">
+</activity>
+
+<!-- Incoming Call Foreground Service -->
+<service
+    android:name=".IncomingCallService"
+    android:enabled="true"
+    android:exported="false"
+    android:foregroundServiceType="phoneCall">
+</service>
+
+<!-- Firebase Messaging Service -->
+<service
+    android:name=".MyFirebaseMessagingService"
+    android:exported="false">
+    <intent-filter>
+        <action android:name="com.google.firebase.MESSAGING_EVENT" />
+    </intent-filter>
+</service>
+
+<!-- Call Action Receiver -->
+<receiver
+    android:name=".CallActionReceiver"
+    android:enabled="true"
+    android:exported="false">
+    <intent-filter>
+        <action android:name="com.merilive.app.CALL_ACTION" />
+        <action android:name="com.merilive.app.CLOSE_INCOMING_CALL" />
+    </intent-filter>
+</receiver>
+
+
+<!-- ======== HIGH PRIORITY FCM CHANNEL (Add in your notification channel setup) ======== -->
+<!--
+NotificationChannel callChannel = new NotificationChannel(
+    "merilive_call_channel",
+    "Incoming Calls",
+    NotificationManager.IMPORTANCE_HIGH
+);
+callChannel.setDescription("Notifications for incoming calls");
+callChannel.enableLights(true);
+callChannel.enableVibration(true);
+callChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+callChannel.setBypassDnd(true);
+-->

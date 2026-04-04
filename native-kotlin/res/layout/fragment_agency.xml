@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/background">
+    <!-- Toolbar -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="56dp"
+        android:orientation="horizontal" android:gravity="center_vertical" android:paddingHorizontal="12dp" android:background="@color/surface">
+        <ImageButton android:id="@+id/btnBack" android:layout_width="40dp" android:layout_height="40dp"
+            android:src="@drawable/ic_back" android:background="?attr/selectableItemBackgroundBorderless" />
+        <TextView android:id="@+id/tvTitle" android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:text="🏢 Agency" android:textSize="18sp" android:textStyle="bold"
+            android:textColor="@color/text_primary" android:layout_marginStart="8dp" />
+    </LinearLayout>
+    <LinearLayout android:id="@+id/joinSection" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="24dp" android:visibility="gone">
+        <com.google.android.material.textfield.TextInputEditText android:id="@+id/etAgencyCode" android:layout_width="match_parent" android:layout_height="48dp" android:hint="Enter agency code" android:background="@drawable/bg_input" android:padding="12dp" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnJoinAgency" android:layout_width="match_parent" android:layout_height="48dp" android:text="Join Agency" android:textAllCaps="false" android:backgroundTint="@color/primary" xmlns:app="http://schemas.android.com/apk/res-auto" app:cornerRadius="24dp" android:layout_marginTop="12dp" />
+    </LinearLayout>
+    <LinearLayout android:id="@+id/dashboardSection" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp" android:visibility="gone">
+        <TextView android:id="@+id/tvAgencyName" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="20sp" android:textStyle="bold" android:textColor="@color/text_primary" />
+        <TextView android:id="@+id/tvAgencyCode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="13sp" android:textColor="@color/text_secondary" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="12dp">
+            <TextView android:id="@+id/tvLevel" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textSize="13sp" android:textColor="@color/accent" />
+            <TextView android:id="@+id/tvTotalHosts" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textSize="13sp" android:textColor="@color/text_primary" />
+            <TextView android:id="@+id/tvCommissionRate" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textSize="13sp" android:textColor="@color/accent" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="8dp">
+            <TextView android:id="@+id/tvBeansBalance" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textSize="13sp" android:textColor="@color/text_primary" />
+            <TextView android:id="@+id/tvDiamondBalance" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textSize="13sp" android:textColor="@color/text_primary" />
+        </LinearLayout>
+        <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvPerformance" android:layout_width="match_parent" android:layout_height="wrap_content" android:nestedScrollingEnabled="false" android:layout_marginTop="8dp" />
+    </LinearLayout>
+    <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvHosts" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:clipToPadding="false" android:padding="8dp" />
+    <ProgressBar android:id="@+id/progressBar" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:visibility="gone" />
+</LinearLayout>

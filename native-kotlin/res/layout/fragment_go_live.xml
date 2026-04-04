@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black">
+
+    <!-- Camera Preview -->
+    <androidx.camera.view.PreviewView
+        android:id="@+id/cameraPreview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:keepScreenOn="true"
+        app:implementationMode="performance"
+        app:scaleType="fillCenter" />
+
+    <!-- Live indicator -->
+    <TextView
+        android:id="@+id/liveIndicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="● LIVE"
+        android:textColor="@color/live_red"
+        android:textStyle="bold"
+        android:background="@drawable/bg_live_badge"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="4dp"
+        android:layout_gravity="top|start"
+        android:layout_margin="16dp"
+        android:visibility="gone" />
+
+    <!-- Setup Section -->
+    <LinearLayout
+        android:id="@+id/setupSection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_gravity="bottom"
+        android:padding="20dp"
+        android:background="@drawable/bg_gradient_bottom">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etStreamTitle"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:hint="Stream title..."
+            android:textColor="@color/white"
+            android:textColorHint="@color/text_hint"
+            android:background="@drawable/bg_input_dark"
+            android:paddingHorizontal="16dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="16dp">
+
+            <ImageButton
+                android:id="@+id/btnBeauty"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_beauty"
+                android:background="@drawable/bg_circle_translucent"
+                android:scaleType="center" />
+
+            <ImageButton
+                android:id="@+id/btnSticker"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_sticker"
+                android:background="@drawable/bg_circle_translucent"
+                android:scaleType="center"
+                android:layout_marginStart="20dp" />
+
+            <ImageButton
+                android:id="@+id/btnFlipCamera"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_flip_camera"
+                android:background="@drawable/bg_circle_translucent"
+                android:scaleType="center"
+                android:layout_marginStart="20dp" />
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnStartLive"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="Go Live"
+            android:textAllCaps="false"
+            android:textSize="18sp"
+            app:cornerRadius="26dp"
+            android:backgroundTint="@color/live_red"
+            android:layout_marginTop="16dp" />
+    </LinearLayout>
+
+    <!-- Live Controls (shown when streaming) -->
+    <LinearLayout
+        android:id="@+id/liveControlsSection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="bottom"
+        android:padding="16dp"
+        android:gravity="center"
+        android:visibility="gone">
+
+        <ImageButton
+            android:id="@+id/btnBeautyLive"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:src="@drawable/ic_beauty"
+            android:background="@drawable/bg_circle_translucent" />
+
+        <ImageButton
+            android:id="@+id/btnStickerLive"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:src="@drawable/ic_sticker"
+            android:background="@drawable/bg_circle_translucent"
+            android:layout_marginStart="16dp" />
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
+</FrameLayout>

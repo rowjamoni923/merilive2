@@ -1,0 +1,551 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ============================================
+     MeriLive - Complete Navigation Graph
+     All screens with actions
+     ============================================ -->
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/homeFragment">
+
+    <!-- ========== TAB 1: HOME ========== -->
+    <fragment android:id="@+id/homeFragment"
+        android:name="com.merilive.app.ui.home.HomeFragment"
+        android:label="Home">
+        <action android:id="@+id/action_home_to_liveStream"
+            app:destination="@id/liveStreamFragment" />
+        <action android:id="@+id/action_home_to_partyRoom"
+            app:destination="@id/partyRoomFragment" />
+        <action android:id="@+id/action_home_to_leaderboard"
+            app:destination="@id/leaderboardFragment" />
+        <action android:id="@+id/action_home_to_search"
+            app:destination="@id/searchFragment" />
+        <action android:id="@+id/action_home_to_notifications"
+            app:destination="@id/notificationsFragment" />
+        <action android:id="@+id/action_home_to_userProfile"
+            app:destination="@id/userProfileFragment" />
+        <action android:id="@+id/action_home_to_recharge"
+            app:destination="@id/rechargeFragment" />
+        <action android:id="@+id/action_home_to_vip"
+            app:destination="@id/vipFragment" />
+        <action android:id="@+id/action_home_to_shop"
+            app:destination="@id/shopFragment" />
+        <action android:id="@+id/action_home_to_tasks"
+            app:destination="@id/tasksFragment" />
+        <action android:id="@+id/action_home_to_goLive"
+            app:destination="@id/goLiveFragment" />
+    </fragment>
+
+    <!-- ========== TAB 2: EXPLORE / PARTY ========== -->
+    <fragment android:id="@+id/exploreFragment"
+        android:name="com.merilive.app.ui.explore.ExploreFragment"
+        android:label="Explore">
+        <action android:id="@+id/action_explore_to_partyRoom"
+            app:destination="@id/partyRoomFragment" />
+        <action android:id="@+id/action_explore_to_liveStream"
+            app:destination="@id/liveStreamFragment" />
+        <action android:id="@+id/action_explore_to_userProfile"
+            app:destination="@id/userProfileFragment" />
+        <action android:id="@+id/action_explore_to_createParty"
+            app:destination="@id/createPartyFragment" />
+    </fragment>
+
+    <!-- ========== TAB 3: GO LIVE (Host Only) ========== -->
+    <fragment android:id="@+id/goLiveFragment"
+        android:name="com.merilive.app.ui.live.GoLiveFragment"
+        android:label="Go Live" />
+
+    <!-- ========== TAB 4: CHAT ========== -->
+    <fragment android:id="@+id/chatListFragment"
+        android:name="com.merilive.app.ui.chat.ChatListFragment"
+        android:label="Chat">
+        <action android:id="@+id/action_chatList_to_chatDetail"
+            app:destination="@id/chatDetailFragment" />
+    </fragment>
+
+    <!-- ========== TAB 5: PROFILE ========== -->
+    <fragment android:id="@+id/profileFragment"
+        android:name="com.merilive.app.ui.profile.ProfileFragment"
+        android:label="Profile">
+        <action android:id="@+id/action_profile_to_editProfile"
+            app:destination="@id/editProfileFragment" />
+        <action android:id="@+id/action_profile_to_settings"
+            app:destination="@id/settingsFragment" />
+        <action android:id="@+id/action_profile_to_wallet"
+            app:destination="@id/walletFragment" />
+        <action android:id="@+id/action_profile_to_level"
+            app:destination="@id/levelFragment" />
+        <action android:id="@+id/action_profile_to_vip"
+            app:destination="@id/vipFragment" />
+        <action android:id="@+id/action_profile_to_shop"
+            app:destination="@id/shopFragment" />
+        <action android:id="@+id/action_profile_to_agency"
+            app:destination="@id/agencyFragment" />
+        <action android:id="@+id/action_profile_to_hostDashboard"
+            app:destination="@id/hostDashboardFragment" />
+        <action android:id="@+id/action_profile_to_followers"
+            app:destination="@id/followersFragment" />
+        <action android:id="@+id/action_profile_to_following"
+            app:destination="@id/followingFragment" />
+        <action android:id="@+id/action_profile_to_help"
+            app:destination="@id/helpFragment" />
+        <action android:id="@+id/action_profile_to_userProfile"
+            app:destination="@id/userProfileFragment" />
+        <action android:id="@+id/action_profile_to_recharge"
+            app:destination="@id/rechargeFragment" />
+        <action android:id="@+id/action_profile_to_callHistory"
+            app:destination="@id/callHistoryFragment" />
+        <action android:id="@+id/action_profile_to_faceVerification"
+            app:destination="@id/faceVerificationFragment" />
+        <action android:id="@+id/action_profile_to_tasks"
+            app:destination="@id/tasksFragment" />
+        <action android:id="@+id/action_profile_to_invitation"
+            app:destination="@id/invitationFragment" />
+        <action android:id="@+id/action_profile_to_rewards"
+            app:destination="@id/rewardsFragment" />
+        <action android:id="@+id/action_profile_to_hostApplication"
+            app:destination="@id/hostApplicationFragment" />
+        <action android:id="@+id/action_profile_to_withdrawal"
+            app:destination="@id/withdrawalFragment" />
+        <action android:id="@+id/action_profile_to_helperDashboard"
+            app:destination="@id/helperDashboardFragment" />
+        <action android:id="@+id/action_profile_to_traderWallet"
+            app:destination="@id/traderWalletFragment" />
+        <action android:id="@+id/action_profile_to_parcels"
+            app:destination="@id/parcelsFragment" />
+        <action android:id="@+id/action_profile_to_tags"
+            app:destination="@id/tagsFragment" />
+        <action android:id="@+id/action_profile_to_myPoster"
+            app:destination="@id/myPosterFragment" />
+        <action android:id="@+id/action_profile_to_level5Helper"
+            app:destination="@id/level5HelperDashboardFragment" />
+    </fragment>
+
+    <!-- ========== CONTENT SCREENS ========== -->
+
+    <!-- Live Stream -->
+    <fragment android:id="@+id/liveStreamFragment"
+        android:name="com.merilive.app.ui.live.LiveStreamFragment"
+        android:label="Live">
+        <argument android:name="streamId" app:argType="string" />
+        <action android:id="@+id/action_live_to_privateCall"
+            app:destination="@id/privateCallFragment" />
+        <action android:id="@+id/action_live_to_userProfile"
+            app:destination="@id/userProfileFragment" />
+    </fragment>
+
+    <!-- Party Room -->
+    <fragment android:id="@+id/partyRoomFragment"
+        android:name="com.merilive.app.ui.party.PartyRoomFragment"
+        android:label="Party">
+        <argument android:name="roomId" app:argType="string" />
+        <action android:id="@+id/action_party_to_userProfile"
+            app:destination="@id/userProfileFragment" />
+    </fragment>
+
+    <!-- Create Party -->
+    <fragment android:id="@+id/createPartyFragment"
+        android:name="com.merilive.app.ui.party.CreatePartyFragment"
+        android:label="Create Party" />
+
+    <!-- Private Call -->
+    <fragment android:id="@+id/privateCallFragment"
+        android:name="com.merilive.app.ui.call.PrivateCallFragment"
+        android:label="Call">
+        <argument android:name="calleeId" app:argType="string" />
+        <argument android:name="callType" app:argType="string" android:defaultValue="video" />
+    </fragment>
+
+    <!-- Call History -->
+    <fragment android:id="@+id/callHistoryFragment"
+        android:name="com.merilive.app.ui.call.CallHistoryFragment"
+        android:label="Call History" />
+
+    <!-- Chat Detail -->
+    <fragment android:id="@+id/chatDetailFragment"
+        android:name="com.merilive.app.ui.chat.ChatDetailFragment"
+        android:label="Chat">
+        <argument android:name="conversationId" app:argType="string" />
+        <argument android:name="otherUserId" app:argType="string" />
+        <argument android:name="otherUserName" app:argType="string" />
+        <argument android:name="otherUserAvatar" app:argType="string" app:nullable="true" />
+    </fragment>
+
+    <!-- Edit Profile -->
+    <fragment android:id="@+id/editProfileFragment"
+        android:name="com.merilive.app.ui.profile.EditProfileFragment"
+        android:label="Edit Profile" />
+
+    <!-- Face Verification -->
+    <fragment android:id="@+id/faceVerificationFragment"
+        android:name="com.merilive.app.ui.verification.FaceVerificationFragment"
+        android:label="Face Verification" />
+
+    <!-- Reels -->
+    <fragment android:id="@+id/reelsFragment"
+        android:name="com.merilive.app.ui.reels.ReelsFragment"
+        android:label="Reels" />
+
+    <!-- Settings -->
+    <fragment android:id="@+id/settingsFragment"
+        android:name="com.merilive.app.ui.settings.SettingsFragment"
+        android:label="Settings">
+        <action android:id="@+id/action_settings_to_language"
+            app:destination="@id/languageFragment" />
+        <action android:id="@+id/action_settings_to_privacy"
+            app:destination="@id/privacyFragment" />
+        <action android:id="@+id/action_settings_to_about"
+            app:destination="@id/aboutFragment" />
+        <action android:id="@+id/action_settings_to_blockedUsers"
+            app:destination="@id/blockedUsersFragment" />
+        <action android:id="@+id/action_settings_to_accountSecurity"
+            app:destination="@id/accountSecurityFragment" />
+    </fragment>
+
+    <!-- Wallet -->
+    <fragment android:id="@+id/walletFragment"
+        android:name="com.merilive.app.ui.wallet.WalletFragment"
+        android:label="Wallet">
+        <action android:id="@+id/action_wallet_to_recharge"
+            app:destination="@id/rechargeFragment" />
+        <action android:id="@+id/action_wallet_to_rechargeHistory"
+            app:destination="@id/rechargeHistoryFragment" />
+    </fragment>
+
+    <!-- Recharge -->
+    <fragment android:id="@+id/rechargeFragment"
+        android:name="com.merilive.app.ui.recharge.RechargeFragment"
+        android:label="Recharge" />
+
+    <!-- Level -->
+    <fragment android:id="@+id/levelFragment"
+        android:name="com.merilive.app.ui.level.LevelFragment"
+        android:label="Level" />
+
+    <!-- VIP -->
+    <fragment android:id="@+id/vipFragment"
+        android:name="com.merilive.app.ui.vip.VipFragment"
+        android:label="VIP" />
+
+    <!-- Shop -->
+    <fragment android:id="@+id/shopFragment"
+        android:name="com.merilive.app.ui.shop.ShopFragment"
+        android:label="Shop" />
+
+    <!-- Agency (Entry) -->
+    <fragment android:id="@+id/agencyFragment"
+        android:name="com.merilive.app.ui.agency.AgencyFragment"
+        android:label="Agency">
+        <action android:id="@+id/action_agency_to_dashboard"
+            app:destination="@id/agencyDashboardFragment" />
+        <action android:id="@+id/action_agency_to_rankings"
+            app:destination="@id/agencyRankingsFragment" />
+        <action android:id="@+id/action_agency_to_createAgency"
+            app:destination="@id/createAgencyFragment" />
+        <action android:id="@+id/action_agency_to_joinAgency"
+            app:destination="@id/joinAgencyFragment" />
+        <action android:id="@+id/action_agency_to_details"
+            app:destination="@id/agencyDetailsFragment" />
+        <action android:id="@+id/action_agency_to_agentWallet"
+            app:destination="@id/agentWalletFragment" />
+    </fragment>
+
+    <!-- Agency Dashboard -->
+    <fragment android:id="@+id/agencyDashboardFragment"
+        android:name="com.merilive.app.ui.agency.AgencyDashboardFragment"
+        android:label="Agency Dashboard">
+        <action android:id="@+id/action_agencyDashboard_to_withdrawal"
+            app:destination="@id/agencyWithdrawalFragment" />
+        <action android:id="@+id/action_agencyDashboard_to_diamondExchange"
+            app:destination="@id/diamondExchangeFragment" />
+        <action android:id="@+id/action_agencyDashboard_to_subAgents"
+            app:destination="@id/subAgentsFragment" />
+        <action android:id="@+id/action_agencyDashboard_to_rankings"
+            app:destination="@id/agencyRankingsFragment" />
+        <action android:id="@+id/action_agencyDashboard_to_hostManage"
+            app:destination="@id/agencyHostManageFragment" />
+        <action android:id="@+id/action_agencyDashboard_to_commissionHistory"
+            app:destination="@id/agencyCommissionHistoryFragment" />
+        <action android:id="@+id/action_agencyDashboard_to_transferHistory"
+            app:destination="@id/agencyTransferHistoryFragment" />
+    </fragment>
+
+    <!-- Agency Host Management -->
+    <fragment android:id="@+id/agencyHostManageFragment"
+        android:name="com.merilive.app.ui.agency.AgencyHostManageFragment"
+        android:label="Host Management">
+        <action android:id="@+id/action_hostManage_to_userProfile"
+            app:destination="@id/userProfileFragment" />
+    </fragment>
+
+    <!-- Agency Withdrawal -->
+    <fragment android:id="@+id/agencyWithdrawalFragment"
+        android:name="com.merilive.app.ui.agency.AgencyWithdrawalFragment"
+        android:label="Agency Withdrawal" />
+
+    <!-- Diamond Exchange -->
+    <fragment android:id="@+id/diamondExchangeFragment"
+        android:name="com.merilive.app.ui.agency.DiamondExchangeFragment"
+        android:label="Diamond Exchange" />
+
+    <!-- Agency Rankings -->
+    <fragment android:id="@+id/agencyRankingsFragment"
+        android:name="com.merilive.app.ui.agency.AgencyRankingsFragment"
+        android:label="Agency Rankings" />
+
+    <!-- Sub-Agents -->
+    <fragment android:id="@+id/subAgentsFragment"
+        android:name="com.merilive.app.ui.agency.SubAgentsFragment"
+        android:label="Sub-Agents" />
+
+    <!-- Host Dashboard -->
+    <fragment android:id="@+id/hostDashboardFragment"
+        android:name="com.merilive.app.ui.host.HostDashboardFragment"
+        android:label="Host Dashboard">
+        <action android:id="@+id/action_hostDashboard_to_goLive"
+            app:destination="@id/goLiveFragment" />
+        <action android:id="@+id/action_hostDashboard_to_transferHistory"
+            app:destination="@id/transferHistoryFragment" />
+        <action android:id="@+id/action_hostDashboard_to_callPrice"
+            app:destination="@id/callPriceFragment" />
+        <action android:id="@+id/action_hostDashboard_to_verification"
+            app:destination="@id/hostVerificationFragment" />
+    </fragment>
+
+    <!-- Host Application -->
+    <fragment android:id="@+id/hostApplicationFragment"
+        android:name="com.merilive.app.ui.host.HostApplicationFragment"
+        android:label="Host Application" />
+
+    <!-- Host Verification -->
+    <fragment android:id="@+id/hostVerificationFragment"
+        android:name="com.merilive.app.ui.host.HostVerificationFragment"
+        android:label="Host Verification" />
+
+    <!-- Call Price Settings -->
+    <fragment android:id="@+id/callPriceFragment"
+        android:name="com.merilive.app.ui.host.CallPriceFragment"
+        android:label="Call Price" />
+
+    <!-- Tasks -->
+    <fragment android:id="@+id/tasksFragment"
+        android:name="com.merilive.app.ui.tasks.TasksFragment"
+        android:label="My Tasks" />
+
+    <!-- Invitation -->
+    <fragment android:id="@+id/invitationFragment"
+        android:name="com.merilive.app.ui.invitation.InvitationFragment"
+        android:label="My Invitation" />
+
+    <!-- Rewards -->
+    <fragment android:id="@+id/rewardsFragment"
+        android:name="com.merilive.app.ui.rewards.RewardsFragment"
+        android:label="Rewards" />
+
+    <!-- Withdrawal -->
+    <fragment android:id="@+id/withdrawalFragment"
+        android:name="com.merilive.app.ui.withdrawal.WithdrawalFragment"
+        android:label="Withdrawal" />
+
+    <!-- Helper Dashboard -->
+    <fragment android:id="@+id/helperDashboardFragment"
+        android:name="com.merilive.app.ui.helper.HelperDashboardFragment"
+        android:label="Helper Dashboard">
+        <action android:id="@+id/action_helper_to_pendingRequests"
+            app:destination="@id/helperPendingRequestsFragment" />
+        <action android:id="@+id/action_helper_to_processedHistory"
+            app:destination="@id/helperProcessedHistoryFragment" />
+        <action android:id="@+id/action_helper_to_selfRecharge"
+            app:destination="@id/helperSelfRechargeFragment" />
+    </fragment>
+
+    <!-- Helper Pending Requests -->
+    <fragment android:id="@+id/helperPendingRequestsFragment"
+        android:name="com.merilive.app.ui.helper.HelperPendingRequestsFragment"
+        android:label="Pending Requests" />
+
+    <!-- Helper Processed History -->
+    <fragment android:id="@+id/helperProcessedHistoryFragment"
+        android:name="com.merilive.app.ui.helper.HelperProcessedHistoryFragment"
+        android:label="Processed History" />
+
+    <!-- Helper Self Recharge -->
+    <fragment android:id="@+id/helperSelfRechargeFragment"
+        android:name="com.merilive.app.ui.helper.HelperSelfRechargeFragment"
+        android:label="Self Recharge" />
+
+    <!-- Trader Wallet -->
+    <fragment android:id="@+id/traderWalletFragment"
+        android:name="com.merilive.app.ui.trader.TraderWalletFragment"
+        android:label="Trader Wallet">
+        <action android:id="@+id/action_trader_to_transferToUser"
+            app:destination="@id/traderTransferFragment" />
+        <action android:id="@+id/action_trader_to_transferToAgency"
+            app:destination="@id/traderAgencyTransferFragment" />
+        <action android:id="@+id/action_trader_to_history"
+            app:destination="@id/traderHistoryFragment" />
+    </fragment>
+
+    <!-- Trader Transfer to User -->
+    <fragment android:id="@+id/traderTransferFragment"
+        android:name="com.merilive.app.ui.trader.TraderTransferFragment"
+        android:label="Transfer to User">
+        <argument android:name="targetUserId" app:argType="string" app:nullable="true" />
+    </fragment>
+
+    <!-- Trader Transfer to Agency -->
+    <fragment android:id="@+id/traderAgencyTransferFragment"
+        android:name="com.merilive.app.ui.trader.TraderAgencyTransferFragment"
+        android:label="Transfer to Agency">
+        <argument android:name="targetAgencyId" app:argType="string" app:nullable="true" />
+    </fragment>
+
+    <!-- Trader History -->
+    <fragment android:id="@+id/traderHistoryFragment"
+        android:name="com.merilive.app.ui.trader.TraderHistoryFragment"
+        android:label="Transfer History" />
+
+    <!-- Leaderboard -->
+    <fragment android:id="@+id/leaderboardFragment"
+        android:name="com.merilive.app.ui.leaderboard.LeaderboardFragment"
+        android:label="Leaderboard">
+        <action android:id="@+id/action_leaderboard_to_profile"
+            app:destination="@id/userProfileFragment" />
+    </fragment>
+
+    <!-- Search -->
+    <fragment android:id="@+id/searchFragment"
+        android:name="com.merilive.app.ui.search.SearchFragment"
+        android:label="Search">
+        <action android:id="@+id/action_search_to_userProfile"
+            app:destination="@id/userProfileFragment" />
+    </fragment>
+
+    <!-- Notifications -->
+    <fragment android:id="@+id/notificationsFragment"
+        android:name="com.merilive.app.ui.notifications.NotificationsFragment"
+        android:label="Notifications" />
+
+    <!-- User Profile (other users) -->
+    <fragment android:id="@+id/userProfileFragment"
+        android:name="com.merilive.app.ui.profile.UserProfileFragment"
+        android:label="User Profile">
+        <argument android:name="userId" app:argType="string" />
+        <action android:id="@+id/action_userProfile_to_chat"
+            app:destination="@id/chatDetailFragment" />
+        <action android:id="@+id/action_userProfile_to_privateCall"
+            app:destination="@id/privateCallFragment" />
+    </fragment>
+
+    <!-- Followers / Following -->
+    <fragment android:id="@+id/followersFragment"
+        android:name="com.merilive.app.ui.profile.FollowersFragment"
+        android:label="Followers" />
+    <fragment android:id="@+id/followingFragment"
+        android:name="com.merilive.app.ui.profile.FollowingFragment"
+        android:label="Following" />
+
+    <!-- Transfer History -->
+    <fragment android:id="@+id/transferHistoryFragment"
+        android:name="com.merilive.app.ui.host.TransferHistoryFragment"
+        android:label="Transfer History" />
+
+    <!-- Settings Sub-screens -->
+    <fragment android:id="@+id/languageFragment"
+        android:name="com.merilive.app.ui.settings.LanguageFragment"
+        android:label="Language" />
+    <fragment android:id="@+id/privacyFragment"
+        android:name="com.merilive.app.ui.settings.PrivacyFragment"
+        android:label="Privacy" />
+    <fragment android:id="@+id/aboutFragment"
+        android:name="com.merilive.app.ui.settings.AboutFragment"
+        android:label="About" />
+    <fragment android:id="@+id/blockedUsersFragment"
+        android:name="com.merilive.app.ui.settings.BlockedUsersFragment"
+        android:label="Blocked Users" />
+    <fragment android:id="@+id/accountSecurityFragment"
+        android:name="com.merilive.app.ui.settings.AccountSecurityFragment"
+        android:label="Account Security" />
+
+    <!-- Help -->
+    <fragment android:id="@+id/helpFragment"
+        android:name="com.merilive.app.ui.help.HelpFragment"
+        android:label="Help" />
+
+    <!-- ========== NEW: Missing Pages ========== -->
+
+    <!-- Create Agency -->
+    <fragment android:id="@+id/createAgencyFragment"
+        android:name="com.merilive.app.ui.agency.CreateAgencyFragment"
+        android:label="Create Agency" />
+
+    <!-- Join Agency -->
+    <fragment android:id="@+id/joinAgencyFragment"
+        android:name="com.merilive.app.ui.agency.JoinAgencyFragment"
+        android:label="Join Agency" />
+
+    <!-- Agency Details -->
+    <fragment android:id="@+id/agencyDetailsFragment"
+        android:name="com.merilive.app.ui.agency.AgencyDetailsFragment"
+        android:label="Agency Details" />
+
+    <!-- Agency Commission History -->
+    <fragment android:id="@+id/agencyCommissionHistoryFragment"
+        android:name="com.merilive.app.ui.agency.AgencyCommissionHistoryFragment"
+        android:label="Commission History" />
+
+    <!-- Agency Transfer History -->
+    <fragment android:id="@+id/agencyTransferHistoryFragment"
+        android:name="com.merilive.app.ui.agency.AgencyTransferHistoryFragment"
+        android:label="Transfer History" />
+
+    <!-- Agent Wallet -->
+    <fragment android:id="@+id/agentWalletFragment"
+        android:name="com.merilive.app.ui.agency.AgentWalletFragment"
+        android:label="Agent Wallet">
+        <action android:id="@+id/action_agentWallet_to_withdrawal"
+            app:destination="@id/agencyWithdrawalFragment" />
+        <action android:id="@+id/action_agentWallet_to_transferHistory"
+            app:destination="@id/agencyTransferHistoryFragment" />
+        <action android:id="@+id/action_agentWallet_to_commissionHistory"
+            app:destination="@id/agencyCommissionHistoryFragment" />
+    </fragment>
+
+    <!-- Recharge History -->
+    <fragment android:id="@+id/rechargeHistoryFragment"
+        android:name="com.merilive.app.ui.recharge.RechargeHistoryFragment"
+        android:label="Recharge History" />
+
+    <!-- Parcels -->
+    <fragment android:id="@+id/parcelsFragment"
+        android:name="com.merilive.app.ui.parcels.ParcelsFragment"
+        android:label="My Parcels" />
+
+    <!-- PK Leaderboard -->
+    <fragment android:id="@+id/pkLeaderboardFragment"
+        android:name="com.merilive.app.ui.leaderboard.PKLeaderboardFragment"
+        android:label="PK Leaderboard">
+        <argument android:name="competitionId" app:argType="string" />
+    </fragment>
+
+    <!-- Agency Coin Trader -->
+    <fragment android:id="@+id/agencyCoinTraderFragment"
+        android:name="com.merilive.app.ui.agency.AgencyCoinTraderFragment"
+        android:label="Coin Trader" />
+
+    <!-- Tags -->
+    <fragment android:id="@+id/tagsFragment"
+        android:name="com.merilive.app.ui.tags.TagsFragment"
+        android:label="My Tags" />
+
+    <!-- My Poster -->
+    <fragment android:id="@+id/myPosterFragment"
+        android:name="com.merilive.app.ui.poster.MyPosterFragment"
+        android:label="My Poster" />
+
+    <!-- Level 5 Helper Dashboard -->
+    <fragment android:id="@+id/level5HelperDashboardFragment"
+        android:name="com.merilive.app.ui.helper.Level5HelperDashboardFragment"
+        android:label="Payroll Helper" />
+
+</navigation>

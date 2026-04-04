@@ -1,0 +1,337 @@
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, Trophy, Crown, Medal, Coins, Loader2, Users, Calendar, CalendarDays, CalendarRange, Mic, Gamepad2, Building2, Swords } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { supabase } from "@/integrations/supabase/client";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
+
+interface GameLeaderboardPanelProps {
+  isOpen: boolean;
+  onClose: () => void;
+  gameId?: string;
+}
+
+interface LeaderboardEntry {
+  id: string;
+  name: string;
+  avatar_url: string | null;
+  stat_value: number;
+  stat_label: string;
+  extra_info?: string;
+}
+
+type PeriodType = 'daily' | 'weekly' | 'monthly';
+type CategoryType = 'host_earnings' | 'game_winners' | 'agency' | 'pk';
+
+const CATEGORIES: { id: CategoryType; label: string; icon: React.ReactNode }[] = [
+  { id: 'host_earnings', label: 'Host', icon: <Mic className="w-3 h-3" /> },
+  { id: 'game_winners', label: 'Game', icon: <Gamepad2 className="w-3 h-3" /> },
+  { id: 'agency', label: 'Agency', icon: <Building2 className="w-3 h-3" /> },
+  { id: 'pk', label: 'PK', icon: <Swords className="w-3 h-3" /> },
+];
+
+export function GameLeaderboardPanel({ isOpen, onClose }: GameLeaderboardPanelProps) {
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [period, setPeriod] = useState<PeriodType>('daily');
+  const [category, setCategory] = useState<CategoryType>('host_earnings');
+  const [myRank, setMyRank] = useState<{ rank: number; data: LeaderboardEntry | null }>({ rank: 0, data: null });
+
+  useEffect(() => {
+    if (isOpen) fetchLeaderboard();
+  }, [isOpen, period, category]);
+
+  const getDateRange = (): { start: string; end: string } => {
+    const now = new Date();
+    const end = now.toISOString();
+    let start: Date;
+    switch (period) {
+      case 'daily': start = new Date(now); start.setHours(0, 0, 0, 0); break;
+      case 'weekly': start = new Date(now); start.setDate(now.getDate() - now.getDay()); start.setHours(0, 0, 0, 0); break;
+      case 'monthly': start = new Date(now.getFullYear(), now.getMonth(), 1); break;
+    }
+    return { start: start.toISOString(), end };
+  };
+
+  const fetchLeaderboard = async () => {
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { start, end } = getDateRange();
+      let entries: LeaderboardEntry[] = [];
+
+      if (category === 'host_earnings') {
+        entries = await fetchHostEarnings(start, end);
+      } else if (category === 'game_winners') {
+        entries = await fetchGameWinners(start, end);
+      } else if (category === 'agency') {
+        entries = await fetchAgencyPerformance(start, end);
+      } else if (category === 'pk') {
+        entries = await fetchPKBattleWinners(start, end);
+      }
+
+      setLeaderboard(entries);
+
+      if (user && category !== 'agency') {
+        const idx = entries.findIndex(e => e.id === user.id);
+        setMyRank(idx >= 0 ? { rank: idx + 1, data: entries[idx] } : { rank: 0, data: null });
+      } else {
+        setMyRank({ rank: 0, data: null });
+      }
+    } catch (e) { console.error('Leaderboard error:', e); }
+    finally { setLoading(false); }
+  };
+
+  const fetchHostEarnings = async (start: string, end: string): Promise<LeaderboardEntry[]> => {
+    const [{ data: gifts }, { data: calls }] = await Promise.all([
+      supabase.from('gift_transaction_logs').select('receiver_id, beans_amount')
+        .gte('created_at', start).lte('created_at', end).eq('status', 'completed'),
+      supabase.from('private_calls').select('host_id, host_earnings_amount')
+        .gte('created_at', start).lte('created_at', end).eq('status', 'completed'),
+    ]);
+
+    const stats: Record<string, number> = {};
+    (gifts || []).forEach(g => { stats[g.receiver_id] = (stats[g.receiver_id] || 0) + (g.beans_amount || 0); });
+    (calls || []).forEach(c => { if (c.host_id && c.host_earnings_amount) stats[c.host_id] = (stats[c.host_id] || 0) + c.host_earnings_amount; });
+
+    return await resolveProfiles(stats, 'beans');
+  };
+
+  const fetchGameWinners = async (start: string, end: string): Promise<LeaderboardEntry[]> => {
+    const { data: txs } = await supabase
+      .from('game_transactions').select('user_id, amount, transaction_type')
+      .gte('created_at', start).lte('created_at', end);
+
+    const stats: Record<string, number> = {};
+    (txs || []).forEach(tx => {
+      if (tx.transaction_type === 'win' || tx.transaction_type === 'jackpot') {
+        stats[tx.user_id] = (stats[tx.user_id] || 0) + 1;
+      }
+    });
+
+    return await resolveProfiles(stats, 'wins');
+  };
+
+  const fetchPKBattleWinners = async (start: string, end: string): Promise<LeaderboardEntry[]> => {
+    const { data: battles } = await supabase
+      .from('pk_battles').select('challenger_id, opponent_id, winner_id, challenger_score, opponent_score')
+      .gte('created_at', start).lte('created_at', end)
+      .in('status', ['completed', 'ended']);
+
+    const stats: Record<string, number> = {};
+    (battles || []).forEach(b => {
+      // Count participation (both players played)
+      if (b.challenger_id) stats[b.challenger_id] = (stats[b.challenger_id] || 0) + (b.challenger_score || 0);
+      if (b.opponent_id) stats[b.opponent_id] = (stats[b.opponent_id] || 0) + (b.opponent_score || 0);
+    });
+
+    return await resolveProfiles(stats, 'PK score');
+  };
+
+  const fetchAgencyPerformance = async (start: string, end: string): Promise<LeaderboardEntry[]> => {
+    const { data: perf } = await supabase
+      .from('agency_performance').select('agency_id, total_income')
+      .gte('period_start', start.split('T')[0]);
+
+    const stats: Record<string, number> = {};
+    (perf || []).forEach(p => { stats[p.agency_id] = (stats[p.agency_id] || 0) + (p.total_income || 0); });
+
+    const ids = Object.keys(stats);
+    if (!ids.length) return [];
+
+    const { data: agencies } = await supabase.from('agencies').select('id, name, logo_url').in('id', ids);
+    const aMap: Record<string, any> = {};
+    (agencies || []).forEach(a => { aMap[a.id] = a; });
+
+    return Object.entries(stats)
+      .filter(([, val]) => val > 0)
+      .sort(([, a], [, b]) => b - a).slice(0, 50)
+      .map(([id, val]) => ({
+        id, name: aMap[id]?.name || 'Agency', avatar_url: aMap[id]?.logo_url || null,
+        stat_value: val, stat_label: 'income',
+      }));
+  };
+
+  const resolveProfiles = async (stats: Record<string, number>, label: string): Promise<LeaderboardEntry[]> => {
+    const ids = Object.keys(stats);
+    if (!ids.length) return [];
+
+    const { data: profiles } = await supabase.from('profiles')
+      .select('id, username, display_name, avatar_url').in('id', ids);
+
+    const pMap: Record<string, any> = {};
+    (profiles || []).forEach(p => { pMap[p.id] = p; });
+
+    return Object.entries(stats)
+      .filter(([, val]) => val > 0)
+      .sort(([, a], [, b]) => b - a).slice(0, 50)
+      .map(([id, val]) => ({
+        id, name: pMap[id]?.display_name || pMap[id]?.username || 'User',
+        avatar_url: pMap[id]?.avatar_url || null, stat_value: val, stat_label: label,
+      }));
+  };
+
+  if (!isOpen) return null;
+
+  const getRankBadge = (rank: number) => {
+    if (rank === 1) return <Crown className="w-4 h-4 text-yellow-400" />;
+    if (rank === 2) return <Medal className="w-4 h-4 text-gray-300" />;
+    if (rank === 3) return <Medal className="w-4 h-4 text-amber-600" />;
+    return <span className="text-white/50 text-xs font-bold">#{rank}</span>;
+  };
+
+  const periods: { id: PeriodType; label: string; icon: React.ReactNode }[] = [
+    { id: 'daily', label: 'Today', icon: <Calendar className="w-3 h-3" /> },
+    { id: 'weekly', label: '7 Days', icon: <CalendarDays className="w-3 h-3" /> },
+    { id: 'monthly', label: 'Month', icon: <CalendarRange className="w-3 h-3" /> },
+  ];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+        onClick={e => e.stopPropagation()}
+        className="w-full max-w-sm bg-gradient-to-br from-slate-900 via-purple-900/90 to-slate-900 rounded-2xl border border-purple-500/30 overflow-hidden shadow-2xl"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-3 border-b border-white/10 bg-black/30">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
+              <Trophy className="w-4 h-4 text-amber-400" />
+            </div>
+            <h2 className="text-white font-bold text-sm">Leaderboard</h2>
+          </div>
+          <Button variant="ghost" size="icon" onClick={onClose} className="text-white/60 hover:text-white w-8 h-8">
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+
+        {/* Category Tabs */}
+        <div className="flex gap-1 p-2 bg-black/20">
+          {CATEGORIES.map(cat => (
+            <button
+              key={cat.id}
+              onClick={() => setCategory(cat.id)}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[10px] font-medium transition-all",
+                category === cat.id
+                  ? "bg-purple-500/30 text-purple-300 border border-purple-500/30"
+                  : "text-white/50 hover:text-white/70 hover:bg-white/5"
+              )}
+            >
+              {cat.icon} {cat.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Period Tabs */}
+        <div className="flex gap-1 px-2 pb-2">
+          {periods.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setPeriod(tab.id)}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-[10px] font-medium transition-all",
+                period === tab.id
+                  ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                  : "text-white/40 hover:text-white/60 hover:bg-white/5"
+              )}
+            >
+              {tab.icon} {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Summary */}
+        {!loading && leaderboard.length > 0 && (
+          <div className="grid grid-cols-2 gap-2 px-3 py-1.5 bg-black/10">
+            <div className="text-center">
+              <div className="text-amber-400 text-sm font-bold">{leaderboard.length}</div>
+              <div className="text-white/40 text-[9px]">Players</div>
+            </div>
+            <div className="text-center">
+              <div className="text-green-400 text-sm font-bold">
+                {leaderboard.reduce((s, e) => s + e.stat_value, 0).toLocaleString()}
+              </div>
+              <div className="text-white/40 text-[9px]">Total {leaderboard[0]?.stat_label || ''}</div>
+            </div>
+          </div>
+        )}
+
+        <ScrollArea className="max-h-[42vh]">
+          <div className="p-2 space-y-1">
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin text-purple-400" />
+              </div>
+            ) : leaderboard.length === 0 ? (
+              <div className="text-center py-8">
+                <Users className="w-12 h-12 text-white/20 mx-auto mb-2" />
+                <p className="text-white/50 text-sm">No data yet</p>
+              </div>
+            ) : (
+              leaderboard.map((entry, i) => (
+                <motion.div
+                  key={entry.id}
+                  initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.02 }}
+                  className={cn(
+                    "flex items-center gap-2 p-2 rounded-lg",
+                    i === 0 ? "bg-gradient-to-r from-yellow-500/25 to-amber-500/10 border border-yellow-500/30"
+                      : i < 3 ? "bg-gradient-to-r from-amber-500/15 to-transparent border border-amber-500/20"
+                        : "bg-white/5"
+                  )}
+                >
+                  <div className="w-6 h-6 flex items-center justify-center">{getRankBadge(i + 1)}</div>
+                  <Avatar className="w-8 h-8 border-2 border-white/10">
+                    <AvatarImage src={entry.avatar_url || undefined} />
+                    <AvatarFallback className="bg-purple-500/20 text-purple-300 text-xs">
+                      {entry.name.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-white text-xs font-medium truncate">{entry.name}</div>
+                    {entry.extra_info && <div className="text-white/30 text-[9px]">{entry.extra_info}</div>}
+                  </div>
+                  <div className="text-right">
+                    <div className="text-amber-400 text-xs font-bold">
+                      {entry.stat_value.toLocaleString()}
+                    </div>
+                    <div className="text-white/30 text-[9px]">{entry.stat_label}</div>
+                  </div>
+                </motion.div>
+              ))
+            )}
+          </div>
+        </ScrollArea>
+
+        {/* My Rank */}
+        {myRank.data && (
+          <div className="p-2 border-t border-white/10 bg-purple-500/10">
+            <div className="flex items-center gap-2 p-2 rounded-lg bg-purple-500/20 border border-purple-500/30">
+              <span className="text-purple-300 text-xs font-bold w-6 text-center">#{myRank.rank}</span>
+              <Avatar className="w-8 h-8 border-2 border-purple-500/30">
+                <AvatarImage src={myRank.data.avatar_url || undefined} />
+                <AvatarFallback className="bg-purple-500/20 text-purple-300 text-xs">
+                  {myRank.data.name.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <div className="text-purple-300 text-xs font-medium">You</div>
+              </div>
+              <div className="text-amber-400 text-xs font-bold">
+                {myRank.data.stat_value.toLocaleString()} {myRank.data.stat_label}
+              </div>
+            </div>
+          </div>
+        )}
+      </motion.div>
+    </motion.div>
+  );
+}

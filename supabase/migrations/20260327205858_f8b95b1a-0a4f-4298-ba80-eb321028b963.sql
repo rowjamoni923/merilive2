@@ -1,0 +1,2 @@
+ALTER TABLE public.helper_orders DROP CONSTRAINT helper_orders_status_check;
+ALTER TABLE public.helper_orders ADD CONSTRAINT helper_orders_status_check CHECK (status = ANY (ARRAY['pending'::text, 'processing'::text, 'completed'::text, 'failed'::text, 'cancelled'::text, 'gateway_pending'::text, 'gateway_paid'::text]));

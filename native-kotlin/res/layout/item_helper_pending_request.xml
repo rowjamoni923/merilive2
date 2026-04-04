@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp" app:cardBackgroundColor="#1A1A2E" app:cardCornerRadius="12dp">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="16dp">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical">
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:orientation="vertical">
+                <TextView android:id="@+id/tvAgencyName" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textColor="#FFFFFF" android:textSize="15sp" android:textStyle="bold" />
+                <TextView android:id="@+id/tvAmount" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textColor="#FFD700" android:textSize="18sp" android:textStyle="bold" />
+                <TextView android:id="@+id/tvPaymentMethod" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textColor="#9CA3AF" android:textSize="12sp" />
+                <TextView android:id="@+id/tvLocalAmount" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textColor="#10B981" android:textSize="13sp" />
+            </LinearLayout>
+            <TextView android:id="@+id/tvRequestedAt" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textColor="#6B7280" android:textSize="11sp" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:layout_marginTop="12dp">
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnProcess"
+                android:layout_width="0dp" android:layout_height="44dp" android:layout_weight="1"
+                android:layout_marginEnd="8dp" android:text="Process" android:textAllCaps="false"
+                android:backgroundTint="#059669" android:textSize="13sp" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnReject"
+                android:layout_width="0dp" android:layout_height="44dp" android:layout_weight="1"
+                android:layout_marginStart="8dp" android:text="Reject" android:textAllCaps="false"
+                android:backgroundTint="#DC2626" android:textSize="13sp" />
+        </LinearLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base App Theme - Dark -->
+    <style name="Theme.MeriLive" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryDark">@color/primary_dark</item>
+        <item name="colorAccent">@color/secondary</item>
+        <item name="colorOnPrimary">@color/text_primary</item>
+        <item name="colorSecondary">@color/secondary</item>
+        <item name="colorOnSecondary">@color/background</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorError">@color/error</item>
+        <item name="android:colorBackground">@color/background</item>
+        <item name="android:windowBackground">@color/background</item>
+        <item name="android:statusBarColor">@color/background</item>
+        <item name="android:navigationBarColor">@color/nav_bg</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="bottomNavigationStyle">@style/MeriLive.BottomNav</item>
+    </style>
+
+    <!-- Splash Theme -->
+    <style name="Theme.MeriLive.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/background</item>
+        <item name="postSplashScreenTheme">@style/Theme.MeriLive</item>
+    </style>
+
+    <!-- Transparent Theme (for incoming call overlay) -->
+    <style name="Theme.MeriLive.Transparent" parent="Theme.MeriLive">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@color/black_70</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+
+    <!-- Bottom Navigation -->
+    <style name="MeriLive.BottomNav" parent="Widget.Material3.BottomNavigationView">
+        <item name="backgroundTint">@color/nav_bg</item>
+        <item name="itemIconTint">@color/bottom_nav_color</item>
+        <item name="itemTextColor">@color/bottom_nav_color</item>
+        <item name="labelVisibilityMode">labeled</item>
+        <item name="itemActiveIndicatorStyle">@null</item>
+    </style>
+
+    <!-- Card Style -->
+    <style name="MeriLive.Card" parent="Widget.Material3.CardView.Filled">
+        <item name="cardBackgroundColor">@color/background_card</item>
+        <item name="cardCornerRadius">12dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="strokeColor">@color/border</item>
+    </style>
+
+    <!-- Button Primary -->
+    <style name="MeriLive.Button.Primary" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/primary</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="cornerRadius">24dp</item>
+    </style>
+
+    <!-- Button Outline -->
+    <style name="MeriLive.Button.Outline" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="strokeColor">@color/primary</item>
+        <item name="android:textColor">@color/primary</item>
+        <item name="cornerRadius">24dp</item>
+    </style>
+
+    <!-- Toolbar -->
+    <style name="MeriLive.Toolbar" parent="Widget.Material3.Toolbar">
+        <item name="android:background">@color/surface</item>
+        <item name="titleTextColor">@color/text_primary</item>
+    </style>
+
+    <!-- Text Appearances -->
+    <style name="MeriLive.Text.Title" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="MeriLive.Text.Body" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textColor">@color/text_secondary</item>
+    </style>
+
+    <style name="MeriLive.Text.Caption" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textColor">@color/text_hint</item>
+    </style>
+</resources>

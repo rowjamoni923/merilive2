@@ -1,0 +1,111 @@
+import { Eye, MapPin } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
+
+interface LiveStreamCardProps {
+  id: string;
+  hostId?: string;
+  hostName: string;
+  hostAvatar: string;
+  thumbnailUrl: string;
+  viewerCount: number;
+  country: string;
+  countryFlag: string;
+  isOnline?: boolean;
+  tags?: string[];
+  hostLevel?: number;
+}
+
+export const LiveStreamCard = ({
+  id,
+  hostId,
+  hostName,
+  hostAvatar,
+  thumbnailUrl,
+  viewerCount,
+  country,
+  countryFlag,
+  isOnline = true,
+  tags = [],
+  hostLevel = 1,
+}: LiveStreamCardProps) => {
+  return (
+    <div className="relative group cursor-pointer overflow-hidden rounded-2xl aspect-[3/4] bg-muted">
+      {/* Thumbnail */}
+      <img
+        src={thumbnailUrl}
+        alt={hostName}
+        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+        style={{
+          filter: 'brightness(1.05) contrast(1.08) saturate(1.15)',
+          WebkitFilter: 'brightness(1.05) contrast(1.08) saturate(1.15)',
+        }}
+      />
+
+      {/* Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+      {/* Live Badge */}
+      {isOnline && (
+        <div className="absolute top-3 left-3 flex items-center gap-1.5">
+          <Badge className="bg-destructive text-destructive-foreground border-0 gap-1 px-2 py-0.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+            LIVE
+          </Badge>
+        </div>
+      )}
+
+      {/* Viewer Count */}
+      <div className="absolute top-3 right-3 flex items-center gap-1 bg-black/50 backdrop-blur-sm rounded-full px-2 py-1">
+        <Eye className="w-3.5 h-3.5 text-white" />
+        <span className="text-xs text-white font-medium">
+          {viewerCount > 1000 ? `${(viewerCount / 1000).toFixed(1)}k` : viewerCount}
+        </span>
+      </div>
+
+      {/* Tags */}
+      {tags.length > 0 && (
+        <div className="absolute top-12 left-3 flex flex-wrap gap-1">
+          {tags.slice(0, 2).map((tag, index) => (
+            <Badge
+              key={index}
+              variant="secondary"
+              className="bg-primary/80 text-white border-0 text-[10px] px-1.5 py-0"
+            >
+              {tag}
+            </Badge>
+          ))}
+        </div>
+      )}
+
+      {/* Bottom Info */}
+      <div className="absolute bottom-0 left-0 right-0 p-3">
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <AvatarWithFrame
+              userId={hostId}
+              src={hostAvatar}
+              name={hostName}
+              level={hostLevel}
+              size="sm"
+              showFrame={true}
+              showAnimation={true}
+              isOnline={isOnline}
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-white font-semibold text-sm truncate">{hostName}</h3>
+            <div className="flex items-center gap-1 text-white/70 text-xs">
+              <span>{countryFlag}</span>
+              <span className="truncate">{country}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Hover Effect */}
+      <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+    </div>
+  );
+};

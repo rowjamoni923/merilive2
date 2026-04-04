@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/background">
+    <!-- Toolbar -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="56dp"
+        android:orientation="horizontal" android:gravity="center_vertical" android:paddingHorizontal="12dp" android:background="@color/surface">
+        <ImageButton android:id="@+id/btnBack" android:layout_width="40dp" android:layout_height="40dp"
+            android:src="@drawable/ic_back" android:background="?attr/selectableItemBackgroundBorderless" />
+        <TextView android:id="@+id/tvTitle" android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:text="⚙️ Settings" android:textSize="18sp" android:textStyle="bold"
+            android:textColor="@color/text_primary" android:layout_marginStart="8dp" />
+    </LinearLayout>
+    <ScrollView android:layout_width="match_parent" android:layout_height="match_parent">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+
+            <!-- Permissions Section -->
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Permissions" android:textSize="13sp" android:textStyle="bold"
+                android:textColor="@color/text_hint" android:layout_marginBottom="8dp" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchCamera"
+                android:layout_width="match_parent" android:layout_height="48dp"
+                android:text="📷 Camera" android:textSize="15sp" android:textColor="@color/text_primary" android:paddingHorizontal="16dp" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchMicrophone"
+                android:layout_width="match_parent" android:layout_height="48dp"
+                android:text="🎤 Microphone" android:textSize="15sp" android:textColor="@color/text_primary" android:paddingHorizontal="16dp" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchLocation"
+                android:layout_width="match_parent" android:layout_height="48dp"
+                android:text="📍 Location" android:textSize="15sp" android:textColor="@color/text_primary" android:paddingHorizontal="16dp" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchPushNotifications"
+                android:layout_width="match_parent" android:layout_height="48dp"
+                android:text="🔔 Push Notifications" android:textSize="15sp" android:textColor="@color/text_primary" android:paddingHorizontal="16dp" android:checked="true" />
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginVertical="12dp" />
+
+            <!-- Privacy Section -->
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Privacy" android:textSize="13sp" android:textStyle="bold"
+                android:textColor="@color/text_hint" android:layout_marginBottom="8dp" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchHideLocation"
+                android:layout_width="match_parent" android:layout_height="48dp"
+                android:text="🙈 Hide Location" android:textSize="15sp" android:textColor="@color/text_primary" android:paddingHorizontal="16dp" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchBirthdayVisibility"
+                android:layout_width="match_parent" android:layout_height="48dp"
+                android:text="🎂 Show Birthday" android:textSize="15sp" android:textColor="@color/text_primary" android:paddingHorizontal="16dp" android:checked="true" />
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginVertical="12dp" />
+
+            <!-- General Section -->
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="General" android:textSize="13sp" android:textStyle="bold"
+                android:textColor="@color/text_hint" android:layout_marginBottom="8dp" />
+
+            <LinearLayout android:id="@+id/itemLanguage" android:layout_width="match_parent" android:layout_height="52dp" android:gravity="center_vertical" android:background="?attr/selectableItemBackground" android:paddingHorizontal="16dp">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="🌐 Language" android:textSize="15sp" android:textColor="@color/text_primary" />
+            </LinearLayout>
+
+            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchNotifications" android:layout_width="match_parent" android:layout_height="52dp" android:text="🔔 Notifications" android:textSize="15sp" android:textColor="@color/text_primary" android:paddingHorizontal="16dp" android:checked="true" />
+
+            <LinearLayout android:id="@+id/itemPrivacy" android:layout_width="match_parent" android:layout_height="52dp" android:gravity="center_vertical" android:background="?attr/selectableItemBackground" android:paddingHorizontal="16dp">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="🔒 Privacy Policy" android:textSize="15sp" android:textColor="@color/text_primary" />
+            </LinearLayout>
+
+            <LinearLayout android:id="@+id/itemAbout" android:layout_width="match_parent" android:layout_height="52dp" android:gravity="center_vertical" android:background="?attr/selectableItemBackground" android:paddingHorizontal="16dp">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="ℹ️ About" android:textSize="15sp" android:textColor="@color/text_primary" />
+            </LinearLayout>
+
+            <LinearLayout android:id="@+id/itemBlockedUsers" android:layout_width="match_parent" android:layout_height="52dp" android:gravity="center_vertical" android:background="?attr/selectableItemBackground" android:paddingHorizontal="16dp">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="🚫 Blocked Users" android:textSize="15sp" android:textColor="@color/text_primary" />
+            </LinearLayout>
+
+            <LinearLayout android:id="@+id/itemAccountSecurity" android:layout_width="match_parent" android:layout_height="52dp" android:gravity="center_vertical" android:background="?attr/selectableItemBackground" android:paddingHorizontal="16dp">
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="🛡️ Account Security" android:textSize="15sp" android:textColor="@color/text_primary" />
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginVertical="12dp" />
+
+            <!-- App Version -->
+            <TextView android:id="@+id/tvAppVersion" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="Version 1.0.0" android:textSize="12sp" android:textColor="@color/text_hint"
+                android:gravity="center" android:layout_marginBottom="16dp" />
+
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnLogout" android:layout_width="match_parent" android:layout_height="48dp" android:text="Logout" android:textAllCaps="false" android:backgroundTint="@color/error" app:cornerRadius="24dp" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnDeleteAccount" android:layout_width="match_parent" android:layout_height="48dp" android:text="Delete Account" android:textAllCaps="false" style="@style/Widget.MaterialComponents.Button.TextButton" android:textColor="@color/error" android:layout_marginTop="8dp" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

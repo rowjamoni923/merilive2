@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="wrap_content" app:cardCornerRadius="12dp" app:cardElevation="2dp" android:layout_margin="4dp">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+        <FrameLayout android:layout_width="match_parent" android:layout_height="180dp">
+            <ImageView android:id="@+id/ivThumbnail" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" />
+            <TextView android:id="@+id/tvViewerCount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:background="@drawable/bg_viewer_count" android:textColor="@color/white" android:textSize="11sp" android:paddingHorizontal="8dp" android:paddingVertical="2dp" android:layout_gravity="top|end" android:layout_margin="8dp" />
+            <TextView android:id="@+id/tvCategory" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/white" android:textSize="10sp" android:background="@drawable/bg_category_tag" android:paddingHorizontal="6dp" android:paddingVertical="2dp" android:layout_gravity="bottom|start" android:layout_margin="8dp" />
+        </FrameLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="8dp" android:gravity="center_vertical">
+            <ImageView android:id="@+id/ivAvatar" android:layout_width="28dp" android:layout_height="28dp" android:src="@drawable/ic_avatar_placeholder" />
+            <TextView android:id="@+id/tvHostName" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textSize="13sp" android:textColor="@color/text_primary" android:maxLines="1" android:ellipsize="end" android:layout_marginStart="6dp" />
+            <TextView android:id="@+id/tvCountryFlag" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="16sp" />
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

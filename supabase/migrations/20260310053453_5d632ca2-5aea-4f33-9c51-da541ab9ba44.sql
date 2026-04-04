@@ -1,0 +1,1 @@
+UPDATE topup_helpers SET is_active = false WHERE id = '67965597-3327-4e9a-9b17-2e8e986e5ecc';

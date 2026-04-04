@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_dark"
+    android:orientation="vertical">
+
+    <RelativeLayout android:layout_width="match_parent" android:layout_height="56dp" android:paddingHorizontal="16dp">
+        <ImageButton android:id="@+id/btnBack" android:layout_width="40dp" android:layout_height="40dp" android:layout_centerVertical="true" android:background="?selectableItemBackgroundBorderless" android:src="@drawable/ic_back" android:tint="@color/text_primary" android:contentDescription="Back" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerInParent="true" android:text="Host Verification" android:textColor="@color/text_primary" android:textSize="18sp" android:textStyle="bold" />
+    </RelativeLayout>
+
+    <ProgressBar android:id="@+id/progressBar" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:visibility="gone" />
+
+    <!-- Step Indicators -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center" android:paddingVertical="12dp">
+        <TextView android:id="@+id/tvStep1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="① Info" android:textColor="@color/accent_gold" android:textSize="13sp" android:textStyle="bold" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=" → " android:textColor="@color/text_secondary" android:textSize="13sp" />
+        <TextView android:id="@+id/tvStep2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="② Media" android:textColor="@color/text_secondary" android:textSize="13sp" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=" → " android:textColor="@color/text_secondary" android:textSize="13sp" />
+        <TextView android:id="@+id/tvStep3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="③ Agency" android:textColor="@color/text_secondary" android:textSize="13sp" />
+    </LinearLayout>
+
+    <ScrollView android:layout_width="match_parent" android:layout_height="match_parent">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+
+            <!-- Step 1: Basic Info -->
+            <LinearLayout android:id="@+id/layoutStep1" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Full Name" android:textColor="@color/text_primary" android:textSize="14sp" />
+                <EditText android:id="@+id/etFullName" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="4dp" android:background="@drawable/bg_input_field" android:hint="Your full name" android:textColor="@color/text_primary" android:textColorHint="@color/text_secondary" android:paddingHorizontal="12dp" android:textSize="14sp" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Age" android:textColor="@color/text_primary" android:textSize="14sp" android:layout_marginTop="12dp" />
+                <EditText android:id="@+id/etAge" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="4dp" android:background="@drawable/bg_input_field" android:hint="18" android:textColor="@color/text_primary" android:textColorHint="@color/text_secondary" android:paddingHorizontal="12dp" android:inputType="number" android:textSize="14sp" />
+                <Button android:id="@+id/btnNext1" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="20dp" android:background="@drawable/bg_primary_button" android:text="Next" android:textColor="@color/white" android:textSize="14sp" />
+            </LinearLayout>
+
+            <!-- Step 2: Photo/Video -->
+            <LinearLayout android:id="@+id/layoutStep2" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+                <Button android:id="@+id/btnUploadPhoto" android:layout_width="match_parent" android:layout_height="100dp" android:background="@drawable/bg_card" android:text="📷 Upload Photo" android:textColor="@color/text_primary" android:textSize="14sp" />
+                <Button android:id="@+id/btnUploadVideo" android:layout_width="match_parent" android:layout_height="100dp" android:layout_marginTop="12dp" android:background="@drawable/bg_card" android:text="🎥 Upload Video" android:textColor="@color/text_primary" android:textSize="14sp" />
+                <Button android:id="@+id/btnNext2" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="20dp" android:background="@drawable/bg_primary_button" android:text="Next" android:textColor="@color/white" android:textSize="14sp" />
+            </LinearLayout>
+
+            <!-- Step 3: Agency -->
+            <LinearLayout android:id="@+id/layoutStep3" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Agency Code (Optional)" android:textColor="@color/text_primary" android:textSize="14sp" />
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="4dp">
+                    <EditText android:id="@+id/etAgencyCode" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1" android:background="@drawable/bg_input_field" android:hint="AGENCY123" android:textColor="@color/text_primary" android:textColorHint="@color/text_secondary" android:paddingHorizontal="12dp" android:textSize="14sp" />
+                    <Button android:id="@+id/btnSearchAgency" android:layout_width="80dp" android:layout_height="48dp" android:layout_marginStart="8dp" android:background="@drawable/bg_card" android:text="Verify" android:textColor="@color/text_primary" android:textSize="13sp" />
+                </LinearLayout>
+                <TextView android:id="@+id/tvAgencyInfo" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#4CAF50" android:textSize="13sp" android:layout_marginTop="4dp" android:visibility="gone" />
+                <Button android:id="@+id/btnSubmitVerification" android:layout_width="match_parent" android:layout_height="52dp" android:layout_marginTop="24dp" android:background="@drawable/bg_primary_button" android:text="Submit Verification" android:textColor="@color/white" android:textSize="15sp" android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

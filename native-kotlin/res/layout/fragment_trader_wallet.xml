@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="#0A0A0F">
+    <RelativeLayout android:layout_width="match_parent" android:layout_height="56dp" android:paddingHorizontal="16dp">
+        <ImageButton android:id="@+id/btnBack" android:layout_width="40dp" android:layout_height="40dp"
+            android:layout_centerVertical="true" android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_arrow_back" android:contentDescription="Back" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_centerInParent="true" android:text="Trader Wallet"
+            android:textColor="#FFFFFF" android:textSize="18sp" android:textStyle="bold" />
+    </RelativeLayout>
+    <ProgressBar android:id="@+id/progressBar" android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_gravity="center" android:visibility="gone" />
+    <ScrollView android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:padding="16dp">
+            <!-- Balance Card -->
+            <androidx.cardview.widget.CardView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp" app:cardBackgroundColor="#1A1A2E" app:cardCornerRadius="16dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="vertical" android:padding="20dp" android:gravity="center">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="💎 Trader Wallet" android:textColor="#9CA3AF" android:textSize="14sp" />
+                    <TextView android:id="@+id/tvDiamondBalance" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:text="0"
+                        android:textColor="#FFD700" android:textSize="32sp" android:textStyle="bold" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+            <!-- Stats Row -->
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:layout_marginBottom="24dp">
+                <androidx.cardview.widget.CardView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:layout_marginEnd="8dp"
+                    app:cardBackgroundColor="#1A1A2E" app:cardCornerRadius="12dp">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="vertical" android:padding="16dp" android:gravity="center">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Transferred" android:textColor="#9CA3AF" android:textSize="11sp" />
+                        <TextView android:id="@+id/tvTotalTransferred" android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" android:text="0"
+                            android:textColor="#EF4444" android:textSize="18sp" android:textStyle="bold" />
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+                <androidx.cardview.widget.CardView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:layout_marginStart="8dp"
+                    app:cardBackgroundColor="#1A1A2E" app:cardCornerRadius="12dp">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:orientation="vertical" android:padding="16dp" android:gravity="center">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Received" android:textColor="#9CA3AF" android:textSize="11sp" />
+                        <TextView android:id="@+id/tvTotalReceived" android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" android:text="0"
+                            android:textColor="#10B981" android:textSize="18sp" android:textStyle="bold" />
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+            </LinearLayout>
+            <!-- Actions -->
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnTransferToUser"
+                android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginBottom="12dp"
+                android:text="👤 Transfer to User" android:textAllCaps="false" android:backgroundTint="#7C3AED" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnTransferToAgency"
+                android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginBottom="12dp"
+                android:text="🏢 Transfer to Agency" android:textAllCaps="false" android:backgroundTint="#2563EB" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnHistory"
+                android:layout_width="match_parent" android:layout_height="56dp"
+                android:text="📊 Transfer History" android:textAllCaps="false" android:backgroundTint="#1E293B" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

@@ -1,0 +1,1 @@
+DELETE FROM topup_helpers WHERE user_id = '7acd387f-77e5-425e-badb-afae78869123';

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/background_dark" android:orientation="vertical">
+    <RelativeLayout android:layout_width="match_parent" android:layout_height="56dp" android:paddingHorizontal="16dp">
+        <ImageButton android:id="@+id/btnBack" android:layout_width="40dp" android:layout_height="40dp" android:layout_centerVertical="true" android:background="?selectableItemBackgroundBorderless" android:src="@drawable/ic_back" android:tint="@color/text_primary" android:contentDescription="Back" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerInParent="true" android:text="Sub-Agents" android:textColor="@color/text_primary" android:textSize="18sp" android:textStyle="bold" />
+    </RelativeLayout>
+    <ProgressBar android:id="@+id/progressBar" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:layout_marginTop="50dp" android:visibility="gone" />
+    <TextView android:id="@+id/tvCount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/text_secondary" android:textSize="13sp" android:layout_marginStart="16dp" android:layout_marginTop="8dp" />
+    <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvSubAgents" android:layout_width="match_parent" android:layout_height="match_parent" android:padding="16dp" android:clipToPadding="false" />
+</LinearLayout>

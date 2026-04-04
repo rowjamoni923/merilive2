@@ -1,0 +1,393 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background">
+
+    <!-- Background Image (loaded dynamically from branding_settings) -->
+    <ImageView
+        android:id="@+id/ivBackground"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:alpha="0.85" />
+
+    <!-- Dark gradient overlay -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_auth_gradient_overlay" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="bottom"
+        android:paddingBottom="24dp">
+
+        <!-- Logo Section (top area) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <!-- Logo image from branding_settings -->
+            <ImageView
+                android:id="@+id/ivLogo"
+                android:layout_width="200dp"
+                android:layout_height="80dp"
+                android:scaleType="fitCenter"
+                android:visibility="gone" />
+
+            <!-- App name text (shown when no logo image) -->
+            <TextView
+                android:id="@+id/tvAppName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/app_name"
+                android:textSize="32sp"
+                android:textColor="@color/white"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvTagline"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/app_tagline"
+                android:textSize="14sp"
+                android:textColor="@color/white_20"
+                android:layout_marginTop="8dp"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- Auth Buttons Section -->
+        <LinearLayout
+            android:id="@+id/authMethodSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="28dp"
+            android:paddingBottom="8dp">
+
+            <!-- Guest Start Button (Orange-Red Gradient) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnGuestLogin"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="🚀 Start"
+                android:textAllCaps="false"
+                android:textSize="16sp"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                android:backgroundTint="@color/primary"
+                app:cornerRadius="26dp" />
+
+            <!-- WhatsApp / Phone Number Button (Pink-to-Green Gradient) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnWhatsAppLogin"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="📱 Phone Number"
+                android:textAllCaps="false"
+                android:textSize="16sp"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                android:backgroundTint="#25D366"
+                app:cornerRadius="26dp"
+                android:layout_marginTop="12dp" />
+
+            <!-- Email Button (Outlined) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEmailLogin"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="✉️ Email"
+                android:textAllCaps="false"
+                android:textSize="16sp"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                app:cornerRadius="26dp"
+                app:strokeColor="@color/white_20"
+                app:strokeWidth="1dp"
+                android:layout_marginTop="12dp" />
+
+            <!-- Referral Code Link -->
+            <TextView
+                android:id="@+id/tvReferralCode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="🎁 Have a referral code? Tap here"
+                android:textSize="13sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginTop="16dp"
+                android:padding="8dp" />
+        </LinearLayout>
+
+        <!-- Identifier Input Section (Phone/Email) -->
+        <LinearLayout
+            android:id="@+id/identifierSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:paddingHorizontal="28dp"
+            android:paddingBottom="8dp">
+
+            <TextView
+                android:id="@+id/tvInputTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="WhatsApp Login"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:layout_marginBottom="16dp" />
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etIdentifier"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:hint="@string/enter_phone"
+                android:inputType="phone"
+                android:background="@drawable/bg_input_field"
+                android:padding="14dp"
+                android:textColor="@color/white"
+                android:textColorHint="@color/text_hint"
+                android:textSize="16sp" />
+
+            <!-- Password field (only visible for email+password mode) -->
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etPassword"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:hint="Password"
+                android:inputType="textPassword"
+                android:background="@drawable/bg_input_field"
+                android:padding="14dp"
+                android:textColor="@color/white"
+                android:textColorHint="@color/text_hint"
+                android:textSize="16sp"
+                android:layout_marginTop="12dp"
+                android:visibility="gone" />
+
+            <!-- Toggle between OTP and Password mode for email -->
+            <TextView
+                android:id="@+id/tvToggleEmailMode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:text="Use Password instead"
+                android:textSize="13sp"
+                android:textColor="@color/primary"
+                android:layout_marginTop="8dp"
+                android:padding="4dp"
+                android:visibility="gone" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSendOtp"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="Send OTP"
+                android:textAllCaps="false"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:backgroundTint="@color/primary"
+                app:cornerRadius="26dp"
+                android:layout_marginTop="16dp" />
+
+            <TextView
+                android:id="@+id/tvBackToMethods"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="← Back"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginTop="16dp"
+                android:padding="8dp" />
+        </LinearLayout>
+
+        <!-- OTP Section -->
+        <LinearLayout
+            android:id="@+id/otpSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:paddingHorizontal="28dp"
+            android:paddingBottom="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/enter_otp"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:layout_marginBottom="16dp" />
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etOtp"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:hint="Enter 6-digit OTP"
+                android:inputType="number"
+                android:maxLength="6"
+                android:background="@drawable/bg_input_field"
+                android:padding="14dp"
+                android:textAlignment="center"
+                android:letterSpacing="0.5"
+                android:textColor="@color/white"
+                android:textColorHint="@color/text_hint"
+                android:textSize="20sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnVerifyOtp"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="@string/verify"
+                android:textAllCaps="false"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:backgroundTint="@color/secondary"
+                app:cornerRadius="26dp"
+                android:layout_marginTop="16dp" />
+        </LinearLayout>
+
+        <!-- Gender Selection -->
+        <LinearLayout
+            android:id="@+id/genderSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:gravity="center"
+            android:paddingHorizontal="28dp"
+            android:paddingBottom="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/select_gender"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:layout_marginBottom="24dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+                <LinearLayout
+                    android:id="@+id/btnMale"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:padding="24dp"
+                    android:background="@drawable/bg_card"
+                    android:layout_marginEnd="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="👨"
+                        android:textSize="48sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/male"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/info"
+                        android:layout_marginTop="8dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Viewer"
+                        android:textSize="12sp"
+                        android:textColor="@color/text_secondary"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/btnFemale"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:padding="24dp"
+                    android:background="@drawable/bg_card"
+                    android:layout_marginStart="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="👩"
+                        android:textSize="48sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/female"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#EC4899"
+                        android:layout_marginTop="8dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Host"
+                        android:textSize="12sp"
+                        android:textColor="@color/text_secondary"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Terms & Privacy footer -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:paddingTop="12dp">
+
+            <View
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:background="@drawable/bg_circle_translucent" />
+
+            <TextView
+                android:id="@+id/tvTerms"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Terms &amp; Privacy • 18+"
+                android:textSize="12sp"
+                android:textColor="@color/text_hint"
+                android:layout_marginStart="8dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Progress -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:layout_gravity="center" />
+
+</FrameLayout>

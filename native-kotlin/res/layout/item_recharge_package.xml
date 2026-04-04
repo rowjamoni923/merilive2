@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:orientation="vertical" android:background="@drawable/bg_card"
+    android:layout_margin="6dp" android:padding="12dp">
+    <ImageView android:id="@+id/ivPackageIcon" android:layout_width="48dp" android:layout_height="48dp"
+        android:layout_gravity="center" android:src="@drawable/ic_gift" />
+    <TextView android:id="@+id/tvCoins" android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_gravity="center" android:textColor="@color/secondary" android:textSize="18sp"
+        android:textStyle="bold" android:layout_marginTop="8dp" />
+    <TextView android:id="@+id/tvPrice" android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_gravity="center" android:textColor="@color/text_secondary" android:textSize="13sp"
+        android:layout_marginTop="4dp" />
+    <com.google.android.material.button.MaterialButton android:id="@+id/btnBuy"
+        android:layout_width="match_parent" android:layout_height="36dp"
+        android:text="@string/recharge" android:textSize="12sp"
+        style="@style/MeriLive.Button.Primary" android:layout_marginTop="8dp" />
+</LinearLayout>

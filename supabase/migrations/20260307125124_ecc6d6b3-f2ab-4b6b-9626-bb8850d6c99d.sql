@@ -1,0 +1,1 @@
+UPDATE public.beauty_filters SET is_free = true, is_premium = false, price_diamonds = 0;

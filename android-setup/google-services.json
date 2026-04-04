@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "830608832747",
+    "project_id": "merilive-913fc",
+    "storage_bucket": "merilive-913fc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:830608832747:android:e1a7f980972e7db35ee6ae",
+        "android_client_info": {
+          "package_name": "com.merilive.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA8erpy3fsq1jVzTcDgg6AXuwVnHnH6roY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

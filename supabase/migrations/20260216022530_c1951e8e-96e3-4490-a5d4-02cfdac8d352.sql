@@ -1,0 +1,1 @@
+UPDATE game_settings SET iframe_height = 700 WHERE game_id = 'roulette';

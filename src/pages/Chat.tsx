@@ -1,0 +1,3261 @@
+import { useState, useEffect, useRef, Suspense, lazy, useCallback } from "react";
+
+import { useContentModeration } from "@/hooks/useContentModeration";
+import { detectAndProcessViolation } from "@/utils/contactDetection";
+import { scanImageForContactInfo } from "@/utils/imageContactDetection";
+import { NumberSharingWarningDialog, useNumberSharingWarning } from "@/components/moderation/NumberSharingWarningDialog";
+import { ImageViewer, useImageViewer } from "@/components/ui/image-viewer";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { ArrowLeft, Search, MoreVertical, Send, Smile, Users, MessageCircle, Crown, X, Bell, Phone as VideoCallIcon, Camera, Mic, Gift, Languages, Phone, ChevronRight, Plus, ImageIcon, Gamepad2, Settings, ShieldAlert } from "lucide-react";
+import { GroupSettingsPanel } from "@/components/chat/GroupSettingsPanel";
+import { MessageStatusIndicator } from "@/components/chat/MessageStatusIndicator";
+import { EmojiPicker } from "@/components/chat/EmojiPicker";
+import { MediaUploader } from "@/components/chat/MediaUploader";
+// UNIFIED GIFTING - SINGLE LINK for all sections (Live, Party, Call, Chat, Profile)
+// Change @/features/shared/gifting = Change everywhere automatically
+import { GiftPanel, GiftData } from "@/features/shared/gifting";
+import { LiveGameSelector } from "@/components/games/LiveGameSelector";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+// Lazy load animation players for gift display
+const SVGAPlayer = lazy(() => import("@/components/common/SVGAPlayer"));
+const UniversalAnimationPlayer = lazy(() => import("@/components/common/UniversalAnimationPlayer"));
+import { Badge } from "@/components/ui/badge";
+import { BottomNavigation } from "@/components/layout/BottomNavigation";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { subscribeToTables } from "@/hooks/useUniversalRealtime";
+import { useCall } from "@/components/call/CallProvider";
+import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
+import { useSound } from "@/hooks/useSound";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { NotificationList, NotificationBell } from "@/components/notifications/NotificationList";
+import { OfficialNoticeList } from "@/components/notifications/OfficialNoticeList";
+import { useNotifications } from "@/hooks/useNotifications";
+import { useGlobalUnreadCount, formatBadgeCount } from "@/hooks/useGlobalUnreadCount";
+import { GiftEmojiAnimation } from "@/components/chat/GiftEmojiAnimation";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
+import TraderBadge from "@/components/common/TraderBadge";
+import { LevelBadge } from "@/components/common/LevelBadge";
+import { trackTaskProgress } from "@/hooks/useTaskProgress";
+import { ReportUserDialog } from "@/components/report/ReportUserDialog";
+
+interface Conversation {
+  id: string;
+  participant_1: string;
+  participant_2: string;
+  last_message_at: string | null;
+  other_user: {
+    id: string;
+    display_name: string | null;
+    avatar_url: string | null;
+    is_online: boolean | null;
+    is_verified: boolean | null;
+    is_host: boolean | null;
+    gender: string | null;
+    user_level?: number | null;
+    country_flag?: string | null;
+    country_name?: string | null;
+    city?: string | null;
+    last_seen_at?: string | null;
+    call_rate_per_minute?: number | null;
+  } | null;
+  last_message?: string;
+  unread_count: number;
+}
+
+interface Message {
+  id: string;
+  content: string;
+  sender_id: string;
+  created_at: string;
+  is_read: boolean;
+  message_type: string;
+  status?: 'sending' | 'sent' | 'delivered' | 'read';
+  delivered_at?: string | null;
+  read_at?: string | null;
+  _optimistic?: boolean; // client-only flag for optimistic messages
+}
+
+interface Group {
+  id: string;
+  name: string;
+  avatar_url: string | null;
+  group_type: string;
+  group_code: string;
+  owner_id: string;
+  member_count: number;
+  is_owner: boolean;
+}
+
+interface GroupMessage {
+  id: string;
+  content: string;
+  sender_id: string;
+  created_at: string;
+  message_type: string;
+  sender?: {
+    display_name: string | null;
+    avatar_url: string | null;
+  };
+}
+
+// Parse gift payload from chat content
+const parseGiftContent = (content: string): { mediaUrl: string | null; emoji: string } => {
+  const mediaMatch = content.match(/\[Gift:\s*(https?:\/\/[^\|\s\]]+)\|/i);
+  const emojiMatch = content.match(/\[Gift:\s*(?:https?:\/\/[^\|\s\]]+\|)?([^\s\]]+)/i);
+
+  return {
+    mediaUrl: mediaMatch?.[1] ?? null,
+    emoji: emojiMatch?.[1] ?? '🎁',
+  };
+};
+
+// Helper function to clean gift message for preview (removes URLs, shows only emoji + name + beans)
+const cleanGiftMessageForPreview = (content: string): string => {
+  if (!/^\[Gift:/i.test(content)) return content;
+
+  // Match format: [Gift: URL|EMOJI NAME xCOUNT | +BEANS beans] or [Gift: EMOJI NAME xCOUNT | +BEANS beans]
+  // Extract just emoji, name, count and beans - remove URL completely
+  const urlRemoved = content.replace(/\[Gift:\s*https?:\/\/[^\|\s]+\|/i, '[Gift: ');
+
+  // Parse the clean content
+  const match = urlRemoved.match(/\[Gift:\s*([^\s]+)\s+([^x]+)\s*x(\d+)\s*\|\s*\+(\d+)\s*beans\]/i);
+  if (match) {
+    const [, emoji, name, count, beans] = match;
+    return `[Gift: ${emoji} ${name.trim()} x${count} | +${Number(beans).toLocaleString()} bea...]`;
+  }
+
+  // Fallback - just remove URL part
+  return urlRemoved;
+};
+
+const Chat = () => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const imageViewer = useImageViewer();
+  const { startCall } = useCall();
+  const { playSound } = useSound();
+  const playSoundRef = useRef(playSound);
+  playSoundRef.current = playSound;
+  const lastSoundTimeRef = useRef(0);
+  const playSoundDebounced = useCallback((type: Parameters<typeof playSound>[0]) => {
+    const now = Date.now();
+    if (now - lastSoundTimeRef.current < 900) return; // stronger debounce to prevent duplicate beeps
+    lastSoundTimeRef.current = now;
+    playSoundRef.current(type);
+  }, []);
+  const numberWarning = useNumberSharingWarning();
+  const [activeTab, setActiveTab] = useState("/chat");
+  const [chatTab, setChatTab] = useState("messages");
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [groupMessages, setGroupMessages] = useState<GroupMessage[]>([]);
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [myProfile, setMyProfile] = useState<{ display_name: string | null; avatar_url: string | null; user_level: number } | null>(null);
+  const [userCoins, setUserCoins] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isOtherTyping, setIsOtherTyping] = useState(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const typingChannelRef = useRef<any>(null);
+  const [otherUserTrader, setOtherUserTrader] = useState<{ isTrader: boolean; traderLevel: number }>({ isTrader: false, traderLevel: 0 });
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Group creation
+  const [showGroupActions, setShowGroupActions] = useState(false);
+  const [showCreateGroup, setShowCreateGroup] = useState(false);
+  const [showSearchGroup, setShowSearchGroup] = useState(false);
+  const [showGroupSettings, setShowGroupSettings] = useState(false);
+  const [newGroupName, setNewGroupName] = useState("");
+  const [newGroupType, setNewGroupType] = useState("basic");
+  const [groupSearchQuery, setGroupSearchQuery] = useState("");
+  const [groupSearchResults, setGroupSearchResults] = useState<any[]>([]);
+  const [creatingGroup, setCreatingGroup] = useState(false);
+  const [newGroupPhoto, setNewGroupPhoto] = useState<File | null>(null);
+  const [newGroupPhotoPreview, setNewGroupPhotoPreview] = useState<string | null>(null);
+  const groupPhotoInputRef = useRef<HTMLInputElement>(null);
+  
+  // Notifications
+  const [showNotifications, setShowNotifications] = useState(false);
+  const { unreadCount: notificationUnreadCount, markAllAsRead: markAllNotificationsAsRead } = useNotifications();
+  const globalUnread = useGlobalUnreadCount();
+
+  const emitGlobalUnreadRefresh = useCallback((detail?: { messagesDecrement?: number; messagesSetZero?: boolean }) => {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("global-unread:refresh", { detail }));
+    }
+  }, []);
+  
+  // Handle tab change - mark all notifications as read when entering notifications tab
+  const handleTabChange = (tab: string) => {
+    setChatTab(tab);
+    if (tab === 'notifications') {
+      // Mark all notifications as read when viewing the notifications tab
+      markAllNotificationsAsRead();
+    }
+  };
+  
+  // Emoji & Media Picker
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showMediaUploader, setShowMediaUploader] = useState(false);
+  
+  // Voice Recording
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [sendingVoice, setSendingVoice] = useState(false);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const streamRef = useRef<MediaStream | null>(null);
+  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Pending Media (image/video to send with send button)
+  const [pendingMedia, setPendingMedia] = useState<{ url: string; type: 'image' | 'video' | 'audio' } | null>(null);
+  
+  // Translator
+  const [showTranslator, setShowTranslator] = useState(false);
+  const [translateText, setTranslateText] = useState("");
+  const [translatedResult, setTranslatedResult] = useState("");
+  const [selectedLanguage, setSelectedLanguage] = useState("English");
+  
+  // Report dialog
+  const [showReportDialog, setShowReportDialog] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const translateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Gift Animation State
+  const [showGiftAnimation, setShowGiftAnimation] = useState(false);
+  const [animatingGiftEmoji, setAnimatingGiftEmoji] = useState("");
+  const [giftAnimationInstance, setGiftAnimationInstance] = useState(0);
+  
+  // Host's received gift tracking (live counter)
+  const [hostReceivedGifts, setHostReceivedGifts] = useState(0);
+  const [hostTotalDiamonds, setHostTotalDiamonds] = useState(0);
+  
+  // Inline translation for main input
+  const [inlineTranslation, setInlineTranslation] = useState("");
+  const [isInlineTranslating, setIsInlineTranslating] = useState(false);
+  const [inlineTranslateEnabled, setInlineTranslateEnabled] = useState(false);
+  const [inlineTargetLang, setInlineTargetLang] = useState("English");
+  const inlineTranslateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Language options with country flags
+  const languageOptions = [
+    { code: "English", flag: "🇺🇸", name: "English" },
+    { code: "Bengali", flag: "🇧🇩", name: "Bengali" },
+    { code: "Hindi", flag: "🇮🇳", name: "Hindi" },
+    { code: "Arabic", flag: "🇸🇦", name: "Arabic" },
+    { code: "Spanish", flag: "🇪🇸", name: "Spanish" },
+    { code: "French", flag: "🇫🇷", name: "French" },
+    { code: "Portuguese", flag: "🇧🇷", name: "Portuguese" },
+    { code: "Russian", flag: "🇷🇺", name: "Russian" },
+    { code: "Chinese", flag: "🇨🇳", name: "Chinese" },
+    { code: "Japanese", flag: "🇯🇵", name: "Japanese" },
+    { code: "Korean", flag: "🇰🇷", name: "Korean" },
+    { code: "Turkish", flag: "🇹🇷", name: "Türkçe" },
+    { code: "Indonesian", flag: "🇮🇩", name: "Bahasa" },
+    { code: "Thai", flag: "🇹🇭", name: "ไทย" },
+    { code: "Vietnamese", flag: "🇻🇳", name: "Tiếng Việt" },
+  ];
+
+  // Inline auto-translate for main input
+  const translateInlineMessage = async (text: string, targetLang: string) => {
+    if (!text.trim()) {
+      setInlineTranslation("");
+      return;
+    }
+    
+    setIsInlineTranslating(true);
+    try {
+      const response = await supabase.functions.invoke('translate', {
+        body: { text: text.trim(), targetLanguage: targetLang }
+      });
+      
+      if (response.error) {
+        console.error('Inline translation error:', response.error);
+        return;
+      }
+      
+      setInlineTranslation(response.data?.translatedText || "");
+    } catch (error) {
+      console.error('Inline translation error:', error);
+    } finally {
+      setIsInlineTranslating(false);
+    }
+  };
+
+  // Handle message change with inline translation
+  const handleMessageChange = (text: string) => {
+    setMessage(text);
+    
+    // Broadcast typing indicator
+    if (text.trim()) broadcastTyping();
+    
+    // If inline translation is enabled, translate as user types
+    if (inlineTranslateEnabled && text.trim()) {
+      if (inlineTranslateTimeoutRef.current) {
+        clearTimeout(inlineTranslateTimeoutRef.current);
+      }
+      
+      inlineTranslateTimeoutRef.current = setTimeout(() => {
+        translateInlineMessage(text, inlineTargetLang);
+      }, 600);
+    } else {
+      setInlineTranslation("");
+    }
+  };
+
+  // Auto-translate function for modal
+  const autoTranslate = async (text: string, targetLang: string) => {
+    if (!text.trim()) {
+      setTranslatedResult("");
+      return;
+    }
+    
+    setIsTranslating(true);
+    try {
+      const response = await supabase.functions.invoke('translate', {
+        body: { text: text.trim(), targetLanguage: targetLang }
+      });
+      
+      if (response.error) {
+        console.error('Translation error:', response.error);
+        toast.error("Translation failed");
+        return;
+      }
+      
+      setTranslatedResult(response.data?.translatedText || "");
+    } catch (error) {
+      console.error('Translation error:', error);
+      toast.error("Translation failed");
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
+  // Debounced auto-translate on text change for modal
+  const handleTranslateTextChange = (text: string) => {
+    setTranslateText(text);
+    
+    // Clear previous timeout
+    if (translateTimeoutRef.current) {
+      clearTimeout(translateTimeoutRef.current);
+    }
+    
+    // Set new timeout for auto-translate (500ms debounce)
+    if (text.trim()) {
+      translateTimeoutRef.current = setTimeout(() => {
+        autoTranslate(text, selectedLanguage);
+      }, 500);
+    } else {
+      setTranslatedResult("");
+    }
+  };
+
+  // Re-translate when language changes for modal
+  const handleLanguageChange = (lang: string) => {
+    setSelectedLanguage(lang);
+    if (translateText.trim()) {
+      autoTranslate(translateText, lang);
+    }
+  };
+  
+  // Re-translate when inline language changes
+  const handleInlineLangChange = (lang: string) => {
+    setInlineTargetLang(lang);
+    if (message.trim() && inlineTranslateEnabled) {
+      translateInlineMessage(message, lang);
+    }
+  };
+  
+  // Gift Panel & Game Panel
+  const [showGiftPanel, setShowGiftPanel] = useState(false);
+  const [showGamePanel, setShowGamePanel] = useState(false);
+  
+  // ✅ Gifts loaded from real database via GiftPanel/ChatGiftPanel components
+  // No hardcoded gift data - 100% real DB
+  
+  // Start Voice Recording
+  const startVoiceRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          sampleRate: 44100
+        } 
+      });
+      
+      streamRef.current = stream;
+      
+      // Check supported MIME types
+      let mimeType = 'audio/webm;codecs=opus';
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = 'audio/webm';
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
+          mimeType = 'audio/mp4';
+          if (!MediaRecorder.isTypeSupported(mimeType)) {
+            mimeType = '';
+          }
+        }
+      }
+      
+      const recorder = mimeType 
+        ? new MediaRecorder(stream, { mimeType })
+        : new MediaRecorder(stream);
+      
+      audioChunksRef.current = [];
+      
+      recorder.ondataavailable = (event) => {
+        console.log('[Voice] Data available:', event.data.size, 'bytes');
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+      
+      recorder.onstop = () => {
+        console.log('[Voice] Recorder stopped, chunks:', audioChunksRef.current.length);
+        if (audioChunksRef.current.length === 0) {
+          console.error('[Voice] No audio chunks recorded!');
+          toast.error('Recording failed. Please try again.');
+          return;
+        }
+        const blob = new Blob(audioChunksRef.current, { 
+          type: recorder.mimeType || 'audio/webm' 
+        });
+        console.log('[Voice] Created blob:', blob.size, 'bytes, type:', blob.type);
+        setAudioBlob(blob);
+      };
+      
+      // Use timeslice to collect data every 100ms
+      recorder.start(100);
+      console.log('[Voice] Recording started with mimeType:', recorder.mimeType);
+      setMediaRecorder(recorder);
+      setIsRecording(true);
+      setRecordingDuration(0);
+      setAudioBlob(null);
+      
+      // Start timer
+      recordingIntervalRef.current = setInterval(() => {
+        setRecordingDuration(prev => prev + 1);
+      }, 1000);
+      
+    } catch (error) {
+      console.error("Microphone access error:", error);
+    }
+  };
+  
+  // Stop Voice Recording
+  const stopVoiceRecording = () => {
+    console.log('[Voice] Stopping recording...');
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      // Request any remaining data before stopping
+      try {
+        mediaRecorder.requestData();
+      } catch (e) {
+        console.log('[Voice] requestData not supported or failed');
+      }
+      mediaRecorder.stop();
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    if (recordingIntervalRef.current) {
+      clearInterval(recordingIntervalRef.current);
+      recordingIntervalRef.current = null;
+    }
+    setIsRecording(false);
+  };
+  
+  // Cancel Voice Recording
+  const cancelVoiceRecording = () => {
+    stopVoiceRecording();
+    setAudioBlob(null);
+    setRecordingDuration(0);
+  };
+  
+  // Send Voice Message
+  const sendVoiceMessage = async () => {
+    console.log('[Voice] sendVoiceMessage called, audioBlob:', audioBlob?.size, 'bytes');
+    
+    if (!audioBlob) {
+      console.error('[Voice] No audio blob available!');
+      toast.error('No audio recorded. Please record again.');
+      return;
+    }
+    
+    if (!currentUserId || sendingVoice) {
+      console.log('[Voice] Cannot send: currentUserId:', currentUserId, 'sendingVoice:', sendingVoice);
+      return;
+    }
+    
+    setSendingVoice(true);
+    try {
+      const fileExtension = audioBlob.type?.includes('mp4') ? 'mp4' : 'webm';
+      const fileName = `voice-${currentUserId}-${Date.now()}.${fileExtension}`;
+      console.log('[Voice] Uploading to:', fileName);
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('chat-media')
+        .upload(fileName, audioBlob, {
+          contentType: audioBlob.type,
+          upsert: false
+        });
+      
+      if (uploadError) {
+        console.error("Upload error:", uploadError);
+        throw uploadError;
+      }
+      
+      const { data: urlData } = supabase.storage
+        .from('chat-media')
+        .getPublicUrl(fileName);
+      
+      // Send voice message
+      if (selectedConversation) {
+        const { data: newMsg, error } = await supabase
+          .from('messages')
+          .insert({
+            conversation_id: selectedConversation.id,
+            sender_id: currentUserId,
+            content: urlData.publicUrl,
+            message_type: 'audio'
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        if (newMsg) {
+          setMessages(prev => {
+            if (prev.find(m => m.id === newMsg.id)) return prev;
+            return [...prev, castMessage(newMsg)];
+          });
+        }
+
+        await supabase
+          .from('conversations')
+          .update({ last_message_at: new Date().toISOString() })
+          .eq('id', selectedConversation.id);
+
+        // 🔔 Push notification for voice message
+        const recipientId = selectedConversation.other_user?.id;
+        if (recipientId && currentUserId) {
+          supabase.functions.invoke('notify-new-message', {
+            body: {
+              conversationId: selectedConversation.id,
+              senderId: currentUserId,
+              recipientId,
+              messageContent: '',
+              messageType: 'voice',
+            }
+          }).catch(() => {});
+        }
+      } else if (selectedGroup) {
+        const { data: newMsg, error } = await supabase
+          .from('group_messages')
+          .insert({
+            group_id: selectedGroup.id,
+            sender_id: currentUserId,
+            content: urlData.publicUrl,
+            message_type: 'audio'
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        if (newMsg) {
+          setGroupMessages(prev => {
+            if (prev.find(m => m.id === newMsg.id)) return prev;
+            return [...prev, { ...newMsg, sender: null }];
+          });
+        }
+      }
+      
+      // Clear after successful send
+      setAudioBlob(null);
+      setRecordingDuration(0);
+      console.log('[Voice] Message sent successfully!');
+      playSoundDebounced('message');
+      toast.success('Voice message sent!');
+    } catch (error: any) {
+      console.error("[Voice] Upload error:", error);
+      toast.error(error?.message || 'Failed to send voice message');
+    } finally {
+      setSendingVoice(false);
+    }
+  };
+  
+  // Toggle Voice Recording
+  const handleVoiceRecord = () => {
+    if (isRecording) {
+      stopVoiceRecording();
+    } else {
+      startVoiceRecording();
+    }
+  };
+  
+  // Format recording duration
+  const formatRecordingTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+  
+  // Send Gift Handler - INSTANT with optimistic updates
+  const handleSendGift = async (gift: GiftData, count: number = 1) => {
+    if (!selectedConversation?.other_user?.id || !currentUserId) return;
+    
+    // CRITICAL: Prevent self-gifting
+    if (currentUserId === selectedConversation.other_user.id) {
+      toast.error("You cannot send gifts to yourself!");
+      return;
+    }
+    
+    const totalCost = gift.coins * count;
+    
+    // Check coins immediately (use cached value)
+    if (userCoins < totalCost) {
+      toast.error("Not enough diamonds!");
+      return;
+    }
+    
+    // ========== INSTANT UI UPDATE (< 100ms) ==========
+    // Close panel immediately
+    setShowGiftPanel(false);
+    
+    // Optimistic coin deduction
+    setUserCoins(prev => prev - totalCost);
+    
+    // Play gift sound IMMEDIATELY
+    playSoundDebounced('gift');
+    
+    // Show gift animation IMMEDIATELY
+    const giftEmoji = gift.emoji || '🎁';
+    const animationUrl = gift.animation_url?.startsWith('http') ? gift.animation_url : '';
+    const iconUrl = gift.icon_url?.startsWith('http') ? gift.icon_url : '';
+    const giftMediaUrl = animationUrl || iconUrl;
+
+    setAnimatingGiftEmoji(giftMediaUrl || giftEmoji);
+    setGiftAnimationInstance(prev => prev + 1);
+    setShowGiftAnimation(true);
+    
+    // Gift animation is already playing - no toast needed
+    
+    // ========== BACKGROUND PROCESSING ==========
+    (async () => {
+      try {
+        // Use edge function for proper commission handling
+        const response = await supabase.functions.invoke('gift-service', {
+          body: {
+            receiverId: selectedConversation.other_user.id,
+            giftId: gift.id,
+            // No streamId or partyRoomId - this is DM context
+          }
+        });
+        
+        if (response.error) {
+          console.error('[Chat Gift] Edge function error:', response.error);
+          // Refund on failure
+          setUserCoins(prev => prev + totalCost);
+          toast.error("Gift failed - diamonds refunded");
+          return;
+        }
+        
+        // Get beans amount from response for message
+        const beansEarned = response.data?.hostReceived || Math.floor(totalCost * 0.6);
+        
+        // Send gift as message - include animation/icon URL for rendering
+        // Format: [Gift: URL|EMOJI NAME xCOUNT | +BEANS beans]
+        const messageContent = giftMediaUrl
+          ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | +${beansEarned} beans]`
+          : `[Gift: ${giftEmoji} ${gift.name} x${count} | +${beansEarned} beans]`;
+        
+        await supabase
+          .from('messages')
+          .insert({
+            conversation_id: selectedConversation.id,
+            sender_id: currentUserId,
+            content: messageContent,
+            message_type: 'gift'
+          });
+        
+        // Sync actual balance
+        const { data: updatedProfile } = await supabase
+          .from('profiles')
+          .select('coins')
+          .eq('id', currentUserId)
+          .single();
+        
+        if (updatedProfile) {
+          setUserCoins(updatedProfile.coins || 0);
+          // CRITICAL: Update global cached balance so Profile "My Diamonds" reflects instantly
+          const { updateCachedBalance } = await import("@/hooks/useUserBalance");
+          updateCachedBalance(updatedProfile.coins || 0);
+        }
+      } catch (error) {
+        console.error('[Chat Gift] Background error:', error);
+        // Refund on error
+        setUserCoins(prev => prev + totalCost);
+        toast.error("Gift failed - diamonds refunded");
+      }
+    })();
+  };
+
+  useEffect(() => {
+    initializeChat();
+    
+    // Cleanup recording interval on unmount
+    return () => {
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const userId = searchParams.get('user');
+    if (userId && currentUserId && !selectedConversation) {
+      openOrCreateConversation(userId);
+      // Auto-fill message if provided (e.g., from Recharge helper)
+      const autoMsg = searchParams.get('autoMessage');
+      if (autoMsg) {
+        setMessage(decodeURIComponent(autoMsg));
+      }
+    }
+  }, [searchParams, currentUserId]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, groupMessages, isOtherTyping]);
+
+  // Subscribe to real-time messages via universal system
+  useEffect(() => {
+    if (!selectedConversation) return;
+
+    const unsubscribe = subscribeToTables(
+      `chat-messages-${selectedConversation.id}`,
+      ['messages'],
+      (table: string, event: string, payload: any) => {
+        if (table !== 'messages') return;
+        if (payload?.conversation_id !== selectedConversation.id) return;
+        
+        const newMessage = castMessage(payload);
+        
+        // If this is our own message coming back from DB, replace the optimistic version
+        if (newMessage.sender_id === currentUserId) {
+          setMessages(prev => {
+            // Remove optimistic message and add real one
+            const withoutOptimistic = prev.filter(m => !m._optimistic || m.content !== newMessage.content);
+            if (withoutOptimistic.find(m => m.id === newMessage.id)) return withoutOptimistic;
+            return [...withoutOptimistic, { ...newMessage, status: 'sent' as const }];
+          });
+        } else {
+          setMessages(prev => {
+            if (prev.find(m => m.id === newMessage.id)) return prev;
+            return [...prev, newMessage];
+          });
+          markMessageAsRead(newMessage.id);
+          
+          // Broadcast read receipt to sender
+          supabase.channel(`receipts-${selectedConversation.id}`).send({
+            type: 'broadcast',
+            event: 'read',
+            payload: { userId: currentUserId, conversationId: selectedConversation.id }
+          });
+          
+          if (newMessage.message_type === 'gift') {
+            playSoundDebounced('gift');
+            const { mediaUrl, emoji } = parseGiftContent(newMessage.content || '');
+            setAnimatingGiftEmoji(mediaUrl || emoji);
+            setGiftAnimationInstance(prev => prev + 1);
+            setShowGiftAnimation(true);
+          } else {
+            playSoundDebounced('message');
+          }
+        }
+      }
+    );
+
+    return () => {
+      unsubscribe();
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedConversation, currentUserId]);
+
+  // 📩 Read/Delivered receipt listener via Supabase broadcast
+  useEffect(() => {
+    if (!selectedConversation?.id || !currentUserId) return;
+    
+    const receiptChannel = supabase.channel(`receipts-${selectedConversation.id}`);
+    
+    receiptChannel
+      .on('broadcast', { event: 'delivered' }, (payload: any) => {
+        if (payload.payload?.userId !== currentUserId) {
+          // Other user received our messages - update status to delivered
+          setMessages(prev => prev.map(m => 
+            m.sender_id === currentUserId && (m.status === 'sent' || m.status === 'sending')
+              ? { ...m, status: 'delivered' as const }
+              : m
+          ));
+        }
+      })
+      .on('broadcast', { event: 'read' }, (payload: any) => {
+        if (payload.payload?.userId !== currentUserId) {
+          // Other user read our messages - update status to read
+          setMessages(prev => prev.map(m => 
+            m.sender_id === currentUserId && m.status !== 'read'
+              ? { ...m, status: 'read' as const, is_read: true }
+              : m
+          ));
+        }
+      })
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(receiptChannel);
+    };
+  }, [selectedConversation?.id, currentUserId]);
+
+  // Typing indicator via Supabase broadcast
+  useEffect(() => {
+    if (!selectedConversation?.id || !currentUserId) return;
+    
+    const channel = supabase.channel(`typing-${selectedConversation.id}`);
+    
+    channel.on('broadcast', { event: 'typing' }, (payload: any) => {
+      if (payload.payload?.userId !== currentUserId) {
+        setIsOtherTyping(true);
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = setTimeout(() => setIsOtherTyping(false), 3000);
+      }
+    }).subscribe();
+    
+    typingChannelRef.current = channel;
+    
+    return () => {
+      setIsOtherTyping(false);
+      supabase.removeChannel(channel);
+      typingChannelRef.current = null;
+    };
+  }, [selectedConversation?.id, currentUserId]);
+
+  // Broadcast typing event
+  const broadcastTyping = useCallback(() => {
+    if (typingChannelRef.current && currentUserId) {
+      typingChannelRef.current.send({
+        type: 'broadcast',
+        event: 'typing',
+        payload: { userId: currentUserId },
+      });
+    }
+  }, [currentUserId]);
+
+  // Group messages use broadcast - group_messages is NOT in realtime publication
+  // Keep lightweight polling via conversations subscription above
+  useEffect(() => {
+    if (!selectedGroup) return;
+
+    // group_messages table is NOT in supabase_realtime publication
+    // Use a polling approach with the universal messages subscription as trigger
+    const pollInterval = setInterval(async () => {
+      const { data } = await supabase
+        .from('group_messages')
+        .select('*, sender:profiles!group_messages_sender_id_fkey(display_name, avatar_url)')
+        .eq('group_id', selectedGroup.id)
+        .order('created_at', { ascending: true })
+        .limit(100);
+      
+      if (data) {
+        setGroupMessages(data);
+      }
+    }, 5000);
+
+    return () => clearInterval(pollInterval);
+  }, [selectedGroup, currentUserId]);
+
+  // Fetch host's received gifts count and subscribe to real-time updates
+  useEffect(() => {
+    if (!selectedConversation?.other_user?.id) return;
+    
+    const hostId = selectedConversation.other_user.id;
+    
+    const fetchHostGifts = async () => {
+      const { data, error } = await supabase
+        .from('gift_transactions')
+        .select('coin_amount')
+        .eq('receiver_id', hostId);
+      
+      if (!error && data) {
+        setHostReceivedGifts(data.length);
+        setHostTotalDiamonds(data.reduce((sum, t) => sum + (t.coin_amount || 0), 0));
+      }
+    };
+    
+    fetchHostGifts();
+    
+    // Subscribe to gift transactions via universal system
+    const unsubscribe = subscribeToTables(
+      `host-gifts-${hostId}`,
+      ['gift_transactions'],
+      (table: string, event: string, payload: any) => {
+        if (payload?.receiver_id === hostId) {
+          setHostReceivedGifts(prev => prev + 1);
+          setHostTotalDiamonds(prev => prev + (payload.coin_amount || 0));
+        }
+      }
+    );
+
+    return () => {
+      unsubscribe();
+    };
+  }, [selectedConversation?.other_user?.id]);
+
+  // Debounced conversation list refresh on new messages - via universal system
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    let refreshTimer: NodeJS.Timeout | null = null;
+    const debouncedRefresh = () => {
+      if (refreshTimer) clearTimeout(refreshTimer);
+      refreshTimer = setTimeout(() => fetchConversations(), 1500);
+    };
+
+    const unsubscribe = subscribeToTables(
+      `conv-refresh-${currentUserId}`,
+      ['messages', 'conversations'],
+      () => debouncedRefresh()
+    );
+
+    return () => {
+      if (refreshTimer) clearTimeout(refreshTimer);
+      unsubscribe();
+    };
+  }, [currentUserId]);
+
+  const initializeChat = async () => {
+    try {
+      const { getCachedUser } = await import('@/utils/cachedAuth');
+      const cachedUser = await getCachedUser();
+      const user = cachedUser ? { id: cachedUser.id, email: cachedUser.email } : null;
+      if (!user) {
+        navigate('/auth');
+        return;
+      }
+      setCurrentUserId(user.id);
+      
+      // Parallel fetch - coins + conversations + groups at once
+      const [profileResult] = await Promise.all([
+        supabase.from('profiles').select('coins, display_name, avatar_url, user_level').eq('id', user.id).single(),
+        fetchConversations(user.id),
+        fetchGroups()
+      ]);
+      
+      if (profileResult.data) {
+        setUserCoins(profileResult.data.coins || 0);
+        setMyProfile({
+          display_name: profileResult.data.display_name,
+          avatar_url: profileResult.data.avatar_url,
+          user_level: profileResult.data.user_level || 1,
+        });
+      }
+    } catch (error) {
+      console.error('[Chat] Error initializing:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchConversations = async (overrideUserId?: string) => {
+    const userId = overrideUserId || currentUserId;
+    if (!userId) return;
+
+    try {
+      // Use optimized RPC function - single query instead of N+1
+      const { data: conversations, error } = await supabase
+        .rpc('get_conversations_with_details', { p_user_id: userId });
+
+      if (error) {
+        console.error('[Chat] Error fetching conversations:', error);
+        // Fallback to basic query if RPC fails
+        const { data: convs } = await supabase
+          .from('conversations')
+          .select('*')
+          .or(`participant_1.eq.${userId},participant_2.eq.${userId}`)
+          .order('last_message_at', { ascending: false, nullsFirst: false });
+        
+        setConversations((convs || []).map(c => ({
+          ...c,
+          other_user: null,
+          last_message: '',
+          unread_count: 0
+        })));
+        return;
+      }
+
+      // Transform the RPC result - already formatted correctly
+      // Cast to unknown first then to array to handle Supabase's generic JSON return type
+      const conversationsArray = Array.isArray(conversations) ? conversations : [];
+      const formattedConversations: Conversation[] = conversationsArray.map((conv: {
+        id: string;
+        participant_1: string;
+        participant_2: string;
+        last_message_at: string | null;
+        other_user: Conversation['other_user'];
+        last_message: string | null;
+        unread_count: number;
+      }) => ({
+        id: conv.id,
+        participant_1: conv.participant_1,
+        participant_2: conv.participant_2,
+        last_message_at: conv.last_message_at,
+        other_user: conv.other_user,
+        last_message: cleanGiftMessageForPreview(conv.last_message || ''),
+        unread_count: conv.unread_count || 0
+      }));
+
+      setConversations(formattedConversations);
+    } catch (err) {
+      console.error('[Chat] Error:', err);
+    }
+  };
+
+  const fetchGroups = async () => {
+    const userId = currentUserId;
+    if (!userId) return;
+
+    const { data: memberOf, error } = await supabase
+      .from('group_members')
+      .select('group_id, role')
+      .eq('user_id', userId);
+
+    if (error || !memberOf || memberOf.length === 0) {
+      setGroups([]);
+      return;
+    }
+
+    const groupIds = memberOf.map(m => m.group_id);
+    const roleMap = new Map(memberOf.map(m => [m.group_id, m.role]));
+
+    const { data: groupsData } = await supabase
+      .from('groups')
+      .select('*')
+      .in('id', groupIds)
+      .eq('is_active', true);
+
+    const groupsWithRole: Group[] = (groupsData || []).map(g => ({
+      ...g,
+      is_owner: roleMap.get(g.id) === 'owner' || g.owner_id === userId
+    }));
+
+    setGroups(groupsWithRole);
+  };
+
+  const openOrCreateConversation = async (otherUserId: string) => {
+    if (!currentUserId) return;
+
+    const { data: existing } = await supabase
+      .from('conversations')
+      .select('*')
+      .or(`and(participant_1.eq.${currentUserId},participant_2.eq.${otherUserId}),and(participant_1.eq.${otherUserId},participant_2.eq.${currentUserId})`)
+      .maybeSingle();
+
+    if (existing) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id, display_name, avatar_url, is_online, is_verified, is_host, gender, call_rate_per_minute')
+        .eq('id', otherUserId)
+        .maybeSingle();
+
+      setSelectedConversation({
+        ...existing,
+        other_user: profile,
+        last_message: '',
+        unread_count: 0
+      });
+      fetchMessages(existing.id);
+    } else {
+      const { data: newConv, error } = await supabase
+        .from('conversations')
+        .insert({
+          participant_1: currentUserId,
+          participant_2: otherUserId
+        })
+        .select()
+        .single();
+
+      if (error) {
+        toast.error("Failed to start conversation");
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id, display_name, avatar_url, is_online, is_verified, is_host, gender, call_rate_per_minute')
+        .eq('id', otherUserId)
+        .maybeSingle();
+
+      setSelectedConversation({
+        ...newConv,
+        other_user: profile,
+        last_message: '',
+        unread_count: 0
+      });
+      setMessages([]);
+    }
+  };
+
+  const castMessage = (m: any): Message => ({
+    ...m,
+    status: (m.status as Message['status']) || (m.is_read ? 'read' : 'sent'),
+  });
+
+  const fetchMessages = async (conversationId: string) => {
+    const { data, error } = await supabase
+      .from('messages')
+      .select('*')
+      .eq('conversation_id', conversationId)
+      .order('created_at', { ascending: true });
+
+    if (error) return;
+    setMessages((data || []).map(castMessage));
+
+    // Mark as delivered via RPC
+    if (currentUserId) {
+      supabase.rpc('mark_messages_delivered', {
+        p_conversation_id: conversationId,
+        p_recipient_id: currentUserId
+      }).then(({ data: count }) => {
+        if (count && count > 0) {
+          // Broadcast delivery receipt to sender
+          supabase.channel(`receipts-${conversationId}`).send({
+            type: 'broadcast',
+            event: 'delivered',
+            payload: { userId: currentUserId, conversationId }
+          });
+        }
+      });
+    }
+
+    if (data && currentUserId) {
+      const unreadIds = data
+        .filter(m => !m.is_read && m.sender_id !== currentUserId)
+        .map(m => m.id);
+
+      if (unreadIds.length > 0) {
+        await supabase
+          .from('messages')
+          .update({ is_read: true })
+          .in('id', unreadIds);
+
+        emitGlobalUnreadRefresh({ messagesDecrement: unreadIds.length });
+
+        // Refresh conversations list to update unread count
+        fetchConversations();
+      }
+    }
+  };
+
+  const fetchGroupMessages = async (groupId: string) => {
+    const { data, error } = await supabase
+      .from('group_messages')
+      .select('*')
+      .eq('group_id', groupId)
+      .order('created_at', { ascending: true });
+
+    if (error) return;
+
+    // Fetch sender profiles
+    const senderIds = [...new Set(data?.map(m => m.sender_id) || [])];
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, display_name, avatar_url')
+      .in('id', senderIds);
+
+    const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
+    const messagesWithSenders: GroupMessage[] = (data || []).map(m => ({
+      ...m,
+      sender: profilesMap.get(m.sender_id) || null
+    }));
+
+    setGroupMessages(messagesWithSenders);
+  };
+
+  const markMessageAsRead = async (messageId: string) => {
+    await supabase
+      .from('messages')
+      .update({ is_read: true })
+      .eq('id', messageId);
+
+    emitGlobalUnreadRefresh({ messagesDecrement: 1 });
+    
+    // Refresh conversations list to update unread count
+    fetchConversations();
+  };
+
+  const handleSelectConversation = async (conv: Conversation) => {
+    setSelectedConversation(conv);
+    setSelectedGroup(null);
+    setOtherUserTrader({ isTrader: false, traderLevel: 0 });
+    await fetchMessages(conv.id);
+    
+    // Check if other user is a trader
+    if (conv.other_user?.id) {
+      supabase.from('topup_helpers').select('trader_level').eq('user_id', conv.other_user.id).eq('is_active', true).eq('is_verified', true).maybeSingle()
+        .then(({ data }) => {
+          if (data) setOtherUserTrader({ isTrader: true, traderLevel: data.trader_level || 1 });
+        });
+    }
+    
+    // Update the conversation's unread count locally
+    setConversations(prev => 
+      prev.map(c => c.id === conv.id ? { ...c, unread_count: 0 } : c)
+    );
+  };
+
+  const handleSelectGroup = (group: Group) => {
+    setSelectedGroup(group);
+    setSelectedConversation(null);
+    fetchGroupMessages(group.id);
+  };
+
+  // Check if the other user in conversation is a helper/payroll helper
+  const isHelperConversation = async (): Promise<boolean> => {
+    if (!selectedConversation?.other_user?.id || !currentUserId) return false;
+    const otherUserId = selectedConversation.other_user.id;
+    
+    // Check if either participant is a helper/payroll helper
+    const { data } = await supabase
+      .from('topup_helpers')
+      .select('id, payroll_enabled')
+      .in('user_id', [otherUserId, currentUserId])
+      .eq('is_active', true)
+      .eq('is_verified', true);
+    
+    return (data && data.length > 0) || false;
+  };
+
+  // Phone detection function
+  const checkPhoneNumber = async (text: string, conversationId?: string, groupId?: string): Promise<boolean> => {
+    if (!currentUserId) return false;
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('detect-phone-number', {
+        body: {
+          message: text,
+          userId: currentUserId,
+          conversationId,
+          groupId
+        }
+      });
+
+      if (error) {
+        console.error('Phone detection error:', error);
+        return false;
+      }
+
+      if (data?.detected) {
+        if (data.isBanned) {
+          toast.error("Your account has been blocked", {
+            description: "Violation of phone number sharing policy"
+          });
+          navigate('/auth');
+          return true;
+        }
+        
+        // Show different message for hosts with auto-deduction
+        if (data.autoDeducted) {
+          toast.error(`🚨 ${data.deductedAmount} Beans deducted!`, {
+            description: `Auto deduction for sharing phone number. Current balance: ${data.newBalance?.toLocaleString() || 0} Beans`
+          });
+        } else {
+          toast.warning(`Warning (${data.violationCount}/3)`, {
+            description: "Sharing phone numbers is prohibited. Repeated violations may result in account ban."
+          });
+        }
+        return true;
+      }
+      
+      return false;
+    } catch (err) {
+      console.error('Phone detection failed:', err);
+      return false;
+    }
+  };
+
+  // 🔥 AWS Comprehend toxic content moderation (shared hook)
+  const { checkToxicContent: checkToxic } = useContentModeration(currentUserId);
+
+  const handleSend = async () => {
+    if (!message.trim() || sending) return;
+
+    setSending(true);
+    const originalContent = message.trim();
+    setMessage("");
+    
+    // 🚀 OPTIMISTIC UI: Show message instantly with 'sending' status
+    const optimisticId = `optimistic-${Date.now()}`;
+    if (selectedConversation && currentUserId) {
+      const optimisticMsg: Message = {
+        id: optimisticId,
+        content: originalContent,
+        sender_id: currentUserId,
+        created_at: new Date().toISOString(),
+        is_read: false,
+        message_type: 'text',
+        status: 'sending',
+        _optimistic: true,
+      };
+      setMessages(prev => [...prev, optimisticMsg]);
+    }
+    
+    // No local send sound here (avoid duplicate beeps on send + realtime events)
+    
+    // 🔍 BLOCKING: Run contact detection BEFORE sending
+    const { detectContactInfo, maskContactContent } = await import('@/utils/contactDetection');
+    const detection = detectContactInfo(originalContent);
+    
+    // Determine what content to actually send
+    let contentToSend = originalContent;
+    if (detection.hasViolation) {
+      // Mask the content - recipient will see *** instead of contact info
+      contentToSend = maskContactContent(originalContent, detection);
+      console.log('[ContactDetection] BLOCKED content, masked:', contentToSend);
+      
+      // Process violation (warning + bean deduction) in background
+      const sourceId = selectedConversation?.id || selectedGroup?.id;
+      detectAndProcessViolation(currentUserId!, originalContent, 'private_message', sourceId)
+        .then(res => {
+          console.log('[ContactDetection] Chat result:', res);
+          if (res.detected && res.violationNumber) {
+            numberWarning.showWarning(res.violationNumber, res.beansDeducted || 0, res.isBanned || false);
+          } else if (res.detected) {
+            numberWarning.showGenericWarning();
+          }
+        })
+        .catch(err => console.error('[ContactDetection] Chat error:', err));
+    }
+
+    try {
+      if (selectedConversation) {
+        const insertPromise = supabase
+          .from('messages')
+          .insert({
+            conversation_id: selectedConversation.id,
+            sender_id: currentUserId,
+            content: contentToSend,
+            message_type: 'text'
+          });
+
+        const updatePromise = supabase
+          .from('conversations')
+          .update({ last_message_at: new Date().toISOString() })
+          .eq('id', selectedConversation.id);
+        
+        await Promise.all([insertPromise, updatePromise]);
+        
+        // Track message sent for task progress
+        trackTaskProgress('messages_sent', { increment: 1 });
+
+        // 🔔 Push notification to recipient (non-blocking background)
+        const recipientId = selectedConversation.other_user?.id;
+        if (recipientId && currentUserId) {
+          supabase.functions.invoke('notify-new-message', {
+            body: {
+              conversationId: selectedConversation.id,
+              senderId: currentUserId,
+              recipientId,
+              messageContent: contentToSend,
+              messageType: 'text',
+            }
+          }).catch(err => console.log('[Push] Message notification background:', err));
+        }
+
+        // 🔍 Phone number check in BACKGROUND (non-blocking)
+        // Skip detection for helper/payroll helper conversations
+        isHelperConversation().then(isHelper => {
+          if (!isHelper) {
+            checkPhoneNumber(originalContent, selectedConversation.id, undefined).catch(() => {});
+          }
+        }).catch(() => {});
+        checkToxic(originalContent, { contextType: 'chat', conversationId: selectedConversation.id }).catch(() => {});
+        // AI Auto-Reply in background
+        const otherUser = selectedConversation.other_user;
+        if (otherUser && (otherUser.gender === 'female' || otherUser.gender === 'Female')) {
+          supabase.functions.invoke('ai-chat-reply', {
+            body: {
+              conversationId: selectedConversation.id,
+              userMessage: contentToSend,
+              hostId: otherUser.id,
+              senderId: currentUserId
+            }
+          }).catch(err => console.log('AI reply background:', err));
+        }
+      } else if (selectedGroup) {
+        await supabase
+          .from('group_messages')
+          .insert({
+            group_id: selectedGroup.id,
+            sender_id: currentUserId,
+            content: contentToSend,
+            message_type: 'text'
+          });
+          
+        // Track + background phone check
+        trackTaskProgress('messages_sent', { increment: 1 });
+        checkPhoneNumber(originalContent, undefined, selectedGroup.id).catch(() => {});
+        checkToxic(originalContent, { contextType: 'chat', groupId: selectedGroup.id }).catch(() => {});
+      }
+    } catch (error) {
+      toast.error("Failed to send message");
+      setMessage(originalContent);
+      // Remove optimistic message on failure
+      setMessages(prev => prev.filter(m => m.id !== optimisticId));
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleCreateGroup = async () => {
+    if (!newGroupName.trim() || !currentUserId) return;
+
+    setCreatingGroup(true);
+    try {
+      // Family group limit: user can only be in 1 family group
+      if (newGroupType === 'family') {
+        const { data: existingFamily } = await supabase
+          .from('group_members')
+          .select('group_id, groups!inner(group_type)')
+          .eq('user_id', currentUserId);
+        
+        const familyCount = existingFamily?.filter((m: any) => m.groups?.group_type === 'family').length || 0;
+        if (familyCount >= 1) {
+          toast.error("You can only be in 1 family group");
+          setCreatingGroup(false);
+          return;
+        }
+      }
+
+      // Basic group limit: max 20
+      if (newGroupType === 'basic') {
+        const { data: existingBasic } = await supabase
+          .from('group_members')
+          .select('group_id, groups!inner(group_type)')
+          .eq('user_id', currentUserId);
+        
+        const basicCount = existingBasic?.filter((m: any) => m.groups?.group_type === 'basic').length || 0;
+        if (basicCount >= 20) {
+          toast.error("You can join max 20 general groups");
+          setCreatingGroup(false);
+          return;
+        }
+      }
+
+      // Create group
+      const { data: newGroup, error } = await supabase
+        .from('groups')
+        .insert({
+          name: newGroupName.trim(),
+          group_type: newGroupType,
+          owner_id: currentUserId
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Upload group photo if selected
+      if (newGroupPhoto) {
+        const ext = newGroupPhoto.name.split('.').pop();
+        const path = `group-avatars/${newGroup.id}.${ext}`;
+        await supabase.storage.from('assets').upload(path, newGroupPhoto, { upsert: true });
+        const { data: urlData } = supabase.storage.from('assets').getPublicUrl(path);
+        await supabase.from('groups').update({ avatar_url: urlData.publicUrl }).eq('id', newGroup.id);
+      }
+
+      // Add creator as member with owner role
+      await supabase
+        .from('group_members')
+        .insert({
+          group_id: newGroup.id,
+          user_id: currentUserId,
+          role: 'owner'
+        });
+
+      toast.success("Group created successfully!");
+      setShowCreateGroup(false);
+      setNewGroupName("");
+      setNewGroupType("basic");
+      setNewGroupPhoto(null);
+      setNewGroupPhotoPreview(null);
+      fetchGroups();
+    } catch (error) {
+      console.error('Create group error:', error);
+      toast.error("Failed to create group");
+    } finally {
+      setCreatingGroup(false);
+    }
+  };
+
+  const handleSearchGroup = async () => {
+    if (!groupSearchQuery.trim()) return;
+
+    const { data, error } = await supabase
+      .rpc('search_group_by_code', { _group_code: groupSearchQuery.trim() });
+
+    if (error) {
+      toast.error("Search failed");
+      return;
+    }
+
+    setGroupSearchResults(data || []);
+  };
+
+  const handleJoinGroup = async (groupId: string) => {
+    if (!currentUserId) return;
+
+    try {
+      // Check if already a member
+      const { data: existing } = await supabase
+        .from('group_members')
+        .select('id')
+        .eq('group_id', groupId)
+        .eq('user_id', currentUserId)
+        .maybeSingle();
+
+      if (existing) {
+        toast.info("You're already a member of this group");
+        return;
+      }
+
+      // Get the group type to enforce limits
+      const { data: groupData } = await supabase
+        .from('groups')
+        .select('group_type')
+        .eq('id', groupId)
+        .single();
+
+      if (groupData) {
+        // Get current memberships
+        const { data: myMemberships } = await supabase
+          .from('group_members')
+          .select('group_id, groups!inner(group_type)')
+          .eq('user_id', currentUserId);
+
+        if (groupData.group_type === 'family') {
+          const familyCount = myMemberships?.filter((m: any) => m.groups?.group_type === 'family').length || 0;
+          if (familyCount >= 1) {
+            toast.error("You can only be in 1 family group. Leave your current family group first.");
+            return;
+          }
+        } else {
+          const basicCount = myMemberships?.filter((m: any) => m.groups?.group_type === 'basic').length || 0;
+          if (basicCount >= 20) {
+            toast.error("You can join max 20 general groups");
+            return;
+          }
+        }
+      }
+
+      await supabase
+        .from('group_members')
+        .insert({
+          group_id: groupId,
+          user_id: currentUserId,
+          role: 'member'
+        });
+
+      // Update member count
+      const { count } = await supabase
+        .from('group_members')
+        .select('id', { count: 'exact', head: true })
+        .eq('group_id', groupId);
+      
+      await supabase.from('groups').update({ member_count: count || 1 }).eq('id', groupId);
+
+      toast.success("Joined group successfully!");
+      setShowSearchGroup(false);
+      setGroupSearchQuery("");
+      setGroupSearchResults([]);
+      fetchGroups();
+    } catch (error) {
+      toast.error("Failed to join group");
+    }
+  };
+
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } else if (diffDays === 1) {
+      return 'Yesterday';
+    } else if (diffDays < 7) {
+      return date.toLocaleDateString([], { weekday: 'short' });
+    } else {
+      return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    }
+  };
+
+  const filteredConversations = conversations.filter(conv =>
+    conv.other_user?.display_name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredGroups = groups.filter(group =>
+    group.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Format last seen time
+  const formatLastSeen = (lastSeenAt: string | null, isOnline: boolean | null) => {
+    if (isOnline) return "Online";
+    if (!lastSeenAt) return "Offline";
+    
+    const date = new Date(lastSeenAt);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins} min ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    return date.toLocaleDateString();
+  };
+
+  // Chat view for conversations or groups
+  if (selectedConversation || selectedGroup) {
+    const isGroup = !!selectedGroup;
+    const chatName = isGroup ? selectedGroup?.name : selectedConversation?.other_user?.display_name || 'User';
+    const chatAvatar = isGroup ? selectedGroup?.avatar_url : selectedConversation?.other_user?.avatar_url;
+    const currentMessages = isGroup ? groupMessages : messages;
+    const userLevel = selectedConversation?.other_user?.user_level || 1;
+    const countryFlag = selectedConversation?.other_user?.country_flag || "🌍";
+
+    return (
+      <div className="fixed inset-0 flex flex-col overflow-hidden" style={{ background: 'linear-gradient(180deg, #0d0618 0%, #0a0a14 30%, #0d0618 100%)' }}>
+        {/* Chat Header - z-index MUST be lower than GiftPanel backdrop (9998) */}
+        <header className="flex-shrink-0 safe-area-top shadow-xl" style={{ zIndex: 10, position: 'relative', background: 'linear-gradient(135deg, rgba(20,8,50,0.98) 0%, rgba(40,15,65,0.95) 50%, rgba(20,8,50,0.98) 100%)', borderBottom: '1px solid rgba(168,85,247,0.15)', boxShadow: '0 4px 30px rgba(0,0,0,0.5), 0 0 20px rgba(168,85,247,0.05)' }}>
+          <div className="flex items-center gap-3 px-3 py-2.5 h-14">
+            {/* Back Button */}
+            <button
+              type="button"
+              className="flex items-center justify-center w-9 h-9 rounded-full bg-white/[0.08] hover:bg-white/[0.15] active:scale-95 transition-all duration-150 shrink-0 border border-white/[0.08] backdrop-blur-xl"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setSelectedConversation(null);
+                setSelectedGroup(null);
+                setMessages([]);
+                setGroupMessages([]);
+                fetchConversations();
+                fetchGroups();
+              }}
+            >
+              <ArrowLeft className="w-5 h-5 text-white" />
+            </button>
+            
+            {/* User Avatar with Premium Frame */}
+            {!isGroup && selectedConversation?.other_user?.id ? (
+              <div 
+                className="shrink-0 cursor-pointer"
+                onClick={() => {
+                  const userId = selectedConversation?.other_user?.id;
+                  if (userId) navigate(`/profile-detail/${userId}`);
+                }}
+              >
+                <AvatarWithFrame
+                  userId={selectedConversation.other_user.id}
+                  src={chatAvatar}
+                  name={chatName}
+                  level={userLevel}
+                  size="sm"
+                  showAnimation={true}
+                  showGlow={true}
+                  isOnline={selectedConversation?.other_user?.is_online || false}
+                />
+              </div>
+            ) : (
+              <div 
+                className="cursor-pointer shrink-0"
+                onClick={() => {
+                  const userId = isGroup ? selectedGroup?.owner_id : selectedConversation?.other_user?.id;
+                  if (userId) navigate(`/profile-detail/${userId}`);
+                }}
+              >
+                <AvatarWithFrame
+                  userId={isGroup ? selectedGroup?.owner_id : undefined}
+                  src={chatAvatar || undefined}
+                  name={chatName || "U"}
+                  level={1}
+                  size="sm"
+                  showFrame={!isGroup}
+                />
+              </div>
+            )}
+            
+            {/* User Info - Center */}
+            <div 
+              className="flex-1 min-w-0 cursor-pointer"
+              onClick={() => {
+                const userId = isGroup ? selectedGroup?.owner_id : selectedConversation?.other_user?.id;
+                if (userId) navigate(`/profile-detail/${userId}`);
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <h2 className="font-bold text-white text-sm truncate max-w-[140px] drop-shadow-md">
+                  {chatName}
+                </h2>
+                {!isGroup && (
+                  <div className="flex items-center gap-0.5 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-md shrink-0">
+                    <Crown className="w-2.5 h-2.5" />
+                    <span>Lv.{userLevel}</span>
+                  </div>
+                )}
+                {!isGroup && otherUserTrader.isTrader && (
+                  <TraderBadge level={otherUserTrader.traderLevel} size="xs" />
+                )}
+              </div>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                {!isGroup && isOtherTyping ? (
+                  <span className="text-[10px] text-pink-300 font-medium flex items-center gap-1">
+                    <span className="flex gap-0.5">
+                      <span className="w-1 h-1 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <span className="w-1 h-1 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <span className="w-1 h-1 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                    </span>
+                    typing...
+                  </span>
+                ) : !isGroup && (
+                  selectedConversation?.other_user?.is_online ? (
+                    <span className="text-[10px] text-green-200 font-medium flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-green-400 shadow-glow animate-pulse" />
+                      Online
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-white/80 font-medium">
+                      {formatLastSeen(selectedConversation?.other_user?.last_seen_at || null, false)}
+                    </span>
+                  )
+                )}
+                {!isGroup && countryFlag && (
+                  <span className="text-[10px]">{countryFlag}</span>
+                )}
+              </div>
+              {isGroup && (
+                <span className="text-[10px] text-white/80">{selectedGroup?.member_count || 0} members</span>
+              )}
+            </div>
+
+            {/* Group Settings Button */}
+            {isGroup && (
+              <button
+                type="button"
+                className="w-9 h-9 rounded-full bg-white/[0.08] flex items-center justify-center shrink-0 relative z-20 border border-white/[0.08]"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('[Chat] ⚙️ Settings button clicked, selectedGroup:', selectedGroup?.id);
+                  setShowGroupSettings(true);
+                }}
+              >
+                <Settings className="w-5 h-5 text-white pointer-events-none" />
+              </button>
+            )}
+
+            {/* Three Dot Menu for 1-on-1 chats - Block, Report, Profile */}
+            {!isGroup && (
+              <DropdownMenu modal={false}>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="w-9 h-9 rounded-full bg-white/[0.08] flex items-center justify-center shrink-0 relative z-20 border border-white/[0.08] backdrop-blur-xl"
+                  >
+                    <MoreVertical className="w-5 h-5 text-white pointer-events-none" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-gradient-to-b from-[#1a0a2e]/98 via-[#0f0520]/98 to-[#0a0318]/98 backdrop-blur-3xl border border-white/[0.08] rounded-2xl min-w-[220px] shadow-2xl shadow-purple-900/40 p-1.5 overflow-hidden max-h-[70vh] overflow-y-auto">
+                  {/* Decorative top glow */}
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-[1px] bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
+                  
+                  <DropdownMenuItem
+                    onClick={() => {
+                      const otherId = selectedConversation?.other_user?.id;
+                      if (otherId) navigate(`/profile-detail/${otherId}`);
+                    }}
+                    className="text-white/80 hover:text-white hover:bg-white/[0.06] cursor-pointer gap-3 py-3 px-3 rounded-xl transition-all"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-purple-500/15 border border-purple-500/20 flex items-center justify-center">
+                      <Users className="w-4 h-4 text-purple-400" />
+                    </div>
+                    <span className="font-medium text-sm">View Profile</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={async () => {
+                      const otherId = selectedConversation?.other_user?.id;
+                      if (!otherId || !currentUserId) return;
+                      try {
+                        await supabase.from('user_blocks').insert({
+                          blocker_id: currentUserId,
+                          blocked_id: otherId
+                        });
+                        toast.success("User blocked");
+                        navigate('/chat');
+                      } catch {
+                        toast.error("Failed to block user");
+                      }
+                    }}
+                    className="text-red-400 hover:text-red-300 hover:bg-red-500/[0.08] cursor-pointer gap-3 py-3 px-3 rounded-xl transition-all"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-red-500/15 border border-red-500/20 flex items-center justify-center">
+                      <X className="w-4 h-4 text-red-400" />
+                    </div>
+                    <span className="font-medium text-sm">Block User</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      setTimeout(() => setShowReportDialog(true), 100);
+                    }}
+                    className="text-amber-400 hover:text-amber-300 hover:bg-amber-500/[0.08] cursor-pointer gap-3 py-3 px-3 rounded-xl transition-all"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/20 flex items-center justify-center">
+                      <ShieldAlert className="w-4 h-4 text-amber-400" />
+                    </div>
+                    <span className="font-medium text-sm">Report</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
+        </header>
+        
+        {/* Messages */}
+        <div className="flex-1 min-h-0 px-3 py-3 space-y-3 overflow-y-auto overscroll-contain" style={{ background: 'linear-gradient(180deg, rgba(13,6,24,0.3) 0%, transparent 20%, transparent 80%, rgba(13,6,24,0.3) 100%)', WebkitOverflowScrolling: 'touch' }}>
+          {currentMessages.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-white/30">No messages yet. Say hello! 👋</p>
+            </div>
+          ) : (
+            currentMessages.map((msg: any) => {
+              const isMine = msg.sender_id === currentUserId;
+              const otherUserId = isGroup ? msg.sender_id : selectedConversation?.other_user?.id;
+              const senderName = isMine 
+                ? (myProfile?.display_name || 'You')
+                : (isGroup ? msg.sender?.display_name : selectedConversation?.other_user?.display_name) || 'User';
+              const senderAvatar = isMine
+                ? myProfile?.avatar_url
+                : (isGroup ? msg.sender?.avatar_url : selectedConversation?.other_user?.avatar_url);
+              const senderLevel = isMine
+                ? (myProfile?.user_level || 1)
+                : (isGroup ? 1 : selectedConversation?.other_user?.user_level || 1);
+              const senderUserId = isMine ? currentUserId : otherUserId;
+              
+              return (
+                <div
+                  key={msg.id}
+                  className={cn("flex gap-2", isMine ? "justify-end" : "justify-start")}
+                >
+                    <div className={cn("flex gap-2 max-w-[75%]", isMine && "flex-row-reverse")}>
+                    {/* Avatar - both sides */}
+                    <button
+                      onClick={() => senderUserId && navigate(`/profile-detail/${senderUserId}`)}
+                      className="shrink-0 self-end mb-0.5"
+                    >
+                      {senderUserId ? (
+                        <AvatarWithFrame
+                          userId={senderUserId}
+                          src={senderAvatar || undefined}
+                          name={senderName}
+                          level={senderLevel}
+                          size="xs"
+                          showAnimation={false}
+                        />
+                      ) : (
+                        <Avatar className="w-7 h-7 border border-purple-200/30">
+                          <AvatarImage src={senderAvatar || undefined} className="object-cover" />
+                          <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-white text-[10px]">
+                            {senderName[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                      )}
+                    </button>
+                    <div className="flex flex-col">
+                      {/* Sender Name - always show in DM and group */}
+                      <button
+                        onClick={() => senderUserId && navigate(`/profile-detail/${senderUserId}`)}
+                        className={cn("mb-0.5", isMine ? "text-right" : "text-left")}
+                      >
+                        <p className="font-semibold text-[11px] text-white/50">
+                          {senderName}
+                        </p>
+                      </button>
+                      {/* Message Bubble - No background for gifts */}
+                      {(() => {
+                        const content = msg.content || '';
+                        const isImage = msg.message_type === 'image' || 
+                          (content.includes('supabase.co/storage') && /\.(jpg|jpeg|png|gif|webp)($|\?)/i.test(content));
+                        const isVideo = msg.message_type === 'video' || 
+                          (content.includes('supabase.co/storage') && /\.(mp4|mov|avi|mkv)($|\?)/i.test(content));
+                        const isAudio = msg.message_type === 'audio' || 
+                          (content.includes('supabase.co/storage') && /\.(webm|mp3|wav|ogg|m4a)($|\?)/i.test(content));
+                        const isGift = msg.message_type === 'gift';
+                        const cleanUrl = content.replace(/^\[(Image|Video|Audio|Voice): /, '').replace(/\]$/, '');
+
+                        // Gift messages - with SVGA/animation support
+                        if (isGift) {
+                          // New format: [Gift: URL|EMOJI NAME xCOUNT | +BEANS beans]
+                          // Old format: [Gift: EMOJI NAME xCOUNT | +BEANS beans]
+                          const { mediaUrl, emoji } = parseGiftContent(content);
+                          const beansMatch = content.match(/\+(\d+)\s*beans/i);
+                          
+                          const iconUrl = mediaUrl;
+                          const giftEmoji = emoji;
+                          const beansAmount = beansMatch ? beansMatch[1] : null;
+                          
+                          // Check if iconUrl is an animation file
+                          const normalizedGiftUrl = iconUrl ? iconUrl.split('?')[0].toLowerCase() : '';
+                          const isSvga = normalizedGiftUrl.endsWith('.svga');
+                          const isLottie = normalizedGiftUrl.endsWith('.json');
+                          const isImage = !!iconUrl && !isSvga && !isLottie;
+                          
+                          return (
+                            <motion.div 
+                              className="inline-flex flex-col items-center p-1.5 bg-gradient-to-br from-slate-900/80 to-slate-800/70 rounded-lg border border-amber-500/25 shadow-md backdrop-blur-sm"
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              {/* Ultra Compact Gift - Fixed 40x40 for ALL types */}
+                              <div className="w-10 h-10 flex items-center justify-center relative">
+                                {isSvga && iconUrl ? (
+                                  <Suspense fallback={<span className="text-xl">{giftEmoji}</span>}>
+                                    <SVGAPlayer
+                                      src={iconUrl}
+                                      className="w-10 h-10"
+                                      loop={true}
+                                      autoPlay={true}
+                                      muted={true}
+                                    />
+                                  </Suspense>
+                                ) : isLottie && iconUrl ? (
+                                  <Suspense fallback={<span className="text-xl">{giftEmoji}</span>}>
+                                    <UniversalAnimationPlayer
+                                      src={iconUrl}
+                                      className="w-10 h-10"
+                                      loop={true}
+                                      autoPlay={true}
+                                      muted={true}
+                                    />
+                                  </Suspense>
+                                ) : isImage && iconUrl ? (
+                                  <img 
+                                    src={iconUrl} 
+                                    alt="Gift" 
+                                    className="w-10 h-10 object-contain"
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).style.display = 'none';
+                                      (e.target as HTMLImageElement).insertAdjacentHTML('afterend', `<span class="text-xl">${giftEmoji}</span>`);
+                                    }}
+                                  />
+                                ) : (
+                                  <span className="text-xl">{giftEmoji}</span>
+                                )}
+                              </div>
+                              
+                              {/* Mini Beans Badge */}
+                              {beansAmount && (
+                                <div className="flex items-center px-2 py-0.5 mt-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full">
+                                  <span className="text-[9px] font-bold text-white">
+                                    +{Number(beansAmount).toLocaleString()}
+                                  </span>
+                                </div>
+                              )}
+                              
+                              {/* Timestamp + Status */}
+                              <p className="text-[8px] text-muted-foreground/60 mt-0.5 flex items-center justify-center gap-0.5">
+                                {formatTime(msg.created_at)}
+                                <MessageStatusIndicator status={msg.status || (msg.is_read ? 'read' : 'sent')} isMine={isMine} />
+                              </p>
+                            </motion.div>
+                          );
+                        }
+
+                        // Image messages - no background
+                        if (isImage) {
+                          return (
+                            <div className="flex flex-col">
+                              <img 
+                                src={cleanUrl} 
+                                alt="Shared image"
+                                className="max-w-[200px] max-h-[200px] rounded-xl object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                                onClick={() => imageViewer.openImage(cleanUrl)}
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = '/placeholder.svg';
+                                }}
+                              />
+                              <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-0.5">
+                                {formatTime(msg.created_at)}
+                                <MessageStatusIndicator status={msg.status || (msg.is_read ? 'read' : 'sent')} isMine={isMine} />
+                              </p>
+                            </div>
+                          );
+                        }
+
+                        // Video messages - no background
+                        if (isVideo) {
+                          return (
+                            <div className="flex flex-col">
+                              <video 
+                                src={cleanUrl} 
+                                controls
+                                className="max-w-[200px] max-h-[200px] rounded-xl"
+                              />
+                              <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-0.5">
+                                {formatTime(msg.created_at)}
+                                <MessageStatusIndicator status={msg.status || (msg.is_read ? 'read' : 'sent')} isMine={isMine} />
+                              </p>
+                            </div>
+                          );
+                        }
+
+                        // Audio messages - minimal background
+                        if (isAudio) {
+                          return (
+                            <div className={cn(
+                              "rounded-2xl px-3 py-2",
+                              isMine
+                                ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-br-sm"
+                                : "bg-muted rounded-bl-sm"
+                            )}>
+                              <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                                  <Mic className="w-4 h-4" />
+                                </div>
+                                <audio 
+                                  src={cleanUrl} 
+                                  controls
+                                  className="max-w-[180px] h-8"
+                                />
+                              </div>
+                              <p className={cn(
+                                "text-[10px] mt-1 flex items-center gap-0.5",
+                                isMine ? "text-white/70" : "text-muted-foreground"
+                              )}>
+                                {formatTime(msg.created_at)}
+                                <MessageStatusIndicator status={msg.status || (msg.is_read ? 'read' : 'sent')} isMine={isMine} />
+                              </p>
+                            </div>
+                          );
+                        }
+
+                        // Regular text messages - WhatsApp-style compact bubbles
+                        return (
+                          <div
+                            className={cn(
+                              "rounded-2xl px-2.5 py-1.5 max-w-full text-[13px] leading-[1.35]",
+                              isMine
+                                ? "bg-gradient-to-br from-fuchsia-600 via-purple-600 to-violet-700 text-white rounded-br-sm shadow-sm shadow-fuchsia-500/10"
+                                : "rounded-bl-sm text-white/90",
+                              msg._optimistic && "opacity-70"
+                            )}
+                            style={!isMine ? {
+                              background: 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 100%)',
+                              border: '1px solid rgba(255,255,255,0.08)',
+                            } : undefined}
+                          >
+                            <span className="break-words">{content}</span>
+                            <span className={cn(
+                              "text-[9px] ml-1 float-right mt-1.5 flex items-center gap-0.5",
+                              isMine ? "text-white/40" : "text-white/25"
+                            )}>
+                              {formatTime(msg.created_at)}
+                              <MessageStatusIndicator 
+                                status={msg.status || (msg.is_read ? 'read' : 'sent')} 
+                                isMine={isMine} 
+                              />
+                            </span>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                    
+                    {/* Three Dot Menu for each message */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="self-center p-1 rounded-full hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity">
+                          <MoreVertical className="w-4 h-4 text-muted-foreground" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align={isMine ? "end" : "start"}>
+                        <DropdownMenuItem onClick={() => {
+                          navigator.clipboard.writeText(msg.content);
+                          toast.success("Message copied!");
+                        }}>
+                          Copy
+                        </DropdownMenuItem>
+                        {!isMine && (
+                          <DropdownMenuItem onClick={() => otherUserId && navigate(`/profile-detail/${otherUserId}`)}>
+                            View Profile
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+              );
+            })
+          )}
+          {/* Typing indicator bubble */}
+          {isOtherTyping && !isGroup && (
+            <div className="flex gap-2 justify-start">
+              <div className="flex gap-2 max-w-[75%]">
+                <div className="shrink-0 self-end mb-0.5">
+                  <AvatarWithFrame
+                    userId={selectedConversation?.other_user?.id || ''}
+                    src={selectedConversation?.other_user?.avatar_url || undefined}
+                    name={selectedConversation?.other_user?.display_name || '?'}
+                    level={selectedConversation?.other_user?.user_level || 1}
+                    size="xs"
+                    showAnimation={false}
+                  />
+                </div>
+                <div className="rounded-2xl rounded-bl-sm px-4 py-2.5" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 100%)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <div className="flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Message Input - Ultra Premium Dark Glass */}
+        <div className="flex-shrink-0 pt-2 safe-area-bottom" style={{ background: 'linear-gradient(to top, rgba(13,6,24,0.98) 0%, rgba(13,6,24,0.9) 70%, transparent 100%)' }}>
+          {/* Media Uploader (direct gallery) */}
+          <MediaUploader
+            isOpen={showMediaUploader}
+            onClose={() => setShowMediaUploader(false)}
+            onMediaSelect={(url, type) => {
+              // Save as pending media, don't send directly
+              setPendingMedia({ url, type });
+              setShowMediaUploader(false);
+            }}
+            directGallery={true}
+          />
+          <EmojiPicker
+            isOpen={showEmojiPicker}
+            onClose={() => setShowEmojiPicker(false)}
+            onSelect={(emoji) => {
+              setMessage(prev => prev + emoji);
+            }}
+          />
+          
+          {/* Inline Translation Bar - Shows when enabled */}
+          {inlineTranslateEnabled && !isGroup && (
+            <div className="px-4 py-2 border-t border-white/[0.06]">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-[10px] text-white/40 font-medium">Auto-translate to:</span>
+                <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+                  {languageOptions.slice(0, 8).map((lang) => (
+                    <button
+                      key={lang.code}
+                      onClick={() => handleInlineLangChange(lang.code)}
+                      className={`flex items-center gap-0.5 px-2.5 py-1 rounded-full text-[10px] whitespace-nowrap transition-all border ${
+                        inlineTargetLang === lang.code
+                          ? 'bg-gradient-to-r from-purple-500/80 to-pink-500/80 text-white border-purple-400/30'
+                          : 'bg-white/[0.06] text-white/50 border-white/[0.08] hover:bg-white/[0.1]'
+                      }`}
+                    >
+                      <span>{lang.flag}</span>
+                      <span>{lang.name}</span>
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => {
+                    setInlineTranslateEnabled(false);
+                    setInlineTranslation("");
+                  }}
+                  className="ml-auto p-1 rounded-full hover:bg-white/10 text-white/40"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+              
+              {/* Translation Result */}
+              {(inlineTranslation || isInlineTranslating) && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="bg-purple-500/10 rounded-xl px-3 py-2 border border-purple-500/20"
+                >
+                  <div className="flex items-center gap-1 mb-1">
+                    <span className="text-[9px] text-purple-300 font-medium">
+                      {languageOptions.find(l => l.code === inlineTargetLang)?.flag} {inlineTargetLang}
+                    </span>
+                    {isInlineTranslating && (
+                      <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-pulse" />
+                    )}
+                  </div>
+                  <p className="text-sm text-purple-200">
+                    {inlineTranslation || "Translating..."}
+                  </p>
+                </motion.div>
+              )}
+            </div>
+          )}
+          
+          {/* Quick Reply Chips - Show when no messages or conversation just started */}
+          {!isRecording && !audioBlob && !pendingMedia && !message.trim() && (selectedConversation || selectedGroup) && (
+            <div className="px-4 pb-1">
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+                {(selectedConversation?.other_user?.is_host ? [
+                  // Messages for HOSTS (from user perspective)
+                  "Hi! How are you? 😊",
+                  "You look beautiful! 💕",
+                  "Can we video call? 📹",
+                  "I love your live! 🌟",
+                  "Send me your schedule 📅",
+                  "You're my favorite! ❤️",
+                  "Let's be friends! 🤝",
+                  "Miss you! 💗",
+                ] : [
+                  // Messages for regular USERS
+                  "Hey! What's up? 👋",
+                  "How are you doing? 😊",
+                  "Nice to meet you! 🤝",
+                  "Let's chat! 💬",
+                  "What are you up to? 🤔",
+                  "Good morning! ☀️",
+                  "Have a great day! 🌟",
+                  "Thanks! 🙏",
+                ]).map((quickMsg) => (
+                  <motion.button
+                    key={quickMsg}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => {
+                      setMessage(quickMsg);
+                      // Auto-send on tap
+                      setTimeout(() => {
+                        const content = quickMsg.trim();
+                        if (!content || sending) return;
+                        setSending(true);
+                        setMessage("");
+                        
+                        if (selectedConversation) {
+                          Promise.all([
+                            supabase.from('messages').insert({
+                              conversation_id: selectedConversation.id,
+                              sender_id: currentUserId,
+                              content,
+                              message_type: 'text'
+                            }),
+                            supabase.from('conversations').update({ last_message_at: new Date().toISOString() }).eq('id', selectedConversation.id)
+                          ]).then(() => {
+                            setSending(false);
+                            // 🔔 Push notification for quick reply
+                            const recipientId = selectedConversation.other_user?.id;
+                            if (recipientId && currentUserId) {
+                              supabase.functions.invoke('notify-new-message', {
+                                body: { conversationId: selectedConversation.id, senderId: currentUserId, recipientId, messageContent: content, messageType: 'text' }
+                              }).catch(() => {});
+                            }
+                          }).catch(() => setSending(false));
+                        } else if (selectedGroup) {
+                          Promise.resolve(supabase.from('group_messages').insert({
+                            group_id: selectedGroup.id,
+                            sender_id: currentUserId,
+                            content,
+                            message_type: 'text'
+                          })).then(() => setSending(false)).catch(() => setSending(false));
+                        } else {
+                          setSending(false);
+                        }
+                      }, 50);
+                    }}
+                    className="flex-shrink-0 px-3 py-1.5 rounded-full bg-white/[0.06] border border-white/[0.1] backdrop-blur-xl"
+                  >
+                    <span className="text-xs text-white/70 whitespace-nowrap">{quickMsg}</span>
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Input Row - Voice Recording, Pending Media, or Text Mode */}
+          <div className="px-4 py-3 flex items-center gap-2">
+            {/* Recording Mode */}
+            {(isRecording || audioBlob) ? (
+              <>
+                {/* Cancel Button */}
+                <motion.button
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={cancelVoiceRecording}
+                  className="w-11 h-11 rounded-full bg-muted flex items-center justify-center"
+                >
+                  <X className="w-5 h-5 text-muted-foreground" />
+                </motion.button>
+                
+                {/* Recording Indicator */}
+                <div className="flex-1 relative">
+                  <div className={cn(
+                    "w-full h-11 rounded-full flex items-center justify-center gap-2",
+                    isRecording ? "bg-red-500/10" : "bg-green-500/10"
+                  )}>
+                    {isRecording ? (
+                      <>
+                        <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+                        <span className="text-red-500 font-semibold text-lg">
+                          {formatRecordingTime(recordingDuration)}
+                        </span>
+                        <span className="text-red-500/70 text-sm">Recording...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Mic className="w-5 h-5 text-green-600" />
+                        <span className="text-green-600 font-medium">
+                          {formatRecordingTime(recordingDuration)} Ready to send
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Stop or Send Button */}
+                <motion.button
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={isRecording ? stopVoiceRecording : sendVoiceMessage}
+                  disabled={sendingVoice}
+                  className={cn(
+                    "w-11 h-11 rounded-full flex items-center justify-center shadow-lg",
+                    isRecording 
+                      ? "bg-red-500" 
+                      : "bg-gradient-to-r from-purple-500 to-pink-500"
+                  )}
+                >
+                  {sendingVoice ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : isRecording ? (
+                    <div className="w-4 h-4 bg-white rounded-sm" />
+                  ) : (
+                    <Send className="w-5 h-5 text-white" />
+                  )}
+                </motion.button>
+              </>
+            ) : pendingMedia ? (
+              /* Pending Media Mode - Show preview and send button */
+              <>
+                {/* Cancel Button */}
+                <motion.button
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setPendingMedia(null)}
+                  className="w-11 h-11 rounded-full bg-muted flex items-center justify-center"
+                >
+                  <X className="w-5 h-5 text-muted-foreground" />
+                </motion.button>
+                
+                {/* Media Preview */}
+                <div className="flex-1 relative">
+                  <div className="w-full h-11 rounded-full bg-blue-500/10 flex items-center justify-center gap-2 px-4">
+                    {pendingMedia.type === 'image' ? (
+                      <>
+                        <img 
+                          src={pendingMedia.url} 
+                          alt="Preview" 
+                          className="w-8 h-8 rounded-lg object-cover"
+                        />
+                        <span className="text-blue-600 font-medium text-sm truncate">
+                          📷 Image ready to send
+                        </span>
+                      </>
+                    ) : pendingMedia.type === 'video' ? (
+                      <>
+                        <ImageIcon className="w-5 h-5 text-purple-600" />
+                        <span className="text-purple-600 font-medium text-sm">
+                          🎥 Video ready to send
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <Mic className="w-5 h-5 text-orange-600" />
+                        <span className="text-orange-600 font-medium text-sm">
+                          🎵 Audio ready to send
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Send Button for Media */}
+                <motion.button
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={async () => {
+                    if (!pendingMedia) return;
+                    try {
+                      // 🔍 For images: check filename for contact info FIRST (blocking)
+                      if (pendingMedia.type === 'image' && currentUserId) {
+                        const { checkImageFilename } = await import('@/utils/imageContactDetection');
+                        const filename = pendingMedia.url.split('/').pop() || '';
+                        if (checkImageFilename(filename)) {
+                          // Block the image entirely
+                          toast.error("⚠️ Contact sharing detected! Image blocked.");
+                          numberWarning.showGenericWarning();
+                          const sourceId = selectedConversation?.id || selectedGroup?.id;
+                          scanImageForContactInfo(pendingMedia.url, currentUserId, 'private_message', sourceId)
+                            .then(res => {
+                              if (res.detected && res.violationNumber) {
+                                numberWarning.showWarning(res.violationNumber, res.beansDeducted || 0, res.isBanned || false);
+                              }
+                            }).catch(() => {});
+                          setPendingMedia(null);
+                          return;
+                        }
+                        
+                        // Background OCR scan
+                        const sourceId = selectedConversation?.id || selectedGroup?.id;
+                        scanImageForContactInfo(pendingMedia.url, currentUserId, 'private_message', sourceId)
+                          .then(res => {
+                            if (res.detected && res.violationNumber) {
+                              numberWarning.showWarning(res.violationNumber, res.beansDeducted || 0, res.isBanned || false);
+                            } else if (res.detected) {
+                              numberWarning.showGenericWarning();
+                            }
+                          }).catch(() => {});
+                      }
+
+                      if (selectedConversation) {
+                        const { data: newMsg, error } = await supabase
+                          .from('messages')
+                          .insert({
+                            conversation_id: selectedConversation.id,
+                            sender_id: currentUserId,
+                            content: pendingMedia.url,
+                            message_type: pendingMedia.type
+                          })
+                          .select()
+                          .single();
+
+                        if (!error && newMsg) {
+                          setMessages(prev => {
+                            if (prev.find(m => m.id === newMsg.id)) return prev;
+                            return [...prev, castMessage(newMsg)];
+                          });
+                        }
+
+                        await supabase
+                          .from('conversations')
+                          .update({ last_message_at: new Date().toISOString() })
+                          .eq('id', selectedConversation.id);
+                      } else if (selectedGroup) {
+                        const { data: newMsg, error } = await supabase
+                          .from('group_messages')
+                          .insert({
+                            group_id: selectedGroup.id,
+                            sender_id: currentUserId,
+                            content: pendingMedia.url,
+                            message_type: pendingMedia.type
+                          })
+                          .select()
+                          .single();
+
+                        if (!error && newMsg) {
+                          setGroupMessages(prev => {
+                            if (prev.find(m => m.id === newMsg.id)) return prev;
+                            return [...prev, { ...newMsg, sender: null }];
+                          });
+                        }
+                      }
+                      toast.success("Media sent!");
+                      setPendingMedia(null);
+                    } catch (error) {
+                      toast.error("Failed to send media");
+                    }
+                  }}
+                  disabled={sending}
+                  className="w-11 h-11 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center shadow-lg"
+                >
+                  <Send className="w-5 h-5 text-white" />
+                </motion.button>
+              </>
+            ) : (
+              <>
+                {/* Camera Button - Left - Opens Gallery Directly */}
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => {
+                    setShowMediaUploader(true);
+                    setShowEmojiPicker(false);
+                  }}
+                  className="w-10 h-10 rounded-full bg-white/[0.06] border border-white/[0.08] flex items-center justify-center hover:bg-white/[0.1] transition-colors backdrop-blur-xl"
+                >
+                  <Camera className="w-5 h-5 text-white/50" />
+                </motion.button>
+                
+                {/* Text Input */}
+                <div className="flex-1 relative">
+                  <Input
+                    value={message}
+                    onChange={(e) => handleMessageChange(e.target.value)}
+                    placeholder="Type something..."
+                    className={cn(
+                      "rounded-full bg-white/[0.06] border border-white/[0.08] pr-20 text-white placeholder:text-white/30 focus-visible:ring-1 focus-visible:ring-purple-500/40 focus-visible:border-purple-500/30 backdrop-blur-xl",
+                      inlineTranslateEnabled && "ring-1 ring-purple-500/40 border-purple-500/30"
+                    )}
+                    onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
+                    disabled={sending}
+                    onFocus={() => {
+                      setShowEmojiPicker(false);
+                    }}
+                  />
+                  {/* Right side buttons inside input */}
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+                    <motion.button
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => {
+                        setShowEmojiPicker(!showEmojiPicker);
+                      }}
+                      className="p-1.5 rounded-full hover:bg-white/[0.08] transition-colors"
+                    >
+                      <Smile className="w-5 h-5 text-white/40" />
+                    </motion.button>
+                    {/* Voice Recording Button */}
+                    <motion.button
+                      whileTap={{ scale: 0.9 }}
+                      onClick={handleVoiceRecord}
+                      className="p-1.5 rounded-full hover:bg-white/[0.08] transition-colors"
+                    >
+                      <Mic className="w-5 h-5 text-white/40" />
+                    </motion.button>
+                  </div>
+                </div>
+                
+                {/* Send Button */}
+                {message.trim() && (
+                  <motion.button
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={handleSend}
+                    disabled={sending}
+                    className="w-11 h-11 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center shadow-lg"
+                  >
+                    <Send className="w-5 h-5 text-white" />
+                  </motion.button>
+                )}
+              </>
+            )}
+          </div>
+          
+          {/* Action Buttons Row - Ultra Premium Dark Glass */}
+          {!isGroup && (
+            <div className="px-4 pb-3">
+              <div className="flex justify-center gap-5">
+                {/* Translator */}
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    setInlineTranslateEnabled(!inlineTranslateEnabled);
+                    if (!inlineTranslateEnabled && message.trim()) {
+                      translateInlineMessage(message, inlineTargetLang);
+                    }
+                  }}
+                  className="flex flex-col items-center gap-1.5 group"
+                >
+                  <div className={cn(
+                    "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 border backdrop-blur-xl",
+                    inlineTranslateEnabled 
+                      ? "bg-gradient-to-br from-purple-500/30 to-violet-500/30 border-purple-400/40 shadow-lg shadow-purple-500/20" 
+                      : "bg-white/[0.06] border-white/[0.08] hover:bg-white/[0.1]"
+                  )}>
+                    <Languages className={cn(
+                      "w-5 h-5",
+                      inlineTranslateEnabled ? "text-purple-300" : "text-white/50"
+                    )} />
+                  </div>
+                  <span className={cn(
+                    "text-[9px] font-semibold",
+                    inlineTranslateEnabled ? "text-purple-300" : "text-white/40"
+                  )}>
+                    {inlineTranslateEnabled ? "ON" : "Translate"}
+                  </span>
+                </motion.button>
+                
+                {/* Gift */}
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowGiftPanel(true)}
+                  className="flex flex-col items-center gap-1.5 group"
+                >
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-pink-500/20 to-rose-500/20 border border-pink-500/25 backdrop-blur-xl hover:from-pink-500/30 hover:to-rose-500/30 transition-all duration-300">
+                    <Gift className="w-5 h-5 text-pink-400" />
+                  </div>
+                  <span className="text-[9px] font-semibold text-white/40">Gift</span>
+                </motion.button>
+                
+                {/* Games */}
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowGamePanel(true)}
+                  className="flex flex-col items-center gap-1.5 group"
+                >
+                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-indigo-500/20 to-blue-500/20 border border-indigo-500/25 backdrop-blur-xl hover:from-indigo-500/30 hover:to-blue-500/30 transition-all duration-300">
+                    <Gamepad2 className="w-5 h-5 text-indigo-400" />
+                  </div>
+                  <span className="text-[9px] font-semibold text-white/40">Games</span>
+                </motion.button>
+                
+                {/* Video Call */}
+                {selectedConversation?.other_user?.is_host && (
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => {
+                      if (selectedConversation?.other_user?.id) {
+                        startCall(selectedConversation.other_user.id);
+                      }
+                    }}
+                    className="flex flex-col items-center gap-1.5 group"
+                  >
+                    <div className="relative w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-rose-500/20 to-red-500/20 border border-rose-500/25 backdrop-blur-xl hover:from-rose-500/30 hover:to-red-500/30 transition-all duration-300">
+                      <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-rose-500/10 to-pink-500/10 animate-pulse" />
+                      <VideoCallIcon className="w-5 h-5 text-rose-400 relative z-10" />
+                    </div>
+                    <div className="flex flex-col items-center">
+                      <span className="text-[9px] font-semibold text-white/40">Video Call</span>
+                      {selectedConversation.other_user.call_rate_per_minute && selectedConversation.other_user.call_rate_per_minute > 0 && (
+                        <span className="text-[8px] text-amber-400/70 font-medium">💎 {selectedConversation.other_user.call_rate_per_minute}/min</span>
+                      )}
+                    </div>
+                  </motion.button>
+                )}
+              </div>
+            </div>
+          )}
+          
+          {/* Translator Modal - Enhanced */}
+          <Dialog open={showTranslator} onOpenChange={(open) => {
+            setShowTranslator(open);
+            if (!open) {
+              setTranslateText("");
+              setTranslatedResult("");
+            }
+          }}>
+            <DialogContent className="max-w-sm">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Languages className="w-5 h-5 text-purple-500" />
+                  Translator
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                {/* Language Selector */}
+                <div>
+                  <Label className="text-sm text-muted-foreground mb-2 block">Translate to:</Label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {languageOptions.map((lang) => (
+                      <button
+                        key={lang.code}
+                        onClick={() => handleLanguageChange(lang.code)}
+                        className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium transition-all ${
+                          selectedLanguage === lang.code
+                            ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
+                            : 'bg-muted hover:bg-muted/80 text-foreground'
+                        }`}
+                      >
+                        <span>{lang.flag}</span>
+                        <span>{lang.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Input Text */}
+                <div>
+                  <Label className="text-sm text-muted-foreground">Enter text to translate</Label>
+                  <textarea
+                    value={translateText}
+                    onChange={(e) => handleTranslateTextChange(e.target.value)}
+                    placeholder="Type here... auto-translates as you type"
+                    className="w-full mt-2 p-3 rounded-xl border border-border min-h-[80px] resize-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                  />
+                </div>
+
+                {/* Translation Result - Shows below input */}
+                <div className={`rounded-xl border-2 border-dashed transition-all ${
+                  translatedResult 
+                    ? 'border-purple-500/30 bg-purple-500/10' 
+                    : 'border-white/[0.08] bg-white/[0.04]'
+                }`}>
+                  <div className="p-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-medium text-purple-300">
+                        {languageOptions.find(l => l.code === selectedLanguage)?.flag} {selectedLanguage}
+                      </span>
+                      {isTranslating && (
+                        <span className="text-[10px] text-white/40 flex items-center gap-1">
+                          <span className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
+                          Translating...
+                        </span>
+                      )}
+                    </div>
+                    <p className={`min-h-[40px] ${translatedResult ? 'text-white/90' : 'text-white/30 text-sm'}`}>
+                      {translatedResult || "Translation will appear here..."}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Action Button */}
+                <Button
+                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                  onClick={() => {
+                    if (translatedResult) {
+                      setMessage(prev => prev + translatedResult);
+                      setShowTranslator(false);
+                      setTranslateText("");
+                      setTranslatedResult("");
+                      toast.success("Translation added to message!");
+                    }
+                  }}
+                  disabled={!translatedResult || isTranslating}
+                >
+                  Use Translation
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+          
+          {/* Gift Panel - Same as Live/Party Room */}
+          <GiftPanel
+            isOpen={showGiftPanel}
+            onClose={() => setShowGiftPanel(false)}
+            onSendGift={handleSendGift}
+            userCoins={userCoins}
+          />
+          
+          {/* Game Panel - Same as Live/Party Room */}
+          <LiveGameSelector
+            isOpen={showGamePanel}
+            onClose={() => setShowGamePanel(false)}
+            onOpenGifts={() => setShowGiftPanel(true)}
+          />
+
+          {/* Gift Emoji Animation */}
+          <AnimatePresence>
+            {showGiftAnimation && animatingGiftEmoji && (
+              <GiftEmojiAnimation
+                key={`${giftAnimationInstance}-${animatingGiftEmoji}`}
+                emoji={animatingGiftEmoji}
+                onComplete={() => {
+                  setShowGiftAnimation(false);
+                  setAnimatingGiftEmoji("");
+                }}
+              />
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 flex flex-col overflow-hidden" style={{ background: 'linear-gradient(180deg, #0d0618 0%, #0a0a14 30%, #0d0618 100%)' }}>
+      {/* Header - Ultra Premium */}
+      <header className="flex-shrink-0 z-40 safe-area-top" style={{ background: 'linear-gradient(135deg, rgba(20,8,50,0.98) 0%, rgba(15,5,35,0.98) 100%)', borderBottom: '1px solid rgba(168,85,247,0.12)', boxShadow: '0 4px 30px rgba(0,0,0,0.5)' }}>
+        <div className="px-4 py-3 flex items-center justify-between">
+          <h1 className="text-xl font-bold bg-gradient-to-r from-fuchsia-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">Messages</h1>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full bg-white/[0.06] border border-white/[0.08] hover:bg-white/[0.1] text-white/60"
+              onClick={() => navigate('/search')}
+            >
+              <MessageCircle className="w-5 h-5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full bg-white/[0.06] border border-white/[0.08] hover:bg-white/[0.1] text-white/60"
+              onClick={() => setShowGroupActions(true)}
+            >
+              <Users className="w-5 h-5" />
+            </Button>
+          </div>
+        </div>
+        
+        {/* Tabs - Premium Dark */}
+        <div className="px-4">
+          <Tabs value={chatTab} onValueChange={handleTabChange} className="w-full">
+            <TabsList className="grid w-full grid-cols-4 bg-white/[0.04] border border-white/[0.06] rounded-xl p-1">
+              <TabsTrigger value="messages" className="relative text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600/80 data-[state=active]:to-purple-600/80 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg text-white/50">
+                Messages
+                {globalUnread.messages > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-red-500 to-pink-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg shadow-red-500/30">
+                    {formatBadgeCount(globalUnread.messages)}
+                  </span>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="official" className="relative text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600/80 data-[state=active]:to-purple-600/80 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg text-white/50">
+                Official
+                {globalUnread.official > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg shadow-orange-500/30">
+                    {formatBadgeCount(globalUnread.official)}
+                  </span>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="notifications" className="relative text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600/80 data-[state=active]:to-purple-600/80 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg text-white/50">
+                Notifications
+                {notificationUnreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg">
+                    {formatBadgeCount(notificationUnreadCount)}
+                  </span>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="groups" className="relative text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600/80 data-[state=active]:to-purple-600/80 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg text-white/50">
+                Groups
+                {groups.length > 0 && (
+                  <span className="ml-1 text-xs text-white/30">({groups.length})</span>
+                )}
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+
+        <div className="px-4 py-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
+            <Input
+              placeholder={chatTab === 'messages' ? "Search conversations..." : "Search groups..."}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 rounded-full bg-white/[0.05] border border-white/[0.08] text-white placeholder:text-white/25 focus-visible:ring-1 focus-visible:ring-purple-500/30"
+            />
+          </div>
+        </div>
+      </header>
+
+      {/* Scrollable Content */}
+      <div className="flex-1 min-h-0">
+      <main className="h-full min-h-0 overflow-y-auto overscroll-contain touch-pan-y" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
+      {loading ? (
+        <div className="divide-y divide-border">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="flex items-center gap-3 p-4 animate-pulse">
+              <div className="w-14 h-14 rounded-full bg-muted" />
+              <div className="flex-1 space-y-2">
+                <div className="h-4 w-32 bg-muted rounded" />
+                <div className="h-3 w-48 bg-muted rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : chatTab === 'official' ? (
+        // Official Notice Tab
+        <OfficialNoticeList />
+      ) : chatTab === 'notifications' ? (
+        // Notifications Tab
+        <NotificationList />
+      ) : chatTab === 'messages' ? (
+        // Messages Tab
+        filteredConversations.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.2)' }}>
+              <MessageCircle className="w-10 h-10 text-purple-400/40" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2 text-white/80">No conversations yet</h3>
+            <p className="text-white/30 text-sm mb-4">Start a conversation with someone!</p>
+            <Button
+              className="rounded-full font-bold text-white"
+              style={{ background: 'linear-gradient(135deg, #d946ef 0%, #a855f7 100%)', boxShadow: '0 4px 15px rgba(168,85,247,0.3)' }}
+              onClick={() => navigate('/')}
+            >
+              Find Hosts
+            </Button>
+          </div>
+        ) : (
+          <div className="divide-y divide-white/[0.04]">
+            {filteredConversations.map((conv) => (
+              <motion.button
+                key={conv.id}
+                onClick={() => handleSelectConversation(conv)}
+                className="w-full flex items-center gap-3 p-4 hover:bg-white/[0.04] transition-all duration-200 relative"
+                whileTap={{ scale: 0.98 }}
+              >
+                {/* Unread glow indicator */}
+                {conv.unread_count > 0 && (
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full bg-gradient-to-b from-fuchsia-500 to-purple-500 shadow-lg shadow-fuchsia-500/30" />
+                )}
+                <div className="relative">
+                  {conv.other_user?.id ? (
+                    <AvatarWithFrame
+                      userId={conv.other_user.id}
+                      src={conv.other_user?.avatar_url}
+                      name={conv.other_user?.display_name || 'User'}
+                      level={conv.other_user?.user_level || 1}
+                      size="md"
+                      showAnimation={false}
+                    />
+                  ) : (
+                    <Avatar className="w-14 h-14 ring-2 ring-purple-500/20">
+                      <AvatarImage src={conv.other_user?.avatar_url || undefined} />
+                      <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white">
+                        {conv.other_user?.display_name?.[0] || '?'}
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
+                  {conv.other_user?.is_online && (
+                    <span className="absolute bottom-0 right-0 w-4 h-4 bg-gradient-to-r from-green-400 to-emerald-400 border-2 border-[#0d0618] rounded-full z-10 shadow-lg shadow-green-500/30" />
+                  )}
+                </div>
+                <div className="flex-1 text-left min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold truncate text-white/90">{conv.other_user?.display_name || 'User'}</h3>
+                    {conv.other_user?.country_flag && (
+                      <span className="text-xs">{conv.other_user.country_flag}</span>
+                    )}
+                    <LevelBadge level={conv.other_user?.user_level || 1} size="xs" />
+                    <span className="text-[10px] text-white/25 shrink-0 ml-auto font-medium">
+                      {conv.last_message_at ? formatTime(conv.last_message_at) : ''}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between mt-0.5">
+                    <p className="text-sm text-white/40 truncate">{conv.last_message || 'No messages yet'}</p>
+                    {conv.unread_count > 0 && (
+                      <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 rounded-full ml-2 shrink-0 shadow-lg shadow-red-500/20 text-[10px] px-2">
+                        {conv.unread_count}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              </motion.button>
+            ))}
+          </div>
+        )
+      ) : (
+        // Groups Tab
+        filteredGroups.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.2)' }}>
+              <Users className="w-10 h-10 text-purple-400/40" />
+            </div>
+            <h3 className="text-lg font-semibold mb-2 text-white/80">No groups yet</h3>
+            <p className="text-white/30 text-sm mb-4">Create or join a group!</p>
+            <Button
+              className="rounded-full font-bold text-white"
+              style={{ background: 'linear-gradient(135deg, #d946ef 0%, #a855f7 100%)', boxShadow: '0 4px 15px rgba(168,85,247,0.3)' }}
+              onClick={() => setShowGroupActions(true)}
+            >
+              Get Started
+            </Button>
+          </div>
+        ) : (
+          <div className="divide-y divide-white/[0.04]">
+            {filteredGroups.map((group) => (
+              <motion.button
+                key={group.id}
+                onClick={() => handleSelectGroup(group)}
+                className="w-full flex items-center gap-3 p-4 hover:bg-white/[0.04] transition-all duration-200"
+                whileTap={{ scale: 0.98 }}
+              >
+                <Avatar className="w-14 h-14 ring-2 ring-purple-500/20">
+                  <AvatarImage src={group.avatar_url || undefined} />
+                  <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white">
+                    <Users className="w-6 h-6" />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 text-left min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold truncate text-white/90">{group.name}</h3>
+                    <span className="text-xs text-white/30">({group.member_count})</span>
+                  </div>
+                  {group.is_owner && (
+                    <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 text-xs mt-1">
+                      <Crown className="w-3 h-3 mr-1" />
+                      Owner
+                    </Badge>
+                  )}
+                </div>
+              </motion.button>
+            ))}
+          </div>
+        )
+      )}
+      </main>
+      </div>
+
+      {/* Group Actions Sheet */}
+      <Sheet open={showGroupActions} onOpenChange={setShowGroupActions}>
+        <SheetContent side="bottom" className="rounded-t-3xl border-t border-white/[0.08]" style={{ background: 'linear-gradient(180deg, rgba(30,12,60,0.98) 0%, rgba(15,5,35,0.99) 100%)' }}>
+          <SheetHeader>
+            <SheetTitle className="sr-only">Group Actions</SheetTitle>
+          </SheetHeader>
+          <div className="py-6 flex justify-center gap-8">
+            <button
+              className="flex flex-col items-center gap-2"
+              onClick={() => {
+                setShowGroupActions(false);
+                setShowCreateGroup(true);
+              }}
+            >
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-fuchsia-500/20 to-purple-500/20 border border-fuchsia-500/25 flex items-center justify-center backdrop-blur-xl">
+                <Users className="w-8 h-8 text-fuchsia-400" />
+              </div>
+              <span className="text-sm font-medium text-white/80">Create</span>
+            </button>
+            <button
+              className="flex flex-col items-center gap-2"
+              onClick={() => {
+                setShowGroupActions(false);
+                setShowSearchGroup(true);
+              }}
+            >
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-indigo-500/20 border border-purple-500/25 flex items-center justify-center backdrop-blur-xl">
+                <Search className="w-8 h-8 text-purple-400" />
+              </div>
+              <span className="text-sm font-medium text-white/80">Search</span>
+            </button>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Create Group Dialog */}
+      <Dialog open={showCreateGroup} onOpenChange={setShowCreateGroup}>
+        <DialogContent className="max-w-sm mx-auto border border-white/[0.08]" style={{ background: 'linear-gradient(180deg, rgba(30,12,60,0.98) 0%, rgba(15,5,35,0.99) 100%)' }}>
+          <DialogHeader>
+            <DialogTitle className="text-white">Create a group</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="groupName" className="text-white/60">Group Name</Label>
+              <Input
+                id="groupName"
+                placeholder="Enter group name"
+                value={newGroupName}
+                onChange={(e) => setNewGroupName(e.target.value)}
+                className="bg-white/[0.06] border-white/[0.08] text-white placeholder:text-white/25 focus-visible:ring-1 focus-visible:ring-purple-500/40"
+              />
+            </div>
+
+            <div className="flex justify-center">
+              <button 
+                className="w-20 h-20 rounded-full border-2 border-dashed border-purple-500/30 flex items-center justify-center hover:bg-white/[0.06] transition-colors overflow-hidden"
+                onClick={() => groupPhotoInputRef.current?.click()}
+              >
+                {newGroupPhotoPreview ? (
+                  <img src={newGroupPhotoPreview} alt="Group" className="w-full h-full object-cover" />
+                ) : (
+                  <Camera className="w-8 h-8 text-purple-400/50" />
+                )}
+              </button>
+              <input
+                ref={groupPhotoInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setNewGroupPhoto(file);
+                    setNewGroupPhotoPreview(URL.createObjectURL(file));
+                  }
+                }}
+              />
+            </div>
+
+            <div className="space-y-3">
+              <RadioGroup value={newGroupType} onValueChange={setNewGroupType}>
+                <div className="flex items-center space-x-3 p-3 rounded-xl border border-white/[0.08] bg-white/[0.04]">
+                  <RadioGroupItem value="basic" id="basic" />
+                  <Label htmlFor="basic" className="flex-1 cursor-pointer">
+                    <div className="flex items-center gap-2">
+                      <Users className="w-5 h-5 text-purple-400" />
+                      <span className="font-medium text-white/80">Basic Group</span>
+                    </div>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-3 p-3 rounded-xl border border-white/[0.08] bg-white/[0.04]">
+                  <RadioGroupItem value="family" id="family" />
+                  <Label htmlFor="family" className="flex-1 cursor-pointer">
+                    <div className="flex items-center gap-2">
+                      <Users className="w-5 h-5 text-pink-400" />
+                      <span className="font-medium text-white/80">Family Group</span>
+                    </div>
+                    <p className="text-xs text-white/30 mt-1">
+                      One user can join one family group only
+                    </p>
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            <Button
+              className="w-full rounded-full font-bold text-white"
+              style={{ background: 'linear-gradient(135deg, #d946ef 0%, #a855f7 50%, #7c3aed 100%)', boxShadow: '0 4px 20px rgba(168,85,247,0.4)' }}
+              onClick={handleCreateGroup}
+              disabled={!newGroupName.trim() || creatingGroup}
+            >
+              {creatingGroup ? 'Creating...' : 'Create Group'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Search Group Dialog */}
+      <Dialog open={showSearchGroup} onOpenChange={setShowSearchGroup}>
+        <DialogContent className="max-w-sm mx-auto border border-white/[0.08]" style={{ background: 'linear-gradient(180deg, rgba(30,12,60,0.98) 0%, rgba(15,5,35,0.99) 100%)' }}>
+          <DialogHeader>
+            <DialogTitle className="text-white">Search Group</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="relative">
+              <Input
+                placeholder="Search a group by Group ID"
+                value={groupSearchQuery}
+                onChange={(e) => setGroupSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearchGroup()}
+                className="pr-12 bg-white/[0.06] border-white/[0.08] text-white placeholder:text-white/25 focus-visible:ring-1 focus-visible:ring-purple-500/40"
+              />
+              <Button
+                size="icon"
+                variant="ghost"
+                className="absolute right-1 top-1/2 -translate-y-1/2 text-white/50 hover:text-white hover:bg-white/[0.08]"
+                onClick={handleSearchGroup}
+              >
+                <Search className="w-5 h-5" />
+              </Button>
+            </div>
+
+            {groupSearchResults.length > 0 && (
+              <div className="space-y-2">
+                {groupSearchResults.map((group) => (
+                  <div
+                    key={group.id}
+                    className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.08] bg-white/[0.04]"
+                  >
+                    <Avatar className="w-12 h-12 ring-2 ring-purple-500/20">
+                      <AvatarImage src={group.avatar_url || undefined} />
+                      <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white">
+                        <Users className="w-5 h-5" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold truncate text-white/90">{group.name}</h4>
+                      <p className="text-xs text-white/30">
+                        {group.member_count} members • {group.group_type}
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      className="rounded-full font-bold text-white"
+                      style={{ background: 'linear-gradient(135deg, #d946ef 0%, #a855f7 100%)', boxShadow: '0 2px 10px rgba(168,85,247,0.3)' }}
+                      onClick={() => handleJoinGroup(group.id)}
+                    >
+                      Join
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {groupSearchQuery && groupSearchResults.length === 0 && (
+              <p className="text-center text-white/30 py-8">No groups found</p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Group Settings Panel */}
+      {showGroupSettings && selectedGroup && currentUserId && (
+        <GroupSettingsPanel
+          group={selectedGroup}
+          currentUserId={currentUserId}
+          onClose={() => setShowGroupSettings(false)}
+          onGroupUpdated={() => fetchGroups()}
+          onLeaveGroup={() => {
+            setShowGroupSettings(false);
+            setSelectedGroup(null);
+            setGroupMessages([]);
+            fetchGroups();
+          }}
+        />
+      )}
+
+      {/* Report User Dialog */}
+      {selectedConversation?.other_user?.id && currentUserId && (
+        <ReportUserDialog
+          open={showReportDialog}
+          onOpenChange={setShowReportDialog}
+          reportedUserId={selectedConversation.other_user.id}
+          reporterUserId={currentUserId}
+          contextType="chat"
+          contextId={selectedConversation.id}
+        />
+      )}
+
+      <BottomNavigation activeTab={activeTab} onTabChange={(path) => {
+        setActiveTab(path);
+        navigate(path);
+      }} />
+
+      <ImageViewer src={imageViewer.viewerImage} open={imageViewer.isOpen} onClose={imageViewer.closeImage} alt="Shared Image" />
+      <NumberSharingWarningDialog
+        open={numberWarning.warningState.open}
+        onClose={numberWarning.closeWarning}
+        violationNumber={numberWarning.warningState.violationNumber}
+        beansDeducted={numberWarning.warningState.beansDeducted}
+        isBanned={numberWarning.warningState.isBanned}
+        isGenericWarning={numberWarning.warningState.isGenericWarning}
+      />
+    </div>
+  );
+};
+
+export default Chat;

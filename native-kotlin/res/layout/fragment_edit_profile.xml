@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/background">
+    <!-- Toolbar -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="56dp"
+        android:orientation="horizontal" android:gravity="center_vertical" android:paddingHorizontal="12dp" android:background="@color/surface">
+        <ImageButton android:id="@+id/btnBack" android:layout_width="40dp" android:layout_height="40dp"
+            android:src="@drawable/ic_back" android:background="?attr/selectableItemBackgroundBorderless" />
+        <TextView android:id="@+id/tvTitle" android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:text="Edit Profile" android:textSize="18sp" android:textStyle="bold"
+            android:textColor="@color/text_primary" android:layout_marginStart="8dp" />
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+        <ImageView android:id="@+id/ivAvatar" android:layout_width="80dp" android:layout_height="80dp" android:layout_gravity="center" android:src="@drawable/ic_avatar_placeholder" />
+        <com.google.android.material.textfield.TextInputEditText android:id="@+id/etDisplayName" android:layout_width="match_parent" android:layout_height="48dp" android:hint="Display Name" android:background="@drawable/bg_input" android:padding="12dp" android:layout_marginTop="16dp" />
+        <com.google.android.material.textfield.TextInputEditText android:id="@+id/etBio" android:layout_width="match_parent" android:layout_height="80dp" android:hint="Bio" android:background="@drawable/bg_input" android:padding="12dp" android:gravity="top" android:layout_marginTop="12dp" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnSave" android:layout_width="match_parent" android:layout_height="48dp" android:text="Save" android:textAllCaps="false" android:backgroundTint="@color/primary" xmlns:app="http://schemas.android.com/apk/res-auto" app:cornerRadius="24dp" android:layout_marginTop="20dp" />
+    </LinearLayout>
+    <ProgressBar android:id="@+id/progressBar" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:visibility="gone" />
+</LinearLayout>

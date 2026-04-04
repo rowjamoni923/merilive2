@@ -1,0 +1,1019 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { isNativeApp } from "@/utils/nativeUtils";
+import { 
+  ArrowLeft, 
+  ChevronRight, 
+  Globe, 
+  Ban, 
+  Shield, 
+  FileText, 
+  Info, 
+  Star, 
+  Trash2, 
+  Smartphone,
+  Headphones,
+  LogOut,
+  Check,
+  Bell,
+  Camera,
+  Mic,
+  MapPin,
+  UserX,
+  AlertTriangle,
+  Calendar
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Switch } from "@/components/ui/switch";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { Capacitor } from "@capacitor/core";
+import { PushNotifications } from "@capacitor/push-notifications";
+import { Camera as CapCamera } from "@capacitor/camera";
+import { Geolocation } from "@capacitor/geolocation";
+import { getAppInfo } from "@/utils/nativeUtils";
+
+// World languages - English names only (no native scripts)
+const worldLanguages = [
+  { code: "auto", name: "Automatic", displayName: "Automatic", flag: "🌍" },
+  { code: "bn", name: "Bengali", displayName: "Bengali", flag: "🇧🇩", countries: ["BD"] },
+  { code: "en", name: "English", displayName: "English", flag: "🇺🇸", countries: ["US", "GB", "AU", "CA"] },
+  { code: "hi", name: "Hindi", displayName: "Hindi", flag: "🇮🇳", countries: ["IN"] },
+  { code: "ar", name: "Arabic", displayName: "Arabic", flag: "🇸🇦", countries: ["SA", "AE", "QA", "KW", "OM", "BH", "EG"] },
+  { code: "ur", name: "Urdu", displayName: "Urdu", flag: "🇵🇰", countries: ["PK"] },
+  { code: "zh", name: "Chinese", displayName: "Chinese", flag: "🇨🇳", countries: ["CN", "TW", "HK", "SG"] },
+  { code: "ja", name: "Japanese", displayName: "Japanese", flag: "🇯🇵", countries: ["JP"] },
+  { code: "ko", name: "Korean", displayName: "Korean", flag: "🇰🇷", countries: ["KR"] },
+  { code: "es", name: "Spanish", displayName: "Spanish", flag: "🇪🇸", countries: ["ES", "MX", "AR", "CO"] },
+  { code: "fr", name: "French", displayName: "French", flag: "🇫🇷", countries: ["FR", "CA", "BE"] },
+  { code: "de", name: "German", displayName: "German", flag: "🇩🇪", countries: ["DE", "AT", "CH"] },
+  { code: "it", name: "Italian", displayName: "Italian", flag: "🇮🇹", countries: ["IT"] },
+  { code: "pt", name: "Portuguese", displayName: "Portuguese", flag: "🇧🇷", countries: ["BR", "PT"] },
+  { code: "ru", name: "Russian", displayName: "Russian", flag: "🇷🇺", countries: ["RU"] },
+  { code: "tr", name: "Turkish", displayName: "Turkish", flag: "🇹🇷", countries: ["TR"] },
+  { code: "th", name: "Thai", displayName: "Thai", flag: "🇹🇭", countries: ["TH"] },
+  { code: "vi", name: "Vietnamese", displayName: "Vietnamese", flag: "🇻🇳", countries: ["VN"] },
+  { code: "id", name: "Indonesian", displayName: "Indonesian", flag: "🇮🇩", countries: ["ID"] },
+  { code: "ms", name: "Malay", displayName: "Malay", flag: "🇲🇾", countries: ["MY", "SG", "BN"] },
+  { code: "tl", name: "Filipino", displayName: "Filipino", flag: "🇵🇭", countries: ["PH"] },
+  { code: "ne", name: "Nepali", displayName: "Nepali", flag: "🇳🇵", countries: ["NP"] },
+  { code: "si", name: "Sinhala", displayName: "Sinhala", flag: "🇱🇰", countries: ["LK"] },
+  { code: "ta", name: "Tamil", displayName: "Tamil", flag: "🇮🇳", countries: ["IN", "LK", "SG"] },
+  { code: "te", name: "Telugu", displayName: "Telugu", flag: "🇮🇳", countries: ["IN"] },
+  { code: "ml", name: "Malayalam", displayName: "Malayalam", flag: "🇮🇳", countries: ["IN"] },
+  { code: "mr", name: "Marathi", displayName: "Marathi", flag: "🇮🇳", countries: ["IN"] },
+  { code: "gu", name: "Gujarati", displayName: "Gujarati", flag: "🇮🇳", countries: ["IN"] },
+  { code: "pa", name: "Punjabi", displayName: "Punjabi", flag: "🇮🇳", countries: ["IN", "PK"] },
+  { code: "nl", name: "Dutch", displayName: "Dutch", flag: "🇳🇱", countries: ["NL", "BE"] },
+  { code: "pl", name: "Polish", displayName: "Polish", flag: "🇵🇱", countries: ["PL"] },
+  { code: "uk", name: "Ukrainian", displayName: "Ukrainian", flag: "🇺🇦", countries: ["UA"] },
+  { code: "ro", name: "Romanian", displayName: "Romanian", flag: "🇷🇴", countries: ["RO"] },
+  { code: "el", name: "Greek", displayName: "Greek", flag: "🇬🇷", countries: ["GR"] },
+  { code: "hu", name: "Hungarian", displayName: "Hungarian", flag: "🇭🇺", countries: ["HU"] },
+  { code: "cs", name: "Czech", displayName: "Czech", flag: "🇨🇿", countries: ["CZ"] },
+  { code: "sv", name: "Swedish", displayName: "Swedish", flag: "🇸🇪", countries: ["SE"] },
+  { code: "da", name: "Danish", displayName: "Danish", flag: "🇩🇰", countries: ["DK"] },
+  { code: "no", name: "Norwegian", displayName: "Norwegian", flag: "🇳🇴", countries: ["NO"] },
+  { code: "fi", name: "Finnish", displayName: "Finnish", flag: "🇫🇮", countries: ["FI"] },
+  { code: "he", name: "Hebrew", displayName: "Hebrew", flag: "🇮🇱", countries: ["IL"] },
+  { code: "fa", name: "Persian", displayName: "Persian", flag: "🇮🇷", countries: ["IR"] },
+  { code: "sw", name: "Swahili", displayName: "Swahili", flag: "🇰🇪", countries: ["KE", "TZ"] },
+  { code: "am", name: "Amharic", displayName: "Amharic", flag: "🇪🇹", countries: ["ET"] },
+];
+
+const Settings = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { t, i18n } = useTranslation();
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [showLanguageDialog, setShowLanguageDialog] = useState(false);
+  const [showPermissionsDialog, setShowPermissionsDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showDeleteConfirmDialog, setShowDeleteConfirmDialog] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState("auto");
+  const [detectedCountry, setDetectedCountry] = useState<string | null>(null);
+  const [deletionInfo, setDeletionInfo] = useState<{
+    deletionRequestedAt: string | null;
+    deletionScheduledAt: string | null;
+  } | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  
+  // Permission states
+  const [permissions, setPermissions] = useState({
+    notifications: false,
+    camera: false,
+    microphone: false,
+    location: false,
+  });
+  
+  // App version state
+  const [appVersion, setAppVersion] = useState<{ version: string; build: string }>({ version: "1.0.0", build: "1" });
+
+  // Fetch user and deletion info
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("deletion_requested_at, deletion_scheduled_at")
+          .eq("id", user.id)
+          .single();
+        
+        if (profile) {
+          setDeletionInfo({
+            deletionRequestedAt: profile.deletion_requested_at,
+            deletionScheduledAt: profile.deletion_scheduled_at,
+          });
+        }
+      }
+    };
+    fetchUserData();
+  }, []);
+
+  // Auto-detect language based on country
+  useEffect(() => {
+    const detectLanguage = async () => {
+      try {
+        // Check saved language first
+        const savedLang = localStorage.getItem("meri_app_language");
+        if (savedLang) {
+          setSelectedLanguage(savedLang);
+          return;
+        }
+
+        // Try multiple IP APIs for language detection
+        let countryCode = null;
+
+        // API 1: ipapi.co
+        try {
+          const response = await fetch("https://ipapi.co/json/", { signal: AbortSignal.timeout(4000) });
+          if (response.ok) {
+            const data = await response.json();
+            if (data.country_code && !data.error) countryCode = data.country_code;
+          }
+        } catch (e) { /* fallback */ }
+
+        // API 2: ipwho.is (if API 1 failed)
+        if (!countryCode) {
+          try {
+            const response = await fetch("https://ipwho.is/", { signal: AbortSignal.timeout(4000) });
+            if (response.ok) {
+              const data = await response.json();
+              if (data.success && data.country_code) countryCode = data.country_code;
+            }
+          } catch (e) { /* fallback */ }
+        }
+
+        // API 3: freeipapi.com
+        if (!countryCode) {
+          try {
+            const response = await fetch("https://freeipapi.com/api/json", { signal: AbortSignal.timeout(4000) });
+            if (response.ok) {
+              const data = await response.json();
+              if (data.countryCode) countryCode = data.countryCode;
+            }
+          } catch (e) { /* ignore */ }
+        }
+
+        if (countryCode) {
+          setDetectedCountry(countryCode);
+          const matchingLang = worldLanguages.find(
+            lang => lang.countries?.includes(countryCode)
+          );
+          if (matchingLang) {
+            setSelectedLanguage(matchingLang.code);
+            localStorage.setItem("meri_app_language", matchingLang.code);
+          }
+        }
+      } catch (error) {
+        console.error("Language detection error:", error);
+      }
+    };
+
+    detectLanguage();
+  }, []);
+
+  // Fetch native app version on mount
+  useEffect(() => {
+    const fetchAppVersion = async () => {
+      try {
+        const info = await getAppInfo();
+        setAppVersion({ version: info.version, build: info.build });
+        console.log('[Settings] App version:', info.version, 'Build:', info.build);
+      } catch (error) {
+        console.error('[Settings] Failed to get app version:', error);
+      }
+    };
+    fetchAppVersion();
+  }, []);
+
+  const handleLanguageChange = (langCode: string) => {
+    setSelectedLanguage(langCode);
+    localStorage.setItem("meri_app_language", langCode);
+    
+    // Change i18n language
+    const i18nLang = langCode === "auto" ? "en" : langCode;
+    i18n.changeLanguage(i18nLang);
+    
+    setShowLanguageDialog(false);
+    toast({
+      title: t("settings.languageChanged"),
+      description: worldLanguages.find(l => l.code === langCode)?.name || langCode,
+    });
+  };
+
+  const getCurrentLanguageName = () => {
+    const lang = worldLanguages.find(l => l.code === selectedLanguage);
+    return lang ? `${lang.flag} ${lang.displayName}` : "Automatic";
+  };
+
+  // Check permission status on mount
+  useEffect(() => {
+    const checkPermissions = async () => {
+      if (Capacitor.isNativePlatform()) {
+        try {
+          // Check notification permission
+          const notifStatus = await PushNotifications.checkPermissions();
+          setPermissions(prev => ({ ...prev, notifications: notifStatus.receive === 'granted' }));
+
+          // Check camera permission
+          const camStatus = await CapCamera.checkPermissions();
+          setPermissions(prev => ({ ...prev, camera: camStatus.camera === 'granted' }));
+
+          // Check location permission
+          const locStatus = await Geolocation.checkPermissions();
+          setPermissions(prev => ({ ...prev, location: locStatus.location === 'granted' }));
+
+          // Check microphone permission via getUserMedia test
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            stream.getTracks().forEach(track => track.stop());
+            setPermissions(prev => ({ ...prev, microphone: true }));
+          } catch {
+            setPermissions(prev => ({ ...prev, microphone: false }));
+          }
+        } catch (error) {
+          console.error('Error checking permissions:', error);
+        }
+      } else {
+        // Web fallback
+        try {
+          if ('Notification' in window) {
+            setPermissions(prev => ({ ...prev, notifications: Notification.permission === 'granted' }));
+          }
+          // Check via Permissions API if available
+          if (navigator.permissions) {
+            try {
+              const camPerm = await navigator.permissions.query({ name: 'camera' as PermissionName });
+              setPermissions(prev => ({ ...prev, camera: camPerm.state === 'granted' }));
+            } catch {
+              // Camera permission query not supported
+            }
+            try {
+              const micPerm = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+              setPermissions(prev => ({ ...prev, microphone: micPerm.state === 'granted' }));
+            } catch {
+              // Microphone permission query not supported
+            }
+            try {
+              const locPerm = await navigator.permissions.query({ name: 'geolocation' as PermissionName });
+              setPermissions(prev => ({ ...prev, location: locPerm.state === 'granted' }));
+            } catch {
+              // Location permission query not supported
+            }
+          }
+        } catch (e) {
+          console.log('Notification check failed:', e);
+        }
+      }
+    };
+    checkPermissions();
+  }, []);
+
+  // Request notification permission
+  const requestNotificationPermission = async () => {
+   console.log('[Settings] Requesting notification permission...');
+    try {
+      if (Capacitor.isNativePlatform()) {
+        const result = await PushNotifications.requestPermissions();
+       console.log('[Settings] Native notification result:', result);
+        if (result.receive === 'granted') {
+          await PushNotifications.register();
+          setPermissions(prev => ({ ...prev, notifications: true }));
+          toast({ title: "Notifications Enabled", description: "You will now receive push notifications." });
+        } else {
+          toast({ title: "Permission Denied", description: "Please enable notifications in device settings.", variant: "destructive" });
+        }
+      } else {
+        // Web fallback
+        if ('Notification' in window) {
+          const permission = await Notification.requestPermission();
+         console.log('[Settings] Web notification result:', permission);
+          setPermissions(prev => ({ ...prev, notifications: permission === 'granted' }));
+          if (permission === 'granted') {
+            toast({ title: "Notifications Enabled", description: "You will now receive notifications." });
+         } else {
+           toast({ title: "Permission Denied", description: "Please enable notifications in browser settings.", variant: "destructive" });
+          }
+       } else {
+         toast({ title: "Not Supported", description: "Notifications are not supported in this browser.", variant: "destructive" });
+        }
+      }
+    } catch (error) {
+      console.error('Notification permission error:', error);
+      toast({ title: "Error", description: "Failed to request notification permission.", variant: "destructive" });
+    }
+  };
+
+  // Request camera permission
+  const requestCameraPermission = async () => {
+    console.log('[Settings] Requesting camera permission...');
+    try {
+      // Try native Capacitor Camera plugin first (works in WebView with native bridge)
+      if (Capacitor.isNativePlatform()) {
+        try {
+          const result = await CapCamera.requestPermissions({ permissions: ['camera'] });
+          console.log('[Settings] Native camera result:', result);
+          if (result.camera === 'granted') {
+            setPermissions(prev => ({ ...prev, camera: true }));
+            toast({ title: "Camera Enabled", description: "Camera access has been granted." });
+            return;
+          }
+        } catch (e) {
+          console.log('[Settings] Native camera plugin failed, trying getUserMedia...', e);
+        }
+      }
+
+      // Web / WebView fallback - request via getUserMedia
+      console.log('[Settings] Requesting camera via getUserMedia...');
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      stream.getTracks().forEach(track => track.stop());
+      setPermissions(prev => ({ ...prev, camera: true }));
+      toast({ title: "Camera Enabled", description: "Camera access has been granted." });
+    } catch (error: any) {
+      console.error('Camera permission error:', error);
+      if (error?.name === 'NotAllowedError' || error?.name === 'NotFoundError') {
+        // On Android WebView, permissions may need to be granted from Android Settings
+        toast({ 
+          title: "Camera Permission Needed", 
+          description: "Please go to your device Settings > Apps > MeriLive > Permissions and enable Camera.", 
+          variant: "destructive" 
+        });
+      } else {
+        toast({ title: "Error", description: "Failed to request camera permission.", variant: "destructive" });
+      }
+    }
+  };
+
+  // Request microphone permission
+  const requestMicrophonePermission = async () => {
+    console.log('[Settings] Requesting microphone permission...');
+    try {
+      if (Capacitor.isNativePlatform()) {
+        // Native: First request RECORD_AUDIO runtime permission via Camera plugin
+        // then getUserMedia will work in WebView
+        console.log('[Settings] Native: requesting RECORD_AUDIO via Camera plugin first...');
+        try {
+          const result = await CapCamera.requestPermissions({ permissions: ['camera'] });
+          console.log('[Settings] Native camera/mic permission result:', result);
+        } catch (e) {
+          console.log('[Settings] Camera plugin permission request failed, continuing...', e);
+        }
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(track => track.stop());
+      setPermissions(prev => ({ ...prev, microphone: true }));
+      toast({ title: "Microphone Enabled", description: "Microphone access has been granted." });
+    } catch (error: any) {
+      console.error('Microphone permission error:', error);
+      if (Capacitor.isNativePlatform() && error?.name === 'NotAllowedError') {
+        // On native, if getUserMedia fails even after runtime permission,
+        // the user may need to grant it in app settings
+        toast({ 
+          title: "Microphone Blocked", 
+          description: "Please go to your phone Settings → Apps → MeriLive → Permissions → Microphone → Allow.", 
+          variant: "destructive" 
+        });
+      } else {
+        const message = error?.name === 'NotAllowedError' 
+          ? "Please enable microphone in browser/device settings." 
+          : "Failed to request microphone permission.";
+        toast({ title: "Error", description: message, variant: "destructive" });
+      }
+    }
+  };
+
+  // Request location permission
+  const requestLocationPermission = async () => {
+   console.log('[Settings] Requesting location permission...');
+    try {
+      if (Capacitor.isNativePlatform()) {
+        const result = await Geolocation.requestPermissions();
+       console.log('[Settings] Native location result:', result);
+        if (result.location === 'granted') {
+          setPermissions(prev => ({ ...prev, location: true }));
+          toast({ title: "Location Enabled", description: "Location access has been granted." });
+        } else {
+          toast({ title: "Permission Denied", description: "Please enable location in device settings.", variant: "destructive" });
+        }
+      } else {
+        // Web fallback
+       console.log('[Settings] Web location via getCurrentPosition...');
+        navigator.geolocation.getCurrentPosition(
+          () => {
+            setPermissions(prev => ({ ...prev, location: true }));
+            toast({ title: "Location Enabled", description: "Location access has been granted." });
+          },
+         (error) => {
+           console.error('[Settings] Location error:', error);
+           toast({ title: "Permission Denied", description: "Please enable location in browser settings.", variant: "destructive" });
+          }
+        );
+      }
+    } catch (error) {
+      console.error('Location permission error:', error);
+      toast({ title: "Error", description: "Failed to request location permission.", variant: "destructive" });
+    }
+  };
+
+  const handleLogout = async () => {
+    setLoading(true);
+    try {
+      // Set persistent flag FIRST so auto-recovery NEVER brings back old account
+      localStorage.setItem('meri_manual_logout', 'true');
+      localStorage.removeItem('meri_device_account');
+      
+      // Navigate IMMEDIATELY for instant feedback
+      navigate("/auth", { replace: true });
+      setShowLogoutDialog(false);
+      
+      // Sign out and clear native session in parallel (non-blocking)
+      const signOutPromise = supabase.auth.signOut({ scope: 'local' });
+      const clearNativePromise = import('@/utils/nativeSessionStorage')
+        .then(({ clearNativeSession }) => clearNativeSession())
+        .catch(() => {});
+      
+      await Promise.allSettled([signOutPromise, clearNativePromise]);
+      
+      toast({
+        title: "Logged Out",
+        description: "You have successfully logged out.",
+      });
+    } catch (error: any) {
+      // Even on error, stay on auth page — don't revert
+      console.warn('[Logout] Error during cleanup:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleClearCache = () => {
+    const deviceAccount = localStorage.getItem("meri_device_account");
+    const deviceId = localStorage.getItem("meri_device_id");
+    const appLang = localStorage.getItem("meri_app_language");
+    localStorage.clear();
+    if (deviceAccount) localStorage.setItem("meri_device_account", deviceAccount);
+    if (deviceId) localStorage.setItem("meri_device_id", deviceId);
+    if (appLang) localStorage.setItem("meri_app_language", appLang);
+    
+    toast({
+      title: "Cache Cleared",
+      description: "App cache has been cleared successfully.",
+    });
+  };
+
+  // Request account deletion
+  const handleRequestDeletion = async () => {
+    if (!userId) return;
+    setDeleteLoading(true);
+    try {
+      const { error } = await supabase.rpc('request_account_deletion', {
+        user_id_param: userId
+      });
+      
+      if (error) throw error;
+      
+      const scheduledDate = new Date();
+      scheduledDate.setDate(scheduledDate.getDate() + 30);
+      
+      setDeletionInfo({
+        deletionRequestedAt: new Date().toISOString(),
+        deletionScheduledAt: scheduledDate.toISOString(),
+      });
+      
+      toast({
+        title: "Account Deletion Scheduled",
+        description: `Your account will be permanently deleted on ${scheduledDate.toLocaleDateString()}`,
+      });
+      
+      setShowDeleteConfirmDialog(false);
+      setShowDeleteDialog(false);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to schedule deletion",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  // Cancel account deletion
+  const handleCancelDeletion = async () => {
+    if (!userId) return;
+    setDeleteLoading(true);
+    try {
+      const { error } = await supabase.rpc('cancel_account_deletion', {
+        user_id_param: userId
+      });
+      
+      if (error) throw error;
+      
+      setDeletionInfo({
+        deletionRequestedAt: null,
+        deletionScheduledAt: null,
+      });
+      
+      toast({
+        title: "Deletion Cancelled",
+        description: "Your account deletion has been cancelled.",
+      });
+      
+      setShowDeleteDialog(false);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to cancel deletion",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const getDaysRemaining = () => {
+    if (!deletionInfo?.deletionScheduledAt) return 0;
+    const scheduled = new Date(deletionInfo.deletionScheduledAt);
+    const now = new Date();
+    const diff = scheduled.getTime() - now.getTime();
+    return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+  };
+
+  const settingsItems = [
+    {
+      icon: Bell,
+      label: t("settings.notifications"),
+      value: permissions.notifications ? t("common.enabled") : t("settings.tapToEnable"),
+      onClick: () => setShowPermissionsDialog(true),
+    },
+    {
+      icon: Globe,
+      label: t("settings.language"),
+      value: getCurrentLanguageName(),
+      onClick: () => setShowLanguageDialog(true),
+    },
+    {
+      icon: Ban,
+      label: t("settings.blacklist"),
+      onClick: () => navigate("/settings/blacklist"),
+    },
+    {
+      icon: Shield,
+      label: t("settings.privacyPolicy"),
+      onClick: () => navigate("/settings/privacy-policy"),
+    },
+    {
+      icon: FileText,
+      label: t("settings.userAgreement"),
+      onClick: () => navigate("/settings/user-agreement"),
+    },
+    {
+      icon: Info,
+      label: t("settings.aboutUs"),
+      onClick: () => navigate("/settings/about-us"),
+    },
+    // Rate & Clear Cache only for native apps
+    ...(isNativeApp() ? [
+      {
+        icon: Star,
+        label: t("settings.rateMeriLive"),
+        onClick: () => {
+          toast({
+            title: t("settings.thankYou"),
+            description: t("settings.appStoreReview"),
+          });
+        },
+      },
+      {
+        icon: Trash2,
+        label: t("settings.clearCache"),
+        value: "0 KB",
+        onClick: handleClearCache,
+      },
+    ] : []),
+    {
+      icon: Smartphone,
+      label: t("settings.version"),
+      value: `${appVersion.version} (${appVersion.build})`,
+      showArrow: false,
+    },
+    {
+      icon: Headphones,
+      label: t("settings.customerService"),
+      onClick: () => navigate("/settings/customer-service"),
+    },
+    {
+      icon: UserX,
+      label: t("settings.deleteAccount"),
+      value: deletionInfo?.deletionScheduledAt ? t("settings.daysLeft", { count: getDaysRemaining() }) : undefined,
+      onClick: () => setShowDeleteDialog(true),
+      danger: true,
+    },
+  ];
+
+  return (
+    <div className="mobile-page bg-background">
+      {/* Header */}
+      <div className="mobile-header bg-background border-b">
+        <div className="flex items-center h-14 px-4">
+          <button 
+            onClick={() => navigate(-1)}
+            className="p-2 -ml-2 hover:bg-muted rounded-full transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <h1 className="flex-1 text-center text-lg font-semibold pr-7">{t("settings.title")}</h1>
+        </div>
+      </div>
+
+      {/* Scrollable Content */}
+      <div className="mobile-page-scrollable">
+      {/* Settings List */}
+      <div className="divide-y">
+        {settingsItems.map((item, index) => (
+          <button
+            key={index}
+            onClick={item.onClick}
+            className={`w-full flex items-center justify-between px-4 py-4 hover:bg-muted/50 transition-colors ${
+              (item as any).danger ? 'text-destructive' : ''
+            }`}
+            disabled={!item.onClick}
+          >
+            <div className="flex items-center gap-3">
+              <item.icon className={`w-5 h-5 ${(item as any).danger ? 'text-destructive' : 'text-muted-foreground'}`} />
+              <span className={(item as any).danger ? 'text-destructive' : 'text-foreground'}>{item.label}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {item.value && (
+                <span className={`text-sm ${(item as any).danger ? 'text-destructive/70' : 'text-muted-foreground'}`}>{item.value}</span>
+              )}
+              {item.showArrow !== false && item.onClick && (
+                <ChevronRight className={`w-5 h-5 ${(item as any).danger ? 'text-destructive' : 'text-muted-foreground'}`} />
+              )}
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* Log Out Button */}
+      <div className="mt-6 px-4">
+        <Button
+          variant="outline"
+          onClick={() => setShowLogoutDialog(true)}
+          className="w-full h-12 text-destructive border-destructive/30 hover:bg-destructive/10"
+        >
+          <LogOut className="w-5 h-5 mr-2" />
+          {t("settings.logout")}
+        </Button>
+      </div>
+      </div>
+
+      {/* Language Selection Dialog - Premium Dark Theme */}
+      <Dialog open={showLanguageDialog} onOpenChange={setShowLanguageDialog}>
+        <DialogContent className="sm:max-w-md max-h-[80vh] bg-slate-900 border border-white/10">
+          <DialogHeader>
+            <DialogTitle className="text-white text-center">{t("settings.selectLanguage")}</DialogTitle>
+            <DialogDescription className="text-white/60 text-center">
+              {t("settings.chooseLanguage")}
+            </DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="h-[400px] pr-4">
+            <div className="space-y-2">
+              {worldLanguages.map((lang) => (
+                <button
+                  key={lang.code}
+                  onClick={() => handleLanguageChange(lang.code)}
+                  className={`w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all ${
+                    selectedLanguage === lang.code
+                      ? "bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-500/50 text-white"
+                      : "bg-slate-800/50 hover:bg-slate-700/70 border border-white/5 text-white"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{lang.flag}</span>
+                    <div className="text-left">
+                      <p className="font-semibold text-white">{lang.displayName}</p>
+                      <p className="text-xs text-white/50">{lang.name}</p>
+                    </div>
+                  </div>
+                  {selectedLanguage === lang.code && (
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                      <Check className="w-4 h-4 text-white" />
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+
+      {/* Permissions Dialog - Premium Luxurious UI */}
+      <Dialog open={showPermissionsDialog} onOpenChange={setShowPermissionsDialog}>
+        <DialogContent className="sm:max-w-md bg-slate-900 border border-white/10">
+          <DialogHeader>
+            <DialogTitle className="text-white text-center">{t("settings.notificationsPermissions")}</DialogTitle>
+            <DialogDescription className="text-white/60 text-center">
+              {t("settings.managePermissions")}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-4">
+            {/* Notifications */}
+          <button 
+            onClick={() => requestNotificationPermission()}
+            className="w-full flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-slate-800/80 to-slate-800/50 border border-white/5 cursor-pointer active:scale-[0.98] transition-transform"
+          >
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600/30 to-pink-600/30 flex items-center justify-center border border-purple-500/20">
+                  <Bell className="w-5 h-5 text-purple-400" />
+                </div>
+                <div>
+                   <p className="font-semibold text-white">{t("settings.pushNotifications")}</p>
+                   <p className="text-xs text-white/50">{t("settings.receiveAlerts")}</p>
+                </div>
+              </div>
+            <div
+              className={`relative w-14 h-8 rounded-full transition-all duration-300 pointer-events-none ${
+                  permissions.notifications 
+                    ? "bg-gradient-to-r from-purple-600 to-pink-600 shadow-lg shadow-purple-500/30" 
+                    : "bg-slate-700 border border-white/10"
+                }`}
+              >
+        <div className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow-md transition-all duration-300 pointer-events-none ${
+                  permissions.notifications ? "left-7" : "left-1"
+                }`} />
+            </div>
+          </button>
+
+            {/* Camera */}
+    <button 
+      onClick={() => requestCameraPermission()}
+      className="w-full flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-slate-800/80 to-slate-800/50 border border-white/5 cursor-pointer active:scale-[0.98] transition-transform"
+    >
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-600/30 to-rose-600/30 flex items-center justify-center border border-pink-500/20">
+                  <Camera className="w-5 h-5 text-pink-400" />
+                </div>
+                <div>
+                   <p className="font-semibold text-white">{t("settings.cameraAccess")}</p>
+                   <p className="text-xs text-white/50">{t("settings.forLiveStreaming")}</p>
+                </div>
+              </div>
+      <div
+        className={`relative w-14 h-8 rounded-full transition-all duration-300 pointer-events-none ${
+                  permissions.camera 
+                    ? "bg-gradient-to-r from-pink-600 to-rose-600 shadow-lg shadow-pink-500/30" 
+                    : "bg-slate-700 border border-white/10"
+                }`}
+              >
+        <div className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow-md transition-all duration-300 pointer-events-none ${
+                  permissions.camera ? "left-7" : "left-1"
+                }`} />
+      </div>
+    </button>
+
+            {/* Microphone */}
+    <button 
+      onClick={() => requestMicrophonePermission()}
+      className="w-full flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-slate-800/80 to-slate-800/50 border border-white/5 cursor-pointer active:scale-[0.98] transition-transform"
+    >
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600/30 to-cyan-600/30 flex items-center justify-center border border-blue-500/20">
+                  <Mic className="w-5 h-5 text-blue-400" />
+                </div>
+                <div>
+                   <p className="font-semibold text-white">{t("settings.microphoneAccess")}</p>
+                   <p className="text-xs text-white/50">{t("settings.forAudioStreaming")}</p>
+                </div>
+              </div>
+      <div
+        className={`relative w-14 h-8 rounded-full transition-all duration-300 pointer-events-none ${
+                  permissions.microphone 
+                    ? "bg-gradient-to-r from-blue-600 to-cyan-600 shadow-lg shadow-blue-500/30" 
+                    : "bg-slate-700 border border-white/10"
+                }`}
+              >
+        <div className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow-md transition-all duration-300 pointer-events-none ${
+                  permissions.microphone ? "left-7" : "left-1"
+                }`} />
+      </div>
+    </button>
+
+            {/* Location */}
+    <button 
+      onClick={() => requestLocationPermission()}
+      className="w-full flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-slate-800/80 to-slate-800/50 border border-white/5 cursor-pointer active:scale-[0.98] transition-transform"
+    >
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-600/30 to-emerald-600/30 flex items-center justify-center border border-green-500/20">
+                  <MapPin className="w-5 h-5 text-green-400" />
+                </div>
+                <div>
+                   <p className="font-semibold text-white">{t("settings.locationAccess")}</p>
+                   <p className="text-xs text-white/50">{t("settings.showRegionFlag")}</p>
+                </div>
+              </div>
+      <div
+        className={`relative w-14 h-8 rounded-full transition-all duration-300 pointer-events-none ${
+                  permissions.location 
+                    ? "bg-gradient-to-r from-green-600 to-emerald-600 shadow-lg shadow-green-500/30" 
+                    : "bg-slate-700 border border-white/10"
+                }`}
+              >
+        <div className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow-md transition-all duration-300 pointer-events-none ${
+                  permissions.location ? "left-7" : "left-1"
+                }`} />
+      </div>
+    </button>
+          </div>
+          <DialogFooter>
+            <Button 
+              onClick={() => setShowPermissionsDialog(false)} 
+              className="w-full h-12 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 text-white font-semibold"
+            >
+              {t("common.done")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Logout Confirmation Dialog */}
+      <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("settings.logout")}?</DialogTitle>
+            <DialogDescription>
+              {t("settings.logoutConfirm")}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setShowLogoutDialog(false)}
+              className="flex-1"
+            >
+              {t("common.cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleLogout}
+              disabled={loading}
+              className="flex-1"
+            >
+              {loading ? t("common.pleaseWait") : t("settings.logout")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Account Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="w-5 h-5" />
+              Delete Account
+            </DialogTitle>
+            <DialogDescription>
+              {deletionInfo?.deletionScheduledAt ? (
+                <div className="space-y-3 mt-2">
+                  <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
+                    <div className="flex items-center gap-2 text-amber-700 mb-1">
+                      <Calendar className="w-4 h-4" />
+                      <span className="font-medium">Deletion Scheduled</span>
+                    </div>
+                    <p className="text-sm text-amber-600">
+                      Your account will be permanently deleted on{" "}
+                      <strong>{new Date(deletionInfo.deletionScheduledAt).toLocaleDateString()}</strong>
+                    </p>
+                    <p className="text-xs text-amber-500 mt-1">
+                      {getDaysRemaining()} days remaining
+                    </p>
+                  </div>
+                  <p className="text-sm">
+                    You can cancel the deletion and keep your account if you change your mind.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3 mt-2">
+                  <p>Are you sure you want to delete your account?</p>
+                  <ul className="text-sm space-y-1 text-muted-foreground">
+                    <li>• Your account will be scheduled for deletion</li>
+                    <li>• After 15 days, it will be permanently removed</li>
+                    <li>• All your data, coins, and earnings will be lost</li>
+                    <li>• You can cancel deletion within 15 days</li>
+                  </ul>
+                </div>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteDialog(false)}
+              className="flex-1"
+            >
+              Close
+            </Button>
+            {deletionInfo?.deletionScheduledAt ? (
+              <Button
+                variant="default"
+                onClick={handleCancelDeletion}
+                disabled={deleteLoading}
+                className="flex-1"
+              >
+                {deleteLoading ? "Cancelling..." : "Cancel Deletion"}
+              </Button>
+            ) : (
+              <Button
+                variant="destructive"
+                onClick={() => setShowDeleteConfirmDialog(true)}
+                className="flex-1"
+              >
+                Delete Account
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteConfirmDialog} onOpenChange={setShowDeleteConfirmDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-destructive">Confirm Account Deletion</DialogTitle>
+            <DialogDescription>
+              <div className="space-y-3 mt-2">
+                <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                  <p className="text-sm text-destructive font-medium">
+                    ⚠️ This action cannot be undone after 15 days!
+                  </p>
+                </div>
+                <p className="text-sm">
+                  Your account will be permanently deleted on{" "}
+                  <strong>
+                    {new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toLocaleDateString()}
+                  </strong>
+                </p>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteConfirmDialog(false)}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleRequestDeletion}
+              disabled={deleteLoading}
+              className="flex-1"
+            >
+              {deleteLoading ? "Processing..." : "Confirm Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default Settings;

@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.merilive.app",
+      "sha256_cert_fingerprints": [
+        "D6:F9:B3:BB:73:2D:48:1D:DB:36:D4:DC:F2:B5:4D:60:61:88:71:77:14:8A:9C:A2:32:3D:16:34:66:A8:51:F6"
+      ]
+    }
+  }
+]

@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.admin_process_face_verification(UUID, TEXT, TEXT, TEXT);

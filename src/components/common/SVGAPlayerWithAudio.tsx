@@ -1,0 +1,386 @@
+import React, { useRef, useEffect, useState, useCallback } from 'react';
+import { cn } from '@/lib/utils';
+import { loadSVGA, stripAudio } from '@/utils/svgaLoader';
+import { getSVGAModule } from '@/utils/svgaPrewarm';
+import { extractAudioFromSVGA } from '@/utils/svgaAudioExtractor';
+import { Howl } from 'howler';
+
+interface SVGAPlayerWithAudioProps {
+  src: string;
+  className?: string;
+  loop?: boolean;
+  autoPlay?: boolean;
+  onLoad?: () => void;
+  onError?: (error: Error) => void;
+  onComplete?: () => void;
+  onAudioExtracted?: (audioUrl: string | null) => void;
+  volume?: number;
+}
+
+const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
+  src,
+  className,
+  loop = false,
+  autoPlay = true,
+  onLoad,
+  onError,
+  onComplete,
+  onAudioExtracted,
+  volume = 0.8,
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const playerRef = useRef<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const completedRef = useRef(false);
+  const mountedRef = useRef(true);
+  const animationStartedRef = useRef(false);
+  const activeHowlsRef = useRef<Howl[]>([]);
+  const activeAudiosRef = useRef<HTMLAudioElement[]>([]);
+  const completionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const cleanupAudio = useCallback(() => {
+    activeHowlsRef.current.forEach(h => { try { h.stop(); h.unload(); } catch {} });
+    activeHowlsRef.current = [];
+    activeAudiosRef.current.forEach(a => { try { a.pause(); a.src = ''; } catch {} });
+    activeAudiosRef.current = [];
+  }, []);
+
+  const handleAnimationComplete = useCallback(() => {
+    if (completedRef.current || !mountedRef.current) return;
+    completedRef.current = true;
+    
+    if (completionTimerRef.current) {
+      clearTimeout(completionTimerRef.current);
+      completionTimerRef.current = null;
+    }
+
+    if (playerRef.current) {
+      try {
+        playerRef.current.stopAnimation();
+        playerRef.current.clear();
+      } catch (e) {}
+    }
+    
+    setTimeout(() => cleanupAudio(), 500);
+    onComplete?.();
+  }, [onComplete, cleanupAudio]);
+
+  useEffect(() => {
+    if (animationStartedRef.current) return;
+    animationStartedRef.current = true;
+    mountedRef.current = true;
+    completedRef.current = false;
+    
+    if (!src || !containerRef.current) return;
+
+    let player: any = null;
+    const shouldPlayAudio = volume > 0;
+
+    const loadAndPlay = async () => {
+      try {
+        // Start both animation loading and audio extraction in parallel
+        const [SVGA, audioSegments] = await Promise.all([
+          getSVGAModule(),
+          shouldPlayAudio ? extractAudioFromSVGA(src) : Promise.resolve([]),
+        ]);
+        
+        if (!mountedRef.current || !containerRef.current) return;
+
+        player = new SVGA.Player(containerRef.current);
+        playerRef.current = player;
+        player.loops = loop ? 0 : 1;
+        player.clearsAfterStop = true;
+
+        // Play extracted audio via Howler
+        let audioFound = false;
+        if (audioSegments.length > 0) {
+          const clampedVolume = Math.min(Math.max(volume, 0), 1);
+          for (const segment of audioSegments) {
+            const played = playAudioSegment(segment.data, segment.mimeType, segment.format, clampedVolume, loop, activeHowlsRef, activeAudiosRef);
+            if (played) audioFound = true;
+          }
+        }
+        
+        // Fallback: try parser's videoItem for audio data
+        const videoItem = await loadSVGA(src);
+        if (!mountedRef.current) return;
+        
+        if (!audioFound && shouldPlayAudio) {
+          audioFound = extractAndPlayFromVideoItem(videoItem, volume, loop, activeHowlsRef, activeAudiosRef);
+        }
+        
+        onAudioExtracted?.(audioFound ? 'embedded' : null);
+
+        // Always strip audio from videoItem to prevent double-play
+        const videoItemToUse = stripAudio(videoItem);
+        const frames = videoItem?.frames || 0;
+        const fps = videoItem?.FPS || 24;
+        const exactDuration = frames > 0 ? (frames / fps) * 1000 : 0;
+
+        player.setVideoItem(videoItemToUse);
+        setLoading(false);
+        onLoad?.();
+
+        if (autoPlay) {
+          player.startAnimation();
+        }
+
+        if (!loop) {
+          player.onFinished(() => {
+            if (mountedRef.current && !completedRef.current) {
+              handleAnimationComplete();
+            }
+          });
+
+          // Native-duration safety fallback: exact duration + small buffer
+          if (exactDuration > 0) {
+            const safetyBuffer = Math.min(1500, exactDuration * 0.2);
+            completionTimerRef.current = setTimeout(() => {
+              if (mountedRef.current && !completedRef.current) {
+                handleAnimationComplete();
+              }
+            }, exactDuration + safetyBuffer);
+          }
+        }
+        
+      } catch (err) {
+        console.error('[SVGAPlayerWithAudio] ❌ Error:', err);
+        if (mountedRef.current) {
+          setError('Failed to load animation');
+          setLoading(false);
+          onError?.(err instanceof Error ? err : new Error('Failed to load SVGA'));
+        }
+      }
+    };
+
+    loadAndPlay();
+
+    return () => {
+      mountedRef.current = false;
+      cleanupAudio();
+      if (completionTimerRef.current) {
+        clearTimeout(completionTimerRef.current);
+        completionTimerRef.current = null;
+      }
+      if (playerRef.current) {
+        try {
+          playerRef.current.stopAnimation();
+          playerRef.current.clear();
+        } catch (e) {}
+        playerRef.current = null;
+      }
+    };
+  }, [src]);
+
+  if (error) {
+    return (
+      <div className={cn("flex items-center justify-center bg-black/20 rounded-lg", className)}>
+        <div className="w-8 h-8 rounded-lg bg-white/5" />
+      </div>
+    );
+  }
+
+  return (
+    <div className={cn("relative", className)}>
+      {loading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
+          <div className="w-8 h-8 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+        </div>
+      )}
+      <div ref={containerRef} className="w-full h-full" />
+    </div>
+  );
+};
+
+/**
+ * Play audio from raw Uint8Array data using Howler (primary) or HTML5 Audio (fallback)
+ */
+function playAudioSegment(
+  audioData: Uint8Array,
+  mimeType: string,
+  format: string,
+  volume: number,
+  loop: boolean,
+  howlsRef: React.MutableRefObject<Howl[]>,
+  audiosRef: React.MutableRefObject<HTMLAudioElement[]>,
+): boolean {
+  try {
+    const audioBlob = new Blob([audioData.buffer as ArrayBuffer], { type: mimeType });
+    const audioUrl = URL.createObjectURL(audioBlob);
+    
+    try {
+      const howl = new Howl({
+        src: [audioUrl],
+        format: [format],
+        volume,
+        loop,
+        html5: true,
+        onend: () => { if (!loop) URL.revokeObjectURL(audioUrl); },
+        onloaderror: (_id: any, err: any) => {
+          console.warn('[SVGAPlayerWithAudio] Howler load error:', err);
+          URL.revokeObjectURL(audioUrl);
+          // Fallback to HTML5
+          playHTML5Audio(audioData, mimeType, volume, loop, audiosRef);
+        },
+        onplayerror: () => {
+          howl.once('unlock', () => howl.play());
+        },
+      });
+      howlsRef.current.push(howl);
+      howl.play();
+      console.log(`[SVGAPlayerWithAudio] 🔊 Playing via Howler, format: ${format}, size: ${(audioData.length / 1024).toFixed(1)}KB`);
+      return true;
+    } catch (howlerErr) {
+      console.warn('[SVGAPlayerWithAudio] Howler failed:', howlerErr);
+      URL.revokeObjectURL(audioUrl);
+      return playHTML5Audio(audioData, mimeType, volume, loop, audiosRef);
+    }
+  } catch (e) {
+    console.warn('[SVGAPlayerWithAudio] Audio playback failed:', e);
+    return false;
+  }
+}
+
+function playHTML5Audio(
+  audioData: Uint8Array,
+  mimeType: string,
+  volume: number,
+  loop: boolean,
+  audiosRef: React.MutableRefObject<HTMLAudioElement[]>,
+): boolean {
+  try {
+    const audioBlob = new Blob([audioData.buffer as ArrayBuffer], { type: mimeType });
+    const audioUrl = URL.createObjectURL(audioBlob);
+    const audio = new Audio(audioUrl);
+    audio.volume = volume;
+    audio.loop = loop;
+    audiosRef.current.push(audio);
+    
+    audio.play()
+      .then(() => console.log('[SVGAPlayerWithAudio] 🔊 Playing via HTML5 Audio'))
+      .catch(() => {
+        const playOnInteraction = () => {
+          audio.play().catch(() => {});
+          document.removeEventListener('touchstart', playOnInteraction);
+          document.removeEventListener('click', playOnInteraction);
+        };
+        document.addEventListener('touchstart', playOnInteraction, { once: true });
+        document.addEventListener('click', playOnInteraction, { once: true });
+      });
+    
+    audio.addEventListener('ended', () => {
+      if (!loop) {
+        URL.revokeObjectURL(audioUrl);
+        const idx = audiosRef.current.indexOf(audio);
+        if (idx >= 0) audiosRef.current.splice(idx, 1);
+      }
+    });
+    
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
+ * Fallback: Try to extract audio from svgaplayerweb's parsed VideoItem.
+ * This works if the parser properly exposes audio data as base64 strings.
+ */
+function extractAndPlayFromVideoItem(
+  videoItem: any,
+  volume: number,
+  loop: boolean,
+  howlsRef: React.MutableRefObject<Howl[]>,
+  audiosRef: React.MutableRefObject<HTMLAudioElement[]>,
+): boolean {
+  const clampedVolume = Math.min(Math.max(volume, 0), 1);
+  let audioPlayed = false;
+
+  // Strategy 1: Use audios array
+  if (videoItem.audios?.length > 0) {
+    for (const audioEntity of videoItem.audios) {
+      const audioKey = audioEntity.audioKey;
+      const base64Data = videoItem.images?.[audioKey];
+      if (base64Data && typeof base64Data === 'string') {
+        const played = playBase64Audio(base64Data, clampedVolume, loop, howlsRef, audiosRef);
+        if (played) audioPlayed = true;
+      }
+    }
+  }
+
+  // Strategy 2: Scan images map for audio magic bytes
+  if (!audioPlayed && videoItem.images) {
+    for (const key in videoItem.images) {
+      if (!videoItem.images.hasOwnProperty(key)) continue;
+      const data = videoItem.images[key];
+      if (typeof data !== 'string' || data.length < 16) continue;
+      
+      if (isAudioBase64(data)) {
+        const played = playBase64Audio(data, clampedVolume, loop, howlsRef, audiosRef);
+        if (played) audioPlayed = true;
+      }
+    }
+  }
+
+  return audioPlayed;
+}
+
+function isAudioBase64(base64: string): boolean {
+  try {
+    const snippet = base64.substring(0, 16);
+    const binary = atob(snippet);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    
+    // MP3 ID3
+    if (bytes[0] === 0x49 && bytes[1] === 0x44 && bytes[2] === 0x33) return true;
+    // MP3 frame sync
+    if (bytes[0] === 0xFF && (bytes[1] & 0xE0) === 0xE0 && bytes[1] !== 0xFF) return true;
+    // OGG
+    if (bytes[0] === 0x4F && bytes[1] === 0x67 && bytes[2] === 0x67 && bytes[3] === 0x53) return true;
+    // WAV
+    if (bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46) return true;
+    // AAC ADTS
+    if (bytes[0] === 0xFF && (bytes[1] === 0xF1 || bytes[1] === 0xF9)) return true;
+    // M4A ftyp
+    if (bytes.length > 7 && bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70) return true;
+    // Exclude known image formats
+  } catch {}
+  return false;
+}
+
+function playBase64Audio(
+  base64Data: string,
+  volume: number,
+  loop: boolean,
+  howlsRef: React.MutableRefObject<Howl[]>,
+  audiosRef: React.MutableRefObject<HTMLAudioElement[]>,
+): boolean {
+  try {
+    let rawBase64 = base64Data;
+    if (base64Data.startsWith('data:')) {
+      rawBase64 = base64Data.split(',')[1] || base64Data;
+    }
+    const binary = atob(rawBase64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    
+    const { mimeType, format } = detectFormat(bytes);
+    return playAudioSegment(bytes, mimeType, format, volume, loop, howlsRef, audiosRef);
+  } catch {
+    return false;
+  }
+}
+
+function detectFormat(bytes: Uint8Array): { mimeType: string; format: string } {
+  if (bytes[0] === 0x49 && bytes[1] === 0x44 && bytes[2] === 0x33) return { mimeType: 'audio/mpeg', format: 'mp3' };
+  if (bytes[0] === 0xFF && (bytes[1] & 0xE0) === 0xE0) return { mimeType: 'audio/mpeg', format: 'mp3' };
+  if (bytes[0] === 0x4F && bytes[1] === 0x67 && bytes[2] === 0x67) return { mimeType: 'audio/ogg', format: 'ogg' };
+  if (bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46) return { mimeType: 'audio/wav', format: 'wav' };
+  if (bytes.length > 7 && bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79) return { mimeType: 'audio/mp4', format: 'mp4' };
+  if (bytes[0] === 0xFF && (bytes[1] === 0xF1 || bytes[1] === 0xF9)) return { mimeType: 'audio/aac', format: 'aac' };
+  return { mimeType: 'audio/mpeg', format: 'mp3' };
+}
+
+export default SVGAPlayerWithAudio;

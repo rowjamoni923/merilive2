@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:paddingHorizontal="16dp" android:paddingVertical="4dp">
+    <!-- Received message (left) -->
+    <LinearLayout android:id="@+id/layoutReceived" android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_gravity="start" android:orientation="vertical" android:maxWidth="280dp">
+        <TextView android:id="@+id/tvReceivedText" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:background="@drawable/bg_card" android:padding="12dp"
+            android:textColor="@color/text_primary" android:textSize="14sp" />
+        <TextView android:id="@+id/tvReceivedTime" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:textColor="@color/text_hint" android:textSize="10sp" android:layout_marginTop="2dp" />
+    </LinearLayout>
+    <!-- Sent message (right) -->
+    <LinearLayout android:id="@+id/layoutSent" android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_gravity="end" android:orientation="vertical" android:maxWidth="280dp" android:gravity="end">
+        <TextView android:id="@+id/tvSentText" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:background="@drawable/bg_primary_button" android:padding="12dp"
+            android:textColor="@color/text_primary" android:textSize="14sp" />
+        <TextView android:id="@+id/tvSentTime" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:textColor="@color/text_hint" android:textSize="10sp" android:layout_marginTop="2dp" />
+    </LinearLayout>
+</FrameLayout>

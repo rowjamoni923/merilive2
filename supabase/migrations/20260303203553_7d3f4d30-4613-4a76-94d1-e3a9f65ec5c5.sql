@@ -1,0 +1,1 @@
+ALTER TABLE public.admin_users ADD COLUMN IF NOT EXISTS whatsapp_number TEXT DEFAULT NULL;

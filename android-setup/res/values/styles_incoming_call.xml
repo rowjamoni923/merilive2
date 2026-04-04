@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+    <!-- Incoming Call Activity Theme -->
+    <style name="Theme.IncomingCall" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">@color/call_background</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowShowWhenLocked">true</item>
+        <item name="android:windowDismissKeyguard">true</item>
+        <item name="android:windowTurnScreenOn">true</item>
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+    
+    <!-- Colors for Call UI -->
+    <color name="call_background">#0a0a0f</color>
+    <color name="call_primary">#E91E63</color>
+    <color name="call_accept">#4CAF50</color>
+    <color name="call_decline">#F44336</color>
+    <color name="call_text_primary">#FFFFFF</color>
+    <color name="call_text_secondary">#B0B0B0</color>
+    
+</resources>

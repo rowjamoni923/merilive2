@@ -1,0 +1,2 @@
+-- Fix SM Agent's is_verified flag (it should have been set to true when approved)
+UPDATE topup_helpers SET is_verified = true WHERE payroll_enabled = true AND trader_level = 5 AND is_verified = false;

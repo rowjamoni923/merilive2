@@ -1,0 +1,271 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
+
+interface CreateSubAdminRequest {
+  email: string;
+  password: string;
+  display_name: string;
+  sections_access: string[]; // Array of section IDs
+}
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
+  try {
+    console.log("[create-sub-admin] Starting request...");
+    
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+
+    // Verify the requesting user is an owner
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      console.error("[create-sub-admin] No authorization header");
+      return new Response(
+        JSON.stringify({ error: "No authorization header" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user: requestingUser }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    
+    if (authError || !requestingUser) {
+      console.error("[create-sub-admin] Invalid token:", authError?.message);
+      return new Response(
+        JSON.stringify({ error: "Invalid token" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log("[create-sub-admin] Requesting user:", requestingUser.id);
+
+    // Check if requesting user is owner
+    const { data: isOwner, error: ownerCheckError } = await supabaseAdmin.rpc("is_admin_owner", { _user_id: requestingUser.id });
+    
+    if (ownerCheckError) {
+      console.error("[create-sub-admin] Owner check error:", ownerCheckError.message);
+      return new Response(
+        JSON.stringify({ error: "Permission check failed" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    if (!isOwner) {
+      console.error("[create-sub-admin] User is not owner");
+      return new Response(
+        JSON.stringify({ error: "Only Owners can create sub-admins" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const body = await req.json();
+    const { email, password, display_name, sections_access }: CreateSubAdminRequest = body;
+
+    const normalizedEmail = email?.trim().toLowerCase();
+
+    console.log("[create-sub-admin] Creating sub-admin for email:", normalizedEmail);
+
+    // Validate input
+    if (!normalizedEmail || !normalizedEmail.includes("@")) {
+      return new Response(
+        JSON.stringify({ error: "Please enter a valid email" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!password || password.length < 6) {
+      return new Response(
+        JSON.stringify({ error: "Password must be at least 6 characters" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const findExistingAuthUserByEmail = async (targetEmail: string) => {
+      const perPage = 1000;
+      const maxPages = 20;
+
+      for (let page = 1; page <= maxPages; page++) {
+        const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage });
+
+        if (error) {
+          return { user: null, error };
+        }
+
+        const foundUser = data.users.find(
+          (u) => u.email?.trim().toLowerCase() === targetEmail
+        );
+
+        if (foundUser) {
+          return { user: foundUser, error: null };
+        }
+
+        if (data.users.length < perPage) {
+          break;
+        }
+      }
+
+      return { user: null, error: null };
+    };
+
+    // Check if admin already exists
+    const { data: existingAdmin } = await supabaseAdmin
+      .from("admin_users")
+      .select("id")
+      .eq("email", normalizedEmail)
+      .maybeSingle();
+
+    if (existingAdmin) {
+      console.error("[create-sub-admin] Admin already exists for email:", normalizedEmail);
+      return new Response(
+        JSON.stringify({ error: "An admin with this email already exists" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Create or find auth user
+    console.log("[create-sub-admin] Creating/finding auth user...");
+    let userId: string;
+
+    const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+      email: normalizedEmail,
+      password,
+      email_confirm: true,
+      user_metadata: { display_name, is_sub_admin: true }
+    });
+
+    if (createError) {
+      const lowerCreateError = createError.message.toLowerCase();
+      const isAlreadyRegistered =
+        lowerCreateError.includes("already been registered") ||
+        lowerCreateError.includes("already registered") ||
+        lowerCreateError.includes("email address has already");
+
+      // If user already exists, find and reuse that user (search all pages)
+      if (isAlreadyRegistered) {
+        console.log("[create-sub-admin] User already exists, finding existing user...");
+
+        const { user: existingUser, error: listError } = await findExistingAuthUserByEmail(normalizedEmail);
+
+        if (listError) {
+          console.error("[create-sub-admin] Error listing users:", listError.message);
+          return new Response(
+            JSON.stringify({ error: "Failed to find existing user" }),
+            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        if (!existingUser) {
+          console.error("[create-sub-admin] Existing user not found in paginated lookup:", normalizedEmail);
+          return new Response(
+            JSON.stringify({ error: "User already exists but could not be found in auth lookup" }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        userId = existingUser.id;
+        console.log("[create-sub-admin] Found existing auth user:", userId);
+      } else {
+        console.error("[create-sub-admin] Error creating user:", createError.message);
+        return new Response(
+          JSON.stringify({ error: createError.message }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    } else {
+      userId = newUser.user.id;
+      console.log("[create-sub-admin] New auth user created:", userId);
+    }
+
+    // Create admin_users record
+    const { data: adminUser, error: adminError } = await supabaseAdmin
+      .from("admin_users")
+      .insert({
+        user_id: userId,
+        email: normalizedEmail,
+        display_name: display_name || normalizedEmail.split('@')[0],
+        role: "sub_admin",
+        is_active: true,
+        invited_by: requestingUser.id,
+        accepted_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (adminError) {
+      console.error("[create-sub-admin] Error creating admin record:", adminError.message);
+      return new Response(
+        JSON.stringify({ error: "Failed to create admin record: " + adminError.message }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log("[create-sub-admin] Admin record created:", adminUser.id);
+
+    // Add section permissions
+    if (sections_access && sections_access.length > 0) {
+      console.log("[create-sub-admin] Adding permissions for sections:", sections_access);
+      
+      const permissions = sections_access.map(sectionId => ({
+        admin_user_id: adminUser.id,
+        section_id: sectionId,
+        can_view: true,
+        can_edit: true,
+        can_delete: false,
+        granted_by: requestingUser.id,
+      }));
+
+      const { error: permError } = await supabaseAdmin
+        .from("admin_section_permissions")
+        .insert(permissions);
+
+      if (permError) {
+        console.error("[create-sub-admin] Error adding permissions:", permError.message);
+        // Don't fail completely, admin is created but without permissions
+      } else {
+        console.log("[create-sub-admin] Permissions added successfully");
+      }
+    }
+
+    // Generate secure login link with access token from environment
+    const SUBADMIN_ACCESS_SECRET = Deno.env.get("ADMIN_SUBADMIN_TOKEN");
+    if (!SUBADMIN_ACCESS_SECRET) {
+      console.error("[create-sub-admin] ADMIN_SUBADMIN_TOKEN not configured");
+      return new Response(
+        JSON.stringify({ error: "Server configuration error: access token not set" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const loginLink = `https://merilive.com/admin/auth?access=${SUBADMIN_ACCESS_SECRET}&email=${encodeURIComponent(normalizedEmail)}`;
+
+    console.log("[create-sub-admin] Sub-admin created successfully!");
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        admin_user: adminUser,
+        login_link: loginLink,
+        message: "Sub-admin created successfully"
+      }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+
+  } catch (error: unknown) {
+    console.error("[create-sub-admin] Unexpected error:", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return new Response(
+      JSON.stringify({ error: "Server error: " + message }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+});

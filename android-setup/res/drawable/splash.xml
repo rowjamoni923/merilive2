@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Splash Screen Background
+    Used as windowBackground for the splash theme
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Dark background -->
+    <item android:drawable="@android:color/black" />
+</layer-list>

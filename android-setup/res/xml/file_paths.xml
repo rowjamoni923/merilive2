@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    =====================================================
+    File Provider Paths
+    Location: android/app/src/main/res/xml/file_paths.xml
+    =====================================================
+    
+    Camera, File Upload, Screenshot sharing এর জন্য প্রয়োজন।
+    AndroidManifest.xml এর <application> ট্যাগে FileProvider যোগ করুন:
+    
+    <provider
+        android:name="androidx.core.content.FileProvider"
+        android:authorities="${applicationId}.fileprovider"
+        android:exported="false"
+        android:grantUriPermissions="true">
+        <meta-data
+            android:name="android.support.FILE_PROVIDER_PATHS"
+            android:resource="@xml/file_paths" />
+    </provider>
+    =====================================================
+-->
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Internal app storage -->
+    <files-path name="internal_files" path="." />
+    
+    <!-- Cache directory -->
+    <cache-path name="cache" path="." />
+    
+    <!-- External storage -->
+    <external-path name="external_files" path="." />
+    
+    <!-- External files directory -->
+    <external-files-path name="external_app_files" path="." />
+    
+    <!-- External cache -->
+    <external-cache-path name="external_cache" path="." />
+    
+    <!-- Media store (for camera captures) -->
+    <external-media-path name="media" path="." />
+</paths>

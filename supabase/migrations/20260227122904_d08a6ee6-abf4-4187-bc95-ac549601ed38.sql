@@ -1,0 +1,35 @@
+-- Fix CRITICAL: get_admin_dashboard_stats references non-existent "beans_amount" column
+-- gift_transactions table has "coin_amount", NOT "beans_amount"
+-- This error fires 50+ times/second and is the PRIMARY cause of server overload
+
+CREATE OR REPLACE FUNCTION public.get_admin_dashboard_stats()
+RETURNS json
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_today date := CURRENT_DATE;
+  v_result json;
+BEGIN
+  SET statement_timeout = '5s';
+  
+  SELECT json_build_object(
+    'total_users', (SELECT count(*) FROM profiles),
+    'total_hosts', (SELECT count(*) FROM profiles WHERE is_host = true),
+    'total_agencies', (SELECT count(*) FROM agencies WHERE is_active = true),
+    'active_streams', (SELECT count(*) FROM live_streams WHERE is_active = true AND ended_at IS NULL),
+    'active_party_rooms', (SELECT count(*) FROM party_rooms WHERE is_active = true),
+    'total_gifts_today', COALESCE((SELECT sum(coin_amount) FROM gift_transactions WHERE created_at >= v_today::timestamp), 0),
+    'total_calls_today', (SELECT count(*) FROM private_calls WHERE created_at >= v_today::timestamp),
+    'online_users', (SELECT count(*) FROM profiles WHERE is_online = true),
+    'blocked_users', (SELECT count(*) FROM profiles WHERE is_blocked = true),
+    'blocked_agencies', (SELECT count(*) FROM agencies WHERE is_blocked = true),
+    'pending_host_applications', (SELECT count(*) FROM host_applications WHERE status = 'pending'),
+    'daily_reward_claims_today', (SELECT count(*) FROM daily_login_claims WHERE claimed_date = v_today),
+    'daily_recharges_today', (SELECT count(*) FROM recharge_transactions WHERE created_at >= v_today::timestamp)
+  ) INTO v_result;
+
+  RETURN v_result;
+END;
+$$;
