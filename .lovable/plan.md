@@ -1,70 +1,27 @@
 
+## ডাটাবেস রিস্টোর প্ল্যান
 
-# Single Device Session Fix Plan
+আপনার backup.dump ফাইলটি সফলভাবে অ্যানালাইজ করা হয়েছে। এতে রয়েছে:
 
-## Problem Summary
-Currently, when a user logs in on a new device, the old device does NOT get logged out. This is because single-device enforcement is completely disabled on native platforms (Android/iOS) in `App.tsx` line 274.
+- **217টি টেবিল** (profiles, agencies, gifts, admin_users সহ সবকিছু)
+- **315টি ফাংশন/RPC** (সব SECURITY DEFINER ফাংশন)
+- **604টি RLS পলিসি** (সম্পূর্ণ সিকিউরিটি)
+- **128টি ট্রিগার** (hack-proof protection সহ)
+- **266টি ইনডেক্স**
+- **3টি ভিউ** (profiles_public সহ)
+- **সকল ডাটা** (ইউজার, এজেন্সি, গিফট, সেটিংস, অ্যাডমিন ইত্যাদি)
 
-## Requirements (Clear Rules)
-1. Account NEVER logs out by itself (no random/automatic logouts)
-2. After app uninstall and reinstall, login page shows (fresh start)
-3. When user logs in on a NEW device, the OLD device gets logged out automatically
-4. Only ONE device per account at any time
+### রিস্টোর স্টেপ (6 মাইগ্রেশন):
 
-## Root Cause
-In `src/App.tsx` line 274:
-```text
-const shouldEnforceSingleDevice = !isAdminRoute && !isNativeApp;
-```
-The `!isNativeApp` condition means native apps NEVER register sessions or check for device changes. So old devices never know they should log out.
+1. **Part 1**: Types + 217 টেবিল + RLS Enable (~135KB)
+2. **Part 2**: ফাংশন/RPC (প্রথম অর্ধেক) (~198KB)
+3. **Part 3**: ফাংশন/RPC (দ্বিতীয় অর্ধেক) + Views (~190KB)
+4. **Part 4**: ALTER TABLE constraints + Indexes (~104KB)
+5. **Part 5**: RLS Policies (প্রথম অর্ধেক) + Triggers (~73KB)
+6. **Part 6**: RLS Policies (দ্বিতীয় অর্ধেক) (~51KB)
 
-## Fix Plan
+### এরপর:
+- সব ডাটা INSERT করা হবে (ইউজার, সেটিংস, অ্যাডমিন ডাটা ইত্যাদি)
+- Build errors ফিক্স করা হবে (types.ts অটো-আপডেট হওয়ার পর)
 
-### Step 1: Enable single-device enforcement on ALL platforms
-**File: `src/App.tsx`**
-
-Change line 274 from:
-```text
-const shouldEnforceSingleDevice = !isAdminRoute && !isNativeApp;
-```
-To:
-```text
-const shouldEnforceSingleDevice = !isAdminRoute;
-```
-
-This enables session registration and checking on both web AND native platforms.
-
-### Step 2: Make session checking safe and stable
-**File: `src/hooks/useSingleDeviceSession.ts`**
-
-The current implementation is already well-designed with these safety features:
-- **Grace period (30 seconds)**: After fresh login, no logout can happen for 30s — prevents self-logout
-- **Fresh login detection**: Only generates new session ID on actual fresh login, NOT on page reload/app resume
-- **Error tolerance**: If DB check fails, returns `true` (valid) — no false logouts
-- **Manual logout flag**: `forceLogout` sets `meri_manual_logout` before signing out, so `App.tsx` allows it
-
-No changes needed in this file — it already handles everything correctly.
-
-### Step 3: Update the old comment in useSingleDeviceSession.ts
-**File: `src/hooks/useSingleDeviceSession.ts`**
-
-Remove the outdated comment "DISABLED on native platforms" on line 131 since we're now enabling it everywhere.
-
-## How It Works After Fix
-
-1. **User logs in on Device A** -> Session ID registered in `profiles.active_session_id`
-2. **User uses app normally on Device A** -> Periodic checks confirm session is valid, no logout
-3. **User logs in on Device B (new device)** -> New session ID generated with 30s grace period, overwrites `active_session_id` in DB
-4. **Device A detects change** -> Realtime listener or periodic check sees different session ID -> `forceLogout()` called -> Device A logs out
-5. **App reinstall** -> localStorage cleared -> Login page shows
-
-## Safety Guarantees
-- Random network errors will NOT cause logout (error = return true = stay logged in)
-- Page reload / app resume will NOT cause logout (same session ID reused from localStorage)
-- Only an ACTUAL login on a different device triggers logout on the old device
-- 30-second grace period prevents race conditions during login
-
-## Files Changed
-- `src/App.tsx` — Remove `!isNativeApp` condition (1 line change)
-- `src/hooks/useSingleDeviceSession.ts` — Update comment only
-
+**নোট**: Auth users (auth.users টেবিল) ডাটা সরাসরি রিস্টোর করা সম্ভব নয় কারণ Supabase auth schema মডিফাই করার অনুমতি নেই। ইউজারদের নতুন করে রেজিস্ট্রেশন করতে হবে বা Supabase Dashboard থেকে ম্যানুয়ালি ইম্পোর্ট করতে হবে।
