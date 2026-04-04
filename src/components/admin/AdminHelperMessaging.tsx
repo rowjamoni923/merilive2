@@ -121,14 +121,14 @@ const AdminHelperMessaging = () => {
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setMessageReplies(data || []);
+      setMessageReplies((data || []) as unknown as MessageReply[]);
       
       // Mark helper replies as read
-      const unreadHelperReplies = (data || []).filter(r => r.sender_type === 'helper' && !r.is_read);
+      const unreadHelperReplies = (data || []).filter(r => r.sender_type === 'helper' && !(r as any).is_read);
       if (unreadHelperReplies.length > 0) {
         await supabase
           .from('helper_message_replies')
-          .update({ is_read: true, read_at: new Date().toISOString() })
+          .update({ is_read: true, read_at: new Date().toISOString() } as any)
           .in('id', unreadHelperReplies.map(r => r.id));
         
         loadUnreadRepliesCount();
