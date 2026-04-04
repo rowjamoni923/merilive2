@@ -106,7 +106,7 @@ const AdminHelperMessaging = () => {
       .from('helper_message_replies')
       .select('*', { count: 'exact', head: true })
       .eq('sender_type', 'helper')
-      .eq('is_read', false);
+      .eq('is_read' as any, false);
     
     setUnreadRepliesCount(count || 0);
   };
