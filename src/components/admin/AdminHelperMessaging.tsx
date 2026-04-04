@@ -81,7 +81,7 @@ const AdminHelperMessaging = () => {
       .eq('payroll_enabled', true)
       .eq('is_active', true);
     
-    setHelpers((data || []) as Level5Helper[]);
+    setHelpers((data || []) as unknown as Level5Helper[]);
     setLoading(false);
   };
 
