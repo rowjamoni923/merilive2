@@ -8630,6 +8630,7 @@ export type Database = {
       _internal_add_diamonds:
         | { Args: { _amount: number; _user_id: string }; Returns: undefined }
         | { Args: { _amount: number; _user_id: string }; Returns: undefined }
+      accept_private_call: { Args: { _call_id: string }; Returns: boolean }
       add_beans_to_host: {
         Args: {
           p_beans_amount: number
@@ -8709,7 +8710,75 @@ export type Database = {
         }
         Returns: string
       }
+      admin_credit_beans: {
+        Args: { _log_id: string; _notes?: string }
+        Returns: Json
+      }
       admin_delete_user: { Args: { _user_id: string }; Returns: boolean }
+      admin_get_user_full_details: { Args: { _user_id: string }; Returns: Json }
+      admin_process_face_verification: {
+        Args: {
+          _action: string
+          _approve_as?: string
+          _reason?: string
+          _set_gender?: string
+          _submission_id: string
+        }
+        Returns: boolean
+      }
+      admin_process_helper_transaction: {
+        Args: { _action: string; _transaction_id: string }
+        Returns: boolean
+      }
+      admin_process_withdrawal: {
+        Args: { _notes?: string; _status: string; _withdrawal_id: string }
+        Returns: Json
+      }
+      admin_remove_face_verification: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
+      admin_remove_host_from_agency: {
+        Args: { _host_id: string; _reason?: string }
+        Returns: boolean
+      }
+      admin_toggle_face_verification: {
+        Args: { _user_id: string; _verified: boolean }
+        Returns: boolean
+      }
+      admin_update_agency_level: {
+        Args: { _agency_id: string; _new_level: string }
+        Returns: boolean
+      }
+      admin_update_user_gender: {
+        Args: { _gender: string; _user_id: string }
+        Returns: boolean
+      }
+      agency_send_diamonds_to_agency: {
+        Args: {
+          _amount: number
+          _from_agency_id: string
+          _to_agency_id: string
+        }
+        Returns: boolean
+      }
+      agency_send_diamonds_to_user: {
+        Args: { _agency_id: string; _amount: number; _user_id: string }
+        Returns: boolean
+      }
+      apply_as_topup_helper: { Args: { _data: Json }; Returns: Json }
+      approve_host_request: {
+        Args: { _admin_id: string; _agency_id: string; _request_id: string }
+        Returns: boolean
+      }
+      approve_rating_reward: {
+        Args: { _admin_id: string; _reward_id: string }
+        Returns: Json
+      }
+      assign_payroll_to_trader: {
+        Args: { _withdrawal_id: string }
+        Returns: Json
+      }
       calculate_user_level: {
         Args: { _total_consumption: number }
         Returns: number
