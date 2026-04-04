@@ -70,7 +70,7 @@ const Live = () => {
         .order('viewer_count', { ascending: false });
 
       if (error) throw error;
-      const nextStreams = (data || []) as LiveStream[];
+      const nextStreams = ((data || []) as any[]).map((s: any) => ({ ...s, host: Array.isArray(s.host) ? s.host[0] : s.host })) as LiveStream[];
       setStreams(nextStreams);
       try {
         window.sessionStorage.setItem("live-streams-cache-v1", JSON.stringify(nextStreams));

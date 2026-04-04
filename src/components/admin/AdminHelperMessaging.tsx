@@ -102,11 +102,11 @@ const AdminHelperMessaging = () => {
   };
 
   const loadUnreadRepliesCount = async () => {
-    const { count } = await supabase
+    const { count } = await (supabase
       .from('helper_message_replies')
       .select('*', { count: 'exact', head: true })
-      .eq('sender_type', 'helper')
-      .eq('is_read' as any, false);
+      .eq('sender_type', 'helper') as any)
+      .eq('is_read', false);
     
     setUnreadRepliesCount(count || 0);
   };
