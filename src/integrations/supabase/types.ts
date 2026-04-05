@@ -8938,7 +8938,9 @@ export type Database = {
       }
       get_effective_host_percent: { Args: never; Returns: number }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
-      is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_admin:
+        | { Args: never; Returns: boolean }
+        | { Args: { _user_id: string }; Returns: boolean }
       is_conversation_participant: {
         Args: { _conversation_id: string; _user_id: string }
         Returns: boolean
