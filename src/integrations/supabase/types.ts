@@ -8747,7 +8747,7 @@ export type Database = {
         Returns: boolean
       }
       admin_update_agency_level: {
-        Args: { _agency_id: string; _new_level: string }
+        Args: { _agency_id: string; _level: string }
         Returns: boolean
       }
       admin_update_user_gender: {
@@ -8779,10 +8779,86 @@ export type Database = {
         Args: { _withdrawal_id: string }
         Returns: Json
       }
+      auto_distribute_leaderboard_rewards: { Args: never; Returns: string }
+      auto_finalize_face_verification: {
+        Args: {
+          _action: string
+          _approve_as?: string
+          _reason?: string
+          _set_gender?: string
+          _submission_id: string
+          _tags?: string[]
+        }
+        Returns: boolean
+      }
+      auto_process_live_game: { Args: never; Returns: undefined }
+      ban_duplicate_face_attempt: {
+        Args: { _face_hash: string; _matched_user_id: string; _user_id: string }
+        Returns: undefined
+      }
+      bulk_credit_call_earnings: {
+        Args: { _admin_id: string; _call_ids: string[] }
+        Returns: Json
+      }
+      calculate_commission: {
+        Args: { _amount: number; _rate: number }
+        Returns: number
+      }
       calculate_user_level: {
         Args: { _total_consumption: number }
         Returns: number
       }
+      can_access_agency: {
+        Args: { _agency_id: string; _user_id: string }
+        Returns: boolean
+      }
+      can_access_party_room: {
+        Args: { _room_id: string; _user_id: string }
+        Returns: boolean
+      }
+      cancel_account_deletion: { Args: { _user_id: string }; Returns: boolean }
+      cancel_agency_request: { Args: { _host_id: string }; Returns: boolean }
+      check_ban_on_login: { Args: { _user_id: string }; Returns: Json }
+      check_brute_force: {
+        Args: {
+          p_action_type: string
+          p_identifier: string
+          p_ip_address?: string
+        }
+        Returns: Json
+      }
+      check_group_membership: {
+        Args: { p_group_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      check_otp_rate_limit: { Args: { p_email: string }; Returns: boolean }
+      check_rate_limit: {
+        Args: { _action: string; _max_per_hour?: number; _user_id: string }
+        Returns: boolean
+      }
+      check_session_valid: {
+        Args: { p_session_id: string; p_user_id: string }
+        Returns: boolean
+      }
+      check_user_permission: {
+        Args: { p_permission: string; p_user_id: string }
+        Returns: boolean
+      }
+      claim_daily_login_reward: { Args: never; Returns: Json }
+      claim_invitation_reward: {
+        Args: {
+          _beans?: number
+          _coins?: number
+          _diamonds?: number
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      claim_new_host_live_bonus: {
+        Args: { _bonus_coins?: number; _host_id: string }
+        Returns: Json
+      }
+      claim_parcel_reward: { Args: { _parcel_id: string }; Returns: Json }
       claim_task_reward: {
         Args: { _task_id: string; _user_id: string }
         Returns: Json
