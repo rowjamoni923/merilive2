@@ -2759,38 +2759,47 @@ export type Database = {
       gift_transactions: {
         Row: {
           coin_amount: number
+          coin_cost: number | null
           created_at: string | null
           gift_id: string | null
           id: string
           quantity: number | null
           receiver_beans: number | null
           receiver_id: string | null
+          reel_id: string | null
           room_id: string | null
           sender_id: string | null
+          sender_type: string | null
           stream_id: string | null
         }
         Insert: {
           coin_amount: number
+          coin_cost?: number | null
           created_at?: string | null
           gift_id?: string | null
           id?: string
           quantity?: number | null
           receiver_beans?: number | null
           receiver_id?: string | null
+          reel_id?: string | null
           room_id?: string | null
           sender_id?: string | null
+          sender_type?: string | null
           stream_id?: string | null
         }
         Update: {
           coin_amount?: number
+          coin_cost?: number | null
           created_at?: string | null
           gift_id?: string | null
           id?: string
           quantity?: number | null
           receiver_beans?: number | null
           receiver_id?: string | null
+          reel_id?: string | null
           room_id?: string | null
           sender_id?: string | null
+          sender_type?: string | null
           stream_id?: string | null
         }
         Relationships: []
