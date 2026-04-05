@@ -8863,6 +8863,7 @@ export type Database = {
         Args: { _task_id: string; _user_id: string }
         Returns: Json
       }
+      cleanup_stale_party_participants: { Args: never; Returns: undefined }
       create_guest_profile: { Args: { _device_id: string }; Returns: Json }
       create_sub_agent: {
         Args: {
@@ -8922,6 +8923,10 @@ export type Database = {
           transfer_type: string
         }[]
       }
+      get_conversations_with_details: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
       get_effective_host_percent: { Args: never; Returns: number }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
@@ -8943,6 +8948,7 @@ export type Database = {
         Returns: undefined
       }
       process_weekly_agency_transfers: { Args: never; Returns: Json }
+      recalculate_all_user_levels: { Args: never; Returns: undefined }
       request_agency_withdrawal: {
         Args: {
           _agency_id: string
@@ -9003,6 +9009,14 @@ export type Database = {
           _sender_id: string
         }
         Returns: boolean
+      }
+      update_online_status: {
+        Args: {
+          p_is_online: boolean
+          p_last_seen_at?: string
+          p_user_id: string
+        }
+        Returns: undefined
       }
       validate_user_task_progress_claim: {
         Args: { _task_id: string; _user_id: string }
