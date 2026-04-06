@@ -1427,27 +1427,33 @@ export type Database = {
       categories: {
         Row: {
           created_at: string | null
+          description: string | null
           display_order: number | null
           icon_url: string | null
           id: string
+          image_url: string | null
           is_active: boolean | null
           name: string
           slug: string
         }
         Insert: {
           created_at?: string | null
+          description?: string | null
           display_order?: number | null
           icon_url?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean | null
           name: string
           slug: string
         }
         Update: {
           created_at?: string | null
+          description?: string | null
           display_order?: number | null
           icon_url?: string | null
           id?: string
+          image_url?: string | null
           is_active?: boolean | null
           name?: string
           slug?: string
@@ -1863,6 +1869,7 @@ export type Database = {
         Row: {
           created_at: string | null
           day_number: number
+          description: string | null
           icon_url: string | null
           id: string
           is_active: boolean | null
@@ -1872,6 +1879,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           day_number: number
+          description?: string | null
           icon_url?: string | null
           id?: string
           is_active?: boolean | null
@@ -1881,6 +1889,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           day_number?: number
+          description?: string | null
           icon_url?: string | null
           id?: string
           is_active?: boolean | null
@@ -2819,6 +2828,8 @@ export type Database = {
           is_full_screen: boolean | null
           name: string
           receiver_beans: number | null
+          sound_duration_ms: number | null
+          sound_url: string | null
           svga_url: string | null
         }
         Insert: {
@@ -2835,6 +2846,8 @@ export type Database = {
           is_full_screen?: boolean | null
           name: string
           receiver_beans?: number | null
+          sound_duration_ms?: number | null
+          sound_url?: string | null
           svga_url?: string | null
         }
         Update: {
@@ -2851,6 +2864,8 @@ export type Database = {
           is_full_screen?: boolean | null
           name?: string
           receiver_beans?: number | null
+          sound_duration_ms?: number | null
+          sound_url?: string | null
           svga_url?: string | null
         }
         Relationships: []
