@@ -4012,7 +4012,7 @@ export type Database = {
       }
       level_animations: {
         Row: {
-          animation_url: string
+          animation_url: string | null
           created_at: string | null
           description: string | null
           id: string
@@ -4021,7 +4021,7 @@ export type Database = {
           sound_url: string | null
         }
         Insert: {
-          animation_url: string
+          animation_url?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
@@ -4030,7 +4030,7 @@ export type Database = {
           sound_url?: string | null
         }
         Update: {
-          animation_url?: string
+          animation_url?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
