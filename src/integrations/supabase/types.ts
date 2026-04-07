@@ -6530,6 +6530,27 @@ export type Database = {
         }
         Relationships: []
       }
+      registration_bonus_claims: {
+        Row: {
+          bonus_coins: number | null
+          granted_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          bonus_coins?: number | null
+          granted_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          bonus_coins?: number | null
+          granted_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       role_frames: {
         Row: {
           created_at: string | null
@@ -8423,6 +8444,39 @@ export type Database = {
         }
         Relationships: []
       }
+      violation_penalties: {
+        Row: {
+          beans_amount: number | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          penalty_type: string
+          updated_at: string | null
+          violation_number: number
+        }
+        Insert: {
+          beans_amount?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          penalty_type: string
+          updated_at?: string | null
+          violation_number: number
+        }
+        Update: {
+          beans_amount?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          penalty_type?: string
+          updated_at?: string | null
+          violation_number?: number
+        }
+        Relationships: []
+      }
       violation_penalty_tiers: {
         Row: {
           created_at: string
@@ -8494,49 +8548,106 @@ export type Database = {
       }
       vip_tiers: {
         Row: {
+          ad_free: boolean | null
+          badge_animation_url: string | null
+          badge_color: string | null
           badge_url: string | null
           benefits: Json | null
+          bubble_animation_url: string | null
           created_at: string
+          description: string | null
           display_order: number | null
+          duration_days: number | null
           entrance_url: string | null
+          entry_animation_url: string | null
+          exclusive_bubbles: boolean | null
+          exclusive_entry_bars: boolean | null
+          exclusive_frames: boolean | null
+          exclusive_gifts: boolean | null
+          exclusive_stickers: boolean | null
+          faster_support: boolean | null
+          frame_animation_url: string | null
           frame_url: string | null
           id: string
           is_active: boolean | null
+          price_diamonds: number | null
           price_monthly: number
           price_yearly: number | null
+          priority_matching: boolean | null
+          profile_highlight: boolean | null
+          tier_code: string | null
           tier_level: number
           tier_name: string
           updated_at: string
+          vip_only_rooms: boolean | null
         }
         Insert: {
+          ad_free?: boolean | null
+          badge_animation_url?: string | null
+          badge_color?: string | null
           badge_url?: string | null
           benefits?: Json | null
+          bubble_animation_url?: string | null
           created_at?: string
+          description?: string | null
           display_order?: number | null
+          duration_days?: number | null
           entrance_url?: string | null
+          entry_animation_url?: string | null
+          exclusive_bubbles?: boolean | null
+          exclusive_entry_bars?: boolean | null
+          exclusive_frames?: boolean | null
+          exclusive_gifts?: boolean | null
+          exclusive_stickers?: boolean | null
+          faster_support?: boolean | null
+          frame_animation_url?: string | null
           frame_url?: string | null
           id?: string
           is_active?: boolean | null
+          price_diamonds?: number | null
           price_monthly: number
           price_yearly?: number | null
+          priority_matching?: boolean | null
+          profile_highlight?: boolean | null
+          tier_code?: string | null
           tier_level: number
           tier_name: string
           updated_at?: string
+          vip_only_rooms?: boolean | null
         }
         Update: {
+          ad_free?: boolean | null
+          badge_animation_url?: string | null
+          badge_color?: string | null
           badge_url?: string | null
           benefits?: Json | null
+          bubble_animation_url?: string | null
           created_at?: string
+          description?: string | null
           display_order?: number | null
+          duration_days?: number | null
           entrance_url?: string | null
+          entry_animation_url?: string | null
+          exclusive_bubbles?: boolean | null
+          exclusive_entry_bars?: boolean | null
+          exclusive_frames?: boolean | null
+          exclusive_gifts?: boolean | null
+          exclusive_stickers?: boolean | null
+          faster_support?: boolean | null
+          frame_animation_url?: string | null
           frame_url?: string | null
           id?: string
           is_active?: boolean | null
+          price_diamonds?: number | null
           price_monthly?: number
           price_yearly?: number | null
+          priority_matching?: boolean | null
+          profile_highlight?: boolean | null
+          tier_code?: string | null
           tier_level?: number
           tier_name?: string
           updated_at?: string
+          vip_only_rooms?: boolean | null
         }
         Relationships: []
       }
