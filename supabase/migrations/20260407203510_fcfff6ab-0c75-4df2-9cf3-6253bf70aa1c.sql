@@ -1,0 +1,1 @@
+ALTER TABLE public.first_recharge_bonus DISABLE ROW LEVEL SECURITY;
