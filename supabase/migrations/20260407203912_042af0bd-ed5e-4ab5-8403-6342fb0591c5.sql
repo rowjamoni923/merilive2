@@ -1,0 +1,1 @@
+ALTER TABLE public.game_providers DISABLE ROW LEVEL SECURITY;
