@@ -1,0 +1,1 @@
+ALTER TABLE public.room_welcome_messages DISABLE ROW LEVEL SECURITY;
