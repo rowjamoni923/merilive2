@@ -1,0 +1,4 @@
+ALTER TABLE public.room_welcome_messages DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.site_settings DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.subscription_plans DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.payment_methods DISABLE ROW LEVEL SECURITY;
