@@ -1,0 +1,3 @@
+ALTER TABLE public.helper_level_config DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.helper_payment_methods DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.host_levels DISABLE ROW LEVEL SECURITY;
