@@ -1,0 +1,1 @@
+ALTER TABLE public.agency_hosts DISABLE ROW LEVEL SECURITY;
