@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { SmtpClient } from "https://deno.land/x/smtp@v0.7.0/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -6,7 +7,6 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Generate 6-digit OTP
 function generateOTP(): string {
   const digits = "0123456789";
   let otp = "";
@@ -18,7 +18,6 @@ function generateOTP(): string {
   return otp;
 }
 
-// Build email HTML
 function buildOTPEmailHTML(otp: string, purpose: string): string {
   const purposeText = purpose === "login" ? "Login Verification" : 
                       purpose === "register" ? "Registration" :
@@ -83,17 +82,18 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Get Resend API key
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
-    if (!resendApiKey) {
-      console.error("[send-email-otp] RESEND_API_KEY not configured");
+    // Gmail SMTP credentials
+    const gmailUser = Deno.env.get("GMAIL_USER");
+    const gmailAppPassword = Deno.env.get("GMAIL_APP_PASSWORD");
+    if (!gmailUser || !gmailAppPassword) {
+      console.error("[send-email-otp] Gmail SMTP credentials not configured");
       return new Response(
         JSON.stringify({ success: false, error: "Email service not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Supabase client (service role for DB access)
+    // Supabase client
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -140,32 +140,26 @@ Deno.serve(async (req) => {
     // Build email HTML
     const emailHTML = buildOTPEmailHTML(otp, purpose);
 
-    // Send via Resend API
-    const resendResponse = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${resendApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: "MeriLive <noreply@merilive.com>",
-        to: [email],
-        subject: `${otp} - MeriLive Verification Code`,
-        html: emailHTML,
-      }),
+    // Send via Gmail SMTP
+    const client = new SmtpClient();
+    await client.connectTLS({
+      hostname: "smtp.gmail.com",
+      port: 465,
+      username: gmailUser,
+      password: gmailAppPassword,
     });
 
-    const resendData = await resendResponse.json();
+    await client.send({
+      from: gmailUser,
+      to: email,
+      subject: `${otp} - MeriLive Verification Code`,
+      content: "Your MeriLive verification code: " + otp,
+      html: emailHTML,
+    });
 
-    if (!resendResponse.ok) {
-      console.error("[send-email-otp] Resend API error:", JSON.stringify(resendData));
-      return new Response(
-        JSON.stringify({ success: false, error: "Failed to send email" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    await client.close();
 
-    console.log(`[send-email-otp] ✅ OTP sent to ${email} via Resend (id: ${resendData.id})`);
+    console.log(`[send-email-otp] ✅ OTP sent to ${email} via Gmail SMTP`);
 
     return new Response(
       JSON.stringify({ success: true, message: "OTP sent successfully" }),
@@ -174,7 +168,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error("[send-email-otp] Error:", error);
     return new Response(
-      JSON.stringify({ success: false, error: "Internal server error" }),
+      JSON.stringify({ success: false, error: "Failed to send email" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
