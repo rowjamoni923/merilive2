@@ -1,0 +1,3 @@
+ALTER TABLE public.parcel_templates DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.party_room_backgrounds DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.payment_gateways DISABLE ROW LEVEL SECURITY;
