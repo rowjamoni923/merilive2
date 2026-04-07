@@ -1,0 +1,1 @@
+ALTER TABLE public.helper_diamond_packages DISABLE ROW LEVEL SECURITY;
