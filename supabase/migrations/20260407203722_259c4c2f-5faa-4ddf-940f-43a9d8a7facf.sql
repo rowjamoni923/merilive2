@@ -1,0 +1,1 @@
+ALTER TABLE public.game_configs ENABLE ROW LEVEL SECURITY;
