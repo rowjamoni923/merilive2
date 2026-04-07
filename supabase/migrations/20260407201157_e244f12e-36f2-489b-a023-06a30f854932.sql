@@ -1,0 +1,2 @@
+ALTER TABLE public.avatar_frames ENABLE TRIGGER ALL;
+ALTER TABLE public.avatar_frames ENABLE ROW LEVEL SECURITY;
