@@ -1,0 +1,2 @@
+ALTER TABLE public.shop_items ENABLE TRIGGER ALL;
+ALTER TABLE public.shop_items ENABLE ROW LEVEL SECURITY;
