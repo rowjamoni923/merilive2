@@ -1,0 +1,4 @@
+ALTER TABLE public.topup_payment_methods DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.popup_event_banners DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.ranking_rewards DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.categories DISABLE ROW LEVEL SECURITY;
