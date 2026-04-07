@@ -39,8 +39,9 @@ export const useFeatureLevelCheck = () => {
 
   // Real-time subscription for instant updates
   useEffect(() => {
+    const channelName = `feature-level-realtime-${Math.random().toString(36).slice(2, 8)}`;
     const channel = supabase
-      .channel('feature-level-realtime')
+      .channel(channelName)
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'feature_level_requirements' }, 
         () => {
