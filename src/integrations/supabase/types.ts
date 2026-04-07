@@ -3713,6 +3713,54 @@ export type Database = {
         }
         Relationships: []
       }
+      invitation_reward_tiers: {
+        Row: {
+          badge_color: string | null
+          badge_icon: string | null
+          bonus_percentage: number | null
+          created_at: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          max_invites: number | null
+          min_invites: number
+          reward_beans: number | null
+          reward_coins: number | null
+          tier_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          badge_color?: string | null
+          badge_icon?: string | null
+          bonus_percentage?: number | null
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          max_invites?: number | null
+          min_invites?: number
+          reward_beans?: number | null
+          reward_coins?: number | null
+          tier_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          badge_color?: string | null
+          badge_icon?: string | null
+          bonus_percentage?: number | null
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          max_invites?: number | null
+          min_invites?: number
+          reward_beans?: number | null
+          reward_coins?: number | null
+          tier_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       invitation_settings: {
         Row: {
           created_at: string | null
