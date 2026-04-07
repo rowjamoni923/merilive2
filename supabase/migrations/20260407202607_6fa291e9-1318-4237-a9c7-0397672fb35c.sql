@@ -1,0 +1,1 @@
+ALTER TABLE public.agencies DROP CONSTRAINT agencies_owner_id_fkey;
