@@ -2006,6 +2006,36 @@ export type Database = {
         }
         Relationships: []
       }
+      diamond_exchange_packages: {
+        Row: {
+          beans_amount: number
+          created_at: string | null
+          diamonds_reward: number
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          beans_amount?: number
+          created_at?: string | null
+          diamonds_reward?: number
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          beans_amount?: number
+          created_at?: string | null
+          diamonds_reward?: number
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       email_otps: {
         Row: {
           created_at: string | null
@@ -7481,6 +7511,48 @@ export type Database = {
         }
         Relationships: []
       }
+      topup_helper_levels: {
+        Row: {
+          badge_color: string | null
+          commission_rate: number | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          level_name: string
+          level_number: number
+          max_withdrawal_amount: number | null
+          min_withdrawal_amount: number | null
+          upgrade_cost_usd: number | null
+        }
+        Insert: {
+          badge_color?: string | null
+          commission_rate?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          level_name: string
+          level_number: number
+          max_withdrawal_amount?: number | null
+          min_withdrawal_amount?: number | null
+          upgrade_cost_usd?: number | null
+        }
+        Update: {
+          badge_color?: string | null
+          commission_rate?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          level_name?: string
+          level_number?: number
+          max_withdrawal_amount?: number | null
+          min_withdrawal_amount?: number | null
+          upgrade_cost_usd?: number | null
+        }
+        Relationships: []
+      }
       topup_helpers: {
         Row: {
           approved_at: string | null
@@ -7903,48 +7975,102 @@ export type Database = {
       }
       user_level_tiers: {
         Row: {
+          animation_url: string | null
           badge_color: string | null
           badge_url: string | null
+          bg_gradient: string | null
           created_at: string | null
           display_order: number | null
           frame_url: string | null
+          icon_url: string | null
           id: string
           is_active: boolean | null
+          level_color: string | null
+          level_icon: string | null
           level_name: string
           level_number: number
           max_consumption: number | null
           min_consumption: number
           privileges: Json | null
+          tier_type: string | null
           updated_at: string | null
         }
         Insert: {
+          animation_url?: string | null
           badge_color?: string | null
           badge_url?: string | null
+          bg_gradient?: string | null
           created_at?: string | null
           display_order?: number | null
           frame_url?: string | null
+          icon_url?: string | null
           id?: string
           is_active?: boolean | null
+          level_color?: string | null
+          level_icon?: string | null
           level_name: string
           level_number: number
           max_consumption?: number | null
           min_consumption?: number
           privileges?: Json | null
+          tier_type?: string | null
           updated_at?: string | null
         }
         Update: {
+          animation_url?: string | null
           badge_color?: string | null
           badge_url?: string | null
+          bg_gradient?: string | null
           created_at?: string | null
           display_order?: number | null
           frame_url?: string | null
+          icon_url?: string | null
           id?: string
           is_active?: boolean | null
+          level_color?: string | null
+          level_icon?: string | null
           level_name?: string
           level_number?: number
           max_consumption?: number | null
           min_consumption?: number
           privileges?: Json | null
+          tier_type?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_levels: {
+        Row: {
+          badge_url: string | null
+          created_at: string | null
+          description: string | null
+          diamonds_required: number | null
+          id: string
+          is_active: boolean | null
+          level_name: string
+          level_number: number
+          updated_at: string | null
+        }
+        Insert: {
+          badge_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          diamonds_required?: number | null
+          id?: string
+          is_active?: boolean | null
+          level_name: string
+          level_number: number
+          updated_at?: string | null
+        }
+        Update: {
+          badge_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          diamonds_required?: number | null
+          id?: string
+          is_active?: boolean | null
+          level_name?: string
+          level_number?: number
           updated_at?: string | null
         }
         Relationships: []
