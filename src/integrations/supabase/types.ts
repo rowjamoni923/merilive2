@@ -6539,21 +6539,21 @@ export type Database = {
           id: string
           is_active: boolean | null
           message_text: string
-          room_id: string
+          room_id: string | null
         }
         Insert: {
           created_at?: string
           id?: string
           is_active?: boolean | null
           message_text: string
-          room_id: string
+          room_id?: string | null
         }
         Update: {
           created_at?: string
           id?: string
           is_active?: boolean | null
           message_text?: string
-          room_id?: string
+          room_id?: string | null
         }
         Relationships: []
       }
