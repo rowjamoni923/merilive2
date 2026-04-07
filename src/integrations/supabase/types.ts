@@ -9291,6 +9291,18 @@ export type Database = {
       }
       process_weekly_agency_transfers: { Args: never; Returns: Json }
       recalculate_all_user_levels: { Args: never; Returns: undefined }
+      recover_session_by_device: {
+        Args: { p_device_id: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          gender: string
+          is_host: boolean
+          recovery_email: string
+          recovery_password: string
+          user_id: string
+        }[]
+      }
       request_agency_withdrawal: {
         Args: {
           _agency_id: string
