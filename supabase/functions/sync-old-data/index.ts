@@ -216,18 +216,22 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Auth check - require SUPABASE_SERVICE_ROLE_KEY (auto-sent by supabase invoke)
-    // or ADMIN_OWNER_TOKEN
+    // Auth: check apikey header (service_role) or authorization header
+    const apiKey = req.headers.get('apikey') || ''
     const authHeader = req.headers.get('authorization') || ''
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
     const adminToken = Deno.env.get('ADMIN_OWNER_TOKEN') || ''
     const token = authHeader.replace('Bearer ', '').trim()
     
-    const isServiceRole = token === serviceKey
+    const isServiceRole = apiKey === serviceKey || token === serviceKey
     const isAdmin = adminToken && token === adminToken
+    // Also allow anon key + logged in user check skipped for now for testing
+    // In production, only service_role or admin should access this
     
     if (!isServiceRole && !isAdmin) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      // For testing: log what we got
+      console.log('Auth failed. apiKey length:', apiKey.length, 'token length:', token.length)
+      return new Response(JSON.stringify({ error: 'Unauthorized - service role or admin token required' }), {
         status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
