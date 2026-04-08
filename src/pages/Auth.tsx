@@ -587,15 +587,47 @@ const Auth = () => {
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
+      const normalizedEmail = email.trim().toLowerCase();
+
+      let { data, error } = await supabase.auth.signInWithPassword({
+        email: normalizedEmail,
         password,
       });
+
+      // Legacy/admin account fallback:
+      // if the email exists in admin_users but has no auth user yet,
+      // create/link the auth account first and retry login.
+      if (error?.message === "Invalid login credentials") {
+        const { data: syncResult, error: syncError } = await supabase.functions.invoke('admin-sync-auth', {
+          body: { email: normalizedEmail, password }
+        });
+
+        if (!syncError && syncResult?.success) {
+          const retry = await supabase.auth.signInWithPassword({
+            email: normalizedEmail,
+            password,
+          });
+          data = retry.data;
+          error = retry.error;
+        }
+      }
+
       if (error) {
-        await recordAttempt(email, false);
+        await recordAttempt(normalizedEmail, false);
         throw error;
       }
-      await recordAttempt(email, true);
+      await recordAttempt(normalizedEmail, true);
+
+      const userEmail = data.user?.email ?? normalizedEmail;
+      const userName = data.user?.user_metadata?.full_name || data.user?.user_metadata?.display_name || normalizedEmail;
+
+      localStorage.removeItem('meri_manual_logout');
+      localStorage.setItem("meri_last_user", JSON.stringify({
+        email: userEmail,
+        displayName: userName,
+        avatarUrl: null,
+      }));
+
       toast({
         title: "Welcome!",
         description: "Logged in successfully.",
