@@ -18,7 +18,7 @@ function generateOTP(): string {
   return otp;
 }
 
-function buildOTPEmailHTML(otp: string, purpose: string): string {
+function buildOTPEmailHTML(otp: string, purpose: string, logoUrl: string): string {
   const purposeText = purpose === "login" ? "Login Verification" : 
                       purpose === "register" ? "Account Registration" :
                       purpose === "reset" ? "Password Reset" : "Identity Verification";
