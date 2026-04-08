@@ -234,10 +234,18 @@ Deno.serve(async (req) => {
       })
     }
 
-    const oldUrl = Deno.env.get('OLD_SUPABASE_URL')
-    const oldKey = Deno.env.get('OLD_SUPABASE_SERVICE_ROLE_KEY')
+    let oldUrl = (Deno.env.get('OLD_SUPABASE_URL') || '').trim()
+    const oldKey = (Deno.env.get('OLD_SUPABASE_SERVICE_ROLE_KEY') || '').trim()
     const newUrl = Deno.env.get('SUPABASE_URL')!
     const newKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+
+    // Auto-fix URL if missing protocol
+    if (oldUrl && !oldUrl.startsWith('http')) {
+      oldUrl = `https://${oldUrl}`
+    }
+
+    console.log('OLD_SUPABASE_URL:', oldUrl ? `${oldUrl.substring(0, 30)}...` : 'NOT SET')
+    console.log('OLD_SUPABASE_SERVICE_ROLE_KEY:', oldKey ? `${oldKey.substring(0, 10)}...` : 'NOT SET')
 
     if (!oldUrl || !oldKey) {
       return new Response(
@@ -247,6 +255,7 @@ Deno.serve(async (req) => {
     }
 
     const oldClient = createClient(oldUrl, oldKey)
+    const newClient = createClient(newUrl, newKey)
     const newClient = createClient(newUrl, newKey)
 
     // Parse request body for options
