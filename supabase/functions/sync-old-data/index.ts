@@ -216,37 +216,15 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Auth check - only allow with service role or admin token
-    const authHeader = req.headers.get('authorization')
-    const adminToken = Deno.env.get('ADMIN_OWNER_TOKEN')
+    // Auth check - require admin owner token
+    const authHeader = req.headers.get('authorization') || ''
+    const adminToken = Deno.env.get('ADMIN_OWNER_TOKEN') || ''
+    const token = authHeader.replace('Bearer ', '').trim()
     
-    if (!authHeader?.includes(adminToken || '___none___')) {
-      // Verify JWT
-      const newUrl = Deno.env.get('SUPABASE_URL')!
-      const newKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-      const tempClient = createClient(newUrl, newKey)
-      
-      const token = authHeader?.replace('Bearer ', '')
-      if (token) {
-        const { data: { user } } = await tempClient.auth.getUser(token)
-        if (!user) {
-          return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-            status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          })
-        }
-        // Check if admin
-        const { data: adminUser } = await tempClient
-          .from('admin_users')
-          .select('role')
-          .eq('user_id', user.id)
-          .single()
-        
-        if (!adminUser || adminUser.role !== 'owner') {
-          return new Response(JSON.stringify({ error: 'Admin access required' }), {
-            status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          })
-        }
-      }
+    if (!adminToken || token !== adminToken) {
+      return new Response(JSON.stringify({ error: 'Unauthorized - admin token required' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
     }
 
     const oldUrl = Deno.env.get('OLD_SUPABASE_URL')
