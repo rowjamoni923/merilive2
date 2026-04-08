@@ -256,7 +256,6 @@ Deno.serve(async (req) => {
 
     const oldClient = createClient(oldUrl, oldKey)
     const newClient = createClient(newUrl, newKey)
-    const newClient = createClient(newUrl, newKey)
 
     // Parse request body for options
     let specificTables: string[] | null = null
