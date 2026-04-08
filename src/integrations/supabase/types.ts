@@ -9372,6 +9372,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      validate_session_integrity: {
+        Args: {
+          p_device_fingerprint: string
+          p_ip_address?: string
+          p_user_agent?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       validate_user_task_progress_claim: {
         Args: { _task_id: string; _user_id: string }
         Returns: Json
