@@ -621,6 +621,33 @@ const Auth = () => {
       const userEmail = data.user?.email ?? normalizedEmail;
       const userName = data.user?.user_metadata?.full_name || data.user?.user_metadata?.display_name || normalizedEmail;
 
+      // Ensure profile exists for this user (critical for legacy/admin accounts)
+      if (data.user) {
+        const userId = data.user.id;
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('id, gender, display_name')
+          .eq('id', userId)
+          .maybeSingle();
+
+        if (!existingProfile) {
+          // Create a basic profile so the app doesn't treat them as brand new
+          await supabase.from('profiles').insert({
+            id: userId,
+            display_name: userName,
+            gender: 'male',
+            is_host: false,
+            coins: 0,
+            user_level: 1,
+          });
+        }
+
+        // Mark gender as selected to prevent the modal from showing
+        if (existingProfile?.gender || !existingProfile) {
+          localStorage.setItem(`gender_selected_${userId}`, 'true');
+        }
+      }
+
       localStorage.removeItem('meri_manual_logout');
       localStorage.setItem("meri_last_user", JSON.stringify({
         email: userEmail,
