@@ -1047,8 +1047,7 @@ const Recharge = () => {
   }, [currencyRate, gateways]);
 
 
-  const formatNumber = (num: number | undefined | null) => {
-    if (num === undefined || num === null || isNaN(num)) return '0';
+  const formatNumber = (num: number) => {
     return num.toLocaleString();
   };
 
