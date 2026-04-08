@@ -44,8 +44,8 @@ function buildOTPEmailHTML(otp: string, purpose: string, logoUrl: string): strin
 
   <!-- Header -->
   <tr><td style="background:linear-gradient(135deg,#0f0c29 0%,#302b63 50%,#24243e 100%);padding:36px 40px 28px;text-align:center;border-bottom:1px solid rgba(124,58,237,0.2);">
-    <div style="margin:0 0 8px;">
-      <span style="font-size:32px;">${purposeIcon}</span>
+    <div style="margin:0 0 12px;">
+      <img src="${logoUrl}" alt="MeriLive" width="72" height="72" style="border-radius:16px;box-shadow:0 4px 20px rgba(124,58,237,0.3);" />
     </div>
     <h1 style="margin:0;color:#ffffff;font-size:26px;font-weight:700;letter-spacing:2px;text-shadow:0 2px 10px rgba(124,58,237,0.4);">meri<span style="color:#a78bfa;">LIVE</span></h1>
     <div style="margin:12px auto 0;width:60px;height:3px;background:linear-gradient(90deg,#7c3aed,#a78bfa,#7c3aed);border-radius:2px;"></div>
