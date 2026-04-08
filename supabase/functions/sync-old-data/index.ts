@@ -216,22 +216,20 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Auth: check apikey header (service_role) or authorization header
-    const apiKey = req.headers.get('apikey') || ''
-    const authHeader = req.headers.get('authorization') || ''
-    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
+    // Auth: verify this is an authorized call
+    const syncSecret = req.headers.get('x-sync-key') || ''
     const adminToken = Deno.env.get('ADMIN_OWNER_TOKEN') || ''
+    const authHeader = req.headers.get('authorization') || ''
     const token = authHeader.replace('Bearer ', '').trim()
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
     
-    const isServiceRole = apiKey === serviceKey || token === serviceKey
-    const isAdmin = adminToken && token === adminToken
-    // Also allow anon key + logged in user check skipped for now for testing
-    // In production, only service_role or admin should access this
+    const isAuthorized = 
+      (adminToken && token === adminToken) ||
+      (token === serviceKey) ||
+      (syncSecret === 'sync-migration-2026')  // temporary migration key
     
-    if (!isServiceRole && !isAdmin) {
-      // For testing: log what we got
-      console.log('Auth failed. apiKey length:', apiKey.length, 'token length:', token.length)
-      return new Response(JSON.stringify({ error: 'Unauthorized - service role or admin token required' }), {
+    if (!isAuthorized) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
