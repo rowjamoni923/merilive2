@@ -40,6 +40,8 @@ interface PaymentGateway {
   payment_instructions?: string;
 }
 
+type SafeNumberInput = number | string | null | undefined;
+
 interface TopUpHelper {
   id: string;
   helperId: string;
@@ -318,48 +320,38 @@ const Recharge = () => {
       // GLOBAL METHOD TYPES that should show in ALL countries
       const GLOBAL_METHOD_TYPES = ['crypto', 'usdt', 'trc20', 'erc20', 'btc', 'eth', 'cryptocurrency'];
 
-      // FETCH 1: helper_payment_methods (legacy table) - country-specific
+      // FETCH 1: helper_payment_methods using actual schema
       const { data: legacyMethodsData, error: legacyMethodsError } = await supabase
         .from('helper_payment_methods')
         .select(`
           id,
           helper_id,
-          country_code,
-          payment_type,
           account_name,
           account_number,
-          bank_name,
-          logo_url,
           is_active,
-          is_default,
-          merchant_number,
-          is_merchant
+          is_primary,
+          method_type,
+          additional_info
         `)
-        .eq('country_code', userCountryCode)
         .eq('is_active', true);
 
       if (legacyMethodsError) {
         console.error('[Recharge] Error fetching legacy payment methods:', legacyMethodsError);
       }
 
-      // FETCH 2: helper_country_payment_methods - country-specific
+      // FETCH 2: helper_country_payment_methods using actual schema
       const { data: countryMethodsData, error: countryMethodsError } = await supabase
         .from('helper_country_payment_methods')
         .select(`
           id,
-          helper_id,
           country_code,
-          method_name,
-          method_type,
-          account_name,
-          account_number,
-          bank_name,
-          logo_url,
+          country_name,
+          payment_method_name,
+          payment_type,
+          icon_url,
           is_active,
           instructions,
-          merchant_number,
-          is_merchant,
-          additional_info
+          display_order
         `)
         .eq('country_code', userCountryCode)
         .eq('is_active', true);
@@ -373,20 +365,17 @@ const Recharge = () => {
         .from('helper_country_payment_methods')
         .select(`
           id,
-          helper_id,
           country_code,
-          method_name,
-          account_name,
-          account_number,
-          bank_name,
-          logo_url,
+          country_name,
+          payment_method_name,
+          payment_type,
+          icon_url,
           is_active,
           instructions,
-          merchant_number,
-          is_merchant
+          display_order
         `)
         .neq('country_code', userCountryCode)
-        .in('method_name', GLOBAL_METHOD_TYPES)
+        .in('payment_method_name', GLOBAL_METHOD_TYPES)
         .eq('is_active', true);
 
       if (globalMethodsError) {
@@ -394,48 +383,94 @@ const Recharge = () => {
       }
 
       // Combine both arrays - transform to common format
-      const legacyNormalized = (legacyMethodsData || []).map(m => ({
+      const legacyNormalized = (legacyMethodsData || []).map((m: any) => ({
         id: m.id,
         helper_id: m.helper_id,
-        country_code: m.country_code,
-        payment_type: m.payment_type,
+        country_code: userCountryCode,
+        payment_type: m.method_type,
+        method_type: m.method_type,
         account_name: m.account_name,
         account_number: m.account_number,
-        bank_name: m.bank_name,
-        logo_url: m.logo_url,
-        merchant_number: (m as any).merchant_number || null,
-        is_merchant: (m as any).is_merchant || false,
+        bank_name: (m.additional_info as any)?.bank_name || null,
+        logo_url: (m.additional_info as any)?.logo_url || null,
+        merchant_number: (m.additional_info as any)?.merchant_number || null,
+        is_merchant: Boolean((m.additional_info as any)?.is_merchant),
+        additional_info: m.additional_info || null,
         source: 'legacy'
       }));
 
-      const countryNormalized = (countryMethodsData || []).map(m => ({
+      const countryMethodName = String((countryMethodsData?.[0] as any)?.payment_method_name || '').toLowerCase();
+      const matchingLegacyMethods = legacyNormalized.filter((m: any) => m.payment_type?.toLowerCase() === countryMethodName);
+
+      const countryNormalized = (countryMethodsData || []).flatMap((m: any) => {
+        const matchedLegacy = legacyNormalized.filter((legacy: any) =>
+          legacy.payment_type?.toLowerCase() === String(m.payment_method_name || '').toLowerCase()
+        );
+
+        if (matchedLegacy.length === 0) {
+          return [{
+            id: m.id,
+            helper_id: `country-${m.id}`,
+            country_code: m.country_code,
+            payment_type: m.payment_method_name,
+            method_type: m.payment_type || m.payment_method_name,
+            account_name: m.country_name || m.payment_method_name,
+            account_number: '',
+            bank_name: null,
+            logo_url: m.icon_url,
+            instructions: m.instructions,
+            merchant_number: null,
+            is_merchant: false,
+            additional_info: {
+              source_table: 'helper_country_payment_methods',
+              display_order: m.display_order,
+              requires_legacy_account: true,
+            },
+            source: 'country',
+          }];
+        }
+
+        return matchedLegacy.map((legacy: any) => ({
         id: m.id,
-        helper_id: m.helper_id,
-        country_code: m.country_code,
-        payment_type: m.method_name,
-        method_type: m.method_type || m.method_name,
-        account_name: m.account_name,
-        account_number: m.account_number,
-        bank_name: m.bank_name,
-        logo_url: m.logo_url,
-        merchant_number: (m as any).merchant_number || null,
-        is_merchant: (m as any).is_merchant || false,
-        additional_info: (m as any).additional_info || null,
-        source: 'country'
-      }));
+          helper_id: legacy.helper_id,
+          country_code: m.country_code,
+          payment_type: m.payment_method_name,
+          method_type: m.payment_type || legacy.method_type || m.payment_method_name,
+          account_name: legacy.account_name,
+          account_number: legacy.account_number,
+          bank_name: legacy.bank_name,
+          logo_url: m.icon_url || legacy.logo_url,
+          instructions: m.instructions,
+          merchant_number: legacy.merchant_number || null,
+          is_merchant: legacy.is_merchant || false,
+          additional_info: {
+            ...(legacy.additional_info || {}),
+            source_table: 'helper_country_payment_methods',
+            display_order: m.display_order,
+          },
+          source: 'country'
+        }));
+      });
 
       // Global/Crypto methods (from other countries, shown everywhere)
-      const globalNormalized = (globalMethodsData || []).map(m => ({
+      const globalNormalized = (globalMethodsData || []).map((m: any) => ({
         id: m.id,
-        helper_id: m.helper_id,
+        helper_id: `global-${m.id}`,
         country_code: m.country_code,
-        payment_type: m.method_name,
-        account_name: m.account_name,
-        account_number: m.account_number,
-        bank_name: m.bank_name,
-        logo_url: m.logo_url,
-        merchant_number: (m as any).merchant_number || null,
-        is_merchant: (m as any).is_merchant || false,
+        payment_type: m.payment_method_name,
+        method_type: m.payment_type || m.payment_method_name,
+        account_name: m.country_name || m.payment_method_name,
+        account_number: '',
+        bank_name: null,
+        logo_url: m.icon_url,
+        instructions: m.instructions,
+        merchant_number: null,
+        is_merchant: false,
+        additional_info: {
+          source_table: 'helper_country_payment_methods',
+          is_global: true,
+          display_order: m.display_order,
+        },
         source: 'global'
       }));
 
@@ -458,7 +493,7 @@ const Recharge = () => {
       });
 
       // Get unique helper IDs
-      const helperIds = [...new Set(combinedMethodsData.map(m => m.helper_id))];
+      const helperIds = [...new Set(combinedMethodsData.map(m => m.helper_id).filter((id: string) => !id.startsWith('country-') && !id.startsWith('global-')))];
       
       // Fetch helper data with profiles separately
       const { data: helpersData, error: helpersError } = await supabase
@@ -538,6 +573,10 @@ const Recharge = () => {
       const MIN_BALANCE = 300000; // 3 Lakh (300,000) diamonds minimum
       
       const validMethods = (data || []).filter((m: any) => {
+        if (m.source === 'global' || m.source === 'country') {
+          return Boolean(m.account_number);
+        }
+
         const helper = m.helper;
         if (!helper) return false;
         
@@ -1006,24 +1045,24 @@ const Recharge = () => {
     try {
       const { data, error } = await supabase
         .from('payment_gateways')
-        .select('id, name, gateway_code, description, logo_url, supported_currencies, fee_percentage, fee_fixed, settings')
+        .select('id, name, gateway_type, config, supported_currencies')
         .eq('is_active', true)
         .order('display_order', { ascending: true });
 
       if (error) throw error;
       
       // Map data to include payment_number and payment_instructions from settings
-      const mappedGateways: PaymentGateway[] = (data || []).map(g => ({
+      const mappedGateways: PaymentGateway[] = (data || []).map((g: any) => ({
         id: g.id,
         name: g.name,
-        gateway_code: g.gateway_code,
-        description: g.description || '',
-        logo_url: g.logo_url,
+        gateway_code: g.gateway_type,
+        description: (g.config as any)?.description || '',
+        logo_url: (g.config as any)?.logo_url || null,
         supported_currencies: g.supported_currencies || [],
-        fee_percentage: g.fee_percentage || 0,
-        fee_fixed: g.fee_fixed || 0,
-        payment_number: (g.settings as any)?.payment_number || '',
-        payment_instructions: (g.settings as any)?.payment_instructions || ''
+        fee_percentage: Number((g.config as any)?.fee_percentage) || 0,
+        fee_fixed: Number((g.config as any)?.fee_fixed) || 0,
+        payment_number: (g.config as any)?.payment_number || '',
+        payment_instructions: (g.config as any)?.payment_instructions || ''
       }));
       
       setGateways(mappedGateways);
@@ -1047,8 +1086,12 @@ const Recharge = () => {
   }, [currencyRate, gateways]);
 
 
-  const formatNumber = (num: number) => {
-    return num.toLocaleString();
+  const formatNumber = (num: SafeNumberInput) => {
+    const parsed = typeof num === 'string' ? Number(num) : num;
+    if (parsed === null || parsed === undefined || Number.isNaN(parsed)) {
+      return '0';
+    }
+    return parsed.toLocaleString('en-US');
   };
 
   const convertToLocalCurrency = (priceUsd: number): string => {
