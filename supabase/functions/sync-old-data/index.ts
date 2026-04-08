@@ -216,13 +216,18 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Auth check - require admin owner token
+    // Auth check - require SUPABASE_SERVICE_ROLE_KEY (auto-sent by supabase invoke)
+    // or ADMIN_OWNER_TOKEN
     const authHeader = req.headers.get('authorization') || ''
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
     const adminToken = Deno.env.get('ADMIN_OWNER_TOKEN') || ''
     const token = authHeader.replace('Bearer ', '').trim()
     
-    if (!adminToken || token !== adminToken) {
-      return new Response(JSON.stringify({ error: 'Unauthorized - admin token required' }), {
+    const isServiceRole = token === serviceKey
+    const isAdmin = adminToken && token === adminToken
+    
+    if (!isServiceRole && !isAdmin) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
