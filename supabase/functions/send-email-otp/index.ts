@@ -210,11 +210,15 @@ Deno.serve(async (req) => {
       password: gmailAppPassword,
     });
 
+    const subjectPrefix = purpose === "login" ? "Login" : 
+                         purpose === "register" ? "Registration" :
+                         purpose === "reset" ? "Password Reset" : "Verification";
+
     await client.send({
       from: gmailUser,
       to: email,
-      subject: `${otp} - MeriLive Verification Code`,
-      content: "Your MeriLive verification code: " + otp,
+      subject: `[MeriLive] ${subjectPrefix} Code: ${otp}`,
+      content: `Your MeriLive ${subjectPrefix.toLowerCase()} code is: ${otp}. Valid for 5 minutes. Do not share this code.`,
       html: emailHTML,
     });
 
