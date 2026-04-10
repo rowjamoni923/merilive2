@@ -918,27 +918,40 @@ const Auth = () => {
         userId = data.user?.id || null;
       }
 
-      // Ensure profile has correct display_name - retry if trigger hasn't created it yet
+      // Ensure profile has correct display_name - use UPSERT to guarantee profile exists
       if (userId) {
         let profileSaved = false;
 
-        for (let attempt = 0; attempt < 3; attempt++) {
-          await new Promise(r => setTimeout(r, 300 + attempt * 200));
-          const { error: profileError } = await supabase
+        for (let attempt = 0; attempt < 4; attempt++) {
+          await new Promise(r => setTimeout(r, 200 + attempt * 300));
+          
+          // Use upsert to guarantee the profile row exists with correct data
+          const { data: upsertData, error: profileError } = await supabase
             .from("profiles")
-            .update({ 
+            .upsert({ 
+              id: userId,
               display_name: displayName,
               device_id: deviceId,
-              gender: selectedGender || undefined,
-            })
-            .eq("id", userId);
+              gender: selectedGender || 'male',
+              coins: 0,
+              user_level: 1,
+              is_host: false,
+            }, { onConflict: 'id', ignoreDuplicates: false })
+            .select('id, gender, display_name, coins, app_uid')
+            .maybeSingle();
           
-          if (!profileError) {
+          if (!profileError && upsertData) {
             profileSaved = true;
+            // Immediately cache the balance
+            if (upsertData.coins !== undefined) {
+              const { updateCachedBalance } = await import('@/hooks/useUserBalance');
+              updateCachedBalance(Number(upsertData.coins ?? 0));
+            }
+            console.log('[Auth] ✅ Profile saved:', upsertData.display_name, 'Gender:', upsertData.gender, 'UID:', upsertData.app_uid);
             break;
           }
 
-          console.warn(`[Auth] Profile update attempt ${attempt + 1} failed:`, profileError);
+          console.warn(`[Auth] Profile save attempt ${attempt + 1} failed:`, profileError);
         }
 
         if (!profileSaved) {
