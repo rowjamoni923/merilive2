@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import nodemailer from "npm:nodemailer@6.9.12";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -70,109 +71,6 @@ function buildOTPEmailHTML(otp: string, purpose: string, logoUrl: string): strin
 </body></html>`;
 }
 
-async function sendEmailViaResend(
-  resendApiKey: string,
-  to: string,
-  subject: string,
-  htmlContent: string,
-  textContent: string,
-  fromEmail: string,
-): Promise<void> {
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${resendApiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: `MeriLive <${fromEmail}>`,
-      to: [to],
-      subject,
-      html: htmlContent,
-      text: textContent,
-    }),
-  });
-
-  if (!res.ok) {
-    const errBody = await res.text();
-    throw new Error(`Resend API error (${res.status}): ${errBody}`);
-  }
-}
-
-async function sendEmailViaGmailApi(
-  gmailUser: string,
-  accessToken: string,
-  to: string,
-  subject: string,
-  htmlContent: string,
-  textContent: string,
-): Promise<void> {
-  const boundary = "boundary_" + crypto.randomUUID().replace(/-/g, "");
-  const rawEmail = [
-    `From: MeriLive <${gmailUser}>`,
-    `To: ${to}`,
-    `Subject: ${subject}`,
-    `MIME-Version: 1.0`,
-    `Content-Type: multipart/alternative; boundary="${boundary}"`,
-    ``,
-    `--${boundary}`,
-    `Content-Type: text/plain; charset=UTF-8`,
-    ``,
-    textContent,
-    ``,
-    `--${boundary}`,
-    `Content-Type: text/html; charset=UTF-8`,
-    ``,
-    htmlContent,
-    ``,
-    `--${boundary}--`,
-  ].join("\r\n");
-
-  // Base64url encode
-  const encoded = btoa(rawEmail)
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
-
-  const res = await fetch(
-    `https://gmail.googleapis.com/gmail/v1/users/me/messages/send`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ raw: encoded }),
-    },
-  );
-
-  if (!res.ok) {
-    const errBody = await res.text();
-    throw new Error(`Gmail API error (${res.status}): ${errBody}`);
-  }
-}
-
-async function getGmailAccessToken(clientId: string, clientSecret: string, refreshToken: string): Promise<string> {
-  const res = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      client_id: clientId,
-      client_secret: clientSecret,
-      refresh_token: refreshToken,
-      grant_type: "refresh_token",
-    }),
-  });
-
-  if (!res.ok) {
-    const errBody = await res.text();
-    throw new Error(`Gmail OAuth token error (${res.status}): ${errBody}`);
-  }
-
-  const data = await res.json();
-  return data.access_token;
-}
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -201,6 +99,16 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ success: false, error: "Invalid purpose" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const gmailUser = Deno.env.get("GMAIL_USER");
+    const gmailAppPassword = Deno.env.get("GMAIL_APP_PASSWORD");
+    if (!gmailUser || !gmailAppPassword) {
+      console.error("[send-email-otp] Gmail SMTP credentials not configured");
+      return new Response(
+        JSON.stringify({ success: false, error: "Email service not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -255,45 +163,26 @@ Deno.serve(async (req) => {
     const subject = `[MeriLive] ${subjectPrefix} Code: ${otp}`;
     const textContent = `Your MeriLive ${subjectPrefix.toLowerCase()} code is: ${otp}. Valid for 5 minutes. Do not share this code.`;
 
-    // Try sending via available methods (priority: Resend > Gmail API)
-    let sent = false;
+    // Send via Gmail SMTP using nodemailer
+    const transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: {
+        user: gmailUser,
+        pass: gmailAppPassword,
+      },
+    });
 
-    // Method 1: Resend API
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
-    if (!sent && resendApiKey) {
-      try {
-        await sendEmailViaResend(resendApiKey, email, subject, emailHTML, textContent, "noreply@merilive.com");
-        sent = true;
-        console.log(`[send-email-otp] ✅ OTP sent to ${email} via Resend`);
-      } catch (e) {
-        console.warn(`[send-email-otp] Resend failed:`, e.message);
-      }
-    }
+    await transporter.sendMail({
+      from: `MeriLive <${gmailUser}>`,
+      to: email,
+      subject: subject,
+      text: textContent,
+      html: emailHTML,
+    });
 
-    // Method 2: Gmail REST API (OAuth2)
-    const gmailUser = Deno.env.get("GMAIL_USER");
-    const gmailClientId = Deno.env.get("GMAIL_CLIENT_ID");
-    const gmailClientSecret = Deno.env.get("GMAIL_CLIENT_SECRET");
-    const gmailRefreshToken = Deno.env.get("GMAIL_REFRESH_TOKEN");
-
-    if (!sent && gmailUser && gmailClientId && gmailClientSecret && gmailRefreshToken) {
-      try {
-        const accessToken = await getGmailAccessToken(gmailClientId, gmailClientSecret, gmailRefreshToken);
-        await sendEmailViaGmailApi(gmailUser, accessToken, email, subject, emailHTML, textContent);
-        sent = true;
-        console.log(`[send-email-otp] ✅ OTP sent to ${email} via Gmail API`);
-      } catch (e) {
-        console.warn(`[send-email-otp] Gmail API failed:`, e.message);
-      }
-    }
-
-    if (!sent) {
-      console.error("[send-email-otp] All email methods failed");
-      return new Response(
-        JSON.stringify({ success: false, error: "Email service unavailable" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    console.log(`[send-email-otp] ✅ OTP sent to ${email} via Gmail SMTP`);
 
     return new Response(
       JSON.stringify({ success: true, message: "OTP sent successfully" }),
