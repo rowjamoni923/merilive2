@@ -925,20 +925,48 @@ const Auth = () => {
         for (let attempt = 0; attempt < 4; attempt++) {
           await new Promise(r => setTimeout(r, 200 + attempt * 300));
           
-          // Use upsert to guarantee the profile row exists with correct data
-          const { data: upsertData, error: profileError } = await supabase
+          // First try: check if profile exists
+          const { data: existingRow } = await supabase
             .from("profiles")
-            .upsert({ 
-              id: userId,
-              display_name: displayName,
-              device_id: deviceId,
-              gender: selectedGender || 'male',
-              coins: 0,
-              user_level: 1,
-              is_host: false,
-            }, { onConflict: 'id', ignoreDuplicates: false })
             .select('id, gender, display_name, coins, app_uid')
+            .eq('id', userId)
             .maybeSingle();
+
+          let upsertData = existingRow;
+          let profileError = null;
+
+          if (existingRow) {
+            // Profile exists - only update safe fields (not protected ones)
+            const { data: updData, error: updErr } = await supabase
+              .from("profiles")
+              .update({ 
+                display_name: displayName,
+                device_id: deviceId,
+                gender: selectedGender || 'male',
+              })
+              .eq('id', userId)
+              .select('id, gender, display_name, coins, app_uid')
+              .maybeSingle();
+            upsertData = updData;
+            profileError = updErr;
+          } else {
+            // Profile doesn't exist - insert with all fields
+            const { data: insData, error: insErr } = await supabase
+              .from("profiles")
+              .insert({ 
+                id: userId,
+                display_name: displayName,
+                device_id: deviceId,
+                gender: selectedGender || 'male',
+                coins: 0,
+                user_level: 1,
+                is_host: false,
+              })
+              .select('id, gender, display_name, coins, app_uid')
+              .maybeSingle();
+            upsertData = insData;
+            profileError = insErr;
+          }
           
           if (!profileError && upsertData) {
             profileSaved = true;
