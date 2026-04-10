@@ -132,6 +132,7 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts }: Li
   const handleGameChange = useCallback((gameId: string) => {
     stopAllGameSounds();
     setActiveGame(gameId);
+    setExternalGameUrl(null); // Reset token URL when switching games
     setShowGameSelector(false);
   }, []);
 
