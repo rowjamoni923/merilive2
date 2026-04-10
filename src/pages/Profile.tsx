@@ -235,7 +235,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         if (!profileData && user && targetUserId === user.id) {
           const displayName = user.user_metadata?.full_name ||
             user.user_metadata?.name ||
-            user.email?.split('@')[0] ||
+            (user.email?.includes('@meri.local') ? null : user.email?.split('@')[0]) ||
             `User${Math.random().toString(36).substring(2, 8)}`;
 
           const avatarUrl = user.user_metadata?.avatar_url ||
@@ -247,7 +247,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               id: user.id,
               display_name: displayName,
               avatar_url: avatarUrl,
-              gender: user.user_metadata?.gender || 'female',
+              gender: user.user_metadata?.gender || 'male',
               coins: 0,
               total_earnings: 0,
               pending_earnings: 0,

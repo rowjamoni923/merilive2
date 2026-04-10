@@ -918,27 +918,68 @@ const Auth = () => {
         userId = data.user?.id || null;
       }
 
-      // Ensure profile has correct display_name - retry if trigger hasn't created it yet
+      // Ensure profile has correct display_name - use UPSERT to guarantee profile exists
       if (userId) {
         let profileSaved = false;
 
-        for (let attempt = 0; attempt < 3; attempt++) {
-          await new Promise(r => setTimeout(r, 300 + attempt * 200));
-          const { error: profileError } = await supabase
-            .from("profiles")
-            .update({ 
-              display_name: displayName,
-              device_id: deviceId,
-              gender: selectedGender || undefined,
-            })
-            .eq("id", userId);
+        for (let attempt = 0; attempt < 4; attempt++) {
+          await new Promise(r => setTimeout(r, 200 + attempt * 300));
           
-          if (!profileError) {
+          // First try: check if profile exists
+          const { data: existingRow } = await supabase
+            .from("profiles")
+            .select('id, gender, display_name, coins, app_uid')
+            .eq('id', userId)
+            .maybeSingle();
+
+          let upsertData = existingRow;
+          let profileError = null;
+
+          if (existingRow) {
+            // Profile exists - only update safe fields (not protected ones)
+            const { data: updData, error: updErr } = await supabase
+              .from("profiles")
+              .update({ 
+                display_name: displayName,
+                device_id: deviceId,
+                gender: selectedGender || 'male',
+              })
+              .eq('id', userId)
+              .select('id, gender, display_name, coins, app_uid')
+              .maybeSingle();
+            upsertData = updData;
+            profileError = updErr;
+          } else {
+            // Profile doesn't exist - insert with all fields
+            const { data: insData, error: insErr } = await supabase
+              .from("profiles")
+              .insert({ 
+                id: userId,
+                display_name: displayName,
+                device_id: deviceId,
+                gender: selectedGender || 'male',
+                coins: 0,
+                user_level: 1,
+                is_host: false,
+              })
+              .select('id, gender, display_name, coins, app_uid')
+              .maybeSingle();
+            upsertData = insData;
+            profileError = insErr;
+          }
+          
+          if (!profileError && upsertData) {
             profileSaved = true;
+            // Immediately cache the balance
+            if (upsertData.coins !== undefined) {
+              const { updateCachedBalance } = await import('@/hooks/useUserBalance');
+              updateCachedBalance(Number(upsertData.coins ?? 0));
+            }
+            console.log('[Auth] ✅ Profile saved:', upsertData.display_name, 'Gender:', upsertData.gender, 'UID:', upsertData.app_uid);
             break;
           }
 
-          console.warn(`[Auth] Profile update attempt ${attempt + 1} failed:`, profileError);
+          console.warn(`[Auth] Profile save attempt ${attempt + 1} failed:`, profileError);
         }
 
         if (!profileSaved) {
