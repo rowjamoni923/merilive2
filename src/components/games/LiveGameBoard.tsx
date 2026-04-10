@@ -95,6 +95,8 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts }: Li
   const [activeGame, setActiveGame] = useState<string | null>(selectedGame || 'crash');
   const [loading, setLoading] = useState(true);
   const { balance: diamondBalance, refetch: refetchBalance } = useUserBalance();
+  const { buildGameUrl, loading: tokenLoading } = useGameToken();
+  const [externalGameUrl, setExternalGameUrl] = useState<string | null>(null);
   const [userCoins, setUserCoins] = useState(0);
   const [betAmount, setBetAmount] = useState(500);
   const [showGameSelector, setShowGameSelector] = useState(false);
