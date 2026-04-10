@@ -199,7 +199,6 @@ Deno.serve(async (req) => {
     }
 
     // Build email HTML with logo
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const logoUrl = `${supabaseUrl}/storage/v1/object/public/app-assets/merilive-logo.png`;
     const emailHTML = buildOTPEmailHTML(otp, purpose, logoUrl);
 
