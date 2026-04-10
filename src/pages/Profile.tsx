@@ -1591,7 +1591,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     </span>
                   </div>
                   <p className="text-xl font-bold text-white drop-shadow-lg">
-                     {(cachedBalance > 0 ? cachedBalance : (profile?.coins || 0)).toLocaleString()}
+                     {(cachedBalance || Number(profile?.coins ?? 0)).toLocaleString()}
                   </p>
                 </div>
                 

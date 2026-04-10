@@ -18,6 +18,7 @@ interface BalanceCache {
   userId: string | null;
   timestamp: number;
   loading: boolean;
+  initialized: boolean;
 }
 
 const balanceCache: BalanceCache = {
@@ -25,6 +26,7 @@ const balanceCache: BalanceCache = {
   userId: null,
   timestamp: 0,
   loading: false,
+  initialized: false,
 };
 
 const CACHE_DURATION = 15 * 1000; // 15 seconds - faster refresh for real-time feel
@@ -42,21 +44,23 @@ async function fetchBalance(): Promise<number> {
   balanceCache.loading = true;
 
   try {
-    // Use getSession (local) instead of getUser (network) for speed
     const { data: { session } } = await supabase.auth.getSession();
     const user = session?.user;
+
     if (!user) {
-      balanceCache.loading = false;
+      balanceCache.balance = 0;
+      balanceCache.userId = null;
+      balanceCache.timestamp = Date.now();
+      balanceCache.initialized = true;
+      listeners.forEach(cb => cb(0));
       return 0;
     }
 
-    // Return cached if valid
     if (
       balanceCache.userId === user.id &&
-      balanceCache.balance > 0 &&
+      balanceCache.initialized &&
       Date.now() - balanceCache.timestamp < CACHE_DURATION
     ) {
-      balanceCache.loading = false;
       return balanceCache.balance;
     }
 
@@ -64,20 +68,19 @@ async function fetchBalance(): Promise<number> {
       .from('profiles')
       .select('coins')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error('[UserBalance] Error:', error);
-      balanceCache.loading = false;
       return balanceCache.balance;
     }
 
-    const newBalance = profile?.coins || 0;
+    const newBalance = Number(profile?.coins ?? 0);
     balanceCache.balance = newBalance;
     balanceCache.userId = user.id;
     balanceCache.timestamp = Date.now();
+    balanceCache.initialized = true;
 
-    // Notify all listeners
     listeners.forEach(cb => cb(newBalance));
 
     console.log(`[UserBalance] ✅ Cached balance: ${newBalance}`);
@@ -102,7 +105,7 @@ export function getCachedBalance(): number {
  */
 export async function getBalanceWithFetch(): Promise<number> {
   if (
-    balanceCache.balance > 0 &&
+    balanceCache.initialized &&
     Date.now() - balanceCache.timestamp < CACHE_DURATION
   ) {
     return balanceCache.balance;
@@ -114,9 +117,10 @@ export async function getBalanceWithFetch(): Promise<number> {
  * Update cached balance (call after transactions)
  */
 export function updateCachedBalance(newBalance: number): void {
-  balanceCache.balance = newBalance;
+  balanceCache.balance = Number(newBalance ?? 0);
   balanceCache.timestamp = Date.now();
-  listeners.forEach(cb => cb(newBalance));
+  balanceCache.initialized = true;
+  listeners.forEach(cb => cb(balanceCache.balance));
 }
 
 /**
@@ -134,6 +138,7 @@ export function clearBalanceCache(): void {
   balanceCache.balance = 0;
   balanceCache.userId = null;
   balanceCache.timestamp = 0;
+  balanceCache.initialized = false;
 }
 
 /**
@@ -147,42 +152,56 @@ export function useUserBalancePrefetch(): void {
     if (prefetched.current) return;
     prefetched.current = true;
 
-    // Prefetch after a small delay to not block initial render
-    const timer = setTimeout(() => {
-      fetchBalance();
-    }, 300);
+    let balanceChannel: ReturnType<typeof supabase.channel> | null = null;
 
-    // Set up realtime subscription for balance updates
-    const setupRealtimeBalance = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const user = session?.user;
-      if (!user) return;
+    const syncBalance = async (userId?: string | null) => {
+      if (balanceChannel) {
+        supabase.removeChannel(balanceChannel);
+        balanceChannel = null;
+      }
 
-      const channel = supabase
-        .channel('user-balance-updates')
+      if (!userId) {
+        clearBalanceCache();
+        listeners.forEach(cb => cb(0));
+        return;
+      }
+
+      await fetchBalance();
+
+      balanceChannel = supabase
+        .channel(`user-balance-updates-${userId}`)
         .on(
           'postgres_changes',
           {
             event: 'UPDATE',
             schema: 'public',
             table: 'profiles',
-            filter: `id=eq.${user.id}`,
+            filter: `id=eq.${userId}`,
           },
           (payload) => {
-            const newBalance = (payload.new as { coins?: number })?.coins || 0;
+            const newBalance = Number((payload.new as { coins?: number })?.coins ?? 0);
             updateCachedBalance(newBalance);
           }
         )
         .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
     };
 
-    setupRealtimeBalance();
+    const timer = setTimeout(async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      await syncBalance(session?.user?.id ?? null);
+    }, 300);
 
-    return () => clearTimeout(timer);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      void syncBalance(session?.user?.id ?? null);
+    });
+
+    return () => {
+      clearTimeout(timer);
+      subscription.unsubscribe();
+      if (balanceChannel) {
+        supabase.removeChannel(balanceChannel);
+      }
+    };
   }, []);
 }
 
@@ -191,26 +210,43 @@ export function useUserBalancePrefetch(): void {
  */
 export function useUserBalance() {
   const [balance, setBalance] = useState(getCachedBalance());
-  const [loading, setLoading] = useState(balanceCache.balance === 0);
+  const [loading, setLoading] = useState(!balanceCache.initialized);
 
   useEffect(() => {
-    // Subscribe to balance updates
     const unsubscribe = subscribeToBalance((newBalance) => {
       setBalance(newBalance);
       setLoading(false);
     });
 
-    // Fetch if not cached
-    if (balanceCache.balance === 0) {
+    if (!balanceCache.initialized) {
       getBalanceWithFetch().then((b) => {
         setBalance(b);
         setLoading(false);
       });
     } else {
+      setBalance(balanceCache.balance);
       setLoading(false);
     }
 
-    return unsubscribe;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session?.user) {
+        clearBalanceCache();
+        setBalance(0);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      void fetchBalance().then((newBalance) => {
+        setBalance(newBalance);
+        setLoading(false);
+      });
+    });
+
+    return () => {
+      unsubscribe();
+      subscription.unsubscribe();
+    };
   }, []);
 
   const refetch = useCallback(async () => {

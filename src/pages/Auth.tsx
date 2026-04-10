@@ -621,29 +621,46 @@ const Auth = () => {
       const userEmail = data.user?.email ?? normalizedEmail;
       const userName = data.user?.user_metadata?.full_name || data.user?.user_metadata?.display_name || normalizedEmail;
 
-      // Ensure profile exists for this user (critical for legacy/admin accounts)
+      // Ensure profile exists for this user without overwriting legacy UID/balance data
       if (data.user) {
         const userId = data.user.id;
-        const { data: existingProfile } = await supabase
-          .from('profiles')
-          .select('id, gender, display_name')
-          .eq('id', userId)
-          .maybeSingle();
+        let existingProfile = null;
 
+        for (let attempt = 0; attempt < 4; attempt++) {
+          const { data: profileRow } = await supabase
+            .from('profiles')
+            .select('id, gender, display_name, app_uid, coins')
+            .eq('id', userId)
+            .maybeSingle();
+
+          if (profileRow) {
+            existingProfile = profileRow;
+            break;
+          }
+
+          await new Promise(resolve => setTimeout(resolve, 250 * (attempt + 1)));
+        }
+
+        // Only create a fallback profile if trigger/legacy sync truly did not create one
         if (!existingProfile) {
-          // Create a basic profile so the app doesn't treat them as brand new
-          await supabase.from('profiles').insert({
+          const { data: insertedProfile } = await supabase.from('profiles').insert({
             id: userId,
             display_name: userName,
             gender: 'male',
             is_host: false,
             coins: 0,
             user_level: 1,
-          });
+          }).select('id, gender, display_name, app_uid, coins').maybeSingle();
+
+          existingProfile = insertedProfile;
         }
 
-        // Mark gender as selected to prevent the modal from showing
-        if (existingProfile?.gender || !existingProfile) {
+        if (existingProfile?.coins !== undefined) {
+          const { updateCachedBalance } = await import('@/hooks/useUserBalance');
+          updateCachedBalance(Number(existingProfile.coins ?? 0));
+        }
+
+        if (existingProfile?.gender) {
           localStorage.setItem(`gender_selected_${userId}`, 'true');
         }
       }
