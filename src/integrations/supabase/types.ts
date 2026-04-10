@@ -9256,10 +9256,9 @@ export type Database = {
         Returns: string
       }
       decline_private_call: { Args: { _call_id: string }; Returns: boolean }
-      deduct_coins_atomic: {
-        Args: { p_amount: number; p_user_id: string }
-        Returns: Json
-      }
+      deduct_coins_atomic:
+        | { Args: { p_amount: number; p_user_id: string }; Returns: Json }
+        | { Args: { p_amount: number; p_user_id: string }; Returns: Json }
       end_private_call: { Args: { _call_id: string }; Returns: Json }
       generate_app_uid: { Args: never; Returns: string }
       generate_game_token: {
@@ -9355,26 +9354,36 @@ export type Database = {
         }
         Returns: undefined
       }
-      place_game_bet: {
-        Args: {
-          p_amount: number
-          p_game_id: string
-          p_game_name: string
-          p_user_id: string
-        }
-        Returns: Json
-      }
-      process_game_win: {
-        Args: {
-          p_amount: number
-          p_game_id: string
-          p_game_name: string
-          p_is_jackpot?: boolean
-          p_multiplier?: number
-          p_user_id: string
-        }
-        Returns: Json
-      }
+      place_game_bet:
+        | {
+            Args: { p_amount: number; p_game_type?: string; p_user_id: string }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_amount: number
+              p_game_id: string
+              p_game_name: string
+              p_user_id: string
+            }
+            Returns: Json
+          }
+      process_game_win:
+        | {
+            Args: { p_amount: number; p_game_type?: string; p_user_id: string }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_amount: number
+              p_game_id: string
+              p_game_name: string
+              p_is_jackpot?: boolean
+              p_multiplier?: number
+              p_user_id: string
+            }
+            Returns: Json
+          }
       process_weekly_agency_transfers: { Args: never; Returns: Json }
       recalculate_all_user_levels: { Args: never; Returns: undefined }
       recover_session_by_device: {
