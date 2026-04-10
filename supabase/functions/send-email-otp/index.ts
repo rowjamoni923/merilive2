@@ -70,67 +70,45 @@ function buildOTPEmailHTML(otp: string, purpose: string, logoUrl: string): strin
 </body></html>`;
 }
 
-/** Encode a string to base64 */
-function base64Encode(str: string): string {
-  return btoa(str);
-}
-
-/** Send email via Gmail SMTP using raw TCP (compatible with Supabase Edge Runtime) */
-async function sendViaGmailSmtp(
-  gmailUser: string,
-  gmailAppPassword: string,
+async function sendEmailViaResend(
+  resendApiKey: string,
   to: string,
   subject: string,
-  textContent: string,
   htmlContent: string,
+  textContent: string,
+  fromEmail: string,
 ): Promise<void> {
-  // Use Deno's native TLS connection
-  const conn = await Deno.connectTls({
-    hostname: "smtp.gmail.com",
-    port: 465,
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${resendApiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: `MeriLive <${fromEmail}>`,
+      to: [to],
+      subject,
+      html: htmlContent,
+      text: textContent,
+    }),
   });
 
-  const encoder = new TextEncoder();
-  const decoder = new TextDecoder();
-
-  async function readResponse(): Promise<string> {
-    const buf = new Uint8Array(4096);
-    const n = await conn.read(buf);
-    if (n === null) throw new Error("Connection closed");
-    return decoder.decode(buf.subarray(0, n));
+  if (!res.ok) {
+    const errBody = await res.text();
+    throw new Error(`Resend API error (${res.status}): ${errBody}`);
   }
+}
 
-  async function sendCmd(cmd: string): Promise<string> {
-    await conn.write(encoder.encode(cmd + "\r\n"));
-    return await readResponse();
-  }
-
-  // Read greeting
-  await readResponse();
-
-  // EHLO
-  await sendCmd("EHLO localhost");
-
-  // AUTH LOGIN
-  await sendCmd("AUTH LOGIN");
-  await sendCmd(base64Encode(gmailUser));
-  const authResult = await sendCmd(base64Encode(gmailAppPassword));
-  if (!authResult.startsWith("235")) {
-    conn.close();
-    throw new Error("SMTP authentication failed: " + authResult);
-  }
-
-  // MAIL FROM
-  await sendCmd(`MAIL FROM:<${gmailUser}>`);
-
-  // RCPT TO
-  await sendCmd(`RCPT TO:<${to}>`);
-
-  // DATA
-  await sendCmd("DATA");
-
+async function sendEmailViaGmailApi(
+  gmailUser: string,
+  accessToken: string,
+  to: string,
+  subject: string,
+  htmlContent: string,
+  textContent: string,
+): Promise<void> {
   const boundary = "boundary_" + crypto.randomUUID().replace(/-/g, "");
-  const message = [
+  const rawEmail = [
     `From: MeriLive <${gmailUser}>`,
     `To: ${to}`,
     `Subject: ${subject}`,
@@ -148,15 +126,51 @@ async function sendViaGmailSmtp(
     htmlContent,
     ``,
     `--${boundary}--`,
-    `.`,
   ].join("\r\n");
 
-  await conn.write(encoder.encode(message));
-  await readResponse();
+  // Base64url encode
+  const encoded = btoa(rawEmail)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
 
-  // QUIT
-  await sendCmd("QUIT");
-  conn.close();
+  const res = await fetch(
+    `https://gmail.googleapis.com/gmail/v1/users/me/messages/send`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ raw: encoded }),
+    },
+  );
+
+  if (!res.ok) {
+    const errBody = await res.text();
+    throw new Error(`Gmail API error (${res.status}): ${errBody}`);
+  }
+}
+
+async function getGmailAccessToken(clientId: string, clientSecret: string, refreshToken: string): Promise<string> {
+  const res = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      refresh_token: refreshToken,
+      grant_type: "refresh_token",
+    }),
+  });
+
+  if (!res.ok) {
+    const errBody = await res.text();
+    throw new Error(`Gmail OAuth token error (${res.status}): ${errBody}`);
+  }
+
+  const data = await res.json();
+  return data.access_token;
 }
 
 Deno.serve(async (req) => {
@@ -187,16 +201,6 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ success: false, error: "Invalid purpose" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const gmailUser = Deno.env.get("GMAIL_USER");
-    const gmailAppPassword = Deno.env.get("GMAIL_APP_PASSWORD");
-    if (!gmailUser || !gmailAppPassword) {
-      console.error("[send-email-otp] Gmail SMTP credentials not configured");
-      return new Response(
-        JSON.stringify({ success: false, error: "Email service not configured" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -248,18 +252,48 @@ Deno.serve(async (req) => {
                          purpose === "register" ? "Registration" :
                          purpose === "reset" ? "Password Reset" : "Verification";
 
+    const subject = `[MeriLive] ${subjectPrefix} Code: ${otp}`;
     const textContent = `Your MeriLive ${subjectPrefix.toLowerCase()} code is: ${otp}. Valid for 5 minutes. Do not share this code.`;
 
-    await sendViaGmailSmtp(
-      gmailUser,
-      gmailAppPassword,
-      email,
-      `[MeriLive] ${subjectPrefix} Code: ${otp}`,
-      textContent,
-      emailHTML,
-    );
+    // Try sending via available methods (priority: Resend > Gmail API)
+    let sent = false;
 
-    console.log(`[send-email-otp] ✅ OTP sent to ${email} via Gmail SMTP`);
+    // Method 1: Resend API
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    if (!sent && resendApiKey) {
+      try {
+        await sendEmailViaResend(resendApiKey, email, subject, emailHTML, textContent, "noreply@merilive.com");
+        sent = true;
+        console.log(`[send-email-otp] ✅ OTP sent to ${email} via Resend`);
+      } catch (e) {
+        console.warn(`[send-email-otp] Resend failed:`, e.message);
+      }
+    }
+
+    // Method 2: Gmail REST API (OAuth2)
+    const gmailUser = Deno.env.get("GMAIL_USER");
+    const gmailClientId = Deno.env.get("GMAIL_CLIENT_ID");
+    const gmailClientSecret = Deno.env.get("GMAIL_CLIENT_SECRET");
+    const gmailRefreshToken = Deno.env.get("GMAIL_REFRESH_TOKEN");
+
+    if (!sent && gmailUser && gmailClientId && gmailClientSecret && gmailRefreshToken) {
+      try {
+        const accessToken = await getGmailAccessToken(gmailClientId, gmailClientSecret, gmailRefreshToken);
+        await sendEmailViaGmailApi(gmailUser, accessToken, email, subject, emailHTML, textContent);
+        sent = true;
+        console.log(`[send-email-otp] ✅ OTP sent to ${email} via Gmail API`);
+      } catch (e) {
+        console.warn(`[send-email-otp] Gmail API failed:`, e.message);
+      }
+    }
+
+    if (!sent) {
+      console.error("[send-email-otp] All email methods failed");
+      return new Response(
+        JSON.stringify({ success: false, error: "Email service unavailable" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     return new Response(
       JSON.stringify({ success: true, message: "OTP sent successfully" }),
