@@ -10,7 +10,10 @@ const guardedFetch = createSupabaseFetchGuard(fetch);
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+// Note: Using untyped client temporarily — the new Supabase project schema
+// doesn't yet have all columns/functions/views from the original.
+// Once schema is fully migrated, restore: createClient<Database>(...)
+export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   global: {
     fetch: guardedFetch,
   },
