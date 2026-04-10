@@ -18,138 +18,103 @@ serve(async (req) => {
     const NEW_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
     if (!OLD_URL || !OLD_KEY || !NEW_URL || !NEW_KEY) {
-      throw new Error("Missing environment variables");
+      throw new Error("Missing env vars. Have: " + 
+        `OLD_URL=${!!OLD_URL}, OLD_KEY=${!!OLD_KEY}, NEW_URL=${!!NEW_URL}, NEW_KEY=${!!NEW_KEY}`);
     }
 
     const oldClient = createClient(OLD_URL, OLD_KEY);
     const newClient = createClient(NEW_URL, NEW_KEY);
 
-    const { bucket, path_prefix, limit: reqLimit } = await req.json().catch(() => ({}));
+    const body = await req.json().catch(() => ({}));
+    const { action, bucket, folder, batch_size } = body;
 
-    // If specific bucket requested, sync only that bucket
-    const bucketsToSync = bucket ? [bucket] : null;
+    // Action: list_buckets - just list what's in old project
+    if (action === "list_buckets") {
+      const { data, error } = await oldClient.storage.listBuckets();
+      if (error) throw error;
+      return jsonResponse({ buckets: data?.map(b => ({ id: b.id, name: b.name, public: b.public })) });
+    }
 
-    // Get all buckets from old project
-    const { data: oldBuckets, error: bucketsError } = await oldClient.storage.listBuckets();
-    if (bucketsError) throw new Error(`Failed to list old buckets: ${bucketsError.message}`);
+    // Action: list_files - list files in a specific bucket
+    if (action === "list_files") {
+      if (!bucket) throw new Error("bucket required");
+      const { data, error } = await oldClient.storage.from(bucket).list(folder || "", { limit: 200 });
+      if (error) throw error;
+      return jsonResponse({ bucket, files: data });
+    }
 
-    const targetBuckets = bucketsToSync 
-      ? oldBuckets?.filter(b => bucketsToSync.includes(b.id)) 
-      : oldBuckets;
+    // Action: sync_bucket - sync a single bucket, small batch
+    if (action === "sync_bucket") {
+      if (!bucket) throw new Error("bucket required");
+      const limit = batch_size || 20;
 
-    const results: Record<string, { synced: number; errors: number; skipped: number; errorDetails: string[] }> = {};
-    const fileLimit = reqLimit || 1000;
+      // Ensure bucket exists
+      await newClient.storage.createBucket(bucket, { public: true }).catch(() => {});
 
-    for (const b of targetBuckets || []) {
-      results[b.id] = { synced: 0, errors: 0, skipped: 0, errorDetails: [] };
-
-      // Ensure bucket exists in new project
-      const { error: createErr } = await newClient.storage.createBucket(b.id, {
-        public: b.public,
+      // List files
+      const { data: files, error } = await oldClient.storage.from(bucket).list(folder || "", { 
+        limit, 
+        sortBy: { column: "name", order: "asc" } 
       });
-      if (createErr && !createErr.message.includes("already exists")) {
-        results[b.id].errorDetails.push(`Bucket create error: ${createErr.message}`);
-        continue;
-      }
+      if (error) throw error;
 
-      // List files in old bucket
-      const prefix = path_prefix || "";
-      const { data: files, error: listError } = await oldClient.storage
-        .from(b.id)
-        .list(prefix, { limit: fileLimit, sortBy: { column: "name", order: "asc" } });
+      let synced = 0, errors = 0, skipped = 0;
+      const errorDetails: string[] = [];
 
-      if (listError) {
-        results[b.id].errorDetails.push(`List error: ${listError.message}`);
-        continue;
-      }
-
-      if (!files || files.length === 0) continue;
-
-      for (const file of files) {
-        if (!file.name || file.id === null) {
-          // It's a folder, list recursively
-          const folderPath = prefix ? `${prefix}/${file.name}` : file.name;
-          const { data: subFiles } = await oldClient.storage
-            .from(b.id)
-            .list(folderPath, { limit: fileLimit });
-
-          if (subFiles) {
-            for (const subFile of subFiles) {
-              if (!subFile.name || subFile.id === null) continue;
-              const filePath = `${folderPath}/${subFile.name}`;
-              const result = await syncFile(oldClient, newClient, b.id, filePath);
-              if (result === "synced") results[b.id].synced++;
-              else if (result === "skipped") results[b.id].skipped++;
-              else {
-                results[b.id].errors++;
-                results[b.id].errorDetails.push(result);
-              }
-            }
-          }
+      for (const file of files || []) {
+        // Skip folders (metadata-only entries)
+        if (!file.id) {
+          // It's a folder - skip, user should call with folder param
+          skipped++;
           continue;
         }
 
-        const filePath = prefix ? `${prefix}/${file.name}` : file.name;
-        const result = await syncFile(oldClient, newClient, b.id, filePath);
-        if (result === "synced") results[b.id].synced++;
-        else if (result === "skipped") results[b.id].skipped++;
-        else {
-          results[b.id].errors++;
-          results[b.id].errorDetails.push(result);
+        const filePath = folder ? `${folder}/${file.name}` : file.name;
+
+        try {
+          // Download from old
+          const { data: fileData, error: dlErr } = await oldClient.storage.from(bucket).download(filePath);
+          if (dlErr || !fileData) {
+            errors++;
+            errorDetails.push(`DL: ${filePath} - ${dlErr?.message}`);
+            continue;
+          }
+
+          // Upload to new  
+          const { error: ulErr } = await newClient.storage.from(bucket).upload(filePath, fileData, {
+            upsert: true,
+            contentType: fileData.type || "application/octet-stream",
+          });
+
+          if (ulErr) {
+            errors++;
+            errorDetails.push(`UL: ${filePath} - ${ulErr.message}`);
+          } else {
+            synced++;
+          }
+        } catch (e) {
+          errors++;
+          errorDetails.push(`${filePath}: ${e.message}`);
         }
       }
+
+      return jsonResponse({ 
+        bucket, folder: folder || "/", 
+        synced, errors, skipped, 
+        total_listed: files?.length || 0,
+        errorDetails: errorDetails.slice(0, 10)
+      });
     }
 
-    return new Response(JSON.stringify({ success: true, results }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse({ error: "Use action: list_buckets | list_files | sync_bucket" }, 400);
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse({ error: error.message }, 500);
   }
 });
 
-async function syncFile(
-  oldClient: any,
-  newClient: any,
-  bucketId: string,
-  filePath: string
-): Promise<string> {
-  try {
-    // Check if file already exists in new bucket
-    const { data: existingFile } = await newClient.storage
-      .from(bucketId)
-      .list(filePath.split("/").slice(0, -1).join("/") || "", {
-        search: filePath.split("/").pop(),
-      });
-
-    if (existingFile && existingFile.length > 0) {
-      const found = existingFile.find((f: any) => f.name === filePath.split("/").pop());
-      if (found) return "skipped";
-    }
-
-    // Download from old
-    const { data: fileData, error: downloadError } = await oldClient.storage
-      .from(bucketId)
-      .download(filePath);
-
-    if (downloadError) return `Download error ${filePath}: ${downloadError.message}`;
-    if (!fileData) return `No data for ${filePath}`;
-
-    // Upload to new
-    const { error: uploadError } = await newClient.storage
-      .from(bucketId)
-      .upload(filePath, fileData, {
-        upsert: true,
-        contentType: fileData.type || "application/octet-stream",
-      });
-
-    if (uploadError) return `Upload error ${filePath}: ${uploadError.message}`;
-
-    return "synced";
-  } catch (e) {
-    return `Error ${filePath}: ${e.message}`;
-  }
+function jsonResponse(data: any, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
 }
