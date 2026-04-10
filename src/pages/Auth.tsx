@@ -842,77 +842,22 @@ const Auth = () => {
         userId = data.user?.id || null;
       }
 
-      // Ensure profile has correct display_name - use UPSERT to guarantee profile exists
+      // Ensure profile has correct display_name - retry if trigger hasn't created it yet
       if (userId) {
-        let profileSaved = false;
-
-        for (let attempt = 0; attempt < 4; attempt++) {
-          await new Promise(r => setTimeout(r, 200 + attempt * 300));
-          
-          // First try: check if profile exists
-          const { data: existingRow } = await supabase
+        for (let attempt = 0; attempt < 3; attempt++) {
+          await new Promise(r => setTimeout(r, 300 + attempt * 200));
+          const { error: profileError, count } = await supabase
             .from("profiles")
-            .select('id, gender, display_name, coins, app_uid')
-            .eq('id', userId)
-            .maybeSingle();
-
-          let upsertData = existingRow;
-          let profileError = null;
-
-          if (existingRow) {
-            // Profile exists - only update safe fields (not protected ones)
-            const { data: updData, error: updErr } = await supabase
-              .from("profiles")
-              .update({ 
-                display_name: displayName,
-                device_id: deviceId,
-                gender: selectedGender || 'male',
-              })
-              .eq('id', userId)
-              .select('id, gender, display_name, coins, app_uid')
-              .maybeSingle();
-            upsertData = updData;
-            profileError = updErr;
-          } else {
-            // Profile doesn't exist - insert with all fields
-            const { data: insData, error: insErr } = await supabase
-              .from("profiles")
-              .insert({ 
-                id: userId,
-                display_name: displayName,
-                device_id: deviceId,
-                gender: selectedGender || 'male',
-                coins: 0,
-                user_level: 1,
-                is_host: false,
-              })
-              .select('id, gender, display_name, coins, app_uid')
-              .maybeSingle();
-            upsertData = insData;
-            profileError = insErr;
-          }
+            .update({ 
+              display_name: displayName,
+              device_id: deviceId,
+              gender: selectedGender || undefined,
+              ...(selectedGender === 'female' ? { is_host: true, host_status: 'approved' } : {}),
+            })
+            .eq("id", userId);
           
-          if (!profileError && upsertData) {
-            profileSaved = true;
-            // Immediately cache the balance
-            if (upsertData.coins !== undefined) {
-              const { updateCachedBalance } = await import('@/hooks/useUserBalance');
-              updateCachedBalance(Number(upsertData.coins ?? 0));
-            }
-            console.log('[Auth] ✅ Profile saved:', upsertData.display_name, 'Gender:', upsertData.gender, 'UID:', upsertData.app_uid);
-            break;
-          }
-
-          console.warn(`[Auth] Profile save attempt ${attempt + 1} failed:`, profileError);
-        }
-
-        if (!profileSaved) {
-          toast({
-            title: "Setup incomplete",
-            description: "Your account was created, but profile setup did not finish. Please try again.",
-            variant: "destructive",
-          });
-          return;
+          if (!profileError) break;
+          console.warn(`[Auth] Profile update attempt ${attempt + 1} failed:`, profileError);
         }
 
         // Save device account with credentials for future recovery
