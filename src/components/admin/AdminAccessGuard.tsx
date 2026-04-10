@@ -23,7 +23,7 @@ import {
  * SECURITY: Tokens validated server-side. Device approval required for sub-admins.
  */
 
-const OWNER_EMAILS = ["smtv923@gmail.com", "sazzadshifa776@gmail.com"];
+const OWNER_EMAILS = ["smtv923@gmail.com", "sazzadshifa776@gmail.com"].map(email => email.toLowerCase());
 
 const getAccessTokenFromURL = (): string | null => {
   try {
@@ -105,7 +105,7 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
             return;
           }
 
-          if (user.email && OWNER_EMAILS.includes(user.email)) {
+          if (user.email && OWNER_EMAILS.includes(user.email.toLowerCase())) {
             clearTimeout(timeoutId);
             setIsAuthorized(true);
             setIsChecking(false);
@@ -167,7 +167,7 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
         // 2. Check if user is logged in
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          if (user.email && OWNER_EMAILS.includes(user.email)) {
+          if (user.email && OWNER_EMAILS.includes(user.email.toLowerCase())) {
             grantAdminAccess(true);
             setIsAuthorized(true);
             setIsChecking(false);
@@ -175,12 +175,32 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
             return;
           }
 
-          const { data: adminUser } = await supabase
+          let { data: adminUser } = await supabase
             .from('admin_users')
             .select('id, is_active, role')
             .eq('user_id', user.id)
             .eq('is_active', true)
-            .single();
+            .maybeSingle();
+
+          if (!adminUser && user.email) {
+            const fallback = await supabase
+              .from('admin_users')
+              .select('id, is_active, role, user_id')
+              .eq('email', user.email.toLowerCase())
+              .eq('is_active', true)
+              .maybeSingle();
+
+            if (fallback.data) {
+              adminUser = fallback.data;
+
+              if (!fallback.data.user_id) {
+                await supabase
+                  .from('admin_users')
+                  .update({ user_id: user.id })
+                  .eq('id', fallback.data.id);
+              }
+            }
+          }
 
           if (adminUser) {
             if (adminUser.role === 'owner') {
@@ -229,12 +249,35 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
       const fingerprint = getDeviceFingerprint();
       
       // Use RPC if available, otherwise manual check
-      const { data: adminUser } = await supabase
+      const { data: authUserData } = await supabase.auth.getUser();
+      const authUser = authUserData.user;
+
+      let { data: adminUser } = await supabase
         .from('admin_users')
-        .select('id, role')
+        .select('id, role, user_id')
         .eq('user_id', userId)
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
+
+      if (!adminUser && authUser?.email) {
+        const fallback = await supabase
+          .from('admin_users')
+          .select('id, role, user_id')
+          .eq('email', authUser.email.toLowerCase())
+          .eq('is_active', true)
+          .maybeSingle();
+
+        if (fallback.data) {
+          adminUser = fallback.data;
+
+          if (!fallback.data.user_id) {
+            await supabase
+              .from('admin_users')
+              .update({ user_id: userId })
+              .eq('id', fallback.data.id);
+          }
+        }
+      }
 
       if (!adminUser) return false;
       
