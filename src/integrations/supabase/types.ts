@@ -2615,6 +2615,48 @@ export type Database = {
         }
         Relationships: []
       }
+      game_session_tokens: {
+        Row: {
+          balance_snapshot: number | null
+          created_at: string | null
+          expires_at: string | null
+          game_id: string | null
+          id: string
+          is_active: boolean | null
+          merchant_id: string
+          room_id: string | null
+          token: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          balance_snapshot?: number | null
+          created_at?: string | null
+          expires_at?: string | null
+          game_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          merchant_id?: string
+          room_id?: string | null
+          token?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          balance_snapshot?: number | null
+          created_at?: string | null
+          expires_at?: string | null
+          game_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          merchant_id?: string
+          room_id?: string | null
+          token?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       game_sessions: {
         Row: {
           created_by: string | null
@@ -9216,6 +9258,15 @@ export type Database = {
       decline_private_call: { Args: { _call_id: string }; Returns: boolean }
       end_private_call: { Args: { _call_id: string }; Returns: Json }
       generate_app_uid: { Args: never; Returns: string }
+      generate_game_token: {
+        Args: {
+          p_game_id?: string
+          p_merchant_id?: string
+          p_room_id?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       generate_sub_agent_referral_code: {
         Args: { _agency_id: string }
         Returns: string
@@ -9267,6 +9318,17 @@ export type Database = {
         Returns: Json
       }
       get_effective_host_percent: { Args: never; Returns: number }
+      handle_game_callback: {
+        Args: {
+          p_action: string
+          p_amount?: number
+          p_details?: Json
+          p_game_id?: string
+          p_round_id?: string
+          p_token: string
+        }
+        Returns: Json
+      }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
       is_admin:
         | { Args: never; Returns: boolean }

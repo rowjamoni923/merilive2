@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUserBalance, updateCachedBalance } from "@/hooks/useUserBalance";
+import { useGameToken } from "@/hooks/useGameToken";
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -94,6 +95,8 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts }: Li
   const [activeGame, setActiveGame] = useState<string | null>(selectedGame || 'crash');
   const [loading, setLoading] = useState(true);
   const { balance: diamondBalance, refetch: refetchBalance } = useUserBalance();
+  const { buildGameUrl, loading: tokenLoading } = useGameToken();
+  const [externalGameUrl, setExternalGameUrl] = useState<string | null>(null);
   const [userCoins, setUserCoins] = useState(0);
   const [betAmount, setBetAmount] = useState(500);
   const [showGameSelector, setShowGameSelector] = useState(false);
@@ -129,6 +132,7 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts }: Li
   const handleGameChange = useCallback((gameId: string) => {
     stopAllGameSounds();
     setActiveGame(gameId);
+    setExternalGameUrl(null); // Reset token URL when switching games
     setShowGameSelector(false);
   }, []);
 
@@ -316,13 +320,30 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts }: Li
     
     if (isExternalGame) {
       const iframeHeight = currentGame.iframe_height || 700;
+      
+      // Generate token-injected URL for external games
+      if (!externalGameUrl) {
+        // Trigger token generation
+        buildGameUrl(currentGame.game_url!, currentGame.game_id, roomId).then(url => {
+          setExternalGameUrl(url);
+        });
+        return (
+          <div className="w-full flex items-center justify-center" style={{ height: Math.max(iframeHeight, 600) }}>
+            <div className="text-center text-white/60">
+              <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
+              <p className="text-sm">Loading game...</p>
+            </div>
+          </div>
+        );
+      }
+
       return (
         <div 
           className="w-full overflow-hidden rounded-lg relative" 
           style={{ height: Math.max(iframeHeight, 600), touchAction: 'auto' }}
         >
           <iframe
-            src={currentGame.game_url!}
+            src={externalGameUrl}
             className="absolute inset-0 w-full h-full border-0"
             allow="autoplay; fullscreen; accelerometer; gyroscope; payment"
             allowFullScreen

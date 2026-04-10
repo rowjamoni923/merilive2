@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { updateCachedBalance } from "@/hooks/useUserBalance";
+import { useGameToken } from "@/hooks/useGameToken";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -661,6 +662,8 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
   const [games, setGames] = useState<GameSetting[]>([]);
   const [activeGame, setActiveGame] = useState<string>(selectedGame || 'dragon_tiger');
   const [loading, setLoading] = useState(true);
+  const { buildGameUrl } = useGameToken();
+  const [externalGameUrl, setExternalGameUrl] = useState<string | null>(null);
   const [userCoins, setUserCoins] = useState(0);
   const [betAmount, setBetAmount] = useState(5000);
   const [showGamePicker, setShowGamePicker] = useState(false);
@@ -867,12 +870,22 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
       onLoss: handleLoss
     };
 
-    // Check if external/iframe game
+    // Check if external/iframe game - inject token for balance integration
     if (currentGame?.game_type === 'iframe' && currentGame?.game_url) {
+      if (!externalGameUrl) {
+        buildGameUrl(currentGame.game_url, currentGame.game_id, roomId).then(url => {
+          setExternalGameUrl(url);
+        });
+        return (
+          <div className="p-2 flex items-center justify-center" style={{ height: Math.min(currentGame.iframe_height || 250, 300) }}>
+            <Loader2 className="w-6 h-6 animate-spin text-white/60" />
+          </div>
+        );
+      }
       return (
         <div className="p-2">
           <iframe
-            src={currentGame.game_url}
+            src={externalGameUrl}
             width="100%"
             height={Math.min(currentGame.iframe_height || 250, 300)}
             className="rounded-xl border-0"
@@ -884,10 +897,20 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
     }
 
     if (currentGame?.game_type === 'external' && currentGame?.game_url) {
+      if (!externalGameUrl) {
+        buildGameUrl(currentGame.game_url, currentGame.game_id, roomId).then(url => {
+          setExternalGameUrl(url);
+        });
+        return (
+          <div className="w-full flex items-center justify-center" style={{ height: currentGame.iframe_height || 600 }}>
+            <Loader2 className="w-6 h-6 animate-spin text-white/60" />
+          </div>
+        );
+      }
       return (
         <div className="w-full overflow-hidden rounded-lg relative" style={{ height: currentGame.iframe_height || 600 }}>
           <iframe
-            src={currentGame.game_url}
+            src={externalGameUrl}
             className="absolute inset-0 w-full h-full border-0"
             allow="autoplay; fullscreen; accelerometer; gyroscope; payment"
             allowFullScreen
@@ -972,8 +995,7 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
                 whileTap={{ scale: 0.95 }}
                 onClick={() => {
                   setActiveGame(game.game_id);
-                  setShowGamePicker(false);
-                  setActiveGame(game.game_id);
+                  setExternalGameUrl(null);
                   setShowGamePicker(false);
                 }}
                 className={cn(
