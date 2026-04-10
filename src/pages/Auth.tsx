@@ -903,20 +903,34 @@ const Auth = () => {
 
       // Ensure profile has correct display_name - retry if trigger hasn't created it yet
       if (userId) {
+        let profileSaved = false;
+
         for (let attempt = 0; attempt < 3; attempt++) {
           await new Promise(r => setTimeout(r, 300 + attempt * 200));
-          const { error: profileError, count } = await supabase
+          const { error: profileError } = await supabase
             .from("profiles")
             .update({ 
               display_name: displayName,
               device_id: deviceId,
               gender: selectedGender || undefined,
-              ...(selectedGender === 'female' ? { is_host: true, host_status: 'approved' } : {}),
             })
             .eq("id", userId);
           
-          if (!profileError) break;
+          if (!profileError) {
+            profileSaved = true;
+            break;
+          }
+
           console.warn(`[Auth] Profile update attempt ${attempt + 1} failed:`, profileError);
+        }
+
+        if (!profileSaved) {
+          toast({
+            title: "Setup incomplete",
+            description: "Your account was created, but profile setup did not finish. Please try again.",
+            variant: "destructive",
+          });
+          return;
         }
 
         // Save device account with credentials for future recovery
@@ -953,7 +967,7 @@ const Auth = () => {
         if (selectedGender === 'female') {
           toast({
             title: "🎉 Congratulations!",
-            description: "Your host account is now active!",
+            description: "Your account is ready!",
           });
         } else {
           toast({
