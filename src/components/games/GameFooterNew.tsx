@@ -662,6 +662,8 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
   const [games, setGames] = useState<GameSetting[]>([]);
   const [activeGame, setActiveGame] = useState<string>(selectedGame || 'dragon_tiger');
   const [loading, setLoading] = useState(true);
+  const { buildGameUrl } = useGameToken();
+  const [externalGameUrl, setExternalGameUrl] = useState<string | null>(null);
   const [userCoins, setUserCoins] = useState(0);
   const [betAmount, setBetAmount] = useState(5000);
   const [showGamePicker, setShowGamePicker] = useState(false);
