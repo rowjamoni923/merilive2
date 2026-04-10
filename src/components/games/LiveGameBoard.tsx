@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUserBalance, updateCachedBalance } from "@/hooks/useUserBalance";
+import { useGameToken } from "@/hooks/useGameToken";
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
