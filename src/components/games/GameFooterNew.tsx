@@ -995,8 +995,7 @@ export function GameFooterNew({ selectedGame, roomId, onClose, onOpenGifts }: Ga
                 whileTap={{ scale: 0.95 }}
                 onClick={() => {
                   setActiveGame(game.game_id);
-                  setShowGamePicker(false);
-                  setActiveGame(game.game_id);
+                  setExternalGameUrl(null);
                   setShowGamePicker(false);
                 }}
                 className={cn(
