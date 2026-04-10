@@ -587,91 +587,15 @@ const Auth = () => {
 
     setLoading(true);
     try {
-      const normalizedEmail = email.trim().toLowerCase();
-
-      let { data, error } = await supabase.auth.signInWithPassword({
-        email: normalizedEmail,
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
         password,
       });
-
-      // Legacy/admin account fallback:
-      // if the email exists in admin_users but has no auth user yet,
-      // create/link the auth account first and retry login.
-      if (error?.message === "Invalid login credentials") {
-        const { data: syncResult, error: syncError } = await supabase.functions.invoke('admin-sync-auth', {
-          body: { email: normalizedEmail, password }
-        });
-
-        if (!syncError && syncResult?.success) {
-          const retry = await supabase.auth.signInWithPassword({
-            email: normalizedEmail,
-            password,
-          });
-          data = retry.data;
-          error = retry.error;
-        }
-      }
-
       if (error) {
-        await recordAttempt(normalizedEmail, false);
+        await recordAttempt(email, false);
         throw error;
       }
-      await recordAttempt(normalizedEmail, true);
-
-      const userEmail = data.user?.email ?? normalizedEmail;
-      const userName = data.user?.user_metadata?.full_name || data.user?.user_metadata?.display_name || normalizedEmail;
-
-      // Ensure profile exists for this user without overwriting legacy UID/balance data
-      if (data.user) {
-        const userId = data.user.id;
-        let existingProfile = null;
-
-        for (let attempt = 0; attempt < 4; attempt++) {
-          const { data: profileRow } = await supabase
-            .from('profiles')
-            .select('id, gender, display_name, app_uid, coins')
-            .eq('id', userId)
-            .maybeSingle();
-
-          if (profileRow) {
-            existingProfile = profileRow;
-            break;
-          }
-
-          await new Promise(resolve => setTimeout(resolve, 250 * (attempt + 1)));
-        }
-
-        // Only create a fallback profile if trigger/legacy sync truly did not create one
-        if (!existingProfile) {
-          const { data: insertedProfile } = await supabase.from('profiles').insert({
-            id: userId,
-            display_name: userName,
-            gender: 'male',
-            is_host: false,
-            coins: 0,
-            user_level: 1,
-          }).select('id, gender, display_name, app_uid, coins').maybeSingle();
-
-          existingProfile = insertedProfile;
-        }
-
-        if (existingProfile?.coins !== undefined) {
-          const { updateCachedBalance } = await import('@/hooks/useUserBalance');
-          updateCachedBalance(Number(existingProfile.coins ?? 0));
-        }
-
-        if (existingProfile?.gender) {
-          localStorage.setItem(`gender_selected_${userId}`, 'true');
-        }
-      }
-
-      localStorage.removeItem('meri_manual_logout');
-      localStorage.setItem("meri_last_user", JSON.stringify({
-        email: userEmail,
-        displayName: userName,
-        avatarUrl: null,
-      }));
-
+      await recordAttempt(email, true);
       toast({
         title: "Welcome!",
         description: "Logged in successfully.",
@@ -918,77 +842,22 @@ const Auth = () => {
         userId = data.user?.id || null;
       }
 
-      // Ensure profile has correct display_name - use UPSERT to guarantee profile exists
+      // Ensure profile has correct display_name - retry if trigger hasn't created it yet
       if (userId) {
-        let profileSaved = false;
-
-        for (let attempt = 0; attempt < 4; attempt++) {
-          await new Promise(r => setTimeout(r, 200 + attempt * 300));
-          
-          // First try: check if profile exists
-          const { data: existingRow } = await supabase
+        for (let attempt = 0; attempt < 3; attempt++) {
+          await new Promise(r => setTimeout(r, 300 + attempt * 200));
+          const { error: profileError, count } = await supabase
             .from("profiles")
-            .select('id, gender, display_name, coins, app_uid')
-            .eq('id', userId)
-            .maybeSingle();
-
-          let upsertData = existingRow;
-          let profileError = null;
-
-          if (existingRow) {
-            // Profile exists - only update safe fields (not protected ones)
-            const { data: updData, error: updErr } = await supabase
-              .from("profiles")
-              .update({ 
-                display_name: displayName,
-                device_id: deviceId,
-                gender: selectedGender || 'male',
-              })
-              .eq('id', userId)
-              .select('id, gender, display_name, coins, app_uid')
-              .maybeSingle();
-            upsertData = updData;
-            profileError = updErr;
-          } else {
-            // Profile doesn't exist - insert with all fields
-            const { data: insData, error: insErr } = await supabase
-              .from("profiles")
-              .insert({ 
-                id: userId,
-                display_name: displayName,
-                device_id: deviceId,
-                gender: selectedGender || 'male',
-                coins: 0,
-                user_level: 1,
-                is_host: false,
-              })
-              .select('id, gender, display_name, coins, app_uid')
-              .maybeSingle();
-            upsertData = insData;
-            profileError = insErr;
-          }
+            .update({ 
+              display_name: displayName,
+              device_id: deviceId,
+              gender: selectedGender || undefined,
+              ...(selectedGender === 'female' ? { is_host: true, host_status: 'approved' } : {}),
+            })
+            .eq("id", userId);
           
-          if (!profileError && upsertData) {
-            profileSaved = true;
-            // Immediately cache the balance
-            if (upsertData.coins !== undefined) {
-              const { updateCachedBalance } = await import('@/hooks/useUserBalance');
-              updateCachedBalance(Number(upsertData.coins ?? 0));
-            }
-            console.log('[Auth] ✅ Profile saved:', upsertData.display_name, 'Gender:', upsertData.gender, 'UID:', upsertData.app_uid);
-            break;
-          }
-
-          console.warn(`[Auth] Profile save attempt ${attempt + 1} failed:`, profileError);
-        }
-
-        if (!profileSaved) {
-          toast({
-            title: "Setup incomplete",
-            description: "Your account was created, but profile setup did not finish. Please try again.",
-            variant: "destructive",
-          });
-          return;
+          if (!profileError) break;
+          console.warn(`[Auth] Profile update attempt ${attempt + 1} failed:`, profileError);
         }
 
         // Save device account with credentials for future recovery
