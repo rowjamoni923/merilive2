@@ -658,7 +658,7 @@ body { background:#faf8f5; font-family:'Patrick Hand',cursive; color:#2c2c2c; }
 <div style="text-align:center;padding:30px;background:#1a1a2e;color:#fff;">
   <h2 style="font-family:'Architects Daughter',cursive;">MeriLive Blueprint v9.0</h2>
   <p>📐 Complete App Architecture • 70+ Screens • Real DB Mapping</p>
-  <p style="opacity:0.5;font-size:0.85em;">Generated March 2026 • Supabase Project: pppcwawjjpwwrmvezcdy</p>
+  <p style="opacity:0.5;font-size:0.85em;">Generated March 2026 • Supabase Project: ayjdlvuurscxucatbbah</p>
 </div>
 </body>
 </html>`;
