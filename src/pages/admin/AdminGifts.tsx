@@ -74,25 +74,18 @@ interface GiftItem {
   created_at: string | null;
   sound_url: string | null;
   sound_duration_ms: number | null;
+  min_level: number | null;
+  is_lucky: boolean | null;
 }
 
 // Gift categories with icons - English labels
 const giftCategories = [
   { id: "all", name: "All Gifts", icon: Gift, color: "from-pink-500 to-purple-500" },
-  { id: "popular", name: "Popular", icon: Star, color: "from-amber-500 to-orange-500" },
-  { id: "love", name: "Love", icon: Heart, color: "from-red-500 to-pink-500" },
-  { id: "luxury", name: "Luxury", icon: Crown, color: "from-yellow-500 to-amber-500" },
-  { id: "nature", name: "Nature", icon: Flower2, color: "from-green-500 to-emerald-500" },
-  { id: "party", name: "Party", icon: PartyPopper, color: "from-purple-500 to-pink-500" },
-  { id: "gems", name: "Gems", icon: Gem, color: "from-cyan-500 to-blue-500" },
-  { id: "vehicles", name: "Vehicles", icon: Car, color: "from-slate-500 to-gray-600" },
-  { id: "travel", name: "Travel", icon: Plane, color: "from-sky-500 to-blue-500" },
-  { id: "music", name: "Music", icon: Music, color: "from-violet-500 to-purple-500" },
-  { id: "gaming", name: "Gaming", icon: Gamepad2, color: "from-indigo-500 to-blue-500" },
-  { id: "food", name: "Food", icon: Pizza, color: "from-orange-500 to-red-500" },
-  { id: "building", name: "Building", icon: Building, color: "from-gray-500 to-slate-600" },
-  { id: "fire", name: "Fire", icon: Flame, color: "from-orange-600 to-red-600" },
-  { id: "power", name: "Power", icon: Zap, color: "from-yellow-400 to-amber-500" },
+  { id: "wall", name: "Wall", icon: Building, color: "from-slate-500 to-gray-600" },
+  { id: "lucky", name: "Lucky", icon: Sparkles, color: "from-yellow-400 to-amber-500" },
+  { id: "luxurious", name: "Luxurious", icon: Crown, color: "from-yellow-500 to-amber-500" },
+  { id: "vip", name: "VIP", icon: Gem, color: "from-purple-500 to-pink-500" },
+  { id: "pro", name: "Pro", icon: Rocket, color: "from-cyan-500 to-blue-500" },
 ];
 
 const animationTypes = [
