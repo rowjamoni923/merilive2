@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, forwardRef } from 'react';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -9,6 +9,16 @@ import {
   AlertDialogAction,
 } from '@/components/ui/alert-dialog';
 import { ShieldAlert, AlertTriangle, Ban } from 'lucide-react';
+
+const DialogBody = forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ children, ...props }, ref) => (
+    <div ref={ref} {...props}>
+      {children}
+    </div>
+  )
+);
+
+DialogBody.displayName = 'DialogBody';
 
 interface ViolationWarningProps {
   open: boolean;
@@ -33,9 +43,9 @@ export function NumberSharingWarningDialog({
       <AlertDialog open={open} onOpenChange={onClose}>
         <AlertDialogContent className="bg-red-950 border-red-500/50 max-w-sm">
           <AlertDialogHeader>
-            <div className="flex justify-center mb-2">
+            <DialogBody className="flex justify-center mb-2">
               <ShieldAlert className="w-12 h-12 text-red-400 animate-pulse" />
-            </div>
+            </DialogBody>
             <AlertDialogTitle className="text-red-300 text-center text-lg">
               🚫 Contact Sharing Prohibited
             </AlertDialogTitle>
@@ -71,9 +81,9 @@ export function NumberSharingWarningDialog({
       <AlertDialog open={open} onOpenChange={onClose}>
         <AlertDialogContent className="bg-red-950 border-red-500/50 max-w-sm">
           <AlertDialogHeader>
-            <div className="flex justify-center mb-2">
+            <DialogBody className="flex justify-center mb-2">
               <Ban className="w-12 h-12 text-red-400 animate-pulse" />
-            </div>
+            </DialogBody>
             <AlertDialogTitle className="text-red-300 text-center text-lg">
               ⛔ Account Suspended
             </AlertDialogTitle>
