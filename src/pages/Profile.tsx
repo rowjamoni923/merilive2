@@ -1438,7 +1438,11 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           <AvatarWithFrame 
             userId={profileId}
             src={profile?.avatar_url}
-            name={profile?.display_name || "U"}
+            name={
+              profile?.display_name?.trim() && profile.display_name.trim().toLowerCase() !== "user"
+                ? profile.display_name.trim()
+                : profile?.username?.trim() || currentUser?.user_metadata?.username || currentUser?.user_metadata?.full_name || currentUser?.user_metadata?.name || "U"
+            }
             level={displayLevel} 
             size="xl"
             isHost={profile?.is_host || profile?.gender === 'female'}
@@ -1460,7 +1464,9 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
         {/* Name - Elegant Typography */}
         <h1 className="text-xl font-bold text-white tracking-wide drop-shadow-lg">
-          {profile?.display_name || profile?.username || "User"}
+          {profile?.display_name?.trim() && profile.display_name.trim().toLowerCase() !== "user"
+            ? profile.display_name.trim()
+            : profile?.username?.trim() || currentUser?.user_metadata?.username || currentUser?.user_metadata?.full_name || currentUser?.user_metadata?.name || "User"}
         </h1>
         
         {/* UID Badge - Glass Morphism */}

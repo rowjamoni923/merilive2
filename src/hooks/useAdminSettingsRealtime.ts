@@ -263,7 +263,30 @@ const refreshDiamondPackages = async () => {
     .select('*')
     .eq('is_active', true)
     .order('display_order', { ascending: true });
-  globalDiamondPackages = (data || []) as DiamondPackage[];
+
+  globalDiamondPackages = (data || []).map((pkg: any) => {
+    const normalizedCoins = Number(pkg.coins ?? pkg.coins_amount ?? 0);
+    const normalizedBaseCoins = Number(pkg.base_coins ?? pkg.coins ?? pkg.coins_amount ?? 0);
+    const normalizedBonusPercentage = Number(
+      pkg.bonus_percentage ?? (
+        pkg.bonus_coins && normalizedBaseCoins > 0
+          ? Math.round((Number(pkg.bonus_coins) / normalizedBaseCoins) * 100)
+          : 0
+      )
+    );
+
+    return {
+      ...pkg,
+      coins: normalizedCoins,
+      base_coins: normalizedBaseCoins,
+      bonus_percentage: normalizedBonusPercentage,
+      price_usd: Number(pkg.price_usd ?? 0),
+      is_popular: Boolean(pkg.is_popular),
+      is_best_value: Boolean(pkg.is_best_value),
+      is_active: Boolean(pkg.is_active),
+      display_order: pkg.display_order ?? null,
+    } as DiamondPackage;
+  });
 };
 
 const refreshCurrencyRates = async () => {
