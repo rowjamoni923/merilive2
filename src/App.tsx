@@ -15,6 +15,7 @@ import { saveSessionToNative, clearNativeSession, getSessionFromNative } from '@
 import { prewarmSVGA } from '@/utils/svgaPrewarm';
 import { getAdaptiveNetworkProfile } from '@/utils/connectionProfile';
 import { initWebViewPerformance } from '@/utils/nativePerformance';
+import { clearBalanceCache } from '@/hooks/useUserBalance';
 
 
 // =============================================
@@ -394,6 +395,7 @@ const App = () => {
   const [showGenderModal, setShowGenderModal] = useState(false);
   const [pendingUserId, setPendingUserId] = useState<string | null>(null);
   const [maintenanceMode, setMaintenanceMode] = useState<{ enabled: boolean; message: string } | null>(null);
+  const [lastLegacySyncUserId, setLastLegacySyncUserId] = useState<string | null>(null);
 
   // 🛠️ MAINTENANCE MODE CHECK - fetch only, no dedicated realtime channel
   // app_settings realtime is already handled by useGlobalSettings
@@ -416,6 +418,25 @@ const App = () => {
     };
     checkMaintenance();
   }, []);
+
+  const triggerLegacyProfileSync = async (userId: string) => {
+    if (!userId || lastLegacySyncUserId === userId) return;
+    setLastLegacySyncUserId(userId);
+
+    try {
+      const { data } = await supabase.functions.invoke('sync-user-profile');
+      if ((data as any)?.synced) {
+        localStorage.removeItem('meri_level_cache');
+        clearBalanceCache();
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ['profile', userId] }),
+          queryClient.invalidateQueries({ queryKey: ['user-balance', userId] }),
+        ]);
+      }
+    } catch (error) {
+      console.warn('[App] legacy profile sync skipped:', error);
+    }
+  };
 
   // 🚀 INSTANT PREFETCH — Load gifts, balance, and profile data immediately on auth
   const isAuthenticated = !!session?.user;
@@ -530,6 +551,7 @@ const App = () => {
             setCachedUser({ id: session.user.id, email: session.user.email ?? undefined });
             setLoading(false); // ⚡ Unblock UI immediately
           }
+          void triggerLegacyProfileSync(session.user.id);
           return;
         }
 
@@ -555,6 +577,7 @@ const App = () => {
                   expires_at: refreshed.session.expires_at,
                 });
               }
+              void triggerLegacyProfileSync(refreshed.session.user.id);
               return;
             }
           } catch (e) {
@@ -577,6 +600,7 @@ const App = () => {
                     setSession(restored.session);
                     setCachedUser({ id: restored.session.user.id, email: restored.session.user.email ?? undefined });
                   }
+                  void triggerLegacyProfileSync(restored.session.user.id);
                   return;
                 }
               }
@@ -670,6 +694,7 @@ const App = () => {
               expires_at: session.expires_at,
             });
           }
+          void triggerLegacyProfileSync(session.user.id);
         } else if (event === 'SIGNED_OUT') {
           // 🛡️ CRITICAL: Only clear session if user MANUALLY logged out
           const isManualLogout = localStorage.getItem('meri_manual_logout') === 'true';
@@ -679,6 +704,7 @@ const App = () => {
             localStorage.removeItem('meri_manual_logout');
             setSession(null);
             invalidateCachedUser();
+            clearBalanceCache();
             clearNativeSession();
           } else {
             // 🛡️ AUTO sign-out COMPLETELY BLOCKED — do absolutely nothing
