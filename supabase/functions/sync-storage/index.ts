@@ -22,8 +22,18 @@ serve(async (req) => {
     const { action, bucket, folder, max_files, offset } = body;
 
     if (action === "list_buckets") {
-      const { data } = await oldClient.storage.listBuckets();
-      return json({ buckets: data?.map(b => ({ id: b.id, public: b.public })) });
+      const { data, error: bucketsError } = await oldClient.storage.listBuckets();
+      return json({ buckets: data?.map(b => ({ id: b.id, public: b.public })), error: bucketsError?.message, old_url: OLD_URL });
+    }
+
+    if (action === "debug") {
+      const { data, error: bucketsError } = await oldClient.storage.listBuckets();
+      return json({ 
+        old_url: OLD_URL,
+        buckets_count: data?.length,
+        buckets_error: bucketsError?.message,
+        buckets: data?.map(b => b.id),
+      });
     }
 
     if (action === "list_files") {
