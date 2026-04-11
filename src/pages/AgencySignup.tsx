@@ -387,7 +387,70 @@ const AgencySignup = () => {
             )}
           </div>
 
-          {/* Phone Number (optional, shown after user found) */}
+          {/* In-App Notification OTP (shown after user found) */}
+          {foundUser && !appVerified && (
+            <>
+              <div className="border-t border-slate-700" />
+              <div className="space-y-3">
+                <Label className="text-sm font-semibold flex items-center gap-2 text-white">
+                  <MessageCircle className="w-4 h-4 text-orange-400" />
+                  App Notification OTP <span className="text-slate-500 text-xs">(Optional)</span>
+                </Label>
+                <div className="p-4 bg-orange-900/30 rounded-xl space-y-3 border border-orange-700/30">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-orange-300">Send OTP to App</span>
+                    {!appOtpSent ? (
+                      <Button size="sm" onClick={sendAppOtp} disabled={sendingAppOtp} className="bg-orange-600 hover:bg-orange-700">
+                        {sendingAppOtp ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Send className="w-4 h-4 mr-1" />}
+                        Send to App
+                      </Button>
+                    ) : (
+                      <Badge className={`cursor-pointer ${appOtpTimer > 0 ? 'bg-green-500' : 'bg-red-500'}`}
+                        onClick={() => { if (appOtpTimer <= 0) { setAppOtpSent(false); setAppOtp(""); } }}>
+                        <Timer className="w-3 h-3 mr-1" />
+                        {appOtpTimer > 0 ? `${Math.floor(appOtpTimer / 60)}:${(appOtpTimer % 60).toString().padStart(2, '0')}` : 'Resend'}
+                      </Badge>
+                    )}
+                  </div>
+                  {appOtpSent && (
+                    <>
+                      <div className="p-3 bg-orange-900/40 rounded-lg border border-orange-700/50">
+                        <p className="text-xs text-orange-300 flex items-center gap-1">
+                          <MessageCircle className="w-3 h-3" />
+                          OTP sent to {foundUser.display_name || 'user'}'s in-app notifications
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <InputOTP maxLength={6} value={appOtp} onChange={(value) => setAppOtp(value)}>
+                          <InputOTPGroup>
+                            {[0,1,2,3,4,5].map(i => (
+                              <InputOTPSlot key={i} index={i} className="bg-slate-800 text-white border-slate-600" />
+                            ))}
+                          </InputOTPGroup>
+                        </InputOTP>
+                        <Button size="sm" onClick={verifyAppOtp} disabled={appOtp.length !== 6 || appOtpTimer <= 0 || verifyingAppOtp} className="bg-orange-600 hover:bg-orange-700">
+                          {verifyingAppOtp ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify"}
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+
+          {foundUser && appVerified && (
+            <div className="p-3 bg-green-900/30 rounded-xl flex items-center gap-3 text-green-300 border border-green-700/50">
+              <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                <CheckCircle2 className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <p className="font-semibold text-sm">App OTP Verified ✓</p>
+                <p className="text-xs text-green-400">In-app notification verified</p>
+              </div>
+            </div>
+          )}
+
           {foundUser && (
             <>
               <div className="border-t border-slate-700" />
