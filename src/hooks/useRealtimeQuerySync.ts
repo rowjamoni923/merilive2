@@ -41,7 +41,6 @@ const TABLE_TO_QUERY_KEYS: Record<string, string[][]> = {
   ar_stickers: [['ar-stickers']],
   beauty_filters: [['beauty-filters']],
   admin_music_library: [['music-library']],
-  noble_cards: [['noble-cards']],
 };
 
 // Table-specific debounce tuning for near-instant cache sync
