@@ -65,6 +65,7 @@ const AgencySignup = () => {
 
   // In-App Notification OTP state
   const [appOtp, setAppOtp] = useState("");
+  const [generatedAppOtp, setGeneratedAppOtp] = useState("");
   const [appOtpSent, setAppOtpSent] = useState(false);
   const [appVerified, setAppVerified] = useState(false);
   const [sendingAppOtp, setSendingAppOtp] = useState(false);
@@ -89,19 +90,42 @@ const AgencySignup = () => {
     return () => clearInterval(interval);
   }, [appOtpTimer]);
 
+  const generateVerificationCode = () => {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  };
+
+  const resetAppOtpState = () => {
+    setAppOtp("");
+    setGeneratedAppOtp("");
+    setAppOtpSent(false);
+    setAppVerified(false);
+    setAppOtpTimer(0);
+  };
+
   const sendAppOtp = async () => {
     if (!foundUser) return;
+
     setSendingAppOtp(true);
+    const code = generateVerificationCode();
+    setGeneratedAppOtp(code);
+    setAppOtp("");
+    setAppVerified(false);
+
     try {
-      const { data, error } = await supabase.functions.invoke('send-app-notification', {
+      const { error } = await supabase.functions.invoke('send-app-notification', {
         body: {
           userId: foundUser.id,
-          templateKey: 'otp_verification',
-          variables: { purpose: 'Agency Verification' },
-          type: 'otp'
+          templateKey: 'agency_verification_code',
+          variables: {
+            code,
+            agency_name: 'Agency Registration'
+          },
+          type: 'agency_verification'
         }
       });
+
       if (error) throw error;
+
       toast({ title: "✅ OTP Sent!", description: `Check notifications in ${foundUser.display_name || 'user'}'s app` });
       setAppOtpSent(true);
       setAppOtpTimer(300);
@@ -113,27 +137,22 @@ const AgencySignup = () => {
   };
 
   const verifyAppOtp = async () => {
-    if (appOtp.length !== 6 || !foundUser) return;
+    if (appOtp.length !== 6) return;
+
     setVerifyingAppOtp(true);
     try {
-      // For in-app OTP, we verify through the notification system
-      // The OTP was sent via send-app-notification, verify it matches
-      const { data, error } = await supabase.functions.invoke('verify-email-otp', {
-        body: { 
-          email: `appuid_${foundUser.id}@notify.merilive.internal`, 
-          otp: appOtp,
-          purpose: 'verify' 
-        }
-      });
-      if (error) throw error;
-      if (!data?.success) {
-        toast({ title: "Error", description: data?.error || "Invalid OTP", variant: "destructive" });
+      if (appOtpTimer <= 0) {
+        toast({ title: "Error", description: "OTP expired. Please resend a new code.", variant: "destructive" });
         return;
       }
+
+      if (appOtp !== generatedAppOtp) {
+        toast({ title: "Error", description: "Invalid OTP. Please enter the correct code.", variant: "destructive" });
+        return;
+      }
+
       setAppVerified(true);
       toast({ title: "✅ App OTP Verified!", description: "In-app verification successful" });
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message || "Verification failed", variant: "destructive" });
     } finally {
       setVerifyingAppOtp(false);
     }
@@ -148,11 +167,14 @@ const AgencySignup = () => {
     setSearchingUser(true);
     setUserNotFound(false);
     setFoundUser(null);
+    resetAppOtpState();
 
     try {
       const { data, error } = await supabase.rpc('search_user_by_app_uid', {
         _app_uid: formData.userId.trim().toUpperCase()
       });
+
+      if (error) throw error;
 
       if (data && data.length > 0) {
         const user = data[0];

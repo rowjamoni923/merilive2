@@ -13,8 +13,20 @@ interface NotificationRequest {
   type?: string;
 }
 
+const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const applyTemplateVariables = (template: string, variables: Record<string, string>) => {
+  let result = template;
+
+  for (const [key, value] of Object.entries(variables)) {
+    const placeholder = `{{${key}}}`;
+    result = result.replace(new RegExp(escapeRegExp(placeholder), "g"), String(value));
+  }
+
+  return result;
+};
+
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -22,46 +34,44 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { userId, templateKey, variables, type = 'general' }: NotificationRequest = await req.json();
+    const { userId, templateKey, variables, type = "general" }: NotificationRequest = await req.json();
+
+    if (!userId || !templateKey) {
+      return new Response(JSON.stringify({ success: false, error: "userId and templateKey are required" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
 
     console.log(`Sending notification to user ${userId} with template ${templateKey}`);
 
-    // Get the template
     const { data: template, error: templateError } = await supabase
       .from("notification_templates")
-      .select("title_template, message_template")
+      .select("title, body")
       .eq("template_key", templateKey)
-      .single();
+      .eq("is_active", true)
+      .maybeSingle();
 
     if (templateError || !template) {
       console.error("Template not found:", templateError);
       throw new Error(`Template '${templateKey}' not found`);
     }
 
-    // Replace variables in template
-    let title = template.title_template;
-    let message = template.message_template;
+    const title = applyTemplateVariables(template.title, variables ?? {});
+    const message = applyTemplateVariables(template.body, variables ?? {});
 
-    for (const [key, value] of Object.entries(variables)) {
-      const placeholder = `{{${key}}}`;
-      title = title.replace(new RegExp(placeholder, 'g'), value);
-      message = message.replace(new RegExp(placeholder, 'g'), value);
-    }
-
-    // Insert notification
     const { data: notification, error: insertError } = await supabase
       .from("notifications")
       .insert({
         user_id: userId,
-        type: type,
-        title: title,
-        message: message,
-        data: variables
+        type,
+        title,
+        message,
+        data: variables ?? {},
       })
-      .select()
+      .select("id")
       .single();
 
     if (insertError) {
@@ -71,22 +81,16 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Notification sent successfully:", notification.id);
 
-    return new Response(
-      JSON.stringify({ success: true, notificationId: notification.id }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
+    return new Response(JSON.stringify({ success: true, notificationId: notification.id }), {
+      status: 200,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
   } catch (error: any) {
     console.error("Error sending notification:", error);
-    return new Response(
-      JSON.stringify({ success: false, error: error.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
+    return new Response(JSON.stringify({ success: false, error: error.message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
   }
 };
 
