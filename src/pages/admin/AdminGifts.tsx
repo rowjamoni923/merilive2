@@ -115,6 +115,7 @@ export default function AdminGifts() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [fullscreenPreviewGift, setFullscreenPreviewGift] = useState<GiftItem | null>(null);
 
   // Lucky gift config state
   interface LuckyRewardTier { id: string; gift_id: string | null; diamond_reward: number; win_chance_percent: number; display_order: number; is_active: boolean; }
