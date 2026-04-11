@@ -9711,6 +9711,18 @@ export type Database = {
         Returns: Json
       }
       cleanup_stale_party_participants: { Args: never; Returns: undefined }
+      create_agency_for_user: {
+        Args: {
+          _agency_code: string
+          _commission_rate?: number
+          _email?: string
+          _level?: string
+          _name: string
+          _owner_id: string
+          _whatsapp?: string
+        }
+        Returns: Json
+      }
       create_guest_profile: { Args: { _device_id: string }; Returns: Json }
       create_sub_agent: {
         Args: {
