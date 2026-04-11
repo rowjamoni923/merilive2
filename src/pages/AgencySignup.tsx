@@ -139,7 +139,7 @@ const AgencySignup = () => {
     }
   };
 
-
+  const searchUserById = async () => {
     if (!formData.userId.trim()) {
       toast({ title: "Error", description: "Please enter your App UID (e.g., LV1234567890)", variant: "destructive" });
       return;
