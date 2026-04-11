@@ -834,15 +834,28 @@ export default function AdminUserManagement() {
     try {
       const { data, error } = await supabase
         .from('face_verification_submissions')
-        .select(`
-          *,
-          profile:profiles!face_verification_submissions_user_id_fkey(
-            display_name, avatar_url, app_uid, gender, is_host
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+
+      // Fetch profiles separately since no FK constraint exists
+      const userIds = [...new Set((data || []).map((s: any) => s.user_id).filter(Boolean))];
+      let profileMap: Record<string, any> = {};
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, display_name, avatar_url, app_uid, gender, is_host')
+          .in('id', userIds);
+        if (profiles) {
+          profiles.forEach((p: any) => { profileMap[p.id] = p; });
+        }
+      }
+
+      const dataWithProfiles = (data || []).map((s: any) => ({
+        ...s,
+        profile: profileMap[s.user_id] || null,
+      }));
 
       // Fetch agency info for host submissions
       const hostUserIds = (data || [])
