@@ -706,22 +706,36 @@ const AdminShop = () => {
               className={`${adminCardStyles} ${!item.is_active && "opacity-60"}`}
             >
               <div className="flex gap-3">
-                {/* Preview - Show preview_url if exists, otherwise show animation directly */}
+                {/* Preview - Show static preview if available, otherwise show animation */}
                 <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center overflow-hidden flex-shrink-0">
-                  {item.preview_url ? (
-                    <img src={item.preview_url} alt={item.name} className="w-full h-full object-cover" />
-                  ) : (item.animation_file_url || item.svga_url || item.animation_url) ? (
-                    <UniversalFramePlayer
-                      src={(item.animation_file_url || item.svga_url || item.animation_url)!}
-                      className="w-full h-full"
-                      loop={true}
-                      autoPlay={true}
-                    />
-                  ) : item.image_url ? (
-                    <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <CategoryIcon className="w-8 h-8 text-purple-400" />
-                  )}
+                  {(() => {
+                    const previewUrl = item.preview_url;
+                    const animUrl = item.animation_file_url || item.svga_url || item.animation_url;
+                    
+                    // If preview_url exists and is a real image (not SVGA/Lottie), show as img
+                    if (previewUrl && !isSVGA(previewUrl) && !isLottie(previewUrl)) {
+                      return <img src={previewUrl} alt={item.name} className="w-full h-full object-cover" />;
+                    }
+                    
+                    // Otherwise use animation player for SVGA/Lottie
+                    const srcUrl = animUrl || previewUrl;
+                    if (srcUrl) {
+                      return (
+                        <UniversalFramePlayer
+                          src={srcUrl}
+                          className="w-full h-full"
+                          loop={true}
+                          autoPlay={true}
+                        />
+                      );
+                    }
+                    
+                    if (item.image_url) {
+                      return <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />;
+                    }
+                    
+                    return <CategoryIcon className="w-8 h-8 text-purple-400" />;
+                  })()}
                 </div>
 
                 {/* Info */}
