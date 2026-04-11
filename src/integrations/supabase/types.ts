@@ -6213,6 +6213,7 @@ export type Database = {
           device_id: string | null
           diamonds: number | null
           display_name: string | null
+          email: string | null
           equipped_bubble_id: string | null
           equipped_entrance_id: string | null
           equipped_entry_banner_id: string | null
@@ -6249,6 +6250,8 @@ export type Database = {
           last_seen_at: string | null
           max_user_level: number | null
           pending_earnings: number | null
+          phone_number: string | null
+          phone_verified: boolean | null
           phone_violation_count: number | null
           previous_bubble_id: string | null
           previous_entrance_id: string | null
@@ -6305,6 +6308,7 @@ export type Database = {
           device_id?: string | null
           diamonds?: number | null
           display_name?: string | null
+          email?: string | null
           equipped_bubble_id?: string | null
           equipped_entrance_id?: string | null
           equipped_entry_banner_id?: string | null
@@ -6341,6 +6345,8 @@ export type Database = {
           last_seen_at?: string | null
           max_user_level?: number | null
           pending_earnings?: number | null
+          phone_number?: string | null
+          phone_verified?: boolean | null
           phone_violation_count?: number | null
           previous_bubble_id?: string | null
           previous_entrance_id?: string | null
@@ -6397,6 +6403,7 @@ export type Database = {
           device_id?: string | null
           diamonds?: number | null
           display_name?: string | null
+          email?: string | null
           equipped_bubble_id?: string | null
           equipped_entrance_id?: string | null
           equipped_entry_banner_id?: string | null
@@ -6433,6 +6440,8 @@ export type Database = {
           last_seen_at?: string | null
           max_user_level?: number | null
           pending_earnings?: number | null
+          phone_number?: string | null
+          phone_verified?: boolean | null
           phone_violation_count?: number | null
           previous_bubble_id?: string | null
           previous_entrance_id?: string | null

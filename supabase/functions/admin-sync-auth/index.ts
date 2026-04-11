@@ -6,11 +6,11 @@ const corsHeaders = {
 };
 
 /**
- * Admin Sync Auth - Current Server Only
+ * Admin Sync Auth - Current Server Only (Admin + Regular Users)
  * 
- * Creates auth accounts for admin users that exist in admin_users table
- * but don't have a corresponding auth account yet.
- * All data comes from the CURRENT database only - no legacy server dependency.
+ * Creates auth accounts for users that exist in admin_users OR profiles table
+ * but don't have a corresponding auth account yet on the current server.
+ * All data comes from the CURRENT database only.
  */
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
-    // 1. Check if this email exists in admin_users
+    // 1. Check if this email exists in admin_users (admin flow)
     const { data: adminUser, error: adminError } = await adminClient
       .from("admin_users")
       .select("id, user_id, email, display_name, role, is_active")
@@ -45,15 +45,66 @@ Deno.serve(async (req) => {
       console.error("[admin-sync-auth] Failed reading admin_users:", adminError);
     }
 
+    // 2. If not admin, check profiles table by email
+    let profileUser: any = null;
     if (!adminUser) {
-      console.log("[admin-sync-auth] Email not found in admin_users:", normalizedEmail);
+      const { data: profileByEmail } = await adminClient
+        .from("profiles")
+        .select("id, display_name, device_id, gender, avatar_url, app_uid, email")
+        .eq("email", normalizedEmail)
+        .maybeSingle();
+      
+      if (profileByEmail) {
+        profileUser = profileByEmail;
+      } else {
+        // Check if this is a deterministic guest email (guest_{deviceId}@meri.local)
+        const guestMatch = normalizedEmail.match(/^guest_(.+)@meri\.local$/);
+        if (guestMatch) {
+          const deviceId = guestMatch[1];
+          const { data: profileByDevice } = await adminClient
+            .from("profiles")
+            .select("id, display_name, device_id, gender, avatar_url, app_uid, email")
+            .eq("device_id", deviceId)
+            .maybeSingle();
+          
+          if (profileByDevice) {
+            profileUser = profileByDevice;
+          }
+        }
+        
+        // Check if this is a phone email (phone_{number}@meri.local)
+        if (!profileUser) {
+          const phoneMatch = normalizedEmail.match(/^phone_(.+)@meri\.local$/);
+          if (phoneMatch) {
+            const phoneNumber = phoneMatch[1];
+            const { data: profileByPhone } = await adminClient
+              .from("profiles")
+              .select("id, display_name, device_id, gender, avatar_url, app_uid, email, phone_number")
+              .eq("phone_number", phoneNumber)
+              .maybeSingle();
+            
+            if (profileByPhone) {
+              profileUser = profileByPhone;
+            }
+          }
+        }
+      }
+    }
+
+    if (!adminUser && !profileUser) {
+      console.log("[admin-sync-auth] Email not found in admin_users or profiles:", normalizedEmail);
       return new Response(
         JSON.stringify({ success: false, reason: "not_found" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // 2. Check if auth account already exists
+    // Determine display name and metadata
+    const displayName = adminUser?.display_name || profileUser?.display_name || "";
+    const userGender = profileUser?.gender || null;
+    const userDeviceId = profileUser?.device_id || null;
+
+    // 3. Check if auth account already exists
     let existingUserId: string | null = null;
     const perPage = 200;
     let page = 1;
@@ -75,7 +126,7 @@ Deno.serve(async (req) => {
     }
 
     if (existingUserId) {
-      // Auth account exists — link user_id if needed
+      // Auth account exists — link user_id if needed (admin flow)
       if (adminUser && !adminUser.user_id) {
         await adminClient
           .from("admin_users")
@@ -89,8 +140,10 @@ Deno.serve(async (req) => {
         password,
         email_confirm: true,
         user_metadata: {
-          full_name: adminUser.display_name || "",
-          name: adminUser.display_name || "",
+          full_name: displayName,
+          name: displayName,
+          gender: userGender,
+          device_id: userDeviceId,
         },
       });
 
@@ -114,8 +167,10 @@ Deno.serve(async (req) => {
         password,
         email_confirm: true,
         user_metadata: {
-          full_name: adminUser.display_name || "",
-          name: adminUser.display_name || "",
+          full_name: displayName,
+          name: displayName,
+          gender: userGender,
+          device_id: userDeviceId,
         },
       });
 
@@ -128,11 +183,19 @@ Deno.serve(async (req) => {
       }
 
       // Link user_id in admin_users
-      if (newUser?.user) {
+      if (newUser?.user && adminUser) {
         await adminClient
           .from("admin_users")
           .update({ user_id: newUser.user.id })
           .ilike("email", normalizedEmail);
+      }
+
+      // Link to profile if this was a regular user
+      if (newUser?.user && profileUser) {
+        await adminClient
+          .from("profiles")
+          .update({ email: normalizedEmail })
+          .eq("id", profileUser.id);
       }
 
       console.log(`[admin-sync-auth] ✅ Created new auth account for: ${normalizedEmail}`);
