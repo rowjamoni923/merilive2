@@ -631,14 +631,32 @@ const AgencySignup = () => {
 
         {/* Submit */}
         <div className="mx-4 mt-6 mb-8">
-          <Button onClick={submitAgencyRegistration} disabled={!isFormValid || isSubmitting}
-            className="w-full h-14 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-lg">
+          <Button onClick={() => {
+            if (!formData.agencyName.trim()) {
+              toast({ title: "⚠️ Agency Name Required", description: "Please scroll up and enter your agency name", variant: "destructive" });
+              // Scroll to top to show agency name field
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+              return;
+            }
+            if (!foundUser) {
+              toast({ title: "⚠️ App UID Required", description: "Please search and find your App UID", variant: "destructive" });
+              return;
+            }
+            if (!emailVerified) {
+              toast({ title: "⚠️ Email Verification Required", description: "Please verify your email address first", variant: "destructive" });
+              return;
+            }
+            submitAgencyRegistration();
+          }} disabled={isSubmitting}
+            className={`w-full h-14 text-lg ${isFormValid 
+              ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700' 
+              : 'bg-gradient-to-r from-purple-600/50 to-indigo-600/50'}`}>
             {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Sparkles className="w-5 h-5 mr-2" />}
             Create Agency
           </Button>
           {!isFormValid && (
             <p className="text-center text-xs text-slate-400 mt-2">
-              {!formData.agencyName.trim() ? "Enter agency name"
+              {!formData.agencyName.trim() ? "⬆️ Enter agency name (scroll up)"
                 : !foundUser ? "Search and find your App UID"
                 : !emailVerified ? "Verify your email address" 
                 : "Fill all required fields"}
