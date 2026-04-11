@@ -153,22 +153,19 @@ const AdminVehicleEntrances = () => {
 
     setSaving(true);
     try {
-      const payload = {
-        privilege_type: 'vehicle_entrance',
-        unlock_level: formData.level,
+      const payload: any = {
         name: formData.name,
-        privilege_name: formData.name,
-        description: `Vehicle Entrance for Level ${formData.level}+ VIPs`,
+        level_required: formData.level,
+        image_url: formData.preview_url || formData.animation_url || '',
         animation_url: formData.animation_url || null,
         preview_url: formData.preview_url || null,
         is_active: formData.is_active,
         display_order: formData.level,
-        level: formData.level,
       };
 
       if (editingItem) {
         const { error } = await supabase
-          .from('level_privileges')
+          .from('vehicle_entrances' as any)
           .update(payload)
           .eq('id', editingItem.id);
 
@@ -176,11 +173,8 @@ const AdminVehicleEntrances = () => {
         toast.success('Vehicle Entrance updated');
       } else {
         const { error } = await supabase
-          .from('level_privileges')
-          .insert({
-            ...payload,
-            created_at: new Date().toISOString()
-          });
+          .from('vehicle_entrances' as any)
+          .insert(payload);
 
         if (error) throw error;
         toast.success('New Vehicle Entrance added');
@@ -201,7 +195,7 @@ const AdminVehicleEntrances = () => {
 
     try {
       const { error } = await supabase
-        .from('level_privileges')
+        .from('vehicle_entrances' as any)
         .delete()
         .eq('id', id);
 
@@ -217,7 +211,7 @@ const AdminVehicleEntrances = () => {
   const handleToggleActive = async (item: VehicleEntranceItem) => {
     try {
       const { error } = await supabase
-        .from('level_privileges')
+        .from('vehicle_entrances' as any)
         .update({ is_active: !item.is_active })
         .eq('id', item.id);
 
