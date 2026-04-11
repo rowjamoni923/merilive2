@@ -58,8 +58,7 @@ export function FullScreenPromoBanners() {
         return prev - 1;
       });
     }, 1000);
-    const t = setTimeout(() => setCanSkip(true), SKIP_DELAY_MS);
-    return () => clearTimeout(t);
+    return () => { clearTimeout(t); clearInterval(interval); };
   }, [currentIndex, isVisible]);
 
   // Auto-close timer
@@ -68,7 +67,7 @@ export function FullScreenPromoBanners() {
     const t = setTimeout(() => {
       goNext();
     }, AUTO_CLOSE_MS);
-    return () => { clearTimeout(t); clearInterval(interval); };
+    return () => clearTimeout(t);
   }, [currentIndex, isVisible]);
 
   const goNext = useCallback(() => {
