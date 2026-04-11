@@ -189,10 +189,7 @@ export default function AdminWithdrawals() {
     try {
       let query = supabase
         .from("agency_withdrawals")
-        .select(`
-          *,
-          agency:agencies(name, agency_code, owner_id)
-        `)
+        .select("*")
         .order("requested_at", { ascending: false })
         .limit(200);
 
@@ -204,16 +201,35 @@ export default function AdminWithdrawals() {
 
       if (error) throw error;
 
-      // ⚡ Batch fetch ALL owner profiles in ONE query
       if (data && data.length > 0) {
-        const uniqueOwnerIds = [...new Set(data.map(w => w.agency?.owner_id).filter(Boolean))] as string[];
+        const uniqueAgencyIds = [...new Set(data.map(w => w.agency_id).filter(Boolean))] as string[];
+        let agenciesMap: Record<string, any> = {};
+
+        if (uniqueAgencyIds.length > 0) {
+          const { data: agencies, error: agenciesError } = await supabase
+            .from("agencies")
+            .select("id, name, agency_code, owner_id")
+            .in("id", uniqueAgencyIds);
+
+          if (agenciesError) {
+            console.error("Error fetching agencies for withdrawals:", agenciesError);
+          } else if (agencies) {
+            agenciesMap = Object.fromEntries(agencies.map((agency) => [agency.id, agency]));
+          }
+        }
+
+        const uniqueOwnerIds = [...new Set(Object.values(agenciesMap).map((agency: any) => agency?.owner_id).filter(Boolean))] as string[];
         let ownersMap: Record<string, any> = {};
+
         if (uniqueOwnerIds.length > 0) {
-          const { data: owners } = await supabase
+          const { data: owners, error: ownersError } = await supabase
             .from("profiles")
             .select("id, display_name, avatar_url")
             .in("id", uniqueOwnerIds);
-          if (owners) {
+
+          if (ownersError) {
+            console.error("Error fetching owners for withdrawals:", ownersError);
+          } else if (owners) {
             ownersMap = Object.fromEntries(owners.map(o => [o.id, o]));
           }
         }
@@ -221,9 +237,10 @@ export default function AdminWithdrawals() {
         const enrichedData = data.map(w => ({
           ...w,
           payment_details: w.payment_details as PaymentDetails | null,
-          agency: w.agency ? {
-            ...w.agency,
-            owner: w.agency.owner_id ? ownersMap[w.agency.owner_id] || null : null
+          agency: agenciesMap[w.agency_id] ? {
+            name: agenciesMap[w.agency_id].name,
+            agency_code: agenciesMap[w.agency_id].agency_code,
+            owner: agenciesMap[w.agency_id].owner_id ? ownersMap[agenciesMap[w.agency_id].owner_id] || null : null,
           } : undefined
         })) as Withdrawal[];
 

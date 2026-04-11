@@ -133,6 +133,29 @@ export default function AdminCoins() {
     'US': { rate: 1.00, symbol: '$', name: 'US Dollar' },
   };
 
+  const normalizePackage = (pkg: any): DiamondPackage => {
+    const baseCoins = Number(pkg?.base_coins ?? pkg?.coins_amount ?? pkg?.coins ?? 0);
+    const bonusCoins = Number(pkg?.bonus_coins ?? 0);
+    const totalCoins = Number(pkg?.coins ?? (baseCoins + bonusCoins));
+    const bonusPercentage = Number(
+      pkg?.bonus_percentage
+      ?? pkg?.discount_percent
+      ?? (bonusCoins > 0 && baseCoins > 0 ? Math.round((bonusCoins / baseCoins) * 100) : 0)
+    );
+
+    return {
+      id: String(pkg?.id ?? ''),
+      coins: Number.isFinite(totalCoins) ? totalCoins : 0,
+      base_coins: Number.isFinite(baseCoins) ? baseCoins : 0,
+      price_usd: Number(pkg?.price_usd ?? 0),
+      bonus_percentage: Number.isFinite(bonusPercentage) ? bonusPercentage : 0,
+      is_popular: Boolean(pkg?.is_popular),
+      is_best_value: Boolean(pkg?.is_best_value),
+      is_active: pkg?.is_active ?? true,
+      display_order: Number(pkg?.display_order ?? 0),
+    };
+  };
+
   useAdminRealtime(['coin_packages', 'currency_rates', 'app_settings'], () => fetchData());
 
   const fetchData = async () => {
@@ -147,7 +170,7 @@ export default function AdminCoins() {
       if (packagesRes.error) throw packagesRes.error;
       if (currenciesRes.error) throw currenciesRes.error;
 
-      setPackages(packagesRes.data || []);
+      setPackages((packagesRes.data || []).map(normalizePackage));
       setCurrencies(currenciesRes.data || []);
       
       if (settingsValue) {
@@ -338,17 +361,32 @@ export default function AdminCoins() {
   const handleSavePackage = async () => {
     setSaving(true);
     try {
+      const baseCoins = Number(packageForm.base_coins || packageForm.coins || 0);
+      const totalCoins = Number(packageForm.coins || 0);
+      const bonusCoins = Math.max(totalCoins - baseCoins, 0);
+      const packagePayload = {
+        ...packageForm,
+        coins: totalCoins,
+        base_coins: baseCoins,
+        price_usd: Number(packageForm.price_usd || 0),
+        bonus_percentage: Number(packageForm.bonus_percentage || 0),
+        display_order: Number(packageForm.display_order || 0),
+        coins_amount: baseCoins,
+        bonus_coins: bonusCoins,
+        discount_percent: Number(packageForm.bonus_percentage || 0),
+      };
+
       if (editingPackage) {
         const { error } = await supabase
           .from("coin_packages")
-          .update(packageForm)
+          .update(packagePayload)
           .eq("id", editingPackage.id);
         if (error) throw error;
         toast.success("Package updated");
       } else {
         const { error } = await supabase
           .from("coin_packages")
-          .insert(packageForm);
+          .insert(packagePayload);
         if (error) throw error;
         toast.success("New package created");
       }
@@ -457,10 +495,12 @@ export default function AdminCoins() {
     }
   };
 
-  const formatCoins = (coins: number) => {
-    if (coins >= 1000000) return `${(coins / 1000000).toFixed(1)}M`;
-    if (coins >= 1000) return `${(coins / 1000).toFixed(1)}K`;
-    return coins.toString();
+  const formatCoins = (coins: number | null | undefined) => {
+    const safeCoins = Number(coins ?? 0);
+    if (!Number.isFinite(safeCoins)) return "0";
+    if (safeCoins >= 1000000) return `${(safeCoins / 1000000).toFixed(1)}M`;
+    if (safeCoins >= 1000) return `${(safeCoins / 1000).toFixed(1)}K`;
+    return safeCoins.toString();
   };
 
   return (
@@ -703,7 +743,7 @@ export default function AdminCoins() {
                   <span className="text-white/80 text-sm">Exchange Rate</span>
                 </div>
                 <p className="text-lg font-bold">
-                  {beansToUsdRate.toLocaleString()} Beans = $1 | $1 = ৳{currencies.find(c => c.country_code === 'BD')?.rate_to_usd.toFixed(2) || '110.50'}
+                  {beansToUsdRate.toLocaleString()} Beans = $1 | $1 = ৳{(currencies.find(c => c.country_code === 'BD')?.rate_to_usd ?? 110.5).toFixed(2)}
                 </p>
               </div>
             </CardContent>
