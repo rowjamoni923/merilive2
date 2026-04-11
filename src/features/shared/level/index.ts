@@ -8,6 +8,7 @@ export {
   getJoinBannerBg,
   getLevelBadgeStyle,
   getLevelTierName,
+  getLevelIcon,
   ensureValidLevel,
   formatLevel,
 } from './levelUtils';
