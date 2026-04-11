@@ -971,6 +971,36 @@ export default function AdminGifts() {
               />
             </div>
 
+            {/* Min Level (for Pro category) */}
+            {(formData.category === 'pro' || formData.min_level > 0) && (
+              <div>
+                <Label className="text-slate-300 font-medium text-sm md:text-base">Minimum Level Required</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={formData.min_level}
+                  onChange={(e) => setFormData({ ...formData, min_level: parseInt(e.target.value) || 0 })}
+                  placeholder="0 = No level requirement"
+                  className="bg-slate-800 border-slate-600 text-white mt-1.5 md:mt-2 text-sm"
+                />
+                <p className="text-xs text-slate-500 mt-1">Users below this level cannot send this gift</p>
+              </div>
+            )}
+
+            {/* Lucky Gift Toggle */}
+            {formData.category === 'lucky' && (
+              <div className="flex items-center gap-3 p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/30">
+                <Switch
+                  checked={formData.is_lucky}
+                  onCheckedChange={(checked) => setFormData({ ...formData, is_lucky: checked })}
+                />
+                <div>
+                  <Label className="text-yellow-400 font-medium text-sm">🎰 Lucky Gift (Lottery)</Label>
+                  <p className="text-xs text-slate-400 mt-0.5">Sender can win diamonds when sending this gift</p>
+                </div>
+              </div>
+            )}
+
             {/* Icon Upload - Primary Upload Button (SVGA/Lottie supported) */}
             <div className="border-2 border-dashed border-pink-500/50 rounded-xl p-3 md:p-4 bg-pink-500/5">
               <Label className="text-pink-400 font-medium text-sm md:text-base flex items-center gap-2 mb-3">
