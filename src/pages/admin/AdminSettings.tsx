@@ -26,6 +26,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { parseSettingValue, saveAppSetting } from "@/utils/adminSettingsStorage";
 
 // DiamondPackage interface removed - managed in AdminCoins
 
@@ -85,7 +86,7 @@ export default function AdminSettings() {
 
       const settingsMap: any = {};
       data?.forEach(item => {
-        settingsMap[item.setting_key] = item.setting_value;
+        settingsMap[item.setting_key] = parseSettingValue(item.setting_value);
       });
 
       setSettings({
@@ -122,34 +123,7 @@ export default function AdminSettings() {
   const saveSetting = async (key: string, value: any) => {
     setSaving(true);
     try {
-      const { data: existing } = await supabase
-        .from("app_settings")
-        .select("id")
-        .eq("setting_key", key)
-        .maybeSingle();
-
-      if (existing) {
-        const { error } = await supabase
-          .from("app_settings")
-          .update({ 
-            setting_value: value,
-            updated_at: new Date().toISOString()
-          })
-          .eq("setting_key", key);
-
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from("app_settings")
-          .insert({
-            setting_key: key,
-            setting_value: value,
-            category: 'general',
-            description: `${key} settings`
-          });
-
-        if (error) throw error;
-      }
+      await saveAppSetting(key, value, `${key} settings`);
 
       toast.success("Settings saved successfully!");
       await fetchSettings();

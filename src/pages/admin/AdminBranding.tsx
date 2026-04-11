@@ -21,6 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { parseSettingValue, saveBrandingSettings } from "@/utils/adminSettingsStorage";
 
 interface BrandingSettings {
   id: string;
@@ -57,7 +58,7 @@ export default function AdminBranding() {
       const { data, error } = await supabase
         .from('branding_settings')
         .select('*')
-        .eq('id', 'default')
+        .eq('setting_key', 'default')
         .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
@@ -65,7 +66,16 @@ export default function AdminBranding() {
       }
 
       if (data) {
-        setSettings(data as BrandingSettings);
+        const parsed = parseSettingValue<Partial<BrandingSettings> & { app_name?: string; logo_url?: string }>(data.setting_value) || {};
+        setSettings({
+          id: data.id,
+          logo_text_primary: parsed.logo_text_primary || parsed.app_name?.split(' ')[0] || 'meri',
+          logo_text_secondary: parsed.logo_text_secondary || 'LIVE',
+          tagline: parsed.tagline || 'Connect • Chat • Share',
+          background_type: parsed.background_type || 'image',
+          background_url: parsed.background_url || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800',
+          logo_image_url: parsed.logo_image_url || parsed.logo_url || null,
+        });
       }
     } catch (error) {
       console.error("Error fetching branding settings:", error);
@@ -142,20 +152,20 @@ export default function AdminBranding() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('branding_settings')
-        .upsert({
-          id: 'default',
-          logo_text_primary: settings.logo_text_primary,
-          logo_text_secondary: settings.logo_text_secondary,
-          tagline: settings.tagline,
-          background_type: settings.background_type,
-          background_url: settings.background_url,
-          logo_image_url: settings.logo_image_url,
-          updated_at: new Date().toISOString()
-        });
+      const savedId = await saveBrandingSettings({
+        logo_text_primary: settings.logo_text_primary,
+        logo_text_secondary: settings.logo_text_secondary,
+        tagline: settings.tagline,
+        background_type: settings.background_type,
+        background_url: settings.background_url,
+        logo_image_url: settings.logo_image_url,
+        app_name: `${settings.logo_text_primary} ${settings.logo_text_secondary}`.trim(),
+        logo_url: settings.logo_image_url,
+      }, settings.id !== 'default' ? settings.id : undefined);
 
-      if (error) throw error;
+      if (savedId) {
+        setSettings(prev => ({ ...prev, id: savedId }));
+      }
 
       toast.success("Settings saved!");
     } catch (error) {
