@@ -2028,7 +2028,7 @@ export default function AdminLayout() {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
                       transition={{ duration: 0.2 }}
-                      className="absolute right-0 top-full mt-2 w-[calc(100vw-16px)] sm:w-[400px] max-h-[70vh] bg-[#0c0c14]/98 backdrop-blur-2xl rounded-2xl shadow-2xl shadow-black/50 border border-white/[0.06] overflow-hidden z-50 flex flex-col"
+                      className="absolute right-0 top-full mt-2 w-[calc(100vw-16px)] sm:w-[400px] max-h-[70vh] bg-[#1a1a2e] backdrop-blur-2xl rounded-2xl shadow-2xl shadow-black/60 border border-violet-500/20 overflow-hidden z-50 flex flex-col"
                       style={{ right: window.innerWidth < 640 ? '-8px' : '0' }}
                     >
                       {/* Header */}
