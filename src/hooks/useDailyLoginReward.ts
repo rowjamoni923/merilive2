@@ -137,8 +137,13 @@ export const useDailyLoginReward = () => {
     setClaiming(true);
 
     try {
-      // Use secure server-side RPC that handles everything atomically
-      const { data, error } = await supabase.rpc('claim_daily_login_reward');
+      // Use secure server-side RPC aligned with the app's 12:30 AM reset window
+      const { start, end } = getDayBoundaries();
+      const { data, error } = await (supabase as any).rpc('claim_daily_login_reward', {
+        _claimed_date: getTaskDate(),
+        _day_start: start,
+        _day_end: end,
+      });
 
       if (error) {
         console.error('[DailyLogin] Claim error:', error);
