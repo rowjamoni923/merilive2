@@ -81,6 +81,37 @@ const AgencySignup = () => {
     return () => clearInterval(interval);
   }, [emailOtpTimer]);
 
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (appOtpTimer > 0) {
+      interval = setInterval(() => setAppOtpTimer(prev => prev - 1), 1000);
+    }
+    return () => clearInterval(interval);
+  }, [appOtpTimer]);
+
+  const sendAppOtp = async () => {
+    if (!foundUser) return;
+    setSendingAppOtp(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-app-notification', {
+        body: {
+          userId: foundUser.id,
+          templateKey: 'otp_verification',
+          variables: { purpose: 'Agency Verification' },
+          type: 'otp'
+        }
+      });
+      if (error) throw error;
+      toast({ title: "✅ OTP Sent!", description: `Check notifications in ${foundUser.display_name || 'user'}'s app` });
+      setAppOtpSent(true);
+      setAppOtpTimer(300);
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message || "Failed to send notification OTP", variant: "destructive" });
+    } finally {
+      setSendingAppOtp(false);
+    }
+  };
+
   const searchUserById = async () => {
     if (!formData.userId.trim()) {
       toast({ title: "Error", description: "Please enter your App UID (e.g., LV1234567890)", variant: "destructive" });
