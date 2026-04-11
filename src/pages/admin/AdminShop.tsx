@@ -293,10 +293,10 @@ const AdminShop = () => {
     const fileExt = file.name.split('.').pop()?.toLowerCase();
     
     // Allowed extensions
-    const allowedExtensions = ['svga', 'json', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4', 'webm'];
+    const allowedExtensions = ['svga', 'svg', 'json', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4', 'webm', 'lottie', 'bmp', 'tiff', 'tif', 'apng', 'avif'];
     
     if (!fileExt || !allowedExtensions.includes(fileExt)) {
-      toast.error("Invalid file type. Please upload SVGA, PNG, GIF, WebP, JSON (Lottie), MP4, or WebM files.");
+      toast.error("Invalid file type. Please upload SVGA, SVG, PNG, GIF, WebP, JSON (Lottie), MP4, or WebM files.");
       return;
     }
 
