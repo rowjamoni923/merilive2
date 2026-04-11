@@ -908,6 +908,17 @@ export default function AdminGifts() {
 
                     {/* Actions */}
                     <div className="flex items-center justify-center gap-1 md:gap-2">
+                      {(gift as any).is_lucky && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => openLuckyConfig(gift.id)}
+                          className="w-6 h-6 md:w-8 md:h-8 text-yellow-500 hover:text-yellow-600 hover:bg-yellow-50"
+                          title="Lucky Gift Config"
+                        >
+                          <Sparkles className="w-3 h-3 md:w-4 md:h-4" />
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="icon"
