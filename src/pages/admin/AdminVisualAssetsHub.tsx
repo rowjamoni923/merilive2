@@ -2,14 +2,14 @@ import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Palette, Image, MessageSquare, Sparkles, Gift, ShoppingBag, UserCog, Zap, Wand2 } from "lucide-react";
+import { Palette, Image, MessageSquare, Gift, ShoppingBag, UserCog, Zap, Wand2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 // Import existing components as tab content
 import AdminFrames from "./AdminFrames";
 import AdminRoleFrames from "./AdminRoleFrames";
 import AdminChatBubbles from "./AdminChatBubbles";
-import AdminAnimationStore from "./AdminAnimationStore";
+
 import AdminGifts from "./AdminGifts";
 import AdminShop from "./AdminShop";
 import AdminEntryEffects from "./AdminEntryEffects";
@@ -110,13 +110,6 @@ const AdminVisualAssetsHub = () => {
             <p className="text-[10px] text-muted-foreground">Chat Bubbles</p>
           </CardContent>
         </Card>
-        <Card className="bg-gradient-to-br from-pink-500/10 to-pink-600/5 border-pink-500/20">
-          <CardContent className="p-3 text-center">
-            <Sparkles className="w-6 h-6 mx-auto mb-1 text-pink-400" />
-            <p className="text-xl font-bold text-foreground">{stats.animations}</p>
-            <p className="text-[10px] text-muted-foreground">Animations</p>
-          </CardContent>
-        </Card>
         <Card className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 border-amber-500/20">
           <CardContent className="p-3 text-center">
             <Gift className="w-6 h-6 mx-auto mb-1 text-amber-400" />
@@ -135,7 +128,7 @@ const AdminVisualAssetsHub = () => {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-8 bg-slate-900/50 p-1 h-auto">
+        <TabsList className="grid w-full grid-cols-7 bg-slate-900/50 p-1 h-auto">
           <TabsTrigger 
             value="frames" 
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white py-2 text-[10px] sm:text-xs"
@@ -156,13 +149,6 @@ const AdminVisualAssetsHub = () => {
           >
             <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
             <span className="hidden sm:inline">Bubbles</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="animations" 
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-rose-500 data-[state=active]:text-white py-2 text-[10px] sm:text-xs"
-          >
-            <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-            <span className="hidden sm:inline">Anim</span>
           </TabsTrigger>
           <TabsTrigger 
             value="gifts" 
@@ -206,9 +192,6 @@ const AdminVisualAssetsHub = () => {
           <AdminChatBubbles />
         </TabsContent>
 
-        <TabsContent value="animations" className="mt-0">
-          <AdminAnimationStore />
-        </TabsContent>
 
         <TabsContent value="gifts" className="mt-0">
           <AdminGifts />
