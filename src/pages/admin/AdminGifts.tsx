@@ -1513,6 +1513,52 @@ export default function AdminGifts() {
         </DialogContent>
       </Dialog>
 
+      {/* Lucky Gift Config Dialog */}
+      <Dialog open={showLuckyConfig} onOpenChange={setShowLuckyConfig}>
+        <DialogContent className="bg-slate-900 border-slate-700 w-[95vw] max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              🎰 Lucky Gift Lottery Config
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-slate-400 text-sm">Configure diamond reward tiers for this Lucky Gift.</p>
+            <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+              <p className="text-yellow-400 text-sm font-medium">
+                Total Win Chance: {luckyConfigs.reduce((sum, c) => sum + Number(c.win_chance_percent), 0).toFixed(1)}%
+              </p>
+              <p className="text-slate-500 text-xs mt-1">Per 100 gifts ≈ {luckyConfigs.reduce((sum, c) => sum + Number(c.win_chance_percent), 0).toFixed(0)} wins</p>
+            </div>
+            {luckyConfigs.map((tier) => (
+              <div key={tier.id} className="flex items-center gap-2 p-2 bg-slate-800 rounded-lg">
+                <div className="flex-1 grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-slate-400 text-xs">💎 Diamonds</Label>
+                    <Input type="number" min={1} defaultValue={tier.diamond_reward}
+                      onBlur={(e) => saveLuckyTier({ ...tier, diamond_reward: parseInt(e.target.value) || 1 })}
+                      className="bg-slate-700 border-slate-600 text-white text-sm h-8" />
+                  </div>
+                  <div>
+                    <Label className="text-slate-400 text-xs">Win %</Label>
+                    <Input type="number" min={0.01} max={100} step={0.1} defaultValue={tier.win_chance_percent}
+                      onBlur={(e) => saveLuckyTier({ ...tier, win_chance_percent: parseFloat(e.target.value) || 1 })}
+                      className="bg-slate-700 border-slate-600 text-white text-sm h-8" />
+                  </div>
+                </div>
+                <Button variant="ghost" size="icon" className="text-red-400 h-8 w-8" onClick={() => deleteLuckyTier(tier.id)}>
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+              </div>
+            ))}
+            <Button variant="outline" className="w-full border-dashed border-slate-600 text-slate-400"
+              onClick={() => saveLuckyTier({ diamond_reward: 1, win_chance_percent: 5 })}>
+              <Plus className="w-4 h-4 mr-2" /> Add Reward Tier
+            </Button>
+            <p className="text-xs text-slate-500">Example: 1💎 at 20%, 5💎 at 5%, 10💎 at 1%</p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Upload Loading Overlay - with real progress tracking */}
       {uploading && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
