@@ -637,7 +637,17 @@ const AdminFrames = () => {
                     size="icon"
                     variant="ghost"
                     className="h-7 w-7 bg-white/80 dark:bg-black/50 backdrop-blur-sm"
+                    onClick={() => setFullscreenPreviewFrame(frame)}
+                    title="Preview Animation"
+                  >
+                    <Eye className="w-4 h-4 text-cyan-500" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 bg-white/80 dark:bg-black/50 backdrop-blur-sm"
                     onClick={() => toggleActive(frame)}
+                    title={frame.is_active ? "Deactivate" : "Activate"}
                   >
                     {frame.is_active ? (
                       <Eye className="w-4 h-4 text-green-500" />
