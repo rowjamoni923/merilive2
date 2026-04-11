@@ -140,7 +140,7 @@ export function FullScreenPromoBanners() {
           {!canSkip && (
             <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20">
               <span className="text-white text-xs font-medium">
-                {Math.ceil(SKIP_DELAY_MS / 1000)}s
+                {countdown}s
               </span>
             </div>
           )}
