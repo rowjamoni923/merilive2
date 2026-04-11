@@ -325,6 +325,7 @@ if (typeof window !== 'undefined') {
 const Blacklist = lazy(() => import("./pages/settings/Blacklist"));
 const ContentPageView = lazy(() => import("./pages/settings/ContentPage"));
 const CustomerService = lazy(() => import("./pages/settings/CustomerService"));
+const UserManagement = lazy(() => import("./pages/settings/UserManagement"));
 
 // Lazy loaded components - defer non-critical
 const GenderSelectionModal = lazy(() => import("@/components/auth/GenderSelectionModal").then(m => ({ default: m.GenderSelectionModal })));
