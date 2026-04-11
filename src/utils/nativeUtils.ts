@@ -162,16 +162,30 @@ export const hideSplashScreen = async (): Promise<void> => {
 // App state listener
 export const onAppStateChange = (callback: (isActive: boolean) => void): (() => void) => {
   if (isNativeApp()) {
-    import('@capacitor/app').then(({ App }) => {
-      App.addListener('appStateChange', ({ isActive }) => {
+    let isDisposed = false;
+    let listenerHandle: { remove: () => Promise<void> } | null = null;
+
+    void import('@capacitor/app')
+      .then(({ App }) => App.addListener('appStateChange', ({ isActive }) => {
         callback(isActive);
+      }))
+      .then((handle) => {
+        if (isDisposed) {
+          void handle.remove();
+          return;
+        }
+
+        listenerHandle = handle;
+      })
+      .catch((error) => {
+        console.error('Error attaching appStateChange listener:', error);
       });
-    });
-    
+
     return () => {
-      import('@capacitor/app').then(({ App }) => {
-        App.removeAllListeners();
-      });
+      isDisposed = true;
+      if (listenerHandle) {
+        void listenerHandle.remove();
+      }
     };
   }
   
@@ -188,14 +202,30 @@ export const onAppStateChange = (callback: (isActive: boolean) => void): (() => 
 // Back button handler for Android
 export const onBackButton = (callback: () => void): (() => void) => {
   if (isAndroid()) {
-    import('@capacitor/app').then(({ App }) => {
-      App.addListener('backButton', callback);
-    });
-    
-    return () => {
-      import('@capacitor/app').then(({ App }) => {
-        App.removeAllListeners();
+    let isDisposed = false;
+    let listenerHandle: { remove: () => Promise<void> } | null = null;
+
+    void import('@capacitor/app')
+      .then(({ App }) => App.addListener('backButton', () => {
+        callback();
+      }))
+      .then((handle) => {
+        if (isDisposed) {
+          void handle.remove();
+          return;
+        }
+
+        listenerHandle = handle;
+      })
+      .catch((error) => {
+        console.error('Error attaching backButton listener:', error);
       });
+
+    return () => {
+      isDisposed = true;
+      if (listenerHandle) {
+        void listenerHandle.remove();
+      }
     };
   }
   

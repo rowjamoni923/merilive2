@@ -31,6 +31,7 @@ const RATING_SHOW_DELAY_MS = 40000;
 const SESSION_KEY = "promo_banner_shown_this_entry";
 const ROTATION_KEY = "promo_banner_rotation_index";
 const RATING_PENDING_KEY = "rating_reward_return_pending";
+const RATING_ENABLED_SETTING_KEY = "rating_popup_enabled";
 
 export function FullScreenPromoBanners() {
   const [currentBanner, setCurrentBanner] = useState<PromoBanner | null>(null);
@@ -50,6 +51,43 @@ export function FullScreenPromoBanners() {
     localStorage.setItem(ROTATION_KEY, String((currentIndex + 1) % PROMO_BANNERS.length));
   }, []);
 
+  const isRatingBannerEligible = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+
+    const { data: settingData } = await supabase
+      .from("app_settings")
+      .select("setting_value")
+      .eq("setting_key", RATING_ENABLED_SETTING_KEY)
+      .maybeSingle();
+
+    const isEnabled = settingData?.setting_value === true || settingData?.setting_value === "true";
+    if (!isEnabled) return false;
+
+    const { data: existingClaims } = await supabase
+      .from("rating_reward_claims")
+      .select("id")
+      .eq("user_id", user.id)
+      .limit(1);
+
+    return (existingClaims?.length ?? 0) === 0;
+  }, []);
+
+  const resolveNextBanner = useCallback(async (): Promise<{ banner: PromoBanner; index: number } | null> => {
+    const startIndex = getRotationIndex();
+
+    for (let offset = 0; offset < PROMO_BANNERS.length; offset += 1) {
+      const candidateIndex = (startIndex + offset) % PROMO_BANNERS.length;
+      const candidateBanner = PROMO_BANNERS[candidateIndex];
+
+      if (candidateBanner.id !== "rating" || await isRatingBannerEligible()) {
+        return { banner: candidateBanner, index: candidateIndex };
+      }
+    }
+
+    return null;
+  }, [getRotationIndex, isRatingBannerEligible]);
+
   const closeBanner = useCallback(() => {
     advanceRotation(rotationIndex);
     setIsVisible(false);
@@ -62,12 +100,15 @@ export function FullScreenPromoBanners() {
 
     const prepareBanner = async () => {
       if (sessionStorage.getItem(SESSION_KEY)) return;
+      if (localStorage.getItem(RATING_PENDING_KEY) === "true") return;
 
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const nextIndex = getRotationIndex();
-      const nextBanner = PROMO_BANNERS[nextIndex];
+      const nextBannerState = await resolveNextBanner();
+      if (!nextBannerState) return;
+
+      const { banner: nextBanner, index: nextIndex } = nextBannerState;
       setCurrentBanner(nextBanner);
       setRotationIndex(nextIndex);
 
@@ -95,7 +136,7 @@ export function FullScreenPromoBanners() {
       if (ratingDelayTimer) window.clearTimeout(ratingDelayTimer);
       subscription.unsubscribe();
     };
-  }, [getRotationIndex]);
+  }, [resolveNextBanner]);
 
   useEffect(() => {
     if (!isVisible || !currentBanner) return;
