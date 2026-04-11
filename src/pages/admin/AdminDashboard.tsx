@@ -212,7 +212,13 @@ const loadCachedDashboardStats = (): DashboardStats | null => {
   try {
     const raw = localStorage.getItem(DASHBOARD_STATS_CACHE_KEY);
     if (!raw) return null;
-    return JSON.parse(raw) as DashboardStats;
+    const parsed = JSON.parse(raw) as DashboardStats;
+    // Invalidate stale all-zero cache
+    if (parsed.total_users === 0 && parsed.total_hosts === 0 && parsed.total_agencies === 0) {
+      localStorage.removeItem(DASHBOARD_STATS_CACHE_KEY);
+      return null;
+    }
+    return parsed;
   } catch {
     return null;
   }
