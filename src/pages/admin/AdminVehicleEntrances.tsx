@@ -273,15 +273,15 @@ const AdminVehicleEntrances = () => {
               </CardHeader>
               <CardContent>
                 <div className="aspect-video bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
-                  {item.animation_url ? (
+                  {item.preview_url ? (
+                    <img src={item.preview_url} alt={item.name} className="w-full h-full object-contain" />
+                  ) : item.animation_url ? (
                     <UniversalAnimationPlayer
                       src={item.animation_url}
                       className="w-full h-full"
                       loop
                       autoPlay
                     />
-                  ) : item.preview_url ? (
-                    <img src={item.preview_url} alt={item.name} className="w-full h-full object-contain" />
                   ) : (
                     <Car className="h-16 w-16 text-blue-500" />
                   )}

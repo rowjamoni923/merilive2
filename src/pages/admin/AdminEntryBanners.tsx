@@ -307,7 +307,9 @@ export default function AdminEntryBanners() {
           >
             {/* Preview */}
             <div className="h-20 bg-gradient-to-br from-purple-900/50 to-pink-900/50 rounded-lg flex items-center justify-center overflow-hidden">
-              {banner.animation_url.endsWith('.svga') ? (
+              {banner.preview_url ? (
+                <img src={banner.preview_url} alt={banner.name} className="w-full h-full object-contain" />
+              ) : banner.animation_url.endsWith('.svga') ? (
                 <SVGAPreviewWithMuteToggle
                   src={banner.animation_url}
                   className="w-full h-full object-contain"

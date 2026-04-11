@@ -100,6 +100,7 @@ const AdminFrames = () => {
     target_type: "both" as 'user' | 'host' | 'both',
   });
 
+  const [fullscreenPreviewFrame, setFullscreenPreviewFrame] = useState<Frame | null>(null);
   const soundInputRef = useRef<HTMLInputElement>(null);
 
   const fetchFrames = useCallback(async (showToast: boolean = false) => {
@@ -560,25 +561,27 @@ const AdminFrames = () => {
                   frame.is_active ? "border-green-200 dark:border-green-800" : "border-gray-200 dark:border-gray-700 opacity-60"
                 }`}
               >
-                {/* Frame Preview */}
-                <div className="relative aspect-square bg-gradient-to-br from-gray-900 to-black flex items-center justify-center">
-                  <div className="relative w-20 h-20">
-                    {/* Sample Avatar */}
-                    <Avatar className="w-full h-full border-2 border-white shadow-lg absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-5">
-                      <AvatarImage src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200" />
-                      <AvatarFallback>U</AvatarFallback>
-                    </Avatar>
-                    {/* Animated Frame Overlay */}
-                    <div className="absolute -inset-4 w-[calc(100%+32px)] h-[calc(100%+32px)] z-20">
-                      <UniversalFramePlayer
-                        src={frame.frame_url}
-                        type={frame.frame_type as any}
-                        className="w-full h-full"
-                        loop={true}
-                        autoPlay={true}
-                      />
+                {/* Frame Preview - Show preview_url as static thumbnail */}
+                <div className="relative aspect-square bg-gradient-to-br from-gray-900 to-black flex items-center justify-center overflow-hidden">
+                  {frame.preview_url ? (
+                    <img src={frame.preview_url} alt={frame.name} className="w-full h-full object-contain" />
+                  ) : (
+                    <div className="relative w-20 h-20">
+                      <Avatar className="w-full h-full border-2 border-white shadow-lg absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-5">
+                        <AvatarImage src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200" />
+                        <AvatarFallback>U</AvatarFallback>
+                      </Avatar>
+                      <div className="absolute -inset-4 w-[calc(100%+32px)] h-[calc(100%+32px)] z-20">
+                        <UniversalFramePlayer
+                          src={frame.frame_url}
+                          type={frame.frame_type as any}
+                          className="w-full h-full"
+                          loop={true}
+                          autoPlay={true}
+                        />
+                      </div>
                     </div>
-                  </div>
+                  )}
                   
                   {/* Type Badge */}
                   <Badge className={`absolute top-2 left-2 bg-black/60 backdrop-blur-sm ${getTypeColor(frame.frame_type)}`}>
@@ -634,7 +637,17 @@ const AdminFrames = () => {
                     size="icon"
                     variant="ghost"
                     className="h-7 w-7 bg-white/80 dark:bg-black/50 backdrop-blur-sm"
+                    onClick={() => setFullscreenPreviewFrame(frame)}
+                    title="Preview Animation"
+                  >
+                    <Eye className="w-4 h-4 text-cyan-500" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 bg-white/80 dark:bg-black/50 backdrop-blur-sm"
                     onClick={() => toggleActive(frame)}
+                    title={frame.is_active ? "Deactivate" : "Activate"}
                   >
                     {frame.is_active ? (
                       <Eye className="w-4 h-4 text-green-500" />
@@ -946,6 +959,37 @@ const AdminFrames = () => {
             >
               Cancel
             </Button>
+          </div>
+        </div>
+      )}
+      {/* Fullscreen Animation Preview */}
+      {fullscreenPreviewFrame && (
+        <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center" onClick={() => setFullscreenPreviewFrame(null)}>
+          <button
+            onClick={() => setFullscreenPreviewFrame(null)}
+            className="absolute top-4 right-4 text-white z-10 bg-white/10 hover:bg-white/20 rounded-full p-2"
+          >
+            ✕
+          </button>
+          <div className="text-center" onClick={e => e.stopPropagation()}>
+            <p className="text-white font-bold text-lg mb-4">{fullscreenPreviewFrame.name}</p>
+            <div className="w-[80vw] h-[60vh] max-w-[500px] max-h-[500px] flex items-center justify-center mx-auto">
+              <div className="relative w-64 h-64">
+                <Avatar className="w-full h-full border-4 border-white shadow-lg absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-5">
+                  <AvatarImage src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400" />
+                  <AvatarFallback>U</AvatarFallback>
+                </Avatar>
+                <div className="absolute -inset-8 w-[calc(100%+64px)] h-[calc(100%+64px)] z-20">
+                  <UniversalFramePlayer
+                    src={fullscreenPreviewFrame.frame_url}
+                    type={fullscreenPreviewFrame.frame_type as any}
+                    className="w-full h-full"
+                    loop={true}
+                    autoPlay={true}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

@@ -31,7 +31,8 @@ import {
   Wand2,
   Check,
   Volume2,
-  X
+  X,
+  Eye
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -115,6 +116,7 @@ export default function AdminGifts() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [fullscreenPreviewGift, setFullscreenPreviewGift] = useState<GiftItem | null>(null);
 
   // Lucky gift config state
   interface LuckyRewardTier { id: string; gift_id: string | null; diamond_reward: number; win_chance_percent: number; display_order: number; is_active: boolean; }
@@ -828,40 +830,11 @@ export default function AdminGifts() {
               >
                 <Card className={`bg-white border-slate-200 hover:shadow-xl transition-all overflow-hidden group ${!gift.is_active && "opacity-50"}`}>
                   <CardContent className="p-2 md:p-4 text-center">
-                    {/* Gift Icon/Animation */}
+                    {/* Gift Icon - Show static preview image */}
                     <div className="relative w-12 h-12 md:w-16 md:h-16 mx-auto mb-2 md:mb-3 rounded-lg md:rounded-xl bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center shadow-md overflow-hidden">
-                      {gift.animation_url && isSVGA(gift.animation_url) ? (
-                        <UniversalFramePlayer
-                          src={gift.animation_url}
-                          type="svga"
-                          className="w-full h-full"
-                          loop={true}
-                          autoPlay={true}
-                        />
-                      ) : gift.animation_url && isLottie(gift.animation_url) ? (
-                        <UniversalFramePlayer
-                          src={gift.animation_url}
-                          type="lottie"
-                          className="w-full h-full"
-                          loop={true}
-                          autoPlay={true}
-                        />
-                      ) : gift.animation_url && isVideoOrGif(gift.animation_url) ? (
-                        gift.animation_url.endsWith('.gif') ? (
-                          <img src={gift.animation_url} alt={gift.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <video 
-                            src={gift.animation_url} 
-                            className="w-full h-full object-cover"
-                            autoPlay 
-                            loop 
-                            muted 
-                            playsInline
-                          />
-                        )
-                      ) : gift.icon_url ? (
+                      {gift.icon_url ? (
                         gift.icon_url.startsWith('http') ? (
-                          <img src={gift.icon_url} alt={gift.name} className="w-12 h-12 object-contain" />
+                          <img src={gift.icon_url} alt={gift.name} className="w-full h-full object-contain" />
                         ) : (
                           <span className="text-3xl">{gift.icon_url}</span>
                         )
@@ -908,6 +881,17 @@ export default function AdminGifts() {
 
                     {/* Actions */}
                     <div className="flex items-center justify-center gap-1 md:gap-2">
+                      {gift.animation_url && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setFullscreenPreviewGift(gift)}
+                          className="w-6 h-6 md:w-8 md:h-8 text-cyan-500 hover:text-cyan-600 hover:bg-cyan-50"
+                          title="Preview Animation"
+                        >
+                          <Eye className="w-3 h-3 md:w-4 md:h-4" />
+                        </Button>
+                      )}
                       {(gift as any).is_lucky && (
                         <Button
                           variant="ghost"
@@ -1582,6 +1566,34 @@ export default function AdminGifts() {
             <p className="text-xs text-slate-500">
               {uploadProgress > 0 ? 'Resumable Upload - Large files supported' : 'Please wait...'}
             </p>
+          </div>
+        </div>
+      )}
+      {/* Fullscreen Animation Preview */}
+      {fullscreenPreviewGift && (
+        <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center" onClick={() => setFullscreenPreviewGift(null)}>
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => setFullscreenPreviewGift(null)}
+            className="absolute top-4 right-4 text-white z-10 bg-white/10 hover:bg-white/20 rounded-full"
+          >
+            <X className="w-6 h-6" />
+          </Button>
+          <div className="text-center" onClick={e => e.stopPropagation()}>
+            <p className="text-white font-bold text-lg mb-4">{fullscreenPreviewGift.name}</p>
+            <div className="w-[80vw] h-[60vh] max-w-[500px] max-h-[500px] flex items-center justify-center mx-auto">
+              {(() => {
+                const url = fullscreenPreviewGift.animation_url;
+                if (!url) return <p className="text-white/50">No animation file</p>;
+                if (isSVGA(url)) return <UniversalFramePlayer src={url} type="svga" className="w-full h-full" loop autoPlay />;
+                if (isLottie(url)) return <UniversalFramePlayer src={url} type="lottie" className="w-full h-full" loop autoPlay />;
+                if (isVideoOrGif(url)) return url.endsWith('.gif') 
+                  ? <img src={url} alt={fullscreenPreviewGift.name} className="w-full h-full object-contain" />
+                  : <video src={url} className="w-full h-full object-contain" autoPlay muted loop playsInline />;
+                return <img src={url} alt={fullscreenPreviewGift.name} className="w-full h-full object-contain" />;
+              })()}
+            </div>
           </div>
         </div>
       )}
