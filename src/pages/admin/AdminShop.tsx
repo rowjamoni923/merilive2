@@ -546,8 +546,14 @@ const AdminShop = () => {
     }
   };
 
-  const getPreviewUrl = (item: ShopItem) => {
-    return item.animation_file_url || item.svga_url || item.preview_url || item.animation_url || item.image_url;
+  // For card thumbnail: prefer preview_url (static image)
+  const getCardThumbnail = (item: ShopItem) => {
+    return item.preview_url || item.image_url || item.animation_file_url || item.svga_url || item.animation_url;
+  };
+
+  // For fullscreen preview: prefer animation file
+  const getAnimationUrl = (item: ShopItem) => {
+    return item.animation_file_url || item.svga_url || item.animation_url || item.preview_url || item.image_url;
   };
 
   const isSVGA = (url: string | null | undefined) => {
