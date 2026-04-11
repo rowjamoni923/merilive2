@@ -25,7 +25,7 @@ interface UploadResult {
 // R2 upload threshold - files larger than this use presigned URL method
 const R2_THRESHOLD = 50 * 1024 * 1024; // 50MB
 const SUPABASE_THRESHOLD = 50 * 1024 * 1024; // 50MB - use Supabase for smaller files
-const R2_FUNCTION_URL = 'https://pppcwawjjpwwrmvezcdy.supabase.co/functions/v1/r2-upload';
+const R2_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/r2-upload`;
 
 export function useR2Upload() {
   const [uploading, setUploading] = useState(false);

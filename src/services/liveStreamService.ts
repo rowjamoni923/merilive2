@@ -1,6 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 
-const EDGE_FUNCTION_URL = 'https://pppcwawjjpwwrmvezcdy.supabase.co/functions/v1/live-stream';
+const EDGE_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/live-stream`;
 
 export interface StreamData {
   id: string;
@@ -105,7 +105,7 @@ export async function getActiveStreams(): Promise<{ streams: StreamData[]; error
 
 export async function getIceServers(): Promise<RTCIceServer[]> {
   try {
-    const response = await fetch('https://pppcwawjjpwwrmvezcdy.supabase.co/functions/v1/webrtc-signaling/ice-servers', {
+    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/webrtc-signaling/ice-servers`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'

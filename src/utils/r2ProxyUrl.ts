@@ -5,7 +5,7 @@
  * access may have CORS issues depending on bucket config.
  */
 
-const SUPABASE_PROJECT_REF = 'pppcwawjjpwwrmvezcdy';
+const SUPABASE_PROJECT_REF = import.meta.env.VITE_SUPABASE_PROJECT_ID;
 
 /**
  * Convert R2 URLs to proxied URLs to bypass CORS

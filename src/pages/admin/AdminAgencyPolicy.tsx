@@ -28,6 +28,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
+import { saveAppSetting } from "@/utils/adminSettingsStorage";
 
 interface PolicySection {
   id: string;
@@ -219,30 +220,11 @@ const AdminAgencyPolicy = () => {
       });
 
       // Also update app_settings.beans_to_usd_rate for global access
-      const { data: existingRate } = await supabase
-        .from('app_settings')
-        .select('id')
-        .eq('setting_key', 'beans_to_usd_rate')
-        .maybeSingle();
-
-      if (existingRate) {
-        await supabase
-          .from('app_settings')
-          .update({ 
-            setting_value: { rate: exchangeRate },
-            updated_at: new Date().toISOString()
-          })
-          .eq('setting_key', 'beans_to_usd_rate');
-      } else {
-        await supabase
-          .from('app_settings')
-          .insert({
-            setting_key: 'beans_to_usd_rate',
-            setting_value: { rate: exchangeRate },
-            category: 'agency',
-            description: 'Beans to USD exchange rate for agencies'
-          });
-      }
+      await saveAppSetting(
+        'beans_to_usd_rate',
+        { rate: exchangeRate },
+        'Beans to USD exchange rate for agencies'
+      );
 
       // Save Commission Tiers to agency_level_tiers table (SINGLE SOURCE OF TRUTH)
       for (const tier of commissionTiers) {

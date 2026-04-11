@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import PKCompetitionManager from "@/components/admin/PKCompetitionManager";
+import { loadAppSettingsByPrefix, saveAppSetting } from "@/utils/adminSettingsStorage";
 
 interface PodiumFrame {
   id: string;
@@ -76,15 +77,15 @@ const AdminLeaderboardManagement = () => {
   useAdminRealtime(['app_settings', 'leaderboard_podium_frames', 'leaderboard_reward_config'], () => fetchIconSettings());
 
   const fetchIconSettings = async () => {
-    const { data } = await supabase
-      .from("app_settings")
-      .select("setting_key, setting_value")
-      .like("setting_key", "leaderboard_%_icon");
-    
-    if (data) {
+    const data = await loadAppSettingsByPrefix<string>("leaderboard_");
+
+    if (data.length > 0) {
       const icons: Record<string, string> = {};
       data.forEach((s: any) => {
-        icons[s.setting_key] = typeof s.setting_value === 'string' ? s.setting_value : String(s.setting_value || '');
+        if (!s.setting_key.endsWith('_icon')) return;
+        icons[s.setting_key] = typeof s.parsed_value === 'string'
+          ? s.parsed_value
+          : String(s.parsed_value || '');
       });
       setIconUrls(icons);
     }
@@ -133,14 +134,7 @@ const AdminLeaderboardManagement = () => {
     try {
       for (const [key, value] of Object.entries(iconUrls)) {
         if (value) {
-          await supabase
-            .from("app_settings")
-            .upsert({ 
-              setting_key: key, 
-              setting_value: JSON.stringify(value),
-              category: 'leaderboard',
-              description: `Leaderboard icon: ${key}`
-            }, { onConflict: "setting_key" });
+          await saveAppSetting(key, value, `Leaderboard icon: ${key}`);
         }
       }
       toast.success("All icons saved!");

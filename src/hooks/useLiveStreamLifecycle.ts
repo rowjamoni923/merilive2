@@ -9,6 +9,16 @@ import { useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { isNativeApp } from '@/utils/nativeUtils';
 
+const getSupabaseAuthStorageKey = () => {
+  try {
+    const host = new URL(import.meta.env.VITE_SUPABASE_URL).host;
+    const projectRef = host.split('.')[0];
+    return `sb-${projectRef}-auth-token`;
+  } catch {
+    return null;
+  }
+};
+
 interface UseLiveStreamLifecycleProps {
   streamId: string | undefined;
   isHost: boolean;
@@ -80,11 +90,10 @@ export const useLiveStreamLifecycle = ({
     if (hasEndedRef.current || !streamId || !isHost) return;
     hasEndedRef.current = true;
 
-    // Use sendBeacon for reliable delivery during page unload
-    const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/update_stream_heartbeat`;
-    // Can't end via sendBeacon easily, so use fetch keepalive
+    // Can't await on unload, so use stored auth token if available
     try {
-      const session = JSON.parse(localStorage.getItem('sb-pppcwawjjpwwrmvezcdy-auth-token') || '{}');
+      const authStorageKey = getSupabaseAuthStorageKey();
+      const session = JSON.parse((authStorageKey && localStorage.getItem(authStorageKey)) || '{}');
       const token = session?.access_token;
       if (token) {
         fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/live_streams?id=eq.${streamId}`, {

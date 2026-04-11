@@ -14,7 +14,7 @@ const INTERNAL_DOMAINS = [
   'www.merilive.com',
   'merilive.top',
   'merilive.lovable.app',
-  'pppcwawjjpwwrmvezcdy.supabase.co',
+  new URL(import.meta.env.VITE_SUPABASE_URL).hostname,
 ];
 
 const PLAY_STORE_PACKAGE = 'com.merilive.app';

@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { loadAppSetting, saveAppSetting } from "@/utils/adminSettingsStorage";
 
 interface DiamondPackage {
   id: string;
@@ -137,10 +138,10 @@ export default function AdminCoins() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [packagesRes, currenciesRes, settingsRes] = await Promise.all([
+      const [packagesRes, currenciesRes, settingsValue] = await Promise.all([
         supabase.from("coin_packages").select("*").order("display_order"),
         supabase.from("currency_rates").select("*").order("country_code"),
-        supabase.from("app_settings").select("*").eq("setting_key", "beans_to_usd_rate").maybeSingle()
+        loadAppSetting<{ rate?: number }>("beans_to_usd_rate")
       ]);
 
       if (packagesRes.error) throw packagesRes.error;
@@ -149,8 +150,8 @@ export default function AdminCoins() {
       setPackages(packagesRes.data || []);
       setCurrencies(currenciesRes.data || []);
       
-      if (settingsRes.data?.setting_value) {
-        const value = settingsRes.data.setting_value as { rate?: number };
+      if (settingsValue) {
+        const value = settingsValue as { rate?: number };
         if (value.rate) {
           setBeansToUsdRate(value.rate);
         }
@@ -166,32 +167,11 @@ export default function AdminCoins() {
   const handleSaveBeansToUsdRate = async () => {
     setSavingExchangeRate(true);
     try {
-      const { data: existing } = await supabase
-        .from("app_settings")
-        .select("id")
-        .eq("setting_key", "beans_to_usd_rate")
-        .maybeSingle();
-
-      if (existing) {
-        const { error } = await supabase
-          .from("app_settings")
-          .update({ 
-            setting_value: { rate: beansToUsdRate },
-            updated_at: new Date().toISOString()
-          })
-          .eq("id", existing.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from("app_settings")
-          .insert({
-            setting_key: "beans_to_usd_rate",
-            setting_value: { rate: beansToUsdRate },
-            category: "exchange",
-            description: "Beans to USD exchange rate"
-          });
-        if (error) throw error;
-      }
+      await saveAppSetting(
+        "beans_to_usd_rate",
+        { rate: beansToUsdRate },
+        "Beans to USD exchange rate"
+      );
       
       toast.success("Beans to USD rate saved!");
     } catch (error: any) {

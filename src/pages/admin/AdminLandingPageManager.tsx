@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { Plus, Trash2, Save, Eye, EyeOff, Globe, Sparkles, Megaphone, HelpCircle, Image, BarChart3, Mic, Building2, Settings } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { loadAppSettingsByPrefix, saveAppSetting } from "@/utils/adminSettingsStorage";
 
 // Define interfaces for LandingSection and LandingSetting
 interface SelectOption {
@@ -186,17 +187,20 @@ const AdminLandingPageManager = () => {
     setLoading(true);
     const [sectionsRes, settingsRes] = await Promise.all([
       supabase.from("landing_page_sections").select("*").order("section_type").order("display_order"),
-      supabase.from("app_settings").select("*").eq("category", "landing"),
+      loadAppSettingsByPrefix<string>("landing_"),
     ]);
 
     if (sectionsRes.data) setSections(sectionsRes.data || []);
     
-    if (settingsRes.data) {
+    if (settingsRes.length > 0) {
       const map: Record<string, LandingSetting> = {};
       const vals: Record<string, string> = {};
-      settingsRes.data.forEach((s: any) => {
-        map[s.setting_key] = s;
-        const val = typeof s.setting_value === 'string' ? s.setting_value : JSON.stringify(s.setting_value);
+      settingsRes.forEach((s: any) => {
+        map[s.setting_key] = {
+          ...s,
+          setting_value: typeof s.parsed_value === 'string' ? s.parsed_value : JSON.stringify(s.parsed_value ?? ''),
+        };
+        const val = typeof s.parsed_value === 'string' ? s.parsed_value : JSON.stringify(s.parsed_value ?? '');
         vals[s.setting_key] = val.replace(/^"|"$/g, '');
       });
       setSettings(map);
@@ -208,14 +212,19 @@ const AdminLandingPageManager = () => {
   // --- Settings handlers ---
   const handleSaveSettings = async () => {
     setSaving(true);
-    const updates = Object.entries(settingValues).map(([key, value]) => {
-      const jsonValue = JSON.stringify(value);
-      return supabase.from("app_settings").update({ setting_value: jsonValue }).eq("setting_key", key);
-    });
-    
-    await Promise.all(updates);
-    toast({ title: "✅ Saved", description: "Landing page settings updated" });
-    setSaving(false);
+    try {
+      await Promise.all(
+        Object.entries(settingValues).map(([key, value]) =>
+          saveAppSetting(key, value, `Landing setting: ${key}`)
+        )
+      );
+
+      toast({ title: "✅ Saved", description: "Landing page settings updated" });
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message || "Failed to save landing settings", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
   };
 
   // --- Section handlers ---

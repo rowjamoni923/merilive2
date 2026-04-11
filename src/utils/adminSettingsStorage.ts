@@ -35,6 +35,32 @@ export const parseSettingValue = <T = unknown>(value: unknown): T | null => {
   return value as T;
 };
 
+export const loadAppSetting = async <T = unknown>(key: string): Promise<T | null> => {
+  const { data, error } = await supabase
+    .from("app_settings")
+    .select("setting_value")
+    .eq("setting_key", key)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  return parseSettingValue<T>(data?.setting_value);
+};
+
+export const loadAppSettingsByPrefix = async <T = unknown>(prefix: string) => {
+  const { data, error } = await supabase
+    .from("app_settings")
+    .select("id, setting_key, setting_value, description, updated_at")
+    .like("setting_key", `${prefix}%`);
+
+  if (error) throw error;
+
+  return (data ?? []).map((row) => ({
+    ...row,
+    parsed_value: parseSettingValue<T>(row.setting_value),
+  }));
+};
+
 export const saveAppSetting = async (
   key: string,
   value: unknown,

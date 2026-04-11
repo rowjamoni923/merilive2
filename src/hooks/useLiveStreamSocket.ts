@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-const WEBSOCKET_URL = 'wss://pppcwawjjpwwrmvezcdy.supabase.co/functions/v1/live-stream';
+const WEBSOCKET_URL = `${import.meta.env.VITE_SUPABASE_URL.replace(/^http/i, 'ws')}/functions/v1/live-stream`;
 
 interface StreamMessage {
   type: string;
