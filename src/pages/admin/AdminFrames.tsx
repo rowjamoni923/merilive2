@@ -560,25 +560,27 @@ const AdminFrames = () => {
                   frame.is_active ? "border-green-200 dark:border-green-800" : "border-gray-200 dark:border-gray-700 opacity-60"
                 }`}
               >
-                {/* Frame Preview */}
-                <div className="relative aspect-square bg-gradient-to-br from-gray-900 to-black flex items-center justify-center">
-                  <div className="relative w-20 h-20">
-                    {/* Sample Avatar */}
-                    <Avatar className="w-full h-full border-2 border-white shadow-lg absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-5">
-                      <AvatarImage src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200" />
-                      <AvatarFallback>U</AvatarFallback>
-                    </Avatar>
-                    {/* Animated Frame Overlay */}
-                    <div className="absolute -inset-4 w-[calc(100%+32px)] h-[calc(100%+32px)] z-20">
-                      <UniversalFramePlayer
-                        src={frame.frame_url}
-                        type={frame.frame_type as any}
-                        className="w-full h-full"
-                        loop={true}
-                        autoPlay={true}
-                      />
+                {/* Frame Preview - Show preview_url as static thumbnail */}
+                <div className="relative aspect-square bg-gradient-to-br from-gray-900 to-black flex items-center justify-center overflow-hidden">
+                  {frame.preview_url ? (
+                    <img src={frame.preview_url} alt={frame.name} className="w-full h-full object-contain" />
+                  ) : (
+                    <div className="relative w-20 h-20">
+                      <Avatar className="w-full h-full border-2 border-white shadow-lg absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-5">
+                        <AvatarImage src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200" />
+                        <AvatarFallback>U</AvatarFallback>
+                      </Avatar>
+                      <div className="absolute -inset-4 w-[calc(100%+32px)] h-[calc(100%+32px)] z-20">
+                        <UniversalFramePlayer
+                          src={frame.frame_url}
+                          type={frame.frame_type as any}
+                          className="w-full h-full"
+                          loop={true}
+                          autoPlay={true}
+                        />
+                      </div>
                     </div>
-                  </div>
+                  )}
                   
                   {/* Type Badge */}
                   <Badge className={`absolute top-2 left-2 bg-black/60 backdrop-blur-sm ${getTypeColor(frame.frame_type)}`}>
