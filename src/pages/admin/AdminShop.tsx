@@ -29,7 +29,8 @@ import {
   Home,
   Wand2,
   Palette,
-  RefreshCw
+  RefreshCw,
+  Play
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -260,6 +261,7 @@ const AdminShop = () => {
   
   const [formData, setFormData] = useState<ShopFormData>(createDefaultFormData());
 
+  const [fullscreenPreviewItem, setFullscreenPreviewItem] = useState<ShopItem | null>(null);
   const soundInputRef = useRef<HTMLInputElement>(null);
 
   const fetchItems = useCallback(async () => {
@@ -546,8 +548,14 @@ const AdminShop = () => {
     }
   };
 
-  const getPreviewUrl = (item: ShopItem) => {
-    return item.animation_file_url || item.svga_url || item.preview_url || item.animation_url || item.image_url;
+  // For card thumbnail: prefer preview_url (static image)
+  const getCardThumbnail = (item: ShopItem) => {
+    return item.preview_url || item.image_url || item.animation_file_url || item.svga_url || item.animation_url;
+  };
+
+  // For fullscreen preview: prefer animation file
+  const getAnimationUrl = (item: ShopItem) => {
+    return item.animation_file_url || item.svga_url || item.animation_url || item.preview_url || item.image_url;
   };
 
   const isSVGA = (url: string | null | undefined) => {
@@ -697,37 +705,10 @@ const AdminShop = () => {
               className={`${adminCardStyles} ${!item.is_active && "opacity-60"}`}
             >
               <div className="flex gap-3">
-                {/* Preview - Supports SVGA, Lottie, Video, Image */}
+                {/* Preview - Show preview_url (static image) in card */}
                 <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center overflow-hidden flex-shrink-0">
-                  {getPreviewUrl(item) ? (
-                    isSVGA(getPreviewUrl(item)) ? (
-                      <Suspense fallback={<div className="w-full h-full bg-purple-500/20 animate-pulse" />}>
-                        <UniversalAnimationPlayer
-                          src={getPreviewUrl(item)!}
-                          className="w-full h-full"
-                          loop={true}
-                          autoPlay={true}
-                        />
-                      </Suspense>
-                    ) : isLottie(getPreviewUrl(item)) ? (
-                      <UniversalAnimationPlayer
-                        src={getPreviewUrl(item)!}
-                        className="w-full h-full"
-                        loop={true}
-                        autoPlay={true}
-                      />
-                    ) : isVideo(getPreviewUrl(item)) ? (
-                      <video 
-                        src={getPreviewUrl(item)!} 
-                        className="w-full h-full object-cover" 
-                        autoPlay 
-                        muted 
-                        loop 
-                        playsInline
-                      />
-                    ) : (
-                      <img src={getPreviewUrl(item)!} alt={item.name} className="w-full h-full object-cover" />
-                    )
+                  {getCardThumbnail(item) ? (
+                    <img src={getCardThumbnail(item)!} alt={item.name} className="w-full h-full object-cover" />
                   ) : (
                     <CategoryIcon className="w-8 h-8 text-purple-400" />
                   )}
@@ -764,14 +745,24 @@ const AdminShop = () => {
 
               {/* Actions */}
               <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/10">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => setFullscreenPreviewItem(item)}
+                    className="text-cyan-400 hover:bg-cyan-400/10"
+                    title="Preview Animation"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </Button>
                   <Button
                     size="icon"
                     variant="ghost"
                     onClick={() => toggleActive(item)}
                     className={item.is_active ? "text-green-400" : "text-red-400"}
+                    title={item.is_active ? "Deactivate" : "Activate"}
                   >
-                    {item.is_active ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                    {item.is_active ? <EyeOff className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                   </Button>
                   <Button
                     size="icon"
@@ -1173,6 +1164,36 @@ const AdminShop = () => {
              >
                Cancel
             </Button>
+          </div>
+        </div>
+      )}
+      {/* Fullscreen Animation Preview Dialog */}
+      {fullscreenPreviewItem && (
+        <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center" onClick={() => setFullscreenPreviewItem(null)}>
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => setFullscreenPreviewItem(null)}
+            className="absolute top-4 right-4 text-white z-10 bg-white/10 hover:bg-white/20 rounded-full"
+          >
+            <X className="w-6 h-6" />
+          </Button>
+          <div className="text-center">
+            <p className="text-white font-bold text-lg mb-4">{fullscreenPreviewItem.name}</p>
+            <div className="w-[80vw] h-[60vh] max-w-[500px] max-h-[500px] flex items-center justify-center mx-auto" onClick={e => e.stopPropagation()}>
+              {(() => {
+                const url = getAnimationUrl(fullscreenPreviewItem);
+                if (!url) return <p className="text-white/50">No animation file</p>;
+                if (isSVGA(url)) return (
+                  <Suspense fallback={<div className="w-40 h-40 bg-purple-500/20 animate-pulse rounded-full" />}>
+                    <UniversalAnimationPlayer src={url} className="w-full h-full" loop autoPlay />
+                  </Suspense>
+                );
+                if (isLottie(url)) return <UniversalAnimationPlayer src={url} className="w-full h-full" loop autoPlay />;
+                if (isVideo(url)) return <video src={url} className="w-full h-full object-contain" autoPlay muted loop playsInline />;
+                return <img src={url} alt={fullscreenPreviewItem.name} className="w-full h-full object-contain" />;
+              })()}
+            </div>
           </div>
         </div>
       )}
