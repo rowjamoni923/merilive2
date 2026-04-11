@@ -29,6 +29,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { parseSettingValue, saveAppSetting } from "@/utils/adminSettingsStorage";
 
 interface CommissionTier {
   min_earnings: number;
@@ -106,7 +107,7 @@ export default function AdminCommissions() {
 
       const settingsMap: any = {};
       data?.forEach(item => {
-        settingsMap[item.setting_key] = item.setting_value;
+        settingsMap[item.setting_key] = parseSettingValue(item.setting_value);
       });
 
       // Default agency commission settings
@@ -124,14 +125,7 @@ export default function AdminCommissions() {
 
       // Auto-initialize agency_commission if not exists
       if (!settingsMap.agency_commission) {
-        await supabase
-          .from("app_settings")
-          .insert({ 
-            setting_key: 'agency_commission', 
-            setting_value: defaultAgencyCommission,
-            category: 'commission',
-            description: 'Agency commission settings including tiered rates'
-          });
+        await saveAppSetting('agency_commission', defaultAgencyCommission, 'Agency commission settings including tiered rates');
         settingsMap.agency_commission = defaultAgencyCommission;
       }
 
@@ -185,39 +179,7 @@ export default function AdminCommissions() {
     if (!guardStart(`save-${key}`)) return;
     setSaving(key);
     try {
-      // First check if the setting exists
-      const { data: existing, error: checkError } = await supabase
-        .from("app_settings")
-        .select("id")
-        .eq("setting_key", key)
-        .maybeSingle();
-
-      if (checkError) throw checkError;
-
-      if (existing) {
-        // Update existing setting
-        const { error: updateError } = await supabase
-          .from("app_settings")
-          .update({ 
-            setting_value: value, 
-            updated_at: new Date().toISOString() 
-          })
-          .eq("setting_key", key);
-
-        if (updateError) throw updateError;
-      } else {
-        // Insert new setting
-        const { error: insertError } = await supabase
-          .from("app_settings")
-          .insert({ 
-            setting_key: key, 
-            setting_value: value,
-            category: 'commission',
-            description: `${key} settings`
-          });
-        
-        if (insertError) throw insertError;
-      }
+      await saveAppSetting(key, value, `${key} settings`);
 
       // NOTE: Commission tiers are now managed centrally in agency_level_tiers table
       // No sync needed - direct editing in Agency Management or Agency Policy pages

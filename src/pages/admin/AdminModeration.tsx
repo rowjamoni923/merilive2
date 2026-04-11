@@ -41,6 +41,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { saveAppSetting } from "@/utils/adminSettingsStorage";
 
 interface ModerationLog {
   id: string;
@@ -177,10 +178,7 @@ export default function AdminModeration() {
       ];
 
       for (const update of updates) {
-        await supabase
-          .from("app_settings")
-          .update({ setting_value: update.setting_value })
-          .eq("setting_key", update.setting_key);
+        await saveAppSetting(update.setting_key, update.setting_value, `${update.setting_key} settings`);
       }
 
       toast.success("Settings saved");

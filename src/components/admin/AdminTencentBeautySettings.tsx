@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Sparkles, Save, Eye, EyeOff, RefreshCw, Shield, Key, Smartphone } from "lucide-react";
+import { parseSettingValue, saveAppSetting } from "@/utils/adminSettingsStorage";
 
 const AdminTencentBeautySettings = () => {
   const [loading, setLoading] = useState(true);
@@ -43,7 +44,7 @@ const AdminTencentBeautySettings = () => {
 
       if (data) {
         const map: Record<string, any> = {};
-        data.forEach((r) => (map[r.setting_key] = r.setting_value));
+        data.forEach((r) => (map[r.setting_key] = parseSettingValue(r.setting_value)));
 
         setSettings({
           appId: (map.tencent_beauty_app_id as string) || "",
@@ -71,10 +72,7 @@ const AdminTencentBeautySettings = () => {
       ];
 
       for (const entry of entries) {
-        const { error } = await supabase
-          .from("app_settings")
-          .upsert({ setting_key: entry.setting_key, setting_value: String(entry.setting_value), description: entry.description } as any, { onConflict: "setting_key" });
-        if (error) throw error;
+        await saveAppSetting(entry.setting_key, entry.setting_value, entry.description);
       }
 
       toast.success("Tencent Beauty settings saved successfully!");

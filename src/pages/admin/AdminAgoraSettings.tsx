@@ -19,6 +19,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { saveAppSetting } from "@/utils/adminSettingsStorage";
 
 export default function AdminAgoraSettings() {
   const [appId, setAppId] = useState("");
@@ -85,29 +86,12 @@ export default function AdminAgoraSettings() {
     setSaving(true);
     try {
       const settings = [
-        { setting_key: "agora_app_id", setting_value: appId.trim(), category: "media", description: "Agora RTC App ID" },
-        { setting_key: "agora_app_certificate", setting_value: appCertificate.trim(), category: "media", description: "Agora RTC App Certificate" },
+        { setting_key: "agora_app_id", setting_value: appId.trim(), description: "Agora RTC App ID" },
+        { setting_key: "agora_app_certificate", setting_value: appCertificate.trim(), description: "Agora RTC App Certificate" },
       ];
 
       for (const setting of settings) {
-        const { data: existing } = await supabase
-          .from("app_settings")
-          .select("id")
-          .eq("setting_key", setting.setting_key)
-          .maybeSingle();
-
-        if (existing) {
-          const { error } = await supabase
-            .from("app_settings")
-            .update({ setting_value: setting.setting_value, updated_at: new Date().toISOString() })
-            .eq("setting_key", setting.setting_key);
-          if (error) throw error;
-        } else {
-          const { error } = await supabase
-            .from("app_settings")
-            .insert(setting);
-          if (error) throw error;
-        }
+        await saveAppSetting(setting.setting_key, setting.setting_value, setting.description);
       }
 
       setLastUpdated(new Date().toISOString());

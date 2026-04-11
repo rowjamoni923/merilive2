@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, Save, RefreshCw, Smartphone, Apple, Download, AlertTriangle } from "lucide-react";
+import { parseSettingValue } from "@/utils/adminSettingsStorage";
 
 interface VersionSettings {
   id: string;
@@ -20,6 +21,18 @@ interface VersionSettings {
   play_store_url: string;
   updated_at: string;
 }
+
+const normalizeVersionSettings = (row: any): VersionSettings => ({
+  id: row.id,
+  platform: row.platform,
+  current_version_code: Number((parseSettingValue<string>(row.current_version) || '0').toString().split('.').join('')) || 0,
+  current_version_name: parseSettingValue<string>(row.current_version) || '1.0.0',
+  min_version_code: Number((parseSettingValue<string>(row.minimum_version) || '0').toString().split('.').join('')) || 0,
+  force_update: Boolean(row.force_update),
+  update_message: parseSettingValue<string>(row.changelog) || '',
+  play_store_url: parseSettingValue<string>(row.update_url) || '',
+  updated_at: row.updated_at,
+});
 
 const AdminAppVersion = () => {
   const [loading, setLoading] = useState(false);
@@ -39,8 +52,8 @@ const AdminAppVersion = () => {
       const android = data?.find(s => s.platform === 'android');
       const ios = data?.find(s => s.platform === 'ios');
 
-      setAndroidSettings(android || null);
-      setIosSettings(ios || null);
+      setAndroidSettings(android ? normalizeVersionSettings(android) : null);
+      setIosSettings(ios ? normalizeVersionSettings(ios) : null);
     } catch (error) {
       console.error('Error fetching version settings:', error);
       toast.error('Failed to load version settings');
@@ -59,12 +72,11 @@ const AdminAppVersion = () => {
       const { error } = await supabase
         .from('app_version_settings')
         .update({
-          current_version_code: settings.current_version_code,
-          current_version_name: settings.current_version_name,
-          min_version_code: settings.min_version_code,
+          current_version: settings.current_version_name,
+          minimum_version: settings.min_version_code > 0 ? String(settings.min_version_code) : settings.current_version_name,
           force_update: settings.force_update,
-          update_message: settings.update_message,
-          play_store_url: settings.play_store_url,
+          changelog: settings.update_message,
+          update_url: settings.play_store_url,
           updated_at: new Date().toISOString(),
         })
         .eq('id', settings.id);
