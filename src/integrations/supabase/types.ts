@@ -1868,6 +1868,7 @@ export type Database = {
       daily_login_claims: {
         Row: {
           claimed_at: string | null
+          claimed_date: string | null
           day_number: number
           id: string
           reward_amount: number
@@ -1877,6 +1878,7 @@ export type Database = {
         }
         Insert: {
           claimed_at?: string | null
+          claimed_date?: string | null
           day_number: number
           id?: string
           reward_amount: number
@@ -1886,6 +1888,7 @@ export type Database = {
         }
         Update: {
           claimed_at?: string | null
+          claimed_date?: string | null
           day_number?: number
           id?: string
           reward_amount?: number
@@ -1897,6 +1900,7 @@ export type Database = {
       }
       daily_login_rewards_config: {
         Row: {
+          bonus_label: string | null
           created_at: string | null
           day_number: number
           description: string | null
@@ -1904,9 +1908,12 @@ export type Database = {
           id: string
           is_active: boolean | null
           reward_amount: number
+          reward_coins: number
+          reward_diamonds: number
           reward_type: string
         }
         Insert: {
+          bonus_label?: string | null
           created_at?: string | null
           day_number: number
           description?: string | null
@@ -1914,9 +1921,12 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           reward_amount: number
+          reward_coins?: number
+          reward_diamonds?: number
           reward_type: string
         }
         Update: {
+          bonus_label?: string | null
           created_at?: string | null
           day_number?: number
           description?: string | null
@@ -1924,6 +1934,8 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           reward_amount?: number
+          reward_coins?: number
+          reward_diamonds?: number
           reward_type?: string
         }
         Relationships: []
@@ -5900,10 +5912,12 @@ export type Database = {
           gender: string | null
           hide_location: boolean
           host_level: number | null
+          host_photos: string[]
           host_status: string | null
           host_verified_at: string | null
           id: string
           is_agency_owner: boolean | null
+          is_banned: boolean
           is_blocked: boolean | null
           is_deleted: boolean | null
           is_face_verified: boolean | null
@@ -5915,6 +5929,7 @@ export type Database = {
           last_login_device: string | null
           last_login_device_info: Json | null
           last_login_ip: string | null
+          last_seen: string
           last_seen_at: string | null
           max_user_level: number | null
           pending_earnings: number | null
@@ -5928,6 +5943,7 @@ export type Database = {
           previous_medal_id: string | null
           previous_noble_card_id: string | null
           previous_vehicle_id: string | null
+          profile_photo_url: string | null
           region: string | null
           registration_device_info: Json | null
           registration_ip: string | null
@@ -5942,6 +5958,7 @@ export type Database = {
           updated_at: string | null
           user_level: number | null
           username: string | null
+          verification_type: string | null
           vip_expires_at: string | null
           weekly_earnings: number | null
           weekly_reset_at: string | null
@@ -5987,10 +6004,12 @@ export type Database = {
           gender?: string | null
           hide_location?: boolean
           host_level?: number | null
+          host_photos?: string[]
           host_status?: string | null
           host_verified_at?: string | null
           id: string
           is_agency_owner?: boolean | null
+          is_banned?: boolean
           is_blocked?: boolean | null
           is_deleted?: boolean | null
           is_face_verified?: boolean | null
@@ -6002,6 +6021,7 @@ export type Database = {
           last_login_device?: string | null
           last_login_device_info?: Json | null
           last_login_ip?: string | null
+          last_seen?: string
           last_seen_at?: string | null
           max_user_level?: number | null
           pending_earnings?: number | null
@@ -6015,6 +6035,7 @@ export type Database = {
           previous_medal_id?: string | null
           previous_noble_card_id?: string | null
           previous_vehicle_id?: string | null
+          profile_photo_url?: string | null
           region?: string | null
           registration_device_info?: Json | null
           registration_ip?: string | null
@@ -6029,6 +6050,7 @@ export type Database = {
           updated_at?: string | null
           user_level?: number | null
           username?: string | null
+          verification_type?: string | null
           vip_expires_at?: string | null
           weekly_earnings?: number | null
           weekly_reset_at?: string | null
@@ -6074,10 +6096,12 @@ export type Database = {
           gender?: string | null
           hide_location?: boolean
           host_level?: number | null
+          host_photos?: string[]
           host_status?: string | null
           host_verified_at?: string | null
           id?: string
           is_agency_owner?: boolean | null
+          is_banned?: boolean
           is_blocked?: boolean | null
           is_deleted?: boolean | null
           is_face_verified?: boolean | null
@@ -6089,6 +6113,7 @@ export type Database = {
           last_login_device?: string | null
           last_login_device_info?: Json | null
           last_login_ip?: string | null
+          last_seen?: string
           last_seen_at?: string | null
           max_user_level?: number | null
           pending_earnings?: number | null
@@ -6102,6 +6127,7 @@ export type Database = {
           previous_medal_id?: string | null
           previous_noble_card_id?: string | null
           previous_vehicle_id?: string | null
+          profile_photo_url?: string | null
           region?: string | null
           registration_device_info?: Json | null
           registration_ip?: string | null
@@ -6116,6 +6142,7 @@ export type Database = {
           updated_at?: string | null
           user_level?: number | null
           username?: string | null
+          verification_type?: string | null
           vip_expires_at?: string | null
           weekly_earnings?: number | null
           weekly_reset_at?: string | null
