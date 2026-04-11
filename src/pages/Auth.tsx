@@ -685,6 +685,10 @@ const Auth = () => {
         throw error;
       }
       await recordAttempt(email, true);
+      
+      // Sync profile from legacy project if needed (fire-and-forget)
+      supabase.functions.invoke('sync-user-profile').catch(() => {});
+      
       toast({
         title: "Welcome!",
         description: "Logged in successfully.",
