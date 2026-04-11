@@ -284,23 +284,32 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           const avatarUrl = user.user_metadata?.avatar_url ||
             user.user_metadata?.picture || null;
 
-          const { data: newProfile } = await supabase
+          const { data: newProfile, error: createProfileError } = await supabase
             .from("profiles")
             .insert({
               id: user.id,
               display_name: displayName,
+              username: user.email?.includes('@meri.local') ? null : user.email?.split('@')[0] || null,
               avatar_url: avatarUrl,
               gender: user.user_metadata?.gender || 'male',
               coins: 0,
+              diamonds: 0,
+              beans: 0,
+              beans_balance: 0,
               total_earnings: 0,
+              total_consumption: 0,
               pending_earnings: 0,
               is_host: false,
               is_verified: false,
-              level: 1,
-              consumption_coins: 0,
+              user_level: 1,
+              last_seen: new Date().toISOString(),
             })
             .select()
             .single();
+
+          if (createProfileError) {
+            console.error("[Profile] Failed to create fallback profile:", createProfileError);
+          }
 
           profileData = newProfile;
         }
