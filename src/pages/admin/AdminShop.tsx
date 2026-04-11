@@ -1058,7 +1058,7 @@ const AdminShop = () => {
                 {/* Preview Image Upload */}
                 <div className="col-span-2">
                   <Label className="text-white/80 flex items-center gap-2">
-                    <ImageIcon className="h-4 w-4 text-blue-400" />
+                    <Image className="h-4 w-4 text-blue-400" />
                     Preview Photo (Optional)
                   </Label>
                   
