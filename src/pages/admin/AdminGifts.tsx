@@ -115,6 +115,12 @@ export default function AdminGifts() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+
+  // Lucky gift config state
+  interface LuckyRewardTier { id: string; gift_id: string | null; diamond_reward: number; win_chance_percent: number; display_order: number; is_active: boolean; }
+  const [luckyConfigs, setLuckyConfigs] = useState<LuckyRewardTier[]>([]);
+  const [showLuckyConfig, setShowLuckyConfig] = useState(false);
+  const [luckyConfigGiftId, setLuckyConfigGiftId] = useState<string | null>(null);
   
   const iconInputRef = useRef<HTMLInputElement>(null);
   const animationInputRef = useRef<HTMLInputElement>(null);
