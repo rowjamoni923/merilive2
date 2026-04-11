@@ -1186,51 +1186,78 @@ export type Database = {
       }
       avatar_frames: {
         Row: {
+          animation_type: string | null
           animation_url: string | null
           category: string | null
           created_at: string | null
+          description: string | null
           display_order: number | null
+          frame_type: string | null
+          frame_url: string | null
           id: string
           image_url: string
           is_active: boolean | null
           is_free: boolean | null
           is_premium: boolean | null
           level_required: number | null
+          min_level: number | null
           name: string
+          preview_url: string | null
           price_coins: number | null
           price_diamonds: number | null
+          sound_duration_ms: number | null
+          sound_url: string | null
+          target_type: string | null
           updated_at: string | null
         }
         Insert: {
+          animation_type?: string | null
           animation_url?: string | null
           category?: string | null
           created_at?: string | null
+          description?: string | null
           display_order?: number | null
+          frame_type?: string | null
+          frame_url?: string | null
           id?: string
           image_url: string
           is_active?: boolean | null
           is_free?: boolean | null
           is_premium?: boolean | null
           level_required?: number | null
+          min_level?: number | null
           name: string
+          preview_url?: string | null
           price_coins?: number | null
           price_diamonds?: number | null
+          sound_duration_ms?: number | null
+          sound_url?: string | null
+          target_type?: string | null
           updated_at?: string | null
         }
         Update: {
+          animation_type?: string | null
           animation_url?: string | null
           category?: string | null
           created_at?: string | null
+          description?: string | null
           display_order?: number | null
+          frame_type?: string | null
+          frame_url?: string | null
           id?: string
           image_url?: string
           is_active?: boolean | null
           is_free?: boolean | null
           is_premium?: boolean | null
           level_required?: number | null
+          min_level?: number | null
           name?: string
+          preview_url?: string | null
           price_coins?: number | null
           price_diamonds?: number | null
+          sound_duration_ms?: number | null
+          sound_url?: string | null
+          target_type?: string | null
           updated_at?: string | null
         }
         Relationships: []
