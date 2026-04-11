@@ -351,7 +351,7 @@ const AdminRoleFrames = () => {
 
   const openEditFrame = (frame: RoleFrame) => {
     setEditingFrame(frame);
-    setFrameForm(frame);
+    setFrameForm({ ...frame, frame_name: (frame as any).name || frame.frame_name });
     setFrameDialogOpen(true);
   };
 
