@@ -6,15 +6,11 @@ const corsHeaders = {
 };
 
 /**
- * Admin Sync Auth
+ * Admin Sync Auth - Current Server Only
  * 
- * When an admin user exists in admin_users table but has NO auth account,
- * this function creates a new Supabase Auth account with the given password.
- * 
- * If auth account already exists, it does NOT change the password.
- * Password changes should only happen through:
- * 1. "Forgot Password" flow (send-password-otp)
- * 2. Admin panel reset (admin-reset-user-password)
+ * Creates auth accounts for admin users that exist in admin_users table
+ * but don't have a corresponding auth account yet.
+ * All data comes from the CURRENT database only - no legacy server dependency.
  */
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -36,20 +32,8 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
-    const oldSupabaseUrlRaw = (Deno.env.get("OLD_SUPABASE_URL") || "").trim();
-    const oldSupabaseKey = (Deno.env.get("OLD_SUPABASE_SERVICE_ROLE_KEY") || "").trim();
-    const oldSupabaseAnonKey = (Deno.env.get("OLD_SUPABASE_ANON_KEY") || "").trim();
-    const oldSupabaseUrl = oldSupabaseUrlRaw && !oldSupabaseUrlRaw.startsWith("http")
-      ? `https://${oldSupabaseUrlRaw}`
-      : oldSupabaseUrlRaw;
-    const oldClient = oldSupabaseUrl && oldSupabaseKey
-      ? createClient(oldSupabaseUrl, oldSupabaseKey)
-      : null;
-    const oldAuthClient = oldSupabaseUrl && oldSupabaseAnonKey
-      ? createClient(oldSupabaseUrl, oldSupabaseAnonKey)
-      : null;
 
-    // 1. Check if this email exists in current admin_users and is active
+    // 1. Check if this email exists in admin_users
     const { data: adminUser, error: adminError } = await adminClient
       .from("admin_users")
       .select("id, user_id, email, display_name, role, is_active")
@@ -57,20 +41,14 @@ Deno.serve(async (req) => {
       .eq("is_active", true)
       .maybeSingle();
 
-    const legacyIdentity = await findLegacyIdentity(oldClient, normalizedEmail);
-    const legacyAuthUser = await findLegacyAuthUser(oldClient, normalizedEmail);
-    const legacyCredentialsValid = legacyAuthUser
-      ? await verifyLegacyCredentials(oldAuthClient, normalizedEmail, password)
-      : false;
-
     if (adminError) {
       console.error("[admin-sync-auth] Failed reading admin_users:", adminError);
     }
 
-    if (!adminUser && !legacyIdentity && !legacyAuthUser) {
-      console.log("[admin-sync-auth] Email not found in admin_users or legacy source:", normalizedEmail);
+    if (!adminUser) {
+      console.log("[admin-sync-auth] Email not found in admin_users:", normalizedEmail);
       return new Response(
-        JSON.stringify({ success: false, reason: "not_found_in_legacy" }),
+        JSON.stringify({ success: false, reason: "not_found" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -97,7 +75,7 @@ Deno.serve(async (req) => {
     }
 
     if (existingUserId) {
-      // Auth account exists — only sync password if old credentials were verified against legacy auth
+      // Auth account exists — link user_id if needed
       if (adminUser && !adminUser.user_id) {
         await adminClient
           .from("admin_users")
@@ -106,59 +84,38 @@ Deno.serve(async (req) => {
         console.log(`[admin-sync-auth] Linked user_id for: ${normalizedEmail}`);
       }
 
-      if (legacyAuthUser && !legacyCredentialsValid) {
-        return new Response(
-          JSON.stringify({ success: false, reason: "invalid_legacy_credentials", message: "Legacy password verification failed" }),
-          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      if (!legacyAuthUser) {
-        console.log(`[admin-sync-auth] Auth account already exists for: ${normalizedEmail} — no legacy auth account to verify against`);
-        return new Response(
-          JSON.stringify({ success: false, reason: "account_exists", message: "Use Forgot Password or contact admin to reset" }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
+      // Try to update password for existing account
       const { error: updateAuthError } = await adminClient.auth.admin.updateUserById(existingUserId, {
         password,
         email_confirm: true,
         user_metadata: {
-          full_name: legacyIdentity?.displayName || adminUser?.display_name || "",
-          name: legacyIdentity?.displayName || adminUser?.display_name || "",
+          full_name: adminUser.display_name || "",
+          name: adminUser.display_name || "",
         },
       });
 
       if (updateAuthError) {
-        console.error("[admin-sync-auth] Failed to sync existing auth user password:", updateAuthError);
+        console.error("[admin-sync-auth] Failed to update auth user:", updateAuthError);
         return new Response(
-          JSON.stringify({ success: false, reason: "password_sync_failed", error: updateAuthError.message }),
+          JSON.stringify({ success: false, reason: "update_failed", error: updateAuthError.message }),
           { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      console.log(`[admin-sync-auth] Auth account already exists for: ${normalizedEmail} — password synced`);
+      console.log(`[admin-sync-auth] Password synced for: ${normalizedEmail}`);
       return new Response(
         JSON.stringify({ success: true, action: "password_synced", user_id: existingUserId }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     } else {
-      // No auth account — create one with the given password
-      if (legacyAuthUser && !legacyCredentialsValid) {
-        return new Response(
-          JSON.stringify({ success: false, reason: "invalid_legacy_credentials", message: "Legacy password verification failed" }),
-          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
+      // No auth account — create one
       const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
         email: normalizedEmail,
         password,
         email_confirm: true,
         user_metadata: {
-          full_name: legacyIdentity?.displayName || adminUser?.display_name || "",
-          name: legacyIdentity?.displayName || adminUser?.display_name || "",
+          full_name: adminUser.display_name || "",
+          name: adminUser.display_name || "",
         },
       });
 
@@ -171,7 +128,7 @@ Deno.serve(async (req) => {
       }
 
       // Link user_id in admin_users
-      if (newUser?.user && adminUser) {
+      if (newUser?.user) {
         await adminClient
           .from("admin_users")
           .update({ user_id: newUser.user.id })
@@ -192,114 +149,3 @@ Deno.serve(async (req) => {
     );
   }
 });
-
-async function findLegacyIdentity(oldClient: ReturnType<typeof createClient> | null, email: string) {
-  if (!oldClient) return null;
-
-  try {
-    const { data: legacyProfile } = await oldClient
-      .from("profiles")
-      .select("id, email, display_name, username")
-      .ilike("email", email)
-      .maybeSingle();
-
-    if (legacyProfile) {
-      return {
-        id: legacyProfile.id,
-        displayName: legacyProfile.display_name || legacyProfile.username || email.split("@")[0],
-        source: "legacy_profile",
-      };
-    }
-  } catch (error) {
-    console.warn("[admin-sync-auth] Legacy profile lookup failed:", error);
-  }
-
-  try {
-    const { data: legacyAdmin } = await oldClient
-      .from("admin_users")
-      .select("id, email, display_name")
-      .ilike("email", email)
-      .maybeSingle();
-
-    if (legacyAdmin) {
-      return {
-        id: legacyAdmin.id,
-        displayName: legacyAdmin.display_name || email.split("@")[0],
-        source: "legacy_admin",
-      };
-    }
-  } catch (error) {
-    console.warn("[admin-sync-auth] Legacy admin lookup failed:", error);
-  }
-
-  try {
-    let page = 1;
-    const perPage = 200;
-
-    while (true) {
-      const { data, error } = await oldClient.auth.admin.listUsers({ page, perPage });
-      if (error) break;
-
-      const users = data?.users ?? [];
-      const matched = users.find((user) => user.email?.toLowerCase() === email);
-      if (matched) {
-        return {
-          id: matched.id,
-          displayName: matched.user_metadata?.full_name || matched.user_metadata?.name || email.split("@")[0],
-          source: "legacy_auth",
-        };
-      }
-
-      if (users.length < perPage) break;
-      page += 1;
-    }
-  } catch (error) {
-    console.warn("[admin-sync-auth] Legacy auth lookup failed:", error);
-  }
-
-  return null;
-}
-
-async function findLegacyAuthUser(oldClient: ReturnType<typeof createClient> | null, email: string) {
-  if (!oldClient) return null;
-
-  try {
-    let page = 1;
-    const perPage = 200;
-
-    while (true) {
-      const { data, error } = await oldClient.auth.admin.listUsers({ page, perPage });
-      if (error) break;
-
-      const users = data?.users ?? [];
-      const matched = users.find((user) => user.email?.toLowerCase() === email);
-      if (matched) {
-        return matched;
-      }
-
-      if (users.length < perPage) break;
-      page += 1;
-    }
-  } catch (error) {
-    console.warn("[admin-sync-auth] Legacy auth user lookup failed:", error);
-  }
-
-  return null;
-}
-
-async function verifyLegacyCredentials(oldAuthClient: ReturnType<typeof createClient> | null, email: string, password: string) {
-  if (!oldAuthClient) return false;
-
-  try {
-    const { data, error } = await oldAuthClient.auth.signInWithPassword({ email, password });
-    if (error || !data?.session) {
-      return false;
-    }
-
-    await oldAuthClient.auth.signOut();
-    return true;
-  } catch (error) {
-    console.warn("[admin-sync-auth] Legacy credential verification failed:", error);
-    return false;
-  }
-}
