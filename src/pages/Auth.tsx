@@ -694,7 +694,7 @@ const Auth = () => {
           console.error("[Auth] legacy auth sync failed:", syncError);
         }
 
-        if (syncResult?.success) {
+        if (syncResult?.success || syncResult?.reason === "account_exists") {
           const retry = await supabase.auth.signInWithPassword({
             email: normalizedEmail,
             password,

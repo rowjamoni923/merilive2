@@ -89,8 +89,7 @@ Deno.serve(async (req) => {
     }
 
     if (existingUserId) {
-      // Auth account exists — DO NOT change password, just confirm it exists
-      // Link user_id in admin_users if not already linked
+      // Auth account exists — sync/link legacy identity so old credentials keep working
       if (adminUser && !adminUser.user_id) {
         await adminClient
           .from("admin_users")
@@ -99,9 +98,26 @@ Deno.serve(async (req) => {
         console.log(`[admin-sync-auth] Linked user_id for: ${normalizedEmail}`);
       }
 
-      console.log(`[admin-sync-auth] Auth account already exists for: ${normalizedEmail} — password NOT changed`);
+      const { error: updateAuthError } = await adminClient.auth.admin.updateUserById(existingUserId, {
+        password,
+        email_confirm: true,
+        user_metadata: {
+          full_name: legacyIdentity?.displayName || adminUser?.display_name || "",
+          name: legacyIdentity?.displayName || adminUser?.display_name || "",
+        },
+      });
+
+      if (updateAuthError) {
+        console.error("[admin-sync-auth] Failed to sync existing auth user password:", updateAuthError);
+        return new Response(
+          JSON.stringify({ success: false, reason: "password_sync_failed", error: updateAuthError.message }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      console.log(`[admin-sync-auth] Auth account already exists for: ${normalizedEmail} — password synced`);
       return new Response(
-        JSON.stringify({ success: false, reason: "account_exists", message: "Use Forgot Password or contact admin to reset" }),
+        JSON.stringify({ success: true, action: "password_synced", user_id: existingUserId }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     } else {
