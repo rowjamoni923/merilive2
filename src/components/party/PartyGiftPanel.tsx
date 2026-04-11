@@ -29,16 +29,11 @@ interface GiftCategory {
 }
 
 const defaultCategories: GiftCategory[] = [
-  { id: "popular", name: "Popular", icon: "⭐" },
-  { id: "love", name: "Love", icon: "❤️" },
-  { id: "luxury", name: "Luxury", icon: "👑" },
-  { id: "party", name: "Party", icon: "🎉" },
-  { id: "gems", name: "Gems", icon: "💎" },
-  { id: "nature", name: "Nature", icon: "🌸" },
-  { id: "vehicles", name: "Vehicles", icon: "🚗" },
-  { id: "food", name: "Food", icon: "🍕" },
-  { id: "premium", name: "Premium", icon: "🚀" },
-  { id: "special", name: "Special", icon: "🦄" },
+  { id: "wall", name: "Wall", icon: "🏠" },
+  { id: "lucky", name: "Lucky", icon: "🎰" },
+  { id: "luxurious", name: "Luxurious", icon: "👑" },
+  { id: "vip", name: "VIP", icon: "💎" },
+  { id: "pro", name: "Pro", icon: "🚀" },
 ];
 
 interface PartyGiftPanelProps {
@@ -76,7 +71,7 @@ const PartyGiftPanel = ({ isOpen, onClose, userCoins, onSendGift }: PartyGiftPan
           name: gift.name,
           emoji: '', // No defaults - only DB assets
           coins: gift.coin_value,
-          category: gift.category || 'popular',
+          category: gift.category || 'wall',
           animationType: getAnimationType(gift.coin_value),
           icon_url: gift.icon_url?.startsWith('http') ? gift.icon_url : 
                     (gift.animation_url?.startsWith('http') ? gift.animation_url : null),

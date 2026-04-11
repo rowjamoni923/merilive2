@@ -74,25 +74,18 @@ interface GiftItem {
   created_at: string | null;
   sound_url: string | null;
   sound_duration_ms: number | null;
+  min_level: number | null;
+  is_lucky: boolean | null;
 }
 
 // Gift categories with icons - English labels
 const giftCategories = [
   { id: "all", name: "All Gifts", icon: Gift, color: "from-pink-500 to-purple-500" },
-  { id: "popular", name: "Popular", icon: Star, color: "from-amber-500 to-orange-500" },
-  { id: "love", name: "Love", icon: Heart, color: "from-red-500 to-pink-500" },
-  { id: "luxury", name: "Luxury", icon: Crown, color: "from-yellow-500 to-amber-500" },
-  { id: "nature", name: "Nature", icon: Flower2, color: "from-green-500 to-emerald-500" },
-  { id: "party", name: "Party", icon: PartyPopper, color: "from-purple-500 to-pink-500" },
-  { id: "gems", name: "Gems", icon: Gem, color: "from-cyan-500 to-blue-500" },
-  { id: "vehicles", name: "Vehicles", icon: Car, color: "from-slate-500 to-gray-600" },
-  { id: "travel", name: "Travel", icon: Plane, color: "from-sky-500 to-blue-500" },
-  { id: "music", name: "Music", icon: Music, color: "from-violet-500 to-purple-500" },
-  { id: "gaming", name: "Gaming", icon: Gamepad2, color: "from-indigo-500 to-blue-500" },
-  { id: "food", name: "Food", icon: Pizza, color: "from-orange-500 to-red-500" },
-  { id: "building", name: "Building", icon: Building, color: "from-gray-500 to-slate-600" },
-  { id: "fire", name: "Fire", icon: Flame, color: "from-orange-600 to-red-600" },
-  { id: "power", name: "Power", icon: Zap, color: "from-yellow-400 to-amber-500" },
+  { id: "wall", name: "Wall", icon: Building, color: "from-slate-500 to-gray-600" },
+  { id: "lucky", name: "Lucky", icon: Sparkles, color: "from-yellow-400 to-amber-500" },
+  { id: "luxurious", name: "Luxurious", icon: Crown, color: "from-yellow-500 to-amber-500" },
+  { id: "vip", name: "VIP", icon: Gem, color: "from-purple-500 to-pink-500" },
+  { id: "pro", name: "Pro", icon: Rocket, color: "from-cyan-500 to-blue-500" },
 ];
 
 const animationTypes = [
@@ -122,6 +115,12 @@ export default function AdminGifts() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+
+  // Lucky gift config state
+  interface LuckyRewardTier { id: string; gift_id: string | null; diamond_reward: number; win_chance_percent: number; display_order: number; is_active: boolean; }
+  const [luckyConfigs, setLuckyConfigs] = useState<LuckyRewardTier[]>([]);
+  const [showLuckyConfig, setShowLuckyConfig] = useState(false);
+  const [luckyConfigGiftId, setLuckyConfigGiftId] = useState<string | null>(null);
   
   const iconInputRef = useRef<HTMLInputElement>(null);
   const animationInputRef = useRef<HTMLInputElement>(null);
@@ -137,12 +136,14 @@ export default function AdminGifts() {
     icon_url: "",
     animation_type: "svga",
     animation_url: "",
-    animation_data: null as object | null, // For Lottie JSON
-    category: "popular",
+    animation_data: null as object | null,
+    category: "wall",
     display_order: 0,
     is_active: true,
     sound_url: "",
     sound_duration_ms: 3000,
+    min_level: 0,
+    is_lucky: false,
   });
 
   const soundInputRef = useRef<HTMLInputElement>(null);
@@ -173,7 +174,51 @@ export default function AdminGifts() {
   }, [location.pathname]);
 
   // Real-time updates
-  useAdminRealtime(['gifts', 'gift_categories'], fetchGifts, 'admin-gifts-rt');
+  useAdminRealtime(['gifts', 'gift_categories', 'lucky_gift_config'], fetchGifts, 'admin-gifts-rt');
+
+  // Lucky Gift Config Management
+  const fetchLuckyConfigs = useCallback(async (giftId: string) => {
+    const { data, error } = await supabase
+      .from('lucky_gift_config' as any)
+      .select('*')
+      .eq('gift_id', giftId)
+      .order('display_order');
+    if (!error && data) setLuckyConfigs(data as any);
+  }, []);
+
+  const saveLuckyTier = async (tier: Partial<LuckyRewardTier>) => {
+    if (!luckyConfigGiftId) return;
+    try {
+      if (tier.id) {
+        await supabase.from('lucky_gift_config' as any).update({
+          diamond_reward: tier.diamond_reward,
+          win_chance_percent: tier.win_chance_percent,
+          is_active: tier.is_active,
+        }).eq('id', tier.id);
+      } else {
+        await supabase.from('lucky_gift_config' as any).insert({
+          gift_id: luckyConfigGiftId,
+          diamond_reward: tier.diamond_reward || 1,
+          win_chance_percent: tier.win_chance_percent || 5,
+          display_order: luckyConfigs.length,
+        });
+      }
+      toast.success('Lucky tier saved');
+      fetchLuckyConfigs(luckyConfigGiftId);
+    } catch (e) { toast.error('Failed to save'); }
+  };
+
+  const deleteLuckyTier = async (id: string) => {
+    await supabase.from('lucky_gift_config' as any).delete().eq('id', id);
+    if (luckyConfigGiftId) fetchLuckyConfigs(luckyConfigGiftId);
+    toast.success('Tier deleted');
+  };
+
+  const openLuckyConfig = (giftId: string) => {
+    setLuckyConfigGiftId(giftId);
+    fetchLuckyConfigs(giftId);
+    setShowLuckyConfig(true);
+  };
 
   // Upload to Cloudflare R2 for large files using proxy multipart upload (avoids CORS issues)
   // R2 requires minimum 5MB per part (except last part) for multipart uploads
@@ -486,11 +531,13 @@ export default function AdminGifts() {
       animation_type: gift.animation_type || "svga",
       animation_url: gift.animation_url || "",
       animation_data: null,
-      category: gift.category || "popular",
+      category: gift.category || "wall",
       display_order: gift.display_order || 0,
       is_active: gift.is_active ?? true,
       sound_url: gift.sound_url || "",
       sound_duration_ms: gift.sound_duration_ms || 3000,
+      min_level: (gift as any).min_level || 0,
+      is_lucky: (gift as any).is_lucky || false,
     });
     setShowEditDialog(true);
   };
@@ -505,11 +552,13 @@ export default function AdminGifts() {
       animation_type: "svga",
       animation_url: "",
       animation_data: null,
-      category: selectedCategory === "all" ? "popular" : selectedCategory,
+      category: selectedCategory === "all" ? "wall" : selectedCategory,
       display_order: 0,
       is_active: true,
       sound_url: "",
       sound_duration_ms: 3000,
+      min_level: 0,
+      is_lucky: selectedCategory === "lucky",
     });
     setShowEditDialog(true);
   };
@@ -537,7 +586,7 @@ export default function AdminGifts() {
       // Refresh session before saving to ensure latest permissions
       await supabase.auth.refreshSession();
       
-      const giftData = {
+      const giftData: any = {
         name: formData.name,
         coin_value: formData.coin_value,
         icon_url: formData.icon_url || null,
@@ -548,6 +597,8 @@ export default function AdminGifts() {
         is_active: formData.is_active,
         sound_url: formData.sound_url || null,
         sound_duration_ms: formData.sound_duration_ms || 3000,
+        min_level: formData.min_level || 0,
+        is_lucky: formData.is_lucky || false,
       };
 
       if (editingGift) {
@@ -829,11 +880,17 @@ export default function AdminGifts() {
                     {/* Name */}
                     <p className="text-slate-800 font-medium text-xs md:text-sm mb-1 truncate">{gift.name}</p>
 
-                    {/* Category Badge */}
-                    <div className="mb-1 md:mb-2">
+                    {/* Category Badge + Lucky/Pro indicators */}
+                    <div className="mb-1 md:mb-2 flex flex-wrap gap-1 justify-center">
                       <Badge variant="outline" className="text-[10px] md:text-xs text-purple-600 border-purple-200 px-1 md:px-2">
                         {giftCategories.find(c => c.id === gift.category)?.name || gift.category}
                       </Badge>
+                      {(gift as any).is_lucky && (
+                        <Badge className="text-[10px] md:text-xs bg-yellow-400 text-black px-1">🎰 Lucky</Badge>
+                      )}
+                      {(gift as any).min_level > 0 && (
+                        <Badge className="text-[10px] md:text-xs bg-cyan-500 text-white px-1">Lv.{(gift as any).min_level}+</Badge>
+                      )}
                     </div>
 
                     {/* Price */}
@@ -851,6 +908,17 @@ export default function AdminGifts() {
 
                     {/* Actions */}
                     <div className="flex items-center justify-center gap-1 md:gap-2">
+                      {(gift as any).is_lucky && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => openLuckyConfig(gift.id)}
+                          className="w-6 h-6 md:w-8 md:h-8 text-yellow-500 hover:text-yellow-600 hover:bg-yellow-50"
+                          title="Lucky Gift Config"
+                        >
+                          <Sparkles className="w-3 h-3 md:w-4 md:h-4" />
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="icon"
@@ -969,6 +1037,36 @@ export default function AdminGifts() {
                 className="bg-slate-800 border-slate-600 text-white mt-1.5 md:mt-2 text-sm"
               />
             </div>
+
+            {/* Min Level (for Pro category) */}
+            {(formData.category === 'pro' || formData.min_level > 0) && (
+              <div>
+                <Label className="text-slate-300 font-medium text-sm md:text-base">Minimum Level Required</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={formData.min_level}
+                  onChange={(e) => setFormData({ ...formData, min_level: parseInt(e.target.value) || 0 })}
+                  placeholder="0 = No level requirement"
+                  className="bg-slate-800 border-slate-600 text-white mt-1.5 md:mt-2 text-sm"
+                />
+                <p className="text-xs text-slate-500 mt-1">Users below this level cannot send this gift</p>
+              </div>
+            )}
+
+            {/* Lucky Gift Toggle */}
+            {formData.category === 'lucky' && (
+              <div className="flex items-center gap-3 p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/30">
+                <Switch
+                  checked={formData.is_lucky}
+                  onCheckedChange={(checked) => setFormData({ ...formData, is_lucky: checked })}
+                />
+                <div>
+                  <Label className="text-yellow-400 font-medium text-sm">🎰 Lucky Gift (Lottery)</Label>
+                  <p className="text-xs text-slate-400 mt-0.5">Sender can win diamonds when sending this gift</p>
+                </div>
+              </div>
+            )}
 
             {/* Icon Upload - Primary Upload Button (SVGA/Lottie supported) */}
             <div className="border-2 border-dashed border-pink-500/50 rounded-xl p-3 md:p-4 bg-pink-500/5">
@@ -1412,6 +1510,52 @@ export default function AdminGifts() {
               {saving ? "Saving..." : "Save"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Lucky Gift Config Dialog */}
+      <Dialog open={showLuckyConfig} onOpenChange={setShowLuckyConfig}>
+        <DialogContent className="bg-slate-900 border-slate-700 w-[95vw] max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              🎰 Lucky Gift Lottery Config
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-slate-400 text-sm">Configure diamond reward tiers for this Lucky Gift.</p>
+            <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+              <p className="text-yellow-400 text-sm font-medium">
+                Total Win Chance: {luckyConfigs.reduce((sum, c) => sum + Number(c.win_chance_percent), 0).toFixed(1)}%
+              </p>
+              <p className="text-slate-500 text-xs mt-1">Per 100 gifts ≈ {luckyConfigs.reduce((sum, c) => sum + Number(c.win_chance_percent), 0).toFixed(0)} wins</p>
+            </div>
+            {luckyConfigs.map((tier) => (
+              <div key={tier.id} className="flex items-center gap-2 p-2 bg-slate-800 rounded-lg">
+                <div className="flex-1 grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-slate-400 text-xs">💎 Diamonds</Label>
+                    <Input type="number" min={1} defaultValue={tier.diamond_reward}
+                      onBlur={(e) => saveLuckyTier({ ...tier, diamond_reward: parseInt(e.target.value) || 1 })}
+                      className="bg-slate-700 border-slate-600 text-white text-sm h-8" />
+                  </div>
+                  <div>
+                    <Label className="text-slate-400 text-xs">Win %</Label>
+                    <Input type="number" min={0.01} max={100} step={0.1} defaultValue={tier.win_chance_percent}
+                      onBlur={(e) => saveLuckyTier({ ...tier, win_chance_percent: parseFloat(e.target.value) || 1 })}
+                      className="bg-slate-700 border-slate-600 text-white text-sm h-8" />
+                  </div>
+                </div>
+                <Button variant="ghost" size="icon" className="text-red-400 h-8 w-8" onClick={() => deleteLuckyTier(tier.id)}>
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+              </div>
+            ))}
+            <Button variant="outline" className="w-full border-dashed border-slate-600 text-slate-400"
+              onClick={() => saveLuckyTier({ diamond_reward: 1, win_chance_percent: 5 })}>
+              <Plus className="w-4 h-4 mr-2" /> Add Reward Tier
+            </Button>
+            <p className="text-xs text-slate-500">Example: 1💎 at 20%, 5💎 at 5%, 10💎 at 1%</p>
+          </div>
         </DialogContent>
       </Dialog>
 

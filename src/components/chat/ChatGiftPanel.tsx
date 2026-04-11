@@ -36,14 +36,11 @@ interface GiftCategory {
 }
 
 const defaultCategories: GiftCategory[] = [
-  { id: "popular", name: "Popular", icon: "⭐", gradient: "from-amber-500 to-orange-600" },
-  { id: "luxury", name: "Luxury", icon: "👑", gradient: "from-purple-500 to-pink-600" },
-  { id: "nature", name: "Nature", icon: "🌸", gradient: "from-green-500 to-emerald-600" },
-  { id: "love", name: "Love", icon: "❤️", gradient: "from-rose-500 to-red-600" },
-  { id: "party", name: "Party", icon: "🎉", gradient: "from-blue-500 to-indigo-600" },
-  { id: "gems", name: "Gems", icon: "💎", gradient: "from-cyan-500 to-blue-600" },
-  { id: "vehicles", name: "Vehicles", icon: "🚗", gradient: "from-slate-500 to-zinc-600" },
-  { id: "food", name: "Food", icon: "🍕", gradient: "from-yellow-500 to-amber-600" },
+  { id: "wall", name: "Wall", icon: "🏠", gradient: "from-slate-500 to-gray-600" },
+  { id: "lucky", name: "Lucky", icon: "🎰", gradient: "from-yellow-400 to-amber-500" },
+  { id: "luxurious", name: "Luxurious", icon: "👑", gradient: "from-yellow-500 to-amber-600" },
+  { id: "vip", name: "VIP", icon: "💎", gradient: "from-purple-500 to-pink-600" },
+  { id: "pro", name: "Pro", icon: "🚀", gradient: "from-cyan-500 to-blue-600" },
 ];
 
 interface ChatGiftPanelProps {
@@ -131,7 +128,7 @@ function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUs
       name: gift.name,
       emoji: '', // No defaults - only DB assets
       coins: gift.coin_value,
-      category: gift.category || 'popular',
+      category: gift.category || 'wall',
       icon_url: getDisplayUrl(gift.icon_url, gift.animation_url),
       animation_url: gift.animation_url?.startsWith('http') ? gift.animation_url : null,
     }));
