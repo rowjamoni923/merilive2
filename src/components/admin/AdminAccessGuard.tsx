@@ -340,8 +340,19 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
     );
   }
 
-  // Never block the user with an intermediate loading screen
+  // While checking, if we have a valid access token, show loading instead of blog
   if (isChecking) {
+    const accessToken = getAccessTokenFromURL();
+    if (accessToken || hasSessionAccess()) {
+      return (
+        <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="w-8 h-8 animate-spin text-purple-500 mx-auto mb-3" />
+            <p className="text-white/60 text-sm">Verifying access...</p>
+          </div>
+        </div>
+      );
+    }
     return <BlogPage />;
   }
 
