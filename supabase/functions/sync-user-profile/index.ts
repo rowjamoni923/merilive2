@@ -27,17 +27,13 @@ Deno.serve(async (req) => {
       })
     }
 
-    const { data: currentProfile } = await newClient
+    let { data: currentProfile } = await newClient
       .from('profiles')
-      .select('id, display_name, username, user_level, vip_level, host_level, coins, diamonds, beans, beans_balance, is_host, is_verified, is_agency_owner, agency_id, avatar_url')
+      .select('id, display_name, username, user_level, vip_level, host_level, coins, diamonds, beans, beans_balance, is_host, is_verified, is_agency_owner, agency_id, avatar_url, gender, bio, age, country_code, country_flag, country_name, city, region, is_face_verified')
       .eq('id', user.id)
       .maybeSingle()
 
-    if (!currentProfile) {
-      return new Response(JSON.stringify({ synced: false, reason: 'no_profile' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
+    let isNewProfile = false
 
     let oldUrl = (Deno.env.get('OLD_SUPABASE_URL') || '').trim()
     const oldKey = (Deno.env.get('OLD_SUPABASE_SERVICE_ROLE_KEY') || '').trim()
@@ -51,7 +47,7 @@ Deno.serve(async (req) => {
     if (!oldUrl.startsWith('http')) oldUrl = `https://${oldUrl}`
     const oldClient = createClient(oldUrl, oldKey)
 
-    const oldProfile = await findLegacyProfile(oldClient, user, currentProfile)
+    const oldProfile = await findLegacyProfile(oldClient, user, currentProfile || { id: user.id })
     if (!oldProfile) {
       return new Response(JSON.stringify({ synced: false, reason: 'not_found_in_old' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -63,6 +59,11 @@ Deno.serve(async (req) => {
     const oldAgencyHost = await findLegacyAgencyHost(oldClient, oldProfile)
     const oldRoles = await findLegacyRoles(oldClient, oldProfile)
 
+    if (!currentProfile) {
+      currentProfile = await createBaseProfileFromLegacy(newClient, user.id, user.email, oldProfile, oldAgency, oldHelper, oldAgencyHost)
+      isNewProfile = true
+    }
+
     const profilePatch = buildProfilePatch(currentProfile, oldProfile, oldAgency, oldHelper, oldAgencyHost, user.email)
 
     if (Object.keys(profilePatch).length > 0) {
@@ -72,20 +73,21 @@ Deno.serve(async (req) => {
         .eq('id', user.id)
 
       if (error) throw error
+      currentProfile = { ...currentProfile, ...profilePatch }
     }
 
     const syncedAgency = await syncAgencyOwnership(newClient, user.id, oldAgency)
     const syncedHelper = await syncHelperRecord(newClient, user.id, oldHelper)
     await syncAgencyHostMembership(newClient, user.id, syncedAgency, oldAgencyHost)
-    await syncUserRoles(newClient, user.id, oldRoles, oldAgency, oldHelper, profilePatch)
+    await syncUserRoles(newClient, user.id, oldRoles, oldAgency, oldHelper, currentProfile)
 
     return new Response(JSON.stringify({
       synced: true,
-      profileUpdated: Object.keys(profilePatch).length > 0,
+      profileUpdated: isNewProfile || Object.keys(profilePatch).length > 0,
       agencySynced: !!syncedAgency,
       helperSynced: !!syncedHelper,
-      rolesSynced: oldRoles.length > 0 || !!oldAgency || !!oldHelper,
-      resolvedName: profilePatch.display_name || currentProfile.display_name || currentProfile.username || null,
+      rolesSynced: true,
+      resolvedName: currentProfile.display_name || currentProfile.username || null,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
@@ -440,17 +442,20 @@ async function syncUserRoles(
   oldRoles: Array<{ role: string }>,
   oldAgency: JsonRecord | null,
   oldHelper: JsonRecord | null,
-  profilePatch: JsonRecord,
+  currentProfile: JsonRecord,
 ) {
-  const roleSet = new Set<string>((oldRoles || []).map((r) => String(r.role).trim()).filter(Boolean))
+  const roleSet = new Set<string>()
 
-  if (oldAgency || profilePatch.is_agency_owner) roleSet.add('agency')
-  if (oldHelper) roleSet.add('helper')
-  if (profilePatch.is_host) roleSet.add('host')
+  if ((oldRoles || []).some((r) => ['admin', 'moderator', 'user'].includes(String(r.role).trim()))) {
+    for (const role of oldRoles) {
+      const normalizedRole = String(role.role).trim()
+      if (['admin', 'moderator', 'user'].includes(normalizedRole)) {
+        roleSet.add(normalizedRole)
+      }
+    }
+  }
+
   roleSet.add('user')
-
-  const roles = [...roleSet]
-  if (roles.length === 0) return
 
   const existing = await newClient
     .from('user_roles')
@@ -458,7 +463,7 @@ async function syncUserRoles(
     .eq('user_id', newUserId)
 
   const existingSet = new Set((existing.data || []).map((r: any) => String(r.role)))
-  const missing = roles.filter((role) => !existingSet.has(role))
+  const missing = [...roleSet].filter((role) => !existingSet.has(role))
   if (missing.length === 0) return
 
   const { error } = await newClient
@@ -466,6 +471,68 @@ async function syncUserRoles(
     .insert(missing.map((role) => ({ user_id: newUserId, role })))
 
   if (error) throw error
+}
+
+async function createBaseProfileFromLegacy(newClient: any, newUserId: string, currentEmail: string | null | undefined, oldProfile: JsonRecord, oldAgency: JsonRecord | null, oldHelper: JsonRecord | null, oldAgencyHost: JsonRecord | null) {
+  const oldDisplayName = firstText(oldProfile, 'display_name', 'username', 'full_name', 'name') || (currentEmail?.split('@')[0] ?? 'User')
+  const oldUsername = firstText(oldProfile, 'username', 'display_name')
+  const oldAvatar = firstText(oldProfile, 'avatar_url', 'profile_photo_url')
+  const oldGender = firstText(oldProfile, 'gender') || 'male'
+  const oldBio = firstText(oldProfile, 'bio')
+  const oldCountryCode = firstText(oldProfile, 'country_code')
+  const oldCountryFlag = firstText(oldProfile, 'country_flag')
+  const oldCountryName = firstText(oldProfile, 'country_name')
+  const oldCity = firstText(oldProfile, 'city')
+  const oldRegion = firstText(oldProfile, 'region')
+  const oldAgencyId = firstText(oldProfile, 'agency_id')
+  const oldCoins = firstPositiveNumber(oldProfile, 'coins', 'diamonds', 'diamonds_balance', 'coins_balance', 'diamond_balance')
+  const oldBeans = firstPositiveNumber(oldProfile, 'beans', 'beans_balance')
+  const oldUserLevel = firstPositiveNumber(oldProfile, 'user_level', 'level') || 1
+  const oldVipLevel = firstPositiveNumber(oldProfile, 'vip_level')
+  const oldHostLevel = firstPositiveNumber(oldProfile, 'host_level')
+  const oldAge = firstPositiveNumber(oldProfile, 'age')
+
+  const payload = {
+    id: newUserId,
+    display_name: oldDisplayName,
+    username: oldUsername,
+    avatar_url: oldAvatar,
+    profile_photo_url: oldAvatar,
+    gender: oldGender,
+    bio: oldBio,
+    age: oldAge > 0 ? oldAge : null,
+    country_code: oldCountryCode,
+    country_flag: oldCountryFlag,
+    country_name: oldCountryName,
+    city: oldCity,
+    region: oldRegion,
+    agency_id: oldAgencyId,
+    coins: oldCoins,
+    diamonds: oldCoins,
+    beans: oldBeans,
+    beans_balance: oldBeans,
+    user_level: oldUserLevel,
+    host_level: oldHostLevel > 0 ? oldHostLevel : null,
+    vip_level: oldVipLevel > 0 ? oldVipLevel : null,
+    is_host: Boolean(oldProfile.is_host || oldAgencyHost),
+    is_verified: Boolean(oldProfile.is_verified || oldProfile.is_face_verified),
+    is_face_verified: Boolean(oldProfile.is_face_verified),
+    is_agency_owner: Boolean(oldProfile.is_agency_owner || oldAgency),
+    total_earnings: Number(oldProfile.total_earnings || 0),
+    pending_earnings: Number(oldProfile.pending_earnings || 0),
+    total_recharged: Number(oldProfile.total_recharged || oldCoins || 0),
+    total_consumption: Number(oldProfile.total_consumption || 0),
+    is_online: false,
+    is_banned: Boolean(oldProfile.is_banned || false),
+    is_deleted: Boolean(oldProfile.is_deleted || false),
+    hide_location: Boolean(oldProfile.hide_location || false),
+    last_seen: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+
+  const { data, error } = await newClient.from('profiles').insert(payload).select('*').single()
+  if (error) throw error
+  return data
 }
 
 async function tryMaybeSingle(query: PromiseLike<any> | any) {
