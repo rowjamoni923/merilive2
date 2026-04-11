@@ -1559,6 +1559,7 @@ export type Database = {
       chat_moderation_logs: {
         Row: {
           action_taken: string
+          created_at: string | null
           detected_at: string | null
           id: string
           message_id: string | null
@@ -1570,6 +1571,7 @@ export type Database = {
         }
         Insert: {
           action_taken: string
+          created_at?: string | null
           detected_at?: string | null
           id?: string
           message_id?: string | null
@@ -1581,6 +1583,7 @@ export type Database = {
         }
         Update: {
           action_taken?: string
+          created_at?: string | null
           detected_at?: string | null
           id?: string
           message_id?: string | null
@@ -1643,6 +1646,45 @@ export type Database = {
         }
         Relationships: []
       }
+      coin_transactions: {
+        Row: {
+          coins_amount: number
+          created_at: string
+          id: string
+          notes: string | null
+          payment_method: string | null
+          payment_reference: string | null
+          status: string | null
+          transaction_type: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          coins_amount?: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          status?: string | null
+          transaction_type?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          coins_amount?: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          status?: string | null
+          transaction_type?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       coin_transfers: {
         Row: {
           amount: number
@@ -1651,6 +1693,7 @@ export type Database = {
           notes: string | null
           receiver_id: string
           sender_id: string
+          status: string | null
           transfer_type: string | null
         }
         Insert: {
@@ -1660,6 +1703,7 @@ export type Database = {
           notes?: string | null
           receiver_id: string
           sender_id: string
+          status?: string | null
           transfer_type?: string | null
         }
         Update: {
@@ -1669,6 +1713,7 @@ export type Database = {
           notes?: string | null
           receiver_id?: string
           sender_id?: string
+          status?: string | null
           transfer_type?: string | null
         }
         Relationships: []
@@ -1708,6 +1753,7 @@ export type Database = {
           consumption_amount: number
           created_at: string | null
           id: string
+          is_claimed: boolean | null
           period_end: string
           period_start: string
           return_amount: number
@@ -1718,6 +1764,7 @@ export type Database = {
           consumption_amount: number
           created_at?: string | null
           id?: string
+          is_claimed?: boolean | null
           period_end: string
           period_start: string
           return_amount: number
@@ -1728,6 +1775,7 @@ export type Database = {
           consumption_amount?: number
           created_at?: string | null
           id?: string
+          is_claimed?: boolean | null
           period_end?: string
           period_start?: string
           return_amount?: number
@@ -1861,6 +1909,7 @@ export type Database = {
       }
       currency_rates: {
         Row: {
+          country_code: string | null
           country_flag: string | null
           country_name: string | null
           created_at: string | null
@@ -1871,6 +1920,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          country_code?: string | null
           country_flag?: string | null
           country_name?: string | null
           created_at?: string | null
@@ -1881,6 +1931,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          country_code?: string | null
           country_flag?: string | null
           country_name?: string | null
           created_at?: string | null
@@ -2283,6 +2334,7 @@ export type Database = {
           selfie_url: string
           status: string | null
           user_id: string
+          verification_type: string | null
         }
         Insert: {
           ai_analysis?: Json | null
@@ -2296,6 +2348,7 @@ export type Database = {
           selfie_url: string
           status?: string | null
           user_id: string
+          verification_type?: string | null
         }
         Update: {
           ai_analysis?: Json | null
@@ -2309,6 +2362,7 @@ export type Database = {
           selfie_url?: string
           status?: string | null
           user_id?: string
+          verification_type?: string | null
         }
         Relationships: []
       }
@@ -2780,6 +2834,7 @@ export type Database = {
       game_settings: {
         Row: {
           created_at: string | null
+          display_order: number | null
           game_type: string
           id: string
           is_active: boolean | null
@@ -2789,6 +2844,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          display_order?: number | null
           game_type: string
           id?: string
           is_active?: boolean | null
@@ -2798,6 +2854,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          display_order?: number | null
           game_type?: string
           id?: string
           is_active?: boolean | null
@@ -3325,6 +3382,7 @@ export type Database = {
           created_at: string | null
           id: string
           is_active: boolean | null
+          is_enabled: boolean | null
           level: number
           level_name: string
           min_total_diamonds: number
@@ -3337,6 +3395,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_active?: boolean | null
+          is_enabled?: boolean | null
           level: number
           level_name: string
           min_total_diamonds?: number
@@ -3349,6 +3408,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_active?: boolean | null
+          is_enabled?: boolean | null
           level?: number
           level_name?: string
           min_total_diamonds?: number
@@ -3360,6 +3420,7 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          is_read: boolean | null
           message_id: string
           reply_text: string
           sender_id: string | null
@@ -3368,6 +3429,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id?: string
+          is_read?: boolean | null
           message_id: string
           reply_text: string
           sender_id?: string | null
@@ -3376,6 +3438,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: string
+          is_read?: boolean | null
           message_id?: string
           reply_text?: string
           sender_id?: string | null
@@ -4062,6 +4125,7 @@ export type Database = {
         Row: {
           animation_url: string | null
           badge_url: string | null
+          category: string | null
           created_at: string | null
           frame_image_url: string
           glow_color: string | null
@@ -4073,6 +4137,7 @@ export type Database = {
         Insert: {
           animation_url?: string | null
           badge_url?: string | null
+          category?: string | null
           created_at?: string | null
           frame_image_url: string
           glow_color?: string | null
@@ -4084,6 +4149,7 @@ export type Database = {
         Update: {
           animation_url?: string | null
           badge_url?: string | null
+          category?: string | null
           created_at?: string | null
           frame_image_url?: string
           glow_color?: string | null
@@ -4097,6 +4163,7 @@ export type Database = {
       leaderboard_reward_config: {
         Row: {
           badge_url: string | null
+          category: string | null
           created_at: string | null
           id: string
           is_active: boolean | null
@@ -4109,6 +4176,7 @@ export type Database = {
         }
         Insert: {
           badge_url?: string | null
+          category?: string | null
           created_at?: string | null
           id?: string
           is_active?: boolean | null
@@ -4121,6 +4189,7 @@ export type Database = {
         }
         Update: {
           badge_url?: string | null
+          category?: string | null
           created_at?: string | null
           id?: string
           is_active?: boolean | null
@@ -4143,6 +4212,7 @@ export type Database = {
           rank_position: number
           reward_amount: number
           reward_type: string
+          status: string | null
           user_id: string
         }
         Insert: {
@@ -4154,6 +4224,7 @@ export type Database = {
           rank_position: number
           reward_amount: number
           reward_type: string
+          status?: string | null
           user_id: string
         }
         Update: {
@@ -4165,6 +4236,7 @@ export type Database = {
           rank_position?: number
           reward_amount?: number
           reward_type?: string
+          status?: string | null
           user_id?: string
         }
         Relationships: []
@@ -4380,6 +4452,7 @@ export type Database = {
           id: string
           reviewed_at: string | null
           reviewed_by: string | null
+          status: string | null
           stream_id: string
           violation_type: string
         }
@@ -4392,6 +4465,7 @@ export type Database = {
           id?: string
           reviewed_at?: string | null
           reviewed_by?: string | null
+          status?: string | null
           stream_id: string
           violation_type: string
         }
@@ -4404,6 +4478,7 @@ export type Database = {
           id?: string
           reviewed_at?: string | null
           reviewed_by?: string | null
+          status?: string | null
           stream_id?: string
           violation_type?: string
         }
@@ -4513,6 +4588,7 @@ export type Database = {
       }
       live_streams: {
         Row: {
+          created_at: string | null
           ended_at: string | null
           host_id: string
           id: string
@@ -4527,6 +4603,7 @@ export type Database = {
           viewer_count: number | null
         }
         Insert: {
+          created_at?: string | null
           ended_at?: string | null
           host_id: string
           id?: string
@@ -4541,6 +4618,7 @@ export type Database = {
           viewer_count?: number | null
         }
         Update: {
+          created_at?: string | null
           ended_at?: string | null
           host_id?: string
           id?: string
@@ -5153,12 +5231,15 @@ export type Database = {
           category: string | null
           created_at: string | null
           display_order: number | null
+          gradient_css: string | null
           id: string
           image_url: string
           is_active: boolean | null
           is_free: boolean | null
+          is_premium: boolean | null
           name: string
           price_coins: number | null
+          price_diamonds: number | null
           thumbnail_url: string | null
           updated_at: string | null
         }
@@ -5166,12 +5247,15 @@ export type Database = {
           category?: string | null
           created_at?: string | null
           display_order?: number | null
+          gradient_css?: string | null
           id?: string
           image_url: string
           is_active?: boolean | null
           is_free?: boolean | null
+          is_premium?: boolean | null
           name: string
           price_coins?: number | null
+          price_diamonds?: number | null
           thumbnail_url?: string | null
           updated_at?: string | null
         }
@@ -5179,12 +5263,15 @@ export type Database = {
           category?: string | null
           created_at?: string | null
           display_order?: number | null
+          gradient_css?: string | null
           id?: string
           image_url?: string
           is_active?: boolean | null
           is_free?: boolean | null
+          is_premium?: boolean | null
           name?: string
           price_coins?: number | null
+          price_diamonds?: number | null
           thumbnail_url?: string | null
           updated_at?: string | null
         }
@@ -6510,6 +6597,7 @@ export type Database = {
           id: string
           platform: string
           reward_coins: number
+          status: string | null
           user_id: string
         }
         Insert: {
@@ -6517,6 +6605,7 @@ export type Database = {
           id?: string
           platform: string
           reward_coins?: number
+          status?: string | null
           user_id: string
         }
         Update: {
@@ -6524,6 +6613,7 @@ export type Database = {
           id?: string
           platform?: string
           reward_coins?: number
+          status?: string | null
           user_id?: string
         }
         Relationships: []
