@@ -29,12 +29,16 @@ const ContentPageView = () => {
       if (!pageKey) return;
 
       try {
-        const { data, error } = await supabase
+        const { data: rows, error } = await supabase
           .from("app_content")
           .select("title, content")
           .eq("type", pageKey)
           .eq("is_published", true)
-          .maybeSingle();
+          .order("created_at", { ascending: false })
+          .limit(1);
+
+        if (error) throw error;
+        const data = rows && rows.length > 0 ? rows[0] : null;
 
         if (error) throw error;
         setPageData(data);
