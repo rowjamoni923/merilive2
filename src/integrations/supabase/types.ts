@@ -9697,7 +9697,16 @@ export type Database = {
         Args: { p_permission: string; p_user_id: string }
         Returns: boolean
       }
-      claim_daily_login_reward: { Args: never; Returns: Json }
+      claim_daily_login_reward:
+        | { Args: never; Returns: Json }
+        | {
+            Args: {
+              _claimed_date: string
+              _day_end: string
+              _day_start: string
+            }
+            Returns: Json
+          }
       claim_invitation_reward: {
         Args: {
           _beans?: number
