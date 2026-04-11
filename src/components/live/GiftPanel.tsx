@@ -146,7 +146,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
         nameBn: gift.name,
         emoji: '', // No defaults - only DB assets
         coins: gift.coin_value,
-        category: gift.category || 'popular',
+        category: gift.category || 'wall',
         animationType: getAnimationType(gift.coin_value),
         icon_url: gift.icon_url?.startsWith('http') ? gift.icon_url : null,
         animation_url: gift.animation_url?.startsWith('http') ? gift.animation_url : null,
@@ -165,7 +165,7 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
         nameBn: gift.name,
         emoji: '', // No defaults - only DB assets
         coins: gift.coin_value,
-        category: gift.category || 'popular',
+        category: gift.category || 'wall',
         animationType: getAnimationType(gift.coin_value),
         icon_url: gift.icon_url?.startsWith('http') ? gift.icon_url : null,
         animation_url: gift.animation_url?.startsWith('http') ? gift.animation_url : null,

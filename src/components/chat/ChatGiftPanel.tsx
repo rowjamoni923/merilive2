@@ -128,7 +128,7 @@ function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUs
       name: gift.name,
       emoji: '', // No defaults - only DB assets
       coins: gift.coin_value,
-      category: gift.category || 'popular',
+      category: gift.category || 'wall',
       icon_url: getDisplayUrl(gift.icon_url, gift.animation_url),
       animation_url: gift.animation_url?.startsWith('http') ? gift.animation_url : null,
     }));
