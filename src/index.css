@@ -823,6 +823,13 @@ video::-webkit-media-controls-toggle-closed-captions-button {
     }
   }
 
+  /* Luxurious 3D level badge shimmer */
+  @keyframes level-shimmer {
+    0% { background-position: 200% 0; }
+    50% { background-position: -200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
   .shine-effect {
     position: relative;
     overflow: hidden;
