@@ -830,14 +830,32 @@ export default function AdminGifts() {
               >
                 <Card className={`bg-white border-slate-200 hover:shadow-xl transition-all overflow-hidden group ${!gift.is_active && "opacity-50"}`}>
                   <CardContent className="p-2 md:p-4 text-center">
-                    {/* Gift Icon - Show static preview image */}
+                    {/* Gift Icon - Show preview image if exists, otherwise show animation directly */}
                     <div className="relative w-12 h-12 md:w-16 md:h-16 mx-auto mb-2 md:mb-3 rounded-lg md:rounded-xl bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center shadow-md overflow-hidden">
                       {gift.icon_url ? (
                         gift.icon_url.startsWith('http') ? (
-                          <img src={gift.icon_url} alt={gift.name} className="w-full h-full object-contain" />
+                          isSVGA(gift.icon_url) || isLottie(gift.icon_url) ? (
+                            <UniversalFramePlayer
+                              src={gift.icon_url}
+                              type={isSVGA(gift.icon_url) ? 'svga' : 'lottie'}
+                              className="w-full h-full"
+                              loop={true}
+                              autoPlay={true}
+                            />
+                          ) : (
+                            <img src={gift.icon_url} alt={gift.name} className="w-full h-full object-contain" />
+                          )
                         ) : (
                           <span className="text-3xl">{gift.icon_url}</span>
                         )
+                      ) : gift.animation_url ? (
+                        <UniversalFramePlayer
+                          src={gift.animation_url}
+                          type={isSVGA(gift.animation_url) ? 'svga' : isLottie(gift.animation_url) ? 'lottie' : undefined}
+                          className="w-full h-full"
+                          loop={true}
+                          autoPlay={true}
+                        />
                       ) : (
                         <Gift className="w-8 h-8 text-pink-500" />
                       )}

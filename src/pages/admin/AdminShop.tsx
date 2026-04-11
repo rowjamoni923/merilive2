@@ -705,10 +705,19 @@ const AdminShop = () => {
               className={`${adminCardStyles} ${!item.is_active && "opacity-60"}`}
             >
               <div className="flex gap-3">
-                {/* Preview - Show preview_url (static image) in card */}
+                {/* Preview - Show preview_url if exists, otherwise show animation directly */}
                 <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center overflow-hidden flex-shrink-0">
-                  {getCardThumbnail(item) ? (
-                    <img src={getCardThumbnail(item)!} alt={item.name} className="w-full h-full object-cover" />
+                  {item.preview_url ? (
+                    <img src={item.preview_url} alt={item.name} className="w-full h-full object-cover" />
+                  ) : (item.animation_file_url || item.svga_url || item.animation_url) ? (
+                    <UniversalFramePlayer
+                      src={(item.animation_file_url || item.svga_url || item.animation_url)!}
+                      className="w-full h-full"
+                      loop={true}
+                      autoPlay={true}
+                    />
+                  ) : item.image_url ? (
+                    <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
                   ) : (
                     <CategoryIcon className="w-8 h-8 text-purple-400" />
                   )}
