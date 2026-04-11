@@ -829,40 +829,11 @@ export default function AdminGifts() {
               >
                 <Card className={`bg-white border-slate-200 hover:shadow-xl transition-all overflow-hidden group ${!gift.is_active && "opacity-50"}`}>
                   <CardContent className="p-2 md:p-4 text-center">
-                    {/* Gift Icon/Animation */}
+                    {/* Gift Icon - Show static preview image */}
                     <div className="relative w-12 h-12 md:w-16 md:h-16 mx-auto mb-2 md:mb-3 rounded-lg md:rounded-xl bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center shadow-md overflow-hidden">
-                      {gift.animation_url && isSVGA(gift.animation_url) ? (
-                        <UniversalFramePlayer
-                          src={gift.animation_url}
-                          type="svga"
-                          className="w-full h-full"
-                          loop={true}
-                          autoPlay={true}
-                        />
-                      ) : gift.animation_url && isLottie(gift.animation_url) ? (
-                        <UniversalFramePlayer
-                          src={gift.animation_url}
-                          type="lottie"
-                          className="w-full h-full"
-                          loop={true}
-                          autoPlay={true}
-                        />
-                      ) : gift.animation_url && isVideoOrGif(gift.animation_url) ? (
-                        gift.animation_url.endsWith('.gif') ? (
-                          <img src={gift.animation_url} alt={gift.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <video 
-                            src={gift.animation_url} 
-                            className="w-full h-full object-cover"
-                            autoPlay 
-                            loop 
-                            muted 
-                            playsInline
-                          />
-                        )
-                      ) : gift.icon_url ? (
+                      {gift.icon_url ? (
                         gift.icon_url.startsWith('http') ? (
-                          <img src={gift.icon_url} alt={gift.name} className="w-12 h-12 object-contain" />
+                          <img src={gift.icon_url} alt={gift.name} className="w-full h-full object-contain" />
                         ) : (
                           <span className="text-3xl">{gift.icon_url}</span>
                         )
