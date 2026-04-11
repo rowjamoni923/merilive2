@@ -6836,33 +6836,45 @@ export type Database = {
       }
       role_frames: {
         Row: {
+          animation_type: string | null
           created_at: string | null
+          description: string | null
           display_order: number | null
           frame_url: string
           id: string
           is_active: boolean | null
+          is_default: boolean | null
           min_level: number | null
           name: string
+          preview_url: string | null
           role_type: string
         }
         Insert: {
+          animation_type?: string | null
           created_at?: string | null
+          description?: string | null
           display_order?: number | null
           frame_url: string
           id?: string
           is_active?: boolean | null
+          is_default?: boolean | null
           min_level?: number | null
           name: string
+          preview_url?: string | null
           role_type: string
         }
         Update: {
+          animation_type?: string | null
           created_at?: string | null
+          description?: string | null
           display_order?: number | null
           frame_url?: string
           id?: string
           is_active?: boolean | null
+          is_default?: boolean | null
           min_level?: number | null
           name?: string
+          preview_url?: string | null
           role_type?: string
         }
         Relationships: []
@@ -8588,27 +8600,39 @@ export type Database = {
       }
       user_role_frames: {
         Row: {
+          assigned_at: string | null
           equipped: boolean | null
           expires_at: string | null
           frame_id: string
           id: string
+          is_equipped: boolean | null
+          notes: string | null
           purchased_at: string | null
+          role_type: string | null
           user_id: string
         }
         Insert: {
+          assigned_at?: string | null
           equipped?: boolean | null
           expires_at?: string | null
           frame_id: string
           id?: string
+          is_equipped?: boolean | null
+          notes?: string | null
           purchased_at?: string | null
+          role_type?: string | null
           user_id: string
         }
         Update: {
+          assigned_at?: string | null
           equipped?: boolean | null
           expires_at?: string | null
           frame_id?: string
           id?: string
+          is_equipped?: boolean | null
+          notes?: string | null
           purchased_at?: string | null
+          role_type?: string | null
           user_id?: string
         }
         Relationships: []
