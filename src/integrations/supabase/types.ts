@@ -282,6 +282,8 @@ export type Database = {
           id: string
           is_read: boolean | null
           message: string | null
+          priority: string | null
+          target_role: string | null
           title: string
           type: string
         }
@@ -291,6 +293,8 @@ export type Database = {
           id?: string
           is_read?: boolean | null
           message?: string | null
+          priority?: string | null
+          target_role?: string | null
           title: string
           type: string
         }
@@ -300,6 +304,8 @@ export type Database = {
           id?: string
           is_read?: boolean | null
           message?: string | null
+          priority?: string | null
+          target_role?: string | null
           title?: string
           type?: string
         }
