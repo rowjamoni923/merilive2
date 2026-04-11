@@ -110,6 +110,18 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
         // 2. Require a REAL authenticated Supabase user before rendering admin pages
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
+          // If we have a valid access token, redirect to admin login page instead of showing blog
+          if (accessToken && hasAdminAccessFlag()) {
+            console.log('[AdminAccessGuard] Valid token but no session - redirecting to admin login');
+            const currentPath = window.location.pathname;
+            if (currentPath !== '/admin/auth' && currentPath !== '/admin/login') {
+              window.location.replace('/admin/auth');
+              return;
+            }
+            // Already on auth page with valid token - allow rendering
+            setSafeState(() => setIsAuthorized(true));
+            return;
+          }
           console.warn('[AdminAccessGuard] No authenticated user session - revoking stale local access flag');
           if (hasAdminAccessFlag()) revokeAdminAccess();
           setSafeState(() => setIsAuthorized(false));
