@@ -260,6 +260,7 @@ const AdminShop = () => {
   
   const [formData, setFormData] = useState<ShopFormData>(createDefaultFormData());
 
+  const [fullscreenPreviewItem, setFullscreenPreviewItem] = useState<ShopItem | null>(null);
   const soundInputRef = useRef<HTMLInputElement>(null);
 
   const fetchItems = useCallback(async () => {
