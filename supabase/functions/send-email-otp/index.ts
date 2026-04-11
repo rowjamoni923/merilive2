@@ -153,9 +153,30 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Use a reliable public logo URL - check storage first, fallback to data URI
     const logoUrl = "https://ayjdlvuurscxucatbbah.supabase.co/storage/v1/object/public/app-assets/merilive-logo.png";
-    const emailHTML = buildOTPEmailHTML(otp, purpose, logoUrl);
+    
+    // Fetch logo and convert to base64 for CID attachment
+    let logoAttachment: any = null;
+    try {
+      const logoResponse = await fetch(logoUrl);
+      if (logoResponse.ok) {
+        const logoBuffer = await logoResponse.arrayBuffer();
+        const logoBase64 = btoa(String.fromCharCode(...new Uint8Array(logoBuffer)));
+        logoAttachment = {
+          filename: 'merilive-logo.png',
+          content: logoBase64,
+          encoding: 'base64',
+          cid: 'merilive-logo-cid',
+          contentType: 'image/png',
+        };
+      }
+    } catch (e) {
+      console.log("[send-email-otp] Could not fetch logo, using URL fallback");
+    }
+
+    // Use CID if logo was fetched, otherwise use URL
+    const emailLogoUrl = logoAttachment ? "cid:merilive-logo-cid" : logoUrl;
+    const emailHTML = buildOTPEmailHTML(otp, purpose, emailLogoUrl);
 
     const subjectPrefix = purpose === "login" ? "Login" : 
                          purpose === "register" ? "Registration" :
@@ -175,13 +196,19 @@ Deno.serve(async (req) => {
       },
     });
 
-    await transporter.sendMail({
+    const mailOptions: any = {
       from: `MeriLive <${gmailUser}>`,
       to: email,
       subject: subject,
       text: textContent,
       html: emailHTML,
-    });
+    };
+
+    if (logoAttachment) {
+      mailOptions.attachments = [logoAttachment];
+    }
+
+    await transporter.sendMail(mailOptions);
 
     console.log(`[send-email-otp] ✅ OTP sent to ${email} via Gmail SMTP`);
 
