@@ -395,7 +395,7 @@ const App = () => {
   const [showGenderModal, setShowGenderModal] = useState(false);
   const [pendingUserId, setPendingUserId] = useState<string | null>(null);
   const [maintenanceMode, setMaintenanceMode] = useState<{ enabled: boolean; message: string } | null>(null);
-  const [lastLegacySyncUserId, setLastLegacySyncUserId] = useState<string | null>(null);
+  
 
   // 🛠️ MAINTENANCE MODE CHECK - fetch only, no dedicated realtime channel
   // app_settings realtime is already handled by useGlobalSettings
@@ -420,11 +420,18 @@ const App = () => {
   }, []);
 
   const triggerLegacyProfileSync = async (userId: string) => {
-    if (!userId || lastLegacySyncUserId === userId) return;
+    if (!userId) return;
+    
+    // Only sync once per session per user
+    const syncKey = `legacy_synced_${userId}`;
+    if (sessionStorage.getItem(syncKey)) return;
 
     try {
+      console.log('[App] Starting legacy profile sync for:', userId);
       const { data, error } = await supabase.functions.invoke('sync-user-profile');
       if (error) throw error;
+
+      console.log('[App] Legacy sync result:', data);
 
       if ((data as any)?.synced) {
         localStorage.removeItem('meri_level_cache');
@@ -435,9 +442,9 @@ const App = () => {
         ]);
       }
 
-      setLastLegacySyncUserId(userId);
+      sessionStorage.setItem(syncKey, 'true');
     } catch (error) {
-      console.warn('[App] legacy profile sync skipped:', error);
+      console.warn('[App] legacy profile sync failed:', error);
     }
   };
 
