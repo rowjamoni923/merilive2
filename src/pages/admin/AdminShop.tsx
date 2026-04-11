@@ -704,37 +704,10 @@ const AdminShop = () => {
               className={`${adminCardStyles} ${!item.is_active && "opacity-60"}`}
             >
               <div className="flex gap-3">
-                {/* Preview - Supports SVGA, Lottie, Video, Image */}
+                {/* Preview - Show preview_url (static image) in card */}
                 <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center overflow-hidden flex-shrink-0">
-                  {getPreviewUrl(item) ? (
-                    isSVGA(getPreviewUrl(item)) ? (
-                      <Suspense fallback={<div className="w-full h-full bg-purple-500/20 animate-pulse" />}>
-                        <UniversalAnimationPlayer
-                          src={getPreviewUrl(item)!}
-                          className="w-full h-full"
-                          loop={true}
-                          autoPlay={true}
-                        />
-                      </Suspense>
-                    ) : isLottie(getPreviewUrl(item)) ? (
-                      <UniversalAnimationPlayer
-                        src={getPreviewUrl(item)!}
-                        className="w-full h-full"
-                        loop={true}
-                        autoPlay={true}
-                      />
-                    ) : isVideo(getPreviewUrl(item)) ? (
-                      <video 
-                        src={getPreviewUrl(item)!} 
-                        className="w-full h-full object-cover" 
-                        autoPlay 
-                        muted 
-                        loop 
-                        playsInline
-                      />
-                    ) : (
-                      <img src={getPreviewUrl(item)!} alt={item.name} className="w-full h-full object-cover" />
-                    )
+                  {getCardThumbnail(item) ? (
+                    <img src={getCardThumbnail(item)!} alt={item.name} className="w-full h-full object-cover" />
                   ) : (
                     <CategoryIcon className="w-8 h-8 text-purple-400" />
                   )}
