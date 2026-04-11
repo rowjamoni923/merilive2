@@ -38,7 +38,8 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
   const handleBannerClick = async (banner: Banner) => {
     if (!banner.link_url) return;
 
-    switch (banner.link_type) {
+    const linkType = banner.link_type || 'external';
+    switch (linkType) {
       case "popup":
         setPopupUrl(banner.link_url);
         setPopupTitle(banner.title);

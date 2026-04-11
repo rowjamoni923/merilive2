@@ -245,7 +245,15 @@ const refreshBanners = async () => {
     .select('*')
     .eq('is_active', true)
     .order('display_order', { ascending: true });
-  globalBanners = (data || []) as Banner[];
+  globalBanners = (data || []).map((b: any) => ({
+    ...b,
+    // Map legacy click_action to link_type if link_type is missing
+    link_type: b.link_type || b.click_action || 'external',
+    subtitle: b.subtitle || null,
+    background_color: b.background_color || '#1a1a2e',
+    text_color: b.text_color || '#ffffff',
+    accent_color: b.accent_color || '#ff6b6b',
+  })) as Banner[];
 };
 
 const refreshGifts = async () => {
