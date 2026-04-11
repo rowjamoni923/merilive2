@@ -322,9 +322,13 @@ const AgencySignup = () => {
         _whatsapp: formData.whatsapp.trim() || null
       });
 
-      if (rpcError) throw rpcError;
+      if (rpcError) {
+        console.error('[AgencySignup] create_agency_for_user rpcError:', rpcError);
+        throw rpcError;
+      }
       
       const result = typeof rpcResult === 'string' ? JSON.parse(rpcResult) : rpcResult;
+      console.log('[AgencySignup] create_agency_for_user result:', result);
       if (!result?.success) {
         throw new Error(result?.error || 'Failed to create agency');
       }
