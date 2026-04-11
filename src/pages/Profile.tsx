@@ -1412,23 +1412,89 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     return null;
   }
 
+  if (!profile && isOwnProfile && currentUser) {
+    // Auto-retry self-healing once more before showing error
+    const handleRetryProfileCreation = async () => {
+      setLoading(true);
+      try {
+        const displayName = currentUser.user_metadata?.full_name ||
+          currentUser.user_metadata?.name ||
+          (currentUser.email?.includes('@meri.local') ? null : currentUser.email?.split('@')[0]) ||
+          `User${Math.random().toString(36).substring(2, 8)}`;
+
+        const avatarUrl = currentUser.user_metadata?.avatar_url ||
+          currentUser.user_metadata?.picture || null;
+
+        // Generate a unique 10-digit app_uid
+        const appUid = String(Math.floor(1000000000 + Math.random() * 9000000000));
+
+        const { error } = await supabase
+          .from("profiles")
+          .upsert({
+            id: currentUser.id,
+            display_name: displayName,
+            username: currentUser.email?.includes('@meri.local') ? null : currentUser.email?.split('@')[0] || null,
+            avatar_url: avatarUrl,
+            app_uid: appUid,
+            gender: currentUser.user_metadata?.gender || 'male',
+            coins: 0,
+            diamonds: 0,
+            beans: 0,
+            beans_balance: 0,
+            total_earnings: 0,
+            total_consumption: 0,
+            pending_earnings: 0,
+            is_host: false,
+            is_verified: false,
+            user_level: 1,
+            last_seen: new Date().toISOString(),
+          }, { onConflict: 'id' });
+
+        if (!error) {
+          // Re-fetch profile
+          const { data: newProfile } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", currentUser.id)
+            .maybeSingle();
+          if (newProfile) {
+            setProfile(newProfile);
+            toast({ title: "Profile created successfully!" });
+          }
+        } else {
+          console.error("[Profile] Retry profile creation failed:", error);
+          toast({ title: "Failed to create profile", description: error.message, variant: "destructive" });
+        }
+      } catch (e) {
+        console.error("[Profile] Retry error:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Auto-trigger retry on mount
+    handleRetryProfileCreation();
+
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-purple-100 to-background p-6">
+        <LoadingSpinner />
+        <p className="text-muted-foreground text-sm mt-4">Creating your profile...</p>
+      </div>
+    );
+  }
+
   if (!profile) {
     const handleLogoutAndReregister = async () => {
-      // Clear all local storage
       localStorage.removeItem('meri_device_id');
       localStorage.removeItem('meri_device_account');
       localStorage.removeItem('meri_last_user');
       localStorage.removeItem('meri_pending_referral');
       
-      // Clear native session storage
       const { clearNativeSession } = await import('@/utils/nativeSessionStorage');
       await clearNativeSession();
       
-      // Sign out from Supabase
       localStorage.setItem('meri_manual_logout', 'true');
       await supabase.auth.signOut({ scope: 'local' });
-      
-      // Navigate to auth page
       navigate('/auth');
     };
 
