@@ -23,6 +23,7 @@ import { getSessionFromNative } from "@/utils/nativeSessionStorage";
 import { useBruteForceProtection } from "@/hooks/useBruteForceProtection";
 import { detectCountryViaIP, getCountryFlag, countryNamesEnglish } from "@/hooks/useGeolocation";
 import { COUNTRY_CODES } from "@/data/countryCodes";
+import { triggerLegacyProfileSync } from "@/utils/legacyProfileSync";
 
 type Gender = "male" | "female" | null;
 type AuthStep = "gender" | "name" | "email" | "login" | "agency_code" | "otp_verify" | "email_otp" | "email_gender" | "email_password" | "phone_input" | "phone_otp" | "phone_password" | null;
@@ -686,8 +687,8 @@ const Auth = () => {
       }
       await recordAttempt(email, true);
       
-      // Sync profile from legacy project if needed (fire-and-forget)
-      supabase.functions.invoke('sync-user-profile').catch(() => {});
+      // Sync profile from legacy project before routing so old account data is available instantly
+      await triggerLegacyProfileSync((await supabase.auth.getUser()).data.user?.id);
       
       toast({
         title: "Welcome!",

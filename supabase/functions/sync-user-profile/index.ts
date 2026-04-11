@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
 
     let { data: currentProfile } = await newClient
       .from('profiles')
-      .select('id, display_name, username, user_level, vip_level, host_level, coins, diamonds, beans, beans_balance, is_host, is_verified, is_agency_owner, agency_id, avatar_url, gender, bio, age, country_code, country_flag, country_name, city, region, is_face_verified')
+      .select('id, display_name, username, user_level, host_level, coins, diamonds, beans, beans_balance, is_host, is_verified, is_agency_owner, agency_id, avatar_url, gender, bio, age, country_code, country_flag, country_name, city, region, is_face_verified')
       .eq('id', user.id)
       .maybeSingle()
 
@@ -211,7 +211,6 @@ function buildProfilePatch(
   const oldCoins = firstPositiveNumber(oldProfile, 'coins', 'diamonds', 'diamonds_balance', 'coins_balance', 'diamond_balance')
   const oldBeans = firstPositiveNumber(oldProfile, 'beans', 'beans_balance')
   const oldUserLevel = firstPositiveNumber(oldProfile, 'user_level', 'level')
-  const oldVipLevel = firstPositiveNumber(oldProfile, 'vip_level')
   const oldHostLevel = firstPositiveNumber(oldProfile, 'host_level')
   const oldAge = firstPositiveNumber(oldProfile, 'age')
 
@@ -236,7 +235,6 @@ function buildProfilePatch(
   if (oldRegion && !currentProfile.region) patch.region = oldRegion
 
   if (oldUserLevel > Number(currentProfile.user_level || 0)) patch.user_level = oldUserLevel
-  if (oldVipLevel > Number(currentProfile.vip_level || 0)) patch.vip_level = oldVipLevel
   if (oldHostLevel > Number(currentProfile.host_level || 0)) patch.host_level = oldHostLevel
 
   const currentCoinBalance = Math.max(Number(currentProfile.coins || 0), Number(currentProfile.diamonds || 0))
@@ -488,7 +486,7 @@ async function createBaseProfileFromLegacy(newClient: any, newUserId: string, cu
   const oldCoins = firstPositiveNumber(oldProfile, 'coins', 'diamonds', 'diamonds_balance', 'coins_balance', 'diamond_balance')
   const oldBeans = firstPositiveNumber(oldProfile, 'beans', 'beans_balance')
   const oldUserLevel = firstPositiveNumber(oldProfile, 'user_level', 'level') || 1
-  const oldVipLevel = firstPositiveNumber(oldProfile, 'vip_level')
+  
   const oldHostLevel = firstPositiveNumber(oldProfile, 'host_level')
   const oldAge = firstPositiveNumber(oldProfile, 'age')
 
@@ -513,7 +511,6 @@ async function createBaseProfileFromLegacy(newClient: any, newUserId: string, cu
     beans_balance: oldBeans,
     user_level: oldUserLevel,
     host_level: oldHostLevel > 0 ? oldHostLevel : null,
-    vip_level: oldVipLevel > 0 ? oldVipLevel : null,
     is_host: Boolean(oldProfile.is_host || oldAgencyHost),
     is_verified: Boolean(oldProfile.is_verified || oldProfile.is_face_verified),
     is_face_verified: Boolean(oldProfile.is_face_verified),
