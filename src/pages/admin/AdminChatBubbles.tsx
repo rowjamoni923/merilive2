@@ -191,15 +191,13 @@ const AdminChatBubbles = () => {
         privilege_type: 'chat_bubble',
         unlock_level: formData.level,
         name: formData.name,
+        privilege_name: formData.name,
         description: `Chat Bubble for Level ${formData.level}+`,
         animation_url: formData.animation_url || null,
         preview_url: formData.preview_url || null,
-        icon_name: 'MessageCircle',
-        icon_bg_color: '#E0F2FE',
-        icon_color: '#0EA5E9',
         is_active: formData.is_active,
         display_order: formData.level,
-        updated_at: new Date().toISOString()
+        level: formData.level,
       };
 
       if (editingItem) {

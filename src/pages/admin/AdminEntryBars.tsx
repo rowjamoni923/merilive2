@@ -187,15 +187,15 @@ const AdminEntryBars = () => {
         privilege_type: 'entry_bar',
         unlock_level: formData.level,
         name: formData.name,
+        privilege_name: formData.name,
         description: `Entry Bar for Level ${formData.level}+`,
         animation_url: formData.animation_url || null,
         preview_url: formData.preview_url || null,
-        icon_name: 'Sparkles',
-        icon_bg_color: '#FCE7F3',
-        icon_color: '#EC4899',
+        sound_url: formData.sound_url || null,
+        duration_ms: formData.duration_ms,
         is_active: formData.is_active,
         display_order: formData.level,
-        updated_at: new Date().toISOString()
+        level: formData.level,
       };
 
       if (editingItem) {

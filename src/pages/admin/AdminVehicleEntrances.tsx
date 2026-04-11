@@ -158,15 +158,13 @@ const AdminVehicleEntrances = () => {
         privilege_type: 'vehicle_entrance',
         unlock_level: formData.level,
         name: formData.name,
+        privilege_name: formData.name,
         description: `Vehicle Entrance for Level ${formData.level}+ VIPs`,
         animation_url: formData.animation_url || null,
         preview_url: formData.preview_url || null,
-        icon_name: 'Car',
-        icon_bg_color: '#DBEAFE',
-        icon_color: '#3B82F6',
         is_active: formData.is_active,
         display_order: formData.level,
-        updated_at: new Date().toISOString()
+        level: formData.level,
       };
 
       if (editingItem) {
