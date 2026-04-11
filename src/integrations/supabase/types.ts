@@ -1294,6 +1294,8 @@ export type Database = {
       }
       banners: {
         Row: {
+          accent_color: string | null
+          background_color: string | null
           banner_type: string | null
           click_action: string | null
           created_at: string | null
@@ -1302,14 +1304,19 @@ export type Database = {
           id: string
           image_url: string
           is_active: boolean | null
+          link_type: string | null
           link_url: string | null
           location: string | null
           start_date: string | null
+          subtitle: string | null
           target_data: Json | null
+          text_color: string | null
           title: string
           updated_at: string | null
         }
         Insert: {
+          accent_color?: string | null
+          background_color?: string | null
           banner_type?: string | null
           click_action?: string | null
           created_at?: string | null
@@ -1318,14 +1325,19 @@ export type Database = {
           id?: string
           image_url: string
           is_active?: boolean | null
+          link_type?: string | null
           link_url?: string | null
           location?: string | null
           start_date?: string | null
+          subtitle?: string | null
           target_data?: Json | null
+          text_color?: string | null
           title: string
           updated_at?: string | null
         }
         Update: {
+          accent_color?: string | null
+          background_color?: string | null
           banner_type?: string | null
           click_action?: string | null
           created_at?: string | null
@@ -1334,10 +1346,13 @@ export type Database = {
           id?: string
           image_url?: string
           is_active?: boolean | null
+          link_type?: string | null
           link_url?: string | null
           location?: string | null
           start_date?: string | null
+          subtitle?: string | null
           target_data?: Json | null
+          text_color?: string | null
           title?: string
           updated_at?: string | null
         }
