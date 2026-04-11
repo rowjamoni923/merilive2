@@ -100,6 +100,7 @@ const AdminFrames = () => {
     target_type: "both" as 'user' | 'host' | 'both',
   });
 
+  const [fullscreenPreviewFrame, setFullscreenPreviewFrame] = useState<Frame | null>(null);
   const soundInputRef = useRef<HTMLInputElement>(null);
 
   const fetchFrames = useCallback(async (showToast: boolean = false) => {
