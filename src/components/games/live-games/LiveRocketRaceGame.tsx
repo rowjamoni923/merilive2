@@ -7,6 +7,7 @@ import { WinPopup } from "../common/WinPopup";
 import { formatBetAmount } from "../common/BetControls";
 import { PremiumRocket3D } from "./rocket-race/PremiumRocket3D";
 import { useGameSoundManager } from "@/hooks/useGameSoundManager";
+import { processWin } from "@/services/gameBalanceService";
 
 // Import rocket images for UI elements
 import rocketBlueImg from "@/assets/rockets/rocket-blue.png";
@@ -225,11 +226,9 @@ export function LiveRocketRaceGame({
         try {
           const { data: { user } } = await supabase.auth.getUser();
           if (!user) return;
-          const { data: profile } = await supabase.from('profiles').select('coins').eq('id', user.id).single();
-          if (profile) {
-            const newBalance = profile.coins + totalWinnings;
-            await supabase.from('profiles').update({ coins: newBalance }).eq('id', user.id);
-            onUpdateCoins?.(newBalance);
+          const result = await processWin(user.id, game?.id || 'rocket-race', game?.name || 'Rocket Race', totalWinnings, ROCKETS[winnerIndex].odds);
+          if (result.success && result.newBalance !== undefined) {
+            onUpdateCoins?.(result.newBalance);
           }
         } catch (error) {
           console.error('[RocketRace] Credit error:', error);
