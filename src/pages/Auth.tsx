@@ -1958,14 +1958,11 @@ const Auth = () => {
               alt="Logo" 
               className="w-40 h-40 object-contain"
               onError={(e) => {
-                // Fallback: hide broken image and show text logo instead
-                (e.target as HTMLImageElement).style.display = 'none';
-                const fallback = (e.target as HTMLImageElement).nextElementSibling;
-                if (fallback) (fallback as HTMLElement).style.display = 'flex';
+                (e.target as HTMLImageElement).onerror = null;
+                (e.target as HTMLImageElement).src = '/logo.png';
               }}
             />
-          ) : null}
-          {!branding.logo_image_url ? (
+          ) : (
             <>
               <div className="relative">
                {/* Premium MERI text with metallic shine effect */}
