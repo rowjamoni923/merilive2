@@ -22,7 +22,8 @@ import {
   MapPin,
   UserX,
   AlertTriangle,
-  Calendar
+  Calendar,
+  Users
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
