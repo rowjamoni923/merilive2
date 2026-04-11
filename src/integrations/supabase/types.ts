@@ -2615,6 +2615,48 @@ export type Database = {
         }
         Relationships: []
       }
+      game_rounds_stats: {
+        Row: {
+          active_rounds: number | null
+          created_at: string | null
+          game_emoji: string | null
+          game_id: string
+          game_name: string
+          id: string
+          last_round_at: string | null
+          total_players: number | null
+          total_rounds: number | null
+          total_wagered: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          active_rounds?: number | null
+          created_at?: string | null
+          game_emoji?: string | null
+          game_id: string
+          game_name: string
+          id?: string
+          last_round_at?: string | null
+          total_players?: number | null
+          total_rounds?: number | null
+          total_wagered?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          active_rounds?: number | null
+          created_at?: string | null
+          game_emoji?: string | null
+          game_id?: string
+          game_name?: string
+          id?: string
+          last_round_at?: string | null
+          total_players?: number | null
+          total_rounds?: number | null
+          total_wagered?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       game_server_settings: {
         Row: {
           connection_timeout: number | null
@@ -4910,6 +4952,42 @@ export type Database = {
           title?: string
           type?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      onboarding_slides: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          gradient: string | null
+          id: string
+          image_url: string
+          is_active: boolean | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          gradient?: string | null
+          id?: string
+          image_url: string
+          is_active?: boolean | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          gradient?: string | null
+          id?: string
+          image_url?: string
+          is_active?: boolean | null
+          title?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -8591,6 +8669,63 @@ export type Database = {
           updated_at?: string
           user_id?: string
           vip_tier_id?: string
+        }
+        Relationships: []
+      }
+      vehicle_entrances: {
+        Row: {
+          animation_url: string | null
+          category: string | null
+          created_at: string | null
+          display_order: number | null
+          duration_ms: number | null
+          id: string
+          image_url: string
+          is_active: boolean | null
+          is_premium: boolean | null
+          level_required: number | null
+          name: string
+          preview_url: string | null
+          price_coins: number | null
+          price_diamonds: number | null
+          sound_url: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          animation_url?: string | null
+          category?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          duration_ms?: number | null
+          id?: string
+          image_url: string
+          is_active?: boolean | null
+          is_premium?: boolean | null
+          level_required?: number | null
+          name: string
+          preview_url?: string | null
+          price_coins?: number | null
+          price_diamonds?: number | null
+          sound_url?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          animation_url?: string | null
+          category?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          duration_ms?: number | null
+          id?: string
+          image_url?: string
+          is_active?: boolean | null
+          is_premium?: boolean | null
+          level_required?: number | null
+          name?: string
+          preview_url?: string | null
+          price_coins?: number | null
+          price_diamonds?: number | null
+          sound_url?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
