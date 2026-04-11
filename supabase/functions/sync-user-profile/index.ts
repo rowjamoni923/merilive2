@@ -99,7 +99,7 @@ Deno.serve(async (req) => {
 })
 
 async function findLegacyProfile(oldClient: any, user: any, currentProfile: JsonRecord) {
-  const email = (user.email || currentProfile.email || '').toLowerCase().trim()
+  const email = (user.email || '').toLowerCase().trim()
   const candidateIds = [currentProfile.id, user.id].filter(Boolean)
   const candidateNames = [currentProfile.username, currentProfile.display_name].filter(Boolean)
 
