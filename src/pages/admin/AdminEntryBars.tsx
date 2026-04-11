@@ -483,18 +483,7 @@ const AdminEntryBars = () => {
                 </p>
               </div>
 
-              {/* Duration */}
-              <div className="space-y-2">
-                <Label>Duration (milliseconds)</Label>
-                <Input
-                  type="number"
-                  min={1000}
-                  max={10000}
-                  step={500}
-                  value={formData.duration_ms}
-                  onChange={(e) => setFormData(prev => ({ ...prev, duration_ms: parseInt(e.target.value) || 3500 }))}
-                />
-              </div>
+              {/* Duration auto-detected from SVGA file */}
 
               {/* Animation Upload */}
               <div className="space-y-2">
