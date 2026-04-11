@@ -62,7 +62,7 @@ async function fetchBalance(): Promise<number> {
 
     const { data: profile, error } = await supabase
       .from('profiles')
-      .select('coins')
+      .select('coins, diamonds')
       .eq('id', user.id)
       .single();
 
@@ -72,7 +72,7 @@ async function fetchBalance(): Promise<number> {
       return balanceCache.balance;
     }
 
-    const newBalance = profile?.coins || 0;
+    const newBalance = Math.max(Number(profile?.coins || 0), Number((profile as any)?.diamonds || 0));
     balanceCache.balance = newBalance;
     balanceCache.userId = user.id;
     balanceCache.timestamp = Date.now();
@@ -169,7 +169,8 @@ export function useUserBalancePrefetch(): void {
             filter: `id=eq.${user.id}`,
           },
           (payload) => {
-            const newBalance = (payload.new as { coins?: number })?.coins || 0;
+            const next = payload.new as { coins?: number; diamonds?: number };
+            const newBalance = Math.max(Number(next?.coins || 0), Number(next?.diamonds || 0));
             updateCachedBalance(newBalance);
           }
         )

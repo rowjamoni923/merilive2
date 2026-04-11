@@ -125,6 +125,29 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   const [isInActiveAgency, setIsInActiveAgency] = useState(false);
   const [userVIPTier, setUserVIPTier] = useState<number>(0);
 
+  const isWeakIdentityName = (value?: string | null) => {
+    const normalized = value?.trim().toLowerCase() || "";
+    return !normalized || ["user", "owner", "unknown", "guest"].includes(normalized) || normalized.length <= 2;
+  };
+
+  const resolvedProfileName = useMemo(() => {
+    const candidates = [
+      profile?.display_name,
+      profile?.username,
+      currentUser?.user_metadata?.username,
+      currentUser?.user_metadata?.full_name,
+      currentUser?.user_metadata?.name,
+    ].filter((value): value is string => Boolean(value?.trim()));
+
+    const strongCandidate = candidates.find((value) => !isWeakIdentityName(value));
+    return strongCandidate || candidates[0] || "User";
+  }, [profile?.display_name, profile?.username, currentUser?.user_metadata?.username, currentUser?.user_metadata?.full_name, currentUser?.user_metadata?.name]);
+
+  const resolvedDiamondBalance = useMemo(() => {
+    const profileBalance = Math.max(Number(profile?.coins ?? 0), Number((profile as any)?.diamonds ?? 0));
+    return cachedBalance > 0 ? cachedBalance : profileBalance;
+  }, [cachedBalance, profile?.coins, (profile as any)?.diamonds]);
+
   // Transfer modal state
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [transferTab, setTransferTab] = useState<"user" | "agency" | "self">("user");
@@ -345,7 +368,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           // diamond_balance now includes BOTH agency diamonds AND helper wallet
           setAgencyData({
             id: agencyBeansResult.data.id,
-            name: profileData.display_name + "'s Agency",
+            name: (profileData.display_name || profileData.username || 'My') + "'s Agency",
             beans_balance: agencyBeans,
             diamond_balance: totalTraderWallet // Combined: agency + helper wallet
           });
@@ -1438,11 +1461,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           <AvatarWithFrame 
             userId={profileId}
             src={profile?.avatar_url}
-            name={
-              profile?.display_name?.trim() && profile.display_name.trim().toLowerCase() !== "user"
-                ? profile.display_name.trim()
-                : profile?.username?.trim() || currentUser?.user_metadata?.username || currentUser?.user_metadata?.full_name || currentUser?.user_metadata?.name || "U"
-            }
+            name={resolvedProfileName || "U"}
             level={displayLevel} 
             size="xl"
             isHost={profile?.is_host || profile?.gender === 'female'}
@@ -1464,9 +1483,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
         {/* Name - Elegant Typography */}
         <h1 className="text-xl font-bold text-white tracking-wide drop-shadow-lg">
-          {profile?.display_name?.trim() && profile.display_name.trim().toLowerCase() !== "user"
-            ? profile.display_name.trim()
-            : profile?.username?.trim() || currentUser?.user_metadata?.username || currentUser?.user_metadata?.full_name || currentUser?.user_metadata?.name || "User"}
+          {resolvedProfileName}
         </h1>
         
         {/* UID Badge - Glass Morphism */}
@@ -1597,7 +1614,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     </span>
                   </div>
                   <p className="text-xl font-bold text-white drop-shadow-lg">
-                     {(cachedBalance || Number(profile?.coins ?? 0)).toLocaleString()}
+                     {resolvedDiamondBalance.toLocaleString()}
                   </p>
                 </div>
                 
