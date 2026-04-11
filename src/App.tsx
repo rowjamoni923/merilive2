@@ -325,6 +325,7 @@ if (typeof window !== 'undefined') {
 const Blacklist = lazy(() => import("./pages/settings/Blacklist"));
 const ContentPageView = lazy(() => import("./pages/settings/ContentPage"));
 const CustomerService = lazy(() => import("./pages/settings/CustomerService"));
+const UserManagement = lazy(() => import("./pages/settings/UserManagement"));
 
 // Lazy loaded components - defer non-critical
 const GenderSelectionModal = lazy(() => import("@/components/auth/GenderSelectionModal").then(m => ({ default: m.GenderSelectionModal })));
@@ -939,6 +940,7 @@ const App = () => {
                 <Route path="/settings/privacy-policy" element={<ProtectedRoute session={session}><ContentPageView /></ProtectedRoute>} />
                 <Route path="/settings/user-agreement" element={<ProtectedRoute session={session}><ContentPageView /></ProtectedRoute>} />
                 <Route path="/settings/about-us" element={<ProtectedRoute session={session}><ContentPageView /></ProtectedRoute>} />
+                <Route path="/settings/user-management" element={<ProtectedRoute session={session}><UserManagement /></ProtectedRoute>} />
                 <Route path="/settings/customer-service" element={<ProtectedRoute session={session}><CustomerService /></ProtectedRoute>} />
                 <Route path="/support" element={<Navigate to="/settings/customer-service" replace />} />
                 <Route path="/rewards" element={<ProtectedRoute session={session}><Rewards /></ProtectedRoute>} />

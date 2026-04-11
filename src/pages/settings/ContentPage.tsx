@@ -32,8 +32,8 @@ const ContentPageView = () => {
         const { data, error } = await supabase
           .from("app_content")
           .select("title, content")
-          .eq("page_key", pageKey)
-          .eq("is_active", true)
+          .eq("type", pageKey)
+          .eq("is_published", true)
           .maybeSingle();
 
         if (error) throw error;

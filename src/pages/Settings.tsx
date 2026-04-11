@@ -22,7 +22,8 @@ import {
   MapPin,
   UserX,
   AlertTriangle,
-  Calendar
+  Calendar,
+  Users
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -589,8 +590,13 @@ const Settings = () => {
     },
     {
       icon: Ban,
-      label: t("settings.blacklist"),
+      label: "Blacklist",
       onClick: () => navigate("/settings/blacklist"),
+    },
+    {
+      icon: Users,
+      label: "User Management",
+      onClick: () => navigate("/settings/user-management"),
     },
     {
       icon: Shield,
