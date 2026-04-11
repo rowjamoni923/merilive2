@@ -107,7 +107,12 @@ const AdminRoleFrames = () => {
     if (framesError) {
       toast({ title: "Error", description: framesError.message, variant: "destructive" });
     } else {
-      setFrames(framesData || []);
+      // Map DB `name` column to component `frame_name`
+      const mapped = (framesData || []).map((f: any) => ({
+        ...f,
+        frame_name: f.name || f.frame_name || '',
+      }));
+      setFrames(mapped);
     }
 
     // Fetch assignments with user info
@@ -206,19 +211,31 @@ const AdminRoleFrames = () => {
       return;
     }
 
+    // Map component fields to DB column names (frame_name → name)
+    const dbPayload: any = {
+      name: frameForm.frame_name,
+      frame_url: frameForm.frame_url,
+      role_type: frameForm.role_type,
+      animation_type: frameForm.animation_type || 'svga',
+      description: frameForm.description || null,
+      is_active: frameForm.is_active ?? true,
+      is_default: frameForm.is_default ?? false,
+      display_order: frameForm.display_order ?? 0,
+    };
+
     setSaving(true);
     try {
       if (editingFrame) {
         const { error } = await supabase
           .from('role_frames')
-          .update(frameForm as any)
+          .update(dbPayload)
           .eq('id', editingFrame.id);
         if (error) throw error;
         toast({ title: "Updated!", description: `${frameForm.frame_name} saved` });
       } else {
         const { error } = await supabase
           .from('role_frames')
-          .insert([frameForm as any]);
+          .insert([dbPayload]);
         if (error) throw error;
         toast({ title: "Created!", description: `${frameForm.frame_name} added` });
       }
@@ -334,7 +351,7 @@ const AdminRoleFrames = () => {
 
   const openEditFrame = (frame: RoleFrame) => {
     setEditingFrame(frame);
-    setFrameForm(frame);
+    setFrameForm({ ...frame, frame_name: (frame as any).name || frame.frame_name });
     setFrameDialogOpen(true);
   };
 
