@@ -63,6 +63,14 @@ const AgencySignup = () => {
   const [emailOtpTimer, setEmailOtpTimer] = useState(0);
   const [verifyingEmailOtp, setVerifyingEmailOtp] = useState(false);
 
+  // In-App Notification OTP state
+  const [appOtp, setAppOtp] = useState("");
+  const [appOtpSent, setAppOtpSent] = useState(false);
+  const [appVerified, setAppVerified] = useState(false);
+  const [sendingAppOtp, setSendingAppOtp] = useState(false);
+  const [appOtpTimer, setAppOtpTimer] = useState(0);
+  const [verifyingAppOtp, setVerifyingAppOtp] = useState(false);
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (emailOtpTimer > 0) {
@@ -72,6 +80,64 @@ const AgencySignup = () => {
     }
     return () => clearInterval(interval);
   }, [emailOtpTimer]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (appOtpTimer > 0) {
+      interval = setInterval(() => setAppOtpTimer(prev => prev - 1), 1000);
+    }
+    return () => clearInterval(interval);
+  }, [appOtpTimer]);
+
+  const sendAppOtp = async () => {
+    if (!foundUser) return;
+    setSendingAppOtp(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-app-notification', {
+        body: {
+          userId: foundUser.id,
+          templateKey: 'otp_verification',
+          variables: { purpose: 'Agency Verification' },
+          type: 'otp'
+        }
+      });
+      if (error) throw error;
+      toast({ title: "✅ OTP Sent!", description: `Check notifications in ${foundUser.display_name || 'user'}'s app` });
+      setAppOtpSent(true);
+      setAppOtpTimer(300);
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message || "Failed to send notification OTP", variant: "destructive" });
+    } finally {
+      setSendingAppOtp(false);
+    }
+  };
+
+  const verifyAppOtp = async () => {
+    if (appOtp.length !== 6 || !foundUser) return;
+    setVerifyingAppOtp(true);
+    try {
+      // For in-app OTP, we verify through the notification system
+      // The OTP was sent via send-app-notification, verify it matches
+      const { data, error } = await supabase.functions.invoke('verify-email-otp', {
+        body: { 
+          email: `appuid_${foundUser.id}@notify.merilive.internal`, 
+          otp: appOtp,
+          purpose: 'verify' 
+        }
+      });
+      if (error) throw error;
+      if (!data?.success) {
+        toast({ title: "Error", description: data?.error || "Invalid OTP", variant: "destructive" });
+        return;
+      }
+      setAppVerified(true);
+      toast({ title: "✅ App OTP Verified!", description: "In-app verification successful" });
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message || "Verification failed", variant: "destructive" });
+    } finally {
+      setVerifyingAppOtp(false);
+    }
+  };
 
   const searchUserById = async () => {
     if (!formData.userId.trim()) {
@@ -157,35 +223,19 @@ const AgencySignup = () => {
 
     setVerifyingEmailOtp(true);
     try {
-      const { data, error } = await supabase
-        .from('email_otps')
-        .select('id, otp_code, expires_at, is_used')
-        .eq('email', formData.email.trim().toLowerCase())
-        .eq('purpose', 'verify')
-        .eq('is_used', false)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      const { data, error } = await supabase.functions.invoke('verify-email-otp', {
+        body: { 
+          email: formData.email.trim().toLowerCase(), 
+          otp: emailOtp,
+          purpose: 'verify' 
+        }
+      });
 
       if (error) throw error;
-
-      if (!data) {
-        toast({ title: "Error", description: "No valid OTP found. Please request a new one.", variant: "destructive" });
+      if (!data?.success) {
+        toast({ title: "Error", description: data?.error || "Verification failed", variant: "destructive" });
         return;
       }
-
-      if (new Date(data.expires_at) < new Date()) {
-        toast({ title: "Code Expired", description: "Please request a new verification code", variant: "destructive" });
-        return;
-      }
-
-      if (data.otp_code !== emailOtp) {
-        toast({ title: "Wrong Code", description: "Please enter the correct 6-digit code", variant: "destructive" });
-        return;
-      }
-
-      // Mark OTP as used
-      await supabase.from('email_otps').update({ is_used: true }).eq('id', data.id);
 
       setEmailVerified(true);
       toast({ title: "✅ Email Verified!", description: "Your email has been verified successfully" });
@@ -364,7 +414,70 @@ const AgencySignup = () => {
             )}
           </div>
 
-          {/* Phone Number (optional, shown after user found) */}
+          {/* In-App Notification OTP (shown after user found) */}
+          {foundUser && !appVerified && (
+            <>
+              <div className="border-t border-slate-700" />
+              <div className="space-y-3">
+                <Label className="text-sm font-semibold flex items-center gap-2 text-white">
+                  <MessageCircle className="w-4 h-4 text-orange-400" />
+                  App Notification OTP <span className="text-slate-500 text-xs">(Optional)</span>
+                </Label>
+                <div className="p-4 bg-orange-900/30 rounded-xl space-y-3 border border-orange-700/30">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-orange-300">Send OTP to App</span>
+                    {!appOtpSent ? (
+                      <Button size="sm" onClick={sendAppOtp} disabled={sendingAppOtp} className="bg-orange-600 hover:bg-orange-700">
+                        {sendingAppOtp ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Send className="w-4 h-4 mr-1" />}
+                        Send to App
+                      </Button>
+                    ) : (
+                      <Badge className={`cursor-pointer ${appOtpTimer > 0 ? 'bg-green-500' : 'bg-red-500'}`}
+                        onClick={() => { if (appOtpTimer <= 0) { setAppOtpSent(false); setAppOtp(""); } }}>
+                        <Timer className="w-3 h-3 mr-1" />
+                        {appOtpTimer > 0 ? `${Math.floor(appOtpTimer / 60)}:${(appOtpTimer % 60).toString().padStart(2, '0')}` : 'Resend'}
+                      </Badge>
+                    )}
+                  </div>
+                  {appOtpSent && (
+                    <>
+                      <div className="p-3 bg-orange-900/40 rounded-lg border border-orange-700/50">
+                        <p className="text-xs text-orange-300 flex items-center gap-1">
+                          <MessageCircle className="w-3 h-3" />
+                          OTP sent to {foundUser.display_name || 'user'}'s in-app notifications
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <InputOTP maxLength={6} value={appOtp} onChange={(value) => setAppOtp(value)}>
+                          <InputOTPGroup>
+                            {[0,1,2,3,4,5].map(i => (
+                              <InputOTPSlot key={i} index={i} className="bg-slate-800 text-white border-slate-600" />
+                            ))}
+                          </InputOTPGroup>
+                        </InputOTP>
+                        <Button size="sm" onClick={verifyAppOtp} disabled={appOtp.length !== 6 || appOtpTimer <= 0 || verifyingAppOtp} className="bg-orange-600 hover:bg-orange-700">
+                          {verifyingAppOtp ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify"}
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+
+          {foundUser && appVerified && (
+            <div className="p-3 bg-green-900/30 rounded-xl flex items-center gap-3 text-green-300 border border-green-700/50">
+              <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                <CheckCircle2 className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <p className="font-semibold text-sm">App OTP Verified ✓</p>
+                <p className="text-xs text-green-400">In-app notification verified</p>
+              </div>
+            </div>
+          )}
+
           {foundUser && (
             <>
               <div className="border-t border-slate-700" />
