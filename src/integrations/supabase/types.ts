@@ -4153,34 +4153,58 @@ export type Database = {
       }
       level_privileges: {
         Row: {
+          animation_url: string | null
           created_at: string | null
           description: string | null
+          display_order: number | null
+          duration_ms: number | null
           icon_url: string | null
           id: string
           is_active: boolean | null
           level: number
+          name: string | null
+          preview_url: string | null
           privilege_key: string
           privilege_name: string
+          privilege_type: string | null
+          sound_url: string | null
+          unlock_level: number | null
         }
         Insert: {
+          animation_url?: string | null
           created_at?: string | null
           description?: string | null
+          display_order?: number | null
+          duration_ms?: number | null
           icon_url?: string | null
           id?: string
           is_active?: boolean | null
           level: number
+          name?: string | null
+          preview_url?: string | null
           privilege_key: string
           privilege_name: string
+          privilege_type?: string | null
+          sound_url?: string | null
+          unlock_level?: number | null
         }
         Update: {
+          animation_url?: string | null
           created_at?: string | null
           description?: string | null
+          display_order?: number | null
+          duration_ms?: number | null
           icon_url?: string | null
           id?: string
           is_active?: boolean | null
           level?: number
+          name?: string | null
+          preview_url?: string | null
           privilege_key?: string
           privilege_name?: string
+          privilege_type?: string | null
+          sound_url?: string | null
+          unlock_level?: number | null
         }
         Relationships: []
       }
