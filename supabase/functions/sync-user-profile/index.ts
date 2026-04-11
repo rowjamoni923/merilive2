@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
 
     const { data: currentProfile } = await newClient
       .from('profiles')
-      .select('id, email, display_name, username, user_level, vip_level, host_level, coins, diamonds, beans, beans_balance, is_host, is_verified, is_agency_owner, agency_id, avatar_url')
+      .select('id, display_name, username, user_level, vip_level, host_level, coins, diamonds, beans, beans_balance, is_host, is_verified, is_agency_owner, agency_id, avatar_url')
       .eq('id', user.id)
       .maybeSingle()
 
