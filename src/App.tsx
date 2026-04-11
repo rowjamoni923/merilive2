@@ -395,7 +395,7 @@ const App = () => {
   const [showGenderModal, setShowGenderModal] = useState(false);
   const [pendingUserId, setPendingUserId] = useState<string | null>(null);
   const [maintenanceMode, setMaintenanceMode] = useState<{ enabled: boolean; message: string } | null>(null);
-  const [lastLegacySyncUserId, setLastLegacySyncUserId] = useState<string | null>(null);
+  
 
   // 🛠️ MAINTENANCE MODE CHECK - fetch only, no dedicated realtime channel
   // app_settings realtime is already handled by useGlobalSettings
