@@ -880,11 +880,17 @@ export default function AdminGifts() {
                     {/* Name */}
                     <p className="text-slate-800 font-medium text-xs md:text-sm mb-1 truncate">{gift.name}</p>
 
-                    {/* Category Badge */}
-                    <div className="mb-1 md:mb-2">
+                    {/* Category Badge + Lucky/Pro indicators */}
+                    <div className="mb-1 md:mb-2 flex flex-wrap gap-1 justify-center">
                       <Badge variant="outline" className="text-[10px] md:text-xs text-purple-600 border-purple-200 px-1 md:px-2">
                         {giftCategories.find(c => c.id === gift.category)?.name || gift.category}
                       </Badge>
+                      {(gift as any).is_lucky && (
+                        <Badge className="text-[10px] md:text-xs bg-yellow-400 text-black px-1">🎰 Lucky</Badge>
+                      )}
+                      {(gift as any).min_level > 0 && (
+                        <Badge className="text-[10px] md:text-xs bg-cyan-500 text-white px-1">Lv.{(gift as any).min_level}+</Badge>
+                      )}
                     </div>
 
                     {/* Price */}
