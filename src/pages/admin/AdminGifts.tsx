@@ -61,6 +61,7 @@ import { toast } from "sonner";
 import { defaultGiftAnimations, animationCategories, type DefaultAnimation } from "@/data/defaultGiftAnimations";
 import Lottie from "lottie-react";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
+import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
 
 interface GiftItem {
   id: string;
