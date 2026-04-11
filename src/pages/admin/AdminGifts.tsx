@@ -31,7 +31,8 @@ import {
   Wand2,
   Check,
   Volume2,
-  X
+  X,
+  Eye
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
