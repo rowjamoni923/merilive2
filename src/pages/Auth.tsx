@@ -295,21 +295,21 @@ const Auth = () => {
     }
   }, []);
 
-  // 🚀 SESSION CHECK: Only redirect if user already has an active session
-  // Device recovery is ONLY triggered by Start button — never automatically
+  // 🚀 SESSION CHECK + AUTO DEVICE RECOVERY on page load
+  // Automatically scans for existing account via device ID — mirrors original app behavior
   useEffect(() => {
-    const checkExistingSession = async () => {
+    const checkExistingSessionAndRecover = async () => {
       // Skip if user manually logged out
       const manualLogout = localStorage.getItem('meri_manual_logout');
       if (manualLogout) {
-        console.log('[Auth] Skipped session check — user manually logged out.');
+        console.log('[Auth] Skipped auto-recovery — user manually logged out.');
         setIsAutoRecovering(false);
         return;
       }
       
       setIsAutoRecovering(true);
       try {
-        // Check if user already has an active session FIRST
+        // 1️⃣ Check if user already has an active session FIRST
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
           console.log('[Auth] ✅ Active session found, redirecting to home');
@@ -317,8 +317,7 @@ const Auth = () => {
           return;
         }
 
-        // 🔒 On native: try restoring session from Capacitor Preferences
-        // WebView localStorage may be cleared by OS on app kill
+        // 2️⃣ On native: try restoring session from Capacitor Preferences
         const nativeSession = await getSessionFromNative();
         if (nativeSession?.refresh_token) {
           console.log('[Auth] 🔄 Restoring session from native storage...');
@@ -335,16 +334,106 @@ const Auth = () => {
           }
         }
 
-        // NO auto-recovery here — user must press Start button
-        console.log('[Auth] No active session — showing auth UI');
+        // 3️⃣ AUTO DEVICE RECOVERY — scan for existing account on this device
+        console.log('[Auth] 🔍 Auto-scanning device for existing account...');
+        const deviceId = await generateDeviceId();
+        const existingAccount = await recoverAccountByDevice(deviceId);
+        
+        if (existingAccount) {
+          console.log('[Auth] 🔄 Found existing account, auto-recovering:', existingAccount.displayName);
+          
+          // Try login with device credentials
+          const { error: loginError } = await supabase.auth.signInWithPassword({
+            email: existingAccount.recoveryEmail,
+            password: existingAccount.recoveryPassword,
+          });
+          
+          if (!loginError) {
+            localStorage.setItem("meri_device_account", JSON.stringify({
+              deviceId,
+              email: existingAccount.recoveryEmail,
+              password: existingAccount.recoveryPassword,
+              displayName: existingAccount.displayName,
+              avatarUrl: existingAccount.avatarUrl,
+              gender: existingAccount.gender as Gender,
+            }));
+            localStorage.setItem("meri_device_id", deviceId);
+            
+            toast({
+              title: "🎉 Account Recovered!",
+              description: `Welcome back, ${existingAccount.displayName}!`,
+            });
+            navigateAfterAuth();
+            return;
+          }
+          
+          // Try conversion fallback
+          try {
+            const { data: convertResult, error: convertError } = await supabase.functions.invoke(
+              'convert-anonymous-to-guest',
+              { body: { deviceId } }
+            );
+            if (!convertError && convertResult?.converted) {
+              const { error: retryError } = await supabase.auth.signInWithPassword({
+                email: existingAccount.recoveryEmail,
+                password: existingAccount.recoveryPassword,
+              });
+              if (!retryError) {
+                localStorage.setItem("meri_device_account", JSON.stringify({
+                  deviceId,
+                  email: existingAccount.recoveryEmail,
+                  password: existingAccount.recoveryPassword,
+                  displayName: existingAccount.displayName,
+                  avatarUrl: existingAccount.avatarUrl,
+                  gender: existingAccount.gender as Gender,
+                }));
+                localStorage.setItem("meri_device_id", deviceId);
+                toast({
+                  title: "🎉 Account Recovered!",
+                  description: `Welcome back, ${existingAccount.displayName}!`,
+                });
+                navigateAfterAuth();
+                return;
+              }
+            }
+          } catch (convErr) {
+            console.warn('[Auth] Auto-recovery conversion failed:', convErr);
+          }
+          
+          // Auto-recovery failed silently — user can still press Start or Email login
+          console.log('[Auth] Auto-recovery login failed, showing UI for manual action');
+        } else {
+          // 4️⃣ Check localStorage saved credentials
+          const savedAccount = localStorage.getItem("meri_device_account");
+          if (savedAccount) {
+            try {
+              const parsed = JSON.parse(savedAccount);
+              if (parsed?.email && parsed?.password) {
+                const { error } = await supabase.auth.signInWithPassword({
+                  email: parsed.email,
+                  password: parsed.password,
+                });
+                if (!error) {
+                  console.log('[Auth] ✅ Restored from localStorage credentials');
+                  navigateAfterAuth();
+                  return;
+                }
+              }
+            } catch (e) {
+              // Ignore parse errors
+            }
+          }
+        }
+
+        console.log('[Auth] No recoverable account — showing auth UI');
       } catch (err) {
-        console.error('[Auth] Session check error:', err);
+        console.error('[Auth] Auto-recovery error:', err);
       } finally {
         setIsAutoRecovering(false);
       }
     };
 
-    checkExistingSession();
+    checkExistingSessionAndRecover();
   }, []);
 
   // Handle pending registration after OAuth callback
