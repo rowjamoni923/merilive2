@@ -700,7 +700,7 @@ export default function AdminAgencies() {
     try {
       const agencyCode = generateAgencyCode();
 
-      const { data: newAgency, error } = await supabase
+      const { error } = await supabase
         .from("agencies")
         .insert({
           name: newAgencyName.trim(),
@@ -713,17 +713,9 @@ export default function AdminAgencies() {
           total_hosts: 0,
           total_agents: 0,
           wallet_balance: 0
-        })
-        .select()
-        .single();
+        });
 
       if (error) throw error;
-
-      // Update owner profile to mark as agency owner
-      await supabase
-        .from("profiles")
-        .update({ is_agency_owner: true })
-        .eq("id", ownerSearchResult.id);
 
       toast.success(`Agency "${newAgencyName}" created successfully`);
       

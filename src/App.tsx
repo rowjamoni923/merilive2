@@ -755,13 +755,7 @@ const App = () => {
                     .eq('id', pendingClaim.agencyId);
                   
                   if (!claimError) {
-                    // Update profile to mark as agency owner
-                    await supabase
-                      .from('profiles')
-                      .update({ is_agency_owner: true })
-                      .eq('id', session.user.id);
-                    
-                    console.log('[App] Agency claimed successfully!');
+                    console.log('[App] Agency claimed successfully via owner sync trigger!');
                     localStorage.removeItem('meri_pending_agency_claim');
                   }
                 } else {
