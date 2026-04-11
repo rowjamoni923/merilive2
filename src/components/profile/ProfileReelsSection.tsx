@@ -27,7 +27,7 @@ interface ProfileReel {
   video_url: string;
   thumbnail_url: string | null;
   caption: string | null;
-  view_count: number;
+  views_count: number | null;
   is_active: boolean;
 }
 
@@ -65,7 +65,7 @@ export const ProfileReelsSection = ({ userId, isOwnProfile }: ProfileReelsSectio
     try {
       let query = supabase
         .from('reels')
-        .select('id, video_url, thumbnail_url, caption, view_count, is_active')
+        .select('id, video_url, thumbnail_url, caption, views_count, is_active')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(20);
@@ -216,7 +216,7 @@ export const ProfileReelsSection = ({ userId, isOwnProfile }: ProfileReelsSectio
                   {/* View count badge */}
                   <div className="absolute bottom-1 left-1 flex items-center gap-0.5 text-white text-[9px] font-bold bg-black/60 rounded px-1.5 py-0.5">
                     <Play className="w-2.5 h-2.5" fill="white" />
-                    {formatCount(reel.view_count)}
+                    {formatCount(reel.views_count || 0)}
                   </div>
 
                   {/* Private indicator */}

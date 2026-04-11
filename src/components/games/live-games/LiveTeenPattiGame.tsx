@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ShimmerEffect, ParticleField } from "../common/ShimmerEffect";
 import { useGameSoundManager } from "@/hooks/useGameSoundManager";
 import { WinPopup, formatBetDisplay } from "../common/WinPopup";
+import { processWin } from "@/services/gameBalanceService";
 
 interface LiveTeenPattiGameProps {
   game: any;
@@ -374,20 +375,10 @@ export function LiveTeenPattiGame({
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('coins')
-            .eq('id', user.id)
-            .single();
-          
-          if (profile) {
-            const newBalance = profile.coins + winTotal;
-            await supabase
-              .from('profiles')
-              .update({ coins: newBalance })
-              .eq('id', user.id);
-              
-            console.log('[TeenPatti dealCards] Credited winnings:', winTotal, 'New balance:', newBalance);
+          const result = await processWin(user.id, game?.id || 'teen-patti', game?.name || 'Teen Patti', winTotal, 2);
+          if (result.success && result.newBalance !== undefined) {
+            onUpdateCoins?.(result.newBalance);
+            console.log('[TeenPatti dealCards] Credited winnings via RPC:', winTotal, 'New balance:', result.newBalance);
           }
         }
       } catch (error) {

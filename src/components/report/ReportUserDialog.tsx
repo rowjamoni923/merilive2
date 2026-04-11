@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { forwardRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -92,14 +92,14 @@ interface ReportUserDialogProps {
   contextId?: string;
 }
 
-export function ReportUserDialog({
+export const ReportUserDialog = forwardRef<HTMLDivElement, ReportUserDialogProps>(function ReportUserDialog({
   open,
   onOpenChange,
   reportedUserId,
   reporterUserId,
   contextType = "general",
   contextId,
-}: ReportUserDialogProps) {
+}, ref) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -131,7 +131,7 @@ export function ReportUserDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-gradient-to-b from-[#1a0a2e]/98 via-[#0f0520]/98 to-[#0a0318]/98 backdrop-blur-3xl border border-white/[0.08] text-white max-w-[360px] rounded-2xl p-0 overflow-hidden shadow-2xl shadow-purple-900/40 [&>button]:hidden">
+      <DialogContent ref={ref} className="bg-gradient-to-b from-[#1a0a2e]/98 via-[#0f0520]/98 to-[#0a0318]/98 backdrop-blur-3xl border border-white/[0.08] text-white max-w-[360px] rounded-2xl p-0 overflow-hidden shadow-2xl shadow-purple-900/40 [&>button]:hidden">
         
         {/* Decorative top glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-[2px] bg-gradient-to-r from-transparent via-red-500/60 to-transparent" />
@@ -234,4 +234,4 @@ export function ReportUserDialog({
       </DialogContent>
     </Dialog>
   );
-}
+});

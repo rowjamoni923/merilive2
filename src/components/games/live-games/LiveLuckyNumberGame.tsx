@@ -5,6 +5,7 @@ import { Coins, Star, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { WinPopup } from "../common/WinPopup";
 import { formatBetAmount } from "../common/BetControls";
+import { processWin } from "@/services/gameBalanceService";
 
 interface LiveLuckyNumberGameProps {
   game: any;
@@ -192,11 +193,9 @@ export function LiveLuckyNumberGame({
         try {
           const { data: { user } } = await supabase.auth.getUser();
           if (!user) return;
-          const { data: profile } = await supabase.from('profiles').select('coins').eq('id', user.id).single();
-          if (profile) {
-            const newBalance = profile.coins + totalWinnings;
-            await supabase.from('profiles').update({ coins: newBalance }).eq('id', user.id);
-            onUpdateCoins?.(newBalance);
+          const result = await processWin(user.id, game?.id || 'lucky-number', game?.name || 'Lucky Number', totalWinnings, MULTIPLIER);
+          if (result.success && result.newBalance !== undefined) {
+            onUpdateCoins?.(result.newBalance);
           }
         } catch (error) {
           console.error('[LuckyNumber] Credit error:', error);
