@@ -677,15 +677,37 @@ const Auth = () => {
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
+      const normalizedEmail = email.trim().toLowerCase();
+      setEmail(normalizedEmail);
+
+      let { error } = await supabase.auth.signInWithPassword({
+        email: normalizedEmail,
         password,
       });
+
+      if (error?.message === "Invalid login credentials") {
+        const { data: syncResult, error: syncError } = await supabase.functions.invoke("admin-sync-auth", {
+          body: { email: normalizedEmail, password },
+        });
+
+        if (syncError) {
+          console.error("[Auth] legacy auth sync failed:", syncError);
+        }
+
+        if (syncResult?.success) {
+          const retry = await supabase.auth.signInWithPassword({
+            email: normalizedEmail,
+            password,
+          });
+          error = retry.error;
+        }
+      }
+
       if (error) {
-        await recordAttempt(email, false);
+        await recordAttempt(normalizedEmail, false);
         throw error;
       }
-      await recordAttempt(email, true);
+      await recordAttempt(normalizedEmail, true);
       
       // Sync profile from legacy project before routing so old account data is available instantly
       await triggerLegacyProfileSync((await supabase.auth.getUser()).data.user?.id);

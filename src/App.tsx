@@ -782,6 +782,8 @@ const App = () => {
             if (genderAlreadySelected === 'true') return;
             
             try {
+              await runLegacyProfileSync(session.user.id);
+
               const { data: profile } = await supabase
                 .from('profiles')
                 .select('gender')

@@ -36,8 +36,16 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
+    const oldSupabaseUrlRaw = (Deno.env.get("OLD_SUPABASE_URL") || "").trim();
+    const oldSupabaseKey = (Deno.env.get("OLD_SUPABASE_SERVICE_ROLE_KEY") || "").trim();
+    const oldSupabaseUrl = oldSupabaseUrlRaw && !oldSupabaseUrlRaw.startsWith("http")
+      ? `https://${oldSupabaseUrlRaw}`
+      : oldSupabaseUrlRaw;
+    const oldClient = oldSupabaseUrl && oldSupabaseKey
+      ? createClient(oldSupabaseUrl, oldSupabaseKey)
+      : null;
 
-    // 1. Check if this email exists in admin_users and is active
+    // 1. Check if this email exists in current admin_users and is active
     const { data: adminUser, error: adminError } = await adminClient
       .from("admin_users")
       .select("id, user_id, email, display_name, role, is_active")
@@ -45,11 +53,17 @@ Deno.serve(async (req) => {
       .eq("is_active", true)
       .maybeSingle();
 
-    if (adminError || !adminUser) {
-      console.log("[admin-sync-auth] Email not found in admin_users:", normalizedEmail);
+    const legacyIdentity = await findLegacyIdentity(oldClient, normalizedEmail);
+
+    if (adminError) {
+      console.error("[admin-sync-auth] Failed reading admin_users:", adminError);
+    }
+
+    if (!adminUser && !legacyIdentity) {
+      console.log("[admin-sync-auth] Email not found in admin_users or legacy source:", normalizedEmail);
       return new Response(
-        JSON.stringify({ success: false, reason: "not_admin" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ success: false, reason: "not_found_in_legacy" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -77,7 +91,7 @@ Deno.serve(async (req) => {
     if (existingUserId) {
       // Auth account exists — DO NOT change password, just confirm it exists
       // Link user_id in admin_users if not already linked
-      if (!adminUser.user_id) {
+      if (adminUser && !adminUser.user_id) {
         await adminClient
           .from("admin_users")
           .update({ user_id: existingUserId })
@@ -96,7 +110,10 @@ Deno.serve(async (req) => {
         email: normalizedEmail,
         password,
         email_confirm: true,
-        user_metadata: { full_name: adminUser.display_name || "" },
+        user_metadata: {
+          full_name: legacyIdentity?.displayName || adminUser?.display_name || "",
+          name: legacyIdentity?.displayName || adminUser?.display_name || "",
+        },
       });
 
       if (createError) {
@@ -108,7 +125,7 @@ Deno.serve(async (req) => {
       }
 
       // Link user_id in admin_users
-      if (newUser?.user) {
+      if (newUser?.user && adminUser) {
         await adminClient
           .from("admin_users")
           .update({ user_id: newUser.user.id })
@@ -129,3 +146,70 @@ Deno.serve(async (req) => {
     );
   }
 });
+
+async function findLegacyIdentity(oldClient: ReturnType<typeof createClient> | null, email: string) {
+  if (!oldClient) return null;
+
+  try {
+    const { data: legacyProfile } = await oldClient
+      .from("profiles")
+      .select("id, email, display_name, username")
+      .ilike("email", email)
+      .maybeSingle();
+
+    if (legacyProfile) {
+      return {
+        id: legacyProfile.id,
+        displayName: legacyProfile.display_name || legacyProfile.username || email.split("@")[0],
+        source: "legacy_profile",
+      };
+    }
+  } catch (error) {
+    console.warn("[admin-sync-auth] Legacy profile lookup failed:", error);
+  }
+
+  try {
+    const { data: legacyAdmin } = await oldClient
+      .from("admin_users")
+      .select("id, email, display_name")
+      .ilike("email", email)
+      .maybeSingle();
+
+    if (legacyAdmin) {
+      return {
+        id: legacyAdmin.id,
+        displayName: legacyAdmin.display_name || email.split("@")[0],
+        source: "legacy_admin",
+      };
+    }
+  } catch (error) {
+    console.warn("[admin-sync-auth] Legacy admin lookup failed:", error);
+  }
+
+  try {
+    let page = 1;
+    const perPage = 200;
+
+    while (true) {
+      const { data, error } = await oldClient.auth.admin.listUsers({ page, perPage });
+      if (error) break;
+
+      const users = data?.users ?? [];
+      const matched = users.find((user) => user.email?.toLowerCase() === email);
+      if (matched) {
+        return {
+          id: matched.id,
+          displayName: matched.user_metadata?.full_name || matched.user_metadata?.name || email.split("@")[0],
+          source: "legacy_auth",
+        };
+      }
+
+      if (users.length < perPage) break;
+      page += 1;
+    }
+  } catch (error) {
+    console.warn("[admin-sync-auth] Legacy auth lookup failed:", error);
+  }
+
+  return null;
+}
