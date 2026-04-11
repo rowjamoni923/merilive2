@@ -78,16 +78,11 @@ export const useExpiredItemsRestorer = (userId: string | null) => {
         // ============================================
         // PART 2: Check Shop Purchases Expiration
         // ============================================
+        // NOTE: No FK between user_purchases and shop_items — use separate queries
         const { data: expiredPurchases, error: fetchError } = await supabase
           .from('user_purchases')
-          .select(`
-            id,
-            item_id,
-            expires_at,
-            shop_items (category)
-          `)
+          .select('id, item_id, item_type, expires_at')
           .eq('user_id', userId)
-          .eq('is_equipped', true)
           .eq('is_active', true)
           .not('expires_at', 'is', null)
           .lt('expires_at', new Date().toISOString());
@@ -101,8 +96,24 @@ export const useExpiredItemsRestorer = (userId: string | null) => {
         if (expiredPurchases && expiredPurchases.length > 0) {
           console.log('[ExpiredItemsRestorer] Found expired purchases:', expiredPurchases.length);
 
+          // Fetch categories from shop_items for the expired item IDs
+          const itemIds = [...new Set(expiredPurchases.map(p => p.item_id).filter(Boolean))];
+          let itemCategoryMap: Record<string, string> = {};
+          
+          if (itemIds.length > 0) {
+            const { data: shopItems } = await supabase
+              .from('shop_items')
+              .select('id, category')
+              .in('id', itemIds);
+            
+            if (shopItems) {
+              itemCategoryMap = Object.fromEntries(shopItems.map(i => [i.id, i.category]));
+            }
+          }
+
           for (const purchase of expiredPurchases) {
-            const category = (purchase.shop_items as any)?.category;
+            // Use item_type from purchase first, fallback to shop_items category
+            const category = purchase.item_type || itemCategoryMap[purchase.item_id] || null;
             expiredIds.push(purchase.id);
 
             switch (category) {
@@ -192,11 +203,11 @@ export const useExpiredItemsRestorer = (userId: string | null) => {
           }
         }
 
-        // Mark expired purchases as unequipped
+        // Mark expired purchases as inactive
         if (expiredIds.length > 0) {
           await supabase
             .from('user_purchases')
-            .update({ is_equipped: false })
+            .update({ is_active: false })
             .in('id', expiredIds);
 
           console.log('[ExpiredItemsRestorer] Marked expired purchases as unequipped:', expiredIds);

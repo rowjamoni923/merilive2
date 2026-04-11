@@ -12,8 +12,7 @@ import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { subscribeToTables } from '@/hooks/useUniversalRealtime';
 
-// CRITICAL: EXACT match with supabase_realtime publication (12 tables only)
-// DO NOT add tables that aren't in the publication — it causes DB overload
+// Tables added to supabase_realtime publication for instant admin→app sync
 const TABLE_TO_QUERY_KEYS: Record<string, string[][]> = {
   live_streams: [['index-hosts-v3'], ['live-stream'], ['active-streams']],
   conversations: [['conversations'], ['recent-chats']],
@@ -27,6 +26,22 @@ const TABLE_TO_QUERY_KEYS: Record<string, string[][]> = {
   agency_withdrawals: [['agency-withdrawals']],
   support_tickets: [['support-tickets']],
   support_messages: [['support-messages']],
+  // Admin-controlled tables — instant upgrade in app when admin changes them
+  banners: [['banners'], ['home-banners']],
+  gifts: [['gifts'], ['gift-categories']],
+  shop_items: [['shop-items'], ['shop-categories']],
+  coin_packages: [['coin-packages']],
+  avatar_frames: [['avatar-frames'], ['frames']],
+  vip_tiers: [['vip-tiers'], ['vip-packages']],
+  daily_login_rewards_config: [['daily-rewards']],
+  branding_settings: [['branding-settings']],
+  app_version_settings: [['app-version']],
+  admin_notices: [['admin-notices']],
+  categories: [['categories']],
+  ar_stickers: [['ar-stickers']],
+  beauty_filters: [['beauty-filters']],
+  admin_music_library: [['music-library']],
+  noble_cards: [['noble-cards']],
 };
 
 // Table-specific debounce tuning for near-instant cache sync
