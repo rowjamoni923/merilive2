@@ -52,7 +52,7 @@ const AdminInvitationSettings = () => {
     fetchBannerUrl();
   }, []);
 
-  useAdminRealtime(['invitation_settings'], () => { fetchTiers(); fetchBannerUrl(); });
+  useAdminRealtime(['invitation_settings', 'app_settings'], () => { fetchTiers(); fetchBannerUrl(); });
 
   const fetchBannerUrl = async () => {
     try {
