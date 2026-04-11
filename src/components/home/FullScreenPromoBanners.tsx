@@ -32,6 +32,7 @@ export function FullScreenPromoBanners() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [canSkip, setCanSkip] = useState(false);
+  const [countdown, setCountdown] = useState(Math.ceil(SKIP_DELAY_MS / 1000));
 
   // Only show once per session
   useEffect(() => {
@@ -42,10 +43,21 @@ export function FullScreenPromoBanners() {
     }
   }, []);
 
-  // Skip button timer
+  // Skip button timer with countdown
   useEffect(() => {
     if (!isVisible) return;
     setCanSkip(false);
+    setCountdown(Math.ceil(SKIP_DELAY_MS / 1000));
+    const interval = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setCanSkip(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
     const t = setTimeout(() => setCanSkip(true), SKIP_DELAY_MS);
     return () => clearTimeout(t);
   }, [currentIndex, isVisible]);
@@ -56,7 +68,7 @@ export function FullScreenPromoBanners() {
     const t = setTimeout(() => {
       goNext();
     }, AUTO_CLOSE_MS);
-    return () => clearTimeout(t);
+    return () => { clearTimeout(t); clearInterval(interval); };
   }, [currentIndex, isVisible]);
 
   const goNext = useCallback(() => {
