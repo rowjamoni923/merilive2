@@ -1794,13 +1794,15 @@ const Auth = () => {
   // Show loading screen during auto-recovery
   if (isAutoRecovering) {
     return (
-      <div className="fixed inset-0 overflow-hidden">
-        {branding.background_type === 'video' ? (
+        <div className="fixed inset-0 overflow-hidden">
+        {branding.background_type === 'video' && branding.background_url ? (
           <video src={branding.background_url} className="absolute inset-0 w-full h-full object-cover" autoPlay muted loop playsInline />
-        ) : (
+        ) : branding.background_type === 'image' && branding.background_url ? (
           <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url('${branding.background_url}')` }} />
+        ) : (
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #0f0c29 0%, #302b63 40%, #24243e 70%, #0f0c29 100%)' }} />
         )}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/60" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/50" />
         <div className="relative z-10 min-h-screen flex flex-col items-center justify-center gap-4">
           <div className="w-10 h-10 border-3 border-white/30 border-t-white rounded-full animate-spin" />
           <p className="text-white/80 text-sm font-medium animate-pulse">Recovering your account...</p>
