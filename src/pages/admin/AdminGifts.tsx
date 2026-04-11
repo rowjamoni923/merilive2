@@ -174,7 +174,51 @@ export default function AdminGifts() {
   }, [location.pathname]);
 
   // Real-time updates
-  useAdminRealtime(['gifts', 'gift_categories'], fetchGifts, 'admin-gifts-rt');
+  useAdminRealtime(['gifts', 'gift_categories', 'lucky_gift_config'], fetchGifts, 'admin-gifts-rt');
+
+  // Lucky Gift Config Management
+  const fetchLuckyConfigs = useCallback(async (giftId: string) => {
+    const { data, error } = await supabase
+      .from('lucky_gift_config' as any)
+      .select('*')
+      .eq('gift_id', giftId)
+      .order('display_order');
+    if (!error && data) setLuckyConfigs(data as any);
+  }, []);
+
+  const saveLuckyTier = async (tier: Partial<LuckyRewardTier>) => {
+    if (!luckyConfigGiftId) return;
+    try {
+      if (tier.id) {
+        await supabase.from('lucky_gift_config' as any).update({
+          diamond_reward: tier.diamond_reward,
+          win_chance_percent: tier.win_chance_percent,
+          is_active: tier.is_active,
+        }).eq('id', tier.id);
+      } else {
+        await supabase.from('lucky_gift_config' as any).insert({
+          gift_id: luckyConfigGiftId,
+          diamond_reward: tier.diamond_reward || 1,
+          win_chance_percent: tier.win_chance_percent || 5,
+          display_order: luckyConfigs.length,
+        });
+      }
+      toast.success('Lucky tier saved');
+      fetchLuckyConfigs(luckyConfigGiftId);
+    } catch (e) { toast.error('Failed to save'); }
+  };
+
+  const deleteLuckyTier = async (id: string) => {
+    await supabase.from('lucky_gift_config' as any).delete().eq('id', id);
+    if (luckyConfigGiftId) fetchLuckyConfigs(luckyConfigGiftId);
+    toast.success('Tier deleted');
+  };
+
+  const openLuckyConfig = (giftId: string) => {
+    setLuckyConfigGiftId(giftId);
+    fetchLuckyConfigs(giftId);
+    setShowLuckyConfig(true);
+  };
 
   // Upload to Cloudflare R2 for large files using proxy multipart upload (avoids CORS issues)
   // R2 requires minimum 5MB per part (except last part) for multipart uploads
