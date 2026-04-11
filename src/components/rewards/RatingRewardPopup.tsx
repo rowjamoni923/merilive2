@@ -42,7 +42,11 @@ export default function RatingRewardPopup() {
         .eq('setting_key', 'rating_popup_enabled')
         .maybeSingle();
 
-      const enabled = settingData?.setting_value === true || settingData?.setting_value === 'true';
+      const enabled =
+        settingData?.setting_value === true ||
+        settingData?.setting_value === 'true' ||
+        localStorage.getItem(RATING_PENDING_KEY) === 'true';
+
       if (!enabled) return;
 
       const { data: existingClaims } = await supabase
@@ -52,6 +56,7 @@ export default function RatingRewardPopup() {
         .limit(1);
 
       if ((existingClaims?.length ?? 0) > 0) {
+        localStorage.removeItem(RATING_PENDING_KEY);
         setAlreadyClaimed(true);
         return;
       }
@@ -68,6 +73,20 @@ export default function RatingRewardPopup() {
     setStep('screenshot');
     setShowDialog(true);
   }, []);
+
+  const openPendingProofIfNeeded = useCallback(() => {
+    if (localStorage.getItem(RATING_PENDING_KEY) !== 'true') return false;
+    openProofDialog();
+    return true;
+  }, [openProofDialog]);
+
+  useEffect(() => {
+    if (!isEnabled || alreadyClaimed) return;
+
+    openPendingProofIfNeeded();
+
+    return undefined;
+  }, [alreadyClaimed, isEnabled, openPendingProofIfNeeded]);
 
   useEffect(() => {
     if (!isEnabled || alreadyClaimed) return;
@@ -94,15 +113,29 @@ export default function RatingRewardPopup() {
   useEffect(() => {
     if (!isEnabled || alreadyClaimed) return;
 
-    const cleanup = onAppStateChange((isActive) => {
-      if (!isActive) return;
-      if (localStorage.getItem(RATING_PENDING_KEY) === 'true') {
-        openProofDialog();
+    const handleFocus = () => {
+      openPendingProofIfNeeded();
+    };
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        openPendingProofIfNeeded();
       }
+    };
+
+    const cleanup = onAppStateChange((isActive) => {
+      if (isActive) openPendingProofIfNeeded();
     });
 
-    return cleanup;
-  }, [alreadyClaimed, isEnabled, openProofDialog]);
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      cleanup();
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [alreadyClaimed, isEnabled, openPendingProofIfNeeded]);
 
   const handleOpenPlayStore = async () => {
     sessionStorage.setItem('rating_popup_dismissed', 'true');
