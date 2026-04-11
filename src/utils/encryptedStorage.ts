@@ -25,6 +25,16 @@ const SENSITIVE_KEYS = [
 let cryptoKey: CryptoKey | null = null;
 let keyReady = false;
 
+const getSupabaseAuthStorageKey = (): string | null => {
+  try {
+    const host = new URL(import.meta.env.VITE_SUPABASE_URL).host;
+    const projectRef = host.split('.')[0];
+    return `sb-${projectRef}-auth-token`;
+  } catch {
+    return null;
+  }
+};
+
 /**
  * Generate a deterministic encryption key from device characteristics.
  * This ensures data encrypted on one device can't be decrypted on another.
@@ -193,9 +203,9 @@ export const secureStorage = {
   migrateToEncrypted: async (): Promise<void> => {
     try {
       // 🛡️ CRITICAL: If Supabase auth token was previously encrypted, RESTORE it
-      const supabaseKey = 'sb-pppcwawjjpwwrmvezcdy-auth-token';
-      const supabaseValue = localStorage.getItem(supabaseKey);
-      if (supabaseValue && supabaseValue.startsWith('🔐')) {
+      const supabaseKey = getSupabaseAuthStorageKey();
+      const supabaseValue = supabaseKey ? localStorage.getItem(supabaseKey) : null;
+      if (supabaseKey && supabaseValue && supabaseValue.startsWith('🔐')) {
         console.warn('[EncryptedStorage] ⚠️ Supabase auth token was encrypted! Restoring...');
         try {
           const restored = await decrypt(supabaseValue);

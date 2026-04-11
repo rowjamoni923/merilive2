@@ -370,12 +370,12 @@ export default function AdminStreams() {
         if (banError || banData?.error) {
           try {
             const { data: { session } } = await supabase.auth.getSession();
-            const resp = await fetch("https://pppcwawjjpwwrmvezcdy.supabase.co/functions/v1/admin-chat-inspector/create-ban", {
+            const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-chat-inspector/create-ban`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${session?.access_token}`,
-                "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwcGN3YXdqanB3d3JtdmV6Y2R5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgzMzQ4OTYsImV4cCI6MjA4MzkxMDg5Nn0.VUy58uiU63Kb3i4qj2ALK2s3arjBJ25CbnwCcvblpQw",
+                "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
               },
               body: JSON.stringify(banPayload),
             });

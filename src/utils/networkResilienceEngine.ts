@@ -39,11 +39,11 @@ const measureLatency = async (): Promise<number> => {
     const timeout = setTimeout(() => controller.abort(), healthProbeTimeoutMs);
 
     try {
-      await fetch(`https://pppcwawjjpwwrmvezcdy.supabase.co/rest/v1/`, {
+      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/`, {
         method: 'HEAD',
         signal: controller.signal,
         headers: {
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwcGN3YXdqanB3d3JtdmV6Y2R5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgzMzQ4OTYsImV4cCI6MjA4MzkxMDg5Nn0.VUy58uiU63Kb3i4qj2ALK2s3arjBJ25CbnwCcvblpQw',
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
       });
       return performance.now() - start;

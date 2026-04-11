@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { loadAppSetting, saveAppSetting } from "@/utils/adminSettingsStorage";
 
 interface CommissionSettings {
   gift_commission: {
@@ -52,26 +53,18 @@ const AdminCommissionCalculator = () => {
     setLoading(true);
     try {
       // Fetch gift commission settings
-      const { data: giftSettings } = await supabase
-        .from('app_settings')
-        .select('setting_value')
-        .eq('setting_key', 'gift_commission')
-        .maybeSingle();
-      
-      if (giftSettings?.setting_value) {
-        const value = giftSettings.setting_value as any;
+      const giftSettings = await loadAppSetting<any>('gift_commission');
+
+      if (giftSettings) {
+        const value = giftSettings as any;
         setGiftCompanyPercent(value.company_percent ?? 40);
       }
       
       // Fetch call rates settings
-      const { data: callSettings } = await supabase
-        .from('app_settings')
-        .select('setting_value')
-        .eq('setting_key', 'call_rates')
-        .maybeSingle();
-      
-      if (callSettings?.setting_value) {
-        const value = callSettings.setting_value as any;
+      const callSettings = await loadAppSetting<any>('call_rates');
+
+      if (callSettings) {
+        const value = callSettings as any;
         // Convert from host_commission_percent to company_percent
         if (value.company_percent !== undefined) {
           setCallCompanyPercent(value.company_percent);
@@ -91,40 +84,27 @@ const AdminCommissionCalculator = () => {
   const saveSettings = async () => {
     setSaving(true);
     try {
-      // Save gift commission settings
-      const { error: giftError } = await supabase
-        .from('app_settings')
-        .upsert({
-          setting_key: 'gift_commission',
-          setting_value: {
-            company_percent: giftCompanyPercent,
-            host_percent: 100 - giftCompanyPercent,
-            description: `Company takes ${giftCompanyPercent}%, Host receives ${100 - giftCompanyPercent}%`
-          },
-          category: 'commission',
-          description: 'Gift commission distribution settings'
-        }, { onConflict: 'setting_key' });
-      
-      if (giftError) throw giftError;
-      
-      // Save call rates settings
-      const { error: callError } = await supabase
-        .from('app_settings')
-        .upsert({
-          setting_key: 'call_rates',
-          setting_value: {
-            company_percent: callCompanyPercent,
-            host_commission_percent: 100 - callCompanyPercent, // For backward compatibility
-            per_minute_rate: callPerMinuteRate,
-            default_rate: callPerMinuteRate, // For backward compatibility
-            description: `Company takes ${callCompanyPercent}%, Host receives ${100 - callCompanyPercent}% at ${callPerMinuteRate} coins/min`
-          },
-          category: 'commission',
-          description: 'Call rates and commission settings',
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'setting_key' });
-      
-      if (callError) throw callError;
+      await saveAppSetting(
+        'gift_commission',
+        {
+          company_percent: giftCompanyPercent,
+          host_percent: 100 - giftCompanyPercent,
+          description: `Company takes ${giftCompanyPercent}%, Host receives ${100 - giftCompanyPercent}%`
+        },
+        'Gift commission distribution settings'
+      );
+
+      await saveAppSetting(
+        'call_rates',
+        {
+          company_percent: callCompanyPercent,
+          host_commission_percent: 100 - callCompanyPercent,
+          per_minute_rate: callPerMinuteRate,
+          default_rate: callPerMinuteRate,
+          description: `Company takes ${callCompanyPercent}%, Host receives ${100 - callCompanyPercent}% at ${callPerMinuteRate} coins/min`
+        },
+        'Call rates and commission settings'
+      );
       
       toast({
         title: "✅ Saved!",

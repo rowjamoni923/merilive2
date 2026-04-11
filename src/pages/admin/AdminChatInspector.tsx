@@ -23,7 +23,7 @@ import AdminNumberSharing from "./AdminNumberSharing";
 import AdminContactViolations from "./AdminContactViolations";
 import AdminLiveBans from "./AdminLiveBans";
 
-const EDGE_URL = "https://pppcwawjjpwwrmvezcdy.supabase.co/functions/v1/admin-chat-inspector";
+const EDGE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-chat-inspector`;
 
 interface UserProfile {
   id: string;

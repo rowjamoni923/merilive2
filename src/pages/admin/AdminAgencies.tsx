@@ -60,6 +60,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { loadAppSetting, saveAppSetting } from "@/utils/adminSettingsStorage";
 import {
   Select,
   SelectContent,
@@ -303,14 +304,10 @@ export default function AdminAgencies() {
   const fetchCommissionSettings = async () => {
     setSettingsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("app_settings")
-        .select("*")
-        .eq("setting_key", "agency_commission_settings")
-        .maybeSingle();
+      const data = await loadAppSetting<AgencyCommissionSettings>("agency_commission_settings");
 
       if (data) {
-        setCommissionSettings(data.setting_value as unknown as AgencyCommissionSettings);
+        setCommissionSettings(data);
       }
     } catch (error) {
       console.error("Error fetching commission settings:", error);
@@ -322,42 +319,12 @@ export default function AdminAgencies() {
   const saveCommissionSettings = async () => {
     setSavingSettings(true);
     try {
-      // First check if setting exists
-      const { data: existing } = await supabase
-        .from("app_settings")
-        .select("id")
-        .eq("setting_key", "agency_commission_settings")
-        .maybeSingle();
-
       const settingData = JSON.parse(JSON.stringify(commissionSettings));
-
-      if (existing) {
-        // Update existing
-        const { error } = await supabase
-          .from("app_settings")
-          .update({
-            setting_value: settingData,
-            category: "agency",
-              description: "Agency & Sub-agent commission settings"
-          })
-          .eq("setting_key", "agency_commission_settings");
-        
-        if (error) throw error;
-      } else {
-        // Insert new record
-        const insertData = {
-          setting_key: "agency_commission_settings",
-          setting_value: settingData,
-          category: "agency",
-          description: "Agency & Sub-agent commission settings"
-        };
-        
-        const { error: insertError } = await supabase
-          .from("app_settings")
-          .insert(insertData as any);
-        
-        if (insertError) throw insertError;
-      }
+      await saveAppSetting(
+        "agency_commission_settings",
+        settingData,
+        "Agency & Sub-agent commission settings"
+      );
 
       toast.success("Commission settings saved successfully");
     } catch (error) {
