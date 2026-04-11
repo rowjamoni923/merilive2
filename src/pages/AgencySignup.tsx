@@ -63,6 +63,14 @@ const AgencySignup = () => {
   const [emailOtpTimer, setEmailOtpTimer] = useState(0);
   const [verifyingEmailOtp, setVerifyingEmailOtp] = useState(false);
 
+  // In-App Notification OTP state
+  const [appOtp, setAppOtp] = useState("");
+  const [appOtpSent, setAppOtpSent] = useState(false);
+  const [appVerified, setAppVerified] = useState(false);
+  const [sendingAppOtp, setSendingAppOtp] = useState(false);
+  const [appOtpTimer, setAppOtpTimer] = useState(0);
+  const [verifyingAppOtp, setVerifyingAppOtp] = useState(false);
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (emailOtpTimer > 0) {
