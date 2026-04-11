@@ -6,9 +6,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { PLAY_STORE_URL } from '@/utils/shareLinks';
+import { onAppStateChange } from '@/utils/nativeUtils';
 import ratingBannerImg from '@/assets/rating-reward-banner.jpg';
 
 type Step = 'banner' | 'screenshot' | 'submitted';
+
+const RATING_PENDING_KEY = 'rating_reward_return_pending';
+
+declare global {
+  interface WindowEventMap {
+    'open-rating-banner': CustomEvent;
+    'open-rating-proof-popup': CustomEvent;
+  }
+}
 
 export default function RatingRewardPopup() {
   const [showBanner, setShowBanner] = useState(false);
@@ -20,14 +30,12 @@ export default function RatingRewardPopup() {
   const [isEnabled, setIsEnabled] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // Check eligibility on mount
   useEffect(() => {
     const checkClaim = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       setUserId(user.id);
 
-      // Check if rating popup is enabled
       const { data: settingData } = await supabase
         .from('app_settings')
         .select('setting_value')
@@ -48,40 +56,65 @@ export default function RatingRewardPopup() {
         return;
       }
 
-      // Check session dismissal
-      if (sessionStorage.getItem('rating_popup_dismissed')) return;
-
       setIsEnabled(true);
     };
 
-    checkClaim();
+    void checkClaim();
   }, []);
 
-  // Listen for event popup dismissal → then show rating popup
+  const openProofDialog = useCallback(() => {
+    localStorage.removeItem(RATING_PENDING_KEY);
+    setShowBanner(false);
+    setStep('screenshot');
+    setShowDialog(true);
+  }, []);
+
   useEffect(() => {
     if (!isEnabled || alreadyClaimed) return;
 
-    const handleEventDismissed = () => {
-      // Show rating popup 1s after event banner dismissed
-      setTimeout(() => setShowBanner(true), 1000);
+    const handleOpenBanner = () => {
+      setStep('banner');
+      setShowDialog(false);
+      setShowBanner(true);
     };
 
-    window.addEventListener('event-popup-dismissed', handleEventDismissed);
-    return () => window.removeEventListener('event-popup-dismissed', handleEventDismissed);
-  }, [isEnabled, alreadyClaimed]);
+    const handleOpenProof = () => {
+      openProofDialog();
+    };
+
+    window.addEventListener('open-rating-banner', handleOpenBanner);
+    window.addEventListener('open-rating-proof-popup', handleOpenProof);
+
+    return () => {
+      window.removeEventListener('open-rating-banner', handleOpenBanner);
+      window.removeEventListener('open-rating-proof-popup', handleOpenProof);
+    };
+  }, [alreadyClaimed, isEnabled, openProofDialog]);
+
+  useEffect(() => {
+    if (!isEnabled || alreadyClaimed) return;
+
+    const cleanup = onAppStateChange((isActive) => {
+      if (!isActive) return;
+      if (localStorage.getItem(RATING_PENDING_KEY) === 'true') {
+        openProofDialog();
+      }
+    });
+
+    return cleanup;
+  }, [alreadyClaimed, isEnabled, openProofDialog]);
 
   const handleOpenPlayStore = async () => {
+    sessionStorage.setItem('rating_popup_dismissed', 'true');
+    localStorage.setItem(RATING_PENDING_KEY, 'true');
+    setShowBanner(false);
+
     try {
       const { openInApp } = await import('@/utils/inAppNavigation');
       await openInApp(PLAY_STORE_URL);
     } catch {
       window.location.href = PLAY_STORE_URL;
     }
-    setTimeout(() => {
-      setShowBanner(false);
-      setStep('screenshot');
-      setShowDialog(true);
-    }, 1500);
   };
 
   const handleDismiss = () => {
@@ -102,7 +135,7 @@ export default function RatingRewardPopup() {
     try {
       const ext = file.name.split('.').pop() || 'png';
       const path = `${userId}/rating_${Date.now()}.${ext}`;
-      
+
       const { error: uploadError } = await supabase.storage
         .from('rating-screenshots')
         .upload(path, file);
@@ -132,7 +165,7 @@ export default function RatingRewardPopup() {
       setStep('submitted');
       setAlreadyClaimed(true);
       toast.success('Screenshot submitted! Reward will be credited after admin approval.');
-    } catch (err: any) {
+    } catch (err) {
       console.error('Upload error:', err);
       toast.error('Failed to upload screenshot');
     } finally {
@@ -140,11 +173,10 @@ export default function RatingRewardPopup() {
     }
   }, [userId]);
 
-  if (alreadyClaimed) return null;
+  if (alreadyClaimed || !isEnabled) return null;
 
   return (
     <>
-      {/* Rating Banner - appears after EventPopupBanner is dismissed */}
       <AnimatePresence>
         {showBanner && (
           <motion.div
@@ -198,7 +230,6 @@ export default function RatingRewardPopup() {
         )}
       </AnimatePresence>
 
-      {/* Screenshot Upload Dialog */}
       <Dialog open={showDialog} onOpenChange={(open) => { if (!open) setShowDialog(false); }}>
         <DialogContent
           className="max-w-sm mx-auto border-0 p-0 overflow-hidden"
@@ -266,7 +297,7 @@ export default function RatingRewardPopup() {
                   <p className="text-purple-200/60 text-xs text-center leading-relaxed">
                     Take a screenshot of your 5-star rating on Play Store and upload it below
                   </p>
-                  
+
                   <input
                     ref={fileRef}
                     type="file"
