@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import { 
   Plus, 
   Edit2, 
-  Edit2, 
   Trash2, 
   Eye, 
   EyeOff, 
