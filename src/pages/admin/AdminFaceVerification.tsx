@@ -173,14 +173,22 @@ const AdminFaceVerification = () => {
       if (hostUserIds.length > 0) {
         const { data: agencyData } = await supabase
           .from('agency_hosts')
-          .select('host_id, agency:agencies!agency_hosts_agency_id_fkey(name, agency_code)')
+          .select('host_id, agency_id')
           .in('host_id', hostUserIds)
           .eq('status', 'active');
 
-        if (agencyData) {
+        if (agencyData && agencyData.length > 0) {
+          const agencyIds = [...new Set(agencyData.map((ah: any) => ah.agency_id).filter(Boolean))];
+          const { data: agencies } = await supabase
+            .from('agencies')
+            .select('id, name, agency_code')
+            .in('id', agencyIds);
+          const agencyLookup: Record<string, any> = {};
+          if (agencies) agencies.forEach((a: any) => { agencyLookup[a.id] = a; });
           agencyData.forEach((ah: any) => {
-            if (ah.agency) {
-              agencyMap[ah.host_id] = { agency_name: ah.agency.name, agency_code: ah.agency.agency_code };
+            const ag = agencyLookup[ah.agency_id];
+            if (ag) {
+              agencyMap[ah.host_id] = { agency_name: ag.name, agency_code: ag.agency_code };
             }
           });
         }
