@@ -58,8 +58,39 @@ interface ShopItem {
   preview_url: string | null;
   animation_url: string | null;
   animation_file_url: string | null;
+  image_url: string | null;
+  svga_url: string | null;
   file_type: string | null;
+  item_type: string | null;
   animation_type: string | null;
+  price_diamonds: number | null;
+  price_coins: number | null;
+  duration_days: number | null;
+  min_level: number | null;
+  level_required: number | null;
+  rarity: string | null;
+  tag: string | null;
+  is_premium: boolean | null;
+  is_vip_exclusive: boolean | null;
+  is_active: boolean;
+  is_featured: boolean | null;
+  display_order: number;
+  total_sold: number | null;
+  created_at: string;
+  sound_url: string | null;
+  sound_duration_ms: number | null;
+  is_permanent: boolean | null;
+}
+
+type ShopFormData = {
+  name: string;
+  description: string;
+  category: string;
+  preview_url: string;
+  animation_url: string;
+  animation_file_url: string;
+  file_type: string;
+  animation_type: string;
   price_diamonds: number;
   duration_days: number | null;
   min_level: number;
@@ -68,11 +99,9 @@ interface ShopItem {
   is_active: boolean;
   is_featured: boolean;
   display_order: number;
-  total_sold: number;
-  created_at: string;
-  sound_url: string | null;
-  sound_duration_ms: number | null;
-}
+  sound_url: string;
+  sound_duration_ms: number;
+};
 
 // Extended categories for live streaming app
 const categories = [
@@ -95,6 +124,123 @@ const rarities = ["common", "rare", "epic", "legendary", "mythic"];
 const fileTypes = ["svga", "lottie", "vap", "gif", "video", "image"];
 const animationTypes = ["static", "animated"];
 
+const createDefaultFormData = (): ShopFormData => ({
+  name: "",
+  description: "",
+  category: "frame",
+  preview_url: "",
+  animation_url: "",
+  animation_file_url: "",
+  file_type: "svga",
+  animation_type: "animated",
+  price_diamonds: 100,
+  duration_days: null,
+  min_level: 0,
+  rarity: "common",
+  is_premium: false,
+  is_active: true,
+  is_featured: false,
+  display_order: 0,
+  sound_url: "",
+  sound_duration_ms: 3000,
+});
+
+const detectFileTypeFromUrl = (url: string | null | undefined): string => {
+  if (!url) return "image";
+
+  const lower = url.toLowerCase();
+  if (lower.endsWith(".svga")) return "svga";
+  if (lower.endsWith(".json")) return "lottie";
+  if (lower.endsWith(".mp4") || lower.endsWith(".webm")) return "video";
+  if (lower.endsWith(".gif")) return "gif";
+  return "image";
+};
+
+const normalizeShopItem = (raw: any): ShopItem => {
+  const assetUrl = raw.animation_file_url ?? raw.svga_url ?? raw.animation_url ?? raw.image_url ?? raw.preview_url ?? null;
+  const normalizedFileType = raw.file_type ?? raw.item_type ?? detectFileTypeFromUrl(assetUrl);
+
+  return {
+    id: raw.id,
+    name: raw.name ?? "",
+    description: raw.description ?? null,
+    category: raw.category ?? "frame",
+    preview_url: raw.preview_url ?? raw.image_url ?? assetUrl,
+    animation_url: raw.animation_url ?? (normalizedFileType !== "svga" ? assetUrl : null),
+    animation_file_url: raw.animation_file_url ?? assetUrl,
+    image_url: raw.image_url ?? null,
+    svga_url: raw.svga_url ?? (normalizedFileType === "svga" ? assetUrl : null),
+    file_type: normalizedFileType,
+    item_type: raw.item_type ?? normalizedFileType,
+    animation_type: raw.animation_type ?? (normalizedFileType === "image" ? "static" : "animated"),
+    price_diamonds: raw.price_diamonds ?? 0,
+    price_coins: raw.price_coins ?? 0,
+    duration_days: raw.duration_days ?? null,
+    min_level: raw.min_level ?? raw.level_required ?? 0,
+    level_required: raw.level_required ?? raw.min_level ?? 0,
+    rarity: raw.rarity ?? raw.tag ?? "common",
+    tag: raw.tag ?? raw.rarity ?? null,
+    is_premium: raw.is_premium ?? raw.is_vip_exclusive ?? false,
+    is_vip_exclusive: raw.is_vip_exclusive ?? raw.is_premium ?? false,
+    is_active: raw.is_active ?? true,
+    is_featured: raw.is_featured ?? false,
+    display_order: raw.display_order ?? 0,
+    total_sold: raw.total_sold ?? 0,
+    created_at: raw.created_at ?? "",
+    sound_url: raw.sound_url ?? null,
+    sound_duration_ms: raw.sound_duration_ms ?? null,
+    is_permanent: raw.is_permanent ?? raw.duration_days == null,
+  };
+};
+
+const buildShopItemPayload = (formData: ShopFormData, existingItem?: ShopItem | null) => {
+  const normalizedFileType = formData.file_type || "image";
+  const uploadedAssetUrl = formData.animation_file_url.trim();
+  const manualAnimationUrl = formData.animation_url.trim();
+  const manualPreviewUrl = formData.preview_url.trim();
+  const fallbackAssetUrl = uploadedAssetUrl || manualAnimationUrl || manualPreviewUrl || null;
+  const normalizedDuration = formData.duration_days && formData.duration_days > 0 ? formData.duration_days : null;
+  const normalizedMinLevel = Math.max(0, Number(formData.min_level) || 0);
+  const normalizedPriceDiamonds = Math.max(0, Number(formData.price_diamonds) || 0);
+
+  const dataToSave = {
+    name: formData.name.trim(),
+    description: formData.description.trim() || null,
+    category: formData.category,
+    item_type: normalizedFileType,
+    file_type: normalizedFileType,
+    animation_type: formData.animation_type,
+    price_coins: existingItem?.price_coins ?? 0,
+    price_diamonds: normalizedPriceDiamonds,
+    image_url: normalizedFileType === "image" || normalizedFileType === "gif" ? fallbackAssetUrl : null,
+    animation_url: normalizedFileType === "svga" ? null : fallbackAssetUrl,
+    svga_url: normalizedFileType === "svga" ? fallbackAssetUrl : null,
+    preview_url: manualPreviewUrl || fallbackAssetUrl,
+    animation_file_url: fallbackAssetUrl,
+    duration_days: normalizedDuration,
+    is_permanent: normalizedDuration === null,
+    is_active: formData.is_active,
+    is_featured: formData.is_featured,
+    display_order: Math.max(0, Number(formData.display_order) || 0),
+    level_required: normalizedMinLevel,
+    min_level: normalizedMinLevel,
+    vip_discount_percent: existingItem?.is_vip_exclusive || formData.is_premium ? 100 : 0,
+    is_vip_exclusive: formData.is_premium,
+    tag: formData.rarity,
+    rarity: formData.rarity,
+    is_premium: formData.is_premium,
+    total_sold: existingItem?.total_sold ?? 0,
+    sound_url: formData.sound_url.trim() || null,
+    sound_duration_ms: formData.sound_url.trim()
+      ? Math.max(0, Number(formData.sound_duration_ms) || 3000)
+      : null,
+  };
+
+  return Object.fromEntries(
+    Object.entries(dataToSave).filter(([, value]) => value !== undefined)
+  );
+};
+
 const AdminShop = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -110,26 +256,7 @@ const AdminShop = () => {
   const [previewFile, setPreviewFile] = useState<string | null>(null);
   const { uploadFile: r2UploadFile, uploading: r2Uploading, progress: r2Progress } = useR2Upload();
   
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    category: "frame",
-    preview_url: "",
-    animation_url: "",
-    animation_file_url: "",
-    file_type: "svga",
-    animation_type: "animated",
-    price_diamonds: 100,
-    duration_days: null as number | null,
-    min_level: 0,
-    rarity: "common",
-    is_premium: false,
-    is_active: true,
-    is_featured: false,
-    display_order: 0,
-    sound_url: "",
-    sound_duration_ms: 3000,
-  });
+  const [formData, setFormData] = useState<ShopFormData>(createDefaultFormData());
 
   const soundInputRef = useRef<HTMLInputElement>(null);
 
@@ -145,7 +272,7 @@ const AdminShop = () => {
       toast.error("Failed to load shop items");
       console.error(error);
     } else {
-      setItems((data || []) as unknown as ShopItem[]);
+      setItems((data || []).map(normalizeShopItem));
     }
     setLoading(false);
   }, []);
@@ -179,7 +306,6 @@ const AdminShop = () => {
 
     setUploading(true);
     try {
-      // Use R2Upload hook which handles both Supabase (<50MB) and R2 (>50MB)
       const result = await r2UploadFile(file, {
         bucket: 'shop-items',
         folder: 'shop-items',
@@ -191,7 +317,6 @@ const AdminShop = () => {
 
       const publicUrl = result.url;
 
-      // Determine file type for the form
       let detectedType = 'image';
       if (fileExt === 'svga') detectedType = 'svga';
       else if (fileExt === 'json') detectedType = 'lottie';
@@ -200,9 +325,11 @@ const AdminShop = () => {
 
       setFormData(prev => ({
         ...prev,
+        animation_url: publicUrl,
         animation_file_url: publicUrl,
+        preview_url: prev.preview_url || publicUrl,
         file_type: detectedType,
-        animation_type: 'animated'
+        animation_type: detectedType === 'image' ? 'static' : 'animated'
       }));
       setPreviewFile(publicUrl);
       toast.success(`${detectedType.toUpperCase()} file uploaded successfully!`);
@@ -210,22 +337,20 @@ const AdminShop = () => {
       toast.error(`Upload failed: ${error.message}`);
     } finally {
       setUploading(false);
+      e.target.value = '';
     }
   };
 
-  // Sound file upload handler
   const handleSoundUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate audio file type
     const allowedTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/webm'];
     if (!allowedTypes.includes(file.type)) {
       toast.error("Invalid audio type. Please upload MP3, WAV, OGG, or WebM audio files.");
       return;
     }
 
-    // Validate file size (150MB max)
     if (file.size > 150 * 1024 * 1024) {
       toast.error("Audio file too large. Maximum size is 150MB.");
       return;
@@ -233,7 +358,6 @@ const AdminShop = () => {
 
     setUploading(true);
     try {
-      // Use R2Upload hook for sound files too
       const result = await r2UploadFile(file, {
         bucket: 'sounds',
         folder: 'shop-sounds',
@@ -252,6 +376,7 @@ const AdminShop = () => {
       toast.error(`Sound upload failed: ${error.message}`);
     } finally {
       setUploading(false);
+      e.target.value = '';
     }
   };
 
@@ -263,10 +388,7 @@ const AdminShop = () => {
 
     setSaving(true);
     try {
-      const dataToSave = {
-        ...formData,
-        duration_days: formData.duration_days || null,
-      };
+      const dataToSave = buildShopItemPayload(formData, editingItem);
 
       if (editingItem) {
         const { error } = await supabase
@@ -284,7 +406,8 @@ const AdminShop = () => {
       }
       setShowAddDialog(false);
       setEditingItem(null);
-      resetForm();
+      setFormData(createDefaultFormData());
+      setPreviewFile(null);
       fetchItems();
     } catch (error: any) {
       toast.error(error.message || "Failed to save item");
@@ -321,52 +444,42 @@ const AdminShop = () => {
   };
 
   const resetForm = () => {
-    setFormData({
-      name: "",
-      description: "",
-      category: "frame",
-      preview_url: "",
-      animation_url: "",
-      animation_file_url: "",
-      file_type: "svga",
-      animation_type: "animated",
-      price_diamonds: 100,
-      duration_days: null,
-      min_level: 0,
-      rarity: "common",
-      is_premium: false,
-      is_active: true,
-      is_featured: false,
-      display_order: 0,
-      sound_url: "",
-      sound_duration_ms: 3000,
-    });
+    setFormData(createDefaultFormData());
     setPreviewFile(null);
   };
 
   const openEdit = (item: ShopItem) => {
-    setEditingItem(item);
+    const normalizedItem = normalizeShopItem(item);
+
+    setEditingItem(normalizedItem);
     setFormData({
-      name: item.name,
-      description: item.description || "",
-      category: item.category,
-      preview_url: item.preview_url || "",
-      animation_url: item.animation_url || "",
-      animation_file_url: item.animation_file_url || "",
-      file_type: item.file_type || "svga",
-      animation_type: item.animation_type || "animated",
-      price_diamonds: item.price_diamonds,
-      duration_days: item.duration_days,
-      min_level: item.min_level,
-      rarity: item.rarity,
-      is_premium: item.is_premium,
-      is_active: item.is_active,
-      is_featured: item.is_featured,
-      display_order: item.display_order,
-      sound_url: item.sound_url || "",
-      sound_duration_ms: item.sound_duration_ms || 3000,
+      name: normalizedItem.name,
+      description: normalizedItem.description || "",
+      category: normalizedItem.category,
+      preview_url: normalizedItem.preview_url || "",
+      animation_url: normalizedItem.animation_url || normalizedItem.svga_url || "",
+      animation_file_url: normalizedItem.animation_file_url || normalizedItem.svga_url || normalizedItem.image_url || "",
+      file_type: normalizedItem.file_type || normalizedItem.item_type || detectFileTypeFromUrl(normalizedItem.animation_file_url || normalizedItem.preview_url),
+      animation_type: normalizedItem.animation_type || "animated",
+      price_diamonds: normalizedItem.price_diamonds ?? 0,
+      duration_days: normalizedItem.duration_days,
+      min_level: normalizedItem.min_level ?? normalizedItem.level_required ?? 0,
+      rarity: normalizedItem.rarity || normalizedItem.tag || "common",
+      is_premium: normalizedItem.is_premium ?? normalizedItem.is_vip_exclusive ?? false,
+      is_active: normalizedItem.is_active,
+      is_featured: normalizedItem.is_featured ?? false,
+      display_order: normalizedItem.display_order,
+      sound_url: normalizedItem.sound_url || "",
+      sound_duration_ms: normalizedItem.sound_duration_ms || 3000,
     });
-    setPreviewFile(item.animation_file_url || item.preview_url || null);
+    setPreviewFile(
+      normalizedItem.animation_file_url ||
+      normalizedItem.svga_url ||
+      normalizedItem.preview_url ||
+      normalizedItem.animation_url ||
+      normalizedItem.image_url ||
+      null
+    );
     setShowAddDialog(true);
   };
 
@@ -393,33 +506,29 @@ const AdminShop = () => {
   };
 
   const getPreviewUrl = (item: ShopItem) => {
-    return item.animation_file_url || item.preview_url || item.animation_url;
+    return item.animation_file_url || item.svga_url || item.preview_url || item.animation_url || item.image_url;
   };
 
-  // Detect if file is SVGA
   const isSVGA = (url: string | null | undefined) => {
     if (!url) return false;
     return url.toLowerCase().endsWith('.svga');
   };
 
-  // Detect if file is Lottie JSON
   const isLottie = (url: string | null | undefined) => {
     if (!url) return false;
     return url.toLowerCase().endsWith('.json');
   };
 
-  // Detect if file is video
   const isVideo = (url: string | null | undefined) => {
     if (!url) return false;
     const lower = url.toLowerCase();
     return lower.endsWith('.mp4') || lower.endsWith('.webm');
   };
 
-  // Stats
   const totalItems = items.length;
   const activeItems = items.filter(i => i.is_active).length;
-  const featuredItems = items.filter(i => i.is_featured).length;
-  const totalSold = items.reduce((acc, i) => acc + i.total_sold, 0);
+  const featuredItems = items.filter(i => Boolean(i.is_featured)).length;
+  const totalSold = items.reduce((acc, i) => acc + (i.total_sold ?? 0), 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 px-3 py-4 pb-24 md:p-6 md:pb-20">
