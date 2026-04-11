@@ -83,6 +83,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
+import { saveAppSetting } from "@/utils/adminSettingsStorage";
 
 // Helper to parse verification details from admin_notes
 function parseVerificationDetails(adminNotes: string | null) {

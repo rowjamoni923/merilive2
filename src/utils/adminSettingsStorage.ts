@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 type Primitive = string | number | boolean | null;
 type SettingValue = Primitive | Record<string, unknown> | Array<unknown>;
 
-const serializeSettingValue = (value: SettingValue): string => {
+const serializeSettingValue = (value: unknown): string => {
   if (typeof value === "string") return value;
   if (typeof value === "number" || typeof value === "boolean") return String(value);
   if (value === null) return "null";
@@ -37,7 +37,7 @@ export const parseSettingValue = <T = unknown>(value: unknown): T | null => {
 
 export const saveAppSetting = async (
   key: string,
-  value: SettingValue,
+  value: unknown,
   description?: string,
 ) => {
   const payload = {
