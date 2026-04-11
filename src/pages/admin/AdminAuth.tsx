@@ -193,7 +193,7 @@ export default function AdminAuth() {
           console.error("[AdminAuth] admin-sync-auth error:", syncError);
         }
 
-        if (syncResult?.success || syncResult?.reason === "account_exists") {
+        if (syncResult?.success) {
           console.log("[AdminAuth] Auth synced, retrying login...");
           const retry = await supabase.auth.signInWithPassword({
             email: normalizedLoginEmail,
