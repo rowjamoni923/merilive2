@@ -378,7 +378,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           // VIP subscription (own profile)
           isOwnProfileCheck && user ? supabase.from("user_vip_subscriptions").select("tier_id, vip_tiers(tier_level)").eq("user_id", user.id).eq("is_active", true).gte("expires_at", new Date().toISOString()).order("created_at", { ascending: false }).limit(1).maybeSingle() : { data: null },
           // Conversations (for unread count)
-          isOwnProfileCheck && user ? supabase.from("conversations").select("id").or(`participant_1.eq.${user.id},participant_2.eq.${user.id}`) : { data: null },
+          isOwnProfileCheck && user ? supabase.from("conversations").select("id").or(`participant1_id.eq.${user.id},participant2_id.eq.${user.id}`) : { data: null },
           // Agency beans_balance (for agency owners)
           isOwnProfileCheck && user && profileData?.is_agency_owner ? supabase.from("agencies").select("id, beans_balance, diamond_balance").eq("owner_id", user.id).eq("is_active", true).maybeSingle() : { data: null },
         ]);
