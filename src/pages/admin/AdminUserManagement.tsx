@@ -857,8 +857,7 @@ export default function AdminUserManagement() {
         profile: profileMap[s.user_id] || null,
       }));
 
-      // Fetch agency info for host submissions
-      const hostUserIds = (data || [])
+      const hostUserIds = dataWithProfiles
         .filter((s: any) => s.verification_type === 'host')
         .map((s: any) => s.user_id);
 
@@ -879,7 +878,7 @@ export default function AdminUserManagement() {
         }
       }
 
-      const enriched = (data || []).map((s: any) => ({
+      const enriched = dataWithProfiles.map((s: any) => ({
         ...s,
         agency_info: agencyMap[s.user_id] || null,
       }));

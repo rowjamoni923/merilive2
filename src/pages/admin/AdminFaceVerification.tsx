@@ -165,7 +165,7 @@ const AdminFaceVerification = () => {
         profile: profileMap[s.user_id] || null,
       }));
 
-      const hostUserIds = Array.from(new Set((data || [])
+      const hostUserIds = Array.from(new Set(dataWithProfiles
         .filter((s: any) => s.verification_type === 'host')
         .map((s: any) => s.user_id)));
 
@@ -186,7 +186,7 @@ const AdminFaceVerification = () => {
         }
       }
 
-      const enriched = (data || []).map((s: any) => ({
+      const enriched = dataWithProfiles.map((s: any) => ({
         ...s,
         agency_info: agencyMap[s.user_id] || null,
       }));
