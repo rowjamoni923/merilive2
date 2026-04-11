@@ -421,10 +421,11 @@ const App = () => {
 
   const triggerLegacyProfileSync = async (userId: string) => {
     if (!userId || lastLegacySyncUserId === userId) return;
-    setLastLegacySyncUserId(userId);
 
     try {
-      const { data } = await supabase.functions.invoke('sync-user-profile');
+      const { data, error } = await supabase.functions.invoke('sync-user-profile');
+      if (error) throw error;
+
       if ((data as any)?.synced) {
         localStorage.removeItem('meri_level_cache');
         clearBalanceCache();
@@ -433,6 +434,8 @@ const App = () => {
           queryClient.invalidateQueries({ queryKey: ['user-balance', userId] }),
         ]);
       }
+
+      setLastLegacySyncUserId(userId);
     } catch (error) {
       console.warn('[App] legacy profile sync skipped:', error);
     }
@@ -445,6 +448,9 @@ const App = () => {
     
     // Prefetch gifts immediately (no delay)
     import('@/hooks/useGiftPrefetch').then(m => m.prefetchGifts()).catch(() => {});
+    
+    // Re-run legacy sync on authenticated app start for already-restored sessions
+    void triggerLegacyProfileSync(session.user.id);
     
     // Prefetch user profile & balance into QueryClient cache
     const userId = session.user.id;
