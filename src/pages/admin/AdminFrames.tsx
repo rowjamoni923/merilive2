@@ -962,6 +962,37 @@ const AdminFrames = () => {
           </div>
         </div>
       )}
+      {/* Fullscreen Animation Preview */}
+      {fullscreenPreviewFrame && (
+        <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center" onClick={() => setFullscreenPreviewFrame(null)}>
+          <button
+            onClick={() => setFullscreenPreviewFrame(null)}
+            className="absolute top-4 right-4 text-white z-10 bg-white/10 hover:bg-white/20 rounded-full p-2"
+          >
+            ✕
+          </button>
+          <div className="text-center" onClick={e => e.stopPropagation()}>
+            <p className="text-white font-bold text-lg mb-4">{fullscreenPreviewFrame.name}</p>
+            <div className="w-[80vw] h-[60vh] max-w-[500px] max-h-[500px] flex items-center justify-center mx-auto">
+              <div className="relative w-64 h-64">
+                <Avatar className="w-full h-full border-4 border-white shadow-lg absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-5">
+                  <AvatarImage src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400" />
+                  <AvatarFallback>U</AvatarFallback>
+                </Avatar>
+                <div className="absolute -inset-8 w-[calc(100%+64px)] h-[calc(100%+64px)] z-20">
+                  <UniversalFramePlayer
+                    src={fullscreenPreviewFrame.frame_url}
+                    type={fullscreenPreviewFrame.frame_type as any}
+                    className="w-full h-full"
+                    loop={true}
+                    autoPlay={true}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

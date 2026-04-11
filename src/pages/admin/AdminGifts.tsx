@@ -1569,6 +1569,34 @@ export default function AdminGifts() {
           </div>
         </div>
       )}
+      {/* Fullscreen Animation Preview */}
+      {fullscreenPreviewGift && (
+        <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center" onClick={() => setFullscreenPreviewGift(null)}>
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => setFullscreenPreviewGift(null)}
+            className="absolute top-4 right-4 text-white z-10 bg-white/10 hover:bg-white/20 rounded-full"
+          >
+            <X className="w-6 h-6" />
+          </Button>
+          <div className="text-center" onClick={e => e.stopPropagation()}>
+            <p className="text-white font-bold text-lg mb-4">{fullscreenPreviewGift.name}</p>
+            <div className="w-[80vw] h-[60vh] max-w-[500px] max-h-[500px] flex items-center justify-center mx-auto">
+              {(() => {
+                const url = fullscreenPreviewGift.animation_url;
+                if (!url) return <p className="text-white/50">No animation file</p>;
+                if (isSVGA(url)) return <UniversalFramePlayer src={url} type="svga" className="w-full h-full" loop autoPlay />;
+                if (isLottie(url)) return <UniversalFramePlayer src={url} type="lottie" className="w-full h-full" loop autoPlay />;
+                if (isVideoOrGif(url)) return url.endsWith('.gif') 
+                  ? <img src={url} alt={fullscreenPreviewGift.name} className="w-full h-full object-contain" />
+                  : <video src={url} className="w-full h-full object-contain" autoPlay muted loop playsInline />;
+                return <img src={url} alt={fullscreenPreviewGift.name} className="w-full h-full object-contain" />;
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
