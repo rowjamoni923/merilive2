@@ -1957,6 +1957,10 @@ const Auth = () => {
               src={branding.logo_image_url} 
               alt="Logo" 
               className="w-40 h-40 object-contain"
+              onError={(e) => {
+                (e.target as HTMLImageElement).onerror = null;
+                (e.target as HTMLImageElement).src = '/logo.png';
+              }}
             />
           ) : (
             <>
