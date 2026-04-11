@@ -38,11 +38,15 @@ Deno.serve(async (req) => {
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
     const oldSupabaseUrlRaw = (Deno.env.get("OLD_SUPABASE_URL") || "").trim();
     const oldSupabaseKey = (Deno.env.get("OLD_SUPABASE_SERVICE_ROLE_KEY") || "").trim();
+    const oldSupabaseAnonKey = (Deno.env.get("OLD_SUPABASE_ANON_KEY") || "").trim();
     const oldSupabaseUrl = oldSupabaseUrlRaw && !oldSupabaseUrlRaw.startsWith("http")
       ? `https://${oldSupabaseUrlRaw}`
       : oldSupabaseUrlRaw;
     const oldClient = oldSupabaseUrl && oldSupabaseKey
       ? createClient(oldSupabaseUrl, oldSupabaseKey)
+      : null;
+    const oldAuthClient = oldSupabaseUrl && oldSupabaseAnonKey
+      ? createClient(oldSupabaseUrl, oldSupabaseAnonKey)
       : null;
 
     // 1. Check if this email exists in current admin_users and is active
@@ -54,12 +58,16 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     const legacyIdentity = await findLegacyIdentity(oldClient, normalizedEmail);
+    const legacyAuthUser = await findLegacyAuthUser(oldClient, normalizedEmail);
+    const legacyCredentialsValid = legacyAuthUser
+      ? await verifyLegacyCredentials(oldAuthClient, normalizedEmail, password)
+      : false;
 
     if (adminError) {
       console.error("[admin-sync-auth] Failed reading admin_users:", adminError);
     }
 
-    if (!adminUser && !legacyIdentity) {
+    if (!adminUser && !legacyIdentity && !legacyAuthUser) {
       console.log("[admin-sync-auth] Email not found in admin_users or legacy source:", normalizedEmail);
       return new Response(
         JSON.stringify({ success: false, reason: "not_found_in_legacy" }),
@@ -89,8 +97,7 @@ Deno.serve(async (req) => {
     }
 
     if (existingUserId) {
-      // Auth account exists — DO NOT change password, just confirm it exists
-      // Link user_id in admin_users if not already linked
+      // Auth account exists — only sync password if old credentials were verified against legacy auth
       if (adminUser && !adminUser.user_id) {
         await adminClient
           .from("admin_users")
@@ -99,13 +106,52 @@ Deno.serve(async (req) => {
         console.log(`[admin-sync-auth] Linked user_id for: ${normalizedEmail}`);
       }
 
-      console.log(`[admin-sync-auth] Auth account already exists for: ${normalizedEmail} — password NOT changed`);
+      if (legacyAuthUser && !legacyCredentialsValid) {
+        return new Response(
+          JSON.stringify({ success: false, reason: "invalid_legacy_credentials", message: "Legacy password verification failed" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      if (!legacyAuthUser) {
+        console.log(`[admin-sync-auth] Auth account already exists for: ${normalizedEmail} — no legacy auth account to verify against`);
+        return new Response(
+          JSON.stringify({ success: false, reason: "account_exists", message: "Use Forgot Password or contact admin to reset" }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const { error: updateAuthError } = await adminClient.auth.admin.updateUserById(existingUserId, {
+        password,
+        email_confirm: true,
+        user_metadata: {
+          full_name: legacyIdentity?.displayName || adminUser?.display_name || "",
+          name: legacyIdentity?.displayName || adminUser?.display_name || "",
+        },
+      });
+
+      if (updateAuthError) {
+        console.error("[admin-sync-auth] Failed to sync existing auth user password:", updateAuthError);
+        return new Response(
+          JSON.stringify({ success: false, reason: "password_sync_failed", error: updateAuthError.message }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      console.log(`[admin-sync-auth] Auth account already exists for: ${normalizedEmail} — password synced`);
       return new Response(
-        JSON.stringify({ success: false, reason: "account_exists", message: "Use Forgot Password or contact admin to reset" }),
+        JSON.stringify({ success: true, action: "password_synced", user_id: existingUserId }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     } else {
       // No auth account — create one with the given password
+      if (legacyAuthUser && !legacyCredentialsValid) {
+        return new Response(
+          JSON.stringify({ success: false, reason: "invalid_legacy_credentials", message: "Legacy password verification failed" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
         email: normalizedEmail,
         password,
@@ -212,4 +258,48 @@ async function findLegacyIdentity(oldClient: ReturnType<typeof createClient> | n
   }
 
   return null;
+}
+
+async function findLegacyAuthUser(oldClient: ReturnType<typeof createClient> | null, email: string) {
+  if (!oldClient) return null;
+
+  try {
+    let page = 1;
+    const perPage = 200;
+
+    while (true) {
+      const { data, error } = await oldClient.auth.admin.listUsers({ page, perPage });
+      if (error) break;
+
+      const users = data?.users ?? [];
+      const matched = users.find((user) => user.email?.toLowerCase() === email);
+      if (matched) {
+        return matched;
+      }
+
+      if (users.length < perPage) break;
+      page += 1;
+    }
+  } catch (error) {
+    console.warn("[admin-sync-auth] Legacy auth user lookup failed:", error);
+  }
+
+  return null;
+}
+
+async function verifyLegacyCredentials(oldAuthClient: ReturnType<typeof createClient> | null, email: string, password: string) {
+  if (!oldAuthClient) return false;
+
+  try {
+    const { data, error } = await oldAuthClient.auth.signInWithPassword({ email, password });
+    if (error || !data?.session) {
+      return false;
+    }
+
+    await oldAuthClient.auth.signOut();
+    return true;
+  } catch (error) {
+    console.warn("[admin-sync-auth] Legacy credential verification failed:", error);
+    return false;
+  }
 }
