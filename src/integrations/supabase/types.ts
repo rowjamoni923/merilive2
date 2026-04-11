@@ -6952,71 +6952,101 @@ export type Database = {
       }
       shop_items: {
         Row: {
+          animation_file_url: string | null
+          animation_type: string | null
           animation_url: string | null
           category: string
           created_at: string
           description: string | null
           display_order: number | null
           duration_days: number | null
+          file_type: string | null
           id: string
           image_url: string | null
           is_active: boolean | null
+          is_featured: boolean | null
           is_permanent: boolean | null
+          is_premium: boolean | null
           is_vip_exclusive: boolean | null
           item_type: string
           level_required: number | null
+          min_level: number | null
           name: string
           preview_url: string | null
           price_coins: number | null
           price_diamonds: number | null
+          rarity: string | null
+          sound_duration_ms: number | null
+          sound_url: string | null
           svga_url: string | null
           tag: string | null
+          total_sold: number | null
           updated_at: string
           vip_discount_percent: number | null
         }
         Insert: {
+          animation_file_url?: string | null
+          animation_type?: string | null
           animation_url?: string | null
           category: string
           created_at?: string
           description?: string | null
           display_order?: number | null
           duration_days?: number | null
+          file_type?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean | null
+          is_featured?: boolean | null
           is_permanent?: boolean | null
+          is_premium?: boolean | null
           is_vip_exclusive?: boolean | null
           item_type: string
           level_required?: number | null
+          min_level?: number | null
           name: string
           preview_url?: string | null
           price_coins?: number | null
           price_diamonds?: number | null
+          rarity?: string | null
+          sound_duration_ms?: number | null
+          sound_url?: string | null
           svga_url?: string | null
           tag?: string | null
+          total_sold?: number | null
           updated_at?: string
           vip_discount_percent?: number | null
         }
         Update: {
+          animation_file_url?: string | null
+          animation_type?: string | null
           animation_url?: string | null
           category?: string
           created_at?: string
           description?: string | null
           display_order?: number | null
           duration_days?: number | null
+          file_type?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean | null
+          is_featured?: boolean | null
           is_permanent?: boolean | null
+          is_premium?: boolean | null
           is_vip_exclusive?: boolean | null
           item_type?: string
           level_required?: number | null
+          min_level?: number | null
           name?: string
           preview_url?: string | null
           price_coins?: number | null
           price_diamonds?: number | null
+          rarity?: string | null
+          sound_duration_ms?: number | null
+          sound_url?: string | null
           svga_url?: string | null
           tag?: string | null
+          total_sold?: number | null
           updated_at?: string
           vip_discount_percent?: number | null
         }
