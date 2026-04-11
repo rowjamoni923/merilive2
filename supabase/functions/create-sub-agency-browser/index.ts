@@ -166,14 +166,7 @@ serve(async (req) => {
 
     console.log("[create-sub-agency-browser] Agency created:", newAgency.id);
 
-    // Update user profile with agency ownership
-    await supabaseAdmin
-      .from("profiles")
-      .update({ 
-        is_agency_owner: true,
-        agency_id: newAgency.id
-      })
-      .eq("id", userId);
+    // Owner profile sync is handled by the database trigger on agencies.owner_id.
 
     // Update parent's total_agents count
     await supabaseAdmin
