@@ -36,20 +36,11 @@ export interface GiftCategory {
 // Default categories - Compact style without emojis (All first)
 export const giftCategories: GiftCategory[] = [
   { id: "all", name: "All", nameBn: "All", icon: "", color: "from-pink-500 to-purple-500" },
-  { id: "popular", name: "Popular", nameBn: "Popular", icon: "", color: "from-amber-500 to-orange-500" },
-  { id: "luxury", name: "Luxury", nameBn: "Luxury", icon: "", color: "from-yellow-500 to-amber-500" },
-  { id: "love", name: "Love", nameBn: "Love", icon: "", color: "from-red-500 to-pink-500" },
-  { id: "nature", name: "Nature", nameBn: "Nature", icon: "", color: "from-green-500 to-emerald-500" },
-  { id: "party", name: "Party", nameBn: "Party", icon: "", color: "from-purple-500 to-pink-500" },
-  { id: "gems", name: "Gems", nameBn: "Gems", icon: "", color: "from-cyan-500 to-blue-500" },
-  { id: "vehicles", name: "Vehicles", nameBn: "Vehicles", icon: "", color: "from-slate-500 to-gray-600" },
-  { id: "travel", name: "Travel", nameBn: "Travel", icon: "", color: "from-sky-500 to-blue-500" },
-  { id: "music", name: "Music", nameBn: "Music", icon: "", color: "from-violet-500 to-purple-500" },
-  { id: "gaming", name: "Gaming", nameBn: "Gaming", icon: "", color: "from-indigo-500 to-blue-500" },
-  { id: "food", name: "Food", nameBn: "Food", icon: "", color: "from-orange-500 to-red-500" },
-  { id: "building", name: "Building", nameBn: "Building", icon: "", color: "from-gray-500 to-slate-600" },
-  { id: "fire", name: "Fire", nameBn: "Fire", icon: "", color: "from-orange-600 to-red-600" },
-  { id: "power", name: "Power", nameBn: "Power", icon: "", color: "from-yellow-400 to-amber-500" },
+  { id: "wall", name: "Wall", nameBn: "Wall", icon: "", color: "from-slate-500 to-gray-600" },
+  { id: "lucky", name: "Lucky", nameBn: "Lucky", icon: "🎰", color: "from-yellow-400 to-amber-500" },
+  { id: "luxurious", name: "Luxurious", nameBn: "Luxurious", icon: "", color: "from-yellow-500 to-amber-500" },
+  { id: "vip", name: "VIP", nameBn: "VIP", icon: "", color: "from-purple-500 to-pink-500" },
+  { id: "pro", name: "Pro", nameBn: "Pro", icon: "", color: "from-cyan-500 to-blue-500" },
 ];
 
 // Format diamond value
