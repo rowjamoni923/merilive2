@@ -130,12 +130,14 @@ export default function AdminGifts() {
     icon_url: "",
     animation_type: "svga",
     animation_url: "",
-    animation_data: null as object | null, // For Lottie JSON
-    category: "popular",
+    animation_data: null as object | null,
+    category: "wall",
     display_order: 0,
     is_active: true,
     sound_url: "",
     sound_duration_ms: 3000,
+    min_level: 0,
+    is_lucky: false,
   });
 
   const soundInputRef = useRef<HTMLInputElement>(null);
@@ -479,11 +481,13 @@ export default function AdminGifts() {
       animation_type: gift.animation_type || "svga",
       animation_url: gift.animation_url || "",
       animation_data: null,
-      category: gift.category || "popular",
+      category: gift.category || "wall",
       display_order: gift.display_order || 0,
       is_active: gift.is_active ?? true,
       sound_url: gift.sound_url || "",
       sound_duration_ms: gift.sound_duration_ms || 3000,
+      min_level: (gift as any).min_level || 0,
+      is_lucky: (gift as any).is_lucky || false,
     });
     setShowEditDialog(true);
   };
@@ -498,11 +502,13 @@ export default function AdminGifts() {
       animation_type: "svga",
       animation_url: "",
       animation_data: null,
-      category: selectedCategory === "all" ? "popular" : selectedCategory,
+      category: selectedCategory === "all" ? "wall" : selectedCategory,
       display_order: 0,
       is_active: true,
       sound_url: "",
       sound_duration_ms: 3000,
+      min_level: 0,
+      is_lucky: selectedCategory === "lucky",
     });
     setShowEditDialog(true);
   };
@@ -530,7 +536,7 @@ export default function AdminGifts() {
       // Refresh session before saving to ensure latest permissions
       await supabase.auth.refreshSession();
       
-      const giftData = {
+      const giftData: any = {
         name: formData.name,
         coin_value: formData.coin_value,
         icon_url: formData.icon_url || null,
@@ -541,6 +547,8 @@ export default function AdminGifts() {
         is_active: formData.is_active,
         sound_url: formData.sound_url || null,
         sound_duration_ms: formData.sound_duration_ms || 3000,
+        min_level: formData.min_level || 0,
+        is_lucky: formData.is_lucky || false,
       };
 
       if (editingGift) {
