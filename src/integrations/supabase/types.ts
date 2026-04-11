@@ -3009,6 +3009,8 @@ export type Database = {
           id: string
           is_active: boolean | null
           is_full_screen: boolean | null
+          is_lucky: boolean | null
+          min_level: number | null
           name: string
           receiver_beans: number | null
           sound_duration_ms: number | null
@@ -3027,6 +3029,8 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_full_screen?: boolean | null
+          is_lucky?: boolean | null
+          min_level?: number | null
           name: string
           receiver_beans?: number | null
           sound_duration_ms?: number | null
@@ -3045,6 +3049,8 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           is_full_screen?: boolean | null
+          is_lucky?: boolean | null
+          min_level?: number | null
           name?: string
           receiver_beans?: number | null
           sound_duration_ms?: number | null
@@ -4621,6 +4627,85 @@ export type Database = {
           user_agent?: string | null
         }
         Relationships: []
+      }
+      lucky_gift_config: {
+        Row: {
+          created_at: string | null
+          diamond_reward: number
+          display_order: number | null
+          gift_id: string | null
+          id: string
+          is_active: boolean | null
+          updated_at: string | null
+          win_chance_percent: number
+        }
+        Insert: {
+          created_at?: string | null
+          diamond_reward?: number
+          display_order?: number | null
+          gift_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+          win_chance_percent?: number
+        }
+        Update: {
+          created_at?: string | null
+          diamond_reward?: number
+          display_order?: number | null
+          gift_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+          win_chance_percent?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lucky_gift_config_gift_id_fkey"
+            columns: ["gift_id"]
+            isOneToOne: false
+            referencedRelation: "gifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lucky_gift_results: {
+        Row: {
+          created_at: string | null
+          diamonds_won: number | null
+          gift_id: string | null
+          id: string
+          is_winner: boolean | null
+          receiver_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          diamonds_won?: number | null
+          gift_id?: string | null
+          id?: string
+          is_winner?: boolean | null
+          receiver_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          diamonds_won?: number | null
+          gift_id?: string | null
+          id?: string
+          is_winner?: boolean | null
+          receiver_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lucky_gift_results_gift_id_fkey"
+            columns: ["gift_id"]
+            isOneToOne: false
+            referencedRelation: "gifts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       messages: {
         Row: {
