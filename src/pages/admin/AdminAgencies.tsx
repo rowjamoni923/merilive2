@@ -700,22 +700,21 @@ export default function AdminAgencies() {
     try {
       const agencyCode = generateAgencyCode();
 
-      const { error } = await supabase
-        .from("agencies")
-        .insert({
-          name: newAgencyName.trim(),
-          agency_code: agencyCode,
-          owner_id: ownerSearchResult.id,
-          level: newAgencyLevel,
-          commission_rate: parseFloat(newAgencyCommission) || 2,
-          is_active: true,
-          is_blocked: false,
-          total_hosts: 0,
-          total_agents: 0,
-          wallet_balance: 0
-        });
+      // Use the secure RPC which bypasses trigger protection
+      const { data: rpcResult, error } = await supabase.rpc('create_agency_for_user', {
+        _owner_id: ownerSearchResult.id,
+        _name: newAgencyName.trim(),
+        _agency_code: agencyCode,
+        _level: newAgencyLevel,
+        _commission_rate: parseFloat(newAgencyCommission) || 2,
+      });
 
       if (error) throw error;
+
+      const result = typeof rpcResult === 'string' ? JSON.parse(rpcResult) : rpcResult;
+      if (!result?.success) {
+        throw new Error(result?.error || 'Failed to create agency');
+      }
 
       toast.success(`Agency "${newAgencyName}" created successfully`);
       
@@ -731,10 +730,10 @@ export default function AdminAgencies() {
       fetchAgencies();
     } catch (error: any) {
       console.error("Error creating agency:", error);
-      if (error.code === '23505') {
+      if (error.code === '23505' || error.message?.includes('code already exists')) {
         toast.error("Agency code duplicate, please try again");
       } else {
-        toast.error("Failed to create agency");
+        toast.error(error.message || "Failed to create agency");
       }
     } finally {
       setCreateAgencyLoading(false);
