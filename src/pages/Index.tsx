@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback, useRef, memo, useTransition 
 import { useNavigate } from "react-router-dom";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { DynamicBanner } from "@/components/home/DynamicBanner";
+import { FullScreenPromoBanners } from "@/components/home/FullScreenPromoBanners";
 
 
 import { BarChart3, Search, Users, Phone, Bell, Crown, Eye, Trophy } from "lucide-react";
@@ -677,6 +678,9 @@ const Index = () => {
 
       {/* Bottom Navigation */}
       <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />
+
+      {/* Full-Screen Promo Banners on Entry */}
+      <FullScreenPromoBanners />
 
       {/* Notification Sheet */}
       <Sheet open={showNotifications} onOpenChange={setShowNotifications}>
