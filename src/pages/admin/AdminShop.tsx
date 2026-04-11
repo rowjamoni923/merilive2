@@ -254,6 +254,8 @@ const AdminShop = () => {
   const [editingItem, setEditingItem] = useState<ShopItem | null>(null);
   const [uploading, setUploading] = useState(false);
   const [previewFile, setPreviewFile] = useState<string | null>(null);
+  const [uploadingPreview, setUploadingPreview] = useState(false);
+  const previewInputRef = useRef<HTMLInputElement>(null);
   const { uploadFile: r2UploadFile, uploading: r2Uploading, progress: r2Progress } = useR2Upload();
   
   const [formData, setFormData] = useState<ShopFormData>(createDefaultFormData());
@@ -376,6 +378,45 @@ const AdminShop = () => {
       toast.error(`Sound upload failed: ${error.message}`);
     } finally {
       setUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  const handlePreviewImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Invalid image type. Please upload PNG, JPG, GIF, or WebP.");
+      return;
+    }
+
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error("Preview image too large. Maximum size is 20MB.");
+      return;
+    }
+
+    setUploadingPreview(true);
+    try {
+      const result = await r2UploadFile(file, {
+        bucket: 'shop-items',
+        folder: 'shop-previews',
+      });
+
+      if (!result.success || !result.url) {
+        throw new Error(result.error || 'Upload failed');
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        preview_url: result.url!,
+      }));
+      toast.success("Preview image uploaded!");
+    } catch (error: any) {
+      toast.error(`Preview upload failed: ${error.message}`);
+    } finally {
+      setUploadingPreview(false);
       e.target.value = '';
     }
   };
@@ -1014,14 +1055,57 @@ const AdminShop = () => {
                   />
                 </div>
 
-                {/* URL fields (optional - if not using file upload) */}
+                {/* Preview Image Upload */}
                 <div className="col-span-2">
-                  <Label className="text-white/80">Preview URL (Optional)</Label>
+                  <Label className="text-white/80 flex items-center gap-2">
+                    <Image className="h-4 w-4 text-blue-400" />
+                    Preview Photo (Optional)
+                  </Label>
+                  
+                  {formData.preview_url ? (
+                    <div className="mt-2 relative inline-block">
+                      <img
+                        src={formData.preview_url}
+                        alt="Preview"
+                        className="w-24 h-24 rounded-lg object-cover border border-white/20"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, preview_url: "" })}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ) : (
+                    <div
+                      className="mt-2 border-2 border-dashed border-white/20 rounded-lg p-4 text-center cursor-pointer hover:border-blue-400/50 transition-colors"
+                      onClick={() => previewInputRef.current?.click()}
+                    >
+                      {uploadingPreview ? (
+                        <p className="text-white/60 text-sm">Uploading preview...</p>
+                      ) : (
+                        <>
+                          <Upload className="h-5 w-5 mx-auto text-white/40 mb-1" />
+                          <p className="text-white/60 text-sm">Upload Preview Photo</p>
+                          <p className="text-white/40 text-xs">PNG, JPG, GIF, WebP (max 20MB)</p>
+                        </>
+                      )}
+                    </div>
+                  )}
+                  <input
+                    ref={previewInputRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/gif,image/webp"
+                    className="hidden"
+                    onChange={handlePreviewImageUpload}
+                  />
+                  {/* Manual URL fallback */}
                   <Input
                     value={formData.preview_url}
                     onChange={(e) => setFormData({ ...formData, preview_url: e.target.value })}
-                    className={adminInputStyles}
-                    placeholder="https://..."
+                    className={`${adminInputStyles} mt-2`}
+                    placeholder="Or paste preview URL..."
                   />
                 </div>
 
