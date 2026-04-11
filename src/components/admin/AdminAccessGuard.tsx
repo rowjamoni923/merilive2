@@ -65,82 +65,36 @@ interface AdminAccessGuardProps {
 }
 
 export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
-  const [immediateResult] = useState(() => hasSessionAccess());
-  const [isAuthorized, setIsAuthorized] = useState(immediateResult);
-  // Keep checks running in background, but never block UI with a loading screen
-  const [isChecking, setIsChecking] = useState(false);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
   const [devicePending, setDevicePending] = useState(false);
   const [deviceBlocked, setDeviceBlocked] = useState(false);
 
   useEffect(() => {
-    if (immediateResult) {
-      // Owner session flag = instant access, NO database calls needed
-      const isOwnerSession = hasOwnerAccessFlag();
-      if (isOwnerSession) {
-        setIsAuthorized(true);
+    let mounted = true;
+
+    const setSafeState = (updater: () => void) => {
+      if (!mounted) return;
+      updater();
+    };
+
+    const verifyAccess = async () => {
+      setSafeState(() => {
+        setIsChecking(true);
+        setDevicePending(false);
+        setDeviceBlocked(false);
+      });
+
+      const globalTimeout = setTimeout(() => {
+        console.warn('[AdminAccessGuard] Global timeout - denying admin render until session is valid');
+        if (!mounted) return;
+        if (hasAdminAccessFlag()) revokeAdminAccess();
+        setIsAuthorized(false);
         setIsChecking(false);
-        if (window.location.pathname === '/admin/auth' || window.location.pathname === '/admin/login') {
-          window.location.replace('/admin');
-        }
-        return;
-      }
+      }, 10000);
 
-      // Sub-admin with session - check device approval with timeout
-      const verifyDevice = async () => {
-        const timeoutId = setTimeout(() => {
-          // If DB is slow, just allow access since they have valid session flag
-          console.warn('[AdminAccessGuard] Device check timed out - allowing access');
-          setIsAuthorized(true);
-          setIsChecking(false);
-        }, 8000);
-
-        try {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (!user) {
-            clearTimeout(timeoutId);
-            console.warn('[AdminAccessGuard] No authenticated user session - revoking stale local access flag');
-            revokeAdminAccess();
-            setIsAuthorized(false);
-            setIsChecking(false);
-            return;
-          }
-
-          if (user.email && OWNER_EMAILS.includes(user.email.toLowerCase())) {
-            clearTimeout(timeoutId);
-            setIsAuthorized(true);
-            setIsChecking(false);
-            return;
-          }
-
-          const deviceOk = await checkDeviceApproval(user.id);
-          clearTimeout(timeoutId);
-          if (deviceOk) {
-            setIsAuthorized(true);
-          } else {
-            revokeAdminAccess();
-            setIsAuthorized(false);
-          }
-        } catch {
-          clearTimeout(timeoutId);
-          revokeAdminAccess();
-          setIsAuthorized(false);
-        }
-        setIsChecking(false);
-      };
-
-      verifyDevice();
-      return;
-    }
-
-    // Add global timeout - never hang more than 10 seconds
-    const globalTimeout = setTimeout(() => {
-      console.warn('[AdminAccessGuard] Global timeout - showing blog');
-      setIsChecking(false);
-    }, 10000);
-
-    const checkAccess = async () => {
       try {
-        // 1. Check URL token via server-side validation
+        // 1. Validate access token from URL if present
         const accessToken = getAccessTokenFromURL();
         if (accessToken) {
           const { data, error } = await supabase.functions.invoke('validate-admin-token', {
@@ -149,99 +103,101 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
 
           if (!error && data?.valid) {
             setAdminLinkToken(accessToken);
-
-            if (data.role === 'owner') {
-              grantAdminAccess(true);
-              setIsAuthorized(true);
-              setIsChecking(false);
-              clearTimeout(globalTimeout);
-              if (window.location.pathname === '/admin/auth' || window.location.pathname === '/admin/login') {
-                window.location.replace('/admin');
-              }
-              return;
-            }
-            grantAdminAccess(false);
+            grantAdminAccess(data.role === 'owner');
           }
         }
 
-        // 2. Check if user is logged in
+        // 2. Require a REAL authenticated Supabase user before rendering admin pages
         const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          if (user.email && OWNER_EMAILS.includes(user.email.toLowerCase())) {
-            grantAdminAccess(true);
-            setIsAuthorized(true);
-            setIsChecking(false);
-            clearTimeout(globalTimeout);
-            return;
-          }
+        if (!user) {
+          console.warn('[AdminAccessGuard] No authenticated user session - revoking stale local access flag');
+          if (hasAdminAccessFlag()) revokeAdminAccess();
+          setSafeState(() => setIsAuthorized(false));
+          return;
+        }
 
-          let { data: adminUser } = await supabase
+        // 3. Hard owner allow-list
+        if (user.email && OWNER_EMAILS.includes(user.email.toLowerCase())) {
+          grantAdminAccess(true);
+          setSafeState(() => setIsAuthorized(true));
+          if (window.location.pathname === '/admin/auth' || window.location.pathname === '/admin/login') {
+            window.location.replace('/admin');
+          }
+          return;
+        }
+
+        // 4. Check admin_users mapping, with email fallback for legacy admins
+        let { data: adminUser } = await supabase
+          .from('admin_users')
+          .select('id, is_active, role, user_id')
+          .eq('user_id', user.id)
+          .eq('is_active', true)
+          .maybeSingle();
+
+        if (!adminUser && user.email) {
+          const fallback = await supabase
             .from('admin_users')
-            .select('id, is_active, role')
-            .eq('user_id', user.id)
+            .select('id, is_active, role, user_id')
+            .eq('email', user.email.toLowerCase())
             .eq('is_active', true)
             .maybeSingle();
 
-          if (!adminUser && user.email) {
-            const fallback = await supabase
-              .from('admin_users')
-              .select('id, is_active, role, user_id')
-              .eq('email', user.email.toLowerCase())
-              .eq('is_active', true)
-              .maybeSingle();
+          if (fallback.data) {
+            adminUser = fallback.data;
 
-            if (fallback.data) {
-              adminUser = fallback.data;
-
-              if (!fallback.data.user_id) {
-                await supabase
-                  .from('admin_users')
-                  .update({ user_id: user.id })
-                  .eq('id', fallback.data.id);
-              }
+            if (!fallback.data.user_id) {
+              await supabase
+                .from('admin_users')
+                .update({ user_id: user.id })
+                .eq('id', fallback.data.id);
             }
-          }
-
-          if (adminUser) {
-            if (adminUser.role === 'owner') {
-              grantAdminAccess(true);
-              setIsAuthorized(true);
-              setIsChecking(false);
-              clearTimeout(globalTimeout);
-              return;
-            }
-
-            const deviceOk = await checkDeviceApproval(user.id);
-            if (deviceOk) {
-              grantAdminAccess(false);
-              setIsAuthorized(true);
-            } else {
-              setIsAuthorized(false);
-            }
-            setIsChecking(false);
-            clearTimeout(globalTimeout);
-            return;
           }
         }
 
-        if (hasAdminAccessFlag()) {
-          console.warn('[AdminAccessGuard] Local admin flag exists without valid authenticated admin user');
+        if (!adminUser) {
+          if (hasAdminAccessFlag()) {
+            console.warn('[AdminAccessGuard] Local admin flag exists without valid admin record');
+            revokeAdminAccess();
+          }
+          setSafeState(() => setIsAuthorized(false));
+          return;
+        }
+
+        // 5. Owner admin_users records bypass device approval, but still require real auth session
+        if (adminUser.role === 'owner') {
+          grantAdminAccess(true);
+          setSafeState(() => setIsAuthorized(true));
+          if (window.location.pathname === '/admin/auth' || window.location.pathname === '/admin/login') {
+            window.location.replace('/admin');
+          }
+          return;
+        }
+
+        // 6. Sub-admins require approved device
+        const deviceOk = await checkDeviceApproval(user.id);
+        if (deviceOk) {
+          grantAdminAccess(false);
+          setSafeState(() => setIsAuthorized(true));
+        } else {
           revokeAdminAccess();
+          setSafeState(() => setIsAuthorized(false));
         }
-
-        setIsAuthorized(false);
-
       } catch (error) {
         console.error('[AdminAccessGuard] Error:', error);
-        setIsAuthorized(false);
+        if (hasAdminAccessFlag()) revokeAdminAccess();
+        setSafeState(() => setIsAuthorized(false));
       } finally {
-        setIsChecking(false);
         clearTimeout(globalTimeout);
+        setSafeState(() => setIsChecking(false));
       }
     };
 
-    checkAccess();
-  }, [immediateResult]);
+    verifyAccess();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // Check if current device is approved for this sub-admin
   const checkDeviceApproval = async (userId: string): Promise<boolean> => {
