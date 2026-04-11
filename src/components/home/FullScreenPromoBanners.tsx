@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 // Import banner images
 import bannerLiveBonus from "@/assets/banners/banner-live-bonus.jpg";
@@ -34,13 +35,33 @@ export function FullScreenPromoBanners() {
   const [canSkip, setCanSkip] = useState(false);
   const [countdown, setCountdown] = useState(Math.ceil(SKIP_DELAY_MS / 1000));
 
-  // Only show once per session
+  // Show once per session — triggered after auth is confirmed
   useEffect(() => {
     const alreadyShown = sessionStorage.getItem(SESSION_KEY);
-    if (!alreadyShown) {
-      setIsVisible(true);
-      sessionStorage.setItem(SESSION_KEY, "1");
-    }
+    if (alreadyShown) return;
+
+    // Check if user is logged in before showing
+    const checkAndShow = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setIsVisible(true);
+        sessionStorage.setItem(SESSION_KEY, "1");
+      }
+    };
+    
+    checkAndShow();
+
+    // Also listen for fresh login
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN' && !sessionStorage.getItem(SESSION_KEY)) {
+        setTimeout(() => {
+          setIsVisible(true);
+          sessionStorage.setItem(SESSION_KEY, "1");
+        }, 800);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   // Skip button timer with countdown
