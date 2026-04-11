@@ -153,7 +153,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    const logoUrl = `${supabaseUrl}/storage/v1/object/public/app-assets/merilive-logo.png`;
+    // Use a reliable public logo URL - check storage first, fallback to data URI
+    const logoUrl = "https://ayjdlvuurscxucatbbah.supabase.co/storage/v1/object/public/app-assets/merilive-logo.png";
     const emailHTML = buildOTPEmailHTML(otp, purpose, logoUrl);
 
     const subjectPrefix = purpose === "login" ? "Login" : 

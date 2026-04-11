@@ -157,35 +157,19 @@ const AgencySignup = () => {
 
     setVerifyingEmailOtp(true);
     try {
-      const { data, error } = await supabase
-        .from('email_otps')
-        .select('id, otp_code, expires_at, is_used')
-        .eq('email', formData.email.trim().toLowerCase())
-        .eq('purpose', 'verify')
-        .eq('is_used', false)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      const { data, error } = await supabase.functions.invoke('verify-email-otp', {
+        body: { 
+          email: formData.email.trim().toLowerCase(), 
+          otp: emailOtp,
+          purpose: 'verify' 
+        }
+      });
 
       if (error) throw error;
-
-      if (!data) {
-        toast({ title: "Error", description: "No valid OTP found. Please request a new one.", variant: "destructive" });
+      if (!data?.success) {
+        toast({ title: "Error", description: data?.error || "Verification failed", variant: "destructive" });
         return;
       }
-
-      if (new Date(data.expires_at) < new Date()) {
-        toast({ title: "Code Expired", description: "Please request a new verification code", variant: "destructive" });
-        return;
-      }
-
-      if (data.otp_code !== emailOtp) {
-        toast({ title: "Wrong Code", description: "Please enter the correct 6-digit code", variant: "destructive" });
-        return;
-      }
-
-      // Mark OTP as used
-      await supabase.from('email_otps').update({ is_used: true }).eq('id', data.id);
 
       setEmailVerified(true);
       toast({ title: "✅ Email Verified!", description: "Your email has been verified successfully" });
