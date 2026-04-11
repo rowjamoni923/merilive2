@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Palette, Image, MessageSquare, Sparkles, Gift, ShoppingBag, UserCog, Zap, Wand2 } from "lucide-react";
+import { Palette, Image, MessageSquare, Gift, ShoppingBag, UserCog, Zap, Wand2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 // Import existing components as tab content
