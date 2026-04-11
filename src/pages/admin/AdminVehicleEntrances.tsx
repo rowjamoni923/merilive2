@@ -47,16 +47,15 @@ const AdminVehicleEntrances = () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('level_privileges')
+        .from('vehicle_entrances' as any)
         .select('*')
-        .eq('privilege_type', 'vehicle_entrance')
-        .order('unlock_level', { ascending: true });
+        .order('level_required', { ascending: true });
 
       if (error) throw error;
 
-      const mapped: VehicleEntranceItem[] = (data || []).map(item => ({
+      const mapped: VehicleEntranceItem[] = (data || []).map((item: any) => ({
         id: item.id,
-        level: item.unlock_level,
+        level: item.level_required,
         name: item.name,
         animation_url: item.animation_url,
         preview_url: item.preview_url,
