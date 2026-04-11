@@ -249,21 +249,31 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         }
 
         // Fetch profile data first (needed for conditional logic)
-        let { data: profileData } = await supabase
+        let { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("*")
           .eq("id", targetUserId)
           .maybeSingle();
 
+        if (profileError) {
+          console.warn("[Profile] Initial profile fetch issue:", profileError);
+        }
+
         if (user && targetUserId === user.id) {
           try {
-            const legacySyncResult = await triggerLegacyProfileSync(user.id);
-            if (legacySyncResult?.synced) {
-              const { data: refreshedProfile } = await supabase
+            const shouldForceSync = !profileData;
+            const legacySyncResult = await triggerLegacyProfileSync(user.id, { force: shouldForceSync });
+
+            if (legacySyncResult?.synced || shouldForceSync) {
+              const { data: refreshedProfile, error: refreshError } = await supabase
                 .from("profiles")
                 .select("*")
                 .eq("id", user.id)
                 .maybeSingle();
+
+              if (refreshError) {
+                console.warn("[Profile] Profile refetch after sync failed:", refreshError);
+              }
 
               if (refreshedProfile) {
                 profileData = refreshedProfile;
@@ -274,7 +284,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           }
         }
 
-        // If profile doesn't exist but user is logged in, auto-create profile only after legacy sync opportunity
+        // Last-resort self-heal: if the row is still missing, try one direct client upsert
         if (!profileData && user && targetUserId === user.id) {
           const displayName = user.user_metadata?.full_name ||
             user.user_metadata?.name ||
@@ -284,9 +294,9 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           const avatarUrl = user.user_metadata?.avatar_url ||
             user.user_metadata?.picture || null;
 
-          const { data: newProfile, error: createProfileError } = await supabase
+          const { error: createProfileError } = await supabase
             .from("profiles")
-            .insert({
+            .upsert({
               id: user.id,
               display_name: displayName,
               username: user.email?.includes('@meri.local') ? null : user.email?.split('@')[0] || null,
@@ -303,15 +313,21 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               is_verified: false,
               user_level: 1,
               last_seen: new Date().toISOString(),
-            })
-            .select()
-            .single();
+            }, { onConflict: 'id' });
 
           if (createProfileError) {
             console.error("[Profile] Failed to create fallback profile:", createProfileError);
-          }
+          } else {
+            const { data: healedProfile } = await supabase
+              .from("profiles")
+              .select("*")
+              .eq("id", user.id)
+              .maybeSingle();
 
-          profileData = newProfile;
+            if (healedProfile) {
+              profileData = healedProfile;
+            }
+          }
         }
 
         if (!isMounted) return;

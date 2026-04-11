@@ -46,10 +46,19 @@ const readSyncCacheState = (userId: string): LegacySyncCacheState | null => {
   return null;
 };
 
-export async function triggerLegacyProfileSync(userId?: string | null): Promise<LegacyProfileSyncResult | null> {
+type TriggerLegacyProfileSyncOptions = {
+  force?: boolean;
+};
+
+export async function triggerLegacyProfileSync(
+  userId?: string | null,
+  options: TriggerLegacyProfileSyncOptions = {}
+): Promise<LegacyProfileSyncResult | null> {
   if (!userId) return null;
 
-  if (typeof window !== "undefined") {
+  const { force = false } = options;
+
+  if (typeof window !== "undefined" && !force) {
     const syncState = readSyncCacheState(userId);
     if (syncState?.status === "success") {
       return null;
@@ -63,6 +72,10 @@ export async function triggerLegacyProfileSync(userId?: string | null): Promise<
 
       window.sessionStorage.removeItem(getSessionSyncKey(userId));
     }
+  }
+
+  if (typeof window !== "undefined" && force) {
+    window.sessionStorage.removeItem(getSessionSyncKey(userId));
   }
 
   const existingRequest = inFlightSyncs.get(userId);
