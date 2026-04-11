@@ -318,7 +318,7 @@ export const useNotifications = () => {
     // Helper notifications channel (if user is a helper)
     if (helperId) {
       const helperChannel = supabase
-        .channel(`notifications-helper-${helperId}`)
+        .channel(`notifications-helper-${helperId}-${uniqueSuffix}`)
         .on(
           'postgres_changes',
           {
