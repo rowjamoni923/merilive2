@@ -253,10 +253,11 @@ export const useNotifications = () => {
     console.log('Subscribing to notifications for user:', currentUserId);
 
     const channels: any[] = [];
+    const uniqueSuffix = Date.now();
 
     // Regular notifications channel
     const regularChannel = supabase
-      .channel(`notifications-regular-${currentUserId}`)
+      .channel(`notifications-regular-${currentUserId}-${uniqueSuffix}`)
       .on(
         'postgres_changes',
         {
