@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { parseSettingValue, saveAppSetting } from "@/utils/adminSettingsStorage";
 
 interface InvitationTier {
   id: string;
@@ -61,7 +62,8 @@ const AdminInvitationSettings = () => {
         .eq('setting_key', 'invitation_banner_url')
         .maybeSingle();
       if (data?.setting_value) {
-        const url = typeof data.setting_value === 'string' ? data.setting_value : (data.setting_value as any)?.url || '';
+        const parsed = parseSettingValue<any>(data.setting_value);
+        const url = typeof parsed === 'string' ? parsed : parsed?.url || '';
         setBannerUrl(url);
         setBannerInput(url);
       }
@@ -73,29 +75,7 @@ const AdminInvitationSettings = () => {
   const handleSaveBanner = async () => {
     setSavingBanner(true);
     try {
-      const { data: existing } = await supabase
-        .from('app_settings')
-        .select('id')
-        .eq('setting_key', 'invitation_banner_url')
-        .maybeSingle();
-
-      if (existing) {
-        const { error } = await supabase
-          .from('app_settings')
-          .update({ setting_value: { url: bannerInput } as any, updated_at: new Date().toISOString() })
-          .eq('setting_key', 'invitation_banner_url');
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('app_settings')
-          .insert({
-            setting_key: 'invitation_banner_url',
-            setting_value: { url: bannerInput } as any,
-            category: 'invitation',
-            description: 'Invitation page banner image URL'
-          });
-        if (error) throw error;
-      }
+      await saveAppSetting('invitation_banner_url', { url: bannerInput }, 'Invitation page banner image URL');
       setBannerUrl(bannerInput);
       toast.success('Banner updated');
     } catch (error) {

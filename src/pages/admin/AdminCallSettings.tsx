@@ -26,6 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { parseSettingValue, saveAppSetting } from "@/utils/adminSettingsStorage";
 
 interface LevelRate {
   level: number;
@@ -115,7 +116,7 @@ export default function AdminCallSettings() {
       if (error && error.code !== 'PGRST116') throw error;
 
       if (data?.setting_value) {
-        const value = data.setting_value as any;
+        const value = parseSettingValue<any>(data.setting_value) || {};
         setSettings({
           default_rate: value.default_rate || DEFAULT_SETTINGS.default_rate,
           min_rate: value.min_rate || DEFAULT_SETTINGS.min_rate,
@@ -177,37 +178,7 @@ export default function AdminCallSettings() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      // First check if the setting exists
-      const { data: existing, error: fetchError } = await supabase
-        .from("app_settings")
-        .select("id")
-        .eq("setting_key", "call_rates")
-        .maybeSingle();
-
-      if (fetchError) throw fetchError;
-
-      if (existing) {
-        // Update existing
-        const { error } = await supabase
-          .from("app_settings")
-          .update({
-            setting_value: settings as any,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("setting_key", "call_rates");
-        if (error) throw error;
-      } else {
-        // Insert new
-        const { error } = await supabase
-          .from("app_settings")
-          .insert({
-            setting_key: "call_rates",
-            setting_value: settings as any,
-            category: "call",
-            description: "Call rates and commission settings",
-          });
-        if (error) throw error;
-      }
+      await saveAppSetting("call_rates", settings, "Call rates and commission settings");
 
       toast.success("Call settings saved!");
     } catch (error) {

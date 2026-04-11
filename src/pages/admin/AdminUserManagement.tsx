@@ -1007,10 +1007,7 @@ export default function AdminUserManagement() {
       ];
 
       for (const update of updates) {
-        await supabase
-          .from("app_settings")
-          .update({ setting_value: update.setting_value })
-          .eq("setting_key", update.setting_key);
+        await saveAppSetting(update.setting_key, update.setting_value, `${update.setting_key} settings`);
       }
 
       toast.success("Settings saved");

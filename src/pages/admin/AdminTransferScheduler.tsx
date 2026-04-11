@@ -10,6 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { parseSettingValue, saveAppSetting } from '@/utils/adminSettingsStorage';
 
 interface TransferSchedule {
   is_active: boolean;
@@ -96,7 +97,7 @@ const AdminTransferScheduler = () => {
         .single();
 
       if (data?.setting_value) {
-        const value = data.setting_value as unknown as TransferSchedule;
+        const value = parseSettingValue<TransferSchedule>(data.setting_value) as TransferSchedule;
         setSchedule(value);
       }
     } catch (error) {
@@ -210,34 +211,7 @@ const AdminTransferScheduler = () => {
   const saveSchedule = async (newSchedule: TransferSchedule) => {
     setSaving(true);
     try {
-      // First check if exists
-      const { data: existing } = await supabase
-        .from('app_settings')
-        .select('id')
-        .eq('setting_key', 'transfer_schedule')
-        .single();
-
-      if (existing) {
-        const { error } = await supabase
-          .from('app_settings')
-          .update({
-            setting_value: JSON.parse(JSON.stringify(newSchedule)),
-            category: 'transfer',
-            description: 'Weekly transfer schedule settings'
-          })
-          .eq('setting_key', 'transfer_schedule');
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('app_settings')
-          .insert([{
-            setting_key: 'transfer_schedule',
-            setting_value: JSON.parse(JSON.stringify(newSchedule)),
-            category: 'transfer',
-            description: 'Weekly transfer schedule settings'
-          }]);
-        if (error) throw error;
-      }
+      await saveAppSetting('transfer_schedule', JSON.parse(JSON.stringify(newSchedule)), 'Weekly transfer schedule settings');
 
       setSchedule(newSchedule);
       toast.success('Settings saved');

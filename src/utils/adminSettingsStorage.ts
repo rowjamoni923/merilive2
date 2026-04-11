@@ -113,7 +113,7 @@ export const saveBrandingSettings = async (value: Record<string, unknown>, id?: 
   const { data, error } = await supabase
     .from("branding_settings")
     .insert({
-      id,
+      ...(id ? { id } : {}),
       setting_key: payload.setting_key,
       setting_value: payload.setting_value,
       description: payload.description,
