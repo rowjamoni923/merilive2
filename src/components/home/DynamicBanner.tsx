@@ -2,14 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBannersRealtime, Banner } from "@/hooks/useAdminSettingsRealtime";
 import { X, ChevronRight } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Browser } from "@capacitor/browser";
 import { isNativeApp } from "@/utils/nativeUtils";
 
 interface DynamicBannerProps {
@@ -132,29 +125,35 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
         ))}
       </div>
 
-      {/* Popup Dialog for in-app links */}
-      <Dialog open={popupOpen} onOpenChange={setPopupOpen}>
-        <DialogContent className="max-w-lg max-h-[80vh] p-0 overflow-hidden">
-          <DialogHeader className="p-4 pb-2 flex flex-row items-center justify-between">
-            <DialogTitle className="text-lg">{popupTitle}</DialogTitle>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={() => setPopupOpen(false)}
-              className="rounded-full"
-            >
-              <X className="w-5 h-5" />
-            </Button>
-          </DialogHeader>
-          <div className="flex-1 overflow-auto">
+      {popupOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-3 backdrop-blur-sm"
+          onClick={() => setPopupOpen(false)}
+        >
+          <div
+            className="flex h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-border bg-background shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-border px-4 py-3">
+              <h2 className="truncate pr-3 text-base font-semibold text-foreground">{popupTitle}</h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setPopupOpen(false)}
+                className="rounded-full"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+
             <iframe
               src={popupUrl}
-              className="w-full h-[60vh] border-0"
+              className="min-h-0 flex-1 border-0 bg-background"
               title={popupTitle}
             />
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
     </>
   );
 }
