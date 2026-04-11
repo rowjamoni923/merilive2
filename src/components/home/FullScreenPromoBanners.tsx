@@ -58,7 +58,7 @@ export function FullScreenPromoBanners() {
         return prev - 1;
       });
     }, 1000);
-    return () => { clearTimeout(t); clearInterval(interval); };
+    return () => clearInterval(interval);
   }, [currentIndex, isVisible]);
 
   // Auto-close timer
