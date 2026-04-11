@@ -11,16 +11,57 @@ type LegacyProfileSyncResult = {
 };
 
 const inFlightSyncs = new Map<string, Promise<LegacyProfileSyncResult | null>>();
+const FAILURE_RETRY_MS = 30_000;
 
 const getSessionSyncKey = (userId: string) => `legacy_synced_${userId}`;
+
+type LegacySyncCacheState = {
+  status: "success" | "not_found_in_old";
+  at: number;
+};
+
+const readSyncCacheState = (userId: string): LegacySyncCacheState | null => {
+  if (typeof window === "undefined") return null;
+
+  const rawValue = window.sessionStorage.getItem(getSessionSyncKey(userId));
+  if (!rawValue) return null;
+
+  if (rawValue === "success") {
+    return { status: "success", at: Date.now() };
+  }
+
+  if (rawValue === "not_found_in_old") {
+    return { status: "not_found_in_old", at: 0 };
+  }
+
+  try {
+    const parsed = JSON.parse(rawValue) as LegacySyncCacheState;
+    if (parsed?.status === "success" || parsed?.status === "not_found_in_old") {
+      return parsed;
+    }
+  } catch {
+    window.sessionStorage.removeItem(getSessionSyncKey(userId));
+  }
+
+  return null;
+};
 
 export async function triggerLegacyProfileSync(userId?: string | null): Promise<LegacyProfileSyncResult | null> {
   if (!userId) return null;
 
   if (typeof window !== "undefined") {
-    const syncState = window.sessionStorage.getItem(getSessionSyncKey(userId));
-    if (syncState === "success" || syncState === "not_found_in_old") {
+    const syncState = readSyncCacheState(userId);
+    if (syncState?.status === "success") {
       return null;
+    }
+
+    if (syncState?.status === "not_found_in_old") {
+      const isRecentFailure = syncState.at > 0 && Date.now() - syncState.at < FAILURE_RETRY_MS;
+      if (isRecentFailure) {
+        return null;
+      }
+
+      window.sessionStorage.removeItem(getSessionSyncKey(userId));
     }
   }
 
@@ -37,9 +78,15 @@ export async function triggerLegacyProfileSync(userId?: string | null): Promise<
 
     if (typeof window !== "undefined") {
       if (result?.synced) {
-        window.sessionStorage.setItem(getSessionSyncKey(userId), "success");
+        window.sessionStorage.setItem(
+          getSessionSyncKey(userId),
+          JSON.stringify({ status: "success", at: Date.now() } satisfies LegacySyncCacheState)
+        );
       } else if (result?.reason === "not_found_in_old") {
-        window.sessionStorage.setItem(getSessionSyncKey(userId), "not_found_in_old");
+        window.sessionStorage.setItem(
+          getSessionSyncKey(userId),
+          JSON.stringify({ status: "not_found_in_old", at: Date.now() } satisfies LegacySyncCacheState)
+        );
       } else {
         window.sessionStorage.removeItem(getSessionSyncKey(userId));
       }

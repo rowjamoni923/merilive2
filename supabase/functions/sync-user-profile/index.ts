@@ -6,6 +6,10 @@ const corsHeaders = {
 }
 
 type JsonRecord = Record<string, any>
+type LegacyIdentity = {
+  profile: JsonRecord
+  source: string
+}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -47,12 +51,17 @@ Deno.serve(async (req) => {
     if (!oldUrl.startsWith('http')) oldUrl = `https://${oldUrl}`
     const oldClient = createClient(oldUrl, oldKey)
 
-    const oldProfile = await findLegacyProfile(oldClient, user, currentProfile || { id: user.id })
+    const legacyIdentity = await resolveLegacyIdentity(oldClient, user, currentProfile || { id: user.id })
+    const oldProfile = legacyIdentity?.profile ?? null
+
     if (!oldProfile) {
+      console.log('[sync-user-profile] Legacy identity not found for:', user.email || user.id)
       return new Response(JSON.stringify({ synced: false, reason: 'not_found_in_old' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
+
+    console.log('[sync-user-profile] Legacy identity resolved via:', legacyIdentity?.source)
 
     const oldAgency = await findLegacyAgency(oldClient, oldProfile)
     const oldHelper = await findLegacyHelper(oldClient, oldProfile)
@@ -100,6 +109,50 @@ Deno.serve(async (req) => {
   }
 })
 
+async function resolveLegacyIdentity(oldClient: any, user: any, currentProfile: JsonRecord): Promise<LegacyIdentity | null> {
+  const legacyProfile = await findLegacyProfile(oldClient, user, currentProfile)
+  if (legacyProfile) {
+    return {
+      profile: legacyProfile,
+      source: 'legacy_profile',
+    }
+  }
+
+  const email = (user.email || '').toLowerCase().trim()
+  const legacyAdmin = email
+    ? await tryMaybeSingle(
+        oldClient
+          .from('admin_users')
+          .select('id, user_id, email, display_name, role, is_active')
+          .ilike('email', email)
+      )
+    : null
+
+  const legacyAuthUser = email ? await findLegacyAuthUser(oldClient, email) : null
+
+  for (const legacyUserId of [legacyAuthUser?.id, legacyAdmin?.user_id].filter(Boolean)) {
+    const profileByLegacyUserId = await tryMaybeSingle(
+      oldClient.from('profiles').select('*').eq('id', legacyUserId)
+    )
+
+    if (profileByLegacyUserId) {
+      return {
+        profile: profileByLegacyUserId,
+        source: legacyAuthUser?.id === legacyUserId ? 'legacy_auth_profile' : 'legacy_admin_profile',
+      }
+    }
+  }
+
+  if (legacyAuthUser || legacyAdmin) {
+    return {
+      profile: buildSyntheticLegacyProfile(legacyAuthUser, legacyAdmin, email),
+      source: legacyAuthUser ? 'legacy_auth_metadata' : 'legacy_admin_metadata',
+    }
+  }
+
+  return null
+}
+
 async function findLegacyProfile(oldClient: any, user: any, currentProfile: JsonRecord) {
   const email = (user.email || '').toLowerCase().trim()
   const candidateIds = [currentProfile.id, user.id].filter(Boolean)
@@ -127,6 +180,55 @@ async function findLegacyProfile(oldClient: any, user: any, currentProfile: Json
   }
 
   return null
+}
+
+async function findLegacyAuthUser(oldClient: any, email: string) {
+  let page = 1
+  const perPage = 200
+
+  while (true) {
+    try {
+      const { data, error } = await oldClient.auth.admin.listUsers({ page, perPage })
+      if (error) return null
+
+      const users = data?.users ?? []
+      const matchedUser = users.find((candidate: any) => candidate.email?.toLowerCase() === email)
+      if (matchedUser) {
+        return matchedUser
+      }
+
+      if (users.length < perPage) break
+      page += 1
+    } catch {
+      return null
+    }
+  }
+
+  return null
+}
+
+function buildSyntheticLegacyProfile(legacyAuthUser: any, legacyAdmin: JsonRecord | null, currentEmail: string) {
+  const authMeta = (legacyAuthUser?.user_metadata || {}) as JsonRecord
+  const resolvedUserId = legacyAuthUser?.id || legacyAdmin?.user_id || null
+  const fallbackName =
+    firstText(legacyAdmin || {}, 'display_name') ||
+    firstText(authMeta, 'username', 'full_name', 'name') ||
+    currentEmail.split('@')[0] ||
+    'User'
+
+  return {
+    id: resolvedUserId,
+    email: currentEmail || legacyAuthUser?.email || legacyAdmin?.email || null,
+    display_name: fallbackName,
+    username: firstText(authMeta, 'username') || fallbackName,
+    avatar_url: firstText(authMeta, 'avatar_url', 'picture'),
+    profile_photo_url: firstText(authMeta, 'avatar_url', 'picture'),
+    gender: firstText(authMeta, 'gender'),
+    app_uid: firstText(authMeta, 'app_uid'),
+    is_verified: Boolean(legacyAuthUser?.email_confirmed_at),
+    is_face_verified: false,
+    is_host: false,
+  }
 }
 
 async function findLegacyAgency(oldClient: any, oldProfile: JsonRecord) {
@@ -199,8 +301,13 @@ function buildProfilePatch(
   const oldDisplayName = firstText(oldProfile, 'display_name', 'username', 'full_name', 'name')
   const oldUsername = firstText(oldProfile, 'username', 'display_name')
   const oldAvatar = firstText(oldProfile, 'avatar_url', 'profile_photo_url')
+  const oldProfilePhotoUrl = firstText(oldProfile, 'profile_photo_url', 'avatar_url')
   const oldGender = firstText(oldProfile, 'gender')
   const oldBio = firstText(oldProfile, 'bio')
+  const oldAppUid = firstText(oldProfile, 'app_uid')
+  const oldDeviceId = firstText(oldProfile, 'device_id')
+  const oldHostStatus = firstText(oldProfile, 'host_status')
+  const oldVerificationType = firstText(oldProfile, 'verification_type')
   const oldCountryCode = firstText(oldProfile, 'country_code')
   const oldCountryFlag = firstText(oldProfile, 'country_flag')
   const oldCountryName = firstText(oldProfile, 'country_name')
@@ -213,6 +320,10 @@ function buildProfilePatch(
   const oldUserLevel = firstPositiveNumber(oldProfile, 'user_level', 'level')
   const oldHostLevel = firstPositiveNumber(oldProfile, 'host_level')
   const oldAge = firstPositiveNumber(oldProfile, 'age')
+  const oldTotalRecharged = firstPositiveNumber(oldProfile, 'total_recharged')
+  const oldTotalConsumption = firstPositiveNumber(oldProfile, 'total_consumption')
+  const oldTotalEarnings = firstPositiveNumber(oldProfile, 'total_earnings')
+  const oldPendingEarnings = firstPositiveNumber(oldProfile, 'pending_earnings')
 
   const legacyLooksBetter = (incoming?: string | null) => !!incoming && !isWeakName(incoming, currentEmail)
 
@@ -225,8 +336,12 @@ function buildProfilePatch(
   }
 
   if (oldAvatar && !currentProfile.avatar_url) patch.avatar_url = oldAvatar
+  if (oldProfilePhotoUrl && !currentProfile.profile_photo_url) patch.profile_photo_url = oldProfilePhotoUrl
   if (oldBio && !currentProfile.bio) patch.bio = oldBio
   if (oldGender && !currentProfile.gender) patch.gender = oldGender
+  if (oldAppUid && !currentProfile.app_uid) patch.app_uid = oldAppUid
+  if (oldDeviceId && !currentProfile.device_id) patch.device_id = oldDeviceId
+  if (oldVerificationType && !currentProfile.verification_type) patch.verification_type = oldVerificationType
   if (oldAge > 0 && (!currentProfile.age || Number(currentProfile.age) <= 0)) patch.age = oldAge
   if (oldCountryCode && !currentProfile.country_code) patch.country_code = oldCountryCode
   if (oldCountryFlag && !currentProfile.country_flag) patch.country_flag = oldCountryFlag
@@ -249,8 +364,14 @@ function buildProfilePatch(
     patch.beans_balance = oldBeans
   }
 
+  if (oldTotalRecharged > Number(currentProfile.total_recharged || 0)) patch.total_recharged = oldTotalRecharged
+  if (oldTotalConsumption > Number(currentProfile.total_consumption || 0)) patch.total_consumption = oldTotalConsumption
+  if (oldTotalEarnings > Number(currentProfile.total_earnings || 0)) patch.total_earnings = oldTotalEarnings
+  if (oldPendingEarnings > Number(currentProfile.pending_earnings || 0)) patch.pending_earnings = oldPendingEarnings
+
   const shouldBeHost = Boolean(oldProfile.is_host || oldAgencyHost)
   if (shouldBeHost && !currentProfile.is_host) patch.is_host = true
+  if (shouldBeHost && !currentProfile.host_status) patch.host_status = oldHostStatus || 'approved'
 
   const shouldBeVerified = Boolean(oldProfile.is_verified || oldProfile.is_face_verified)
   if (shouldBeVerified && !currentProfile.is_verified) patch.is_verified = true
@@ -258,8 +379,8 @@ function buildProfilePatch(
   const shouldBeAgencyOwner = Boolean(oldProfile.is_agency_owner || oldAgency)
   if (shouldBeAgencyOwner && !currentProfile.is_agency_owner) patch.is_agency_owner = true
 
-  if (!currentProfile.agency_id && oldAgencyId) {
-    patch.agency_id = oldAgencyId
+  if (!currentProfile.agency_id && (oldAgency?.id || oldAgencyId)) {
+    patch.agency_id = oldAgency?.id || oldAgencyId
   }
 
   if (oldProfile.is_face_verified && !currentProfile.is_face_verified) {
@@ -477,6 +598,9 @@ async function createBaseProfileFromLegacy(newClient: any, newUserId: string, cu
   const oldAvatar = firstText(oldProfile, 'avatar_url', 'profile_photo_url')
   const oldGender = firstText(oldProfile, 'gender') || 'male'
   const oldBio = firstText(oldProfile, 'bio')
+  const oldAppUid = firstText(oldProfile, 'app_uid')
+  const oldDeviceId = firstText(oldProfile, 'device_id')
+  const oldVerificationType = firstText(oldProfile, 'verification_type')
   const oldCountryCode = firstText(oldProfile, 'country_code')
   const oldCountryFlag = firstText(oldProfile, 'country_flag')
   const oldCountryName = firstText(oldProfile, 'country_name')
@@ -494,8 +618,10 @@ async function createBaseProfileFromLegacy(newClient: any, newUserId: string, cu
     id: newUserId,
     display_name: oldDisplayName,
     username: oldUsername,
+    app_uid: oldAppUid,
     avatar_url: oldAvatar,
     profile_photo_url: oldAvatar,
+    device_id: oldDeviceId,
     gender: oldGender,
     bio: oldBio,
     age: oldAge > 0 ? oldAge : null,
@@ -512,8 +638,10 @@ async function createBaseProfileFromLegacy(newClient: any, newUserId: string, cu
     user_level: oldUserLevel,
     host_level: oldHostLevel > 0 ? oldHostLevel : null,
     is_host: Boolean(oldProfile.is_host || oldAgencyHost),
+    host_status: Boolean(oldProfile.is_host || oldAgencyHost) ? oldProfile.host_status ?? 'approved' : null,
     is_verified: Boolean(oldProfile.is_verified || oldProfile.is_face_verified),
     is_face_verified: Boolean(oldProfile.is_face_verified),
+    verification_type: oldVerificationType,
     is_agency_owner: Boolean(oldProfile.is_agency_owner || oldAgency),
     total_earnings: Number(oldProfile.total_earnings || 0),
     pending_earnings: Number(oldProfile.pending_earnings || 0),
