@@ -740,13 +740,13 @@ const PartyRoom = () => {
       if (isHostNow && roomId) {
         const updateData = JSON.stringify({ is_active: false });
         navigator.sendBeacon(
-          `https://pppcwawjjpwwrmvezcdy.supabase.co/rest/v1/party_rooms?id=eq.${roomId}`,
+          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/party_rooms?id=eq.${roomId}`,
           new Blob([updateData], { type: 'application/json' })
         );
         
         const participantData = JSON.stringify({ left_at: new Date().toISOString() });
         navigator.sendBeacon(
-          `https://pppcwawjjpwwrmvezcdy.supabase.co/rest/v1/party_room_participants?room_id=eq.${roomId}&left_at=is.null`,
+          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/party_room_participants?room_id=eq.${roomId}&left_at=is.null`,
           new Blob([participantData], { type: 'application/json' })
         );
       }

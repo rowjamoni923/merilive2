@@ -304,14 +304,10 @@ export default function AdminAgencies() {
   const fetchCommissionSettings = async () => {
     setSettingsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("app_settings")
-        .select("*")
-        .eq("setting_key", "agency_commission_settings")
-        .maybeSingle();
+      const data = await loadAppSetting<AgencyCommissionSettings>("agency_commission_settings");
 
       if (data) {
-        setCommissionSettings((loadAppSetting ? JSON.parse(String(data.setting_value)) : data.setting_value) as unknown as AgencyCommissionSettings);
+        setCommissionSettings(data);
       }
     } catch (error) {
       console.error("Error fetching commission settings:", error);

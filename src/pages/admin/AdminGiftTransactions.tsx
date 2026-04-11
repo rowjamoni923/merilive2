@@ -52,7 +52,7 @@ export default function AdminGiftTransactions() {
     try {
       const tzOffset = Math.round(new Date().getTimezoneOffset() / -60);
       const resp = await fetch(
-        `https://pppcwawjjpwwrmvezcdy.supabase.co/functions/v1/admin-chat-inspector/gift-transactions?tzOffset=${tzOffset}`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-chat-inspector/gift-transactions?tzOffset=${tzOffset}`,
         {
           headers: {
             'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,

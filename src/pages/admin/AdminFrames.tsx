@@ -138,10 +138,10 @@ const AdminFrames = () => {
     formData.append('file', file);
     formData.append('folder', folder);
 
-    const response = await fetch(
-      'https://pppcwawjjpwwrmvezcdy.supabase.co/functions/v1/r2-upload',
-      { method: 'POST', body: formData }
-    );
+    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/r2-upload`, {
+      method: 'POST',
+      body: formData,
+    });
 
     const result = await response.json();
     if (!response.ok || !result.success) {

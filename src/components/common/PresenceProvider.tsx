@@ -4,8 +4,8 @@ import { Capacitor } from "@capacitor/core";
 import { registerFCMToken, setupForegroundMessageHandler, deactivateFCMToken } from "@/services/firebaseMessaging";
 import { toast } from "sonner";
 
-const SUPABASE_URL = "https://pppcwawjjpwwrmvezcdy.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBwcGN3YXdqanB3d3JtdmV6Y2R5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgzMzQ4OTYsImV4cCI6MjA4MzkxMDg5Nn0.VUy58uiU63Kb3i4qj2ALK2s3arjBJ25CbnwCcvblpQw";
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 // Heartbeat interval - 30 seconds
 const HEARTBEAT_INTERVAL = 30_000;

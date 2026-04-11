@@ -178,7 +178,7 @@ export default function AdminGifts() {
   // Upload to Cloudflare R2 for large files using proxy multipart upload (avoids CORS issues)
   // R2 requires minimum 5MB per part (except last part) for multipart uploads
   const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB parts - R2 minimum requirement
-  const R2_FUNCTION_URL = 'https://pppcwawjjpwwrmvezcdy.supabase.co/functions/v1/r2-upload';
+  const R2_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/r2-upload`;
 
   const uploadToR2Multipart = async (file: File, folder: string, onProgress?: (pct: number) => void): Promise<string> => {
     const totalParts = Math.ceil(file.size / CHUNK_SIZE);
@@ -360,7 +360,7 @@ export default function AdminGifts() {
           // Set timeout based on file size (1MB = 10 seconds, max 10 minutes)
           xhr.timeout = Math.min(Math.max(file.size / (1024 * 1024) * 10000, 60000), 600000);
           
-          xhr.open('POST', `https://pppcwawjjpwwrmvezcdy.supabase.co/storage/v1/object/chat-media/${filePath}`);
+          xhr.open('POST', `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/chat-media/${filePath}`);
           xhr.setRequestHeader('Authorization', `Bearer ${session.access_token}`);
           xhr.setRequestHeader('x-upsert', 'true');
           xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
