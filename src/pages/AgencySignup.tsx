@@ -112,7 +112,34 @@ const AgencySignup = () => {
     }
   };
 
-  const searchUserById = async () => {
+  const verifyAppOtp = async () => {
+    if (appOtp.length !== 6 || !foundUser) return;
+    setVerifyingAppOtp(true);
+    try {
+      // For in-app OTP, we verify through the notification system
+      // The OTP was sent via send-app-notification, verify it matches
+      const { data, error } = await supabase.functions.invoke('verify-email-otp', {
+        body: { 
+          email: `appuid_${foundUser.id}@notify.merilive.internal`, 
+          otp: appOtp,
+          purpose: 'verify' 
+        }
+      });
+      if (error) throw error;
+      if (!data?.success) {
+        toast({ title: "Error", description: data?.error || "Invalid OTP", variant: "destructive" });
+        return;
+      }
+      setAppVerified(true);
+      toast({ title: "✅ App OTP Verified!", description: "In-app verification successful" });
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message || "Verification failed", variant: "destructive" });
+    } finally {
+      setVerifyingAppOtp(false);
+    }
+  };
+
+
     if (!formData.userId.trim()) {
       toast({ title: "Error", description: "Please enter your App UID (e.g., LV1234567890)", variant: "destructive" });
       return;
