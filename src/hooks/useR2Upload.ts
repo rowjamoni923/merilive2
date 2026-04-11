@@ -182,39 +182,30 @@ export function useR2Upload() {
       throw new Error('Not authenticated');
     }
 
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      
-      xhr.upload.addEventListener('progress', (event) => {
-        if (event.lengthComputable) {
-          const pct = Math.round((event.loaded / event.total) * 100);
-          setProgress(pct);
-          onProgress?.(pct);
-        }
+    setProgress(10);
+    onProgress?.(10);
+
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: true,
+        contentType: file.type || 'application/octet-stream',
       });
-      
-      xhr.addEventListener('load', () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          const { data: { publicUrl } } = supabase.storage
-            .from(bucket)
-            .getPublicUrl(fileName);
-          resolve(publicUrl);
-        } else {
-          reject(new Error(`Upload failed: ${xhr.status}`));
-        }
-      });
-      
-      xhr.addEventListener('error', () => reject(new Error('Network error')));
-      xhr.addEventListener('timeout', () => reject(new Error('Upload timeout')));
-      
-      xhr.timeout = Math.min(Math.max(file.size / (1024 * 1024) * 10000, 60000), 600000);
-      
-      xhr.open('POST', `https://pppcwawjjpwwrmvezcdy.supabase.co/storage/v1/object/${bucket}/${fileName}`);
-      xhr.setRequestHeader('Authorization', `Bearer ${session.access_token}`);
-      xhr.setRequestHeader('x-upsert', 'true');
-      xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
-      xhr.send(file);
-    });
+
+    if (error) {
+      console.error('[Supabase Storage] Upload error:', error);
+      throw new Error(error.message || 'Storage upload failed');
+    }
+
+    setProgress(100);
+    onProgress?.(100);
+
+    const { data: { publicUrl } } = supabase.storage
+      .from(bucket)
+      .getPublicUrl(data.path);
+
+    return publicUrl;
   };
 
   /**
