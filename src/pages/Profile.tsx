@@ -64,6 +64,7 @@ import { Slider } from "@/components/ui/slider";
 import useExpiredItemsRestorer from "@/hooks/useExpiredItemsRestorer";
  import UserBeansExchangeModal from "@/components/profile/UserBeansExchangeModal";
  import { useUserBalance, updateCachedBalance } from "@/hooks/useUserBalance";
+import { triggerLegacyProfileSync } from "@/utils/legacyProfileSync";
 
 interface ProfileStats {
   followersCount: number;
@@ -254,7 +255,26 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           .eq("id", targetUserId)
           .maybeSingle();
 
-        // If profile doesn't exist but user is logged in, auto-create profile
+        if (user && targetUserId === user.id) {
+          try {
+            const legacySyncResult = await triggerLegacyProfileSync(user.id);
+            if (legacySyncResult?.synced) {
+              const { data: refreshedProfile } = await supabase
+                .from("profiles")
+                .select("*")
+                .eq("id", user.id)
+                .maybeSingle();
+
+              if (refreshedProfile) {
+                profileData = refreshedProfile;
+              }
+            }
+          } catch (syncError) {
+            console.warn("[Profile] Legacy sync retry failed:", syncError);
+          }
+        }
+
+        // If profile doesn't exist but user is logged in, auto-create profile only after legacy sync opportunity
         if (!profileData && user && targetUserId === user.id) {
           const displayName = user.user_metadata?.full_name ||
             user.user_metadata?.name ||
