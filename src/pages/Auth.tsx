@@ -185,15 +185,15 @@ const Auth = () => {
     logo_text_primary: realtimeBranding.logo_text_primary || 'meri',
     logo_text_secondary: realtimeBranding.logo_text_secondary || 'LIVE',
     tagline: realtimeBranding.tagline || 'Connect • Chat • Share',
-    background_type: (realtimeBranding.background_type || 'image') as 'image' | 'video',
-    background_url: realtimeBranding.background_url || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800',
+    background_type: (realtimeBranding.background_type || 'gradient') as 'image' | 'video' | 'gradient',
+    background_url: realtimeBranding.background_url || '',
     logo_image_url: realtimeBranding.logo_image_url
   } : {
     logo_text_primary: 'meri',
     logo_text_secondary: 'LIVE',
     tagline: 'Connect • Chat • Share',
-    background_type: 'image' as const,
-    background_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800',
+    background_type: 'gradient' as const,
+    background_url: '',
     logo_image_url: null
   };
 
@@ -1794,13 +1794,15 @@ const Auth = () => {
   // Show loading screen during auto-recovery
   if (isAutoRecovering) {
     return (
-      <div className="fixed inset-0 overflow-hidden">
-        {branding.background_type === 'video' ? (
+        <div className="fixed inset-0 overflow-hidden">
+        {branding.background_type === 'video' && branding.background_url ? (
           <video src={branding.background_url} className="absolute inset-0 w-full h-full object-cover" autoPlay muted loop playsInline />
-        ) : (
+        ) : branding.background_type === 'image' && branding.background_url ? (
           <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url('${branding.background_url}')` }} />
+        ) : (
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #0f0c29 0%, #302b63 40%, #24243e 70%, #0f0c29 100%)' }} />
         )}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/60" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/50" />
         <div className="relative z-10 min-h-screen flex flex-col items-center justify-center gap-4">
           <div className="w-10 h-10 border-3 border-white/30 border-t-white rounded-full animate-spin" />
           <p className="text-white/80 text-sm font-medium animate-pulse">Recovering your account...</p>
@@ -1811,8 +1813,8 @@ const Auth = () => {
 
   return (
     <div className="fixed inset-0 overflow-hidden">
-      {/* Background - Video or Image */}
-      {branding.background_type === 'video' ? (
+      {/* Background - Video, Image, or Premium Gradient */}
+      {branding.background_type === 'video' && branding.background_url ? (
         <video
           src={branding.background_url}
           className="absolute inset-0 w-full h-full object-cover"
@@ -1821,15 +1823,40 @@ const Auth = () => {
           loop
           playsInline
         />
-      ) : (
+      ) : branding.background_type === 'image' && branding.background_url ? (
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{
             backgroundImage: `url('${branding.background_url}')`,
           }}
         />
+      ) : (
+        /* Premium Ultra-Luxury Gradient Background */
+        <div 
+          className="absolute inset-0"
+          style={{
+            background: 'linear-gradient(135deg, #0f0c29 0%, #302b63 40%, #24243e 70%, #0f0c29 100%)',
+          }}
+        >
+          {/* Animated glow orbs */}
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full opacity-20" style={{
+            background: 'radial-gradient(circle, #9b87f5 0%, transparent 70%)',
+            filter: 'blur(60px)',
+            animation: 'pulse 4s ease-in-out infinite',
+          }} />
+          <div className="absolute bottom-1/3 right-1/4 w-48 h-48 rounded-full opacity-15" style={{
+            background: 'radial-gradient(circle, #f472b6 0%, transparent 70%)',
+            filter: 'blur(50px)',
+            animation: 'pulse 5s ease-in-out infinite 1s',
+          }} />
+          <div className="absolute top-2/3 left-1/2 w-56 h-56 rounded-full opacity-10" style={{
+            background: 'radial-gradient(circle, #60a5fa 0%, transparent 70%)',
+            filter: 'blur(55px)',
+            animation: 'pulse 6s ease-in-out infinite 2s',
+          }} />
+        </div>
       )}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/60" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/50" />
 
       {/* Content */}
       <div className="relative z-10 h-full min-h-0 overflow-y-auto overflow-x-hidden" style={{ WebkitOverflowScrolling: 'touch' }}>
