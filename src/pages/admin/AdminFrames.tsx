@@ -986,6 +986,7 @@ const AdminFrames = () => {
                     className="w-full h-full"
                     loop={true}
                     autoPlay={true}
+                    muted={false}
                   />
                 </div>
               </div>

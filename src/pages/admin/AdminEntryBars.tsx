@@ -671,6 +671,7 @@ const AdminEntryBars = () => {
                 className="max-w-full max-h-[60vh] object-contain"
                 loop
                 autoPlay
+                muted={false}
               />
             )}
           </div>

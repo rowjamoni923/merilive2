@@ -2,8 +2,9 @@ import React, { useState, Suspense, lazy } from 'react';
 import { cn } from '@/lib/utils';
 import Lottie from 'lottie-react';
 
-// Lazy load SVGA player for better performance
+// Lazy load SVGA players for better performance
 const SVGAPlayer = lazy(() => import('./SVGAPlayer'));
+const SVGAPlayerWithAudio = lazy(() => import('./SVGAPlayerWithAudio'));
 
 export type FrameType = 'svga' | 'lottie' | 'gif' | 'webp' | 'png' | 'mp4' | 'webm' | 'static';
 
@@ -80,6 +81,25 @@ const UniversalFramePlayer: React.FC<UniversalFramePlayerProps> = ({
 
   // SVGA Animation
   if (frameType === 'svga') {
+    // Use SVGAPlayerWithAudio when sound is enabled
+    if (!muted) {
+      return (
+        <Suspense fallback={
+          <div className={cn("flex items-center justify-center", className)}>
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          </div>
+        }>
+          <SVGAPlayerWithAudio
+            src={src}
+            className={className}
+            loop={loop}
+            autoPlay={autoPlay}
+            onLoad={onLoad}
+            onError={onError}
+          />
+        </Suspense>
+      );
+    }
     return (
       <Suspense fallback={
         <div className={cn("flex items-center justify-center", className)}>

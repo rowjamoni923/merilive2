@@ -4,6 +4,7 @@ import Lottie from 'lottie-react';
 
 // Lazy load animation players for better performance
 const SVGAPlayer = lazy(() => import('./SVGAPlayer'));
+const SVGAPlayerWithAudio = lazy(() => import('./SVGAPlayerWithAudio'));
 const VAPPlayer = lazy(() => import('./VAPPlayer'));
 
 export type AnimationType = 'svga' | 'lottie' | 'vap' | 'gif' | 'webp' | 'png' | 'mp4' | 'webm' | 'static';
@@ -126,8 +127,26 @@ const UniversalAnimationPlayer: React.FC<UniversalAnimationPlayerProps> = ({
     </div>
   );
 
-  // SVGA Animation
+  // SVGA Animation — use SVGAPlayerWithAudio when sound is needed
   if (animationType === 'svga') {
+    if (!muted) {
+      return (
+        <Suspense fallback={<LoadingSpinner />}>
+          <SVGAPlayerWithAudio
+            src={src}
+            className={className}
+            loop={loop}
+            autoPlay={autoPlay}
+            onLoad={onLoad}
+            onComplete={onComplete}
+            onError={(err) => {
+              setHasError(true);
+              onError?.(err);
+            }}
+          />
+        </Suspense>
+      );
+    }
     return (
       <Suspense fallback={<LoadingSpinner />}>
         <SVGAPlayer

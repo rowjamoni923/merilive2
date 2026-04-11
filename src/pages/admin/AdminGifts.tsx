@@ -61,6 +61,7 @@ import { toast } from "sonner";
 import { defaultGiftAnimations, animationCategories, type DefaultAnimation } from "@/data/defaultGiftAnimations";
 import Lottie from "lottie-react";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
+import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
 
 interface GiftItem {
   id: string;
@@ -1604,11 +1605,11 @@ export default function AdminGifts() {
               {(() => {
                 const url = fullscreenPreviewGift.animation_url;
                 if (!url) return <p className="text-white/50">No animation file</p>;
-                if (isSVGA(url)) return <UniversalFramePlayer src={url} type="svga" className="w-full h-full" loop autoPlay />;
-                if (isLottie(url)) return <UniversalFramePlayer src={url} type="lottie" className="w-full h-full" loop autoPlay />;
+                if (isSVGA(url)) return <UniversalAnimationPlayer src={url} type="svga" className="w-full h-full" loop autoPlay muted={false} />;
+                if (isLottie(url)) return <UniversalAnimationPlayer src={url} type="lottie" className="w-full h-full" loop autoPlay muted={false} />;
                 if (isVideoOrGif(url)) return url.endsWith('.gif') 
                   ? <img src={url} alt={fullscreenPreviewGift.name} className="w-full h-full object-contain" />
-                  : <video src={url} className="w-full h-full object-contain" autoPlay muted loop playsInline />;
+                  : <video src={url} className="w-full h-full object-contain" autoPlay loop playsInline />;
                 return <img src={url} alt={fullscreenPreviewGift.name} className="w-full h-full object-contain" />;
               })()}
             </div>

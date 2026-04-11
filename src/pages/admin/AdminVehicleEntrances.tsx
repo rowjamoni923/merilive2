@@ -448,6 +448,7 @@ const AdminVehicleEntrances = () => {
                 className="w-full h-full"
                 loop
                 autoPlay
+                muted={false}
               />
             </div>
           )}
