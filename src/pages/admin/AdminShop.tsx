@@ -745,14 +745,24 @@ const AdminShop = () => {
 
               {/* Actions */}
               <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/10">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => setFullscreenPreviewItem(item)}
+                    className="text-cyan-400 hover:bg-cyan-400/10"
+                    title="Preview Animation"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </Button>
                   <Button
                     size="icon"
                     variant="ghost"
                     onClick={() => toggleActive(item)}
                     className={item.is_active ? "text-green-400" : "text-red-400"}
+                    title={item.is_active ? "Deactivate" : "Activate"}
                   >
-                    {item.is_active ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                    {item.is_active ? <EyeOff className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                   </Button>
                   <Button
                     size="icon"
