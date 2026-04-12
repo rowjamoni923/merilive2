@@ -38,11 +38,6 @@ export const GenderSelectionModal = ({ isOpen, userId, onComplete }: GenderSelec
         ...(deviceId && { device_id: deviceId }),
       };
       
-      if (selectedGender === 'female') {
-        updateData.is_host = true;
-        updateData.host_status = 'approved';
-      }
-      
       const { error } = await supabase
         .from('profiles')
         .update(updateData)
