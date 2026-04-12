@@ -172,10 +172,12 @@ const AdminCoinTraders = () => {
 
       if (agency) {
         if (action === 'deactivate') {
+          const levelMap: Record<string, string> = { 'A1': 'bronze', 'A2': 'silver', 'A3': 'gold', 'A4': 'platinum', 'A5': 'diamond' };
+          const tierCode = levelMap[agency.level || 'A1'] || agency.level || 'bronze';
           const { data: tier } = await supabase
             .from('agency_level_tiers')
             .select('commission_rate')
-            .eq('level_code', agency.level || 'A1')
+            .eq('level_code', tierCode)
             .eq('is_active', true)
             .maybeSingle();
           await supabase.from('agencies').update({ commission_rate: tier?.commission_rate || 3 }).eq('id', agency.id);
