@@ -198,6 +198,7 @@ const AgencyDashboard = () => {
   const [totalHostEarningsFromTransfers, setTotalHostEarningsFromTransfers] = useState(0);
   const [totalAgencyCommission, setTotalAgencyCommission] = useState(0);
   const [totalWithdrawn, setTotalWithdrawn] = useState(0); // Track total withdrawn amounts
+  const [ownerPersonalBeans, setOwnerPersonalBeans] = useState(0); // Agency owner's personal beans from gifts/calls
   
   // Parent agency info (if this is a sub-agency)
   const [parentAgency, setParentAgency] = useState<ParentAgencyInfo | null>(null);
