@@ -3057,34 +3057,106 @@ export type Database = {
       }
       game_settings: {
         Row: {
+          category: string | null
           created_at: string | null
+          description: string | null
           display_order: number | null
+          game_color: string | null
+          game_emoji: string | null
+          game_id: string | null
+          game_name: string | null
           game_type: string
+          game_url: string | null
+          house_edge: number | null
           id: string
+          iframe_height: number | null
+          iframe_width: number | null
           is_active: boolean | null
+          is_featured: boolean | null
+          jackpot_multiplier: number | null
+          jackpot_percentage: number | null
+          logo_url: string | null
+          max_bet: number | null
+          max_multiplier: number | null
+          max_win_probability: number | null
+          min_bet: number | null
+          min_win_probability: number | null
+          preset_bets: Json | null
+          provider_game_code: string | null
+          provider_id: string | null
+          rules: Json | null
           setting_key: string
           setting_value: Json | null
           updated_at: string | null
+          win_probability: number | null
         }
         Insert: {
+          category?: string | null
           created_at?: string | null
+          description?: string | null
           display_order?: number | null
+          game_color?: string | null
+          game_emoji?: string | null
+          game_id?: string | null
+          game_name?: string | null
           game_type: string
+          game_url?: string | null
+          house_edge?: number | null
           id?: string
+          iframe_height?: number | null
+          iframe_width?: number | null
           is_active?: boolean | null
+          is_featured?: boolean | null
+          jackpot_multiplier?: number | null
+          jackpot_percentage?: number | null
+          logo_url?: string | null
+          max_bet?: number | null
+          max_multiplier?: number | null
+          max_win_probability?: number | null
+          min_bet?: number | null
+          min_win_probability?: number | null
+          preset_bets?: Json | null
+          provider_game_code?: string | null
+          provider_id?: string | null
+          rules?: Json | null
           setting_key: string
           setting_value?: Json | null
           updated_at?: string | null
+          win_probability?: number | null
         }
         Update: {
+          category?: string | null
           created_at?: string | null
+          description?: string | null
           display_order?: number | null
+          game_color?: string | null
+          game_emoji?: string | null
+          game_id?: string | null
+          game_name?: string | null
           game_type?: string
+          game_url?: string | null
+          house_edge?: number | null
           id?: string
+          iframe_height?: number | null
+          iframe_width?: number | null
           is_active?: boolean | null
+          is_featured?: boolean | null
+          jackpot_multiplier?: number | null
+          jackpot_percentage?: number | null
+          logo_url?: string | null
+          max_bet?: number | null
+          max_multiplier?: number | null
+          max_win_probability?: number | null
+          min_bet?: number | null
+          min_win_probability?: number | null
+          preset_bets?: Json | null
+          provider_game_code?: string | null
+          provider_id?: string | null
+          rules?: Json | null
           setting_key?: string
           setting_value?: Json | null
           updated_at?: string | null
+          win_probability?: number | null
         }
         Relationships: []
       }
@@ -4909,40 +4981,70 @@ export type Database = {
       }
       live_game_rounds: {
         Row: {
+          betting_end_at: string | null
+          created_at: string | null
           created_by: string | null
           ended_at: string | null
+          game_end_at: string | null
+          game_id: string | null
+          game_start_at: string | null
           game_type: string
           id: string
           result: string | null
+          room_id: string | null
           round_number: number | null
           started_at: string | null
           status: string | null
           stream_id: string
+          total_bet_amount: number | null
+          total_bets: number | null
+          total_players: number | null
           total_pool: number | null
+          winning_value: string | null
         }
         Insert: {
+          betting_end_at?: string | null
+          created_at?: string | null
           created_by?: string | null
           ended_at?: string | null
+          game_end_at?: string | null
+          game_id?: string | null
+          game_start_at?: string | null
           game_type: string
           id?: string
           result?: string | null
+          room_id?: string | null
           round_number?: number | null
           started_at?: string | null
           status?: string | null
           stream_id: string
+          total_bet_amount?: number | null
+          total_bets?: number | null
+          total_players?: number | null
           total_pool?: number | null
+          winning_value?: string | null
         }
         Update: {
+          betting_end_at?: string | null
+          created_at?: string | null
           created_by?: string | null
           ended_at?: string | null
+          game_end_at?: string | null
+          game_id?: string | null
+          game_start_at?: string | null
           game_type?: string
           id?: string
           result?: string | null
+          room_id?: string | null
           round_number?: number | null
           started_at?: string | null
           status?: string | null
           stream_id?: string
+          total_bet_amount?: number | null
+          total_bets?: number | null
+          total_players?: number | null
           total_pool?: number | null
+          winning_value?: string | null
         }
         Relationships: []
       }
