@@ -1578,6 +1578,7 @@ export type Database = {
           id: string
           ip_address: string
           is_active: boolean | null
+          is_permanent: boolean | null
           reason: string | null
         }
         Insert: {
@@ -1587,6 +1588,7 @@ export type Database = {
           id?: string
           ip_address: string
           is_active?: boolean | null
+          is_permanent?: boolean | null
           reason?: string | null
         }
         Update: {
@@ -1596,6 +1598,7 @@ export type Database = {
           id?: string
           ip_address?: string
           is_active?: boolean | null
+          is_permanent?: boolean | null
           reason?: string | null
         }
         Relationships: []
@@ -4976,11 +4979,16 @@ export type Database = {
       live_streams: {
         Row: {
           created_at: string | null
+          current_music_title: string | null
+          current_music_url: string | null
           description: string | null
           ended_at: string | null
           host_id: string
           id: string
           is_active: boolean | null
+          last_heartbeat: string | null
+          music_playing: boolean | null
+          music_started_at: string | null
           room_id: string | null
           started_at: string | null
           status: string | null
@@ -4993,11 +5001,16 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          current_music_title?: string | null
+          current_music_url?: string | null
           description?: string | null
           ended_at?: string | null
           host_id: string
           id?: string
           is_active?: boolean | null
+          last_heartbeat?: string | null
+          music_playing?: boolean | null
+          music_started_at?: string | null
           room_id?: string | null
           started_at?: string | null
           status?: string | null
@@ -5010,11 +5023,16 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          current_music_title?: string | null
+          current_music_url?: string | null
           description?: string | null
           ended_at?: string | null
           host_id?: string
           id?: string
           is_active?: boolean | null
+          last_heartbeat?: string | null
+          music_playing?: boolean | null
+          music_started_at?: string | null
           room_id?: string | null
           started_at?: string | null
           status?: string | null
@@ -6695,6 +6713,7 @@ export type Database = {
           is_in_call: boolean | null
           is_online: boolean | null
           is_verified: boolean | null
+          last_active_at: string | null
           last_login_at: string | null
           last_login_device: string | null
           last_login_device_info: Json | null
@@ -6790,6 +6809,7 @@ export type Database = {
           is_in_call?: boolean | null
           is_online?: boolean | null
           is_verified?: boolean | null
+          last_active_at?: string | null
           last_login_at?: string | null
           last_login_device?: string | null
           last_login_device_info?: Json | null
@@ -6885,6 +6905,7 @@ export type Database = {
           is_in_call?: boolean | null
           is_online?: boolean | null
           is_verified?: boolean | null
+          last_active_at?: string | null
           last_login_at?: string | null
           last_login_device?: string | null
           last_login_device_info?: Json | null
@@ -10312,7 +10333,26 @@ export type Database = {
         Args: { _task_id: string; _user_id: string }
         Returns: Json
       }
+      cleanup_application_logs: {
+        Args: never
+        Returns: {
+          session_security_logs_deleted: number
+          system_error_logs_deleted: number
+        }[]
+      }
+      cleanup_expired_otps: { Args: never; Returns: undefined }
+      cleanup_expired_recordings: { Args: never; Returns: undefined }
+      cleanup_expired_recovery_tokens: { Args: never; Returns: undefined }
+      cleanup_expired_sessions: { Args: never; Returns: undefined }
+      cleanup_login_attempts: { Args: never; Returns: undefined }
+      cleanup_old_security_alerts: { Args: never; Returns: undefined }
+      cleanup_rate_limits: { Args: never; Returns: undefined }
+      cleanup_stale_data: { Args: never; Returns: undefined }
+      cleanup_stale_in_call_flags: { Args: never; Returns: undefined }
+      cleanup_stale_live_streams: { Args: never; Returns: number }
+      cleanup_stale_online_users: { Args: never; Returns: undefined }
       cleanup_stale_party_participants: { Args: never; Returns: undefined }
+      cleanup_stuck_calls: { Args: never; Returns: undefined }
       create_agency_for_user: {
         Args: {
           _agency_code: string
@@ -10326,6 +10366,20 @@ export type Database = {
         Returns: Json
       }
       create_guest_profile: { Args: { _device_id: string }; Returns: Json }
+      create_live_game_round: {
+        Args: { _betting_time?: number; _game_type: string; _stream_id: string }
+        Returns: string
+      }
+      create_notification: {
+        Args: {
+          _data?: Json
+          _message: string
+          _title: string
+          _type?: string
+          _user_id: string
+        }
+        Returns: string
+      }
       create_sub_agent: {
         Args: {
           _agency_id: string
@@ -10335,7 +10389,23 @@ export type Database = {
         }
         Returns: string
       }
+      current_user_id: { Args: never; Returns: string }
+      debug_distribute_test: {
+        Args: { p_category: string; p_period_type: string }
+        Returns: {
+          detail: string
+          step: string
+        }[]
+      }
       decline_private_call: { Args: { _call_id: string }; Returns: boolean }
+      deduct_agency_wallet: {
+        Args: { p_agency_id: string; p_amount: number }
+        Returns: Json
+      }
+      deduct_call_coins_per_minute: {
+        Args: { p_call_id: string }
+        Returns: Json
+      }
       deduct_coins: {
         Args: { p_amount: number; p_user_id: string }
         Returns: Json
@@ -10347,6 +10417,10 @@ export type Database = {
             Args: { p_amount: number; p_reason?: string; p_user_id: string }
             Returns: Json
           }
+      deduct_coins_from_user: {
+        Args: { p_amount: number; p_user_id: string }
+        Returns: boolean
+      }
       deduct_helper_wallet: {
         Args: { _amount: number; _helper_id: string }
         Returns: Json
