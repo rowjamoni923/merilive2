@@ -182,12 +182,11 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   const [showAgencyExchangeModal, setShowAgencyExchangeModal] = useState(false);
   const [agencyData, setAgencyData] = useState<{ id: string; name: string; diamond_balance: number; beans_balance: number } | null>(null);
   const availableTransferBalance = useMemo(() => {
-    if (agencyData) {
-      return Number(agencyData.diamond_balance || 0) + Number(traderWallet || 0);
-    }
-
-    return Number(traderWallet || 0);
-  }, [agencyData, traderWallet]);
+    const personalCoins = Number(resolvedDiamondBalance || 0);
+    const agency = Number(agencyData?.diamond_balance || 0);
+    const trader = Number(traderWallet || 0);
+    return agency + trader + personalCoins;
+  }, [agencyData, traderWallet, resolvedDiamondBalance]);
 
   const refreshTransferBalances = async () => {
     if (!currentUser?.id) {
@@ -239,10 +238,19 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       setAgencyData(null);
     }
 
+    // Include personal coins in total (RPC uses tiered: agency -> helper -> personal)
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("coins")
+      .eq("id", currentUser.id)
+      .single();
+    const personalCoins = Number(profileData?.coins || 0);
+
     return {
       traderWallet: nextTraderWallet,
       agencyBalance: nextAgencyBalance,
-      total: nextTraderWallet + nextAgencyBalance,
+      personalCoins,
+      total: nextTraderWallet + nextAgencyBalance + personalCoins,
     };
   };
 
