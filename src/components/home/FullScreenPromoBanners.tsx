@@ -4,11 +4,7 @@ import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PLAY_STORE_URL } from "@/utils/shareLinks";
 
-import bannerLiveBonus from "@/assets/banners/banner-live-bonus.jpg";
-import bannerInviteBonus from "@/assets/banners/banner-invite-bonus.jpg";
 import bannerRatingReward from "@/assets/banners/banner-rating-reward.jpg";
-import bannerDailyLogin from "@/assets/banners/banner-daily-login.jpg";
-import bannerWelcomeBonus from "@/assets/banners/banner-welcome-bonus.jpg";
 
 interface PromoBanner {
   id: string;
@@ -18,10 +14,6 @@ interface PromoBanner {
 }
 
 const PROMO_BANNERS: PromoBanner[] = [
-  { id: "welcome", image: bannerWelcomeBonus, alt: "Welcome bonus", fullScreen: true },
-  { id: "live-bonus", image: bannerLiveBonus, alt: "Live bonus", fullScreen: true },
-  { id: "invite", image: bannerInviteBonus, alt: "Invite friends bonus", fullScreen: true },
-  { id: "daily-login", image: bannerDailyLogin, alt: "Daily rewards", fullScreen: true },
   { id: "rating", image: bannerRatingReward, alt: "Rate us reward", fullScreen: false },
 ];
 
