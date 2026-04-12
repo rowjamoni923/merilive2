@@ -229,27 +229,23 @@ export default function UserSupportTool() {
       const amount = parseInt(diamondAmount);
       if (isNaN(amount) || amount <= 0) throw new Error("Invalid amount");
 
-      const currentCoins = selectedUser.coins || 0;
-      const newBalance = diamondAction === "add" ? currentCoins + amount : Math.max(0, currentCoins - amount);
+      if (diamondAction === "add") {
+        const { error } = await supabase.rpc("admin_add_user_coins", {
+          _user_id: selectedUser.id,
+          _amount: amount,
+          _note: diamondNote || "Support action",
+        });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.rpc("deduct_coins_from_user", {
+          p_user_id: selectedUser.id,
+          p_amount: amount,
+        });
+        if (error) throw error;
+      }
 
-      const { error } = await supabase
-        .from("profiles")
-        .update({ coins: newBalance })
-        .eq("id", selectedUser.id);
-      if (error) throw error;
-
-      // Log the transfer
-      await supabase.from("coin_transfers").insert({
-        sender_id: selectedUser.id,
-        receiver_id: selectedUser.id,
-        amount: amount,
-        sender_type: "admin",
-        note: `Admin ${diamondAction}: ${diamondNote || "Support action"}`,
-        status: "completed"
-      });
-
-      emitInstantAdminSync(["profiles", "coin_transfers"]);
-      toast.success(`💎 ${diamondAction === "add" ? "Added" : "Removed"} ${amount} diamonds. New balance: ${newBalance}`);
+      emitInstantAdminSync(["profiles"]);
+      toast.success(`💎 ${diamondAction === "add" ? "Added" : "Removed"} ${amount} diamonds`);
       setShowDiamondDialog(false);
       setDiamondAmount("");
       setDiamondNote("");
@@ -341,17 +337,21 @@ export default function UserSupportTool() {
     if (!selectedUser || actionLoading) return;
     setActionLoading(true);
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ is_face_verified: true, is_verified: true })
-        .eq("id", selectedUser.id);
-      if (error) throw error;
-
-      if (faceVerification) {
-        await supabase
-          .from("face_verification_submissions")
-          .update({ status: "approved", reviewed_at: new Date().toISOString(), admin_notes: "Manually approved by admin via Support Tool" })
-          .eq("id", faceVerification.id);
+      if (faceVerification?.id) {
+        const { error } = await supabase.rpc("admin_process_face_verification", {
+          _submission_id: faceVerification.id,
+          _action: "approve",
+          _reason: "Manually approved by admin via Support Tool",
+          _approve_as: selectedUser.is_host ? "host" : "user",
+          _set_gender: selectedUser.gender || (selectedUser.is_host ? "female" : "male"),
+        });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.rpc("admin_toggle_face_verification", {
+          _user_id: selectedUser.id,
+          _verified: true,
+        });
+        if (error) throw error;
       }
 
       emitInstantAdminSync(["profiles", "face_verification_submissions"]);

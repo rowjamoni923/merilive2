@@ -193,17 +193,20 @@ export default function AdminModeration() {
 
   const handleUnbanUser = async (userId: string) => {
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ 
-          is_blocked: false, 
-          blocked_at: null, 
-          blocked_reason: null,
-          phone_violation_count: 0
-        })
-        .eq("id", userId);
+      const { error } = await supabase.rpc("admin_block_user", {
+        _user_id: userId,
+        _block: false,
+        _reason: null,
+      });
 
       if (error) throw error;
+
+      const { error: resetError } = await supabase
+        .from("profiles")
+        .update({ phone_violation_count: 0 })
+        .eq("id", userId);
+
+      if (resetError) throw resetError;
       toast.success("User unbanned");
       fetchLogs();
     } catch (error) {
