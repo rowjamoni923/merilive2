@@ -10820,6 +10820,10 @@ export type Database = {
         }
         Returns: Json
       }
+      helper_transfer_diamonds_to_self: {
+        Args: { _amount: number; _user_id: string }
+        Returns: Json
+      }
       is_admin:
         | { Args: never; Returns: boolean }
         | { Args: { _user_id: string }; Returns: boolean }
