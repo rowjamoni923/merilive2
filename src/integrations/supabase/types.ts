@@ -3261,6 +3261,7 @@ export type Database = {
       }
       gift_transactions: {
         Row: {
+          call_id: string | null
           coin_amount: number
           coin_cost: number | null
           coin_value: number | null
@@ -3268,6 +3269,7 @@ export type Database = {
           diamond_cost: number | null
           gift_id: string | null
           id: string
+          party_room_id: string | null
           quantity: number | null
           receiver_beans: number | null
           receiver_id: string | null
@@ -3278,6 +3280,7 @@ export type Database = {
           stream_id: string | null
         }
         Insert: {
+          call_id?: string | null
           coin_amount: number
           coin_cost?: number | null
           coin_value?: number | null
@@ -3285,6 +3288,7 @@ export type Database = {
           diamond_cost?: number | null
           gift_id?: string | null
           id?: string
+          party_room_id?: string | null
           quantity?: number | null
           receiver_beans?: number | null
           receiver_id?: string | null
@@ -3295,6 +3299,7 @@ export type Database = {
           stream_id?: string | null
         }
         Update: {
+          call_id?: string | null
           coin_amount?: number
           coin_cost?: number | null
           coin_value?: number | null
@@ -3302,6 +3307,7 @@ export type Database = {
           diamond_cost?: number | null
           gift_id?: string | null
           id?: string
+          party_room_id?: string | null
           quantity?: number | null
           receiver_beans?: number | null
           receiver_id?: string | null
@@ -3334,6 +3340,7 @@ export type Database = {
           animation_url: string | null
           category: string | null
           category_id: string | null
+          coin_price: number | null
           coin_value: number
           created_at: string | null
           display_order: number | null
@@ -3354,6 +3361,7 @@ export type Database = {
           animation_url?: string | null
           category?: string | null
           category_id?: string | null
+          coin_price?: number | null
           coin_value: number
           created_at?: string | null
           display_order?: number | null
@@ -3374,6 +3382,7 @@ export type Database = {
           animation_url?: string | null
           category?: string | null
           category_id?: string | null
+          coin_price?: number | null
           coin_value?: number
           created_at?: string | null
           display_order?: number | null
@@ -5276,40 +5285,55 @@ export type Database = {
           content: string
           conversation_id: string
           created_at: string | null
+          delivered_at: string | null
+          encryption_version: number | null
           id: string
+          is_ai_reply: boolean | null
           is_deleted: boolean | null
           is_encrypted: boolean | null
           is_read: boolean | null
           media_url: string | null
           message_type: string | null
+          read_at: string | null
           reply_to_id: string | null
           sender_id: string
+          status: string | null
         }
         Insert: {
           content: string
           conversation_id: string
           created_at?: string | null
+          delivered_at?: string | null
+          encryption_version?: number | null
           id?: string
+          is_ai_reply?: boolean | null
           is_deleted?: boolean | null
           is_encrypted?: boolean | null
           is_read?: boolean | null
           media_url?: string | null
           message_type?: string | null
+          read_at?: string | null
           reply_to_id?: string | null
           sender_id: string
+          status?: string | null
         }
         Update: {
           content?: string
           conversation_id?: string
           created_at?: string | null
+          delivered_at?: string | null
+          encryption_version?: number | null
           id?: string
+          is_ai_reply?: boolean | null
           is_deleted?: boolean | null
           is_encrypted?: boolean | null
           is_read?: boolean | null
           media_url?: string | null
           message_type?: string | null
+          read_at?: string | null
           reply_to_id?: string | null
           sender_id?: string
+          status?: string | null
         }
         Relationships: []
       }
@@ -7179,63 +7203,114 @@ export type Database = {
       recharge_transactions: {
         Row: {
           admin_notes: string | null
+          agency_id: string | null
+          agency_name: string | null
+          agent_id: string | null
+          agent_name: string | null
           amount: number
           bonus_coins: number | null
           coins_amount: number
+          coins_received: number | null
+          completed_at: string | null
           created_at: string
           currency: string | null
+          currency_code: string | null
+          device_info: Json | null
           exchange_rate: number | null
+          google_order_id: string | null
+          google_product_id: string | null
           helper_id: string | null
           id: string
+          ip_address: string | null
+          local_currency_amount: number | null
+          local_payment_number: string | null
+          local_payment_provider: string | null
+          notes: string | null
           order_id: string | null
           payment_method: string | null
           payment_method_id: string | null
           payment_proof_url: string | null
           processed_at: string | null
           processed_by: string | null
+          purchase_source: string | null
           status: string
+          transaction_id: string | null
           updated_at: string
           usd_amount: number | null
           user_id: string
         }
         Insert: {
           admin_notes?: string | null
+          agency_id?: string | null
+          agency_name?: string | null
+          agent_id?: string | null
+          agent_name?: string | null
           amount: number
           bonus_coins?: number | null
           coins_amount: number
+          coins_received?: number | null
+          completed_at?: string | null
           created_at?: string
           currency?: string | null
+          currency_code?: string | null
+          device_info?: Json | null
           exchange_rate?: number | null
+          google_order_id?: string | null
+          google_product_id?: string | null
           helper_id?: string | null
           id?: string
+          ip_address?: string | null
+          local_currency_amount?: number | null
+          local_payment_number?: string | null
+          local_payment_provider?: string | null
+          notes?: string | null
           order_id?: string | null
           payment_method?: string | null
           payment_method_id?: string | null
           payment_proof_url?: string | null
           processed_at?: string | null
           processed_by?: string | null
+          purchase_source?: string | null
           status?: string
+          transaction_id?: string | null
           updated_at?: string
           usd_amount?: number | null
           user_id: string
         }
         Update: {
           admin_notes?: string | null
+          agency_id?: string | null
+          agency_name?: string | null
+          agent_id?: string | null
+          agent_name?: string | null
           amount?: number
           bonus_coins?: number | null
           coins_amount?: number
+          coins_received?: number | null
+          completed_at?: string | null
           created_at?: string
           currency?: string | null
+          currency_code?: string | null
+          device_info?: Json | null
           exchange_rate?: number | null
+          google_order_id?: string | null
+          google_product_id?: string | null
           helper_id?: string | null
           id?: string
+          ip_address?: string | null
+          local_currency_amount?: number | null
+          local_payment_number?: string | null
+          local_payment_provider?: string | null
+          notes?: string | null
           order_id?: string | null
           payment_method?: string | null
           payment_method_id?: string | null
           payment_proof_url?: string | null
           processed_at?: string | null
           processed_by?: string | null
+          purchase_source?: string | null
           status?: string
+          transaction_id?: string | null
           updated_at?: string
           usd_amount?: number | null
           user_id?: string
