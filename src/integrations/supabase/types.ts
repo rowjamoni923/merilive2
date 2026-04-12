@@ -3396,7 +3396,15 @@ export type Database = {
           payment_method_name?: string
           payment_type?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "helper_country_payment_methods_helper_id_fkey"
+            columns: ["helper_id"]
+            isOneToOne: false
+            referencedRelation: "topup_helpers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       helper_diamond_packages: {
         Row: {
