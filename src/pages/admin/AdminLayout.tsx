@@ -270,13 +270,13 @@ const navGroups: NavGroup[] = [
       { label: "Chat Bubbles", icon: MessageSquare, path: "/admin/chat-bubbles", hubKey: "visual-hub" },
       { label: "Animation Store", icon: Play, path: "/admin/animation-store", hubKey: "visual-hub" },
       { label: "Icon Registry", icon: Package, path: "/admin/icon-registry", hubKey: "visual-hub" },
+      { label: "Beauty Filters", icon: Sparkles, path: "/admin/beauty-filters", hubKey: "visual-hub" },
     ]
   },
   {
     title: "💰 Coin & Finance",
     hubKey: "finance-hub",
     items: [
-      { label: "Beauty Filters", icon: Sparkles, path: "/admin/beauty-filters", hubKey: "visual-hub" },
       { label: "Finance Management", icon: DollarSign, path: "/admin/finance", hubKey: "finance-hub" },
       { label: "Diamond Trader Hub", icon: Coins, path: "/admin/coin-trader-hub", hubKey: "trader-hub" },
       { label: "Diamond Traders", icon: Coins, path: "/admin/coin-traders", hubKey: "trader-hub" },
@@ -295,6 +295,7 @@ const navGroups: NavGroup[] = [
       { label: "Payroll Orders", icon: Wallet, path: "/admin/payroll-orders", hubKey: "finance-hub" },
       { label: "Shop", icon: ShoppingBag, path: "/admin/shop", hubKey: "finance-hub" },
       { label: "Gifts", icon: Gift, path: "/admin/gifts", hubKey: "finance-hub" },
+      { label: "User Beans Exchange", icon: Coins, path: "/admin/user-beans-exchange", hubKey: "finance-hub" },
     ]
   },
   {
