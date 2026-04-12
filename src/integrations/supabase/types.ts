@@ -10366,6 +10366,18 @@ export type Database = {
         Returns: Json
       }
       create_guest_profile: { Args: { _device_id: string }; Returns: Json }
+      create_helper_order: {
+        Args: {
+          _amount_local: number
+          _amount_usd: number
+          _country_code?: string
+          _currency_code?: string
+          _package_id: string
+          _payment_method: string
+          _payment_proof?: string
+        }
+        Returns: Json
+      }
       create_live_game_round: {
         Args: { _betting_time?: number; _game_type: string; _stream_id: string }
         Returns: string
@@ -10425,7 +10437,75 @@ export type Database = {
         Args: { _amount: number; _helper_id: string }
         Returns: Json
       }
+      distribute_period_rewards: {
+        Args: { p_category: string; p_period_type: string }
+        Returns: number
+      }
+      distribute_pk_rewards: {
+        Args: { p_competition_id: string }
+        Returns: number
+      }
       end_private_call: { Args: { _call_id: string }; Returns: Json }
+      exchange_agency_beans_to_diamonds: {
+        Args: {
+          p_agency_id: string
+          p_beans_to_deduct: number
+          p_diamonds_to_add: number
+          p_fee_amount: number
+        }
+        Returns: Json
+      }
+      exchange_user_beans_to_diamonds: {
+        Args: {
+          _beans_amount: number
+          _diamonds_reward: number
+          _tier_id?: string
+          _user_id: string
+        }
+        Returns: Json
+      }
+      finalize_first_minute_earnings: {
+        Args: { p_call_id: string }
+        Returns: undefined
+      }
+      find_account_by_face: {
+        Args: { face_hash_param: string }
+        Returns: {
+          avatar_url: string
+          deletion_scheduled_at: string
+          display_name: string
+          is_deleted: boolean
+          user_id: string
+        }[]
+      }
+      find_available_helper: {
+        Args: { user_country?: string }
+        Returns: {
+          country_code: string
+          helper_id: string
+          user_id: string
+          wallet_balance: number
+        }[]
+      }
+      fix_excess_weekly_rewards: {
+        Args: never
+        Returns: {
+          category: string
+          excess_beans: number
+          excess_diamonds: number
+          records_deleted: number
+          user_id: string
+        }[]
+      }
+      game_cashout: {
+        Args: {
+          p_bet_id: string
+          p_multiplier: number
+          p_user_id: string
+          p_win_amount: number
+        }
+        Returns: Json
+      }
       generate_app_uid: { Args: never; Returns: string }
       generate_game_token: {
         Args: {
@@ -10440,7 +10520,40 @@ export type Database = {
         Args: { _agency_id: string }
         Returns: string
       }
+      generate_unique_app_uid: { Args: never; Returns: string }
+      generate_user_parcels: { Args: { p_user_id: string }; Returns: undefined }
+      get_accessible_sections: {
+        Args: { _user_id: string }
+        Returns: {
+          can_edit: boolean
+          hub_key: string
+          section_key: string
+          section_name: string
+        }[]
+      }
+      get_account_by_device_id: {
+        Args: { p_device_id: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          gender: string
+          is_host: boolean
+          user_id: string
+        }[]
+      }
+      get_admin_analytics_chart_data: {
+        Args: { p_days?: number }
+        Returns: {
+          daily_active_users: number
+          stat_date: string
+          total_coins_spent: number
+          total_gifts_sent: number
+          total_streams: number
+          total_users: number
+        }[]
+      }
       get_admin_dashboard_stats: { Args: never; Returns: Json }
+      get_admin_role: { Args: { _user_id: string }; Returns: string }
       get_agency_by_code: {
         Args: { agency_code: string }
         Returns: {
@@ -10673,6 +10786,15 @@ export type Database = {
           _sender_id: string
         }
         Returns: boolean
+      }
+      update_host_earnings_only: {
+        Args: {
+          p_beans_to_add: number
+          p_host_id: string
+          p_new_host_level: number
+          p_new_total_earnings: number
+        }
+        Returns: undefined
       }
       update_online_status: {
         Args: {
