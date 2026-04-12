@@ -151,7 +151,15 @@ const ShopItemCard = ({
         />
         
         {(item.animation_file_url || item.preview_url) && !imageError ? (
-          item.animation_file_url?.endsWith('.svga') || item.animation_file_url?.endsWith('.json') ? (
+          // If preview_url exists and is a real image (not SVGA/Lottie), show static preview
+          item.preview_url && !item.preview_url.endsWith('.svga') && !item.preview_url.endsWith('.json') ? (
+            <img 
+              src={item.preview_url} 
+              alt={item.name}
+              className={`max-w-full max-h-full object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 ${isFullWidth ? 'scale-105' : ''}`}
+              onError={() => setImageError(true)}
+            />
+          ) : item.animation_file_url?.endsWith('.svga') || item.animation_file_url?.endsWith('.json') ? (
             <UniversalAnimationPlayer
               src={item.animation_file_url || ''}
               className={`w-full h-full ${isFullWidth ? 'scale-110' : ''}`}
