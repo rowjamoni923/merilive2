@@ -3845,8 +3845,8 @@ export type Database = {
           commission_rate: number | null
           created_at: string | null
           currency_code: string | null
-          customer_id: string
-          diamond_amount: number
+          customer_id: string | null
+          diamond_amount: number | null
           helper_id: string
           id: string
           local_currency: string | null
@@ -3859,7 +3859,7 @@ export type Database = {
           processed_at: string | null
           processing_time_minutes: number | null
           status: string | null
-          total_price_usd: number
+          total_price_usd: number | null
           updated_at: string | null
           user_country_code: string | null
           user_id: string | null
@@ -3873,8 +3873,8 @@ export type Database = {
           commission_rate?: number | null
           created_at?: string | null
           currency_code?: string | null
-          customer_id: string
-          diamond_amount: number
+          customer_id?: string | null
+          diamond_amount?: number | null
           helper_id: string
           id?: string
           local_currency?: string | null
@@ -3887,7 +3887,7 @@ export type Database = {
           processed_at?: string | null
           processing_time_minutes?: number | null
           status?: string | null
-          total_price_usd: number
+          total_price_usd?: number | null
           updated_at?: string | null
           user_country_code?: string | null
           user_id?: string | null
@@ -3901,8 +3901,8 @@ export type Database = {
           commission_rate?: number | null
           created_at?: string | null
           currency_code?: string | null
-          customer_id?: string
-          diamond_amount?: number
+          customer_id?: string | null
+          diamond_amount?: number | null
           helper_id?: string
           id?: string
           local_currency?: string | null
@@ -3915,7 +3915,7 @@ export type Database = {
           processed_at?: string | null
           processing_time_minutes?: number | null
           status?: string | null
-          total_price_usd?: number
+          total_price_usd?: number | null
           updated_at?: string | null
           user_country_code?: string | null
           user_id?: string | null
