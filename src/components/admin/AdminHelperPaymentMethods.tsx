@@ -241,9 +241,14 @@ export default function AdminHelperPaymentMethods() {
       return;
     }
 
+    // Resolve country_name from code
+    const countryName = COUNTRY_OPTIONS.find(c => c.code === formData.country_code)?.name || formData.country_code;
+
     const payload = {
       helper_id: formData.helper_id,
       country_code: formData.country_code,
+      country_name: countryName,
+      payment_method_name: formData.method_name,
       method_name: formData.method_name,
       method_type: formData.method_type,
       account_name: formData.account_name,
@@ -251,10 +256,12 @@ export default function AdminHelperPaymentMethods() {
       bank_name: formData.bank_name || null,
       instructions: formData.instructions || null,
       logo_url: formData.logo_url || null,
-      min_amount: formData.min_amount ? parseFloat(formData.min_amount) : null,
-      max_amount: formData.max_amount ? parseFloat(formData.max_amount) : null,
       is_active: formData.is_active,
-      display_order: parseInt(formData.display_order) || 0
+      display_order: parseInt(formData.display_order) || 0,
+      additional_info: {
+        min_amount: formData.min_amount ? parseFloat(formData.min_amount) : null,
+        max_amount: formData.max_amount ? parseFloat(formData.max_amount) : null,
+      }
     };
 
     let error;
