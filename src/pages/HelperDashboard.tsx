@@ -134,6 +134,7 @@ const HelperDashboard = () => {
     name: string;
     agency_code: string;
     wallet_balance: number;
+    owner_id: string;
     owner_name?: string;
   } | null>(null);
 
