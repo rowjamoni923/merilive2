@@ -339,11 +339,12 @@ const Recharge = () => {
         console.error('[Recharge] Error fetching legacy payment methods:', legacyMethodsError);
       }
 
-      // FETCH 2: helper_country_payment_methods using actual schema
+      // FETCH 2: helper_country_payment_methods using actual schema (include helper_id, account info, logo)
       const { data: countryMethodsData, error: countryMethodsError } = await supabase
         .from('helper_country_payment_methods')
         .select(`
           id,
+          helper_id,
           country_code,
           country_name,
           payment_method_name,
@@ -351,7 +352,12 @@ const Recharge = () => {
           icon_url,
           is_active,
           instructions,
-          display_order
+          display_order,
+          account_name,
+          account_number,
+          logo_url,
+          method_type,
+          additional_info
         `)
         .eq('country_code', userCountryCode)
         .eq('is_active', true);
@@ -408,23 +414,25 @@ const Recharge = () => {
         );
 
         if (matchedLegacy.length === 0) {
+          // Use helper_id from country payment method record if available
+          const countryHelperId = m.helper_id || `country-${m.id}`;
           return [{
             id: m.id,
-            helper_id: `country-${m.id}`,
+            helper_id: countryHelperId,
             country_code: m.country_code,
             payment_type: m.payment_method_name,
-            method_type: m.payment_type || m.payment_method_name,
-            account_name: m.country_name || m.payment_method_name,
-            account_number: '',
+            method_type: m.method_type || m.payment_type || m.payment_method_name,
+            account_name: m.account_name || m.country_name || m.payment_method_name,
+            account_number: m.account_number || '',
             bank_name: null,
-            logo_url: m.icon_url,
+            logo_url: m.logo_url || m.icon_url,
             instructions: m.instructions,
             merchant_number: null,
-            is_merchant: false,
+            is_merchant: Boolean((m.additional_info as any)?.is_merchant),
             additional_info: {
+              ...(m.additional_info || {}),
               source_table: 'helper_country_payment_methods',
               display_order: m.display_order,
-              requires_legacy_account: true,
             },
             source: 'country',
           }];
@@ -573,35 +581,39 @@ const Recharge = () => {
       const MIN_BALANCE = 300000; // 3 Lakh (300,000) diamonds minimum
       
       const validMethods = (data || []).filter((m: any) => {
+        const helper = m.helper;
+        
+        // If method has a real helper (from topup_helpers), apply full validation
+        if (helper) {
+          const walletBalance = helper.wallet_balance ?? 0;
+          const agencyDiamonds = helper.agency_diamond_balance ?? 0;
+          const combinedBalance = walletBalance + agencyDiamonds;
+          const isLevel5 = helper.trader_level === 5;
+          const hasMinBalance = combinedBalance >= MIN_BALANCE;
+          const isVerified = helper.is_verified === true;
+          const isHelperActive = helper.is_active === true;
+          
+          console.log('[Recharge] Auto-check helper:', helper.user?.display_name, {
+            walletBalance,
+            agencyDiamonds,
+            combinedBalance,
+            isLevel5,
+            hasMinBalance,
+            isVerified,
+            isHelperActive,
+            source: m.source,
+            willShow: isLevel5 && hasMinBalance && isVerified && isHelperActive
+          });
+          
+          return isLevel5 && hasMinBalance && isVerified && isHelperActive && Boolean(m.account_number);
+        }
+        
+        // Methods without a helper record (orphaned country/global entries) — only show if they have account info
         if (m.source === 'global' || m.source === 'country') {
           return Boolean(m.account_number);
         }
 
-        const helper = m.helper;
-        if (!helper) return false;
-        
-        const walletBalance = helper.wallet_balance ?? 0;
-        const agencyDiamonds = helper.agency_diamond_balance ?? 0;
-        const combinedBalance = walletBalance + agencyDiamonds;
-        const isLevel5 = helper.trader_level === 5;
-        const hasMinBalance = combinedBalance >= MIN_BALANCE;
-        const isVerified = helper.is_verified === true;
-        const isHelperActive = helper.is_active === true;
-        
-        console.log('[Recharge] Auto-check helper:', helper.user?.display_name, {
-          walletBalance,
-          agencyDiamonds,
-          combinedBalance,
-          isLevel5,
-          hasMinBalance,
-          isVerified,
-          isHelperActive,
-          source: m.source,
-          willShow: isLevel5 && hasMinBalance && isVerified && isHelperActive
-        });
-        
-        // AUTOMATIC: Show only if Level 5 + 300K+ COMBINED balance + Verified + Active
-        return isLevel5 && hasMinBalance && isVerified && isHelperActive;
+        return false;
       });
 
       // Transform to expected format
