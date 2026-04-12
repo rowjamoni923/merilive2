@@ -149,14 +149,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     return cachedBalance > 0 ? cachedBalance : profileBalance;
   }, [cachedBalance, profile?.coins, (profile as any)?.diamonds]);
 
-  const availableTransferBalance = useMemo(() => {
-    if (agencyData) {
-      return Number(agencyData.diamond_balance || 0);
-    }
-
-    return Number(traderWallet || 0);
-  }, [agencyData, traderWallet]);
-
   // Transfer modal state
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [transferTab, setTransferTab] = useState<"user" | "agency" | "self">("user");
@@ -189,6 +181,14 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   // Agency Beans Exchange modal state
   const [showAgencyExchangeModal, setShowAgencyExchangeModal] = useState(false);
   const [agencyData, setAgencyData] = useState<{ id: string; name: string; diamond_balance: number; beans_balance: number } | null>(null);
+  const availableTransferBalance = useMemo(() => {
+    if (agencyData) {
+      return Number(agencyData.diamond_balance || 0);
+    }
+
+    return Number(traderWallet || 0);
+  }, [agencyData, traderWallet]);
+
   const [agencyExchangeSettings, setAgencyExchangeSettings] = useState({
     beans_to_diamonds_rate: 1,
     exchange_fee_percent: 25,
