@@ -3938,6 +3938,7 @@ export type Database = {
           id: string
           reference_id: string | null
           transaction_type: string
+          user_id: string | null
         }
         Insert: {
           amount: number
@@ -3949,6 +3950,7 @@ export type Database = {
           id?: string
           reference_id?: string | null
           transaction_type: string
+          user_id?: string | null
         }
         Update: {
           amount?: number
@@ -3960,6 +3962,7 @@ export type Database = {
           id?: string
           reference_id?: string | null
           transaction_type?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -3967,6 +3970,20 @@ export type Database = {
             columns: ["helper_id"]
             isOneToOne: false
             referencedRelation: "topup_helpers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "helper_transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "helper_transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
             referencedColumns: ["id"]
           },
         ]
@@ -4013,6 +4030,7 @@ export type Database = {
           amount: number
           created_at: string | null
           helper_id: string
+          host_id: string | null
           id: string
           payment_method_id: string | null
           processed_at: string | null
@@ -4025,6 +4043,7 @@ export type Database = {
           amount: number
           created_at?: string | null
           helper_id: string
+          host_id?: string | null
           id?: string
           payment_method_id?: string | null
           processed_at?: string | null
@@ -4037,6 +4056,7 @@ export type Database = {
           amount?: number
           created_at?: string | null
           helper_id?: string
+          host_id?: string | null
           id?: string
           payment_method_id?: string | null
           processed_at?: string | null
@@ -4050,6 +4070,20 @@ export type Database = {
             columns: ["helper_id"]
             isOneToOne: false
             referencedRelation: "topup_helpers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "helper_withdrawal_requests_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "helper_withdrawal_requests_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
             referencedColumns: ["id"]
           },
         ]
