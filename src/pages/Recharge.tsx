@@ -1611,7 +1611,7 @@ const Recharge = () => {
       const gwType = selectedHelperMethod.additional_info?.gateway_type;
       
       if (gwType === 'zinipay') {
-        // ZiniPay REDIRECT FLOW: Create session → redirect to ZiniPay → user pays → IPN webhook auto-credits
+        // ZiniPay IN-APP FLOW: Create session → user pays manually → enters TrxID → auto-verify via IPN
         const { data, error } = await supabase.functions.invoke('create-zinipay-payment', {
           body: {
             package_id: selectedPackage.id,
@@ -1619,7 +1619,7 @@ const Recharge = () => {
             origin_url: window.location.origin,
             transaction_id: helperTransactionId.trim(),
             payment_proof: helperPaymentProof,
-            skip_redirect: false, // REDIRECT mode — user goes to ZiniPay payment page
+            skip_redirect: true, // IN-APP mode — no redirect to ZiniPay page
           },
         });
 
@@ -1627,23 +1627,53 @@ const Recharge = () => {
           throw new Error(data?.error || error?.message || 'ZiniPay payment failed');
         }
 
-        if (data?.url) {
-          // Redirect user to ZiniPay payment page
-          toast({
-            title: "🔄 Redirecting to Payment...",
-            description: "You will be redirected to complete payment. Diamonds will be added automatically.",
-          });
-          resetHelperPaymentForm();
-
-            const { openInApp } = await import("@/utils/inAppNavigation");
-            await openInApp(data.url, { useOverlay: true });
-        } else {
-          // Fallback: session created but no URL (edge case)
-          toast({
-            title: "✅ Order Created",
-            description: "Your order has been created. Diamonds will be added once payment is confirmed.",
-          });
-          resetHelperPaymentForm();
+        // Show success and poll for verification
+        toast({
+          title: "⚡ অর্ডার তৈরি হয়েছে!",
+          description: "ট্রানজ্যাকশন ভেরিফাই হচ্ছে... ৫-১০ সেকেন্ড অপেক্ষা করুন।",
+        });
+        
+        setHelperPaymentStep("pending");
+        
+        // Poll for order completion (IPN webhook will update the status)
+        if (data?.order_id) {
+          let attempts = 0;
+          const maxAttempts = 12; // 60 seconds total
+          const pollInterval = setInterval(async () => {
+            attempts++;
+            try {
+              const { data: orderStatus } = await supabase
+                .from('helper_orders')
+                .select('status')
+                .eq('id', data.order_id)
+                .single();
+              
+              if (orderStatus?.status === 'completed') {
+                clearInterval(pollInterval);
+                toast({
+                  title: "✅ ডায়মন্ড যোগ হয়েছে!",
+                  description: `${formatNumber(selectedPackage.coins)} 💎 আপনার একাউন্টে যোগ হয়েছে!`,
+                });
+                resetHelperPaymentForm();
+              } else if (orderStatus?.status === 'failed') {
+                clearInterval(pollInterval);
+                toast({
+                  title: "❌ পেমেন্ট ব্যর্থ",
+                  description: "পেমেন্ট ভেরিফাই করা যায়নি। আবার চেষ্টা করুন।",
+                  variant: "destructive",
+                });
+                setHelperPaymentStep("form");
+              } else if (attempts >= maxAttempts) {
+                clearInterval(pollInterval);
+                toast({
+                  title: "⏳ ভেরিফিকেশন চলছে",
+                  description: "ভেরিফিকেশনে একটু সময় লাগছে। কিছুক্ষণ পর চেক করুন।",
+                });
+              }
+            } catch {
+              // Ignore polling errors
+            }
+          }, 5000);
         }
       } else {
         // Manual helper order
