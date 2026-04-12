@@ -294,6 +294,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           const avatarUrl = user.user_metadata?.avatar_url ||
             user.user_metadata?.picture || null;
 
+          const appUid = String(Math.floor(1000000000 + Math.random() * 9000000000));
+
           const { error: createProfileError } = await supabase
             .from("profiles")
             .upsert({
@@ -302,16 +304,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               username: user.email?.includes('@meri.local') ? null : user.email?.split('@')[0] || null,
               avatar_url: avatarUrl,
               gender: user.user_metadata?.gender || 'male',
-              coins: 0,
-              diamonds: 0,
-              beans: 0,
-              beans_balance: 0,
-              total_earnings: 0,
-              total_consumption: 0,
-              pending_earnings: 0,
-              is_host: false,
-              is_verified: false,
-              user_level: 1,
+              app_uid: appUid,
               last_seen: new Date().toISOString(),
             }, { onConflict: 'id' });
 
@@ -1437,16 +1430,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             avatar_url: avatarUrl,
             app_uid: appUid,
             gender: currentUser.user_metadata?.gender || 'male',
-            coins: 0,
-            diamonds: 0,
-            beans: 0,
-            beans_balance: 0,
-            total_earnings: 0,
-            total_consumption: 0,
-            pending_earnings: 0,
-            is_host: false,
-            is_verified: false,
-            user_level: 1,
             last_seen: new Date().toISOString(),
           }, { onConflict: 'id' });
 

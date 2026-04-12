@@ -123,8 +123,6 @@ const AuthCallback = () => {
                   .update({ 
                     gender: pending.gender,
                     display_name: pending.displayName,
-                    is_host: isHost,
-                    host_status: isHost ? 'approved' : null,
                     ...(deviceId && { device_id: deviceId }),
                   })
                   .eq("id", session.user.id);
@@ -135,13 +133,6 @@ const AuthCallback = () => {
                     id: session.user.id,
                     gender: pending.gender,
                     display_name: pending.displayName,
-                    is_host: isHost,
-                    host_status: isHost ? 'approved' : null,
-                    coins: 0,
-                    total_earnings: 0,
-                    pending_earnings: 0,
-                    level: 1,
-                    consumption_coins: 0,
                     ...(deviceId && { device_id: deviceId }),
                   });
               }
