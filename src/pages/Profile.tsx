@@ -188,12 +188,20 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     return agency + trader + personalCoins;
   }, [agencyData, traderWallet, resolvedDiamondBalance]);
 
+  const selfRechargeSourceBalance = useMemo(() => {
+    const agency = Number(agencyData?.diamond_balance || 0);
+    const trader = Number(traderWallet || 0);
+    return agency + trader;
+  }, [agencyData, traderWallet]);
+
   const refreshTransferBalances = async () => {
     if (!currentUser?.id) {
       return {
         traderWallet: Number(traderWallet || 0),
         agencyBalance: Number(agencyData?.diamond_balance || 0),
+        personalCoins: Number(resolvedDiamondBalance || 0),
         total: availableTransferBalance,
+        selfRechargeTotal: selfRechargeSourceBalance,
       };
     }
 
@@ -204,24 +212,35 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           .select("id, name, diamond_balance, beans_balance")
           .eq("owner_id", currentUser.id)
           .eq("is_active", true)
+          .order('updated_at', { ascending: false })
+          .limit(1)
           .maybeSingle()
       : Promise.resolve({ data: null, error: null } as const);
 
-    const [helperResult, latestAgencyResult] = await Promise.all([
+    const [helperResult, latestAgencyResult, profileResult] = await Promise.all([
       supabase
         .from("topup_helpers")
         .select("id, wallet_balance, is_verified")
         .eq("user_id", currentUser.id)
         .eq("is_verified", true)
+        .order('updated_at', { ascending: false })
+        .limit(1)
         .maybeSingle(),
       agencyPromise,
+      supabase
+        .from("profiles")
+        .select("coins")
+        .eq("id", currentUser.id)
+        .single(),
     ]);
 
     if (helperResult.error) throw helperResult.error;
     if (latestAgencyResult.error) throw latestAgencyResult.error;
+    if (profileResult.error) throw profileResult.error;
 
     const nextTraderWallet = Number(helperResult.data?.wallet_balance || 0);
     const nextAgencyBalance = Number(latestAgencyResult.data?.diamond_balance || 0);
+    const personalCoins = Number(profileResult.data?.coins || 0);
 
     setIsCoinTrader(Boolean(helperResult.data));
     setTraderWallet(nextTraderWallet);
@@ -238,19 +257,12 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       setAgencyData(null);
     }
 
-    // Include personal coins in total (RPC uses tiered: agency -> helper -> personal)
-    const { data: profileData } = await supabase
-      .from("profiles")
-      .select("coins")
-      .eq("id", currentUser.id)
-      .single();
-    const personalCoins = Number(profileData?.coins || 0);
-
     return {
       traderWallet: nextTraderWallet,
       agencyBalance: nextAgencyBalance,
       personalCoins,
       total: nextTraderWallet + nextAgencyBalance + personalCoins,
+      selfRechargeTotal: nextTraderWallet + nextAgencyBalance,
     };
   };
 
@@ -842,7 +854,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     setPendingTransferType(null);
   };
 
-  // Self Recharge - Transfer from trader wallet to own My Diamond Balance
+  // Self Recharge - Transfer from trader/agency wallet to own My Diamond Balance
   const requestSelfRecharge = async () => {
     if (!currentUser) return;
     const amount = parseInt(selfRechargeAmount);
@@ -853,8 +865,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
     try {
       const latestBalances = await refreshTransferBalances();
-      if (amount > latestBalances.total) {
-        toast({ title: "Insufficient Balance", description: `You need ${amount.toLocaleString()} but have ${latestBalances.total.toLocaleString()}`, variant: "destructive" });
+      if (amount > latestBalances.selfRechargeTotal) {
+        toast({ title: "Insufficient Balance", description: `You need ${amount.toLocaleString()} but have ${latestBalances.selfRechargeTotal.toLocaleString()} available for self recharge`, variant: "destructive" });
         return;
       }
     } catch (error: any) {
@@ -2291,14 +2303,26 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     </div>
                   </div>
 
-                  <div className="bg-slate-800/60 rounded-xl p-3 border border-slate-700">
+                  <div className="bg-slate-800/60 rounded-xl p-3 border border-slate-700 space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-white/60 text-sm">Trader Wallet</span>
+                      <span className="text-white/60 text-sm">Recharge Source Balance</span>
                       <span className="text-emerald-400 font-bold text-lg">
-                        {availableTransferBalance.toLocaleString()} 💎
+                        {selfRechargeSourceBalance.toLocaleString()} 💎
                       </span>
                     </div>
-                    <div className="flex justify-between items-center mt-2 pt-2 border-t border-slate-700">
+                    <div className="flex justify-between items-center pt-2 border-t border-slate-700">
+                      <span className="text-white/60 text-sm">Agency Balance</span>
+                      <span className="text-purple-400 font-semibold">
+                        {(agencyData?.diamond_balance || 0).toLocaleString()} 💎
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-white/60 text-sm">Trader Wallet</span>
+                      <span className="text-amber-400 font-semibold">
+                        {(traderWallet || 0).toLocaleString()} 💎
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center pt-2 border-t border-slate-700">
                       <span className="text-white/60 text-sm">My Diamond Balance</span>
                       <span className="text-cyan-400 font-bold text-lg">
                         {(profile?.coins || 0).toLocaleString()} 💎
@@ -2306,7 +2330,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     </div>
                   </div>
 
-                  {/* Amount Input */}
                   <div className="space-y-2">
                     <Label className="text-white text-sm font-medium">Amount to Recharge</Label>
                     <Input
@@ -2320,7 +2343,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     {selfRechargeAmount && parseInt(selfRechargeAmount) > 0 && (
                       <div className="text-xs space-y-1 mt-2">
                         <p className="text-amber-400">
-                          Trader Wallet after: {(availableTransferBalance - parseInt(selfRechargeAmount)).toLocaleString()} 💎
+                          Recharge source after: {(selfRechargeSourceBalance - parseInt(selfRechargeAmount)).toLocaleString()} 💎
                         </p>
                         <p className="text-emerald-400">
                           My Balance after: {((profile?.coins || 0) + parseInt(selfRechargeAmount)).toLocaleString()} 💎
