@@ -10333,7 +10333,26 @@ export type Database = {
         Args: { _task_id: string; _user_id: string }
         Returns: Json
       }
+      cleanup_application_logs: {
+        Args: never
+        Returns: {
+          session_security_logs_deleted: number
+          system_error_logs_deleted: number
+        }[]
+      }
+      cleanup_expired_otps: { Args: never; Returns: undefined }
+      cleanup_expired_recordings: { Args: never; Returns: undefined }
+      cleanup_expired_recovery_tokens: { Args: never; Returns: undefined }
+      cleanup_expired_sessions: { Args: never; Returns: undefined }
+      cleanup_login_attempts: { Args: never; Returns: undefined }
+      cleanup_old_security_alerts: { Args: never; Returns: undefined }
+      cleanup_rate_limits: { Args: never; Returns: undefined }
+      cleanup_stale_data: { Args: never; Returns: undefined }
+      cleanup_stale_in_call_flags: { Args: never; Returns: undefined }
+      cleanup_stale_live_streams: { Args: never; Returns: number }
+      cleanup_stale_online_users: { Args: never; Returns: undefined }
       cleanup_stale_party_participants: { Args: never; Returns: undefined }
+      cleanup_stuck_calls: { Args: never; Returns: undefined }
       create_agency_for_user: {
         Args: {
           _agency_code: string
@@ -10347,6 +10366,20 @@ export type Database = {
         Returns: Json
       }
       create_guest_profile: { Args: { _device_id: string }; Returns: Json }
+      create_live_game_round: {
+        Args: { _betting_time?: number; _game_type: string; _stream_id: string }
+        Returns: string
+      }
+      create_notification: {
+        Args: {
+          _data?: Json
+          _message: string
+          _title: string
+          _type?: string
+          _user_id: string
+        }
+        Returns: string
+      }
       create_sub_agent: {
         Args: {
           _agency_id: string
@@ -10356,6 +10389,7 @@ export type Database = {
         }
         Returns: string
       }
+      current_user_id: { Args: never; Returns: string }
       decline_private_call: { Args: { _call_id: string }; Returns: boolean }
       deduct_coins: {
         Args: { p_amount: number; p_user_id: string }
