@@ -10932,10 +10932,13 @@ export type Database = {
       }
       safe_credit_diamonds: {
         Args: {
-          _amount: number
-          _payment_method?: string
-          _payment_reference: string
-          _user_id: string
+          p_amount: number
+          p_amount_usd?: number
+          p_gateway?: string
+          p_metadata?: Json
+          p_order_id?: string
+          p_transaction_id?: string
+          p_user_id: string
         }
         Returns: Json
       }
