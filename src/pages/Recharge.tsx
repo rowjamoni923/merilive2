@@ -581,35 +581,39 @@ const Recharge = () => {
       const MIN_BALANCE = 300000; // 3 Lakh (300,000) diamonds minimum
       
       const validMethods = (data || []).filter((m: any) => {
+        const helper = m.helper;
+        
+        // If method has a real helper (from topup_helpers), apply full validation
+        if (helper) {
+          const walletBalance = helper.wallet_balance ?? 0;
+          const agencyDiamonds = helper.agency_diamond_balance ?? 0;
+          const combinedBalance = walletBalance + agencyDiamonds;
+          const isLevel5 = helper.trader_level === 5;
+          const hasMinBalance = combinedBalance >= MIN_BALANCE;
+          const isVerified = helper.is_verified === true;
+          const isHelperActive = helper.is_active === true;
+          
+          console.log('[Recharge] Auto-check helper:', helper.user?.display_name, {
+            walletBalance,
+            agencyDiamonds,
+            combinedBalance,
+            isLevel5,
+            hasMinBalance,
+            isVerified,
+            isHelperActive,
+            source: m.source,
+            willShow: isLevel5 && hasMinBalance && isVerified && isHelperActive
+          });
+          
+          return isLevel5 && hasMinBalance && isVerified && isHelperActive && Boolean(m.account_number);
+        }
+        
+        // Methods without a helper record (orphaned country/global entries) — only show if they have account info
         if (m.source === 'global' || m.source === 'country') {
           return Boolean(m.account_number);
         }
 
-        const helper = m.helper;
-        if (!helper) return false;
-        
-        const walletBalance = helper.wallet_balance ?? 0;
-        const agencyDiamonds = helper.agency_diamond_balance ?? 0;
-        const combinedBalance = walletBalance + agencyDiamonds;
-        const isLevel5 = helper.trader_level === 5;
-        const hasMinBalance = combinedBalance >= MIN_BALANCE;
-        const isVerified = helper.is_verified === true;
-        const isHelperActive = helper.is_active === true;
-        
-        console.log('[Recharge] Auto-check helper:', helper.user?.display_name, {
-          walletBalance,
-          agencyDiamonds,
-          combinedBalance,
-          isLevel5,
-          hasMinBalance,
-          isVerified,
-          isHelperActive,
-          source: m.source,
-          willShow: isLevel5 && hasMinBalance && isVerified && isHelperActive
-        });
-        
-        // AUTOMATIC: Show only if Level 5 + 300K+ COMBINED balance + Verified + Active
-        return isLevel5 && hasMinBalance && isVerified && isHelperActive;
+        return false;
       });
 
       // Transform to expected format
