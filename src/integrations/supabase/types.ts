@@ -10614,10 +10614,16 @@ export type Database = {
         Args: { p_amount: number; p_user_id: string }
         Returns: boolean
       }
-      deduct_helper_wallet: {
-        Args: { _amount: number; _helper_id: string }
-        Returns: Json
-      }
+      deduct_helper_wallet:
+        | { Args: { _amount: number; _helper_id: string }; Returns: Json }
+        | {
+            Args: {
+              _amount: number
+              _helper_id: string
+              _update_total_sold?: boolean
+            }
+            Returns: Json
+          }
       distribute_period_rewards: {
         Args: { p_category: string; p_period_type: string }
         Returns: number
