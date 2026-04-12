@@ -274,7 +274,9 @@ const navGroups: NavGroup[] = [
   },
   {
     title: "💰 Coin & Finance",
+    hubKey: "finance-hub",
     items: [
+      { label: "Beauty Filters", icon: Sparkles, path: "/admin/beauty-filters", hubKey: "visual-hub" },
       { label: "Finance Management", icon: DollarSign, path: "/admin/finance", hubKey: "finance-hub" },
       { label: "Diamond Trader Hub", icon: Coins, path: "/admin/coin-trader-hub", hubKey: "trader-hub" },
       { label: "Diamond Traders", icon: Coins, path: "/admin/coin-traders", hubKey: "trader-hub" },
@@ -315,6 +317,7 @@ const navGroups: NavGroup[] = [
       { label: "Game Settings", icon: Settings, path: "/admin/game-settings", hubKey: "game-hub" },
       { label: "Game Providers", icon: Gamepad2, path: "/admin/game-providers", hubKey: "game-hub" },
       { label: "Game Server", icon: Activity, path: "/admin/game-server", hubKey: "game-hub" },
+      { label: "Game Leaderboard", icon: Crown, path: "/admin/game-leaderboard", hubKey: "game-hub" },
     ]
   },
   {
@@ -359,6 +362,7 @@ const navGroups: NavGroup[] = [
       { label: "Gmail Support", icon: Mail, path: "/admin/gmail-support", hubKey: "moderation-hub" },
       { label: "Chat Inspector", icon: Search, path: "/admin/chat-inspector", hubKey: "moderation-hub" },
       { label: "Number Sharing", icon: Phone, path: "/admin/number-sharing", hubKey: "moderation-hub" },
+      { label: "Contact Violations", icon: ShieldAlert, path: "/admin/contact-violations", hubKey: "moderation-hub" },
     ]
   },
   {
