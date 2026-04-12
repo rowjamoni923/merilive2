@@ -2066,19 +2066,23 @@ const HelperDashboard = () => {
 
             {/* Tabs */}
             <Tabs value={transferTab} onValueChange={(v) => {
-              setTransferTab(v as "user" | "agency");
+              setTransferTab(v as "user" | "agency" | "self");
               setTransferSearchQuery("");
               setSearchedUser(null);
               setSearchedAgency(null);
             }}>
               <TabsList className="w-full bg-slate-800">
-                <TabsTrigger value="user" className="flex-1 gap-2 data-[state=active]:bg-cyan-500">
-                  <User className="w-4 h-4" />
+                <TabsTrigger value="user" className="flex-1 gap-1 text-xs data-[state=active]:bg-cyan-500">
+                  <User className="w-3.5 h-3.5" />
                   User
                 </TabsTrigger>
-                <TabsTrigger value="agency" className="flex-1 gap-2 data-[state=active]:bg-purple-500">
-                  <Building2 className="w-4 h-4" />
+                <TabsTrigger value="agency" className="flex-1 gap-1 text-xs data-[state=active]:bg-purple-500">
+                  <Building2 className="w-3.5 h-3.5" />
                   Agency
+                </TabsTrigger>
+                <TabsTrigger value="self" className="flex-1 gap-1 text-xs data-[state=active]:bg-emerald-500">
+                  <Gem className="w-3.5 h-3.5" />
+                  Self
                 </TabsTrigger>
               </TabsList>
 
