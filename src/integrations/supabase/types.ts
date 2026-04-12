@@ -3838,6 +3838,7 @@ export type Database = {
       }
       helper_orders: {
         Row: {
+          amount_local: number | null
           commission_amount: number | null
           commission_rate: number | null
           created_at: string | null
@@ -3857,6 +3858,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          amount_local?: number | null
           commission_amount?: number | null
           commission_rate?: number | null
           created_at?: string | null
@@ -3876,6 +3878,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          amount_local?: number | null
           commission_amount?: number | null
           commission_rate?: number | null
           created_at?: string | null
@@ -10791,6 +10794,7 @@ export type Database = {
         Returns: Json
       }
       get_effective_host_percent: { Args: never; Returns: number }
+      get_user_balance: { Args: { _user_id: string }; Returns: Json }
       handle_game_callback: {
         Args: {
           p_action: string
@@ -10923,6 +10927,18 @@ export type Database = {
           _amount: number
           _payment_details?: Json
           _payment_method?: string
+        }
+        Returns: Json
+      }
+      safe_credit_diamonds: {
+        Args: {
+          p_amount: number
+          p_amount_usd?: number
+          p_gateway?: string
+          p_metadata?: Json
+          p_order_id?: string
+          p_transaction_id?: string
+          p_user_id: string
         }
         Returns: Json
       }
