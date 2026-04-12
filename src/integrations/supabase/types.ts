@@ -9758,6 +9758,10 @@ export type Database = {
         Returns: string
       }
       decline_private_call: { Args: { _call_id: string }; Returns: boolean }
+      deduct_coins: {
+        Args: { p_amount: number; p_user_id: string }
+        Returns: Json
+      }
       deduct_coins_atomic:
         | { Args: { p_amount: number; p_user_id: string }; Returns: Json }
         | { Args: { p_amount: number; p_user_id: string }; Returns: Json }
@@ -9910,6 +9914,18 @@ export type Database = {
             }
             Returns: Json
           }
+      process_gift_transaction: {
+        Args: {
+          p_call_id?: string
+          p_gift_id: string
+          p_party_room_id?: string
+          p_quantity?: number
+          p_receiver_id: string
+          p_sender_id: string
+          p_stream_id?: string
+        }
+        Returns: Json
+      }
       process_weekly_agency_transfers: { Args: never; Returns: Json }
       recalculate_all_user_levels: { Args: never; Returns: undefined }
       recover_session_by_device: {
