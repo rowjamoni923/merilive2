@@ -189,6 +189,63 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     return Number(traderWallet || 0);
   }, [agencyData, traderWallet]);
 
+  const refreshTransferBalances = async () => {
+    if (!currentUser?.id) {
+      return {
+        traderWallet: Number(traderWallet || 0),
+        agencyBalance: Number(agencyData?.diamond_balance || 0),
+        total: availableTransferBalance,
+      };
+    }
+
+    const shouldLoadAgency = Boolean(agencyData || profile?.is_agency_owner);
+    const agencyPromise = shouldLoadAgency
+      ? supabase
+          .from("agencies")
+          .select("id, name, diamond_balance, beans_balance")
+          .eq("owner_id", currentUser.id)
+          .eq("is_active", true)
+          .maybeSingle()
+      : Promise.resolve({ data: null, error: null } as const);
+
+    const [helperResult, latestAgencyResult] = await Promise.all([
+      supabase
+        .from("topup_helpers")
+        .select("id, wallet_balance, is_verified")
+        .eq("user_id", currentUser.id)
+        .eq("is_verified", true)
+        .maybeSingle(),
+      agencyPromise,
+    ]);
+
+    if (helperResult.error) throw helperResult.error;
+    if (latestAgencyResult.error) throw latestAgencyResult.error;
+
+    const nextTraderWallet = Number(helperResult.data?.wallet_balance || 0);
+    const nextAgencyBalance = Number(latestAgencyResult.data?.diamond_balance || 0);
+
+    setIsCoinTrader(Boolean(helperResult.data));
+    setTraderWallet(nextTraderWallet);
+    setTraderId(helperResult.data?.id ?? null);
+
+    if (latestAgencyResult.data) {
+      setAgencyData({
+        id: latestAgencyResult.data.id,
+        name: latestAgencyResult.data.name,
+        diamond_balance: nextAgencyBalance,
+        beans_balance: Number(latestAgencyResult.data.beans_balance || 0),
+      });
+    } else if (shouldLoadAgency) {
+      setAgencyData(null);
+    }
+
+    return {
+      traderWallet: nextTraderWallet,
+      agencyBalance: nextAgencyBalance,
+      total: nextTraderWallet + nextAgencyBalance,
+    };
+  };
+
   const [agencyExchangeSettings, setAgencyExchangeSettings] = useState({
     beans_to_diamonds_rate: 1,
     exchange_fee_percent: 25,
@@ -446,6 +503,10 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             setIsCoinTrader(true);
             setTraderWallet(helperResult.data.wallet_balance || 0);
             setTraderId(helperResult.data.id);
+          } else {
+            setIsCoinTrader(false);
+            setTraderWallet(0);
+            setTraderId(null);
           }
 
           setIsInActiveAgency(!!agencyHostResult?.data);
@@ -503,7 +564,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       // Use universal realtime system instead of manual channel
       unsubscribeRealtime = subscribeToTables(
         `profile-${activeProfileId}`,
-        ['profiles', 'gift_transactions', 'private_calls', 'agencies'],
+        ['profiles', 'gift_transactions', 'private_calls', 'agencies', 'topup_helpers'],
         (table, event, payload) => {
           // Profile updates
           if (table === 'profiles' && payload?.id === activeProfileId) {
@@ -540,6 +601,18 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                 diamond_balance: agencyDiamonds,
                 beans_balance: payload.beans_balance ?? prev.beans_balance,
               } : null);
+            }
+          }
+
+          if (table === 'topup_helpers' && payload?.user_id === activeProfileId) {
+            if (event === 'DELETE' || payload?.is_verified === false) {
+              setIsCoinTrader(false);
+              setTraderWallet(0);
+              setTraderId(null);
+            } else {
+              setIsCoinTrader(true);
+              setTraderWallet(Number(payload.wallet_balance || 0));
+              setTraderId(payload.id || null);
             }
           }
         }
@@ -687,62 +760,65 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   };
 
   // Request confirmation before transfer to user - FIXED: Support both agency owners AND traders
-  const requestTransferToUser = () => {
+  const requestTransferToUser = async () => {
     if (!searchedUser || !currentUser) return;
-    
-    // Must have either agencyData (agency owner) OR traderId (diamond trader)
-    const isAgencyOwner = !!agencyData;
-    if (!isAgencyOwner && !traderId) {
-      toast({ title: "Error", description: "No wallet found for transfer", variant: "destructive" });
-      return;
-    }
-    
+
     const amount = parseInt(transferAmount);
     if (isNaN(amount) || amount <= 0) {
       toast({ title: "Invalid Amount", description: "Please enter a valid diamond amount", variant: "destructive" });
       return;
     }
-    
-    const displayedBalance = availableTransferBalance;
-    console.log('[requestTransferToUser] availableTransferBalance:', displayedBalance);
-    
-    if (amount > displayedBalance) {
-      toast({ title: "Insufficient Balance", description: `You need ${amount.toLocaleString()} but have ${displayedBalance.toLocaleString()}`, variant: "destructive" });
-      return;
+
+    try {
+      const latestBalances = await refreshTransferBalances();
+      const isAgencyOwner = latestBalances.agencyBalance > 0 || Boolean(agencyData);
+
+      if (!isAgencyOwner && latestBalances.traderWallet <= 0) {
+        toast({ title: "Error", description: "No wallet found for transfer", variant: "destructive" });
+        return;
+      }
+
+      if (amount > latestBalances.total) {
+        toast({ title: "Insufficient Balance", description: `You need ${amount.toLocaleString()} but have ${latestBalances.total.toLocaleString()}`, variant: "destructive" });
+        return;
+      }
+
+      setPendingTransferType("user");
+      setShowConfirmDialog(true);
+    } catch (error: any) {
+      toast({ title: "Balance Sync Failed", description: error.message || "Could not load latest wallet balance", variant: "destructive" });
     }
-    
-    setPendingTransferType("user");
-    setShowConfirmDialog(true);
   };
 
   // Request confirmation before transfer to agency - FIXED: Support both agency owners AND traders
-  const requestTransferToAgency = () => {
+  const requestTransferToAgency = async () => {
     if (!searchedAgency || !currentUser) return;
-    
-    // Must have either agencyData (agency owner) OR traderId (diamond trader)
-    const isAgencyOwner = !!agencyData;
-    if (!isAgencyOwner && !traderId) {
-      toast({ title: "Error", description: "No wallet found for transfer", variant: "destructive" });
-      return;
-    }
-    
+
     const amount = parseInt(transferAmount);
     if (isNaN(amount) || amount <= 0) {
       toast({ title: "Invalid Amount", description: "Please enter a valid diamond amount", variant: "destructive" });
       return;
     }
-    
-    // Use the SAME balance that's displayed in modal
-    const displayedBalance = availableTransferBalance;
-    console.log('[requestTransferToAgency] isAgencyOwner:', isAgencyOwner, 'displayedBalance:', displayedBalance);
-    
-    if (amount > displayedBalance) {
-      toast({ title: "Insufficient Balance", description: `You need ${amount.toLocaleString()} but have ${displayedBalance.toLocaleString()}`, variant: "destructive" });
-      return;
+
+    try {
+      const latestBalances = await refreshTransferBalances();
+      const isAgencyOwner = latestBalances.agencyBalance > 0 || Boolean(agencyData);
+
+      if (!isAgencyOwner && latestBalances.traderWallet <= 0) {
+        toast({ title: "Error", description: "No wallet found for transfer", variant: "destructive" });
+        return;
+      }
+
+      if (amount > latestBalances.total) {
+        toast({ title: "Insufficient Balance", description: `You need ${amount.toLocaleString()} but have ${latestBalances.total.toLocaleString()}`, variant: "destructive" });
+        return;
+      }
+
+      setPendingTransferType("agency");
+      setShowConfirmDialog(true);
+    } catch (error: any) {
+      toast({ title: "Balance Sync Failed", description: error.message || "Could not load latest wallet balance", variant: "destructive" });
     }
-    
-    setPendingTransferType("agency");
-    setShowConfirmDialog(true);
   };
 
   // Handle confirmed transfer
@@ -759,18 +835,25 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   };
 
   // Self Recharge - Transfer from trader wallet to own My Diamond Balance
-  const requestSelfRecharge = () => {
+  const requestSelfRecharge = async () => {
     if (!currentUser) return;
     const amount = parseInt(selfRechargeAmount);
     if (isNaN(amount) || amount <= 0) {
       toast({ title: "Invalid Amount", description: "Please enter a valid diamond amount", variant: "destructive" });
       return;
     }
-    const walletBalance = availableTransferBalance;
-    if (amount > walletBalance) {
-      toast({ title: "Insufficient Balance", description: `You need ${amount.toLocaleString()} but have ${walletBalance.toLocaleString()}`, variant: "destructive" });
+
+    try {
+      const latestBalances = await refreshTransferBalances();
+      if (amount > latestBalances.total) {
+        toast({ title: "Insufficient Balance", description: `You need ${amount.toLocaleString()} but have ${latestBalances.total.toLocaleString()}`, variant: "destructive" });
+        return;
+      }
+    } catch (error: any) {
+      toast({ title: "Balance Sync Failed", description: error.message || "Could not load latest wallet balance", variant: "destructive" });
       return;
     }
+
     setTransferAmount(String(amount));
     setPendingTransferType("self");
     setShowConfirmDialog(true);
@@ -861,8 +944,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   const executeTransferToUser = async () => {
     if (!searchedUser || !currentUser) return;
     
-    const isAgencyOwner = !!agencyData;
-    const senderType = isAgencyOwner ? 'agency_to_user' : 'trader_to_user';
     const amount = Math.floor(parseInt(transferAmount) || 0);
     if (isNaN(amount) || amount <= 0) {
       toast({ title: "Invalid Amount", description: "Please enter a valid diamond amount", variant: "destructive" });
@@ -871,6 +952,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     
     setTransferProcessing(true);
     try {
+      const latestBalances = await refreshTransferBalances();
+      if (amount > latestBalances.total) {
+        throw new Error(`Insufficient balance. Available: ${latestBalances.total.toLocaleString()}`);
+      }
+
+      const senderType = latestBalances.traderWallet >= amount ? 'trader_to_user' : 'agency_to_user';
+
       const { data, error } = await supabase.rpc('helper_transfer_coins_to_user', {
         _sender_id: currentUser.id,
         _receiver_id: searchedUser.id,
@@ -929,11 +1017,18 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     
     setTransferProcessing(true);
     try {
+      const latestBalances = await refreshTransferBalances();
+      if (amount > latestBalances.total) {
+        throw new Error(`Insufficient balance. Available: ${latestBalances.total.toLocaleString()}`);
+      }
+
+      const senderType = latestBalances.traderWallet >= amount ? 'trader_to_agency' : 'agency_to_agency';
+
       const { data, error } = await supabase.rpc('helper_transfer_diamonds_to_agency', {
         _sender_id: currentUser.id,
         _target_agency_id: searchedAgency.id,
         _amount: amount,
-        _sender_type: isAgencyOwner ? 'agency_to_agency' : 'trader_to_agency'
+        _sender_type: senderType
       });
 
       if (error) throw error;
