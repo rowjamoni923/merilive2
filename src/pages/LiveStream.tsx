@@ -2359,41 +2359,24 @@ const LiveStream = () => {
       return;
     }
     
-    // Atomic coin deduction (race-condition safe)
-    const { data: deductData, error: deductError } = await supabase.rpc('deduct_coins', {
-      p_user_id: currentUserId,
-      p_amount: gift.coins,
+    // Use atomic process_gift_transaction RPC
+    // This deducts sender diamonds AND credits receiver beans (via triggers)
+    const { data, error } = await supabase.rpc('process_gift_transaction', {
+      p_sender_id: currentUserId,
+      p_receiver_id: hostInfo.id,
+      p_gift_id: gift.id,
+      p_quantity: 1,
+      p_stream_id: id,
     });
-    const deductResult = deductData as any;
     
-    if (deductError || !deductResult?.success) {
-      toast.error(deductResult?.error || "Failed to deduct coins");
+    const result = data as any;
+    if (error || !result?.success) {
+      toast.error(result?.error || "Failed to send gift");
       return;
     }
     
-    // Record gift transaction
-    await supabase.from("gift_transactions").insert({
-      gift_id: gift.id,
-      sender_id: currentUserId,
-      receiver_id: hostInfo.id,
-      stream_id: id,
-      coin_amount: gift.coins,
-    });
-    
-    // Add coins to host using RPC
-    try {
-      await supabase.rpc("transfer_coins_to_user", {
-        _receiver_id: hostInfo.id,
-        _amount: gift.coins,
-        _note: `Gift: ${gift.name}`,
-      });
-    } catch {
-      // If RPC fails, do nothing - coins already deducted
-      console.error("Failed to transfer coins to host");
-    }
-    
-    setUserCoins(prev => prev - gift.coins);
-    // Gift animation is already playing - no toast needed
+    setUserCoins(prev => prev - (result.coins_spent || gift.coins));
+    updateCachedBalance(getCachedBalance() - (result.coins_spent || gift.coins));
     setShowGiftPanel(false);
   };
 
