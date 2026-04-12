@@ -64,9 +64,6 @@ interface HelperPaymentMethod {
   display_order: number | null;
   created_at: string;
   additional_info?: any;
-  // Virtual fields (derived from additional_info)
-  get min_amount(): number | null;
-  get max_amount(): number | null;
   helper?: {
     id: string;
     user_id: string;
