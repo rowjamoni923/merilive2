@@ -10390,7 +10390,22 @@ export type Database = {
         Returns: string
       }
       current_user_id: { Args: never; Returns: string }
+      debug_distribute_test: {
+        Args: { p_category: string; p_period_type: string }
+        Returns: {
+          detail: string
+          step: string
+        }[]
+      }
       decline_private_call: { Args: { _call_id: string }; Returns: boolean }
+      deduct_agency_wallet: {
+        Args: { p_agency_id: string; p_amount: number }
+        Returns: Json
+      }
+      deduct_call_coins_per_minute: {
+        Args: { p_call_id: string }
+        Returns: Json
+      }
       deduct_coins: {
         Args: { p_amount: number; p_user_id: string }
         Returns: Json
@@ -10402,6 +10417,10 @@ export type Database = {
             Args: { p_amount: number; p_reason?: string; p_user_id: string }
             Returns: Json
           }
+      deduct_coins_from_user: {
+        Args: { p_amount: number; p_user_id: string }
+        Returns: boolean
+      }
       deduct_helper_wallet: {
         Args: { _amount: number; _helper_id: string }
         Returns: Json
