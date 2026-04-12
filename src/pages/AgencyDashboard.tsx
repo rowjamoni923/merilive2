@@ -725,12 +725,13 @@ const AgencyDashboard = () => {
   const onlineHosts = hosts.filter(h => h.profile?.is_online).length;
   const totalSubAgentEarnings = subAgents.reduce((sum, sa) => sum + (sa.total_earnings || 0), 0);
   
-  // Total Beans = wallet_balance (authoritative, maintained by RPC/triggers/admin)
+  // Total Beans = wallet_balance (host earnings transferred to agency + agency commission)
+  // This is the agency's withdrawable pool from host activities
   const agencyBeansBalance = agency.wallet_balance || 0;
   
-  // My Beans = Agency's own beans_balance + wallet_balance (includes converted diamonds)
-  // wallet_balance stores converted diamond-to-beans, beans_balance stores direct gift beans
-  const myBeans = Math.max(agency.beans_balance || 0, agency.wallet_balance || 0);
+  // My Beans = Agency owner's PERSONAL beans from their own gifts/calls
+  // This is separate from Total Beans — it's the owner's individual earning
+  const myBeans = ownerPersonalBeans;
   
   // Correct USD calculation: beans / rate = USD
   const usdValue = agencyBeansBalance / coinsToUsdRate;
