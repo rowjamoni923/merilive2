@@ -390,8 +390,6 @@ const Auth = () => {
           .update({ 
             gender: pending.gender,
             display_name: pending.displayName,
-            is_host: isHost,
-            host_status: isHost ? 'approved' : null,
           })
           .eq("id", user.id);
 
@@ -899,7 +897,6 @@ const Auth = () => {
               display_name: displayName,
               device_id: deviceId,
               gender: selectedGender || undefined,
-              ...(selectedGender === 'female' ? { is_host: true, host_status: 'approved' } : {}),
             })
             .eq("id", userId);
           
@@ -1728,9 +1725,6 @@ const Auth = () => {
               .update({ 
                 gender: selectedGender,
                 display_name: displayName,
-                is_host: isHost,
-                host_status: isHost ? 'approved' : null,
-                is_verified: true,
                 email: email,
               })
               .eq("id", data.user.id);
