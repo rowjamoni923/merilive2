@@ -705,7 +705,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
   // Search user by App UID for transfer
   const handleSearchUser = async () => {
-    if (!transferSearchQuery.trim()) return;
+    if (!transferSearchQuery.trim() || !currentUser) return;
     
     setTransferSearching(true);
     setSearchedUser(null);
@@ -719,11 +719,17 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
       if (error) throw error;
       
-      if (data) {
-        setSearchedUser(data);
-      } else {
+      if (!data) {
         toast({ title: "Not Found", description: "No user found with this App UID", variant: "destructive" });
+        return;
       }
+
+      if (data.id === currentUser.id) {
+        toast({ title: "Invalid Receiver", description: "You cannot transfer diamonds to yourself from the User tab", variant: "destructive" });
+        return;
+      }
+
+      setSearchedUser(data);
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
@@ -739,7 +745,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     setSearchedAgency(null);
     
     try {
-      // First find the user by App UID
       const { data: userData, error: userError } = await supabase
         .from('profiles')
         .select('id, display_name, app_uid')
@@ -754,11 +759,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         return;
       }
 
-      // Now find the agency owned by this user
       const { data: agencyData, error: agencyError } = await supabase
         .from('agencies')
         .select('id, name, agency_code, diamond_balance')
         .eq('owner_id', userData.id)
+        .eq('is_active', true)
+        .order('updated_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (agencyError) throw agencyError;
