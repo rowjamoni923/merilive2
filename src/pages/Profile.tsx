@@ -1033,7 +1033,9 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         throw new Error(`Insufficient balance. Available: ${latestBalances.total.toLocaleString()}`);
       }
 
-      const senderType = latestBalances.traderWallet >= amount ? 'trader_to_agency' : 'agency_to_agency';
+      const senderType = latestBalances.agencyBalance >= amount ? 'agency_to_agency' 
+        : latestBalances.traderWallet >= amount ? 'trader_to_agency' 
+        : 'agency_to_agency';
 
       const { data, error } = await supabase.rpc('helper_transfer_diamonds_to_agency', {
         _sender_id: currentUser.id,
