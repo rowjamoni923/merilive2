@@ -8,6 +8,7 @@ interface LevelData {
   coins: number;
   total_earnings: number;
   total_consumption: number;
+  total_recharged?: number;
   is_host: boolean;
   weekly_earnings: number;
   weekly_reset_at: string | null;
@@ -71,7 +72,7 @@ export const useRealtimeLevel = (userId: string | null) => {
     // Fetch profile data
     const profileRes = await supabase
       .from("profiles")
-      .select("user_level, host_level, coins, total_earnings, total_consumption, is_host, weekly_earnings, weekly_reset_at, gender, max_user_level")
+      .select("user_level, host_level, previous_host_level, coins, total_earnings, total_consumption, total_recharged, is_host, weekly_earnings, weekly_reset_at, gender, max_user_level")
       .eq("id", userId)
       .maybeSingle();
 
@@ -106,16 +107,12 @@ export const useRealtimeLevel = (userId: string | null) => {
             }
           }
         }
-        // If earnings exist this week, show current calculated level (can go up or down)
-        // If earnings = 0 (just reset), show previous level as baseline
-        const previousLevel = (data as any).previous_host_level ?? 0;
-        if (weeklyEarnings > 0) {
-          displayLevel = Math.max(calculatedLevel, 0);
-        } else {
-          displayLevel = Math.max(previousLevel, 0);
-        }
+        // Hosts: current week level comes ONLY from weekly beans earnings.
+        // After weekly transfer/reset, current level becomes 0 while previous_host_level stays visible elsewhere.
+        displayLevel = Math.max(calculatedLevel, 0);
       } else {
-        // Regular users: NEVER DROP - use highest of stored, max, minimum 1
+        // Users / agencies: level comes ONLY from top-up history tracked in total_recharged.
+        // Never derive from gifts, calls, or total consumption.
         displayLevel = Math.max(storedLevel, maxLevel, 1);
       }
       
@@ -137,10 +134,11 @@ export const useRealtimeLevel = (userId: string | null) => {
       
       const newLevelData: LevelData = {
         user_level: data.user_level ?? 0,
-        host_level: displayLevel, // Use calculated level, not stored
+        host_level: displayLevel,
         coins: data.coins ?? 0,
         total_earnings: data.total_earnings ?? 0,
         total_consumption: data.total_consumption ?? 0,
+        total_recharged: (data as any).total_recharged ?? 0,
         is_host: data.is_host ?? false,
         weekly_earnings: data.weekly_earnings ?? 0,
         weekly_reset_at: data.weekly_reset_at ?? null,
@@ -210,14 +208,9 @@ export const useRealtimeLevel = (userId: string | null) => {
                   }
                 }
               }
-              const prevHostLevel = newData.previous_host_level ?? 0;
-              if (weeklyEarnings > 0) {
-                displayLevel = Math.max(calculatedLevel, 0);
-              } else {
-                displayLevel = Math.max(prevHostLevel, 0);
-              }
+              displayLevel = Math.max(calculatedLevel, 0);
             } else {
-              // Regular users: NEVER DROP - trust DB stored value
+              // Regular users / agencies: trust DB top-up-based level only
               displayLevel = Math.max(storedLevel, maxLevel, previousLevel, 1);
             }
             
@@ -239,10 +232,11 @@ export const useRealtimeLevel = (userId: string | null) => {
             setLevel(displayLevel);
             const newLevelData: LevelData = {
               user_level: newData.user_level ?? 0,
-              host_level: displayLevel, // Use calculated level
+              host_level: displayLevel,
               coins: newData.coins ?? 0,
               total_earnings: newData.total_earnings ?? 0,
               total_consumption: newData.total_consumption ?? 0,
+              total_recharged: newData.total_recharged ?? 0,
               is_host: newData.is_host ?? false,
               weekly_earnings: newData.weekly_earnings ?? 0,
               weekly_reset_at: newData.weekly_reset_at ?? null,
@@ -363,10 +357,10 @@ export const useRealtimeLevelProgress = (userId: string | null, forceHostMode: b
   useEffect(() => {
     if (!levelData || tiers.length === 0) return;
 
-    // For hosts use WEEKLY earnings (resets weekly), for users use coins + consumption (permanent)
+    // Hosts use weekly beans earnings only. Users/agencies use total top-up only.
     const xp = isHost 
-      ? levelData.weekly_earnings  // Host level based on weekly earnings
-      : (levelData.coins + levelData.total_consumption);  // User level is permanent
+      ? levelData.weekly_earnings
+      : ((levelData as any).total_recharged ?? 0);
     setCurrentXP(xp);
 
     // Use the correct level based on user type - handle 0 properly
