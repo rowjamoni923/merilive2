@@ -137,18 +137,21 @@ const AdminChatInspector = () => {
     setBanning(true);
     try {
       if (banType === "permanent") {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({
-            is_blocked: true,
-            blocked_reason: banReason || 'Permanent Ban - Policy Violation',
-            is_host: false,
-            user_level: 0,
-            host_level: 0,
-          })
-          .eq('id', banTargetUser.id);
+        if (banTargetUser.is_host) {
+          const { error: roleError } = await supabase.rpc('admin_update_user_gender', {
+            _user_id: banTargetUser.id,
+            _gender: 'male',
+          });
+          if (roleError) throw roleError;
+        }
 
-        if (profileError) throw profileError;
+        const { error: blockError } = await supabase.rpc('admin_block_user', {
+          _user_id: banTargetUser.id,
+          _block: true,
+          _reason: banReason || 'Permanent Ban - Policy Violation',
+        });
+
+        if (blockError) throw blockError;
 
         await supabase.from('live_bans').insert({
           user_id: banTargetUser.id,

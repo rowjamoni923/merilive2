@@ -529,7 +529,11 @@ export default function AdminUserManagement() {
         admin_notes: `Manually converted to ${toHost ? 'Host' : 'User'} by admin from Auto Rejected.`,
         reviewed_at: new Date().toISOString(),
       }).eq('id', submissionId);
-      await supabase.from('profiles').update({ is_face_verified: true }).eq('id', userId);
+      const { error: verifyFaceError } = await supabase.rpc('admin_toggle_face_verification', {
+        _user_id: userId,
+        _verified: true,
+      });
+      if (verifyFaceError) throw verifyFaceError;
       // Send notification when converted to Host from rejected
       if (toHost) {
         await supabase.from('notifications').insert({
@@ -1043,17 +1047,20 @@ export default function AdminUserManagement() {
 
   const handleUnbanModUser = async (userId: string) => {
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ 
-          is_blocked: false, 
-          blocked_at: null, 
-          blocked_reason: null,
-          phone_violation_count: 0
-        })
-        .eq("id", userId);
+      const { error } = await supabase.rpc("admin_block_user", {
+        _user_id: userId,
+        _block: false,
+        _reason: null,
+      });
 
       if (error) throw error;
+
+      const { error: resetError } = await supabase
+        .from("profiles")
+        .update({ phone_violation_count: 0 })
+        .eq("id", userId);
+
+      if (resetError) throw resetError;
       toast.success("User unbanned");
       fetchModerationLogs();
     } catch (error) {

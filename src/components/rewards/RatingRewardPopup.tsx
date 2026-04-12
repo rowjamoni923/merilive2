@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, forwardRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Gift, X, Upload, CheckCircle, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,7 @@ declare global {
   }
 }
 
-export default function RatingRewardPopup() {
+const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(_, _ref) {
   const [showBanner, setShowBanner] = useState(false);
   const [step, setStep] = useState<Step>('banner');
   const [showDialog, setShowDialog] = useState(false);
@@ -414,4 +414,6 @@ export default function RatingRewardPopup() {
       </Dialog>
     </>
   );
-}
+});
+
+export default RatingRewardPopup;
