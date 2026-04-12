@@ -182,25 +182,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   const [showAgencyExchangeModal, setShowAgencyExchangeModal] = useState(false);
   const [agencyData, setAgencyData] = useState<{ id: string; name: string; diamond_balance: number; beans_balance: number } | null>(null);
   const availableTransferBalance = useMemo(() => {
-    // Total available = agency diamonds + helper wallet + personal diamonds
-    // The RPC uses tiered deduction across all three sources
-    const agencyBalance = agencyData ? Number(agencyData.diamond_balance || 0) : 0;
-    const helperWallet = Number(traderWallet || 0);
-    const personalBalance = resolvedDiamondBalance;
-    
-    // If user is agency owner, agencyData.diamond_balance already includes helper wallet
+    // This modal is opened from Trader Wallet, so all tabs must show the same wallet source.
     if (agencyData) {
-      return agencyBalance + personalBalance;
+      return Number(agencyData.diamond_balance || 0);
     }
-    
-    // If user is a trader (not agency owner), combine wallet + personal
-    if (helperWallet > 0) {
-      return helperWallet + personalBalance;
-    }
-    
-    // Regular user - only personal balance
-    return personalBalance;
-  }, [agencyData, traderWallet, resolvedDiamondBalance]);
+
+    return Number(traderWallet || 0);
+  }, [agencyData, traderWallet]);
 
   const [agencyExchangeSettings, setAgencyExchangeSettings] = useState({
     beans_to_diamonds_rate: 1,
@@ -885,6 +873,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     if (!searchedUser || !currentUser) return;
     
     const isAgencyOwner = !!agencyData;
+    const senderType = isAgencyOwner ? 'agency_to_user' : 'trader_to_user';
     const amount = Math.floor(parseInt(transferAmount) || 0);
     if (isNaN(amount) || amount <= 0) {
       toast({ title: "Invalid Amount", description: "Please enter a valid diamond amount", variant: "destructive" });
@@ -897,7 +886,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         _sender_id: currentUser.id,
         _receiver_id: searchedUser.id,
         _amount: amount,
-        _sender_type: 'user_to_user'
+        _sender_type: senderType
       });
 
       if (error) throw error;
