@@ -922,28 +922,43 @@ export type Database = {
       }
       allowed_external_links: {
         Row: {
+          category: string | null
           created_at: string | null
           created_by: string | null
+          description: string | null
           id: string
           is_active: boolean | null
           label: string | null
+          link_type: string | null
+          updated_at: string | null
           url: string
+          url_pattern: string | null
         }
         Insert: {
+          category?: string | null
           created_at?: string | null
           created_by?: string | null
+          description?: string | null
           id?: string
           is_active?: boolean | null
           label?: string | null
+          link_type?: string | null
+          updated_at?: string | null
           url: string
+          url_pattern?: string | null
         }
         Update: {
+          category?: string | null
           created_at?: string | null
           created_by?: string | null
+          description?: string | null
           id?: string
           is_active?: boolean | null
           label?: string | null
+          link_type?: string | null
+          updated_at?: string | null
           url?: string
+          url_pattern?: string | null
         }
         Relationships: []
       }
