@@ -877,6 +877,7 @@ export type Database = {
           agency_id: string
           amount: number
           exchange_rate: number | null
+          helper_processed_at: string | null
           id: string
           notes: string | null
           payment_details: Json | null
@@ -892,6 +893,7 @@ export type Database = {
           agency_id: string
           amount: number
           exchange_rate?: number | null
+          helper_processed_at?: string | null
           id?: string
           notes?: string | null
           payment_details?: Json | null
@@ -907,6 +909,7 @@ export type Database = {
           agency_id?: string
           amount?: number
           exchange_rate?: number | null
+          helper_processed_at?: string | null
           id?: string
           notes?: string | null
           payment_details?: Json | null
@@ -3456,6 +3459,7 @@ export type Database = {
           is_enabled: boolean | null
           level: number
           level_name: string
+          level_number: number | null
           min_total_diamonds: number
           perks: Json | null
         }
@@ -3469,6 +3473,7 @@ export type Database = {
           is_enabled?: boolean | null
           level: number
           level_name: string
+          level_number?: number | null
           min_total_diamonds?: number
           perks?: Json | null
         }
@@ -3482,6 +3487,7 @@ export type Database = {
           is_enabled?: boolean | null
           level?: number
           level_name?: string
+          level_number?: number | null
           min_total_diamonds?: number
           perks?: Json | null
         }
@@ -8884,6 +8890,7 @@ export type Database = {
           id: string
           is_claimed: boolean | null
           is_completed: boolean | null
+          reset_date: string | null
           reward_claimed: boolean | null
           task_date: string | null
           task_id: string
@@ -8897,6 +8904,7 @@ export type Database = {
           id?: string
           is_claimed?: boolean | null
           is_completed?: boolean | null
+          reset_date?: string | null
           reward_claimed?: boolean | null
           task_date?: string | null
           task_id: string
@@ -8910,6 +8918,7 @@ export type Database = {
           id?: string
           is_claimed?: boolean | null
           is_completed?: boolean | null
+          reset_date?: string | null
           reward_claimed?: boolean | null
           task_date?: string | null
           task_id?: string
