@@ -223,8 +223,8 @@ export default function AdminHelperPaymentMethods() {
       bank_name: method.bank_name || "",
       instructions: method.instructions || "",
       logo_url: method.logo_url || "",
-      min_amount: method.min_amount?.toString() || "",
-      max_amount: method.max_amount?.toString() || "",
+      min_amount: method.additional_info?.min_amount?.toString() || "",
+      max_amount: method.additional_info?.max_amount?.toString() || "",
       is_active: method.is_active,
       display_order: method.display_order?.toString() || "0"
     });
