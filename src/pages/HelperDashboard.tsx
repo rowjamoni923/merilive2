@@ -2237,6 +2237,49 @@ const HelperDashboard = () => {
                   </div>
                 )}
               </TabsContent>
+
+              <TabsContent value="self" className="mt-4 space-y-4">
+                <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-xl p-4 border border-emerald-500/30">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
+                      <Gem className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-white font-semibold">Self Recharge</p>
+                      <p className="text-emerald-300 text-xs">Transfer from wallet to your own diamond balance</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-white text-sm">Diamond Amount</Label>
+                    <Input
+                      type="number"
+                      placeholder="Enter amount"
+                      value={transferAmount}
+                      onChange={(e) => setTransferAmount(e.target.value)}
+                      className="bg-slate-700 border-slate-600 text-white text-lg font-bold"
+                    />
+                  </div>
+
+                  <Button 
+                    onClick={handleSelfRecharge}
+                    disabled={transferProcessing || !transferAmount || parseInt(transferAmount) <= 0}
+                    className="w-full mt-4 bg-gradient-to-r from-emerald-500 to-teal-500 h-11"
+                  >
+                    {transferProcessing ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Processing...
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Gem className="w-4 h-4" />
+                        Add {transferAmount ? parseInt(transferAmount).toLocaleString() : 0} 💎 to My Account
+                      </div>
+                    )}
+                  </Button>
+                </div>
+              </TabsContent>
             </Tabs>
           </div>
         </DialogContent>
