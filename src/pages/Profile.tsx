@@ -182,9 +182,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   const [showAgencyExchangeModal, setShowAgencyExchangeModal] = useState(false);
   const [agencyData, setAgencyData] = useState<{ id: string; name: string; diamond_balance: number; beans_balance: number } | null>(null);
   const availableTransferBalance = useMemo(() => {
-    // This modal is opened from Trader Wallet, so all tabs must show the same wallet source.
     if (agencyData) {
-      return Number(agencyData.diamond_balance || 0);
+      return Number(agencyData.diamond_balance || 0) + Number(traderWallet || 0);
     }
 
     return Number(traderWallet || 0);
@@ -404,22 +403,16 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           const rawAgencyBeans = agencyBeansResult.data.beans_balance || 0;
           const agencyBeans = rawAgencyBeans; // Allow negative to show penalty debt
           const agencyDiamonds = agencyBeansResult.data.diamond_balance || 0;
-
-          // IMPORTANT: If agency owner is ALSO a helper, add helper wallet balance to trader wallet
-          // This combines: Agency Diamond Balance + Helper Wallet Balance
           const helperWalletBalance = helperResult?.data?.wallet_balance ?? 0;
-          const totalTraderWallet = agencyDiamonds + helperWalletBalance;
 
           setBeans(agencyBeans);
-          // Also set agencyData for exchange modal and Trader Wallet display
-          // diamond_balance now includes BOTH agency diamonds AND helper wallet
           setAgencyData({
             id: agencyBeansResult.data.id,
             name: (profileData.display_name || profileData.username || 'My') + "'s Agency",
             beans_balance: agencyBeans,
-            diamond_balance: totalTraderWallet // Combined: agency + helper wallet
+            diamond_balance: agencyDiamonds,
           });
-          console.log('[Profile] Agency owner beans:', agencyBeans, 'Agency diamonds:', agencyDiamonds, 'Helper wallet:', helperWalletBalance, 'Total Trader Wallet:', totalTraderWallet);
+          console.log('[Profile] Agency owner beans:', agencyBeans, 'Agency diamonds:', agencyDiamonds, 'Helper wallet:', helperWalletBalance, 'Total Trader Wallet:', agencyDiamonds + helperWalletBalance);
         } else if (profileData?.is_host) {
           // Regular host - combine pending_earnings (gifts) + beans (calls)
           // Allow negative to show penalty debt
@@ -540,19 +533,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             if (payload.beans_balance !== undefined) {
               setBeans(payload.beans_balance || 0);
             }
-            if (payload.diamond_balance !== undefined && activeProfileId) {
+            if (payload.diamond_balance !== undefined) {
               const agencyDiamonds = payload.diamond_balance || 0;
-              supabase
-                .from('topup_helpers')
-                .select('wallet_balance')
-                .eq('user_id', activeProfileId)
-                .eq('is_verified', true)
-                .maybeSingle()
-                .then(({ data: helperData }) => {
-                  const helperWallet = helperData?.wallet_balance ?? 0;
-                  const totalTraderWallet = agencyDiamonds + helperWallet;
-                  setAgencyData(prev => prev ? { ...prev, diamond_balance: totalTraderWallet, beans_balance: payload.beans_balance ?? prev.beans_balance } : null);
-                });
+              setAgencyData(prev => prev ? {
+                ...prev,
+                diamond_balance: agencyDiamonds,
+                beans_balance: payload.beans_balance ?? prev.beans_balance,
+              } : null);
             }
           }
         }
@@ -842,9 +829,11 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       if (!result?.success) throw new Error(result?.error || 'Self recharge failed');
 
       // Update local state
+      const helperDeducted = Math.max(0, Number(traderWallet || 0) - Number(result.new_wallet_balance || 0));
+      const agencyDeducted = Math.max(0, amount - helperDeducted);
       setTraderWallet(result.new_wallet_balance);
-      if (agencyData) {
-        setAgencyData(prev => prev ? { ...prev, diamond_balance: (prev.diamond_balance || 0) - amount } : null);
+      if (agencyData && agencyDeducted > 0) {
+        setAgencyData(prev => prev ? { ...prev, diamond_balance: Math.max(0, (prev.diamond_balance || 0) - agencyDeducted) } : null);
       }
       // Update cached user balance
       const { updateCachedBalance } = await import('@/hooks/useUserBalance');
@@ -1898,7 +1887,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                       </span>
                     </div>
                     <p className="text-xl font-bold text-white drop-shadow-lg">
-                      {(agencyData.diamond_balance || 0).toLocaleString()} 💎
+                      {availableTransferBalance.toLocaleString()} 💎
                     </p>
                     <p className="text-[8px] text-pink-100 mt-0.5 flex items-center gap-1">
                       <Send className="w-2.5 h-2.5" />
