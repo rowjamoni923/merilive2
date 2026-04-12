@@ -1578,6 +1578,7 @@ export type Database = {
           id: string
           ip_address: string
           is_active: boolean | null
+          is_permanent: boolean | null
           reason: string | null
         }
         Insert: {
@@ -1587,6 +1588,7 @@ export type Database = {
           id?: string
           ip_address: string
           is_active?: boolean | null
+          is_permanent?: boolean | null
           reason?: string | null
         }
         Update: {
@@ -1596,6 +1598,7 @@ export type Database = {
           id?: string
           ip_address?: string
           is_active?: boolean | null
+          is_permanent?: boolean | null
           reason?: string | null
         }
         Relationships: []
@@ -4976,11 +4979,16 @@ export type Database = {
       live_streams: {
         Row: {
           created_at: string | null
+          current_music_title: string | null
+          current_music_url: string | null
           description: string | null
           ended_at: string | null
           host_id: string
           id: string
           is_active: boolean | null
+          last_heartbeat: string | null
+          music_playing: boolean | null
+          music_started_at: string | null
           room_id: string | null
           started_at: string | null
           status: string | null
@@ -4993,11 +5001,16 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          current_music_title?: string | null
+          current_music_url?: string | null
           description?: string | null
           ended_at?: string | null
           host_id: string
           id?: string
           is_active?: boolean | null
+          last_heartbeat?: string | null
+          music_playing?: boolean | null
+          music_started_at?: string | null
           room_id?: string | null
           started_at?: string | null
           status?: string | null
@@ -5010,11 +5023,16 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          current_music_title?: string | null
+          current_music_url?: string | null
           description?: string | null
           ended_at?: string | null
           host_id?: string
           id?: string
           is_active?: boolean | null
+          last_heartbeat?: string | null
+          music_playing?: boolean | null
+          music_started_at?: string | null
           room_id?: string | null
           started_at?: string | null
           status?: string | null
@@ -6695,6 +6713,7 @@ export type Database = {
           is_in_call: boolean | null
           is_online: boolean | null
           is_verified: boolean | null
+          last_active_at: string | null
           last_login_at: string | null
           last_login_device: string | null
           last_login_device_info: Json | null
@@ -6790,6 +6809,7 @@ export type Database = {
           is_in_call?: boolean | null
           is_online?: boolean | null
           is_verified?: boolean | null
+          last_active_at?: string | null
           last_login_at?: string | null
           last_login_device?: string | null
           last_login_device_info?: Json | null
@@ -6885,6 +6905,7 @@ export type Database = {
           is_in_call?: boolean | null
           is_online?: boolean | null
           is_verified?: boolean | null
+          last_active_at?: string | null
           last_login_at?: string | null
           last_login_device?: string | null
           last_login_device_info?: Json | null
