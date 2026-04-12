@@ -488,7 +488,7 @@ export default function AdminUserManagement() {
       const targetGender = isHost ? 'male' : 'female';
       const { error } = await supabase.rpc('admin_update_user_gender', {
         _user_id: userId,
-        _new_gender: targetGender,
+        _gender: targetGender,
       });
       if (error) throw error;
       // Send notification to user when converted to Host
@@ -520,7 +520,7 @@ export default function AdminUserManagement() {
     try {
       const { error: rpcError } = await supabase.rpc('admin_update_user_gender', {
         _user_id: userId,
-        _new_gender: toHost ? 'female' : 'male',
+        _gender: toHost ? 'female' : 'male',
       });
       if (rpcError) throw rpcError;
       await supabase.from('face_verification_submissions').update({
@@ -634,7 +634,7 @@ export default function AdminUserManagement() {
     try {
       const { error } = await supabase.rpc('admin_update_user_gender', {
         _user_id: hostId,
-        _new_gender: 'female',
+        _gender: 'female',
       });
       if (error) throw error;
       toast.success("Host approved successfully");
@@ -657,7 +657,7 @@ export default function AdminUserManagement() {
     try {
       const { error } = await supabase.rpc('admin_update_user_gender', {
         _user_id: hostId,
-        _new_gender: 'male',
+        _gender: 'male',
       });
       if (error) throw error;
       toast.success("Host rejected successfully");
@@ -764,7 +764,7 @@ export default function AdminUserManagement() {
 
       const { error: profileError } = await supabase.rpc('admin_update_user_gender', {
         _user_id: selectedApplication.user_id,
-        _new_gender: 'female',
+        _gender: 'female',
       });
 
       if (!profileError) {

@@ -525,7 +525,7 @@ const AdminSupportTickets = () => {
     try {
       const { error } = await supabase.rpc('admin_update_user_gender', {
         _user_id: selectedTicket.user_id,
-        _new_gender: newGender,
+        _gender: newGender,
       });
 
       if (error) throw error;

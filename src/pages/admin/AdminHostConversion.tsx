@@ -74,7 +74,7 @@ const AdminHostConversion = () => {
       // Convert user gender and host status
       const { error: rpcError } = await supabase.rpc('admin_update_user_gender', {
         _user_id: req.user_id,
-        _new_gender: toHost ? 'female' : 'male',
+        _gender: toHost ? 'female' : 'male',
       });
 
       if (rpcError) throw rpcError;

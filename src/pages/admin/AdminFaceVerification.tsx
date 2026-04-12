@@ -854,7 +854,7 @@ const AdminFaceVerification = () => {
                               actionInFlightRef.current = true;
                               setProcessing(true);
                               try {
-                                const { error } = await supabase.rpc('admin_update_user_gender', { _user_id: selectedSubmission.user_id, _new_gender: g });
+                                const { error } = await supabase.rpc('admin_update_user_gender', { _user_id: selectedSubmission.user_id, _gender: g });
                                 if (error) throw error;
                                 toast({ title: "✅ Gender Updated", description: `Gender set to ${g}` });
                                 fetchSubmissions();
@@ -886,7 +886,7 @@ const AdminFaceVerification = () => {
                             actionInFlightRef.current = true;
                             setProcessing(true);
                             try {
-                              const { error } = await supabase.rpc('admin_update_user_gender', { _user_id: selectedSubmission.user_id, _new_gender: 'female' });
+                              const { error } = await supabase.rpc('admin_update_user_gender', { _user_id: selectedSubmission.user_id, _gender: 'female' });
                               if (error) throw error;
                               // Send notification to the user
                               await supabase.from('notifications').insert({
@@ -918,7 +918,7 @@ const AdminFaceVerification = () => {
                             actionInFlightRef.current = true;
                             setProcessing(true);
                             try {
-                              const { error } = await supabase.rpc('admin_update_user_gender', { _user_id: selectedSubmission.user_id, _new_gender: 'male' });
+                              const { error } = await supabase.rpc('admin_update_user_gender', { _user_id: selectedSubmission.user_id, _gender: 'male' });
                               if (error) throw error;
                               // Send notification to the user
                               await supabase.from('notifications').insert({
