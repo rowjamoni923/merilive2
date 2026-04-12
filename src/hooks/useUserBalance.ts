@@ -18,6 +18,7 @@ interface BalanceCache {
   userId: string | null;
   timestamp: number;
   loading: boolean;
+  initialized: boolean;
 }
 
 const balanceCache: BalanceCache = {
@@ -25,6 +26,7 @@ const balanceCache: BalanceCache = {
   userId: null,
   timestamp: 0,
   loading: false,
+  initialized: false,
 };
 
 const CACHE_DURATION = 15 * 1000; // 15 seconds - faster refresh for real-time feel
@@ -46,6 +48,10 @@ async function fetchBalance(): Promise<number> {
     const { data: { session } } = await supabase.auth.getSession();
     const user = session?.user;
     if (!user) {
+      balanceCache.balance = 0;
+      balanceCache.userId = null;
+      balanceCache.timestamp = Date.now();
+      balanceCache.initialized = true;
       balanceCache.loading = false;
       return 0;
     }
@@ -53,7 +59,7 @@ async function fetchBalance(): Promise<number> {
     // Return cached if valid
     if (
       balanceCache.userId === user.id &&
-      balanceCache.balance > 0 &&
+      balanceCache.initialized &&
       Date.now() - balanceCache.timestamp < CACHE_DURATION
     ) {
       balanceCache.loading = false;
@@ -76,6 +82,7 @@ async function fetchBalance(): Promise<number> {
     balanceCache.balance = newBalance;
     balanceCache.userId = user.id;
     balanceCache.timestamp = Date.now();
+    balanceCache.initialized = true;
 
     // Notify all listeners
     listeners.forEach(cb => cb(newBalance));
@@ -102,7 +109,7 @@ export function getCachedBalance(): number {
  */
 export async function getBalanceWithFetch(): Promise<number> {
   if (
-    balanceCache.balance > 0 &&
+    balanceCache.initialized &&
     Date.now() - balanceCache.timestamp < CACHE_DURATION
   ) {
     return balanceCache.balance;
@@ -116,6 +123,7 @@ export async function getBalanceWithFetch(): Promise<number> {
 export function updateCachedBalance(newBalance: number): void {
   balanceCache.balance = newBalance;
   balanceCache.timestamp = Date.now();
+  balanceCache.initialized = true;
   listeners.forEach(cb => cb(newBalance));
 }
 
@@ -134,6 +142,7 @@ export function clearBalanceCache(): void {
   balanceCache.balance = 0;
   balanceCache.userId = null;
   balanceCache.timestamp = 0;
+  balanceCache.initialized = false;
 }
 
 /**
@@ -142,6 +151,7 @@ export function clearBalanceCache(): void {
  */
 export function useUserBalancePrefetch(): void {
   const prefetched = useRef(false);
+  const realtimeCleanupRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     if (prefetched.current) return;
@@ -176,14 +186,17 @@ export function useUserBalancePrefetch(): void {
         )
         .subscribe();
 
-      return () => {
+      realtimeCleanupRef.current = () => {
         supabase.removeChannel(channel);
       };
     };
 
     setupRealtimeBalance();
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      realtimeCleanupRef.current?.();
+    };
   }, []);
 }
 
@@ -192,7 +205,7 @@ export function useUserBalancePrefetch(): void {
  */
 export function useUserBalance() {
   const [balance, setBalance] = useState(getCachedBalance());
-  const [loading, setLoading] = useState(balanceCache.balance === 0);
+  const [loading, setLoading] = useState(!balanceCache.initialized);
 
   useEffect(() => {
     // Subscribe to balance updates
@@ -202,7 +215,7 @@ export function useUserBalance() {
     });
 
     // Fetch if not cached
-    if (balanceCache.balance === 0) {
+    if (!balanceCache.initialized) {
       getBalanceWithFetch().then((b) => {
         setBalance(b);
         setLoading(false);

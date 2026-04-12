@@ -121,9 +121,12 @@ export function AdminAlertBell() {
 
   const handleBanUser = async (userId: string) => {
     try {
-      await supabase.from('profiles').update({
-        is_blocked: true, blocked_at: new Date().toISOString(), blocked_reason: 'Banned for sharing phone number'
-      }).eq('id', userId);
+      const { error } = await supabase.rpc('admin_block_user', {
+        _user_id: userId,
+        _block: true,
+        _reason: 'Banned for sharing phone number',
+      });
+      if (error) throw error;
       toast.success('User has been banned');
       setAlerts(prev => prev.map(a => a.userId === userId ? { ...a, violationResult: { ...a.violationResult!, is_banned: true, action_taken: 'manual_ban' } } : a));
     } catch { toast.error('Failed to ban user'); }
