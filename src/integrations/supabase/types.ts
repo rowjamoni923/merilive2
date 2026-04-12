@@ -10957,6 +10957,16 @@ export type Database = {
           user_level: number
         }[]
       }
+      send_notification: {
+        Args: {
+          p_data?: Json
+          p_message?: string
+          p_title: string
+          p_type: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       start_private_call: {
         Args: {
           p_call_type?: string
