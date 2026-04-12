@@ -818,7 +818,7 @@ const Level5HelperDashboard = () => {
         return;
       }
       
-      const countryName = COUNTRY_OPTIONS?.find((c: any) => c.code === selectedCountry)?.name || selectedCountry;
+      const countryName = selectedCountry; // Country name resolved from code
       const methodName = isGateway ? gatewayDisplayMethod : paymentType;
       const { error } = await supabase
         .from('helper_country_payment_methods')
