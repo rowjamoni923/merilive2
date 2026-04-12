@@ -585,7 +585,22 @@ export type Database = {
           source_transaction_id?: string | null
           transaction_type?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "agency_commission_history_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_commission_history_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       agency_diamond_transactions: {
         Row: {
@@ -618,7 +633,22 @@ export type Database = {
           transaction_type?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "agency_diamond_transactions_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_diamond_transactions_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       agency_earnings_transfers: {
         Row: {
@@ -678,7 +708,36 @@ export type Database = {
           status?: string
           transfer_type?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "agency_earnings_transfers_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_earnings_transfers_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_earnings_transfers_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_earnings_transfers_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       agency_hosts: {
         Row: {
@@ -711,7 +770,36 @@ export type Database = {
           referral_code?: string | null
           status?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "agency_hosts_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_hosts_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_hosts_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_hosts_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       agency_level_tiers: {
         Row: {
@@ -792,7 +880,22 @@ export type Database = {
           total_income?: number | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "agency_performance_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_performance_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       agency_policy_settings: {
         Row: {
@@ -870,12 +973,28 @@ export type Database = {
           ranking_type?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "agency_rankings_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_rankings_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       agency_withdrawals: {
         Row: {
           agency_id: string
           amount: number
+          assigned_helper_id: string | null
           exchange_rate: number | null
           helper_processed_at: string | null
           id: string
@@ -892,6 +1011,7 @@ export type Database = {
         Insert: {
           agency_id: string
           amount: number
+          assigned_helper_id?: string | null
           exchange_rate?: number | null
           helper_processed_at?: string | null
           id?: string
@@ -908,6 +1028,7 @@ export type Database = {
         Update: {
           agency_id?: string
           amount?: number
+          assigned_helper_id?: string | null
           exchange_rate?: number | null
           helper_processed_at?: string | null
           id?: string
@@ -921,7 +1042,29 @@ export type Database = {
           status?: string
           usd_amount?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "agency_withdrawals_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_withdrawals_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_withdrawals_assigned_helper_id_fkey"
+            columns: ["assigned_helper_id"]
+            isOneToOne: false
+            referencedRelation: "topup_helpers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       allowed_external_links: {
         Row: {
@@ -2406,7 +2549,22 @@ export type Database = {
           user_id?: string
           verification_type?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "face_verification_submissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "face_verification_submissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       failed_login_attempts: {
         Row: {
@@ -3093,7 +3251,22 @@ export type Database = {
           sender_type?: string | null
           stream_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "gift_transactions_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gift_transactions_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       gifts: {
         Row: {
@@ -3207,7 +3380,22 @@ export type Database = {
           message_type?: string | null
           sender_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "group_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       groups: {
         Row: {
@@ -3273,7 +3461,15 @@ export type Database = {
           sender_id?: string | null
           sender_type?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "helper_admin_messages_helper_id_fkey"
+            columns: ["helper_id"]
+            isOneToOne: false
+            referencedRelation: "topup_helpers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       helper_applications: {
         Row: {
@@ -3312,7 +3508,22 @@ export type Database = {
           user_id?: string
           whatsapp_number?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "helper_applications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "helper_applications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       helper_assigned_countries: {
         Row: {
@@ -3614,7 +3825,29 @@ export type Database = {
           total_price_usd?: number
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "helper_orders_helper_id_fkey"
+            columns: ["helper_id"]
+            isOneToOne: false
+            referencedRelation: "topup_helpers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "helper_orders_user_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "helper_orders_user_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       helper_payment_methods: {
         Row: {
@@ -3705,6 +3938,7 @@ export type Database = {
           id: string
           reference_id: string | null
           transaction_type: string
+          user_id: string | null
         }
         Insert: {
           amount: number
@@ -3716,6 +3950,7 @@ export type Database = {
           id?: string
           reference_id?: string | null
           transaction_type: string
+          user_id?: string | null
         }
         Update: {
           amount?: number
@@ -3727,8 +3962,31 @@ export type Database = {
           id?: string
           reference_id?: string | null
           transaction_type?: string
+          user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "helper_transactions_helper_id_fkey"
+            columns: ["helper_id"]
+            isOneToOne: false
+            referencedRelation: "topup_helpers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "helper_transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "helper_transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       helper_upgrade_requests: {
         Row: {
@@ -3772,6 +4030,7 @@ export type Database = {
           amount: number
           created_at: string | null
           helper_id: string
+          host_id: string | null
           id: string
           payment_method_id: string | null
           processed_at: string | null
@@ -3784,6 +4043,7 @@ export type Database = {
           amount: number
           created_at?: string | null
           helper_id: string
+          host_id?: string | null
           id?: string
           payment_method_id?: string | null
           processed_at?: string | null
@@ -3796,6 +4056,7 @@ export type Database = {
           amount?: number
           created_at?: string | null
           helper_id?: string
+          host_id?: string | null
           id?: string
           payment_method_id?: string | null
           processed_at?: string | null
@@ -3803,7 +4064,29 @@ export type Database = {
           status?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "helper_withdrawal_requests_helper_id_fkey"
+            columns: ["helper_id"]
+            isOneToOne: false
+            referencedRelation: "topup_helpers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "helper_withdrawal_requests_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "helper_withdrawal_requests_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       host_applications: {
         Row: {
@@ -4709,7 +4992,22 @@ export type Database = {
           total_gifts?: number | null
           viewer_count?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "live_streams_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "live_streams_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       live_violations: {
         Row: {
@@ -5451,7 +5749,22 @@ export type Database = {
           seat_number?: number | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "party_room_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "party_room_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       party_rooms: {
         Row: {
@@ -5514,7 +5827,22 @@ export type Database = {
           total_seats?: number | null
           welcome_message?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "party_rooms_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "party_rooms_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       password_reset_otps: {
         Row: {
@@ -6858,7 +7186,22 @@ export type Database = {
           reel_id?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "reel_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reel_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reel_likes: {
         Row: {
@@ -6906,7 +7249,22 @@ export type Database = {
           status?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "reel_reports_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reel_reports_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reel_shares: {
         Row: {
@@ -6987,7 +7345,22 @@ export type Database = {
           video_url?: string
           views_count?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "reels_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reels_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       registration_bonus_claims: {
         Row: {
@@ -7215,7 +7588,22 @@ export type Database = {
           status?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "seat_requests_requester_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seat_requests_requester_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       security_alerts: {
         Row: {
@@ -7635,7 +8023,22 @@ export type Database = {
           total_viewers?: number | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "stream_recordings_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stream_recordings_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       stream_viewers: {
         Row: {
@@ -8172,7 +8575,22 @@ export type Database = {
           user_id?: string
           wallet_balance?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "topup_helpers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "topup_helpers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       topup_payment_methods: {
         Row: {
@@ -8778,7 +9196,36 @@ export type Database = {
           reviewed_by?: string | null
           status?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_reports_reported_user_id_fkey"
+            columns: ["reported_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_reports_reported_user_id_fkey"
+            columns: ["reported_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_role_frames: {
         Row: {
