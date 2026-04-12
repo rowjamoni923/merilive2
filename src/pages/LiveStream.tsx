@@ -2376,7 +2376,7 @@ const LiveStream = () => {
     }
     
     setUserCoins(prev => prev - (result.coins_spent || gift.coins));
-    updateCachedBalance(getCachedBalance() - (result.coins_spent || gift.coins));
+    // Balance will be refreshed by the background gift processing flow below
     setShowGiftPanel(false);
   };
 
