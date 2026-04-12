@@ -818,20 +818,22 @@ const Level5HelperDashboard = () => {
         return;
       }
       
+      const countryName = COUNTRY_OPTIONS?.find((c: any) => c.code === selectedCountry)?.name || selectedCountry;
+      const methodName = isGateway ? gatewayDisplayMethod : paymentType;
       const { error } = await supabase
         .from('helper_country_payment_methods')
         .insert({
           helper_id: helperData.id,
           country_code: selectedCountry,
-          method_name: isGateway ? gatewayDisplayMethod : paymentType,
+          country_name: countryName,
+          payment_method_name: methodName,
+          method_name: methodName,
           method_type: isGateway ? 'auto_gateway' : paymentType,
           account_name: isGateway ? (paymentType === 'zinipay' ? gatewayDisplayMethod : accountName) : accountName,
           account_number: isGateway ? gatewayDisplayNumber : accountNumber,
           bank_name: bankName || null,
           instructions: methodInstructions || null,
           logo_url: logoUrl,
-          merchant_number: merchantNumber || null,
-          is_merchant: isGateway ? true : isMerchant,
           additional_info: isGateway ? {
             gateway_type: paymentType,
             ...(paymentType === 'sslcommerz' ? { store_id: accountName, store_password: accountNumber, is_sandbox: false } : {}),
@@ -839,7 +841,12 @@ const Level5HelperDashboard = () => {
             ...(paymentType === 'zinipay' ? { zinipay_api_key: accountName } : {}),
             display_method: gatewayDisplayMethod,
             display_number: gatewayDisplayNumber,
-          } : null,
+            merchant_number: merchantNumber || null,
+            is_merchant: true,
+          } : {
+            merchant_number: merchantNumber || null,
+            is_merchant: isMerchant,
+          },
         });
 
       if (error) throw error;
