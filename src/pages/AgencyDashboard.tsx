@@ -363,8 +363,13 @@ const AgencyDashboard = () => {
         const subAgentsData = subAgentsRes.data || [];
         const subAgentUserIds = subAgentsData.map(sa => sa.user_id);
         const countryCode = userProfileRes.data?.country_code || '';
-        // Agency level is determined ONLY by income-based tiers (A1-A5), never overridden by helper status
+        // Agency level is determined ONLY by income-based tiers, never overridden by helper status
+        // Map A1-A5 codes to DB tier level_codes for proper lookup
+        const levelToTierMap: Record<string, string> = {
+          'A1': 'bronze', 'A2': 'silver', 'A3': 'gold', 'A4': 'platinum', 'A5': 'diamond'
+        };
         const effectiveLevel = agencyData.level || 'A1';
+        const effectiveTierCode = levelToTierMap[effectiveLevel] || effectiveLevel;
         const helperData = helperRes.data;
 
         const [
@@ -382,7 +387,7 @@ const AgencyDashboard = () => {
             ? supabase.from("profiles").select("display_name, avatar_url").eq("id", parentRes.data.owner_id).maybeSingle()
             : Promise.resolve({ data: null }),
           // Level tier
-          supabase.from("agency_level_tiers").select("level_code, level_name, commission_rate, badge_color").eq("level_code", effectiveLevel).eq("is_active", true).maybeSingle(),
+          supabase.from("agency_level_tiers").select("level_code, level_name, commission_rate, badge_color").eq("level_code", effectiveTierCode).eq("is_active", true).maybeSingle(),
           // Host profiles
           hostIds.length > 0
             ? supabase.from("profiles").select("id, display_name, avatar_url, is_online, total_earnings, is_verified").in("id", hostIds)
@@ -722,8 +727,9 @@ const AgencyDashboard = () => {
   // Total Beans = wallet_balance (authoritative, maintained by RPC/triggers/admin)
   const agencyBeansBalance = agency.wallet_balance || 0;
   
-  // My Beans = Agency's own beans_balance (received when someone gifts the agency directly)
-  const myBeans = agency.beans_balance || 0;
+  // My Beans = Agency's own beans_balance + wallet_balance (includes converted diamonds)
+  // wallet_balance stores converted diamond-to-beans, beans_balance stores direct gift beans
+  const myBeans = Math.max(agency.beans_balance || 0, agency.wallet_balance || 0);
   
   // Correct USD calculation: beans / rate = USD
   const usdValue = agencyBeansBalance / coinsToUsdRate;
@@ -1090,8 +1096,23 @@ const AgencyDashboard = () => {
               </div>
             </div>
 
+            {/* My Beans (includes converted diamonds) */}
+            <div className="flex items-center justify-between mb-2 bg-white/10 backdrop-blur-sm rounded-lg p-2 border border-white/20">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
+                  <Coins className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="text-white/80 text-[10px] uppercase tracking-wide">My Beans</p>
+                  <p className="text-base font-bold">{fmtNum(myBeans)}</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-white/60 text-[9px]">≈ ${myBeansUsdValue.toFixed(2)}</p>
+              </div>
+            </div>
 
-            
+
             {/* Local Currency Value - Compact */}
             <div className="bg-white/15 backdrop-blur-sm rounded-lg p-2 mb-1.5 border border-white/20">
               <div className="flex items-center justify-between">

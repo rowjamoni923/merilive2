@@ -146,8 +146,8 @@ const Agency = () => {
     : 20;
   
   // Separate regular tiers and diamond tier
-  const regularTiers = commissionTiers.filter(t => t.level_code !== 'A5').slice(0, 4);
-  const diamondTier = commissionTiers.find(t => t.level_code === 'A5');
+  const regularTiers = commissionTiers.filter(t => t.level_code !== 'A5' && t.level_code !== 'diamond').slice(0, 4);
+  const diamondTier = commissionTiers.find(t => t.level_code === 'A5' || t.level_code === 'diamond');
 
   // Loading state
   if (loading) {
