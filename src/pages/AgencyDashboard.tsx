@@ -344,8 +344,8 @@ const AgencyDashboard = () => {
           supabase.from("sub_agents").select("*").eq("agency_id", agencyData.id).eq("status", "active"),
           // 8. Beans rate
           supabase.from("app_settings").select("setting_value").eq("setting_key", "beans_to_usd_rate").maybeSingle(),
-          // 9. User profile (country)
-          supabase.from('profiles').select('country_code, country_flag').eq('id', user.id).single(),
+          // 9. User profile (country + personal beans)
+          supabase.from('profiles').select('country_code, country_flag, beans').eq('id', user.id).single(),
           // 10. Helper data
           supabase.from("topup_helpers").select("id, is_verified, is_active, trader_level, payroll_enabled").eq("user_id", user.id).maybeSingle(),
           // 11. Helper contact settings
