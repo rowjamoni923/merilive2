@@ -174,7 +174,6 @@ const ShopItemCard = ({
               onError={() => setImageError(true)}
             />
           )
-          )
         ) : (
           <div className="w-16 h-16 rounded-2xl bg-purple-500/10 flex items-center justify-center">
             <Shield className="w-10 h-10 text-purple-400/60" strokeWidth={1.5} />
