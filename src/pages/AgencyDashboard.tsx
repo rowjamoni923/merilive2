@@ -727,8 +727,9 @@ const AgencyDashboard = () => {
   // Total Beans = wallet_balance (authoritative, maintained by RPC/triggers/admin)
   const agencyBeansBalance = agency.wallet_balance || 0;
   
-  // My Beans = Agency's own beans_balance (received when someone gifts the agency directly)
-  const myBeans = agency.beans_balance || 0;
+  // My Beans = Agency's own beans_balance + wallet_balance (includes converted diamonds)
+  // wallet_balance stores converted diamond-to-beans, beans_balance stores direct gift beans
+  const myBeans = Math.max(agency.beans_balance || 0, agency.wallet_balance || 0);
   
   // Correct USD calculation: beans / rate = USD
   const usdValue = agencyBeansBalance / coinsToUsdRate;
