@@ -965,7 +965,10 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         throw new Error(`Insufficient balance. Available: ${latestBalances.total.toLocaleString()}`);
       }
 
-      const senderType = latestBalances.traderWallet >= amount ? 'trader_to_user' : 'agency_to_user';
+      // Pick sender type: agency first if it has balance, then trader, then personal
+      const senderType = latestBalances.agencyBalance >= amount ? 'agency_to_user' 
+        : latestBalances.traderWallet >= amount ? 'trader_to_user' 
+        : 'agency_to_user'; // fallback to agency_to_user which tries all tiers in RPC
 
       const { data, error } = await supabase.rpc('helper_transfer_coins_to_user', {
         _sender_id: currentUser.id,
