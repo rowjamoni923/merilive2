@@ -181,6 +181,14 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   // Agency Beans Exchange modal state
   const [showAgencyExchangeModal, setShowAgencyExchangeModal] = useState(false);
   const [agencyData, setAgencyData] = useState<{ id: string; name: string; diamond_balance: number; beans_balance: number } | null>(null);
+  const availableTransferBalance = useMemo(() => {
+    if (agencyData) {
+      return Number(agencyData.diamond_balance || 0);
+    }
+
+    return Number(traderWallet || 0);
+  }, [agencyData, traderWallet]);
+
   const [agencyExchangeSettings, setAgencyExchangeSettings] = useState({
     beans_to_diamonds_rate: 1,
     exchange_fee_percent: 25,
@@ -707,9 +715,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       return;
     }
     
-    // User tab must use personal diamond balance, not trader/agency wallet
-    const displayedBalance = resolvedDiamondBalance;
-    console.log('[requestTransferToUser] personalBalance:', displayedBalance, 'resolvedDiamondBalance:', resolvedDiamondBalance);
+    const displayedBalance = availableTransferBalance;
+    console.log('[requestTransferToUser] availableTransferBalance:', displayedBalance);
     
     if (amount > displayedBalance) {
       toast({ title: "Insufficient Balance", description: `You need ${amount.toLocaleString()} but have ${displayedBalance.toLocaleString()}`, variant: "destructive" });
@@ -738,7 +745,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     }
     
     // Use the SAME balance that's displayed in modal
-    const displayedBalance = isAgencyOwner ? (agencyData?.diamond_balance || 0) : traderWallet;
+    const displayedBalance = availableTransferBalance;
     console.log('[requestTransferToAgency] isAgencyOwner:', isAgencyOwner, 'displayedBalance:', displayedBalance);
     
     if (amount > displayedBalance) {
@@ -771,7 +778,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       toast({ title: "Invalid Amount", description: "Please enter a valid diamond amount", variant: "destructive" });
       return;
     }
-    const walletBalance = agencyData ? (agencyData.diamond_balance || 0) : traderWallet;
+    const walletBalance = availableTransferBalance;
     if (amount > walletBalance) {
       toast({ title: "Insufficient Balance", description: `You need ${amount.toLocaleString()} but have ${walletBalance.toLocaleString()}`, variant: "destructive" });
       return;
@@ -1982,7 +1989,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   <div>
                     <span className="text-white/70 text-xs">Your Balance</span>
                     <p className="text-emerald-400 font-bold text-xl">
-                      {(transferTab === 'user' ? resolvedDiamondBalance : (agencyData ? agencyData.diamond_balance || 0 : traderWallet)).toLocaleString()} 💎
+                      {availableTransferBalance.toLocaleString()} 💎
                     </p>
                   </div>
                 </div>
@@ -2189,7 +2196,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     <div className="flex justify-between items-center">
                       <span className="text-white/60 text-sm">Trader Wallet</span>
                       <span className="text-emerald-400 font-bold text-lg">
-                        {(agencyData ? agencyData.diamond_balance || 0 : traderWallet).toLocaleString()} 💎
+                        {availableTransferBalance.toLocaleString()} 💎
                       </span>
                     </div>
                     <div className="flex justify-between items-center mt-2 pt-2 border-t border-slate-700">
@@ -2214,7 +2221,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     {selfRechargeAmount && parseInt(selfRechargeAmount) > 0 && (
                       <div className="text-xs space-y-1 mt-2">
                         <p className="text-amber-400">
-                          Trader Wallet after: {((agencyData ? agencyData.diamond_balance || 0 : traderWallet) - parseInt(selfRechargeAmount)).toLocaleString()} 💎
+                          Trader Wallet after: {(availableTransferBalance - parseInt(selfRechargeAmount)).toLocaleString()} 💎
                         </p>
                         <p className="text-emerald-400">
                           My Balance after: {((profile?.coins || 0) + parseInt(selfRechargeAmount)).toLocaleString()} 💎
