@@ -20,8 +20,9 @@ serve(async (req) => {
 
   try {
     // Authenticate user
-    const authHeader = req.headers.get("Authorization")!;
-    const token = authHeader.replace("Bearer ", "");
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) throw new Error("User not authenticated");
+    const token = authHeader.slice("Bearer ".length);
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
     if (userError || !userData.user) throw new Error("User not authenticated");
     const user = userData.user;
