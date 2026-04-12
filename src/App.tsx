@@ -292,6 +292,10 @@ const AdminSubAdmins = lazy(lazyRetry(() => import("./pages/admin/AdminSubAdmins
 const AdminRoomWelcomeMessages = lazy(lazyRetry(() => import("./pages/admin/AdminRoomWelcomeMessages")));
 const AdminLandingPageManager = lazy(lazyRetry(() => import("./pages/admin/AdminLandingPageManager")));
 const AdminParcelManagement = lazy(lazyRetry(() => import("./pages/admin/AdminParcelManagement")));
+const AdminBeautyFilters = lazy(lazyRetry(() => import("./pages/admin/AdminBeautyFilters")));
+const AdminContactViolations = lazy(lazyRetry(() => import("./pages/admin/AdminContactViolations")));
+const AdminGameLeaderboard = lazy(lazyRetry(() => import("./pages/admin/AdminGameLeaderboard")));
+const AdminUserBeansExchange = lazy(lazyRetry(() => import("./pages/admin/AdminUserBeansExchange")));
 
 // =============================================
 // ADMIN PREFETCH - Pre-load critical admin chunks when admin flag exists
@@ -1104,6 +1108,10 @@ const App = () => {
                   <Route path="rating-rewards" element={<AdminRouteGuard routeSegment="rating-rewards"><AdminRatingRewards /></AdminRouteGuard>} />
                   <Route path="icon-registry" element={<AdminRouteGuard routeSegment="icon-registry"><AdminIconRegistry /></AdminRouteGuard>} />
                   <Route path="parcel-management" element={<AdminRouteGuard routeSegment="parcel-management"><AdminParcelManagement /></AdminRouteGuard>} />
+                  <Route path="beauty-filters" element={<AdminRouteGuard routeSegment="beauty-filters"><AdminBeautyFilters /></AdminRouteGuard>} />
+                  <Route path="contact-violations" element={<AdminRouteGuard routeSegment="contact-violations"><AdminContactViolations /></AdminRouteGuard>} />
+                  <Route path="game-leaderboard" element={<AdminRouteGuard routeSegment="game-leaderboard"><AdminGameLeaderboard /></AdminRouteGuard>} />
+                  <Route path="user-beans-exchange" element={<AdminRouteGuard routeSegment="user-beans-exchange"><AdminUserBeansExchange /></AdminRouteGuard>} />
                   <Route path="blueprint" element={<AdminBlueprint />} />
                 </Route>
                 
