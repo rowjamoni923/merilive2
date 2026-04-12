@@ -707,9 +707,9 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       return;
     }
     
-    // Use the SAME balance that's displayed in modal
-    const displayedBalance = isAgencyOwner ? (agencyData?.diamond_balance || 0) : traderWallet;
-    console.log('[requestTransferToUser] isAgencyOwner:', isAgencyOwner, 'displayedBalance:', displayedBalance);
+    // User tab must use personal diamond balance, not trader/agency wallet
+    const displayedBalance = resolvedDiamondBalance;
+    console.log('[requestTransferToUser] personalBalance:', displayedBalance, 'resolvedDiamondBalance:', resolvedDiamondBalance);
     
     if (amount > displayedBalance) {
       toast({ title: "Insufficient Balance", description: `You need ${amount.toLocaleString()} but have ${displayedBalance.toLocaleString()}`, variant: "destructive" });
@@ -877,7 +877,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         _sender_id: currentUser.id,
         _receiver_id: searchedUser.id,
         _amount: amount,
-        _sender_type: isAgencyOwner ? 'agency_to_user' : 'trader_to_user'
+        _sender_type: 'user_to_user'
       });
 
       if (error) throw error;
@@ -888,6 +888,11 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       }
 
       // Update local state
+      if (result.user_deducted > 0) {
+        const newPersonalBalance = Math.max(0, resolvedDiamondBalance - result.user_deducted);
+        updateCachedBalance(newPersonalBalance);
+        setProfile((prev: any) => prev ? { ...prev, coins: newPersonalBalance } : prev);
+      }
       if (result.agency_deducted > 0 && agencyData) {
         setAgencyData(prev => prev ? { ...prev, diamond_balance: (prev.diamond_balance || 0) - result.agency_deducted } : null);
       }
@@ -895,14 +900,11 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         setTraderWallet(prev => prev - result.helper_deducted);
       }
 
-      toast({ 
-        title: "Transfer Successful! ✅", 
-        description: `${amount.toLocaleString()} 💎 sent to ${searchedUser.display_name}` 
-      });
-
-      // Check low balance warning
-      const currentWallet = traderWallet - (result.helper_deducted || 0);
-      await checkAndNotifyLowBalance(currentWallet, currentUser.id);
+      // Check low balance warning only for helper-wallet deductions
+      if (result.helper_deducted > 0) {
+        const currentWallet = traderWallet - (result.helper_deducted || 0);
+        await checkAndNotifyLowBalance(currentWallet, currentUser.id);
+      }
       
       setShowTransferModal(false);
       setTransferSearchQuery("");
@@ -1970,7 +1972,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           </DialogHeader>
           
           <div className="space-y-4">
-            {/* Current Balance - Show agency diamond_balance for agency owners, or traderWallet for diamond traders */}
+            {/* Current Balance */}
             <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-2xl p-4 border border-emerald-500/30">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -1980,7 +1982,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   <div>
                     <span className="text-white/70 text-xs">Your Balance</span>
                     <p className="text-emerald-400 font-bold text-xl">
-                      {(agencyData ? agencyData.diamond_balance || 0 : traderWallet).toLocaleString()} 💎
+                      {(transferTab === 'user' ? resolvedDiamondBalance : (agencyData ? agencyData.diamond_balance || 0 : traderWallet)).toLocaleString()} 💎
                     </p>
                   </div>
                 </div>
