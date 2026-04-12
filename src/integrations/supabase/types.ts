@@ -9839,6 +9839,10 @@ export type Database = {
         Returns: Json
       }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
+      helper_add_coins_to_user: {
+        Args: { _amount: number; _user_id: string }
+        Returns: Json
+      }
       is_admin:
         | { Args: never; Returns: boolean }
         | { Args: { _user_id: string }; Returns: boolean }
