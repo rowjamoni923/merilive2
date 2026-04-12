@@ -876,6 +876,7 @@ export type Database = {
         Row: {
           agency_id: string
           amount: number
+          assigned_helper_id: string | null
           exchange_rate: number | null
           helper_processed_at: string | null
           id: string
@@ -892,6 +893,7 @@ export type Database = {
         Insert: {
           agency_id: string
           amount: number
+          assigned_helper_id?: string | null
           exchange_rate?: number | null
           helper_processed_at?: string | null
           id?: string
@@ -908,6 +910,7 @@ export type Database = {
         Update: {
           agency_id?: string
           amount?: number
+          assigned_helper_id?: string | null
           exchange_rate?: number | null
           helper_processed_at?: string | null
           id?: string
@@ -921,7 +924,29 @@ export type Database = {
           status?: string
           usd_amount?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "agency_withdrawals_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_withdrawals_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_withdrawals_assigned_helper_id_fkey"
+            columns: ["assigned_helper_id"]
+            isOneToOne: false
+            referencedRelation: "topup_helpers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       allowed_external_links: {
         Row: {
