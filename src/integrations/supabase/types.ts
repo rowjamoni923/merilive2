@@ -3230,7 +3230,9 @@ export type Database = {
         Row: {
           coin_amount: number
           coin_cost: number | null
+          coin_value: number | null
           created_at: string | null
+          diamond_cost: number | null
           gift_id: string | null
           id: string
           quantity: number | null
@@ -3245,7 +3247,9 @@ export type Database = {
         Insert: {
           coin_amount: number
           coin_cost?: number | null
+          coin_value?: number | null
           created_at?: string | null
+          diamond_cost?: number | null
           gift_id?: string | null
           id?: string
           quantity?: number | null
@@ -3260,7 +3264,9 @@ export type Database = {
         Update: {
           coin_amount?: number
           coin_cost?: number | null
+          coin_value?: number | null
           created_at?: string | null
+          diamond_cost?: number | null
           gift_id?: string | null
           id?: string
           quantity?: number | null
@@ -6024,37 +6030,55 @@ export type Database = {
       payment_transactions: {
         Row: {
           amount: number
+          amount_usd: number | null
           created_at: string | null
           currency: string | null
+          diamonds_amount: number | null
           external_transaction_id: string | null
           gateway_id: string | null
+          gateway_response: Json | null
           id: string
+          notes: string | null
           package_id: string | null
+          payment_method: string | null
           status: string | null
+          transaction_ref: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
           amount: number
+          amount_usd?: number | null
           created_at?: string | null
           currency?: string | null
+          diamonds_amount?: number | null
           external_transaction_id?: string | null
           gateway_id?: string | null
+          gateway_response?: Json | null
           id?: string
+          notes?: string | null
           package_id?: string | null
+          payment_method?: string | null
           status?: string | null
+          transaction_ref?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
           amount?: number
+          amount_usd?: number | null
           created_at?: string | null
           currency?: string | null
+          diamonds_amount?: number | null
           external_transaction_id?: string | null
           gateway_id?: string | null
+          gateway_response?: Json | null
           id?: string
+          notes?: string | null
           package_id?: string | null
+          payment_method?: string | null
           status?: string | null
+          transaction_ref?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -6170,6 +6194,8 @@ export type Database = {
       }
       pk_battles: {
         Row: {
+          challenger_id: string | null
+          challenger_score: number | null
           created_at: string | null
           duration_minutes: number | null
           ended_at: string | null
@@ -6178,6 +6204,8 @@ export type Database = {
           host2_id: string
           host2_score: number | null
           id: string
+          opponent_id: string | null
+          opponent_score: number | null
           started_at: string | null
           status: string | null
           stream1_id: string | null
@@ -6185,6 +6213,8 @@ export type Database = {
           winner_id: string | null
         }
         Insert: {
+          challenger_id?: string | null
+          challenger_score?: number | null
           created_at?: string | null
           duration_minutes?: number | null
           ended_at?: string | null
@@ -6193,6 +6223,8 @@ export type Database = {
           host2_id: string
           host2_score?: number | null
           id?: string
+          opponent_id?: string | null
+          opponent_score?: number | null
           started_at?: string | null
           status?: string | null
           stream1_id?: string | null
@@ -6200,6 +6232,8 @@ export type Database = {
           winner_id?: string | null
         }
         Update: {
+          challenger_id?: string | null
+          challenger_score?: number | null
           created_at?: string | null
           duration_minutes?: number | null
           ended_at?: string | null
@@ -6208,6 +6242,8 @@ export type Database = {
           host2_id?: string
           host2_score?: number | null
           id?: string
+          opponent_id?: string | null
+          opponent_score?: number | null
           started_at?: string | null
           status?: string | null
           stream1_id?: string | null
