@@ -3337,38 +3337,62 @@ export type Database = {
       }
       helper_country_payment_methods: {
         Row: {
+          account_name: string | null
+          account_number: string | null
+          additional_info: Json | null
+          bank_name: string | null
           country_code: string
           country_name: string
           created_at: string | null
           display_order: number | null
+          helper_id: string | null
           icon_url: string | null
           id: string
           instructions: string | null
           is_active: boolean | null
+          logo_url: string | null
+          method_name: string | null
+          method_type: string | null
           payment_method_name: string
           payment_type: string | null
         }
         Insert: {
+          account_name?: string | null
+          account_number?: string | null
+          additional_info?: Json | null
+          bank_name?: string | null
           country_code: string
           country_name: string
           created_at?: string | null
           display_order?: number | null
+          helper_id?: string | null
           icon_url?: string | null
           id?: string
           instructions?: string | null
           is_active?: boolean | null
+          logo_url?: string | null
+          method_name?: string | null
+          method_type?: string | null
           payment_method_name: string
           payment_type?: string | null
         }
         Update: {
+          account_name?: string | null
+          account_number?: string | null
+          additional_info?: Json | null
+          bank_name?: string | null
           country_code?: string
           country_name?: string
           created_at?: string | null
           display_order?: number | null
+          helper_id?: string | null
           icon_url?: string | null
           id?: string
           instructions?: string | null
           is_active?: boolean | null
+          logo_url?: string | null
+          method_name?: string | null
+          method_type?: string | null
           payment_method_name?: string
           payment_type?: string | null
         }
