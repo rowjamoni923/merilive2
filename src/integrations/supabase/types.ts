@@ -4970,6 +4970,7 @@ export type Database = {
       live_streams: {
         Row: {
           created_at: string | null
+          description: string | null
           ended_at: string | null
           host_id: string
           id: string
@@ -4980,11 +4981,13 @@ export type Database = {
           stream_type: string | null
           thumbnail_url: string | null
           title: string | null
+          total_coins_earned: number | null
           total_gifts: number | null
           viewer_count: number | null
         }
         Insert: {
           created_at?: string | null
+          description?: string | null
           ended_at?: string | null
           host_id: string
           id?: string
@@ -4995,11 +4998,13 @@ export type Database = {
           stream_type?: string | null
           thumbnail_url?: string | null
           title?: string | null
+          total_coins_earned?: number | null
           total_gifts?: number | null
           viewer_count?: number | null
         }
         Update: {
           created_at?: string | null
+          description?: string | null
           ended_at?: string | null
           host_id?: string
           id?: string
@@ -5010,6 +5015,7 @@ export type Database = {
           stream_type?: string | null
           thumbnail_url?: string | null
           title?: string | null
+          total_coins_earned?: number | null
           total_gifts?: number | null
           viewer_count?: number | null
         }
@@ -7313,6 +7319,7 @@ export type Database = {
       }
       reels: {
         Row: {
+          beans_earned: number | null
           caption: string | null
           category_id: string | null
           comments_count: number | null
@@ -7320,7 +7327,9 @@ export type Database = {
           duration_seconds: number | null
           id: string
           is_active: boolean | null
+          is_approved: boolean | null
           is_public: boolean | null
+          like_count: number | null
           likes_count: number | null
           music_id: string | null
           shares_count: number | null
@@ -7328,9 +7337,11 @@ export type Database = {
           updated_at: string
           user_id: string
           video_url: string
+          view_count: number | null
           views_count: number | null
         }
         Insert: {
+          beans_earned?: number | null
           caption?: string | null
           category_id?: string | null
           comments_count?: number | null
@@ -7338,7 +7349,9 @@ export type Database = {
           duration_seconds?: number | null
           id?: string
           is_active?: boolean | null
+          is_approved?: boolean | null
           is_public?: boolean | null
+          like_count?: number | null
           likes_count?: number | null
           music_id?: string | null
           shares_count?: number | null
@@ -7346,9 +7359,11 @@ export type Database = {
           updated_at?: string
           user_id: string
           video_url: string
+          view_count?: number | null
           views_count?: number | null
         }
         Update: {
+          beans_earned?: number | null
           caption?: string | null
           category_id?: string | null
           comments_count?: number | null
@@ -7356,7 +7371,9 @@ export type Database = {
           duration_seconds?: number | null
           id?: string
           is_active?: boolean | null
+          is_approved?: boolean | null
           is_public?: boolean | null
+          like_count?: number | null
           likes_count?: number | null
           music_id?: string | null
           shares_count?: number | null
@@ -7364,6 +7381,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           video_url?: string
+          view_count?: number | null
           views_count?: number | null
         }
         Relationships: [
@@ -8064,6 +8082,7 @@ export type Database = {
       stream_viewers: {
         Row: {
           id: string
+          is_active: boolean | null
           joined_at: string | null
           left_at: string | null
           stream_id: string
@@ -8071,6 +8090,7 @@ export type Database = {
         }
         Insert: {
           id?: string
+          is_active?: boolean | null
           joined_at?: string | null
           left_at?: string | null
           stream_id: string
@@ -8078,6 +8098,7 @@ export type Database = {
         }
         Update: {
           id?: string
+          is_active?: boolean | null
           joined_at?: string | null
           left_at?: string | null
           stream_id?: string
