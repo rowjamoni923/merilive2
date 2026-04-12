@@ -814,17 +814,12 @@ const HelperDashboard = () => {
     }
   };
 
-  // Transfer diamonds to agency
+  // Transfer diamonds to agency - uses tiered deduction
   const handleTransferToAgency = async () => {
     if (!searchedAgency || !helperData) return;
     
-    // Check face verification requirement
     if (!userFaceVerified) {
-      toast({ 
-        title: "Face Verification Required!", 
-        description: "You must complete face verification to transfer beans.", 
-        variant: "destructive" 
-      });
+      toast({ title: "Face Verification Required!", description: "You must complete face verification to transfer beans.", variant: "destructive" });
       navigate('/face-verification');
       return;
     }
@@ -835,35 +830,89 @@ const HelperDashboard = () => {
       return;
     }
     
-    if (amount > (helperData.wallet_balance || 0)) {
-      toast({ title: "Insufficient Balance", description: "You don't have enough diamonds", variant: "destructive" });
+    setTransferProcessing(true);
+    try {
+      // Use tiered deduction RPC for agency transfer too
+      const { data: result, error } = await supabase
+        .rpc('helper_transfer_coins_to_user', {
+          _sender_id: helperData.user_id,
+          _receiver_id: searchedAgency.owner_id,
+          _amount: amount,
+          _sender_type: 'agency_to_user'
+        });
+
+      if (error) throw error;
+      const resultData = result as any;
+      if (resultData && resultData.success === false) {
+        throw new Error(resultData.error || 'Transfer failed');
+      }
+
+      // Also add to agency diamond balance directly
+      await supabase.rpc('helper_add_diamonds_to_agency', {
+        _agency_id: searchedAgency.id,
+        _amount: amount
+      });
+
+      toast({ 
+        title: "Transfer Successful! ✅", 
+        description: `${amount.toLocaleString()} 💎 sent to ${searchedAgency.name}` 
+      });
+
+      // Refresh helper data
+      const { data: refreshed } = await supabase
+        .from('topup_helpers')
+        .select('wallet_balance')
+        .eq('id', helperData.id)
+        .single();
+      if (refreshed) {
+        setHelperData((prev: any) => ({ ...prev, wallet_balance: refreshed.wallet_balance }));
+      }
+      
+      setShowTransferModal(false);
+      setTransferSearchQuery("");
+      setTransferAmount("");
+      setSearchedAgency(null);
+    } catch (error: any) {
+      toast({ title: "Transfer Failed", description: error.message, variant: "destructive" });
+    } finally {
+      setTransferProcessing(false);
+    }
+  };
+
+  // Self-recharge: transfer diamonds to own account
+  const handleSelfRecharge = async () => {
+    if (!helperData) return;
+    
+    const amount = parseInt(transferAmount);
+    if (isNaN(amount) || amount <= 0) {
+      toast({ title: "Invalid Amount", description: "Please enter a valid diamond amount", variant: "destructive" });
       return;
     }
     
     setTransferProcessing(true);
     try {
-      // ATOMIC: Deduct from helper wallet (prevents race conditions & negative balance)
-      const { data: deductResult, error: helperError } = await supabase
+      // Deduct from helper wallet and add to own profile
+      const { data: deductResult, error: deductError } = await supabase
         .rpc('deduct_helper_wallet', {
           _helper_id: helperData.id,
           _amount: amount,
           _update_total_sold: false
         });
 
-      if (helperError) throw helperError;
+      if (deductError) throw deductError;
       const deductData = deductResult as any;
       if (deductData && deductData.success === false) {
-        throw new Error(deductData.error || 'Insufficient balance');
+        throw new Error(deductData.error || 'Insufficient wallet balance');
       }
 
-      // ATOMIC: Add to agency diamond balance (helper-safe RPC)
-      const { data: addResult, error: agencyError } = await supabase
-        .rpc('helper_add_diamonds_to_agency', {
-          _agency_id: searchedAgency.id,
+      // Add to own profile coins
+      const { data: addResult, error: addError } = await supabase
+        .rpc('helper_add_coins_to_user', {
+          _user_id: helperData.user_id,
           _amount: amount
         });
 
-      if (agencyError) throw agencyError;
+      if (addError) throw addError;
       const addData = addResult as any;
       if (addData && addData.success === false) {
         throw new Error(addData.error || 'Failed to add diamonds');
@@ -872,27 +921,31 @@ const HelperDashboard = () => {
       // Record transaction
       await supabase.from('coin_transfers').insert({
         sender_id: helperData.user_id,
-        receiver_id: searchedAgency.id,
+        receiver_id: helperData.user_id,
         amount: amount,
-        sender_type: 'trader_to_agency',
-        note: `Trader transferred ${amount} diamonds to agency ${searchedAgency.agency_code}`
+        sender_type: 'self_recharge',
+        note: `Self-recharge: ${amount} diamonds from wallet to profile`
       });
 
       toast({ 
-        title: "Transfer Successful! ✅", 
-        description: `${amount.toLocaleString()} 💎 sent to ${searchedAgency.name}` 
+        title: "Self Recharge Successful! ✅", 
+        description: `${amount.toLocaleString()} 💎 added to your account` 
       });
 
-      // Update local state
-      setHelperData((prev: any) => ({ ...prev, wallet_balance: Math.max(0, (prev.wallet_balance ?? 0) - amount) }));
+      // Refresh helper data
+      const { data: refreshed } = await supabase
+        .from('topup_helpers')
+        .select('wallet_balance')
+        .eq('id', helperData.id)
+        .single();
+      if (refreshed) {
+        setHelperData((prev: any) => ({ ...prev, wallet_balance: refreshed.wallet_balance }));
+      }
       
-      // Reset
       setShowTransferModal(false);
-      setTransferSearchQuery("");
       setTransferAmount("");
-      setSearchedAgency(null);
     } catch (error: any) {
-      toast({ title: "Transfer Failed", description: error.message, variant: "destructive" });
+      toast({ title: "Self Recharge Failed", description: error.message, variant: "destructive" });
     } finally {
       setTransferProcessing(false);
     }
