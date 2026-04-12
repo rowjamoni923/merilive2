@@ -387,7 +387,7 @@ const AgencyDashboard = () => {
             ? supabase.from("profiles").select("display_name, avatar_url").eq("id", parentRes.data.owner_id).maybeSingle()
             : Promise.resolve({ data: null }),
           // Level tier
-          supabase.from("agency_level_tiers").select("level_code, level_name, commission_rate, badge_color").eq("level_code", effectiveLevel).eq("is_active", true).maybeSingle(),
+          supabase.from("agency_level_tiers").select("level_code, level_name, commission_rate, badge_color").eq("level_code", effectiveTierCode).eq("is_active", true).maybeSingle(),
           // Host profiles
           hostIds.length > 0
             ? supabase.from("profiles").select("id, display_name, avatar_url, is_online, total_earnings, is_verified").in("id", hostIds)
