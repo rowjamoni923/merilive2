@@ -298,7 +298,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
           const { error: createProfileError } = await supabase
             .from("profiles")
-            .upsert({
+            .insert({
               id: user.id,
               display_name: displayName,
               username: user.email?.includes('@meri.local') ? null : user.email?.split('@')[0] || null,
@@ -306,7 +306,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               gender: user.user_metadata?.gender || 'male',
               app_uid: appUid,
               last_seen: new Date().toISOString(),
-            }, { onConflict: 'id' });
+            });
 
           if (createProfileError) {
             console.error("[Profile] Failed to create fallback profile:", createProfileError);
@@ -1423,7 +1423,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
         const { error } = await supabase
           .from("profiles")
-          .upsert({
+          .insert({
             id: currentUser.id,
             display_name: displayName,
             username: currentUser.email?.includes('@meri.local') ? null : currentUser.email?.split('@')[0] || null,
@@ -1431,7 +1431,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             app_uid: appUid,
             gender: currentUser.user_metadata?.gender || 'male',
             last_seen: new Date().toISOString(),
-          }, { onConflict: 'id' });
+          });
 
         if (!error) {
           // Re-fetch profile

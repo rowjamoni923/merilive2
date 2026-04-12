@@ -147,6 +147,8 @@ export const useDailyLoginReward = () => {
 
       if (error) {
         console.error('[DailyLogin] Claim error:', error);
+        setCanClaimToday(false);
+        localStorage.setItem('daily_login_popup_dismissed', getTaskDate());
         toast({ title: "Already claimed today!", variant: "destructive" });
         setClaiming(false);
         return;
