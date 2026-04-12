@@ -182,12 +182,11 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   const [showAgencyExchangeModal, setShowAgencyExchangeModal] = useState(false);
   const [agencyData, setAgencyData] = useState<{ id: string; name: string; diamond_balance: number; beans_balance: number } | null>(null);
   const availableTransferBalance = useMemo(() => {
-    if (agencyData) {
-      return Number(agencyData.diamond_balance || 0) + Number(traderWallet || 0);
-    }
-
-    return Number(traderWallet || 0);
-  }, [agencyData, traderWallet]);
+    const personalCoins = Number(resolvedDiamondBalance || 0);
+    const agency = Number(agencyData?.diamond_balance || 0);
+    const trader = Number(traderWallet || 0);
+    return agency + trader + personalCoins;
+  }, [agencyData, traderWallet, resolvedDiamondBalance]);
 
   const refreshTransferBalances = async () => {
     if (!currentUser?.id) {
@@ -239,10 +238,19 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       setAgencyData(null);
     }
 
+    // Include personal coins in total (RPC uses tiered: agency -> helper -> personal)
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("coins")
+      .eq("id", currentUser.id)
+      .single();
+    const personalCoins = Number(profileData?.coins || 0);
+
     return {
       traderWallet: nextTraderWallet,
       agencyBalance: nextAgencyBalance,
-      total: nextTraderWallet + nextAgencyBalance,
+      personalCoins,
+      total: nextTraderWallet + nextAgencyBalance + personalCoins,
     };
   };
 
@@ -957,7 +965,10 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         throw new Error(`Insufficient balance. Available: ${latestBalances.total.toLocaleString()}`);
       }
 
-      const senderType = latestBalances.traderWallet >= amount ? 'trader_to_user' : 'agency_to_user';
+      // Pick sender type: agency first if it has balance, then trader, then personal
+      const senderType = latestBalances.agencyBalance >= amount ? 'agency_to_user' 
+        : latestBalances.traderWallet >= amount ? 'trader_to_user' 
+        : 'agency_to_user'; // fallback to agency_to_user which tries all tiers in RPC
 
       const { data, error } = await supabase.rpc('helper_transfer_coins_to_user', {
         _sender_id: currentUser.id,
@@ -1022,7 +1033,9 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         throw new Error(`Insufficient balance. Available: ${latestBalances.total.toLocaleString()}`);
       }
 
-      const senderType = latestBalances.traderWallet >= amount ? 'trader_to_agency' : 'agency_to_agency';
+      const senderType = latestBalances.agencyBalance >= amount ? 'agency_to_agency' 
+        : latestBalances.traderWallet >= amount ? 'trader_to_agency' 
+        : 'agency_to_agency';
 
       const { data, error } = await supabase.rpc('helper_transfer_diamonds_to_agency', {
         _sender_id: currentUser.id,
