@@ -166,9 +166,6 @@ let storedVerificationId: string | null = null;
                phone_number: phoneNumber,
                display_name: displayName,
                gender: gender,
-               is_host: isHost,
-               host_status: isHost ? 'approved' : null,
-               phone_verified: true,
              })
              .eq('id', anonData.user.id);
          } else {
@@ -179,14 +176,6 @@ let storedVerificationId: string | null = null;
                phone_number: phoneNumber,
                display_name: displayName,
                gender: gender,
-               is_host: isHost,
-               host_status: isHost ? 'approved' : null,
-               phone_verified: true,
-               coins: 0,
-               total_earnings: 0,
-               pending_earnings: 0,
-               level: 1,
-               consumption_coins: 0,
              });
          }
          
