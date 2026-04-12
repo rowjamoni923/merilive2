@@ -101,8 +101,8 @@ const computeCounts = async (userId: string): Promise<UnreadCounts> => {
   const [messagesRes, officialRes, notificationsRes, helperNotifRes] = await Promise.all([
     supabase
       .from('conversations')
-      .select('id, participant_1, participant_2')
-      .or(`participant_1.eq.${userId},participant_2.eq.${userId}`),
+      .select('id, participant1_id, participant2_id')
+      .or(`participant1_id.eq.${userId},participant2_id.eq.${userId}`),
 
     supabase.rpc('get_user_notices', { p_user_id: userId }),
 
@@ -194,10 +194,10 @@ const ensureRealtimeSubscription = () => {
 
   sharedChannel = supabase
     .channel(`global-unread-shared-${sharedUserId}`)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations', filter: `participant_1=eq.${sharedUserId}` }, () => {
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations', filter: `participant1_id=eq.${sharedUserId}` }, () => {
       void fetchSharedCounts(true);
     })
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations', filter: `participant_2=eq.${sharedUserId}` }, () => {
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations', filter: `participant2_id=eq.${sharedUserId}` }, () => {
       void fetchSharedCounts(true);
     })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${sharedUserId}` }, () => {

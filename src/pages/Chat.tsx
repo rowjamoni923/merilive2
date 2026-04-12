@@ -66,8 +66,8 @@ import { ReportUserDialog } from "@/components/report/ReportUserDialog";
 
 interface Conversation {
   id: string;
-  participant_1: string;
-  participant_2: string;
+  participant1_id: string;
+  participant2_id: string;
   last_message_at: string | null;
   other_user: {
     id: string;
@@ -1013,7 +1013,7 @@ const Chat = () => {
         const { data: convs } = await supabase
           .from('conversations')
           .select('*')
-          .or(`participant_1.eq.${userId},participant_2.eq.${userId}`)
+          .or(`participant1_id.eq.${userId},participant2_id.eq.${userId}`)
           .order('last_message_at', { ascending: false, nullsFirst: false });
         
         setConversations((convs || []).map(c => ({
@@ -1030,16 +1030,16 @@ const Chat = () => {
       const conversationsArray = Array.isArray(conversations) ? conversations : [];
       const formattedConversations: Conversation[] = conversationsArray.map((conv: {
         id: string;
-        participant_1: string;
-        participant_2: string;
+        participant1_id: string;
+        participant2_id: string;
         last_message_at: string | null;
         other_user: Conversation['other_user'];
         last_message: string | null;
         unread_count: number;
       }) => ({
         id: conv.id,
-        participant_1: conv.participant_1,
-        participant_2: conv.participant_2,
+        participant1_id: conv.participant1_id,
+        participant2_id: conv.participant2_id,
         last_message_at: conv.last_message_at,
         other_user: conv.other_user,
         last_message: cleanGiftMessageForPreview(conv.last_message || ''),
@@ -1089,7 +1089,7 @@ const Chat = () => {
     const { data: existing } = await supabase
       .from('conversations')
       .select('*')
-      .or(`and(participant_1.eq.${currentUserId},participant_2.eq.${otherUserId}),and(participant_1.eq.${otherUserId},participant_2.eq.${currentUserId})`)
+      .or(`and(participant1_id.eq.${currentUserId},participant2_id.eq.${otherUserId}),and(participant1_id.eq.${otherUserId},participant2_id.eq.${currentUserId})`)
       .maybeSingle();
 
     if (existing) {
@@ -1110,8 +1110,8 @@ const Chat = () => {
       const { data: newConv, error } = await supabase
         .from('conversations')
         .insert({
-          participant_1: currentUserId,
-          participant_2: otherUserId
+          participant1_id: currentUserId,
+          participant2_id: otherUserId
         })
         .select()
         .single();

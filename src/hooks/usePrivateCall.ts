@@ -991,11 +991,11 @@ export function usePrivateCall(userId: string | null) {
             const { data: existingConv } = await supabase
               .from('conversations')
               .select('id')
-              .or(`and(participant_1.eq.${userId},participant_2.eq.${bgOtherUserId}),and(participant_1.eq.${bgOtherUserId},participant_2.eq.${userId})`)
+              .or(`and(participant1_id.eq.${userId},participant2_id.eq.${bgOtherUserId}),and(participant1_id.eq.${bgOtherUserId},participant2_id.eq.${userId})`)
               .maybeSingle();
             if (!existingConv) {
               await supabase.from('conversations').insert({
-                participant_1: userId, participant_2: bgOtherUserId, last_message_at: new Date().toISOString()
+                participant1_id: userId, participant2_id: bgOtherUserId, last_message_at: new Date().toISOString()
               });
             }
           } catch (_) {}

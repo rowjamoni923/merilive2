@@ -40,8 +40,8 @@ interface UserProfile {
 
 interface Conversation {
   id: string;
-  participant_1: string;
-  participant_2: string;
+  participant1_id: string;
+  participant2_id: string;
   last_message_at: string;
   other_user: UserProfile;
   target_user: UserProfile;
