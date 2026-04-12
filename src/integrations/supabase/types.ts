@@ -3839,9 +3839,12 @@ export type Database = {
       helper_orders: {
         Row: {
           amount_local: number | null
+          amount_usd: number | null
+          coin_amount: number | null
           commission_amount: number | null
           commission_rate: number | null
           created_at: string | null
+          currency_code: string | null
           customer_id: string
           diamond_amount: number
           helper_id: string
@@ -3850,18 +3853,26 @@ export type Database = {
           local_price: number | null
           notes: string | null
           package_id: string
+          payment_details: Json
           payment_method: string | null
           payment_proof_url: string | null
+          processed_at: string | null
           processing_time_minutes: number | null
           status: string | null
           total_price_usd: number
           updated_at: string | null
+          user_country_code: string | null
+          user_id: string | null
+          user_payment_proof: string | null
         }
         Insert: {
           amount_local?: number | null
+          amount_usd?: number | null
+          coin_amount?: number | null
           commission_amount?: number | null
           commission_rate?: number | null
           created_at?: string | null
+          currency_code?: string | null
           customer_id: string
           diamond_amount: number
           helper_id: string
@@ -3870,18 +3881,26 @@ export type Database = {
           local_price?: number | null
           notes?: string | null
           package_id: string
+          payment_details?: Json
           payment_method?: string | null
           payment_proof_url?: string | null
+          processed_at?: string | null
           processing_time_minutes?: number | null
           status?: string | null
           total_price_usd: number
           updated_at?: string | null
+          user_country_code?: string | null
+          user_id?: string | null
+          user_payment_proof?: string | null
         }
         Update: {
           amount_local?: number | null
+          amount_usd?: number | null
+          coin_amount?: number | null
           commission_amount?: number | null
           commission_rate?: number | null
           created_at?: string | null
+          currency_code?: string | null
           customer_id?: string
           diamond_amount?: number
           helper_id?: string
@@ -3890,12 +3909,17 @@ export type Database = {
           local_price?: number | null
           notes?: string | null
           package_id?: string
+          payment_details?: Json
           payment_method?: string | null
           payment_proof_url?: string | null
+          processed_at?: string | null
           processing_time_minutes?: number | null
           status?: string | null
           total_price_usd?: number
           updated_at?: string | null
+          user_country_code?: string | null
+          user_id?: string | null
+          user_payment_proof?: string | null
         }
         Relationships: [
           {
@@ -10821,6 +10845,15 @@ export type Database = {
           _receiver_id: string
           _sender_id: string
           _sender_type?: string
+        }
+        Returns: Json
+      }
+      helper_transfer_diamonds_to_agency: {
+        Args: {
+          _amount: number
+          _sender_id: string
+          _sender_type?: string
+          _target_agency_id: string
         }
         Returns: Json
       }
