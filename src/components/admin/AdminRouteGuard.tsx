@@ -127,6 +127,7 @@ const ROUTE_HUB_MAP: Record<string, string> = {
   'room-welcome-messages': 'party-hub',
 
   // Support & Moderation
+  'contact-violations': 'moderation-hub',
   'support-tickets': 'moderation-hub',
   'gmail-support': 'moderation-hub',
   'chat-inspector': 'moderation-hub',
@@ -136,6 +137,7 @@ const ROUTE_HUB_MAP: Record<string, string> = {
   'error-logs': 'moderation-hub',
 
   // Content extras
+  'onboarding-slides': 'settings-hub',
   'rating-rewards': 'content-hub',
 
   // Dashboard deep links
@@ -156,12 +158,15 @@ const ROUTE_HUB_MAP: Record<string, string> = {
   'app-version': 'settings-hub',
   'device-management': 'settings-hub',
   'allowed-links': 'settings-hub',
+  'icon-registry': 'visual-hub',
+  'beauty-filters': 'visual-hub',
+  'parcel-management': 'settings-hub',
   'landing-page': 'settings-hub',
   'theme-manager': 'settings-hub',
 };
 
 // Owner-only routes - sub-admins can NEVER access these
-const OWNER_ONLY_ROUTES = ['sub-admins', 'agora-settings'];
+const OWNER_ONLY_ROUTES = ['sub-admins', 'agora-settings', 'blueprint'];
 
 interface AdminRouteGuardProps {
   children: ReactNode;
