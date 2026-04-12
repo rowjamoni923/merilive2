@@ -142,7 +142,7 @@ serve(async (req) => {
           user_transaction_id: transaction_id || null,
           is_first_recharge: isFirstRecharge,
           bonus_coins: bonusCoins,
-          base_coins: pkg.coins,
+          base_coins: baseCoins,
           total_coins: totalCoins,
           payment_method_id: payment_method_id,
           display_method: selectedDisplayMethod,

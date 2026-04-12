@@ -102,7 +102,7 @@ serve(async (req) => {
           txn_id: txnId,
           is_first_recharge: isFirstRecharge,
           bonus_coins: bonusCoins,
-          base_coins: pkg.coins,
+          base_coins: baseCoins,
           total_coins: totalCoins,
           payment_method_id: payment_method_id,
         },
