@@ -4159,60 +4159,90 @@ export type Database = {
       }
       host_applications: {
         Row: {
+          admin_notes: string | null
           age: number
           ai_analysis: Json | null
           country: string | null
           created_at: string | null
+          current_step: number | null
+          face_match_score: number | null
           face_verification_id: string | null
+          face_verification_image_url: string | null
+          face_verification_status: string | null
+          full_name: string | null
           host_photos: string[] | null
           id: string
+          is_complete: boolean | null
           language: string[] | null
           notes: string | null
           photo_url: string | null
           real_name: string
+          rejection_reason: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           status: string | null
+          submitted_at: string | null
           updated_at: string | null
           user_id: string
+          video_duration_seconds: number | null
           video_url: string | null
         }
         Insert: {
+          admin_notes?: string | null
           age: number
           ai_analysis?: Json | null
           country?: string | null
           created_at?: string | null
+          current_step?: number | null
+          face_match_score?: number | null
           face_verification_id?: string | null
+          face_verification_image_url?: string | null
+          face_verification_status?: string | null
+          full_name?: string | null
           host_photos?: string[] | null
           id?: string
+          is_complete?: boolean | null
           language?: string[] | null
           notes?: string | null
           photo_url?: string | null
           real_name: string
+          rejection_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string | null
+          submitted_at?: string | null
           updated_at?: string | null
           user_id: string
+          video_duration_seconds?: number | null
           video_url?: string | null
         }
         Update: {
+          admin_notes?: string | null
           age?: number
           ai_analysis?: Json | null
           country?: string | null
           created_at?: string | null
+          current_step?: number | null
+          face_match_score?: number | null
           face_verification_id?: string | null
+          face_verification_image_url?: string | null
+          face_verification_status?: string | null
+          full_name?: string | null
           host_photos?: string[] | null
           id?: string
+          is_complete?: boolean | null
           language?: string[] | null
           notes?: string | null
           photo_url?: string | null
           real_name?: string
+          rejection_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string | null
+          submitted_at?: string | null
           updated_at?: string | null
           user_id?: string
+          video_duration_seconds?: number | null
           video_url?: string | null
         }
         Relationships: []
@@ -4304,6 +4334,7 @@ export type Database = {
       host_levels: {
         Row: {
           badge_url: string | null
+          beans_required: number | null
           color: string | null
           created_at: string | null
           id: string
@@ -4315,6 +4346,7 @@ export type Database = {
         }
         Insert: {
           badge_url?: string | null
+          beans_required?: number | null
           color?: string | null
           created_at?: string | null
           id?: string
@@ -4326,6 +4358,7 @@ export type Database = {
         }
         Update: {
           badge_url?: string | null
+          beans_required?: number | null
           color?: string | null
           created_at?: string | null
           id?: string
