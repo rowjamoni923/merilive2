@@ -1983,6 +1983,7 @@ export type Database = {
         Row: {
           claimed_at: string | null
           claimed_date: string | null
+          created_at: string | null
           day_number: number
           id: string
           reward_amount: number
@@ -1993,6 +1994,7 @@ export type Database = {
         Insert: {
           claimed_at?: string | null
           claimed_date?: string | null
+          created_at?: string | null
           day_number: number
           id?: string
           reward_amount: number
@@ -2003,6 +2005,7 @@ export type Database = {
         Update: {
           claimed_at?: string | null
           claimed_date?: string | null
+          created_at?: string | null
           day_number?: number
           id?: string
           reward_amount?: number
@@ -8504,6 +8507,8 @@ export type Database = {
           level_number: number
           max_consumption: number | null
           min_consumption: number
+          min_earning_amount: number | null
+          min_topup_amount: number | null
           privileges: Json | null
           tier_type: string | null
           updated_at: string | null
@@ -8525,6 +8530,8 @@ export type Database = {
           level_number: number
           max_consumption?: number | null
           min_consumption?: number
+          min_earning_amount?: number | null
+          min_topup_amount?: number | null
           privileges?: Json | null
           tier_type?: string | null
           updated_at?: string | null
@@ -8546,6 +8553,8 @@ export type Database = {
           level_number?: number
           max_consumption?: number | null
           min_consumption?: number
+          min_earning_amount?: number | null
+          min_topup_amount?: number | null
           privileges?: Json | null
           tier_type?: string | null
           updated_at?: string | null
@@ -8873,6 +8882,7 @@ export type Database = {
           created_at: string | null
           current_count: number | null
           id: string
+          is_claimed: boolean | null
           is_completed: boolean | null
           reward_claimed: boolean | null
           task_date: string | null
@@ -8885,6 +8895,7 @@ export type Database = {
           created_at?: string | null
           current_count?: number | null
           id?: string
+          is_claimed?: boolean | null
           is_completed?: boolean | null
           reward_claimed?: boolean | null
           task_date?: string | null
@@ -8897,6 +8908,7 @@ export type Database = {
           created_at?: string | null
           current_count?: number | null
           id?: string
+          is_claimed?: boolean | null
           is_completed?: boolean | null
           reward_claimed?: boolean | null
           task_date?: string | null
