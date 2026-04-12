@@ -141,7 +141,7 @@ const ShopItemCard = ({
       )}
 
       {/* Preview Area */}
-      <div className={`${isFullWidth ? 'aspect-[16/10] min-h-[160px]' : 'aspect-square'} flex items-center justify-center p-5 relative`}>
+      <div className={`${isFullWidth ? 'aspect-[16/10] min-h-[160px]' : 'aspect-square'} flex items-center justify-center p-3 relative overflow-hidden`}>
         {/* Subtle radial glow */}
         <div 
           className="absolute inset-0 opacity-40"
@@ -156,7 +156,7 @@ const ShopItemCard = ({
             <img 
               src={item.preview_url} 
               alt={item.name}
-              className={`max-w-full max-h-full object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 ${isFullWidth ? 'scale-105' : ''}`}
+              className={`w-full h-full object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 ${isFullWidth ? 'scale-105' : ''}`}
               onError={() => setImageError(true)}
             />
           ) : item.animation_file_url?.endsWith('.svga') || item.animation_file_url?.endsWith('.json') ? (
@@ -170,7 +170,7 @@ const ShopItemCard = ({
             <img 
               src={item.animation_file_url || item.preview_url || ''} 
               alt={item.name}
-              className={`max-w-full max-h-full object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 ${isFullWidth ? 'scale-105' : ''}`}
+              className={`w-full h-full object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 ${isFullWidth ? 'scale-105' : ''}`}
               onError={() => setImageError(true)}
             />
           )
