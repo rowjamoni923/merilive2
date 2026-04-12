@@ -117,7 +117,7 @@ const HelperDashboard = () => {
 
   // Transfer to User/Agency state
   const [showTransferModal, setShowTransferModal] = useState(false);
-  const [transferTab, setTransferTab] = useState<"user" | "agency">("user");
+  const [transferTab, setTransferTab] = useState<"user" | "agency" | "self">("user");
   const [transferSearchQuery, setTransferSearchQuery] = useState("");
   const [transferAmount, setTransferAmount] = useState("");
   const [transferSearching, setTransferSearching] = useState(false);
