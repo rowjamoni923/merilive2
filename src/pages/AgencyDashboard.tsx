@@ -364,7 +364,7 @@ const AgencyDashboard = () => {
         const subAgentsData = subAgentsRes.data || [];
         const subAgentUserIds = subAgentsData.map(sa => sa.user_id);
         const countryCode = userProfileRes.data?.country_code || '';
-        // Agency level is determined ONLY by income-based tiers, never overridden by helper status
+        setOwnerPersonalBeans(Number(userProfileRes.data?.beans) || 0);
         // Map A1-A5 codes to DB tier level_codes for proper lookup
         const levelToTierMap: Record<string, string> = {
           'A1': 'bronze', 'A2': 'silver', 'A3': 'gold', 'A4': 'platinum', 'A5': 'diamond'
