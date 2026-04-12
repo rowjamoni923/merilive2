@@ -51,6 +51,8 @@ interface HelperPaymentMethod {
   id: string;
   helper_id: string;
   country_code: string;
+  country_name?: string;
+  payment_method_name?: string;
   method_name: string;
   method_type: string;
   account_name: string;
@@ -58,12 +60,13 @@ interface HelperPaymentMethod {
   bank_name: string | null;
   instructions: string | null;
   logo_url: string | null;
-  qr_code_url: string | null;
-  min_amount: number | null;
-  max_amount: number | null;
   is_active: boolean;
   display_order: number | null;
   created_at: string;
+  additional_info?: any;
+  // Virtual fields (derived from additional_info)
+  get min_amount(): number | null;
+  get max_amount(): number | null;
   helper?: {
     id: string;
     user_id: string;
