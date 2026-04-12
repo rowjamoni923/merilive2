@@ -146,10 +146,15 @@ export const useDailyLoginReward = () => {
       });
 
       if (error) {
-        console.error('[DailyLogin] Claim error:', error);
-        setCanClaimToday(false);
-        localStorage.setItem('daily_login_popup_dismissed', getTaskDate());
-        toast({ title: "Already claimed today!", variant: "destructive" });
+        console.error('[DailyLogin] Claim RPC error:', error.message, error);
+        // Only mark as claimed if it's genuinely a duplicate claim error
+        if (error.message?.includes('Already claimed')) {
+          setCanClaimToday(false);
+          localStorage.setItem('daily_login_popup_dismissed', getTaskDate());
+          toast({ title: "Already claimed today!", variant: "destructive" });
+        } else {
+          toast({ title: "Claim failed", description: error.message, variant: "destructive" });
+        }
         setClaiming(false);
         return;
       }
