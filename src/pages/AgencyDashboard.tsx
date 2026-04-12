@@ -198,6 +198,7 @@ const AgencyDashboard = () => {
   const [totalHostEarningsFromTransfers, setTotalHostEarningsFromTransfers] = useState(0);
   const [totalAgencyCommission, setTotalAgencyCommission] = useState(0);
   const [totalWithdrawn, setTotalWithdrawn] = useState(0); // Track total withdrawn amounts
+  const [ownerPersonalBeans, setOwnerPersonalBeans] = useState(0); // Agency owner's personal beans from gifts/calls
   
   // Parent agency info (if this is a sub-agency)
   const [parentAgency, setParentAgency] = useState<ParentAgencyInfo | null>(null);
@@ -343,8 +344,8 @@ const AgencyDashboard = () => {
           supabase.from("sub_agents").select("*").eq("agency_id", agencyData.id).eq("status", "active"),
           // 8. Beans rate
           supabase.from("app_settings").select("setting_value").eq("setting_key", "beans_to_usd_rate").maybeSingle(),
-          // 9. User profile (country)
-          supabase.from('profiles').select('country_code, country_flag').eq('id', user.id).single(),
+          // 9. User profile (country + personal beans)
+          supabase.from('profiles').select('country_code, country_flag, beans').eq('id', user.id).single(),
           // 10. Helper data
           supabase.from("topup_helpers").select("id, is_verified, is_active, trader_level, payroll_enabled").eq("user_id", user.id).maybeSingle(),
           // 11. Helper contact settings
@@ -363,7 +364,7 @@ const AgencyDashboard = () => {
         const subAgentsData = subAgentsRes.data || [];
         const subAgentUserIds = subAgentsData.map(sa => sa.user_id);
         const countryCode = userProfileRes.data?.country_code || '';
-        // Agency level is determined ONLY by income-based tiers, never overridden by helper status
+        setOwnerPersonalBeans(Number(userProfileRes.data?.beans) || 0);
         // Map A1-A5 codes to DB tier level_codes for proper lookup
         const levelToTierMap: Record<string, string> = {
           'A1': 'bronze', 'A2': 'silver', 'A3': 'gold', 'A4': 'platinum', 'A5': 'diamond'
@@ -724,12 +725,13 @@ const AgencyDashboard = () => {
   const onlineHosts = hosts.filter(h => h.profile?.is_online).length;
   const totalSubAgentEarnings = subAgents.reduce((sum, sa) => sum + (sa.total_earnings || 0), 0);
   
-  // Total Beans = wallet_balance (authoritative, maintained by RPC/triggers/admin)
+  // Total Beans = wallet_balance (host earnings transferred to agency + agency commission)
+  // This is the agency's withdrawable pool from host activities
   const agencyBeansBalance = agency.wallet_balance || 0;
   
-  // My Beans = Agency's own beans_balance + wallet_balance (includes converted diamonds)
-  // wallet_balance stores converted diamond-to-beans, beans_balance stores direct gift beans
-  const myBeans = Math.max(agency.beans_balance || 0, agency.wallet_balance || 0);
+  // My Beans = Agency owner's PERSONAL beans from their own gifts/calls
+  // This is separate from Total Beans — it's the owner's individual earning
+  const myBeans = ownerPersonalBeans;
   
   // Correct USD calculation: beans / rate = USD
   const usdValue = agencyBeansBalance / coinsToUsdRate;
