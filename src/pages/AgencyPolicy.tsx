@@ -205,17 +205,21 @@ const AgencyPolicy = () => {
       }))
     : policyData?.commission_tiers?.tiers || [];
   const hostRequirements = policyData?.host_requirements?.requirements || [];
-  const violations = policyData?.violations?.violations || [];
+  const violations = (policyData?.violations?.violations || []).map((v: any) => ({ ...v, penalties: v?.penalties || [] }));
   const prohibitedContent = policyData?.prohibited_content?.items || [];
   const callRules = policyData?.call_rules?.rules || [];
-  const withdrawal = policyData?.withdrawal || {
+  const withdrawal = {
     minimum_usd: 10,
     settlement_day: 'Monday',
     settlement_time_ist: '09:30',
     settlement_time_bd: '10:00',
     payment_methods: [],
-    timezones: []
+    timezones: [],
+    ...(policyData?.withdrawal || {}),
   };
+  // Ensure nested arrays exist
+  if (!Array.isArray(withdrawal.payment_methods)) withdrawal.payment_methods = [];
+  if (!Array.isArray(withdrawal.timezones)) withdrawal.timezones = [];
 
   return (
     <div className="fixed inset-0 flex flex-col bg-background overflow-y-auto overflow-x-hidden">
