@@ -749,7 +749,7 @@ const HelperDashboard = () => {
     }
   };
 
-  // Transfer diamonds to user
+  // Transfer diamonds to user - uses tiered deduction (agency → wallet → profile)
   const handleTransferToUser = async () => {
     if (!searchedUser || !helperData) return;
     
@@ -770,56 +770,37 @@ const HelperDashboard = () => {
       return;
     }
     
-    if (amount > (helperData.wallet_balance || 0)) {
-      toast({ title: "Insufficient Balance", description: "You don't have enough diamonds", variant: "destructive" });
-      return;
-    }
-    
     setTransferProcessing(true);
     try {
-      // ATOMIC: Deduct from helper wallet (prevents race conditions & negative balance)
-      const { data: deductResult, error: helperError } = await supabase
-        .rpc('deduct_helper_wallet', {
-          _helper_id: helperData.id,
+      // Use tiered deduction RPC: agency → helper wallet → profile coins
+      const { data: result, error } = await supabase
+        .rpc('helper_transfer_coins_to_user', {
+          _sender_id: helperData.user_id,
+          _receiver_id: searchedUser.id,
           _amount: amount,
-          _update_total_sold: true
+          _sender_type: 'trader_to_user'
         });
 
-      if (helperError) throw helperError;
-      const deductData = deductResult as any;
-      if (deductData && deductData.success === false) {
-        throw new Error(deductData.error || 'Insufficient balance');
+      if (error) throw error;
+      const resultData = result as any;
+      if (resultData && resultData.success === false) {
+        throw new Error(resultData.error || 'Transfer failed');
       }
-
-      // ATOMIC: Add to user coins (helper-safe RPC)
-      const { data: addResult, error: userError } = await supabase
-        .rpc('helper_add_coins_to_user', {
-          _user_id: searchedUser.id,
-          _amount: amount
-        });
-
-      if (userError) throw userError;
-      const addData = addResult as any;
-      if (addData && addData.success === false) {
-        throw new Error(addData.error || 'Failed to add coins');
-      }
-
-      // Record transaction
-      await supabase.from('coin_transfers').insert({
-        sender_id: helperData.user_id,
-        receiver_id: searchedUser.id,
-        amount: amount,
-        sender_type: 'trader_to_user',
-        note: `Trader transferred ${amount} diamonds to user ${searchedUser.app_uid}`
-      });
 
       toast({ 
         title: "Transfer Successful! ✅", 
         description: `${amount.toLocaleString()} 💎 sent to ${searchedUser.display_name}` 
       });
 
-      // Update local state
-      setHelperData((prev: any) => ({ ...prev, wallet_balance: Math.max(0, (prev.wallet_balance ?? 0) - amount) }));
+      // Refresh helper data
+      const { data: refreshed } = await supabase
+        .from('topup_helpers')
+        .select('wallet_balance')
+        .eq('id', helperData.id)
+        .single();
+      if (refreshed) {
+        setHelperData((prev: any) => ({ ...prev, wallet_balance: refreshed.wallet_balance }));
+      }
       
       // Reset
       setShowTransferModal(false);
