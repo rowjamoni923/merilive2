@@ -182,12 +182,25 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   const [showAgencyExchangeModal, setShowAgencyExchangeModal] = useState(false);
   const [agencyData, setAgencyData] = useState<{ id: string; name: string; diamond_balance: number; beans_balance: number } | null>(null);
   const availableTransferBalance = useMemo(() => {
+    // Total available = agency diamonds + helper wallet + personal diamonds
+    // The RPC uses tiered deduction across all three sources
+    const agencyBalance = agencyData ? Number(agencyData.diamond_balance || 0) : 0;
+    const helperWallet = Number(traderWallet || 0);
+    const personalBalance = resolvedDiamondBalance;
+    
+    // If user is agency owner, agencyData.diamond_balance already includes helper wallet
     if (agencyData) {
-      return Number(agencyData.diamond_balance || 0);
+      return agencyBalance + personalBalance;
     }
-
-    return Number(traderWallet || 0);
-  }, [agencyData, traderWallet]);
+    
+    // If user is a trader (not agency owner), combine wallet + personal
+    if (helperWallet > 0) {
+      return helperWallet + personalBalance;
+    }
+    
+    // Regular user - only personal balance
+    return personalBalance;
+  }, [agencyData, traderWallet, resolvedDiamondBalance]);
 
   const [agencyExchangeSettings, setAgencyExchangeSettings] = useState({
     beans_to_diamonds_rate: 1,
