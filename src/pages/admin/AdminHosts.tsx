@@ -194,7 +194,7 @@ export default function AdminHosts() {
     try {
       const { error } = await supabase.rpc('admin_update_user_gender', {
         _user_id: hostId,
-        _new_gender: 'female',
+        _gender: 'female',
       });
 
       if (error) throw error;
@@ -210,7 +210,7 @@ export default function AdminHosts() {
     try {
       const { error } = await supabase.rpc('admin_update_user_gender', {
         _user_id: hostId,
-        _new_gender: 'male',
+        _gender: 'male',
       });
 
       if (error) throw error;

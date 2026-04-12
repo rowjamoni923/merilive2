@@ -192,7 +192,7 @@ export default function AdminUsers() {
       const targetGender = isHost ? 'male' : 'female';
       const { error } = await supabase.rpc('admin_update_user_gender', {
         _user_id: userId,
-        _new_gender: targetGender,
+        _gender: targetGender,
       });
 
       if (error) throw error;

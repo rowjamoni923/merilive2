@@ -292,7 +292,7 @@ export default function UserSupportTool() {
       const targetGender = selectedUser.is_host ? "male" : "female";
       const { error } = await supabase.rpc("admin_update_user_gender", {
         _user_id: selectedUser.id,
-        _new_gender: targetGender,
+        _gender: targetGender,
       });
       if (error) throw error;
 
