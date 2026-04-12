@@ -83,10 +83,11 @@ serve(async (req) => {
       .maybeSingle();
 
     const isFirstRecharge = !firstRechargeData;
-    const bonusCoins = isFirstRecharge && pkg.bonus_percentage > 0
-      ? Math.floor(pkg.coins * pkg.bonus_percentage / 100)
+    const baseCoins = pkg.coins_amount || pkg.coins || 0;
+    const bonusCoins = isFirstRecharge && (pkg.bonus_coins || 0) > 0
+      ? pkg.bonus_coins
       : 0;
-    const totalCoins = pkg.coins + bonusCoins;
+    const totalCoins = baseCoins + bonusCoins;
 
     const txnId = `ML_ZP_${Date.now()}_${user.id.substring(0, 8)}`;
 
