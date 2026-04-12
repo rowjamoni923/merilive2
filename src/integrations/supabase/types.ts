@@ -1600,6 +1600,27 @@ export type Database = {
         }
         Relationships: []
       }
+      blocked_users: {
+        Row: {
+          blocked_id: string
+          blocker_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          blocked_id: string
+          blocker_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          blocked_id?: string
+          blocker_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: []
+      }
       branding_settings: {
         Row: {
           created_at: string | null
@@ -3209,7 +3230,9 @@ export type Database = {
         Row: {
           coin_amount: number
           coin_cost: number | null
+          coin_value: number | null
           created_at: string | null
+          diamond_cost: number | null
           gift_id: string | null
           id: string
           quantity: number | null
@@ -3224,7 +3247,9 @@ export type Database = {
         Insert: {
           coin_amount: number
           coin_cost?: number | null
+          coin_value?: number | null
           created_at?: string | null
+          diamond_cost?: number | null
           gift_id?: string | null
           id?: string
           quantity?: number | null
@@ -3239,7 +3264,9 @@ export type Database = {
         Update: {
           coin_amount?: number
           coin_cost?: number | null
+          coin_value?: number | null
           created_at?: string | null
+          diamond_cost?: number | null
           gift_id?: string | null
           id?: string
           quantity?: number | null
@@ -4949,6 +4976,7 @@ export type Database = {
       live_streams: {
         Row: {
           created_at: string | null
+          description: string | null
           ended_at: string | null
           host_id: string
           id: string
@@ -4959,11 +4987,13 @@ export type Database = {
           stream_type: string | null
           thumbnail_url: string | null
           title: string | null
+          total_coins_earned: number | null
           total_gifts: number | null
           viewer_count: number | null
         }
         Insert: {
           created_at?: string | null
+          description?: string | null
           ended_at?: string | null
           host_id: string
           id?: string
@@ -4974,11 +5004,13 @@ export type Database = {
           stream_type?: string | null
           thumbnail_url?: string | null
           title?: string | null
+          total_coins_earned?: number | null
           total_gifts?: number | null
           viewer_count?: number | null
         }
         Update: {
           created_at?: string | null
+          description?: string | null
           ended_at?: string | null
           host_id?: string
           id?: string
@@ -4989,6 +5021,7 @@ export type Database = {
           stream_type?: string | null
           thumbnail_url?: string | null
           title?: string | null
+          total_coins_earned?: number | null
           total_gifts?: number | null
           viewer_count?: number | null
         }
@@ -5997,37 +6030,55 @@ export type Database = {
       payment_transactions: {
         Row: {
           amount: number
+          amount_usd: number | null
           created_at: string | null
           currency: string | null
+          diamonds_amount: number | null
           external_transaction_id: string | null
           gateway_id: string | null
+          gateway_response: Json | null
           id: string
+          notes: string | null
           package_id: string | null
+          payment_method: string | null
           status: string | null
+          transaction_ref: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
           amount: number
+          amount_usd?: number | null
           created_at?: string | null
           currency?: string | null
+          diamonds_amount?: number | null
           external_transaction_id?: string | null
           gateway_id?: string | null
+          gateway_response?: Json | null
           id?: string
+          notes?: string | null
           package_id?: string | null
+          payment_method?: string | null
           status?: string | null
+          transaction_ref?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
           amount?: number
+          amount_usd?: number | null
           created_at?: string | null
           currency?: string | null
+          diamonds_amount?: number | null
           external_transaction_id?: string | null
           gateway_id?: string | null
+          gateway_response?: Json | null
           id?: string
+          notes?: string | null
           package_id?: string | null
+          payment_method?: string | null
           status?: string | null
+          transaction_ref?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -6143,6 +6194,8 @@ export type Database = {
       }
       pk_battles: {
         Row: {
+          challenger_id: string | null
+          challenger_score: number | null
           created_at: string | null
           duration_minutes: number | null
           ended_at: string | null
@@ -6151,6 +6204,8 @@ export type Database = {
           host2_id: string
           host2_score: number | null
           id: string
+          opponent_id: string | null
+          opponent_score: number | null
           started_at: string | null
           status: string | null
           stream1_id: string | null
@@ -6158,6 +6213,8 @@ export type Database = {
           winner_id: string | null
         }
         Insert: {
+          challenger_id?: string | null
+          challenger_score?: number | null
           created_at?: string | null
           duration_minutes?: number | null
           ended_at?: string | null
@@ -6166,6 +6223,8 @@ export type Database = {
           host2_id: string
           host2_score?: number | null
           id?: string
+          opponent_id?: string | null
+          opponent_score?: number | null
           started_at?: string | null
           status?: string | null
           stream1_id?: string | null
@@ -6173,6 +6232,8 @@ export type Database = {
           winner_id?: string | null
         }
         Update: {
+          challenger_id?: string | null
+          challenger_score?: number | null
           created_at?: string | null
           duration_minutes?: number | null
           ended_at?: string | null
@@ -6181,6 +6242,8 @@ export type Database = {
           host2_id?: string
           host2_score?: number | null
           id?: string
+          opponent_id?: string | null
+          opponent_score?: number | null
           started_at?: string | null
           status?: string | null
           stream1_id?: string | null
@@ -7292,6 +7355,7 @@ export type Database = {
       }
       reels: {
         Row: {
+          beans_earned: number | null
           caption: string | null
           category_id: string | null
           comments_count: number | null
@@ -7299,7 +7363,9 @@ export type Database = {
           duration_seconds: number | null
           id: string
           is_active: boolean | null
+          is_approved: boolean | null
           is_public: boolean | null
+          like_count: number | null
           likes_count: number | null
           music_id: string | null
           shares_count: number | null
@@ -7307,9 +7373,11 @@ export type Database = {
           updated_at: string
           user_id: string
           video_url: string
+          view_count: number | null
           views_count: number | null
         }
         Insert: {
+          beans_earned?: number | null
           caption?: string | null
           category_id?: string | null
           comments_count?: number | null
@@ -7317,7 +7385,9 @@ export type Database = {
           duration_seconds?: number | null
           id?: string
           is_active?: boolean | null
+          is_approved?: boolean | null
           is_public?: boolean | null
+          like_count?: number | null
           likes_count?: number | null
           music_id?: string | null
           shares_count?: number | null
@@ -7325,9 +7395,11 @@ export type Database = {
           updated_at?: string
           user_id: string
           video_url: string
+          view_count?: number | null
           views_count?: number | null
         }
         Update: {
+          beans_earned?: number | null
           caption?: string | null
           category_id?: string | null
           comments_count?: number | null
@@ -7335,7 +7407,9 @@ export type Database = {
           duration_seconds?: number | null
           id?: string
           is_active?: boolean | null
+          is_approved?: boolean | null
           is_public?: boolean | null
+          like_count?: number | null
           likes_count?: number | null
           music_id?: string | null
           shares_count?: number | null
@@ -7343,6 +7417,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           video_url?: string
+          view_count?: number | null
           views_count?: number | null
         }
         Relationships: [
@@ -8043,6 +8118,7 @@ export type Database = {
       stream_viewers: {
         Row: {
           id: string
+          is_active: boolean | null
           joined_at: string | null
           left_at: string | null
           stream_id: string
@@ -8050,6 +8126,7 @@ export type Database = {
         }
         Insert: {
           id?: string
+          is_active?: boolean | null
           joined_at?: string | null
           left_at?: string | null
           stream_id: string
@@ -8057,6 +8134,7 @@ export type Database = {
         }
         Update: {
           id?: string
+          is_active?: boolean | null
           joined_at?: string | null
           left_at?: string | null
           stream_id?: string
