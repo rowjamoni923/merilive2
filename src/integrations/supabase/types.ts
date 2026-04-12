@@ -10347,6 +10347,10 @@ export type Database = {
             Args: { p_amount: number; p_reason?: string; p_user_id: string }
             Returns: Json
           }
+      deduct_helper_wallet: {
+        Args: { _amount: number; _helper_id: string }
+        Returns: Json
+      }
       end_private_call: { Args: { _call_id: string }; Returns: Json }
       generate_app_uid: { Args: never; Returns: string }
       generate_game_token: {
@@ -10371,6 +10375,10 @@ export type Database = {
           name: string
           total_hosts: number
         }[]
+      }
+      get_agency_diamond_balance: {
+        Args: { owner_user_id: string }
+        Returns: number
       }
       get_agency_rankings: {
         Args: { _limit?: number; _period_type: string; _ranking_type: string }
@@ -10423,6 +10431,19 @@ export type Database = {
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
       helper_add_coins_to_user: {
         Args: { _amount: number; _user_id: string }
+        Returns: Json
+      }
+      helper_add_diamonds_to_agency: {
+        Args: { _agency_id: string; _amount: number }
+        Returns: Json
+      }
+      helper_transfer_coins_to_user: {
+        Args: {
+          _amount: number
+          _receiver_id: string
+          _sender_id: string
+          _sender_type?: string
+        }
         Returns: Json
       }
       is_admin:
