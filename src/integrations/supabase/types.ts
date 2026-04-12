@@ -2893,48 +2893,6 @@ export type Database = {
         }
         Relationships: []
       }
-      game_rounds_stats: {
-        Row: {
-          active_rounds: number | null
-          created_at: string | null
-          game_emoji: string | null
-          game_id: string
-          game_name: string
-          id: string
-          last_round_at: string | null
-          total_players: number | null
-          total_rounds: number | null
-          total_wagered: number | null
-          updated_at: string | null
-        }
-        Insert: {
-          active_rounds?: number | null
-          created_at?: string | null
-          game_emoji?: string | null
-          game_id: string
-          game_name: string
-          id?: string
-          last_round_at?: string | null
-          total_players?: number | null
-          total_rounds?: number | null
-          total_wagered?: number | null
-          updated_at?: string | null
-        }
-        Update: {
-          active_rounds?: number | null
-          created_at?: string | null
-          game_emoji?: string | null
-          game_id?: string
-          game_name?: string
-          id?: string
-          last_round_at?: string | null
-          total_players?: number | null
-          total_rounds?: number | null
-          total_wagered?: number | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       game_server_settings: {
         Row: {
           connection_timeout: number | null
@@ -10057,6 +10015,19 @@ export type Database = {
           owner_id?: string | null
           total_agents?: number | null
           total_hosts?: number | null
+        }
+        Relationships: []
+      }
+      game_rounds_stats: {
+        Row: {
+          active_rounds: number | null
+          game_emoji: string | null
+          game_id: string | null
+          game_name: string | null
+          last_round_at: string | null
+          total_players: number | null
+          total_rounds: number | null
+          total_wagered: number | null
         }
         Relationships: []
       }
