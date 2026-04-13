@@ -10851,6 +10851,16 @@ export type Database = {
         Returns: Json
       }
       get_effective_host_percent: { Args: never; Returns: number }
+      get_transfer_wallet_sources: {
+        Args: { _user_id: string }
+        Returns: {
+          agency_diamond_balance: number
+          agency_id: string
+          helper_id: string
+          helper_wallet_balance: number
+          personal_coins: number
+        }[]
+      }
       get_user_balance: { Args: { _user_id: string }; Returns: Json }
       handle_game_callback: {
         Args: {
