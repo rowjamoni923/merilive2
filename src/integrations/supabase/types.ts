@@ -10659,9 +10659,10 @@ export type Database = {
         Args: { p_competition_id: string }
         Returns: number
       }
-      end_private_call:
-        | { Args: { _call_id: string }; Returns: Json }
-        | { Args: { _call_id: string; _end_reason?: string }; Returns: boolean }
+      end_private_call: {
+        Args: { _call_id: string; _end_reason?: string }
+        Returns: boolean
+      }
       exchange_agency_beans_to_diamonds: {
         Args: {
           p_agency_id: string
