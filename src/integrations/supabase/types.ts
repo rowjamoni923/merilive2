@@ -2661,25 +2661,46 @@ export type Database = {
       }
       first_recharge_bonus: {
         Row: {
+          banner_image_url: string | null
+          banner_subtitle: string | null
+          banner_title: string | null
+          banner_type: string | null
           bonus_coins: number
+          bonus_label: string | null
+          bonus_multiplier: number | null
           bonus_percentage: number
           created_at: string | null
+          description: string | null
           id: string
           is_active: boolean | null
           updated_at: string | null
         }
         Insert: {
+          banner_image_url?: string | null
+          banner_subtitle?: string | null
+          banner_title?: string | null
+          banner_type?: string | null
           bonus_coins?: number
+          bonus_label?: string | null
+          bonus_multiplier?: number | null
           bonus_percentage?: number
           created_at?: string | null
+          description?: string | null
           id?: string
           is_active?: boolean | null
           updated_at?: string | null
         }
         Update: {
+          banner_image_url?: string | null
+          banner_subtitle?: string | null
+          banner_title?: string | null
+          banner_type?: string | null
           bonus_coins?: number
+          bonus_label?: string | null
+          bonus_multiplier?: number | null
           bonus_percentage?: number
           created_at?: string | null
+          description?: string | null
           id?: string
           is_active?: boolean | null
           updated_at?: string | null
