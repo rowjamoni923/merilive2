@@ -26,6 +26,15 @@ import { trackTaskProgress } from "@/hooks/useTaskProgress";
 import { clearPreparedHostPreviewStream, setPreparedHostPreviewStream } from "@/features/live/hostPreviewSession";
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 
+const isApprovedLiveHost = (profile?: {
+  is_host?: boolean | null;
+  host_status?: string | null;
+  gender?: string | null;
+}) => {
+  const normalizedGender = String(profile?.gender ?? '').toLowerCase();
+  return Boolean(profile?.is_host) || String(profile?.host_status ?? '').toLowerCase() === 'approved' || normalizedGender === 'female';
+};
+
 
 const GoLive = () => {
   const navigate = useNavigate();
@@ -216,8 +225,7 @@ const GoLive = () => {
   // Check feature level access when user profile is loaded
   useEffect(() => {
     if (userProfile && !featureLevelLoading) {
-      const normalizedGender = String(userProfile.gender ?? '').toLowerCase();
-      const isHost = Boolean(userProfile.is_host) || String(userProfile.host_status ?? '').toLowerCase() === 'approved' || normalizedGender === 'female';
+      const isHost = isApprovedLiveHost(userProfile);
       const currentLevel = isHost ? userProfile.host_level : userProfile.user_level;
       const result = checkFeatureAccess('go_live', currentLevel, isHost);
       
@@ -715,14 +723,16 @@ const GoLive = () => {
   const handleGoLive = async () => {
     if (isStarting || agoraLoading) return;
 
+    const isHost = isApprovedLiveHost(userProfile);
+
     // Check if user has profile photo - show modal instead of toast
     if (!userProfile?.avatar_url) {
       setShowProfileError(true);
       return;
     }
 
-    // ✅ Face verification required to go live (agency is optional)
-    if (!userProfile?.is_face_verified) {
+    // Approved hosts can go live directly; regular users still need face verification.
+    if (!isHost && !userProfile?.is_face_verified) {
       setShowFaceVerificationRequired(true);
       return;
     }
