@@ -793,12 +793,13 @@ const HelperDashboard = () => {
     setTransferProcessing(true);
     try {
       // Use tiered deduction RPC: agency → helper wallet → profile coins
+      // CRITICAL: Use 'agency_to_user' so RPC tries agency balance first, then helper wallet, then personal coins
       const { data: result, error } = await supabase
         .rpc('helper_transfer_coins_to_user', {
           _sender_id: helperData.user_id,
           _receiver_id: searchedUser.id,
           _amount: amount,
-          _sender_type: 'trader_to_user'
+          _sender_type: 'agency_to_user'
         });
 
       if (error) throw error;
