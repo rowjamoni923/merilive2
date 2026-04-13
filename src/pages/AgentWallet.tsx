@@ -370,7 +370,7 @@ const AgentWallet = () => {
             <span className="text-white/80 text-sm">Diamond Balance</span>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold">{walletBalance.toLocaleString()}</span>
+            <span className="text-3xl font-bold">{diamondBalance.toLocaleString()}</span>
             <span className="text-white/80">Diamonds</span>
           </div>
 
@@ -434,7 +434,7 @@ const AgentWallet = () => {
                       setTransferAmount(amount.toString());
                       setShowTransfer(true);
                     }}
-                    disabled={walletBalance < amount}
+                    disabled={diamondBalance < amount}
                     className="p-3 rounded-xl border border-gray-100 hover:border-emerald-300 hover:bg-emerald-50 transition-colors text-center disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <div className="flex items-center justify-center gap-1 text-yellow-500 font-bold">
@@ -565,7 +565,7 @@ const AgentWallet = () => {
               <p className="text-sm text-gray-600">Available Coins</p>
               <div className="flex items-center gap-1 mt-1">
                 <span className="text-yellow-500">🪙</span>
-                <span className="font-bold text-lg">{walletBalance.toLocaleString()}</span>
+                <span className="font-bold text-lg">{diamondBalance.toLocaleString()}</span>
               </div>
             </div>
 
@@ -664,14 +664,14 @@ const AgentWallet = () => {
 
             {/* Quick Amount Buttons */}
             <div className="flex gap-2 flex-wrap">
-              {[10000, 50000, 100000, walletBalance].map((amount, i) => (
+              {[10000, 50000, 100000, diamondBalance].map((amount, i) => (
                 <Button
                   key={amount}
                   variant="outline"
                   size="sm"
                   onClick={() => setTransferAmount(amount.toString())}
                   className={transferAmount === amount.toString() ? "border-emerald-500 bg-emerald-50" : ""}
-                  disabled={walletBalance < amount}
+                  disabled={diamondBalance < amount}
                 >
                   {i === 3 ? "All" : amount.toLocaleString()}
                 </Button>
