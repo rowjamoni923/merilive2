@@ -52,6 +52,16 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
             .eq('id', userId)
             .single();
 
+          // Profile was deleted — sign out stale session
+          if (!data) {
+            console.log('[ProtectedRoute] Profile missing for session user, signing out');
+            localStorage.removeItem('meri_device_account');
+            localStorage.removeItem('meri_device_id');
+            await supabase.auth.signOut({ scope: 'local' });
+            setProfileMissing(true);
+            return;
+          }
+
           let banned = false;
 
           if (data?.is_blocked) {
