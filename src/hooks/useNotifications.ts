@@ -81,9 +81,10 @@ const getNotificationIcon = (type: string): string => {
   const iconMap: Record<string, string> = {
     gift_received: '🎁', gift_sent: '🎁', gift: '🎁',
     new_follower: '👤', follow: '👤',
-    level_up: '🎉', level_upgrade: '🎉',
+    level_up: '🎉', level_upgrade: '🎉', level_upgrade_approved: '🎉', level_upgrade_rejected: '❌',
     coins_added: '💎', coin_purchase_helper: '💎', coin_purchase_direct: '💎', diamonds_credited: '💎',
-    withdrawal_approved: '✅', withdrawal_rejected: '❌', withdrawal: '⏳',
+    coins_received: '💎', diamond_received: '💎', diamond_sent: '💎',
+    withdrawal_approved: '✅', withdrawal_rejected: '❌', withdrawal: '⏳', withdrawal_commission: '💎',
     host_approved: '🎉', host_rejected: '❌',
     live_started: '🔴', party_invite: '🎉',
     call_missed: '📞', call_received: '📞',
@@ -92,6 +93,14 @@ const getNotificationIcon = (type: string): string => {
     admin_message: '📢', admin_message_reply: '💬',
     system: '⚙️', security: '🔒',
     message: '💬',
+    // Helper & Payroll notifications
+    helper_approved: '✅', helper_rejected: '❌',
+    payroll_approved: '✅', payroll_rejected: '❌',
+    topup_approved: '💎', topup_rejected: '❌',
+    new_topup_order: '💎', new_withdrawal_request: '💰',
+    order_completed: '✅', helper_notification: '🔔',
+    coin_exchange: '💱', payment_completed: '✅', payment_pending: '⏳',
+    report_resolved: '🛡️', admin_warning: '⚠️',
     // Agency notifications
     agency_host_request: '👥',
     agency_host_added: '✅',

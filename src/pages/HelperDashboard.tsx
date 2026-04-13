@@ -225,6 +225,17 @@ const HelperDashboard = () => {
             return;
           }
           setHelperData(newData);
+          
+          // Instantly update level when trader_level changes (e.g., after recharge/upgrade)
+          if (newData?.trader_level) {
+            setTraderLevels(prevLevels => {
+              const current = prevLevels.find(l => l.level_number === newData.trader_level);
+              const next = prevLevels.find(l => l.level_number === newData.trader_level + 1);
+              setCurrentLevel(current || null);
+              setNextLevel(next || null);
+              return prevLevels;
+            });
+          }
         }
       )
       .on(
