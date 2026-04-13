@@ -205,7 +205,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       };
     }
 
-    const shouldLoadAgency = Boolean(agencyData || profile?.is_agency_owner);
+    const shouldLoadAgency = Boolean(agencyData || profile?.is_agency_owner || isCoinTrader);
     const agencyPromise = shouldLoadAgency
       ? supabase
           .from("agencies")
