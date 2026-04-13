@@ -29,6 +29,15 @@ import { setPreparedHostPreviewStream } from "@/features/live/hostPreviewSession
 
 type PartyMode = "video" | "audio" | "game";
 
+const isEligiblePartyHost = (profile?: {
+  is_host?: boolean | null;
+  host_status?: string | null;
+  gender?: string | null;
+}) => {
+  const normalizedGender = String(profile?.gender ?? "").toLowerCase();
+  return Boolean(profile?.is_host) || String(profile?.host_status ?? "").toLowerCase() === "approved" || normalizedGender === "female";
+};
+
 // Shooting Star Component
 const ShootingStar = ({ delay = 0 }: { delay: number }) => (
   <motion.div
@@ -91,7 +100,7 @@ const CreateParty = () => {
   // Check feature level access when user is loaded
   useEffect(() => {
     if (currentUser?.profile && !featureLevelLoading) {
-      const isHost = currentUser.profile.is_host || currentUser.profile.gender === 'female';
+      const isHost = isEligiblePartyHost(currentUser.profile);
       const currentLevel = isHost ? (currentUser.profile.host_level || 0) : (currentUser.profile.user_level || 0);
       const result = checkFeatureAccess('create_party', currentLevel, isHost);
       
@@ -153,7 +162,7 @@ const CreateParty = () => {
           if (user) {
             const { data: profile } = await supabase
               .from('profiles')
-              .select('display_name, avatar_url, frame_id, user_level, host_level, gender, is_host')
+              .select('display_name, avatar_url, frame_id, user_level, host_level, gender, is_host, host_status')
               .eq('id', user.id)
               .single();
             return { ...user, profile };
@@ -233,12 +242,12 @@ const CreateParty = () => {
       // Server-side level check
       const { data: profile } = await supabase
         .from("profiles")
-        .select("user_level, host_level, is_host, gender")
+        .select("user_level, host_level, is_host, host_status, gender")
         .eq("id", user.id)
         .single();
 
       if (profile) {
-        const isHost = profile.is_host || profile.gender === 'female';
+        const isHost = isEligiblePartyHost(profile);
         const currentLevel = isHost ? (profile.host_level || 0) : (profile.user_level || 0);
         const result = checkFeatureAccess('create_party', currentLevel, isHost);
         if (!result.canAccess) {
@@ -265,11 +274,9 @@ const CreateParty = () => {
           name: defaultName,
           room_type: mode,
           room_code: roomCode,
-          game_mode: mode === "game" ? selectedGame : null,
           is_active: true,
-          is_private: false,
           max_participants: seatConfig[mode],
-          current_participants: 1
+          total_seats: seatConfig[mode]
         })
         .select()
         .single();
