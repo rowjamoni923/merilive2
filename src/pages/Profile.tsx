@@ -904,22 +904,21 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     setShowConfirmDialog(true);
   };
 
-  // Auto low-balance warning for helpers after transactions
+  // Auto low-balance warning for helpers/payroll helpers after transactions
   const checkAndNotifyLowBalance = async (newBalance: number, userId: string) => {
-    const LOW_THRESHOLD = 100000;
+    const HIDE_THRESHOLD = 300000;
     const WARN_THRESHOLD = 150000;
-    
-    if (newBalance > WARN_THRESHOLD || newBalance <= 0) return;
-    
-    const isAboutToHide = newBalance <= LOW_THRESHOLD;
-    const warningTitle = isAboutToHide
-      ? "⚠️ You Are Now Hidden!"
-      : "⚠️ Low Balance Warning!";
-    const warningBody = isAboutToHide
-      ? `Your Trader Wallet balance is now ${newBalance.toLocaleString()} 💎, which is below 100,000. Your profile has been automatically HIDDEN from the Helper Section. Recharge immediately to become visible again and continue receiving orders!`
-      : `Your Trader Wallet balance is ${newBalance.toLocaleString()} 💎 and approaching the 100,000 minimum threshold. If your balance drops below 100,000, you will be automatically hidden from the Helper Section. Recharge now to stay visible and keep earning!`;
 
-    // Show toast warning
+    if (newBalance > HIDE_THRESHOLD || newBalance <= 0) return;
+
+    const isHidden = newBalance < HIDE_THRESHOLD;
+    const warningTitle = isHidden
+      ? "⚠️ Payment Methods Hidden"
+      : "⚠️ Low Balance Warning";
+    const warningBody = newBalance <= WARN_THRESHOLD
+      ? `Your Trader Wallet balance is now ${newBalance.toLocaleString()} 💎. It has dropped near or below 150,000. Recharge quickly, otherwise your payment numbers may be hidden from the Recharge page.`
+      : `Your Trader Wallet balance is ${newBalance.toLocaleString()} 💎. If it drops below 300,000, your payment numbers will be automatically hidden from the Recharge page until your balance is restored above 300,000.`;
+
     toast({
       title: warningTitle,
       description: warningBody,
@@ -927,14 +926,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       duration: 10000,
     });
 
-    // Store notification in database
     try {
       await supabase.from("notifications").insert({
         user_id: userId,
         type: "low_balance_warning",
         title: warningTitle,
         message: warningBody,
-        data: { wallet_balance: newBalance, threshold: LOW_THRESHOLD },
+        data: { wallet_balance: newBalance, threshold: HIDE_THRESHOLD, warning_threshold: WARN_THRESHOLD },
       });
     } catch (err) {
       console.error('[LowBalance] Failed to store notification:', err);
