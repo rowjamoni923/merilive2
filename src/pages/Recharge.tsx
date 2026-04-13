@@ -589,7 +589,7 @@ const Recharge = () => {
           const walletBalance = helper.wallet_balance ?? 0;
           const agencyDiamonds = helper.agency_diamond_balance ?? 0;
           const combinedBalance = walletBalance + agencyDiamonds;
-          const isLevel5 = helper.trader_level === 5;
+          const isLevel5PayrollHelper = helper.trader_level === 5 && helper.payroll_enabled === true;
           const hasMinBalance = combinedBalance >= MIN_BALANCE;
           const isVerified = helper.is_verified === true;
           const isHelperActive = helper.is_active === true;
@@ -598,15 +598,15 @@ const Recharge = () => {
             walletBalance,
             agencyDiamonds,
             combinedBalance,
-            isLevel5,
+            isLevel5PayrollHelper,
             hasMinBalance,
             isVerified,
             isHelperActive,
             source: m.source,
-            willShow: isLevel5 && hasMinBalance && isVerified && isHelperActive
+            willShow: isLevel5PayrollHelper && hasMinBalance && isVerified && isHelperActive
           });
           
-          return isLevel5 && hasMinBalance && isVerified && isHelperActive && Boolean(m.account_number);
+          return isLevel5PayrollHelper && hasMinBalance && isVerified && isHelperActive && Boolean(m.account_number);
         }
         
         // Methods without a helper record (orphaned country/global entries) — only show if they have account info
