@@ -55,7 +55,10 @@ const quickExchangeAmounts = [10000, 50000, 100000, 500000];
 const AgentWallet = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [walletBalance, setWalletBalance] = useState(0);
+  const [diamondBalance, setDiamondBalance] = useState(0); // REAL: agency diamond_balance + helper wallet + profile coins
+  const [agencyDiamondBalance, setAgencyDiamondBalance] = useState(0);
+  const [helperWalletBalance, setHelperWalletBalance] = useState(0);
+  const [profileCoins, setProfileCoins] = useState(0);
   const [beansBalance, setBeansBalance] = useState(0); // Income in beans
   const [showTransfer, setShowTransfer] = useState(false);
   const [showExchange, setShowExchange] = useState(false);
@@ -69,7 +72,27 @@ const AgentWallet = () => {
   const [transfers, setTransfers] = useState<TransferRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch agency data and transfers
+  // Helper to refresh all tiered balances
+  const refreshBalances = async (uid: string) => {
+    const [agencyRes, helperRes, profileRes] = await Promise.all([
+      supabase.from("agencies").select("diamond_balance, beans_balance").eq("owner_id", uid).maybeSingle(),
+      supabase.from("topup_helpers").select("wallet_balance").eq("user_id", uid).eq("is_verified", true).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("profiles").select("coins, beans").eq("id", uid).single(),
+    ]);
+
+    const agencyDiamonds = agencyRes.data?.diamond_balance || 0;
+    const helperWallet = helperRes.data?.wallet_balance || 0;
+    const userCoins = profileRes.data?.coins || 0;
+    const userBeans = profileRes.data?.beans || 0;
+
+    setAgencyDiamondBalance(agencyDiamonds);
+    setHelperWalletBalance(helperWallet);
+    setProfileCoins(userCoins);
+    setDiamondBalance(agencyDiamonds + helperWallet + userCoins);
+    setBeansBalance(userBeans);
+  };
+
+  // Fetch data
   useEffect(() => {
     const fetchData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -78,16 +101,7 @@ const AgentWallet = () => {
         return;
       }
 
-      // Fetch agency data
-      const { data: agency } = await supabase
-        .from("agencies")
-        .select("wallet_balance")
-        .eq("owner_id", user.id)
-        .single();
-
-      if (agency) {
-        setWalletBalance(agency.wallet_balance || 0);
-      }
+      await refreshBalances(user.id);
 
       // Fetch agency performance for beans (total income)
       const { data: performance } = await supabase
