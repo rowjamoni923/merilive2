@@ -61,6 +61,7 @@ const HelperDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [userFaceVerified, setUserFaceVerified] = useState(false);
+  const [agencyDiamondBalance, setAgencyDiamondBalance] = useState(0);
   
   // Real-time level progress hook
   const { 
