@@ -24,6 +24,7 @@ const TABLE_TO_QUERY_KEYS: Record<string, string[][]> = {
   app_settings: [['app-settings'], ['global-settings']],
   agencies: [['agencies'], ['agency-details']],
   agency_withdrawals: [['agency-withdrawals']],
+  agency_hosts: [['agency-hosts'], ['agency-details']],
   support_tickets: [['support-tickets']],
   support_messages: [['support-messages']],
   // Admin-controlled tables — instant upgrade in app when admin changes them
@@ -41,6 +42,17 @@ const TABLE_TO_QUERY_KEYS: Record<string, string[][]> = {
   ar_stickers: [['ar-stickers']],
   beauty_filters: [['beauty-filters']],
   admin_music_library: [['music-library']],
+  // Helper/Trader tables — instant level & wallet sync
+  topup_helpers: [['helper-data'], ['user-profile']],
+  trader_level_tiers: [['trader-levels'], ['helper-data']],
+  helper_upgrade_requests: [['upgrade-requests'], ['helper-data']],
+  topup_payment_methods: [['payment-methods']],
+  helper_diamond_packages: [['diamond-packages']],
+  helper_notifications: [['notifications']],
+  // Agency performance & rankings
+  agency_performance: [['agency-details'], ['agency-performance']],
+  agency_rankings: [['agency-rankings']],
+  agency_level_tiers: [['agency-levels']],
 };
 
 // Table-specific debounce tuning for near-instant cache sync
