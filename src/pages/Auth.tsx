@@ -409,11 +409,10 @@ const Auth = () => {
     }
 
     setLoading(true);
-    // Clear manual logout flag — user is actively choosing to start/recover
     localStorage.removeItem('meri_manual_logout');
     
     try {
-      // CRITICAL: Check if already logged in before anything else
+      // Check if already logged in
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         console.log('[Auth] Already logged in, redirecting');
@@ -421,13 +420,8 @@ const Auth = () => {
         return;
       }
 
-      // Get persistent device ID (survives app reinstall)
-      const deviceId = await generateDeviceId();
-      console.log('[Auth] Device ID for recovery:', deviceId);
-      
-      // FIRST: Check database for existing account with this device ID
-      const existingAccount = await recoverAccountByDevice(deviceId);
-      console.log('[Auth] Existing account check result:', existingAccount ? 'Found' : 'Not found');
+      // Go directly to device registration — no device recovery
+      console.log('[Auth] Start button clicked — proceeding to registration');
       
       if (existingAccount) {
         // *** ACCOUNT EXISTS FOR THIS DEVICE — NEVER CREATE A NEW ONE ***
