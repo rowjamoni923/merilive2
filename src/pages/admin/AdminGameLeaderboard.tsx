@@ -109,32 +109,31 @@ export default function AdminGameLeaderboard() {
   };
 
   const fetchHostEarnings = async (start: string, end: string): Promise<LeaderboardEntry[]> => {
-    // Gift earnings from gift_transactions (actual source of truth)
-    const { data: gifts } = await supabase
-      .from('gift_transactions')
-      .select('receiver_id, coin_amount')
-      .gte('created_at', start)
-      .lte('created_at', end);
-
-    // Call earnings
-    const { data: calls } = await supabase
-      .from('private_calls')
-      .select('host_id, host_earnings_amount')
-      .gte('created_at', start)
-      .lte('created_at', end)
-      .eq('status', 'completed');
+    const [{ data: gifts }, { data: calls }] = await Promise.all([
+      supabase
+        .from('gift_transactions')
+        .select('receiver_id, receiver_beans')
+        .gte('created_at', start)
+        .lte('created_at', end),
+      supabase
+        .from('private_calls')
+        .select('host_id, host_earnings_amount, host_earned')
+        .gte('created_at', start)
+        .lte('created_at', end)
+        .in('status', ['ended', 'completed']),
+    ]);
 
     const hostStats: Record<string, number> = {};
-    // Calculate beans (60% of coin_amount goes to host)
+
     (gifts || []).forEach(g => {
       if (g.receiver_id) {
-        const beansEarned = Math.floor((g.coin_amount || 0) * 0.6);
-        hostStats[g.receiver_id] = (hostStats[g.receiver_id] || 0) + beansEarned;
+        hostStats[g.receiver_id] = (hostStats[g.receiver_id] || 0) + Number(g.receiver_beans || 0);
       }
     });
+
     (calls || []).forEach(c => {
-      if (c.host_id && c.host_earnings_amount) {
-        hostStats[c.host_id] = (hostStats[c.host_id] || 0) + c.host_earnings_amount;
+      if (c.host_id) {
+        hostStats[c.host_id] = (hostStats[c.host_id] || 0) + Number(c.host_earnings_amount ?? c.host_earned ?? 0);
       }
     });
 

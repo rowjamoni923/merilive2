@@ -71,18 +71,17 @@ const HostDashboard = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("/profile");
-  const [commissionPercent, setCommissionPercent] = useState(40);
+  const [commissionPercent, setCommissionPercent] = useState(50);
   
   // Call rate settings
   const [callRate, setCallRate] = useState(2000);
-  const [minRate, setMinRate] = useState(30);
+  const [minRate, setMinRate] = useState(1000);
   const [maxRate, setMaxRate] = useState(10000);
   const [savingRate, setSavingRate] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
     
-    // Real-time subscription for host dashboard
     const dashboardChannel = supabase
       .channel('host-dashboard-realtime')
       .on('postgres_changes', { 
@@ -115,11 +114,14 @@ const HostDashboard = () => {
         table: 'app_settings',
         filter: 'setting_key=eq.call_rates'
       }, (payload) => {
-        const newValue = (payload.new as any)?.setting_value;
-        if (newValue) {
-          setCommissionPercent(newValue.host_commission_percent || 40);
-          setMinRate(newValue.min_rate || 30);
-          setMaxRate(newValue.max_rate || 10000);
+        const nextSettings = (payload.new as any)?.setting_value as any;
+        if (nextSettings) {
+          setCommissionPercent(nextSettings.host_commission_percent ?? 50);
+          setMinRate(nextSettings.min_rate ?? 1000);
+          setMaxRate(nextSettings.max_rate ?? 10000);
+          if (!profile?.call_rate_per_minute) {
+            setCallRate(nextSettings.default_rate ?? 2000);
+          }
         }
       })
       .subscribe();
@@ -127,7 +129,7 @@ const HostDashboard = () => {
     return () => {
       supabase.removeChannel(dashboardChannel);
     };
-  }, []);
+  }, [profile?.call_rate_per_minute]);
 
   const fetchDashboardData = async () => {
     try {
@@ -137,7 +139,6 @@ const HostDashboard = () => {
         return;
       }
 
-      // Fetch profile
       const { data: profileData } = await supabase
         .from('profiles')
         .select('*')
@@ -146,12 +147,10 @@ const HostDashboard = () => {
 
       setProfile(profileData);
       
-      // Set host's current call rate
       if (profileData?.call_rate_per_minute) {
         setCallRate(profileData.call_rate_per_minute);
       }
 
-      // Fetch commission percentage and rate limits from settings
       const { data: settingsData } = await supabase
         .from('app_settings')
         .select('setting_value')
@@ -160,17 +159,15 @@ const HostDashboard = () => {
 
       if (settingsData?.setting_value) {
         const callRates = settingsData.setting_value as any;
-        setCommissionPercent(callRates.host_commission_percent || 40);
-        setMinRate(callRates.min_rate || 30);
-        setMaxRate(callRates.max_rate || 10000);
+        setCommissionPercent(callRates?.host_commission_percent ?? 50);
+        setMinRate(callRates?.min_rate ?? 1000);
+        setMaxRate(callRates?.max_rate ?? 10000);
         
-        // Use admin default if host hasn't set custom rate
         if (!profileData?.call_rate_per_minute) {
-          setCallRate(callRates.default_rate || 2000);
+          setCallRate(callRates?.default_rate ?? 2000);
         }
       }
 
-      // Get date ranges
       const now = new Date();
       const startOfWeek = new Date(now);
       startOfWeek.setDate(now.getDate() - now.getDay());
@@ -180,22 +177,19 @@ const HostDashboard = () => {
       const startOfDay = new Date(now);
       startOfDay.setHours(0, 0, 0, 0);
 
-      // Fetch call earnings (where user is host)
       const { data: callsData } = await supabase
         .from('private_calls')
-        .select('*')
+        .select('id, created_at, ended_at, duration_seconds, host_earned, host_earnings_amount')
         .eq('host_id', user.id)
-        .eq('status', 'ended')
+        .in('status', ['ended', 'completed'])
         .order('created_at', { ascending: false });
 
-      // Fetch gift earnings
       const { data: giftsData } = await supabase
         .from('gift_transactions')
-        .select('*, gift:gifts(*), sender:profiles!gift_transactions_sender_id_fkey(display_name, avatar_url)')
+        .select('id, created_at, receiver_beans, sender:profiles!gift_transactions_sender_id_fkey(display_name, avatar_url)')
         .eq('receiver_id', user.id)
         .order('created_at', { ascending: false });
 
-      // Calculate earnings
       let totalCallEarnings = 0;
       let weekCallEarnings = 0;
       let monthCallEarnings = 0;
@@ -205,8 +199,8 @@ const HostDashboard = () => {
       const callTransactions: Transaction[] = [];
 
       callsData?.forEach(call => {
-        const hostEarnings = Math.floor((call.coins_spent || 0) * commissionPercent / 100);
-        const callDate = new Date(call.created_at);
+        const hostEarnings = Number(call.host_earnings_amount ?? call.host_earned ?? 0);
+        const callDate = new Date(call.ended_at || call.created_at);
 
         totalCallEarnings += hostEarnings;
         totalMinutes += call.duration_seconds ? Math.ceil(call.duration_seconds / 60) : 0;
@@ -219,7 +213,7 @@ const HostDashboard = () => {
           id: call.id,
           type: 'call',
           amount: hostEarnings,
-          date: call.created_at,
+          date: call.ended_at || call.created_at,
           otherUserName: 'Caller',
         });
       });
@@ -232,7 +226,7 @@ const HostDashboard = () => {
       const giftTransactions: Transaction[] = [];
 
       giftsData?.forEach(gift => {
-        const hostEarnings = Math.floor((gift.coin_amount || 0) * commissionPercent / 100);
+        const hostEarnings = Number(gift.receiver_beans ?? 0);
         const giftDate = new Date(gift.created_at);
 
         totalGiftEarnings += hostEarnings;
@@ -251,7 +245,6 @@ const HostDashboard = () => {
         });
       });
 
-      // Calculate next transfer date (next Sunday)
       const getNextSunday = () => {
         const today = new Date();
         const daysUntilSunday = (7 - today.getDay()) % 7 || 7;
@@ -262,16 +255,16 @@ const HostDashboard = () => {
       };
 
       setStats({
-        totalEarnings: totalCallEarnings + totalGiftEarnings,
+        totalEarnings: Number(profileData?.total_earnings ?? (totalCallEarnings + totalGiftEarnings)),
         thisWeekEarnings: weekCallEarnings + weekGiftEarnings,
-        thisMonthEarnings: monthCallEarnings + monthGiftEarnings,
+        thisMonthEarnings: monthCallEarnings + weekGiftEarnings,
         todayEarnings: todayCallEarnings + todayGiftEarnings,
         callEarnings: totalCallEarnings,
         giftEarnings: totalGiftEarnings,
         totalCalls: callsData?.length || 0,
         totalCallMinutes: totalMinutes,
-        withdrawableBalance: profileData?.total_earnings || 0,
-        pendingEarnings: Number(profileData?.pending_earnings) || 0,
+        withdrawableBalance: Number(profileData?.beans ?? 0),
+        pendingEarnings: Number(profileData?.pending_earnings ?? 0),
         nextTransferDate: getNextSunday(),
       });
 
