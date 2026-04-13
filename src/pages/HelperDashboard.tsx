@@ -906,56 +906,31 @@ const HelperDashboard = () => {
     
     setTransferProcessing(true);
     try {
-      // Deduct from helper wallet and add to own profile
-      const { data: deductResult, error: deductError } = await supabase
-        .rpc('deduct_helper_wallet', {
-          _helper_id: helperData.id,
-          _amount: amount,
-          _update_total_sold: false
-        });
-
-      if (deductError) throw deductError;
-      const deductData = deductResult as any;
-      if (deductData && deductData.success === false) {
-        throw new Error(deductData.error || 'Insufficient wallet balance');
-      }
-
-      // Add to own profile coins
-      const { data: addResult, error: addError } = await supabase
-        .rpc('helper_add_coins_to_user', {
+      // Use unified atomic self-recharge RPC (tiered: helper wallet → agency → rollback)
+      const { data: result, error } = await supabase
+        .rpc('helper_transfer_diamonds_to_self', {
           _user_id: helperData.user_id,
-          _amount: amount
+          _amount: amount,
         });
 
-      if (addError) throw addError;
-      const addData = addResult as any;
-      if (addData && addData.success === false) {
-        throw new Error(addData.error || 'Failed to add diamonds');
+      if (error) throw error;
+      const resultData = result as any;
+      if (resultData && resultData.success === false) {
+        throw new Error(resultData.error || 'Self recharge failed');
       }
-
-      // Record transaction
-      await supabase.from('coin_transfers').insert({
-        sender_id: helperData.user_id,
-        receiver_id: helperData.user_id,
-        amount: amount,
-        sender_type: 'self_recharge',
-        note: `Self-recharge: ${amount} diamonds from wallet to profile`
-      });
 
       toast({ 
         title: "Self Recharge Successful! ✅", 
         description: `${amount.toLocaleString()} 💎 added to your account` 
       });
 
-      // Refresh helper data + agency balance
-      const [{ data: refreshed }, { data: refreshedAgency }] = await Promise.all([
-        supabase.from('topup_helpers').select('wallet_balance').eq('id', helperData.id).single(),
-        supabase.from('agencies').select('diamond_balance').eq('owner_id', helperData.user_id).eq('is_active', true).maybeSingle(),
-      ]);
-      if (refreshed) {
-        setHelperData((prev: any) => ({ ...prev, wallet_balance: refreshed.wallet_balance }));
+      // Update local state from RPC response
+      if (resultData.new_wallet_balance !== undefined) {
+        setHelperData((prev: any) => ({ ...prev, wallet_balance: resultData.new_wallet_balance }));
       }
-      setAgencyDiamondBalance(refreshedAgency?.diamond_balance || 0);
+      if (resultData.new_agency_balance !== undefined) {
+        setAgencyDiamondBalance(resultData.new_agency_balance);
+      }
       
       setShowTransferModal(false);
       setTransferAmount("");
