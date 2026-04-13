@@ -1977,7 +1977,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                       </span>
                     </div>
                     <p className="text-xl font-bold text-white drop-shadow-lg">
-                      {traderWallet.toLocaleString()} 💎
+                      {(traderWallet + (agencyData?.diamond_balance || 0)).toLocaleString()} 💎
                     </p>
                     <p className="text-[8px] text-emerald-100 mt-0.5 flex items-center gap-1">
                       <Send className="w-2.5 h-2.5" />
