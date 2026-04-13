@@ -1032,9 +1032,9 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         setTraderWallet(prev => prev - result.helper_deducted);
       }
 
-      // Check low balance warning only for helper-wallet deductions
-      if (result.helper_deducted > 0) {
-        const currentWallet = traderWallet - (result.helper_deducted || 0);
+      // Check low balance warning on combined trader wallet balance
+      if (result.helper_deducted > 0 || result.agency_deducted > 0) {
+        const currentWallet = Math.max(0, (traderWallet - (result.helper_deducted || 0)) + ((agencyData?.diamond_balance || 0) - (result.agency_deducted || 0)));
         await checkAndNotifyLowBalance(currentWallet, currentUser.id);
       }
       
@@ -1099,8 +1099,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         description: `${amount.toLocaleString()} 💎 sent to ${searchedAgency.name}` 
       });
 
-      // Check low balance warning
-      const currentWallet = traderWallet - (result.helper_deducted || 0);
+      // Check low balance warning on combined trader wallet balance
+      const currentWallet = Math.max(0, (traderWallet - (result.helper_deducted || 0)) + ((agencyData?.diamond_balance || 0) - (result.agency_deducted || 0)));
       await checkAndNotifyLowBalance(currentWallet, currentUser.id);
       
       setShowTransferModal(false);
