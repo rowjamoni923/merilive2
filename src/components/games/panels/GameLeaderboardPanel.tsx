@@ -86,15 +86,26 @@ export function GameLeaderboardPanel({ isOpen, onClose }: GameLeaderboardPanelPr
 
   const fetchHostEarnings = async (start: string, end: string): Promise<LeaderboardEntry[]> => {
     const [{ data: gifts }, { data: calls }] = await Promise.all([
-      supabase.from('gift_transaction_logs').select('receiver_id, beans_amount')
-        .gte('created_at', start).lte('created_at', end).eq('status', 'completed'),
-      supabase.from('private_calls').select('host_id, host_earnings_amount')
-        .gte('created_at', start).lte('created_at', end).eq('status', 'completed'),
+      supabase
+        .from('gift_transactions')
+        .select('receiver_id, receiver_beans')
+        .gte('created_at', start)
+        .lte('created_at', end),
+      supabase
+        .from('private_calls')
+        .select('host_id, host_earnings_amount, host_earned')
+        .gte('created_at', start)
+        .lte('created_at', end)
+        .in('status', ['ended', 'completed']),
     ]);
 
     const stats: Record<string, number> = {};
-    (gifts || []).forEach(g => { stats[g.receiver_id] = (stats[g.receiver_id] || 0) + (g.beans_amount || 0); });
-    (calls || []).forEach(c => { if (c.host_id && c.host_earnings_amount) stats[c.host_id] = (stats[c.host_id] || 0) + c.host_earnings_amount; });
+    (gifts || []).forEach(g => {
+      if (g.receiver_id) stats[g.receiver_id] = (stats[g.receiver_id] || 0) + Number(g.receiver_beans || 0);
+    });
+    (calls || []).forEach(c => {
+      if (c.host_id) stats[c.host_id] = (stats[c.host_id] || 0) + Number(c.host_earnings_amount ?? c.host_earned ?? 0);
+    });
 
     return await resolveProfiles(stats, 'beans');
   };

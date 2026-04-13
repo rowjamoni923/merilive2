@@ -1,13 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Phone, Search, RefreshCw, CheckCircle, XCircle, Clock, Coins, AlertTriangle } from "lucide-react";
+import { Phone, Search, RefreshCw, Clock, Coins } from "lucide-react";
 import { motion } from "framer-motion";
-import { toast } from "sonner";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 
 interface CallRecord {
@@ -17,6 +15,7 @@ interface CallRecord {
   status: string;
   duration_seconds: number | null;
   coins_spent: number | null;
+  total_coins_deducted: number | null;
   host_earned: number | null;
   host_earnings_amount: number | null;
   host_earnings_credited: boolean | null;
@@ -26,8 +25,8 @@ interface CallRecord {
   connected_at: string | null;
   ended_at: string | null;
   end_reason: string | null;
-  caller_profile?: { display_name: string | null; avatar_url: string | null; app_uid: string | null };
-  host_profile?: { display_name: string | null; avatar_url: string | null; app_uid: string | null };
+  caller_profile?: { display_name: string | null; avatar_url: string | null; app_uid: string | null } | null;
+  host_profile?: { display_name: string | null; avatar_url: string | null; app_uid: string | null } | null;
 }
 
 const formatDuration = (seconds: number | null) => {
@@ -42,19 +41,31 @@ const formatDuration = (seconds: number | null) => {
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case "completed": return "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
-    case "active": case "connected": return "bg-blue-500/20 text-blue-400 border-blue-500/30";
-    case "missed": case "timeout": return "bg-amber-500/20 text-amber-400 border-amber-500/30";
-    case "rejected": case "cancelled": return "bg-red-500/20 text-red-400 border-red-500/30";
-    default: return "bg-slate-500/20 text-slate-400 border-slate-500/30";
+    case "ended":
+    case "completed":
+      return "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
+    case "active":
+    case "connected":
+      return "bg-blue-500/20 text-blue-400 border-blue-500/30";
+    case "missed":
+    case "timeout":
+      return "bg-amber-500/20 text-amber-400 border-amber-500/30";
+    case "rejected":
+    case "cancelled":
+      return "bg-red-500/20 text-red-400 border-red-500/30";
+    default:
+      return "bg-slate-500/20 text-slate-400 border-slate-500/30";
   }
 };
+
+const getSpentAmount = (call: CallRecord) => Number(call.total_coins_deducted ?? call.coins_spent ?? 0);
+const getEarnedAmount = (call: CallRecord) => Number(call.host_earnings_amount ?? call.host_earned ?? 0);
+const isSettledCall = (call: CallRecord) => call.status === "ended" || call.status === "completed";
 
 export default function AdminTodayCalls() {
   const [calls, setCalls] = useState<CallRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [confirmingId, setConfirmingId] = useState<string | null>(null);
 
   const fetchCalls = async () => {
     setLoading(true);
@@ -66,7 +77,7 @@ export default function AdminTodayCalls() {
         .from("private_calls")
         .select(`
           id, caller_id, host_id, status, duration_seconds, coins_spent,
-          host_earned, host_earnings_amount, host_earnings_credited,
+          total_coins_deducted, host_earned, host_earnings_amount, host_earnings_credited,
           host_earnings_credited_at, coins_per_minute, created_at,
           connected_at, ended_at, end_reason
         `)
@@ -76,7 +87,6 @@ export default function AdminTodayCalls() {
 
       if (error) throw error;
 
-      // Fetch profiles for callers and hosts
       const callerIds = [...new Set((data || []).map(c => c.caller_id))];
       const hostIds = [...new Set((data || []).map(c => c.host_id))];
       const allIds = [...new Set([...callerIds, ...hostIds])];
@@ -102,60 +112,7 @@ export default function AdminTodayCalls() {
     }
   };
 
-  
   useAdminRealtime(["private_calls"], fetchCalls);
-
-  const handleConfirmEarnings = async (call: CallRecord) => {
-    if (!call.host_earnings_amount || call.host_earnings_amount <= 0) {
-      toast.error("No earnings amount to credit");
-      return;
-    }
-
-    setConfirmingId(call.id);
-    try {
-      // Credit beans to host
-      const { error: updateError } = await supabase.rpc("admin_credit_host_call_earnings" as any, {
-        p_call_id: call.id,
-        p_host_id: call.host_id,
-        p_amount: call.host_earnings_amount,
-      });
-
-      if (updateError) {
-        // Fallback: direct update
-        const { error: directError } = await supabase
-          .from("private_calls")
-          .update({
-            host_earnings_credited: true,
-            host_earnings_credited_at: new Date().toISOString(),
-          })
-          .eq("id", call.id);
-
-        if (directError) throw directError;
-
-        // Update host beans
-        const { data: hostProfile } = await supabase
-          .from("profiles")
-          .select("beans")
-          .eq("id", call.host_id)
-          .single();
-
-        if (hostProfile) {
-          await supabase
-            .from("profiles")
-            .update({ beans: (hostProfile.beans || 0) + Math.floor(call.host_earnings_amount) })
-            .eq("id", call.host_id);
-        }
-      }
-
-      toast.success(`✅ ${call.host_earnings_amount} Beans credited to host successfully!`);
-      fetchCalls();
-    } catch (e: any) {
-      console.error("Error confirming earnings:", e);
-      toast.error("Failed to credit earnings: " + (e.message || "Unknown error"));
-    } finally {
-      setConfirmingId(null);
-    }
-  };
 
   const filtered = calls.filter(c => {
     if (!search) return true;
@@ -169,8 +126,8 @@ export default function AdminTodayCalls() {
     );
   });
 
-  const completedCalls = filtered.filter(c => c.status === "completed");
-  const uncreditedCalls = completedCalls.filter(c => !c.host_earnings_credited && (c.host_earnings_amount || 0) > 0);
+  const settledCalls = filtered.filter(isSettledCall);
+  const callsWithRecordedEarnings = settledCalls.filter(c => getEarnedAmount(c) > 0);
 
   return (
     <div className="space-y-6">
@@ -178,17 +135,12 @@ export default function AdminTodayCalls() {
         <div>
           <h1 className="text-2xl font-extrabold text-white flex items-center gap-2">
             <Phone className="w-6 h-6 text-cyan-400" />
-            Today's Calls
+            Today&apos;s Calls
             <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30 ml-2">
               {calls.length} Total
             </Badge>
-            {uncreditedCalls.length > 0 && (
-              <Badge className="bg-red-500/20 text-red-400 border-red-500/30 ml-1">
-                {uncreditedCalls.length} Uncredited
-              </Badge>
-            )}
           </h1>
-          <p className="text-sm text-slate-400 mt-1">All private calls made today with earnings status</p>
+          <p className="text-sm text-slate-400 mt-1">Read-only settlement view using stored call earnings</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="relative">
@@ -200,13 +152,15 @@ export default function AdminTodayCalls() {
               className="pl-9 bg-slate-800 border-slate-700 text-white w-64"
             />
           </div>
-          <Button onClick={fetchCalls} variant="outline" size="icon" className="border-slate-700">
+          <button
+            onClick={fetchCalls}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-slate-700 bg-transparent text-white hover:bg-slate-800"
+          >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          </Button>
+          </button>
         </div>
       </div>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Card className="bg-slate-800 border-slate-700">
           <CardContent className="p-4 text-center">
@@ -216,40 +170,33 @@ export default function AdminTodayCalls() {
         </Card>
         <Card className="bg-slate-800 border-slate-700">
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-black text-emerald-400">{completedCalls.length}</p>
-            <p className="text-xs text-slate-400 font-bold">Completed</p>
+            <p className="text-2xl font-black text-emerald-400">{settledCalls.length}</p>
+            <p className="text-xs text-slate-400 font-bold">Ended / Settled</p>
           </CardContent>
         </Card>
         <Card className="bg-slate-800 border-slate-700">
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-black text-amber-400">
-              {completedCalls.reduce((sum, c) => sum + (c.coins_spent || 0), 0).toLocaleString()}
+              {settledCalls.reduce((sum, c) => sum + getSpentAmount(c), 0).toLocaleString()}
             </p>
-            <p className="text-xs text-slate-400 font-bold">Coins Spent</p>
+            <p className="text-xs text-slate-400 font-bold">Diamonds Spent</p>
           </CardContent>
         </Card>
         <Card className="bg-slate-800 border-slate-700">
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-black text-red-400">{uncreditedCalls.length}</p>
-            <p className="text-xs text-slate-400 font-bold">Uncredited</p>
+            <p className="text-2xl font-black text-cyan-400">{callsWithRecordedEarnings.length}</p>
+            <p className="text-xs text-slate-400 font-bold">With Host Earnings</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Uncredited Warning */}
-      {uncreditedCalls.length > 0 && (
-        <Card className="bg-gradient-to-r from-red-900/40 to-orange-900/40 border-red-500/40">
-          <CardContent className="p-4 flex items-center gap-3">
-            <AlertTriangle className="w-6 h-6 text-red-400 shrink-0" />
-            <div className="flex-1">
-              <p className="text-white font-bold">{uncreditedCalls.length} calls have uncredited host earnings!</p>
-              <p className="text-xs text-red-300/70">These calls completed but diamonds were not credited to hosts. Use Confirm button to credit manually.</p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <Card className="bg-gradient-to-r from-emerald-900/30 to-cyan-900/30 border-emerald-500/30">
+        <CardContent className="p-4">
+          <p className="text-white font-bold">Host beans are now shown from stored settlement fields only.</p>
+          <p className="text-xs text-emerald-200/80 mt-1">No manual re-credit action is shown here, which avoids duplicate bean crediting.</p>
+        </CardContent>
+      </Card>
 
-      {/* Call List */}
       <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700/50">
         <CardHeader className="pb-3">
           <CardTitle className="text-white text-lg">Call Records</CardTitle>
@@ -275,7 +222,6 @@ export default function AdminTodayCalls() {
                   className="p-4 hover:bg-slate-700/20 transition-colors"
                 >
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                    {/* Caller */}
                     <div className="flex items-center gap-2 min-w-0 flex-1">
                       <Avatar className="w-9 h-9 shrink-0">
                         <AvatarImage src={call.caller_profile?.avatar_url || ""} />
@@ -293,12 +239,10 @@ export default function AdminTodayCalls() {
                       </div>
                     </div>
 
-                    {/* Arrow */}
                     <div className="hidden sm:flex items-center gap-1 text-slate-500 px-2">
                       <Phone className="w-3 h-3" />→
                     </div>
 
-                    {/* Host */}
                     <div className="flex items-center gap-2 min-w-0 flex-1">
                       <Avatar className="w-9 h-9 shrink-0">
                         <AvatarImage src={call.host_profile?.avatar_url || ""} />
@@ -316,7 +260,6 @@ export default function AdminTodayCalls() {
                       </div>
                     </div>
 
-                    {/* Stats */}
                     <div className="flex flex-wrap items-center gap-2 ml-auto">
                       <Badge className={getStatusColor(call.status)}>
                         {call.status}
@@ -329,46 +272,27 @@ export default function AdminTodayCalls() {
                         </Badge>
                       )}
 
-                      {(call.coins_spent || 0) > 0 && (
+                      {getSpentAmount(call) > 0 && (
                         <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">
                           <Coins className="w-3 h-3 mr-1" />
-                          {call.coins_spent} spent
+                          {getSpentAmount(call)} spent
                         </Badge>
                       )}
 
-                      {call.status === "completed" && (
-                        <>
-                          {call.host_earnings_credited ? (
-                            <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
-                              <CheckCircle className="w-3 h-3 mr-1" />
-                              {call.host_earnings_amount || call.host_earned || 0} Credited
-                            </Badge>
-                          ) : (call.host_earnings_amount || 0) > 0 ? (
-                            <Button
-                              size="sm"
-                              disabled={confirmingId === call.id}
-                              onClick={() => handleConfirmEarnings(call)}
-                              className="bg-red-600 hover:bg-red-500 text-white text-xs h-7 px-3"
-                            >
-                              {confirmingId === call.id ? (
-                                <RefreshCw className="w-3 h-3 animate-spin mr-1" />
-                              ) : (
-                                <AlertTriangle className="w-3 h-3 mr-1" />
-                              )}
-                              Confirm {call.host_earnings_amount} Beans
-                            </Button>
-                          ) : (
-                            <Badge className="bg-slate-600/50 text-slate-400 border-slate-500/30">
-                              <XCircle className="w-3 h-3 mr-1" />
-                              No Earnings
-                            </Badge>
-                          )}
-                        </>
+                      {isSettledCall(call) && (
+                        getEarnedAmount(call) > 0 ? (
+                          <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
+                            {getEarnedAmount(call)} Beans Recorded
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-slate-600/50 text-slate-400 border-slate-500/30">
+                            No Earnings
+                          </Badge>
+                        )
                       )}
                     </div>
                   </div>
 
-                  {/* Time info */}
                   <div className="mt-2 flex items-center gap-4 text-[10px] text-slate-500">
                     <span>Created: {new Date(call.created_at).toLocaleTimeString()}</span>
                     {call.connected_at && <span>Connected: {new Date(call.connected_at).toLocaleTimeString()}</span>}

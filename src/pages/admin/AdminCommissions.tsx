@@ -361,7 +361,7 @@ export default function AdminCommissions() {
                       type="number"
                       min={0}
                       max={100}
-                      value={100 - (settings?.call_rates.host_commission_percent || 40)}
+                      value={100 - (settings?.call_rates.host_commission_percent ?? 50)}
                       onChange={(e) => handleCallRateChange("host_commission_percent", 100 - (parseInt(e.target.value) || 0))}
                       className="bg-white/5 border-white/10 text-white text-lg font-bold"
                     />
@@ -378,9 +378,9 @@ export default function AdminCommissions() {
                 </div>
                 
                 {(() => {
-                  const beansPerMinute = settings?.call_rates.default_rate || 60;
-                  const companyPercent = 100 - (settings?.call_rates.host_commission_percent || 40);
-                  const hostPercent = settings?.call_rates.host_commission_percent || 40;
+                  const beansPerMinute = settings?.call_rates.default_rate ?? 2000;
+                  const companyPercent = 100 - (settings?.call_rates.host_commission_percent ?? 50);
+                  const hostPercent = settings?.call_rates.host_commission_percent ?? 50;
                   const companyEarns = Math.floor(beansPerMinute * companyPercent / 100);
                   const hostEarns = beansPerMinute - companyEarns;
                   
