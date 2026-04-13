@@ -1653,33 +1653,42 @@ export type Database = {
       }
       call_events: {
         Row: {
+          call_id: string | null
           call_type: string | null
           caller_id: string
           coin_cost: number | null
           duration: number | null
           ended_at: string | null
+          event_data: Json | null
+          event_type: string | null
           id: string
           receiver_id: string
           started_at: string | null
           status: string | null
         }
         Insert: {
+          call_id?: string | null
           call_type?: string | null
           caller_id: string
           coin_cost?: number | null
           duration?: number | null
           ended_at?: string | null
+          event_data?: Json | null
+          event_type?: string | null
           id?: string
           receiver_id: string
           started_at?: string | null
           status?: string | null
         }
         Update: {
+          call_id?: string | null
           call_type?: string | null
           caller_id?: string
           coin_cost?: number | null
           duration?: number | null
           ended_at?: string | null
+          event_data?: Json | null
+          event_type?: string | null
           id?: string
           receiver_id?: string
           started_at?: string | null
