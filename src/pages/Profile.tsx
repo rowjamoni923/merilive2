@@ -523,6 +523,24 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             setIsCoinTrader(true);
             setTraderWallet(helperResult.data.wallet_balance || 0);
             setTraderId(helperResult.data.id);
+            
+            // Load agency diamond balance for combined trader wallet (if not already loaded as agency owner)
+            if (!profileData?.is_agency_owner) {
+              const { data: helperAgency } = await supabase
+                .from('agencies')
+                .select('id, diamond_balance, beans_balance, name')
+                .eq('owner_id', user.id)
+                .eq('is_active', true)
+                .maybeSingle();
+              if (helperAgency) {
+                setAgencyData({
+                  id: helperAgency.id,
+                  name: helperAgency.name || 'Agency',
+                  diamond_balance: helperAgency.diamond_balance || 0,
+                  beans_balance: helperAgency.beans_balance || 0,
+                });
+              }
+            }
           } else {
             setIsCoinTrader(false);
             setTraderWallet(0);
@@ -1977,7 +1995,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                       </span>
                     </div>
                     <p className="text-xl font-bold text-white drop-shadow-lg">
-                      {traderWallet.toLocaleString()} 💎
+                      {(traderWallet + (agencyData?.diamond_balance || 0)).toLocaleString()} 💎
                     </p>
                     <p className="text-[8px] text-emerald-100 mt-0.5 flex items-center gap-1">
                       <Send className="w-2.5 h-2.5" />

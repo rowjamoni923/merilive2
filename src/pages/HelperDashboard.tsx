@@ -61,6 +61,7 @@ const HelperDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [userFaceVerified, setUserFaceVerified] = useState(false);
+  const [agencyDiamondBalance, setAgencyDiamondBalance] = useState(0);
   
   // Real-time level progress hook
   const { 
@@ -388,6 +389,15 @@ const HelperDashboard = () => {
       
       console.log('[HelperDashboard] Initial upgrade requests:', requestsData);
       setPendingRequests((requestsData as unknown as UpgradeRequest[]) || []);
+
+      // Load agency diamond balance for combined trader wallet
+      const { data: agencyData } = await supabase
+        .from('agencies')
+        .select('diamond_balance')
+        .eq('owner_id', user.id)
+        .eq('is_active', true)
+        .maybeSingle();
+      setAgencyDiamondBalance(agencyData?.diamond_balance || 0);
 
       // Load transfer history
       await loadTransferHistory(user.id);
@@ -793,15 +803,15 @@ const HelperDashboard = () => {
         description: `${amount.toLocaleString()} 💎 sent to ${searchedUser.display_name}` 
       });
 
-      // Refresh helper data
-      const { data: refreshed } = await supabase
-        .from('topup_helpers')
-        .select('wallet_balance')
-        .eq('id', helperData.id)
-        .single();
+      // Refresh helper data + agency balance
+      const [{ data: refreshed }, { data: refreshedAgency }] = await Promise.all([
+        supabase.from('topup_helpers').select('wallet_balance').eq('id', helperData.id).single(),
+        supabase.from('agencies').select('diamond_balance').eq('owner_id', helperData.user_id).eq('is_active', true).maybeSingle(),
+      ]);
       if (refreshed) {
         setHelperData((prev: any) => ({ ...prev, wallet_balance: refreshed.wallet_balance }));
       }
+      setAgencyDiamondBalance(refreshedAgency?.diamond_balance || 0);
       
       // Reset
       setShowTransferModal(false);
@@ -859,15 +869,15 @@ const HelperDashboard = () => {
         description: `${amount.toLocaleString()} 💎 sent to ${searchedAgency.name}` 
       });
 
-      // Refresh helper data
-      const { data: refreshed } = await supabase
-        .from('topup_helpers')
-        .select('wallet_balance')
-        .eq('id', helperData.id)
-        .single();
+      // Refresh helper data + agency balance
+      const [{ data: refreshed }, { data: refreshedAgency }] = await Promise.all([
+        supabase.from('topup_helpers').select('wallet_balance').eq('id', helperData.id).single(),
+        supabase.from('agencies').select('diamond_balance').eq('owner_id', helperData.user_id).eq('is_active', true).maybeSingle(),
+      ]);
       if (refreshed) {
         setHelperData((prev: any) => ({ ...prev, wallet_balance: refreshed.wallet_balance }));
       }
+      setAgencyDiamondBalance(refreshedAgency?.diamond_balance || 0);
       
       setShowTransferModal(false);
       setTransferSearchQuery("");
@@ -933,15 +943,15 @@ const HelperDashboard = () => {
         description: `${amount.toLocaleString()} 💎 added to your account` 
       });
 
-      // Refresh helper data
-      const { data: refreshed } = await supabase
-        .from('topup_helpers')
-        .select('wallet_balance')
-        .eq('id', helperData.id)
-        .single();
+      // Refresh helper data + agency balance
+      const [{ data: refreshed }, { data: refreshedAgency }] = await Promise.all([
+        supabase.from('topup_helpers').select('wallet_balance').eq('id', helperData.id).single(),
+        supabase.from('agencies').select('diamond_balance').eq('owner_id', helperData.user_id).eq('is_active', true).maybeSingle(),
+      ]);
       if (refreshed) {
         setHelperData((prev: any) => ({ ...prev, wallet_balance: refreshed.wallet_balance }));
       }
+      setAgencyDiamondBalance(refreshedAgency?.diamond_balance || 0);
       
       setShowTransferModal(false);
       setTransferAmount("");
@@ -1008,7 +1018,7 @@ const HelperDashboard = () => {
             <div>
               <p className="text-white/80 text-xs">Wallet Balance</p>
               <p className="text-2xl font-bold text-white">
-                {(helperData?.wallet_balance || 0).toLocaleString()} 💎
+                {((helperData?.wallet_balance || 0) + agencyDiamondBalance).toLocaleString()} 💎
               </p>
               <p className="text-emerald-200 text-xs mt-1 flex items-center gap-1">
                 <Send className="w-3 h-3" />
@@ -2059,7 +2069,7 @@ const HelperDashboard = () => {
               <div className="flex items-center justify-between">
                 <span className="text-white/80 text-sm">Your Balance</span>
                 <span className="text-emerald-400 font-bold text-lg">
-                  {(helperData?.wallet_balance || 0).toLocaleString()} 💎
+                  {((helperData?.wallet_balance || 0) + agencyDiamondBalance).toLocaleString()} 💎
                 </span>
               </div>
             </div>
