@@ -19,6 +19,7 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
   const location = useLocation();
   const [isBanned, setIsBanned] = useState(false);
   const [checked, setChecked] = useState(false);
+  const [profileMissing, setProfileMissing] = useState(false);
   const checkingRef = useRef(false);
 
   // Session hijacking protection
@@ -50,6 +51,16 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
             .select('is_blocked, device_id')
             .eq('id', userId)
             .single();
+
+          // Profile was deleted — sign out stale session
+          if (!data) {
+            console.log('[ProtectedRoute] Profile missing for session user, signing out');
+            localStorage.removeItem('meri_device_account');
+            localStorage.removeItem('meri_device_id');
+            await supabase.auth.signOut({ scope: 'local' });
+            setProfileMissing(true);
+            return;
+          }
 
           let banned = false;
 
@@ -102,6 +113,10 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
       supabase.removeChannel(banChannel);
     };
   }, [session?.user?.id]);
+
+  if (profileMissing) {
+    return <Navigate to="/auth" replace />;
+  }
 
   if (!session) {
     const returnTo = location.pathname + location.search;
