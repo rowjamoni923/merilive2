@@ -1643,6 +1643,15 @@ const Recharge = () => {
           const pollInterval = setInterval(async () => {
             attempts++;
             try {
+              // Try server-side ZiniPay API verification on each poll
+              if (attempts <= 6) {
+                try {
+                  await supabase.functions.invoke("verify-zinipay-payment", {
+                    body: { order_id: data.order_id },
+                  });
+                } catch { /* ignore verify errors */ }
+              }
+
               const { data: orderStatus } = await supabase
                 .from('helper_orders')
                 .select('status')
@@ -1668,7 +1677,7 @@ const Recharge = () => {
                 clearInterval(pollInterval);
                 toast({
                   title: "⏳ ভেরিফিকেশন চলছে",
-                  description: "ভেরিফিকেশনে একটু সময় লাগছে। কিছুক্ষণ পর চেক করুন।",
+                  description: "ভেরিফিকেশনে একটু সময় লাগছে। Helper ম্যানুয়ালি প্রসেস করবে।",
                 });
               }
             } catch {

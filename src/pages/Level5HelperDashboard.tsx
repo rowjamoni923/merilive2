@@ -508,7 +508,7 @@ const Level5HelperDashboard = () => {
       .limit(100);
     
     setHelperOrders(data || []);
-    setPendingOrdersCount((data || []).filter((o: any) => o.status === 'pending').length);
+    setPendingOrdersCount((data || []).filter((o: any) => o.status === 'pending' || o.status === 'gateway_pending').length);
   };
 
   // Load completed orders and withdrawals for history
@@ -1554,7 +1554,7 @@ const Level5HelperDashboard = () => {
                     )}
 
                     {/* Process Order Buttons for Pending */}
-                    {order.status === 'pending' && (
+                    {(order.status === 'pending' || order.status === 'gateway_pending') && (
                       <div className="flex gap-2 mt-3 pt-3 border-t border-slate-700">
                         <Button
                           size="sm"
