@@ -250,13 +250,13 @@ const RechargeHistory = () => {
   // Filter requests based on active tab
    const filteredRequests = rechargeOrders.filter(req => {
     if (activeTab === "all") return true;
-    if (activeTab === "pending") return ['pending', 'processing'].includes(req.status);
-    if (activeTab === "completed") return ['completed', 'approved', 'rejected', 'failed'].includes(req.status);
+    if (activeTab === "pending") return ['pending', 'processing', 'gateway_pending'].includes(req.status);
+    if (activeTab === "completed") return ['completed', 'approved', 'rejected', 'failed', 'cancelled'].includes(req.status);
     return true;
   });
 
-   const pendingCount = rechargeOrders.filter(r => ['pending', 'processing'].includes(r.status)).length;
-   const completedCount = rechargeOrders.filter(r => ['completed', 'approved', 'rejected', 'failed'].includes(r.status)).length;
+   const pendingCount = rechargeOrders.filter(r => ['pending', 'processing', 'gateway_pending'].includes(r.status)).length;
+   const completedCount = rechargeOrders.filter(r => ['completed', 'approved', 'rejected', 'failed', 'cancelled'].includes(r.status)).length;
 
   return (
     <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-slate-900 via-purple-900/20 to-slate-900 overflow-hidden">
