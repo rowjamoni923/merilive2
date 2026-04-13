@@ -5,10 +5,14 @@ import { useEffect } from "react";
 interface FeatureRequirement {
   id: string;
   feature_key: string;
-  feature_name: string;
-  min_level_user: number;
-  min_level_host: number;
-  is_active: boolean;
+  feature_name?: string | null;
+  feature_description?: string | null;
+  min_level_user?: number | null;
+  min_level_host?: number | null;
+  min_level?: number | null;
+  min_vip_level?: number | null;
+  description?: string | null;
+  is_active: boolean | null;
 }
 
 interface CheckResult {
@@ -21,6 +25,23 @@ interface CheckResult {
 
 export const useFeatureLevelCheck = () => {
   const queryClient = useQueryClient();
+
+  const normalizeRequirement = (requirement: FeatureRequirement) => {
+    const userLevel = requirement.min_level_user ?? requirement.min_level ?? 0;
+    const hostLevel = requirement.min_level_host ?? requirement.min_vip_level ?? 0;
+    const featureName = requirement.feature_name
+      ?? requirement.feature_key
+        .split("_")
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(" ");
+
+    return {
+      ...requirement,
+      min_level_user: userLevel,
+      min_level_host: hostLevel,
+      feature_name: featureName,
+    };
+  };
   
   const { data: requirements, isLoading } = useQuery({
     queryKey: ["feature-level-requirements"],
@@ -32,7 +53,7 @@ export const useFeatureLevelCheck = () => {
 
       if (error) throw error;
       console.log("[useFeatureLevelCheck] Loaded requirements:", data);
-      return data as FeatureRequirement[];
+      return (data as FeatureRequirement[]).map(normalizeRequirement);
     },
     staleTime: 5 * 60 * 1000, // 5 minutes - this data rarely changes
   });
@@ -89,7 +110,10 @@ export const useFeatureLevelCheck = () => {
       };
     }
 
-    const requiredLevel = isHost ? requirement.min_level_host : requirement.min_level_user;
+    const normalizedRequirement = normalizeRequirement(requirement);
+    const requiredLevel = isHost
+      ? normalizedRequirement.min_level_host ?? 0
+      : normalizedRequirement.min_level_user ?? 0;
     const canAccess = userLevel >= requiredLevel;
     
     console.log(`[useFeatureLevelCheck] Result: requiredLevel=${requiredLevel}, canAccess=${canAccess}`);
@@ -99,7 +123,7 @@ export const useFeatureLevelCheck = () => {
       requiredLevel,
       currentLevel: userLevel,
       isHost,
-      featureName: requirement.feature_name,
+      featureName: normalizedRequirement.feature_name,
     };
   };
 

@@ -36,15 +36,55 @@ const categoryColors: Record<string, string> = {
 interface FeatureRequirement {
   id: string;
   feature_key: string;
-  feature_name: string;
-  feature_description: string | null;
-  min_level_user: number;
-  min_level_host: number;
-  is_active: boolean;
-  icon_name: string | null;
-  category: string | null;
+  feature_name?: string | null;
+  feature_description?: string | null;
+  description?: string | null;
+  min_level_user?: number | null;
+  min_level_host?: number | null;
+  min_level?: number | null;
+  min_vip_level?: number | null;
+  is_active: boolean | null;
+  icon_name?: string | null;
+  category?: string | null;
   display_order: number | null;
+  schemaMode?: "legacy" | "modern";
 }
+
+const featureMetaMap: Record<string, { icon_name: string; category: string; feature_name: string }> = {
+  go_live: { icon_name: "Video", category: "streaming", feature_name: "Go Live" },
+  join_party: { icon_name: "Users", category: "party", feature_name: "Join Party" },
+  create_party: { icon_name: "UserPlus", category: "party", feature_name: "Create Party" },
+  private_call: { icon_name: "Phone", category: "communication", feature_name: "Private Call" },
+  send_gift: { icon_name: "Gift", category: "gifts", feature_name: "Send Gift" },
+  chat_message: { icon_name: "MessageCircle", category: "communication", feature_name: "Chat Message" },
+};
+
+const normalizeFeatureRequirement = (feature: FeatureRequirement): FeatureRequirement => {
+  const fallbackMeta = featureMetaMap[feature.feature_key] ?? {
+    icon_name: "Settings2",
+    category: "general",
+    feature_name: feature.feature_key
+      .split("_")
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" "),
+  };
+
+  return {
+    ...feature,
+    feature_name: feature.feature_name ?? fallbackMeta.feature_name,
+    feature_description: feature.feature_description ?? feature.description ?? null,
+    min_level_user: feature.min_level_user ?? feature.min_level ?? 0,
+    min_level_host: feature.min_level_host ?? feature.min_vip_level ?? 0,
+    is_active: feature.is_active ?? true,
+    icon_name: feature.icon_name ?? fallbackMeta.icon_name,
+    category: feature.category ?? fallbackMeta.category,
+    display_order: feature.display_order ?? 0,
+    schemaMode:
+      typeof feature.min_level_user === "number" || typeof feature.min_level_host === "number"
+        ? "modern"
+        : "legacy",
+  };
+};
 
 const AdminFeatureLevels = () => {
   const queryClient = useQueryClient();
@@ -55,11 +95,12 @@ const AdminFeatureLevels = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("feature_level_requirements")
-        .select("*")
-        .order("display_order", { ascending: true });
+        .select("*");
 
       if (error) throw error;
-      return data as FeatureRequirement[];
+      return (data as FeatureRequirement[])
+        .map(normalizeFeatureRequirement)
+        .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
     },
   });
 
@@ -69,13 +110,21 @@ const AdminFeatureLevels = () => {
 
   const updateMutation = useMutation({
     mutationFn: async (feature: FeatureRequirement) => {
+      const updatePayload = feature.schemaMode === "modern"
+        ? {
+            min_level_user: feature.min_level_user ?? 0,
+            min_level_host: feature.min_level_host ?? 0,
+            is_active: feature.is_active ?? true,
+          }
+        : {
+            min_level: feature.min_level_user ?? 0,
+            min_vip_level: feature.min_level_host ?? 0,
+            is_active: feature.is_active ?? true,
+          };
+
       const { error } = await supabase
         .from("feature_level_requirements")
-        .update({
-          min_level_user: feature.min_level_user,
-          min_level_host: feature.min_level_host,
-          is_active: feature.is_active,
-        })
+        .update(updatePayload)
         .eq("id", feature.id);
 
       if (error) throw error;
