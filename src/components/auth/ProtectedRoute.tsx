@@ -114,6 +114,10 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
     };
   }, [session?.user?.id]);
 
+  if (profileMissing) {
+    return <Navigate to="/auth" replace />;
+  }
+
   if (!session) {
     const returnTo = location.pathname + location.search;
     const shouldStoreReturn = 
