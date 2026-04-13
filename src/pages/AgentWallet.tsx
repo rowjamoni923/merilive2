@@ -55,7 +55,10 @@ const quickExchangeAmounts = [10000, 50000, 100000, 500000];
 const AgentWallet = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [walletBalance, setWalletBalance] = useState(0);
+  const [diamondBalance, setDiamondBalance] = useState(0); // REAL: agency diamond_balance + helper wallet + profile coins
+  const [agencyDiamondBalance, setAgencyDiamondBalance] = useState(0);
+  const [helperWalletBalance, setHelperWalletBalance] = useState(0);
+  const [profileCoins, setProfileCoins] = useState(0);
   const [beansBalance, setBeansBalance] = useState(0); // Income in beans
   const [showTransfer, setShowTransfer] = useState(false);
   const [showExchange, setShowExchange] = useState(false);
@@ -69,7 +72,27 @@ const AgentWallet = () => {
   const [transfers, setTransfers] = useState<TransferRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch agency data and transfers
+  // Helper to refresh all tiered balances
+  const refreshBalances = async (uid: string) => {
+    const [agencyRes, helperRes, profileRes] = await Promise.all([
+      supabase.from("agencies").select("diamond_balance, beans_balance").eq("owner_id", uid).maybeSingle(),
+      supabase.from("topup_helpers").select("wallet_balance").eq("user_id", uid).eq("is_verified", true).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
+      supabase.from("profiles").select("coins, beans").eq("id", uid).single(),
+    ]);
+
+    const agencyDiamonds = agencyRes.data?.diamond_balance || 0;
+    const helperWallet = helperRes.data?.wallet_balance || 0;
+    const userCoins = profileRes.data?.coins || 0;
+    const userBeans = profileRes.data?.beans || 0;
+
+    setAgencyDiamondBalance(agencyDiamonds);
+    setHelperWalletBalance(helperWallet);
+    setProfileCoins(userCoins);
+    setDiamondBalance(agencyDiamonds + helperWallet + userCoins);
+    setBeansBalance(userBeans);
+  };
+
+  // Fetch data
   useEffect(() => {
     const fetchData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -78,29 +101,9 @@ const AgentWallet = () => {
         return;
       }
 
-      // Fetch agency data
-      const { data: agency } = await supabase
-        .from("agencies")
-        .select("wallet_balance")
-        .eq("owner_id", user.id)
-        .single();
+      await refreshBalances(user.id);
 
-      if (agency) {
-        setWalletBalance(agency.wallet_balance || 0);
-      }
-
-      // Fetch agency performance for beans (total income)
-      const { data: performance } = await supabase
-        .from("agency_performance")
-        .select("total_income")
-        .eq("period_type", "weekly")
-        .order("period_start", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (performance) {
-        setBeansBalance(performance.total_income || 0);
-      }
+      // Beans already fetched by refreshBalances above
 
       // Fetch transfer history
       const { data: historyData } = await supabase
@@ -124,14 +127,7 @@ const AgentWallet = () => {
         async () => {
           const { data: { user } } = await supabase.auth.getUser();
           if (user) {
-            const { data: agency } = await supabase
-              .from("agencies")
-              .select("wallet_balance")
-              .eq("owner_id", user.id)
-              .single();
-            if (agency) {
-              setWalletBalance(agency.wallet_balance || 0);
-            }
+            await refreshBalances(user.id);
           }
         }
       )
@@ -209,7 +205,7 @@ const AgentWallet = () => {
       return;
     }
 
-    if (amount > walletBalance) {
+    if (amount > diamondBalance) {
       toast({
         title: "Error",
         description: "Insufficient balance",
@@ -229,17 +225,20 @@ const AgentWallet = () => {
 
     setIsProcessing(true);
 
-    const { error } = await supabase
-      .rpc("transfer_coins_to_user", {
+    // Use tiered transfer RPC (agency → helper wallet → personal coins)
+    const { data: result, error } = await supabase
+      .rpc("helper_transfer_coins_to_user", {
+        _sender_id: (await supabase.auth.getUser()).data.user?.id,
         _receiver_id: foundUser.id,
         _amount: amount,
-        _note: `Transfer to ${foundUser.display_name || foundUser.username}`
+        _sender_type: agencyDiamondBalance >= amount ? 'agency_to_user' : 'trader_to_user',
       });
 
-    if (error) {
+    const transferResult = result as any;
+    if (error || (transferResult && !transferResult.success)) {
       toast({
         title: "Error",
-        description: error.message || "Transfer failed",
+        description: transferResult?.error || error?.message || "Transfer failed",
         variant: "destructive",
       });
       setIsProcessing(false);
@@ -248,8 +247,12 @@ const AgentWallet = () => {
     
     toast({
       title: "Success!",
-      description: `${amount.toLocaleString()} coins sent to ${foundUser.display_name || foundUser.username}`,
+      description: `${amount.toLocaleString()} diamonds sent to ${foundUser.display_name || foundUser.username}`,
     });
+    
+    // Refresh real balances from DB
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (currentUser) await refreshBalances(currentUser.id);
     
     setIsProcessing(false);
     setShowTransfer(false);
@@ -282,34 +285,37 @@ const AgentWallet = () => {
 
     setIsProcessing(true);
 
-    // Get current user's agency
+    // Get current user
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       setIsProcessing(false);
       return;
     }
 
-    // Update agency wallet balance (add converted coins)
-    const { error } = await supabase
-      .from("agencies")
-      .update({ 
-        wallet_balance: walletBalance + amount 
-      })
-      .eq("owner_id", user.id);
+    // Use atomic RPC for beans → diamonds exchange
+    const feePercent = 25;
+    const diamondsReward = Math.floor(amount * (100 - feePercent) / 100);
+    
+    const { data: result, error } = await supabase
+      .rpc("exchange_user_beans_to_diamonds", {
+        _user_id: user.id,
+        _beans_amount: amount,
+        _diamonds_reward: diamondsReward,
+      });
 
-    if (error) {
+    const exchangeResult = result as any;
+    if (error || (exchangeResult && !exchangeResult.success)) {
       toast({
         title: "Error",
-        description: error.message || "Exchange failed",
+        description: exchangeResult?.error || error?.message || "Exchange failed",
         variant: "destructive",
       });
       setIsProcessing(false);
       return;
     }
 
-    // Update local state
-    setWalletBalance(prev => prev + amount);
-    setBeansBalance(prev => prev - amount);
+    // Refresh real balances from DB
+    await refreshBalances(user.id);
     
     toast({
       title: "Success!",
@@ -364,7 +370,7 @@ const AgentWallet = () => {
             <span className="text-white/80 text-sm">Diamond Balance</span>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold">{walletBalance.toLocaleString()}</span>
+            <span className="text-3xl font-bold">{diamondBalance.toLocaleString()}</span>
             <span className="text-white/80">Diamonds</span>
           </div>
 
@@ -428,7 +434,7 @@ const AgentWallet = () => {
                       setTransferAmount(amount.toString());
                       setShowTransfer(true);
                     }}
-                    disabled={walletBalance < amount}
+                    disabled={diamondBalance < amount}
                     className="p-3 rounded-xl border border-gray-100 hover:border-emerald-300 hover:bg-emerald-50 transition-colors text-center disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <div className="flex items-center justify-center gap-1 text-yellow-500 font-bold">
@@ -559,7 +565,7 @@ const AgentWallet = () => {
               <p className="text-sm text-gray-600">Available Coins</p>
               <div className="flex items-center gap-1 mt-1">
                 <span className="text-yellow-500">🪙</span>
-                <span className="font-bold text-lg">{walletBalance.toLocaleString()}</span>
+                <span className="font-bold text-lg">{diamondBalance.toLocaleString()}</span>
               </div>
             </div>
 
@@ -658,14 +664,14 @@ const AgentWallet = () => {
 
             {/* Quick Amount Buttons */}
             <div className="flex gap-2 flex-wrap">
-              {[10000, 50000, 100000, walletBalance].map((amount, i) => (
+              {[10000, 50000, 100000, diamondBalance].map((amount, i) => (
                 <Button
                   key={amount}
                   variant="outline"
                   size="sm"
                   onClick={() => setTransferAmount(amount.toString())}
                   className={transferAmount === amount.toString() ? "border-emerald-500 bg-emerald-50" : ""}
-                  disabled={walletBalance < amount}
+                  disabled={diamondBalance < amount}
                 >
                   {i === 3 ? "All" : amount.toLocaleString()}
                 </Button>
