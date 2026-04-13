@@ -390,6 +390,15 @@ const HelperDashboard = () => {
       console.log('[HelperDashboard] Initial upgrade requests:', requestsData);
       setPendingRequests((requestsData as unknown as UpgradeRequest[]) || []);
 
+      // Load agency diamond balance for combined trader wallet
+      const { data: agencyData } = await supabase
+        .from('agencies')
+        .select('diamond_balance')
+        .eq('owner_id', user.id)
+        .eq('is_active', true)
+        .maybeSingle();
+      setAgencyDiamondBalance(agencyData?.diamond_balance || 0);
+
       // Load transfer history
       await loadTransferHistory(user.id);
 
