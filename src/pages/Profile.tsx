@@ -2038,7 +2038,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                       </span>
                     </div>
                     <p className="text-xl font-bold text-white drop-shadow-lg">
-                      {availableTransferBalance.toLocaleString()} 💎
+                      {selfRechargeSourceBalance.toLocaleString()} 💎
                     </p>
                     <p className="text-[8px] text-pink-100 mt-0.5 flex items-center gap-1">
                       <Send className="w-2.5 h-2.5" />
