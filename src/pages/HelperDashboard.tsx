@@ -1018,7 +1018,7 @@ const HelperDashboard = () => {
             <div>
               <p className="text-white/80 text-xs">Wallet Balance</p>
               <p className="text-2xl font-bold text-white">
-                {(helperData?.wallet_balance || 0).toLocaleString()} 💎
+                {((helperData?.wallet_balance || 0) + agencyDiamondBalance).toLocaleString()} 💎
               </p>
               <p className="text-emerald-200 text-xs mt-1 flex items-center gap-1">
                 <Send className="w-3 h-3" />
