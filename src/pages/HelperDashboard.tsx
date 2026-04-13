@@ -852,13 +852,13 @@ const HelperDashboard = () => {
     
     setTransferProcessing(true);
     try {
-      // Use tiered deduction RPC for agency transfer too
+      // Use atomic agency-to-agency transfer RPC (tiered deduction: agency → helper wallet → profile coins)
       const { data: result, error } = await supabase
-        .rpc('helper_transfer_coins_to_user', {
+        .rpc('helper_transfer_diamonds_to_agency', {
           _sender_id: helperData.user_id,
-          _receiver_id: searchedAgency.owner_id,
+          _target_agency_id: searchedAgency.id,
           _amount: amount,
-          _sender_type: 'agency_to_user'
+          _sender_type: 'agency_to_agency'
         });
 
       if (error) throw error;
@@ -866,12 +866,6 @@ const HelperDashboard = () => {
       if (resultData && resultData.success === false) {
         throw new Error(resultData.error || 'Transfer failed');
       }
-
-      // Also add to agency diamond balance directly
-      await supabase.rpc('helper_add_diamonds_to_agency', {
-        _agency_id: searchedAgency.id,
-        _amount: amount
-      });
 
       toast({ 
         title: "Transfer Successful! ✅", 
