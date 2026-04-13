@@ -10954,6 +10954,7 @@ export type Database = {
       }
       process_weekly_agency_transfers: { Args: never; Returns: Json }
       recalculate_all_user_levels: { Args: never; Returns: undefined }
+      recalculate_user_level: { Args: { _user_id: string }; Returns: undefined }
       recover_session_by_device: {
         Args: { p_device_id: string }
         Returns: {
