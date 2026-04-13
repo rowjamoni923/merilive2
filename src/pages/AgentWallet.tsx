@@ -103,18 +103,7 @@ const AgentWallet = () => {
 
       await refreshBalances(user.id);
 
-      // Fetch agency performance for beans (total income)
-      const { data: performance } = await supabase
-        .from("agency_performance")
-        .select("total_income")
-        .eq("period_type", "weekly")
-        .order("period_start", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (performance) {
-        setBeansBalance(performance.total_income || 0);
-      }
+      // Beans already fetched by refreshBalances above
 
       // Fetch transfer history
       const { data: historyData } = await supabase
@@ -138,14 +127,7 @@ const AgentWallet = () => {
         async () => {
           const { data: { user } } = await supabase.auth.getUser();
           if (user) {
-            const { data: agency } = await supabase
-              .from("agencies")
-              .select("wallet_balance")
-              .eq("owner_id", user.id)
-              .single();
-            if (agency) {
-              setWalletBalance(agency.wallet_balance || 0);
-            }
+            await refreshBalances(user.id);
           }
         }
       )
@@ -223,7 +205,7 @@ const AgentWallet = () => {
       return;
     }
 
-    if (amount > walletBalance) {
+    if (amount > diamondBalance) {
       toast({
         title: "Error",
         description: "Insufficient balance",
@@ -243,17 +225,20 @@ const AgentWallet = () => {
 
     setIsProcessing(true);
 
-    const { error } = await supabase
-      .rpc("transfer_coins_to_user", {
+    // Use tiered transfer RPC (agency → helper wallet → personal coins)
+    const { data: result, error } = await supabase
+      .rpc("helper_transfer_coins_to_user", {
+        _sender_id: (await supabase.auth.getUser()).data.user?.id,
         _receiver_id: foundUser.id,
         _amount: amount,
-        _note: `Transfer to ${foundUser.display_name || foundUser.username}`
+        _sender_type: agencyDiamondBalance >= amount ? 'agency_to_user' : 'trader_to_user',
       });
 
-    if (error) {
+    const transferResult = result as any;
+    if (error || (transferResult && !transferResult.success)) {
       toast({
         title: "Error",
-        description: error.message || "Transfer failed",
+        description: transferResult?.error || error?.message || "Transfer failed",
         variant: "destructive",
       });
       setIsProcessing(false);
@@ -262,8 +247,12 @@ const AgentWallet = () => {
     
     toast({
       title: "Success!",
-      description: `${amount.toLocaleString()} coins sent to ${foundUser.display_name || foundUser.username}`,
+      description: `${amount.toLocaleString()} diamonds sent to ${foundUser.display_name || foundUser.username}`,
     });
+    
+    // Refresh real balances from DB
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (currentUser) await refreshBalances(currentUser.id);
     
     setIsProcessing(false);
     setShowTransfer(false);
@@ -296,34 +285,37 @@ const AgentWallet = () => {
 
     setIsProcessing(true);
 
-    // Get current user's agency
+    // Get current user
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       setIsProcessing(false);
       return;
     }
 
-    // Update agency wallet balance (add converted coins)
-    const { error } = await supabase
-      .from("agencies")
-      .update({ 
-        wallet_balance: walletBalance + amount 
-      })
-      .eq("owner_id", user.id);
+    // Use atomic RPC for beans → diamonds exchange
+    const feePercent = 25;
+    const diamondsReward = Math.floor(amount * (100 - feePercent) / 100);
+    
+    const { data: result, error } = await supabase
+      .rpc("exchange_user_beans_to_diamonds", {
+        _user_id: user.id,
+        _beans_amount: amount,
+        _diamonds_reward: diamondsReward,
+      });
 
-    if (error) {
+    const exchangeResult = result as any;
+    if (error || (exchangeResult && !exchangeResult.success)) {
       toast({
         title: "Error",
-        description: error.message || "Exchange failed",
+        description: exchangeResult?.error || error?.message || "Exchange failed",
         variant: "destructive",
       });
       setIsProcessing(false);
       return;
     }
 
-    // Update local state
-    setWalletBalance(prev => prev + amount);
-    setBeansBalance(prev => prev - amount);
+    // Refresh real balances from DB
+    await refreshBalances(user.id);
     
     toast({
       title: "Success!",
