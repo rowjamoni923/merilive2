@@ -970,8 +970,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         description: `${amount.toLocaleString()} 💎 added to your My Diamond Balance`,
       });
 
-      // Check low balance warning
-      await checkAndNotifyLowBalance(result.new_wallet_balance, currentUser.id);
+      // Check low balance warning on combined trader wallet balance
+      await checkAndNotifyLowBalance(Math.max(0, (result.new_wallet_balance || 0) + Number(agencyData?.diamond_balance || 0) - agencyDeducted), currentUser.id);
 
       setSelfRechargeAmount("");
       setShowTransferModal(false);
