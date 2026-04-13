@@ -803,15 +803,15 @@ const HelperDashboard = () => {
         description: `${amount.toLocaleString()} 💎 sent to ${searchedUser.display_name}` 
       });
 
-      // Refresh helper data
-      const { data: refreshed } = await supabase
-        .from('topup_helpers')
-        .select('wallet_balance')
-        .eq('id', helperData.id)
-        .single();
+      // Refresh helper data + agency balance
+      const [{ data: refreshed }, { data: refreshedAgency }] = await Promise.all([
+        supabase.from('topup_helpers').select('wallet_balance').eq('id', helperData.id).single(),
+        supabase.from('agencies').select('diamond_balance').eq('owner_id', helperData.user_id).eq('is_active', true).maybeSingle(),
+      ]);
       if (refreshed) {
         setHelperData((prev: any) => ({ ...prev, wallet_balance: refreshed.wallet_balance }));
       }
+      setAgencyDiamondBalance(refreshedAgency?.diamond_balance || 0);
       
       // Reset
       setShowTransferModal(false);
