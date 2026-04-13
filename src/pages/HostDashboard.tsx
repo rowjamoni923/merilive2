@@ -228,6 +228,7 @@ const HostDashboard = () => {
       giftsData?.forEach(gift => {
         const hostEarnings = Number(gift.receiver_beans ?? 0);
         const giftDate = new Date(gift.created_at);
+        const sender = Array.isArray(gift.sender) ? gift.sender[0] : gift.sender;
 
         totalGiftEarnings += hostEarnings;
 
@@ -240,8 +241,8 @@ const HostDashboard = () => {
           type: 'gift',
           amount: hostEarnings,
           date: gift.created_at,
-          otherUserName: gift.sender?.display_name || 'User',
-          otherUserAvatar: gift.sender?.avatar_url,
+          otherUserName: sender?.display_name || 'User',
+          otherUserAvatar: sender?.avatar_url,
         });
       });
 
