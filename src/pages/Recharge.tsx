@@ -511,6 +511,7 @@ const Recharge = () => {
           user_id,
           wallet_balance,
           trader_level,
+          payroll_enabled,
           is_active,
           is_verified
         `)
