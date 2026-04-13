@@ -296,68 +296,38 @@ const Auth = () => {
     }
   }, []);
 
-  // 🚀 SESSION CHECK on page load (NO auto device recovery)
-  // Only checks for existing active session or native stored session
-  // Device recovery ONLY happens when user clicks Start button
+  // 🚀 SESSION CHECK on page load — only check active Supabase session
+  // NO auto-login from localStorage or device recovery on page load
   useEffect(() => {
     const checkExistingSession = async () => {
-      // Skip if user manually logged out
-      const manualLogout = localStorage.getItem('meri_manual_logout');
-      if (manualLogout) {
-        console.log('[Auth] Skipped session check — user manually logged out.');
-        setIsAutoRecovering(false);
-        return;
-      }
-      
       setIsAutoRecovering(true);
       try {
-        // 1️⃣ Check if user already has an active session FIRST
+        // Only check if user already has an active Supabase session
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
-          console.log('[Auth] ✅ Active session found, redirecting to home');
-          navigateAfterAuth();
-          return;
-        }
-
-        // 2️⃣ On native: try restoring session from Capacitor Preferences
-        const nativeSession = await getSessionFromNative();
-        if (nativeSession?.refresh_token) {
-          console.log('[Auth] 🔄 Restoring session from native storage...');
-          const { data: restored, error: restoreError } = await supabase.auth.setSession({
-            access_token: nativeSession.access_token,
-            refresh_token: nativeSession.refresh_token,
-          });
-          if (restored?.session?.user && !restoreError) {
-            console.log('[Auth] ✅ Session restored from native storage!');
+          // Verify user still exists in profiles (accounts were wiped)
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('id', session.user.id)
+            .maybeSingle();
+          
+          if (profile) {
+            console.log('[Auth] ✅ Active session found with valid profile, redirecting');
             navigateAfterAuth();
             return;
           } else {
-            console.log('[Auth] ⚠️ Native session restore failed:', restoreError?.message);
+            // Session exists but profile was deleted — sign out
+            console.log('[Auth] ⚠️ Session found but profile missing, signing out');
+            await supabase.auth.signOut();
           }
         }
 
-        // 3️⃣ Check localStorage saved credentials (existing session restore only)
-        const savedAccount = localStorage.getItem("meri_device_account");
-        if (savedAccount) {
-          try {
-            const parsed = JSON.parse(savedAccount);
-            if (parsed?.email && parsed?.password) {
-              const { error } = await supabase.auth.signInWithPassword({
-                email: parsed.email,
-                password: parsed.password,
-              });
-              if (!error) {
-                console.log('[Auth] ✅ Restored from localStorage credentials');
-                navigateAfterAuth();
-                return;
-              }
-            }
-          } catch (e) {
-            // Ignore parse errors
-          }
-        }
+        // Clear any stale localStorage credentials — don't auto-login from them
+        localStorage.removeItem("meri_device_account");
+        localStorage.removeItem("meri_device_id");
 
-        console.log('[Auth] No active session — showing auth UI (recovery only on Start button)');
+        console.log('[Auth] No valid session — showing auth UI');
       } catch (err) {
         console.error('[Auth] Session check error:', err);
       } finally {
