@@ -219,13 +219,25 @@ const HelperDashboard = () => {
         (payload) => {
           console.log('[HelperDashboard] Helper data updated:', payload.new);
           const newData = payload.new as any;
-          // If helper is deactivated in real-time, kick them out immediately
           if (newData && newData.is_active === false) {
             toast({ title: "Account Deactivated", description: "Your helper account has been deactivated by admin", variant: "destructive" });
             navigate('/profile');
             return;
           }
           setHelperData(newData);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'agencies',
+          filter: `owner_id=eq.${helperData.user_id}`
+        },
+        (payload) => {
+          const newAgency = payload.new as any;
+          setAgencyDiamondBalance(Number(newAgency?.diamond_balance || 0));
         }
       )
       .on(
@@ -238,7 +250,6 @@ const HelperDashboard = () => {
         },
         (payload) => {
           console.log('[HelperDashboard] Upgrade request changed:', payload);
-          // Refetch pending requests when any change happens
           fetchPendingRequests(helperData.id);
         }
       )
@@ -251,7 +262,6 @@ const HelperDashboard = () => {
         },
         (payload) => {
           console.log('[HelperDashboard] Trader level tiers updated:', payload.eventType);
-          // Refetch trader levels when tiers change
           refetchTraderLevels();
         }
       )
@@ -264,7 +274,6 @@ const HelperDashboard = () => {
         },
         async (payload) => {
           console.log('[HelperDashboard] Payment methods updated:', payload.eventType);
-          // Refetch payment methods when admin updates them
           const { data: methods } = await supabase
             .from('topup_payment_methods' as any)
             .select('*')
