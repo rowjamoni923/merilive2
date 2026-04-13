@@ -19,6 +19,7 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
   const location = useLocation();
   const [isBanned, setIsBanned] = useState(false);
   const [checked, setChecked] = useState(false);
+  const [profileMissing, setProfileMissing] = useState(false);
   const checkingRef = useRef(false);
 
   // Session hijacking protection
