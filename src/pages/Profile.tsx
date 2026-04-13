@@ -998,6 +998,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     setTransferProcessing(true);
     try {
       const latestBalances = await refreshTransferBalances();
+      console.log('[UserTransfer] DEBUG: latestBalances =', JSON.stringify(latestBalances), 'currentUser.id =', currentUser.id);
       if (amount > latestBalances.total) {
         throw new Error(`Insufficient balance. Available: ${latestBalances.total.toLocaleString()}`);
       }
@@ -1007,12 +1008,14 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         : latestBalances.traderWallet >= amount ? 'trader_to_user' 
         : 'agency_to_user'; // fallback to agency_to_user which tries all tiers in RPC
 
+      console.log('[UserTransfer] DEBUG: senderType =', senderType, 'receiverId =', searchedUser.id, 'amount =', amount);
       const { data, error } = await supabase.rpc('helper_transfer_coins_to_user', {
         _sender_id: currentUser.id,
         _receiver_id: searchedUser.id,
         _amount: amount,
         _sender_type: senderType
       });
+      console.log('[UserTransfer] DEBUG: RPC response =', JSON.stringify(data), 'error =', error);
 
       if (error) throw error;
       
