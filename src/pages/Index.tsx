@@ -288,6 +288,7 @@ const Index = () => {
           isLive: liveStreamMap.has(profile.id),
           liveStreamId: streamData?.id,
           viewerCount: streamData?.viewer_count || 0,
+          liveThumbnailUrl: streamData?.thumbnail_url || null,
           startedAt: streamData?.started_at || new Date().toISOString(),
         };
       });
