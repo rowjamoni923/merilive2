@@ -9459,6 +9459,7 @@ export type Database = {
           expires_at: string | null
           id: string
           is_active: boolean | null
+          price_paid: number | null
           purchased_at: string
           user_id: string
         }
@@ -9467,6 +9468,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           is_active?: boolean | null
+          price_paid?: number | null
           purchased_at?: string
           user_id: string
         }
@@ -9475,6 +9477,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           is_active?: boolean | null
+          price_paid?: number | null
           purchased_at?: string
           user_id?: string
         }
@@ -9486,6 +9489,7 @@ export type Database = {
           expires_at: string | null
           id: string
           is_active: boolean | null
+          is_equipped: boolean | null
           item_id: string
           item_type: string
           price_paid: number
@@ -9497,6 +9501,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           is_active?: boolean | null
+          is_equipped?: boolean | null
           item_id: string
           item_type: string
           price_paid: number
@@ -9508,6 +9513,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           is_active?: boolean | null
+          is_equipped?: boolean | null
           item_id?: string
           item_type?: string
           price_paid?: number
