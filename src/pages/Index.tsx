@@ -47,6 +47,7 @@ interface Profile {
   isLive?: boolean;
   liveStreamId?: string;
   viewerCount?: number;
+  liveThumbnailUrl?: string | null;
   actuallyBusy?: boolean;
 }
 
@@ -122,7 +123,7 @@ const Index = () => {
   } | null>(null);
   const [callRateLoading, setCallRateLoading] = useState(true);
   const warmedHostImagesRef = useRef<Set<string>>(new Set());
-  const [instantHosts, setInstantHosts] = useState<Array<Profile & { isLive?: boolean; liveStreamId?: string }>>(() => {
+  const [instantHosts, setInstantHosts] = useState<Array<Profile & { isLive?: boolean; liveStreamId?: string; liveThumbnailUrl?: string | null }>>(() => {
     try {
       if (typeof window === "undefined") return [];
       const raw = window.sessionStorage.getItem("index-hosts-instant-cache-v1");
@@ -287,6 +288,7 @@ const Index = () => {
           isLive: liveStreamMap.has(profile.id),
           liveStreamId: streamData?.id,
           viewerCount: streamData?.viewer_count || 0,
+          liveThumbnailUrl: streamData?.thumbnail_url || null,
           startedAt: streamData?.started_at || new Date().toISOString(),
         };
       });
@@ -322,7 +324,7 @@ const Index = () => {
   useEffect(() => {
     if (!hosts || hosts.length === 0) return;
     const snapshot = hosts.slice(0, 100);
-    setInstantHosts(snapshot as Array<Profile & { isLive?: boolean; liveStreamId?: string }>);
+    setInstantHosts(snapshot as Array<Profile & { isLive?: boolean; liveStreamId?: string; liveThumbnailUrl?: string | null }>);
     try {
       window.sessionStorage.setItem("index-hosts-instant-cache-v1", JSON.stringify(snapshot));
     } catch {
@@ -332,7 +334,7 @@ const Index = () => {
 
   const displayHosts = (hosts && hosts.length > 0
     ? hosts
-    : instantHosts) as Array<Profile & { isLive?: boolean; liveStreamId?: string }>;
+    : instantHosts) as Array<Profile & { isLive?: boolean; liveStreamId?: string; liveThumbnailUrl?: string | null }>;
 
   useEffect(() => {
     if (!hosts?.length) return;
@@ -358,9 +360,10 @@ const Index = () => {
       .slice(0, 8)
       .map((host) => host.liveStreamId as string);
 
+    // Pre-warm avatar URLs + live thumbnail URLs for instant rendering
     const warmableUrls = hosts
       .slice(0, 24)
-      .map((host) => host.avatar_url)
+      .flatMap((host) => [host.avatar_url, host.liveThumbnailUrl].filter(Boolean))
       .filter((url): url is string => !!url && !warmedHostImagesRef.current.has(url));
 
     if (warmableUrls.length === 0 && liveIdsToWarm.length === 0) {
@@ -411,7 +414,7 @@ const Index = () => {
   };
 
   // Render user card - PREMIUM UPGRADED DESIGN (Memoized for performance)
-  const UserCard = memo(({ user, index }: { user: Profile & { isLive?: boolean; liveStreamId?: string }; index: number }) => {
+  const UserCard = memo(({ user, index }: { user: Profile & { isLive?: boolean; liveStreamId?: string; liveThumbnailUrl?: string | null }; index: number }) => {
     const isFemaleHost = user.is_host && (user.gender === 'female' || user.gender === 'Female');
     const displayLevel = isFemaleHost 
       ? (user.host_level ?? 0)
@@ -438,8 +441,9 @@ const Index = () => {
         style={{ contain: 'layout style paint' }}
       >
         <div className="relative aspect-[3/4]">
+          {/* Show live thumbnail when host is streaming, otherwise avatar */}
           <img
-            src={user.avatar_url || DEFAULT_AVATAR}
+            src={(user.isLive && user.liveThumbnailUrl) ? user.liveThumbnailUrl : (user.avatar_url || DEFAULT_AVATAR)}
             alt={user.display_name || 'User'}
             className="w-full h-full object-cover"
             loading={index < 6 ? "eager" : "lazy"}
@@ -450,14 +454,25 @@ const Index = () => {
           {/* Lightweight gradient overlay - single layer */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
 
-          {/* Live Badge */}
+          {/* Live Badge + Viewer Count */}
           {user.isLive && (
-            <div className="absolute top-2.5 left-2">
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-red-500 to-rose-500 shadow-[0_2px_12px_rgba(239,68,68,0.5)]">
-                <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-                <span className="text-[10px] font-extrabold text-white tracking-wider">LIVE</span>
+            <>
+              <div className="absolute top-2.5 left-2">
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-red-500 to-rose-500 shadow-[0_2px_12px_rgba(239,68,68,0.5)]">
+                  <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                  <span className="text-[10px] font-extrabold text-white tracking-wider">LIVE</span>
+                </div>
               </div>
-            </div>
+              {/* Viewer Count */}
+              {(user.viewerCount ?? 0) > 0 && (
+                <div className="absolute top-2.5 right-2">
+                  <div className="flex items-center gap-1 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1">
+                    <Eye className="w-3 h-3 text-white" />
+                    <span className="text-[10px] text-white font-bold">{user.viewerCount}</span>
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
           {/* Online / Busy Badge */}
