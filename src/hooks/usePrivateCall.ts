@@ -368,11 +368,10 @@ export function usePrivateCall(userId: string | null) {
       // IMPORTANT: Do NOT auto-reset call status here.
       // Each new call must be created fresh by start_private_call RPC without force-ending any active call.
 
-      // PARALLEL: Fetch user coins, host info, and call settings simultaneously
-      // ✅ FIX: Read host is_in_call from PROFILES table directly (not profiles_public VIEW)
+      // PARALLEL: Fetch user coins, host info, and admin call settings simultaneously
       const [userProfileRes, hostProfileRes, hostCallStatusRes, settingsRes] = await Promise.all([
         supabase.from('profiles').select('coins, display_name, avatar_url, user_level').eq('id', userId).single(),
-        supabase.from('profiles_public').select('display_name, avatar_url, is_online, user_level, call_rate_per_minute').eq('id', hostId).single(),
+        supabase.from('profiles_public').select('display_name, avatar_url, is_online, host_level').eq('id', hostId).single(),
         supabase.from('profiles').select('is_in_call, current_call_id').eq('id', hostId).single(),
         supabase.from('app_settings').select('setting_value').eq('setting_key', 'call_rates').maybeSingle(),
       ]);
@@ -380,39 +379,24 @@ export function usePrivateCall(userId: string | null) {
       const userProfile = userProfileRes.data;
       const hostProfile = hostProfileRes.data;
       const hostCallStatus = hostCallStatusRes.data;
+      const settingValue = settingsRes.data?.setting_value as any;
 
-      // PRIORITY 1: Use host's custom call rate from their profile
-      let callRate = hostProfile?.call_rate_per_minute;
-      
-      // PRIORITY 2: If host has NOT set a custom rate, fall back to admin level-based settings
-      if (!callRate || callRate <= 0) {
-        const settingValue = settingsRes.data?.setting_value as any;
-        // Ensure hostLevel is at least 1 (level 0 should use level 1 rates)
-        const hostLevel = Math.max(hostProfile?.user_level || 1, 1);
-        
-        // Find level-based rate if available - NO DEFAULT FALLBACK
-        if (settingValue?.level_rates && Array.isArray(settingValue.level_rates)) {
-          const levelRate = settingValue.level_rates.find(
-            (lr: { level: number; rate: number }) => lr.level === hostLevel
-          );
-          if (levelRate && levelRate.rate > 0) {
-            callRate = levelRate.rate;
-          }
-        }
-      }
+      const effectiveHostLevel = Math.max(hostProfile?.host_level ?? 0, 1);
+      const levelRates = Array.isArray(settingValue?.level_rates) ? settingValue.level_rates : [];
+      const matchedLevelRate = levelRates.find(
+        (lr: { level: number; rate: number }) => lr.level === effectiveHostLevel
+      );
+      const callRate = matchedLevelRate?.rate ?? settingValue?.default_rate ?? settingValue?.per_minute_rate ?? null;
 
-      // If NO call rate is configured at all - reject the call
-      // NO DEFAULTS - Rate must be explicitly set by host or admin
       if (!callRate || callRate <= 0) {
         toast({
           title: "Call Rate Not Set",
-          description: "Host has not set their call price yet",
+          description: "Admin call pricing is not configured yet",
           variant: "destructive",
         });
         return null;
       }
 
-      // Check if user has minimum coins for at least 1 minute
       if ((userProfile?.coins || 0) < callRate) {
         toast({
           title: "Insufficient Diamonds",
@@ -525,37 +509,40 @@ export function usePrivateCall(userId: string | null) {
         });
       };
 
-      // Wait for RPC to get callId
       const { data, error } = await rpcPromise;
 
       if (error) {
         throw error;
       }
 
+      const rpcPayload = (data && typeof data === 'object') ? data as Record<string, any> : null;
+      const resolvedCallId = (rpcPayload?.call_id as string | undefined) || (typeof data === 'string' ? data : '');
+      const resolvedCoinsPerMinute = Number(rpcPayload?.coins_per_minute ?? callRate);
+
       // ✅ Send broadcast WITH real callId — staggered retries for guaranteed delivery
-      broadcastPayload.callId = data;
+      broadcastPayload.callId = resolvedCallId;
       sendBroadcast(broadcastPayload);
       setTimeout(() => sendBroadcast(broadcastPayload), 800);
       setTimeout(() => sendBroadcast(broadcastPayload), 2000);
       setTimeout(() => sendBroadcast(broadcastPayload), 4000);
       
-      currentCallIdRef.current = data;
+      currentCallIdRef.current = resolvedCallId;
 
       // ⚡ Pre-warm LiveKit token for caller side - room will connect instantly when host accepts
       import('@/services/livekitService').then(({ warmLiveKitToken }) => {
-        warmLiveKitToken(`call_${data}`, 'call').catch(() => {});
+        warmLiveKitToken(`call_${resolvedCallId}`, 'call').catch(() => {});
       });
 
       setCallState(prev => ({
         ...prev,
-        callId: data,
+        callId: resolvedCallId,
         status: 'calling',
         remoteUserId: hostId,
         hostId: hostId,
         remoteUserName: hostProfile?.display_name || 'Host',
         remoteUserAvatar: hostProfile?.avatar_url,
-        remoteUserLevel: hostProfile?.user_level || 1,
-        coinsPerMinute: callRate,
+        remoteUserLevel: hostProfile?.host_level || 1,
+        coinsPerMinute: resolvedCoinsPerMinute,
         totalCoinsSpent: 0,
         hostEarned: 0,
       }));
@@ -570,7 +557,7 @@ export function usePrivateCall(userId: string | null) {
               body: `${userProfile?.display_name || 'Someone'} is calling you`,
               type: 'incoming_call',
               data: {
-                call_id: data,
+                call_id: resolvedCallId,
                 caller_id: userId,
                 caller_name: userProfile?.display_name || 'User',
                 caller_avatar: userProfile?.avatar_url || '',
@@ -589,12 +576,11 @@ export function usePrivateCall(userId: string | null) {
         description: `Calling ${hostProfile?.display_name || 'Host'}`,
       });
 
-      // AUTO-TIMEOUT: If host doesn't answer within timeout, mark as missed
       const timeoutSeconds = settingsRes.data?.setting_value 
         ? ((settingsRes.data.setting_value as any)?.call_timeout_seconds || 30)
         : 30;
       
-      const callIdForTimeout = data;
+      const callIdForTimeout = resolvedCallId;
       callTimeoutRef.current = setTimeout(async () => {
         // Only timeout if still not connected for THIS call
         if (currentCallIdRef.current === callIdForTimeout && !callEndedRef.current && !billingStartedRef.current) {
