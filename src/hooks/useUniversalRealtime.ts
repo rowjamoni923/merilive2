@@ -42,12 +42,14 @@ const pendingUpdates = new Map<string, NodeJS.Timeout>();
 let lastForcedReconnectAt = 0;
 let channelRebuildTimer: NodeJS.Timeout | null = null;
 
-// Debounce time for batch updates (ms) - tuned for ultra-fast but stable UX
-const DEBOUNCE_MS = 120;
+// Debounce time for batch updates (ms)
+const DEBOUNCE_MS = 80;
 
-// High-frequency tables get a slightly higher debounce to prevent render thrash
-const HIGH_FREQ_DEBOUNCE_MS = 180;
-const HIGH_FREQUENCY_TABLES = new Set(['messages']);
+// Messages and gift_transactions: ZERO debounce for instant delivery
+// Other high-frequency tables get a slight debounce to prevent render thrash
+const INSTANT_TABLES = new Set(['messages', 'gift_transactions', 'notifications']);
+const HIGH_FREQ_DEBOUNCE_MS = 120;
+const HIGH_FREQUENCY_TABLES = new Set(['stream_viewers', 'stream_chat']);
 
 // ⚡ COST-OPTIMISED: Only tables that MUST be monitored globally
 // All other tables subscribe on-demand via subscribeToTables()
