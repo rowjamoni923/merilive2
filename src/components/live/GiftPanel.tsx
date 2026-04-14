@@ -66,18 +66,25 @@ const HEAVY_ANIMATION_ASSET_PATTERN = /\.(svga|json)$/i;
 const getAssetPathWithoutQuery = (url?: string | null) =>
   url?.split('?')[0] ?? '';
 
+const normalizeGiftAssetUrl = (url?: string | null) => {
+  if (!url) return null;
+  if (url.startsWith('http') || url.startsWith('/')) return url;
+  if (url.includes('/storage/v1/object/public/')) return url.startsWith('http') ? url : `https://${window.location.host}${url.startsWith('/') ? '' : '/'}${url}`;
+  return null;
+};
+
 const getOptimizedGiftIconUrl = (iconUrl?: string | null, animationUrl?: string | null) => {
-  const normalizedIconUrl = iconUrl?.startsWith('http') ? iconUrl : null;
+  const normalizedIconUrl = normalizeGiftAssetUrl(iconUrl);
   if (normalizedIconUrl && !HEAVY_ANIMATION_ASSET_PATTERN.test(getAssetPathWithoutQuery(normalizedIconUrl))) {
     return normalizedIconUrl;
   }
 
-  const normalizedAnimationUrl = animationUrl?.startsWith('http') ? animationUrl : null;
+  const normalizedAnimationUrl = normalizeGiftAssetUrl(animationUrl);
   if (normalizedAnimationUrl && !HEAVY_ANIMATION_ASSET_PATTERN.test(getAssetPathWithoutQuery(normalizedAnimationUrl))) {
     return normalizedAnimationUrl;
   }
 
-  return null;
+  return normalizedIconUrl || normalizedAnimationUrl;
 };
 
 export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(function GiftPanel({ isOpen, onClose, onSendGift, userCoins: propUserCoins }, _ref) {
@@ -148,8 +155,8 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
         coins: gift.coin_value,
         category: gift.category || 'wall',
         animationType: getAnimationType(gift.coin_value),
-        icon_url: gift.icon_url?.startsWith('http') ? gift.icon_url : null,
-        animation_url: gift.animation_url?.startsWith('http') ? gift.animation_url : null,
+        icon_url: getOptimizedGiftIconUrl(gift.icon_url, gift.animation_url),
+        animation_url: normalizeGiftAssetUrl(gift.animation_url),
       }));
       setGifts(transformedGifts);
       setLoading(false);
@@ -167,8 +174,8 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
         coins: gift.coin_value,
         category: gift.category || 'wall',
         animationType: getAnimationType(gift.coin_value),
-        icon_url: gift.icon_url?.startsWith('http') ? gift.icon_url : null,
-        animation_url: gift.animation_url?.startsWith('http') ? gift.animation_url : null,
+        icon_url: getOptimizedGiftIconUrl(gift.icon_url, gift.animation_url),
+        animation_url: normalizeGiftAssetUrl(gift.animation_url),
       }));
       setGifts(transformedGifts);
       setLoading(false);
