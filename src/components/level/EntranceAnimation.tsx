@@ -50,6 +50,8 @@ const EntranceAnimationInner = memo(({
   const mountedRef = useRef(true);
   const completedRef = useRef(false);
   const animationStartedRef = useRef(false);
+  const soundRef = useRef<Howl | null>(null);
+  const soundPlayedRef = useRef(false);
   
   // Stable memoized values - same pattern as FlyingGiftAnimation
   const displayAnimationUrl = useMemo(() => animationUrl, [animationUrl]);
