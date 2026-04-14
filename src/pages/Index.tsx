@@ -42,6 +42,8 @@ interface Profile {
   is_face_verified?: boolean | null;
   created_at?: string;
   frame_id?: string | null;
+  host_status?: string | null;
+  host_availability?: string | null;
   isLive?: boolean;
   liveStreamId?: string;
   viewerCount?: number;
@@ -76,6 +78,8 @@ const Index = () => {
         .select("country_code, country_flag")
         .eq("is_host", true)
         .eq("gender", "female")
+        .eq("host_status", "approved")
+        .eq("is_face_verified", true)
         .not("country_code", "is", null)
         .not("country_flag", "is", null);
       
@@ -190,20 +194,27 @@ const Index = () => {
 
       // Build profile query based on tab
       let profileQuery;
+      const HOST_FIELDS = "id, display_name, username, avatar_url, bio, country_code, country_flag, user_level, host_level, is_online, is_in_call, is_host, gender, call_rate_per_minute, is_verified, is_face_verified, created_at, frame_id, last_seen_at, host_status, host_availability";
+
       if (subTab === "live") {
         if (liveHostIds.length === 0) return [];
         profileQuery = supabase
           .from("profiles_public")
-          .select("id, display_name, username, avatar_url, bio, country_code, country_flag, user_level, host_level, is_online, is_in_call, is_host, gender, call_rate_per_minute, is_verified, is_face_verified, created_at, frame_id")
-          .in("id", liveHostIds);
+          .select(HOST_FIELDS)
+          .in("id", liveHostIds)
+          .eq("host_status", "approved")
+          .eq("is_face_verified", true);
         if (selectedCountry !== "all") profileQuery = profileQuery.eq("country_code", selectedCountry);
       } else {
         profileQuery = supabase
           .from("profiles_public")
-          .select("id, display_name, username, avatar_url, bio, country_code, country_flag, user_level, host_level, is_online, is_in_call, is_host, gender, call_rate_per_minute, is_verified, is_face_verified, created_at, frame_id, last_seen_at")
+          .select(HOST_FIELDS)
           .eq("is_host", true)
           .eq("gender", "female")
+          .eq("host_status", "approved")
+          .eq("is_face_verified", true)
           .eq("is_online", true)
+          .neq("host_availability", "offline")
           .gte("last_seen_at", sixtyMinutesAgo)
           .not("avatar_url", "is", null);
         if (selectedCountry !== "all") profileQuery = profileQuery.eq("country_code", selectedCountry);
@@ -232,8 +243,10 @@ const Index = () => {
       if (missingLiveHostIds.length > 0) {
         let missingLiveQuery = supabase
           .from("profiles_public")
-          .select("id, display_name, username, avatar_url, bio, country_code, country_flag, user_level, host_level, is_online, is_in_call, is_host, gender, call_rate_per_minute, is_verified, is_face_verified, created_at, frame_id, last_seen_at")
-          .in("id", missingLiveHostIds);
+          .select(HOST_FIELDS)
+          .in("id", missingLiveHostIds)
+          .eq("host_status", "approved")
+          .eq("is_face_verified", true);
 
         if (selectedCountry !== "all") {
           missingLiveQuery = missingLiveQuery.eq("country_code", selectedCountry);

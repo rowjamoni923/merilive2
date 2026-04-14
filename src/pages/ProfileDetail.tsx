@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, memo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import TraderBadge from "@/components/common/TraderBadge";
 import {
@@ -100,6 +101,8 @@ interface ProfileData {
   is_blocked?: boolean | null;
   blocked_reason?: string | null;
   is_in_call?: boolean | null;
+  host_status?: string | null;
+  host_availability?: string | null;
 }
 
 interface FrameData {
@@ -194,6 +197,9 @@ const ProfileDetail = () => {
   const [currentUserCoins, setCurrentUserCoins] = useState(0);
   const [showGiftPanel, setShowGiftPanel] = useState(false);
   
+  // Host availability toggle
+  const [hostAvailability, setHostAvailability] = useState<string>('online');
+  
   // Live stream state
   const [activeLiveStream, setActiveLiveStream] = useState<{ id: string; title: string; viewer_count: number } | null>(null);
   // Trader status
@@ -205,6 +211,28 @@ const ProfileDetail = () => {
 
   const isOwnProfile = userId === currentUser?.id || !userId;
   
+  // Handle host availability toggle (online/offline)
+  const handleToggleAvailability = useCallback(async () => {
+    if (!currentUser?.id) return;
+    const newStatus = hostAvailability === 'online' ? 'offline' : 'online';
+    setHostAvailability(newStatus);
+    
+    const { error } = await supabase
+      .from('profiles')
+      .update({ host_availability: newStatus })
+      .eq('id', currentUser.id);
+    
+    if (error) {
+      setHostAvailability(hostAvailability); // revert
+      toast({ title: "Failed to update status", variant: "destructive" });
+    } else {
+      toast({ 
+        title: newStatus === 'online' ? "You are now Online" : "You are now Offline",
+        description: newStatus === 'online' ? "Users can see you on the home page" : "You won't appear on the home page",
+      });
+    }
+  }, [currentUser?.id, hostAvailability, toast]);
+
   // Handle call button click
   const handleCallClick = () => {
     if (!currentUser) {
@@ -345,7 +373,11 @@ const ProfileDetail = () => {
       }
     }
     setProfile(profileData as ProfileData);
-
+    
+    // Set host availability
+    if (profileData?.host_availability) {
+      setHostAvailability(profileData.host_availability);
+    }
     // Set poster images
     setPosterImages(postersResult?.data || []);
 
@@ -1137,6 +1169,29 @@ const ProfileDetail = () => {
                 </motion.button>
               </div>
             </>
+          )}
+
+          {/* Host Availability Toggle - Only for own profile if host */}
+          {isOwnProfile && profile?.is_host && (profile as any)?.host_status === 'approved' && (
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={handleToggleAvailability}
+              className="w-full mt-4 flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold text-white transition-all"
+              style={{
+                background: hostAvailability === 'online'
+                  ? 'linear-gradient(135deg, rgba(239,68,68,0.8), rgba(220,38,38,0.8))'
+                  : 'linear-gradient(135deg, rgba(34,197,94,0.8), rgba(22,163,74,0.8))',
+                boxShadow: hostAvailability === 'online'
+                  ? '0 8px 30px rgba(239,68,68,0.3)'
+                  : '0 8px 30px rgba(34,197,94,0.3)',
+              }}
+            >
+              <div className={cn(
+                "w-2.5 h-2.5 rounded-full",
+                hostAvailability === 'online' ? "bg-white animate-pulse" : "bg-white/60"
+              )} />
+              {hostAvailability === 'online' ? 'Go Offline' : 'Go Online'}
+            </motion.button>
           )}
 
           {/* Action Buttons - Only for OTHER users' profiles */}
