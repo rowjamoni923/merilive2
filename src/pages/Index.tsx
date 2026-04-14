@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef, memo, useTransition } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { DynamicBanner } from "@/components/home/DynamicBanner";
@@ -12,7 +12,6 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
-import { parseSettingValue } from "@/utils/adminSettingsStorage";
 
 import { useCall } from "@/components/call/CallProvider";
 import { NotificationList } from "@/components/notifications/NotificationList";
@@ -63,7 +62,6 @@ const Index = () => {
   const navigate = useNavigate();
   const { startCall } = useCall();
   const queryClient = useQueryClient();
-  const [isPending, startTransition] = useTransition();
   
 
   const handlePullRefresh = useCallback(async () => {
@@ -118,11 +116,6 @@ const Index = () => {
   const [selectedCountry, setSelectedCountry] = useState("all");
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [callRateSettings, setCallRateSettings] = useState<{
-    default_rate: number;
-    level_rates: Array<{ level: number; rate: number }>;
-  } | null>(null);
-  const [callRateLoading, setCallRateLoading] = useState(true);
   const warmedHostImagesRef = useRef<Set<string>>(new Set());
   const isEligibleCachedHost = useCallback((host: Partial<Profile> | null | undefined) => {
     if (!host) return false;
@@ -144,31 +137,17 @@ const Index = () => {
     }
   });
 
-  // Get current user and default call rate from admin settings
+  // Get current user from cached auth only — call pricing now comes from the centralized settings layer
   useEffect(() => {
-    // Use requestAnimationFrame to defer initialization after paint
     const rafId = requestAnimationFrame(() => {
-      const initialize = async () => {
-        // Parallel fetch for user + call rates - using cached auth for speed
-        const { getCachedUser } = await import('@/utils/cachedAuth');
-        const [cachedUser, settingsResult] = await Promise.all([
-          getCachedUser(),
-          supabase.from("app_settings").select("setting_value").eq("setting_key", "call_rates").maybeSingle()
-        ]);
-        
-        if (cachedUser) setCurrentUserId(cachedUser.id);
-        
-        if (settingsResult.data?.setting_value) {
-          const settingValue = parseSettingValue<any>(settingsResult.data.setting_value) ?? {};
-          setCallRateSettings({
-            default_rate: settingValue?.default_rate || 2000,
-            level_rates: settingValue?.level_rates || []
-          });
-        }
-        setCallRateLoading(false);
-      };
-      initialize();
+      void import('@/utils/cachedAuth')
+        .then(({ getCachedUser }) => getCachedUser())
+        .then((cachedUser) => {
+          if (cachedUser) setCurrentUserId(cachedUser.id);
+        })
+        .catch(() => undefined);
     });
+
     return () => cancelAnimationFrame(rafId);
   }, []);
 
