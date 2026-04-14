@@ -387,6 +387,7 @@ const Shop = () => {
       const expiresAt = item.duration_days ? new Date(Date.now() + item.duration_days * 24 * 60 * 60 * 1000).toISOString() : null;
       const isPartyBackground = item.id.startsWith('bg_');
       const actualItemId = isPartyBackground ? item.id.replace('bg_', '') : item.id;
+      const purchaseItemType = item.category || item.file_type || item.animation_type || 'shop_item';
 
       if (isPartyBackground) {
         const { error: bgPurchaseError } = await (supabase.from("user_purchased_backgrounds" as any).insert({ user_id: user.id, background_id: actualItemId, price_paid: item.price_diamonds }) as any);
@@ -400,7 +401,14 @@ const Shop = () => {
           return;
         }
       } else {
-        const { error: purchaseError } = await supabase.from("user_purchases").insert({ user_id: user.id, item_id: actualItemId, price_paid: item.price_diamonds, expires_at: expiresAt, is_equipped: true });
+        const { error: purchaseError } = await supabase.from("user_purchases").insert({
+          user_id: user.id,
+          item_id: actualItemId,
+          item_type: purchaseItemType,
+          price_paid: item.price_diamonds,
+          expires_at: expiresAt,
+          is_equipped: true,
+        });
         if (purchaseError) throw purchaseError;
       }
 

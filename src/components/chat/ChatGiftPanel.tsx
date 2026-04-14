@@ -9,13 +9,19 @@ import { getCachedGifts, getGiftsWithFetch, hasGiftCache } from "@/hooks/useGift
 
 const HEAVY_ANIMATION_ASSET_PATTERN = /\.(svga|json)(\?|$)/i;
 
-const getDisplayUrl = (iconUrl?: string | null, animationUrl?: string | null) => {
-  // Return raw URL - grid handles SVGA rendering
-  const normalizedIconUrl = iconUrl?.startsWith('http') ? iconUrl : null;
-  if (normalizedIconUrl) return normalizedIconUrl;
-  const normalizedAnimationUrl = animationUrl?.startsWith('http') ? animationUrl : null;
-  if (normalizedAnimationUrl) return normalizedAnimationUrl;
+const normalizeGiftAssetUrl = (url?: string | null) => {
+  if (!url) return null;
+  if (url.startsWith('http') || url.startsWith('/')) return url;
+  if (url.includes('/storage/v1/object/public/')) return url.startsWith('http') ? url : `https://${window.location.host}${url.startsWith('/') ? '' : '/'}${url}`;
   return null;
+};
+
+const getDisplayUrl = (iconUrl?: string | null, animationUrl?: string | null) => {
+  const normalizedIconUrl = normalizeGiftAssetUrl(iconUrl);
+  if (normalizedIconUrl && !HEAVY_ANIMATION_ASSET_PATTERN.test(normalizedIconUrl)) return normalizedIconUrl;
+  const normalizedAnimationUrl = normalizeGiftAssetUrl(animationUrl);
+  if (normalizedAnimationUrl && !HEAVY_ANIMATION_ASSET_PATTERN.test(normalizedAnimationUrl)) return normalizedAnimationUrl;
+  return normalizedIconUrl || normalizedAnimationUrl;
 };
 
 interface GiftData {
@@ -130,7 +136,7 @@ function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUs
       coins: gift.coin_value,
       category: gift.category || 'wall',
       icon_url: getDisplayUrl(gift.icon_url, gift.animation_url),
-      animation_url: gift.animation_url?.startsWith('http') ? gift.animation_url : null,
+      animation_url: normalizeGiftAssetUrl(gift.animation_url),
     }));
   }, []);
 
