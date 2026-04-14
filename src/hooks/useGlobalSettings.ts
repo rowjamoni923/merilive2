@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, createContext, useContext } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { parseSettingValue } from '@/utils/adminSettingsStorage';
 
 /**
  * 🌍 GLOBAL SETTINGS HOOK
@@ -73,7 +74,12 @@ export interface UserLevelTier {
 }
 
 export interface CallRateSettings {
-  base_rate: number;
+  base_rate?: number;
+  default_rate: number;
+  min_rate?: number;
+  max_rate?: number;
+  host_commission_percent?: number;
+  min_level_for_custom_rate?: number;
   level_rates: { level: number; rate: number }[];
 }
 
@@ -119,7 +125,7 @@ const defaultSettings: GlobalSettings = {
   traderLevelTiers: [],
   vipTiers: [],
   userLevelTiers: [],
-  callRates: { base_rate: 0, level_rates: [] },
+  callRates: { default_rate: 0, base_rate: 0, level_rates: [] },
   minWithdrawalDollars: 10,
   withdrawalPlatformFeePercent: 10,
   isLoading: true,
@@ -196,7 +202,7 @@ async function fetchAllSettings(): Promise<GlobalSettings> {
     // Parse app_settings
     const appSettings: Record<string, any> = {};
     (appSettingsRes.data || []).forEach((s: any) => {
-      appSettings[s.setting_key] = s.setting_value;
+      appSettings[s.setting_key] = parseSettingValue(s.setting_value);
     });
 
     // Build settings object (NO hardcoded fallbacks except for truly optional fields)
@@ -225,7 +231,7 @@ async function fetchAllSettings(): Promise<GlobalSettings> {
       userLevelTiers: (userLevelTiersRes.data || []) as UserLevelTier[],
       
       // Call settings
-      callRates: appSettings.call_rates || { base_rate: 0, level_rates: [] },
+      callRates: appSettings.call_rates || { default_rate: 0, base_rate: 0, level_rates: [] },
       
       // Withdrawal settings
       minWithdrawalDollars: appSettings.min_withdrawal_usd || 10,

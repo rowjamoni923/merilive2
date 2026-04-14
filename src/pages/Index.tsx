@@ -12,6 +12,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
+import { parseSettingValue } from "@/utils/adminSettingsStorage";
 
 import { useCall } from "@/components/call/CallProvider";
 import { NotificationList } from "@/components/notifications/NotificationList";
@@ -158,7 +159,7 @@ const Index = () => {
         if (cachedUser) setCurrentUserId(cachedUser.id);
         
         if (settingsResult.data?.setting_value) {
-          const settingValue = settingsResult.data.setting_value as any;
+          const settingValue = parseSettingValue<any>(settingsResult.data.setting_value) ?? {};
           setCallRateSettings({
             default_rate: settingValue?.default_rate || 2000,
             level_rates: settingValue?.level_rates || []
