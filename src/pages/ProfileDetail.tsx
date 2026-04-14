@@ -1168,6 +1168,29 @@ const ProfileDetail = () => {
             </>
           )}
 
+          {/* Host Availability Toggle - Only for own profile if host */}
+          {isOwnProfile && profile?.is_host && (profile as any)?.host_status === 'approved' && (
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={handleToggleAvailability}
+              className="w-full mt-4 flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold text-white transition-all"
+              style={{
+                background: hostAvailability === 'online'
+                  ? 'linear-gradient(135deg, rgba(239,68,68,0.8), rgba(220,38,38,0.8))'
+                  : 'linear-gradient(135deg, rgba(34,197,94,0.8), rgba(22,163,74,0.8))',
+                boxShadow: hostAvailability === 'online'
+                  ? '0 8px 30px rgba(239,68,68,0.3)'
+                  : '0 8px 30px rgba(34,197,94,0.3)',
+              }}
+            >
+              <div className={cn(
+                "w-2.5 h-2.5 rounded-full",
+                hostAvailability === 'online' ? "bg-white animate-pulse" : "bg-white/60"
+              )} />
+              {hostAvailability === 'online' ? 'Go Offline' : 'Go Online'}
+            </motion.button>
+          )}
+
           {/* Action Buttons - Only for OTHER users' profiles */}
           {!isOwnProfile && (
             <div className="grid grid-cols-2 gap-3 mt-5">
