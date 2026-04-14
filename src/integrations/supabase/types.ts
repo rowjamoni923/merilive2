@@ -5999,11 +5999,14 @@ export type Database = {
           created_at: string | null
           description: string | null
           ended_at: string | null
+          entry_fee: number
+          game_mode: string | null
           host_id: string
           id: string
           is_active: boolean | null
           is_locked: boolean | null
           max_participants: number | null
+          min_level: number
           mood: string | null
           name: string
           password: string | null
@@ -6019,11 +6022,14 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           ended_at?: string | null
+          entry_fee?: number
+          game_mode?: string | null
           host_id: string
           id?: string
           is_active?: boolean | null
           is_locked?: boolean | null
           max_participants?: number | null
+          min_level?: number
           mood?: string | null
           name: string
           password?: string | null
@@ -6039,11 +6045,14 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           ended_at?: string | null
+          entry_fee?: number
+          game_mode?: string | null
           host_id?: string
           id?: string
           is_active?: boolean | null
           is_locked?: boolean | null
           max_participants?: number | null
+          min_level?: number
           mood?: string | null
           name?: string
           password?: string | null
@@ -7604,17 +7613,26 @@ export type Database = {
           beans_earned: number | null
           caption: string | null
           category_id: string | null
+          comment_count: number
           comments_count: number | null
           created_at: string
           duration_seconds: number | null
           id: string
           is_active: boolean | null
           is_approved: boolean | null
+          is_original_sound: boolean | null
           is_public: boolean | null
           like_count: number | null
           likes_count: number | null
+          music_artist: string | null
           music_id: string | null
+          music_title: string | null
+          share_count: number
           shares_count: number | null
+          sound_artist: string | null
+          sound_audio_url: string | null
+          sound_id: string | null
+          sound_title: string | null
           thumbnail_url: string | null
           updated_at: string
           user_id: string
@@ -7626,17 +7644,26 @@ export type Database = {
           beans_earned?: number | null
           caption?: string | null
           category_id?: string | null
+          comment_count?: number
           comments_count?: number | null
           created_at?: string
           duration_seconds?: number | null
           id?: string
           is_active?: boolean | null
           is_approved?: boolean | null
+          is_original_sound?: boolean | null
           is_public?: boolean | null
           like_count?: number | null
           likes_count?: number | null
+          music_artist?: string | null
           music_id?: string | null
+          music_title?: string | null
+          share_count?: number
           shares_count?: number | null
+          sound_artist?: string | null
+          sound_audio_url?: string | null
+          sound_id?: string | null
+          sound_title?: string | null
           thumbnail_url?: string | null
           updated_at?: string
           user_id: string
@@ -7648,17 +7675,26 @@ export type Database = {
           beans_earned?: number | null
           caption?: string | null
           category_id?: string | null
+          comment_count?: number
           comments_count?: number | null
           created_at?: string
           duration_seconds?: number | null
           id?: string
           is_active?: boolean | null
           is_approved?: boolean | null
+          is_original_sound?: boolean | null
           is_public?: boolean | null
           like_count?: number | null
           likes_count?: number | null
+          music_artist?: string | null
           music_id?: string | null
+          music_title?: string | null
+          share_count?: number
           shares_count?: number | null
+          sound_artist?: string | null
+          sound_audio_url?: string | null
+          sound_id?: string | null
+          sound_title?: string | null
           thumbnail_url?: string | null
           updated_at?: string
           user_id?: string
