@@ -6882,6 +6882,7 @@ export type Database = {
           frame_id: string | null
           gender: string | null
           hide_location: boolean
+          host_availability: string | null
           host_level: number | null
           host_photos: string[]
           host_status: string | null
@@ -6978,6 +6979,7 @@ export type Database = {
           frame_id?: string | null
           gender?: string | null
           hide_location?: boolean
+          host_availability?: string | null
           host_level?: number | null
           host_photos?: string[]
           host_status?: string | null
@@ -7074,6 +7076,7 @@ export type Database = {
           frame_id?: string | null
           gender?: string | null
           hide_location?: boolean
+          host_availability?: string | null
           host_level?: number | null
           host_photos?: string[]
           host_status?: string | null
@@ -10264,7 +10267,9 @@ export type Database = {
           frame_id: string | null
           gender: string | null
           hide_location: boolean | null
+          host_availability: string | null
           host_level: number | null
+          host_status: string | null
           id: string | null
           is_blocked: boolean | null
           is_face_verified: boolean | null
@@ -10305,7 +10310,9 @@ export type Database = {
           frame_id?: string | null
           gender?: string | null
           hide_location?: boolean | null
+          host_availability?: string | null
           host_level?: number | null
+          host_status?: string | null
           id?: string | null
           is_blocked?: boolean | null
           is_face_verified?: boolean | null
@@ -10346,7 +10353,9 @@ export type Database = {
           frame_id?: string | null
           gender?: string | null
           hide_location?: boolean | null
+          host_availability?: string | null
           host_level?: number | null
+          host_status?: string | null
           id?: string | null
           is_blocked?: boolean | null
           is_face_verified?: boolean | null
