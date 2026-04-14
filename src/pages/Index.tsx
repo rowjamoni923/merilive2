@@ -78,6 +78,8 @@ const Index = () => {
         .select("country_code, country_flag")
         .eq("is_host", true)
         .eq("gender", "female")
+        .eq("host_status", "approved")
+        .eq("is_face_verified", true)
         .not("country_code", "is", null)
         .not("country_flag", "is", null);
       
