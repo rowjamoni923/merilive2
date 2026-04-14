@@ -75,15 +75,7 @@ const getActiveMonitoredTables = (): TableSubscription[] => {
 
 // ============= Event Batching =============
 const notifySubscribers = (table: string, event: EventType, payload: any) => {
-  // Clear any pending update for this table
-  const existingTimeout = pendingUpdates.get(table);
-  if (existingTimeout) {
-    clearTimeout(existingTimeout);
-  }
-
-  // Batch updates with debounce — high-frequency tables get longer delay
-  const delay = HIGH_FREQUENCY_TABLES.has(table) ? HIGH_FREQ_DEBOUNCE_MS : DEBOUNCE_MS;
-  const timeout = setTimeout(() => {
+  const fireCallbacks = () => {
     subscribers.forEach((subscriber) => {
       if (subscriber.tables.includes(table) || subscriber.tables.includes('*')) {
         try {
@@ -93,6 +85,24 @@ const notifySubscribers = (table: string, event: EventType, payload: any) => {
         }
       }
     });
+  };
+
+  // INSTANT delivery for messages, gifts, notifications — zero delay
+  if (INSTANT_TABLES.has(table)) {
+    fireCallbacks();
+    return;
+  }
+
+  // Clear any pending update for this table
+  const existingTimeout = pendingUpdates.get(table);
+  if (existingTimeout) {
+    clearTimeout(existingTimeout);
+  }
+
+  // Batch updates with debounce for other tables
+  const delay = HIGH_FREQUENCY_TABLES.has(table) ? HIGH_FREQ_DEBOUNCE_MS : DEBOUNCE_MS;
+  const timeout = setTimeout(() => {
+    fireCallbacks();
     pendingUpdates.delete(table);
   }, delay);
 
