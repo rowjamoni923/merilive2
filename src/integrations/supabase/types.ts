@@ -10887,7 +10887,7 @@ export type Database = {
           _amount: number
           _receiver_id: string
           _sender_id: string
-          _sender_type: string
+          _sender_type?: string
         }
         Returns: Json
       }
