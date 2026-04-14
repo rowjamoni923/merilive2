@@ -275,8 +275,13 @@ const Tasks = () => {
 
         if (!progressError && progressData) {
           const progressMap: Record<string, TaskProgress> = {};
-          progressData.forEach((p) => {
-            progressMap[p.task_id] = p;
+          progressData.forEach((p: any) => {
+            progressMap[p.task_id] = {
+              task_id: p.task_id,
+              current_progress: p.current_progress ?? p.current_count ?? 0,
+              is_completed: p.is_completed ?? false,
+              is_claimed: p.is_claimed ?? p.reward_claimed ?? false,
+            };
           });
           setProgress(progressMap);
         }
@@ -307,6 +312,7 @@ const Tasks = () => {
 
       // Atomic server-side claim (race-safe)
       const { data: result, error: claimError } = await supabase.rpc('claim_task_reward', {
+        _user_id: user.id,
         _task_id: task.id,
       });
 

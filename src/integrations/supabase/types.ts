@@ -2241,13 +2241,19 @@ export type Database = {
           created_at: string | null
           description: string | null
           display_order: number | null
+          duration_hours: number | null
+          icon_color: string | null
           icon_name: string | null
           id: string
           is_active: boolean | null
           min_level: number | null
           required_count: number | null
+          requirement_type: string | null
+          requirement_value: number | null
+          reward_beans: number | null
           reward_coins: number | null
           reward_xp: number | null
+          target_audience: string | null
           target_gender: string | null
           task_type: string
           title: string
@@ -2256,13 +2262,19 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           display_order?: number | null
+          duration_hours?: number | null
+          icon_color?: string | null
           icon_name?: string | null
           id?: string
           is_active?: boolean | null
           min_level?: number | null
           required_count?: number | null
+          requirement_type?: string | null
+          requirement_value?: number | null
+          reward_beans?: number | null
           reward_coins?: number | null
           reward_xp?: number | null
+          target_audience?: string | null
           target_gender?: string | null
           task_type: string
           title: string
@@ -2271,13 +2283,19 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           display_order?: number | null
+          duration_hours?: number | null
+          icon_color?: string | null
           icon_name?: string | null
           id?: string
           is_active?: boolean | null
           min_level?: number | null
           required_count?: number | null
+          requirement_type?: string | null
+          requirement_value?: number | null
+          reward_beans?: number | null
           reward_coins?: number | null
           reward_xp?: number | null
+          target_audience?: string | null
           target_gender?: string | null
           task_type?: string
           title?: string
@@ -9703,6 +9721,7 @@ export type Database = {
           completed_at: string | null
           created_at: string | null
           current_count: number | null
+          current_progress: number | null
           id: string
           is_claimed: boolean | null
           is_completed: boolean | null
@@ -9717,6 +9736,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string | null
           current_count?: number | null
+          current_progress?: number | null
           id?: string
           is_claimed?: boolean | null
           is_completed?: boolean | null
@@ -9731,6 +9751,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string | null
           current_count?: number | null
+          current_progress?: number | null
           id?: string
           is_claimed?: boolean | null
           is_completed?: boolean | null
@@ -11327,7 +11348,12 @@ export type Database = {
         Args: { _stream_id: string }
         Returns: undefined
       }
-      update_task_progress: { Args: { _task_key: string }; Returns: Json }
+      update_task_progress:
+        | { Args: { _task_key: string }; Returns: Json }
+        | {
+            Args: { _increment?: number; _task_type: string; _value?: number }
+            Returns: Json
+          }
       validate_session_integrity: {
         Args: {
           p_device_fingerprint: string
