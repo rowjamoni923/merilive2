@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback, createContext, useContext } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { parseSettingValue } from '@/utils/adminSettingsStorage';
+import { parseCallRateSettings } from '@/utils/callRateSettings';
 
 /**
  * 🌍 GLOBAL SETTINGS HOOK
@@ -139,6 +140,12 @@ const STORAGE_KEY = 'meri_global_settings';
 const STORAGE_TIME_KEY = 'meri_global_settings_time';
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
+const toNumber = (value: unknown, fallback: number) => {
+  if (value === null || value === undefined || value === '') return fallback;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
 // Load from localStorage on startup (instant, no flicker)
 function loadFromStorage(): GlobalSettings {
   try {
@@ -207,20 +214,21 @@ async function fetchAllSettings(): Promise<GlobalSettings> {
       appSettings[s.setting_key] = parseSettingValue(s.setting_value);
     });
 
+    const exchangeRate = parseSettingValue<Record<string, unknown>>(appSettings.exchange_rate) ?? {};
+    const giftCommission = parseSettingValue<Record<string, unknown>>(appSettings.gift_commission) ?? {};
+    const withdrawalSettings = parseSettingValue<Record<string, unknown>>(appSettings.withdrawal_settings) ?? {};
+    const callRates = parseCallRateSettings(appSettings.call_rates);
+
     // Build settings object (NO hardcoded fallbacks except for truly optional fields)
     const settings: GlobalSettings = {
       rawAppSettings: appSettings,
       // Exchange rates from app_settings or agency_policy
-      beansPerDollar: appSettings.beans_per_dollar || appSettings.exchange_rate?.rate || 9000,
-      bdtPerDollar: appSettings.bdt_per_dollar || 125,
+      beansPerDollar: toNumber(appSettings.beans_per_dollar ?? exchangeRate.rate, 9000),
+      bdtPerDollar: toNumber(appSettings.bdt_per_dollar, 125),
       
       // Commission settings
-      hostCommissionPercent: typeof appSettings.host_percent === 'number' 
-        ? appSettings.host_percent 
-        : 55,
-      platformFeePercent: typeof appSettings.platform_fee_percent === 'number'
-        ? appSettings.platform_fee_percent
-        : 10,
+      hostCommissionPercent: toNumber(giftCommission.host_percent ?? appSettings.host_percent, 55),
+      platformFeePercent: toNumber(giftCommission.company_percent ?? appSettings.platform_fee_percent, 10),
       
       // Agency levels - DIRECTLY from database, no defaults
       agencyLevelTiers: (agencyTiersRes.data || []) as AgencyLevelTier[],
@@ -234,11 +242,11 @@ async function fetchAllSettings(): Promise<GlobalSettings> {
       userLevelTiers: (userLevelTiersRes.data || []) as UserLevelTier[],
       
       // Call settings
-      callRates: appSettings.call_rates || { default_rate: 0, base_rate: 0, level_rates: [] },
+      callRates,
       
       // Withdrawal settings
-      minWithdrawalDollars: appSettings.min_withdrawal_usd || 10,
-      withdrawalPlatformFeePercent: appSettings.withdrawal_fee_percent || 10,
+      minWithdrawalDollars: toNumber(appSettings.min_withdrawal_usd ?? withdrawalSettings.min_amount, 10),
+      withdrawalPlatformFeePercent: toNumber(appSettings.withdrawal_fee_percent ?? withdrawalSettings.fee_percent, 10),
       
       isLoading: false,
       lastUpdated: new Date(),

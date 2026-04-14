@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { RealtimeChannel } from '@supabase/supabase-js';
+import { parseSettingValue } from '@/utils/adminSettingsStorage';
 
 /**
  * Centralized hook for real-time admin settings updates
@@ -362,10 +363,10 @@ const refreshGameSettings = async () => {
 const refreshAppSettings = async () => {
   const { data } = await supabase
     .from('app_settings')
-    .select('*');
+    .select('setting_key, setting_value');
   globalAppSettings.clear();
   (data || []).forEach((setting: any) => {
-    globalAppSettings.set(setting.setting_key, setting.setting_value);
+    globalAppSettings.set(setting.setting_key, parseSettingValue(setting.setting_value));
   });
 };
 
@@ -627,7 +628,7 @@ export const useAppSettingsRealtime = () => {
   }, []);
 
   const getSetting = useCallback((key: string, defaultValue?: any) => {
-    return settings.get(key) ?? defaultValue;
+    return settings.has(key) ? settings.get(key) : defaultValue;
   }, [settings]);
 
   return { settings, loading, getSetting };
