@@ -44,107 +44,98 @@ function setCache(key: string, value: string | undefined) {
 
 export interface EntryAnimationResult {
   entranceAnimationUrl?: string;
+  entranceSoundUrl?: string;
   entryNameBarUrl?: string;
+  entryNameBarSoundUrl?: string;
   vehicleAnimationUrl?: string;
+  vehicleSoundUrl?: string;
 }
 
 /**
  * Fetch animation URL by ID from all possible tables
  * Checks: entry_banners -> shop_items -> level_privileges
  */
+export interface AnimationWithSound {
+  animationUrl?: string;
+  soundUrl?: string;
+}
+
 export async function fetchAnimationUrlById(animationId: string): Promise<string | undefined> {
-  if (!animationId) return undefined;
+  const result = await fetchAnimationWithSoundById(animationId);
+  return result.animationUrl;
+}
+
+export async function fetchAnimationWithSoundById(animationId: string): Promise<AnimationWithSound> {
+  if (!animationId) return {};
 
   // Check cache first - instant return
-  const cached = getCached(`anim:${animationId}`);
-  if (cached !== null) return cached;
+  const cachedAnim = getCached(`anim:${animationId}`);
+  const cachedSound = getCached(`sound:${animationId}`);
+  if (cachedAnim !== null) return { animationUrl: cachedAnim, soundUrl: cachedSound ?? undefined };
 
-  console.log('[fetchAnimationUrlById] 🔍 Looking up animation ID:', animationId);
+  console.log('[fetchAnimationWithSoundById] 🔍 Looking up animation ID:', animationId);
 
   try {
-    // Run all queries in parallel for faster lookup - check ALL possible tables
     const [entryBannerResult, shopItemResult, levelPrivilegeResult, vipTierResult, entryNameBarResult] = await Promise.all([
-      // 1. Try entry_banners table
       supabase
         .from('entry_banners')
-        .select('animation_url')
+        .select('animation_url, sound_url')
         .eq('id', animationId)
         .maybeSingle(),
-      
-      // 2. Try shop_items table
       supabase
         .from('shop_items')
-        .select('animation_url, animation_file_url')
+        .select('animation_url, animation_file_url, sound_url')
         .eq('id', animationId)
         .maybeSingle(),
-      
-      // 3. Try level_privileges table (VIP items stored here - includes entry_bar and entrance types)
       supabase
         .from('level_privileges')
-        .select('animation_url, privilege_type, name')
+        .select('animation_url, privilege_type, name, sound_url')
         .eq('id', animationId)
         .maybeSingle(),
-        
-      // 4. Try vip_tiers table (VIP tier entry animations)
       supabase
         .from('vip_tiers')
         .select('entry_animation_url')
         .eq('id', animationId)
         .maybeSingle(),
-        
-      // 5. Try entry_name_bars table (can also have entrance animations)
       supabase
         .from('entry_name_bars')
-        .select('animation_url')
+        .select('animation_url, sound_url')
         .eq('id', animationId)
         .maybeSingle(),
     ]);
 
-    console.log('[fetchAnimationUrlById] 📊 Query results for ID:', animationId, {
-      entryBanner: entryBannerResult.data?.animation_url ? '✅ FOUND' : '❌ not found',
-      shopItem: (shopItemResult.data?.animation_url || shopItemResult.data?.animation_file_url) ? '✅ FOUND' : '❌ not found',
-      levelPrivilege: levelPrivilegeResult.data?.animation_url ? `✅ FOUND (type: ${levelPrivilegeResult.data.privilege_type}, name: ${levelPrivilegeResult.data.name})` : '❌ not found',
-      vipTier: vipTierResult.data?.entry_animation_url ? '✅ FOUND' : '❌ not found',
-      entryNameBar: entryNameBarResult.data?.animation_url ? '✅ FOUND' : '❌ not found',
-    });
+    const cacheAndReturn = (url: string, sound?: string | null): AnimationWithSound => {
+      setCache(`anim:${animationId}`, url);
+      setCache(`sound:${animationId}`, sound || undefined);
+      return { animationUrl: url, soundUrl: sound || undefined };
+    };
 
-    // Check entry_banners
     if (entryBannerResult.data?.animation_url) {
-      setCache(`anim:${animationId}`, entryBannerResult.data.animation_url);
-      return entryBannerResult.data.animation_url;
+      return cacheAndReturn(entryBannerResult.data.animation_url, entryBannerResult.data.sound_url);
     }
 
-    // Check shop_items
     const shopUrl = shopItemResult.data?.animation_url || shopItemResult.data?.animation_file_url;
     if (shopUrl) {
-      setCache(`anim:${animationId}`, shopUrl);
-      return shopUrl;
+      return cacheAndReturn(shopUrl, (shopItemResult.data as any)?.sound_url);
     }
 
-    // Check level_privileges
     if (levelPrivilegeResult.data?.animation_url) {
-      setCache(`anim:${animationId}`, levelPrivilegeResult.data.animation_url);
-      return levelPrivilegeResult.data.animation_url;
+      return cacheAndReturn(levelPrivilegeResult.data.animation_url, levelPrivilegeResult.data.sound_url);
     }
 
-    // Check vip_tiers
     if (vipTierResult.data?.entry_animation_url) {
-      setCache(`anim:${animationId}`, vipTierResult.data.entry_animation_url);
-      return vipTierResult.data.entry_animation_url;
+      return cacheAndReturn(vipTierResult.data.entry_animation_url);
     }
     
-    // Check entry_name_bars
     if (entryNameBarResult.data?.animation_url) {
-      setCache(`anim:${animationId}`, entryNameBarResult.data.animation_url);
-      return entryNameBarResult.data.animation_url;
+      return cacheAndReturn(entryNameBarResult.data.animation_url, entryNameBarResult.data.sound_url);
     }
 
-    // Not found - cache as undefined to avoid re-fetching
     setCache(`anim:${animationId}`, undefined);
-    return undefined;
+    return {};
   } catch (error) {
-    console.error('[fetchAnimationUrlById] ⚠️ Error fetching animation:', error);
-    return undefined;
+    console.error('[fetchAnimationWithSoundById] ⚠️ Error:', error);
+    return {};
   }
 }
 
@@ -440,13 +431,14 @@ export async function fetchUserEntryAnimations(
   const result: EntryAnimationResult = {};
 
   // Fetch all equipped animations in parallel for better performance
-  const [entranceUrl, nameBarUrl, vehicleUrl] = await Promise.all([
-    equippedEntranceId ? fetchAnimationUrlById(equippedEntranceId) : Promise.resolve(undefined),
+  const [entranceResult, nameBarUrl, vehicleUrl] = await Promise.all([
+    equippedEntranceId ? fetchAnimationWithSoundById(equippedEntranceId) : Promise.resolve({} as AnimationWithSound),
     equippedEntryNameBarId ? fetchEntryNameBarUrlById(equippedEntryNameBarId) : Promise.resolve(undefined),
     equippedVehicleId ? fetchVehicleAnimationUrlById(equippedVehicleId) : Promise.resolve(undefined),
   ]);
 
-  result.entranceAnimationUrl = entranceUrl;
+  result.entranceAnimationUrl = entranceResult.animationUrl;
+  result.entranceSoundUrl = entranceResult.soundUrl;
   result.entryNameBarUrl = nameBarUrl;
   result.vehicleAnimationUrl = vehicleUrl;
 

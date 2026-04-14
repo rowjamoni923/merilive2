@@ -21,6 +21,7 @@ export interface EntryEffectState {
     avatarUrl?: string;
     level: number;
     customEntranceUrl?: string;
+    entranceSoundUrl?: string;
   } | null;
   
   // Entry Name Bar (flying banner with name) - Shows for ALL joining users
@@ -78,6 +79,7 @@ export function useRoomEntryEffects(currentUserId: string | null) {
    */
   const fetchUserEntryEffects = useCallback(async (userId: string): Promise<{
     entranceAnimationUrl?: string;
+    entranceSoundUrl?: string;
     entryNameBarUrl?: string;
     vehicleAnimationUrl?: string;
   }> => {
@@ -100,14 +102,14 @@ export function useRoomEntryEffects(currentUserId: string | null) {
 
       // Use centralized function that checks ALL tables (entry_banners, shop_items, level_privileges)
       // Pass user_level for auto-assigning level-based entry name bars
-      const { entranceAnimationUrl, entryNameBarUrl, vehicleAnimationUrl } = await fetchUserEntryAnimations(
+      const { entranceAnimationUrl, entranceSoundUrl, entryNameBarUrl, vehicleAnimationUrl } = await fetchUserEntryAnimations(
         profile.equipped_entrance_id,
         profile.equipped_entry_name_bar_id,
         profile.equipped_vehicle_id,
         profile.user_level
       );
 
-      return { entranceAnimationUrl, entryNameBarUrl, vehicleAnimationUrl };
+      return { entranceAnimationUrl, entranceSoundUrl, entryNameBarUrl, vehicleAnimationUrl };
     } catch (error) {
       console.error('[useRoomEntryEffects] Error fetching entry effects:', error);
       return {};
@@ -128,7 +130,7 @@ export function useRoomEntryEffects(currentUserId: string | null) {
     console.log('[useRoomEntryEffects] Triggering entry effects for:', userName, 'Level:', userLevel);
 
     // Fetch custom animations
-    const { entranceAnimationUrl, entryNameBarUrl, vehicleAnimationUrl } = await fetchUserEntryEffects(userId);
+    const { entranceAnimationUrl, entranceSoundUrl, entryNameBarUrl, vehicleAnimationUrl } = await fetchUserEntryEffects(userId);
 
     if (!mountedRef.current) return;
 
@@ -176,6 +178,7 @@ export function useRoomEntryEffects(currentUserId: string | null) {
         avatarUrl,
         level: userLevel,
         customEntranceUrl: entranceAnimationUrl,
+        entranceSoundUrl: entranceSoundUrl,
       } : null,
       // Entry Name Bar - ALWAYS show for ALL joining users
       // If user has equipped animation (SVGA/GIF/Image), it plays as background

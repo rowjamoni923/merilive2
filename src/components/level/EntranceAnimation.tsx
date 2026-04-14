@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo, useCallback, memo, forwardRef, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { Howl } from 'howler';
 
 // Eagerly import SVGAPlayerWithAudio for instant entry animations
 import SVGAPlayerWithAudio from "@/components/common/SVGAPlayerWithAudio";
@@ -12,7 +13,8 @@ interface EntranceAnimationProps {
     avatarUrl?: string;
     level: number;
   };
-  animationUrl?: string; // Direct animation URL - preferred
+  animationUrl?: string;
+  soundUrl?: string; // Separate sound file URL from DB
   onComplete?: () => void;
   showDuration?: number;
 }
@@ -37,6 +39,7 @@ const EntranceAnimationInner = memo(({
   userId, 
   userInfo, 
   animationUrl, 
+  soundUrl,
   onComplete, 
   showDuration = 4000 
 }: EntranceAnimationProps) => {
@@ -47,6 +50,8 @@ const EntranceAnimationInner = memo(({
   const mountedRef = useRef(true);
   const completedRef = useRef(false);
   const animationStartedRef = useRef(false);
+  const soundRef = useRef<Howl | null>(null);
+  const soundPlayedRef = useRef(false);
   
   // Stable memoized values - same pattern as FlyingGiftAnimation
   const displayAnimationUrl = useMemo(() => animationUrl, [animationUrl]);
@@ -64,18 +69,43 @@ const EntranceAnimationInner = memo(({
     });
   }, []);
 
+  // Play separate sound_url from DB (not embedded in SVGA)
+  useEffect(() => {
+    if (soundPlayedRef.current || !soundUrl) return;
+    soundPlayedRef.current = true;
+    
+    console.log('[EntranceAnimation] 🔊 Playing entrance sound from DB:', soundUrl);
+    const howl = new Howl({
+      src: [soundUrl],
+      volume: 0.7,
+      html5: true,
+      onloaderror: (_id: any, err: any) => {
+        console.warn('[EntranceAnimation] Sound load error:', err);
+        // Fallback to HTML5 Audio
+        const audio = new Audio(soundUrl);
+        audio.volume = 0.7;
+        audio.play().catch(() => {});
+      },
+    });
+    soundRef.current = howl;
+    howl.play();
+  }, []);
+
   // Stable callback for animation complete - immediately notify parent to unmount and stop audio - ONLY ONCE
   const handleAnimationComplete = useCallback(() => {
     if (completedRef.current || !mountedRef.current) {
-      console.log('[EntranceAnimation] ⚠️ Complete blocked - already completed');
       return;
     }
     completedRef.current = true;
     
-    console.log('[EntranceAnimation] ✅ Animation completed - notifying parent');
+    // Stop sound
+    if (soundRef.current) {
+      try { soundRef.current.stop(); soundRef.current.unload(); } catch {}
+      soundRef.current = null;
+    }
+    
     setShowAnimation(false);
     setAnimationEnded(true);
-    // Immediately call onComplete to ensure audio stops
     onComplete?.();
   }, [onComplete]);
 
@@ -96,7 +126,10 @@ const EntranceAnimationInner = memo(({
     if (isSVGA) {
       // SVGA plays for its NATIVE duration ONLY - onComplete from SVGAPlayer handles completion
       // No extra timers added
-      return () => { mountedRef.current = false; };
+      return () => { 
+        mountedRef.current = false;
+        if (soundRef.current) { try { soundRef.current.stop(); soundRef.current.unload(); } catch {} }
+      };
     }
     
     // For other types (lottie, video, image), use fixed duration
