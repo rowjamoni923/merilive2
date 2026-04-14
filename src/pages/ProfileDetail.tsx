@@ -101,6 +101,8 @@ interface ProfileData {
   is_blocked?: boolean | null;
   blocked_reason?: string | null;
   is_in_call?: boolean | null;
+  host_status?: string | null;
+  host_availability?: string | null;
 }
 
 interface FrameData {
