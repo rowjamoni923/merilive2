@@ -123,13 +123,21 @@ const Index = () => {
   } | null>(null);
   const [callRateLoading, setCallRateLoading] = useState(true);
   const warmedHostImagesRef = useRef<Set<string>>(new Set());
+  const isEligibleCachedHost = useCallback((host: Partial<Profile> | null | undefined) => {
+    if (!host) return false;
+    return host.is_host === true
+      && (host.gender === "female" || host.gender === "Female")
+      && host.host_status === "approved"
+      && host.is_face_verified === true
+      && host.host_availability !== "offline";
+  }, []);
   const [instantHosts, setInstantHosts] = useState<Array<Profile & { isLive?: boolean; liveStreamId?: string; liveThumbnailUrl?: string | null }>>(() => {
     try {
       if (typeof window === "undefined") return [];
       const raw = window.sessionStorage.getItem("index-hosts-instant-cache-v1");
       if (!raw) return [];
       const parsed = JSON.parse(raw);
-      return Array.isArray(parsed) ? parsed : [];
+      return Array.isArray(parsed) ? parsed.filter(isEligibleCachedHost) : [];
     } catch {
       return [];
     }
@@ -322,19 +330,26 @@ const Index = () => {
   });
 
   useEffect(() => {
-    if (!hosts || hosts.length === 0) return;
-    const snapshot = hosts.slice(0, 100);
+    if (!hosts) return;
+
+    const snapshot = hosts
+      .filter((host) => isEligibleCachedHost(host))
+      .slice(0, 100);
+
     setInstantHosts(snapshot as Array<Profile & { isLive?: boolean; liveStreamId?: string; liveThumbnailUrl?: string | null }>);
+
     try {
-      window.sessionStorage.setItem("index-hosts-instant-cache-v1", JSON.stringify(snapshot));
+      if (snapshot.length > 0) {
+        window.sessionStorage.setItem("index-hosts-instant-cache-v1", JSON.stringify(snapshot));
+      } else {
+        window.sessionStorage.removeItem("index-hosts-instant-cache-v1");
+      }
     } catch {
       // no-op
     }
-  }, [hosts]);
+  }, [hosts, isEligibleCachedHost]);
 
-  const displayHosts = (hosts && hosts.length > 0
-    ? hosts
-    : instantHosts) as Array<Profile & { isLive?: boolean; liveStreamId?: string; liveThumbnailUrl?: string | null }>;
+  const displayHosts = (hosts ?? instantHosts) as Array<Profile & { isLive?: boolean; liveStreamId?: string; liveThumbnailUrl?: string | null }>;
 
   useEffect(() => {
     if (!hosts?.length) return;
