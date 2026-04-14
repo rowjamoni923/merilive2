@@ -348,7 +348,11 @@ const ProfileDetail = () => {
       }
     }
     setProfile(profileData as ProfileData);
-
+    
+    // Set host availability
+    if (profileData?.host_availability) {
+      setHostAvailability(profileData.host_availability);
+    }
     // Set poster images
     setPosterImages(postersResult?.data || []);
 
