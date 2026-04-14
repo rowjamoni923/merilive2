@@ -70,12 +70,13 @@ export function useHostCallRate(hostId: string | null | undefined): UseHostCallR
   useEffect(() => {
     if (!hostId) return;
 
+    const channelName = `host-call-rate-${hostId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const channel = supabase
-      .channel(`host-call-rate-${hostId}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
-          event: 'UPDATE',
+          event: '*',
           schema: 'public',
           table: 'profiles',
           filter: `id=eq.${hostId}`,
@@ -87,7 +88,7 @@ export function useHostCallRate(hostId: string | null | undefined): UseHostCallR
       .on(
         'postgres_changes',
         {
-          event: 'UPDATE',
+          event: '*',
           schema: 'public',
           table: 'app_settings',
           filter: 'setting_key=eq.call_rates',

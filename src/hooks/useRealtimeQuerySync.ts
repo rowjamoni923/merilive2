@@ -131,13 +131,38 @@ const DEFAULT_DEBOUNCE_MS = 160;
 
 // Heavy home query protection: prevent refetch storms from high-frequency realtime updates
 const QUERY_KEY_MIN_INVALIDATE_MS: Record<string, number> = {
-  'index-hosts-v3': 20000, // 20s throttle - home page doesn't need instant updates
+  'index-hosts-v3': 800,
   'live-stream': 3000,
   'active-streams': 3000,
 };
 
 // Profiles handled separately
 const PROFILE_QUERY_KEYS: string[][] = [['user-profile'], ['host-profile']];
+const PROFILE_HOME_QUERY_KEYS: string[][] = [['index-hosts-v3'], ['host-countries']];
+const PROFILE_HOME_RELEVANT_FIELDS = [
+  'is_host',
+  'gender',
+  'host_status',
+  'is_face_verified',
+  'is_verified',
+  'host_availability',
+  'avatar_url',
+  'display_name',
+  'username',
+  'country_code',
+  'country_flag',
+  'is_online',
+  'is_in_call',
+  'last_seen_at',
+  'frame_id',
+];
+
+const shouldInvalidateHomeForProfileChange = (payload: any) => {
+  const next = payload?.new ?? {};
+  const prev = payload?.old ?? {};
+
+  return PROFILE_HOME_RELEVANT_FIELDS.some((field) => next?.[field] !== prev?.[field]);
+};
 
 // All tables we want to sync — MUST match publication
 const SYNCED_TABLES = [...Object.keys(TABLE_TO_QUERY_KEYS), 'profiles'];
@@ -187,8 +212,12 @@ export const useRealtimeQuerySync = () => {
       SYNCED_TABLES,
       (table, _event, _payload) => {
         if (table === 'profiles') {
-          // Only invalidate user-profile/host-profile, NOT the entire home page list
           invalidateWithDebounce(table, PROFILE_QUERY_KEYS);
+
+            if (shouldInvalidateHomeForProfileChange(_payload)) {
+              invalidateWithDebounce('profiles-home', PROFILE_HOME_QUERY_KEYS);
+            }
+
           return;
         }
 
