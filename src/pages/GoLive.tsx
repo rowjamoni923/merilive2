@@ -26,6 +26,8 @@ import { trackTaskProgress } from "@/hooks/useTaskProgress";
 import { clearPreparedHostPreviewStream, setPreparedHostPreviewStream } from "@/features/live/hostPreviewSession";
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 
+const GO_LIVE_PROFILE_FIELDS = "id, display_name, avatar_url, user_level, host_level, is_host, host_status, gender, is_face_verified, face_verification_image";
+
 const isApprovedLiveHost = (profile?: {
   is_host?: boolean | null;
   host_status?: string | null;
@@ -199,6 +201,7 @@ const GoLive = () => {
     is_face_verified?: boolean;
     face_verification_image?: string | null;
   } | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showProfileError, setShowProfileError] = useState(false);
   const [showFaceVerificationRequired, setShowFaceVerificationRequired] = useState(false);
@@ -235,6 +238,52 @@ const GoLive = () => {
       }
     }
   }, [userProfile, featureLevelLoading, checkFeatureAccess]);
+
+  const loadUserProfile = useCallback(async (userId: string) => {
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select(GO_LIVE_PROFILE_FIELDS)
+      .eq("id", userId)
+      .single();
+
+    if (error) throw error;
+    if (!profile || profile.is_face_verified) return profile;
+
+    const { data: approvedSubmission } = await supabase
+      .from("face_verification_submissions")
+      .select("status, verification_type, face_image_url")
+      .eq("user_id", userId)
+      .eq("status", "approved")
+      .order("reviewed_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!approvedSubmission) return profile;
+
+    return {
+      ...profile,
+      is_face_verified: true,
+      face_verification_image: profile.face_verification_image || approvedSubmission.face_image_url || null,
+      is_host: profile.is_host || approvedSubmission.verification_type === 'host',
+      host_status: approvedSubmission.verification_type === 'host'
+        ? (profile.host_status || 'approved')
+        : profile.host_status,
+    };
+  }, []);
+
+  const refreshUserProfile = useCallback(async (userId?: string | null) => {
+    const targetUserId = userId || currentUserId;
+    if (!targetUserId) return userProfile;
+
+    try {
+      const profile = await loadUserProfile(targetUserId);
+      setUserProfile(profile);
+      return profile;
+    } catch (error) {
+      console.error('[GoLive] Failed to refresh verification state:', error);
+      return userProfile;
+    }
+  }, [currentUserId, loadUserProfile, userProfile]);
 
   // Check live ban status on mount and start countdown
   useEffect(() => {
@@ -358,14 +407,11 @@ const GoLive = () => {
         }
         return;
       }
-      
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("id, display_name, avatar_url, user_level, host_level, is_host, host_status, gender, is_face_verified, face_verification_image")
-        .eq("id", user.id)
-        .single();
+
+      const profile = await loadUserProfile(user.id);
       
       if (isMounted) {
+        setCurrentUserId(user.id);
         if (profile) setUserProfile(profile);
         setIsLoading(false);
       }
@@ -422,7 +468,46 @@ const GoLive = () => {
         streamRef.current = null;
       }
     };
-  }, [navigate, useAgora, isNativeAndroid, getCameraStream, checkPermissionStatus, startNativeDeepARPreview, stopNativeDeepARPreview, attachWebPreviewStream]);
+  }, [navigate, useAgora, isNativeAndroid, getCameraStream, checkPermissionStatus, startNativeDeepARPreview, stopNativeDeepARPreview, attachWebPreviewStream, loadUserProfile]);
+
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    const syncVerificationState = () => {
+      void refreshUserProfile(currentUserId);
+    };
+
+    const handleVisibilityRefresh = () => {
+      if (document.visibilityState === 'visible') {
+        syncVerificationState();
+      }
+    };
+
+    const channel = supabase
+      .channel(`go-live-verification-${currentUserId}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'profiles',
+        filter: `id=eq.${currentUserId}`,
+      }, syncVerificationState)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'face_verification_submissions',
+        filter: `user_id=eq.${currentUserId}`,
+      }, syncVerificationState)
+      .subscribe();
+
+    window.addEventListener('focus', syncVerificationState);
+    document.addEventListener('visibilitychange', handleVisibilityRefresh);
+
+    return () => {
+      window.removeEventListener('focus', syncVerificationState);
+      document.removeEventListener('visibilitychange', handleVisibilityRefresh);
+      supabase.removeChannel(channel);
+    };
+  }, [currentUserId, refreshUserProfile]);
 
   // Function to actually request permissions when user clicks Allow
   const handleAllowPermissions = async () => {
@@ -723,16 +808,18 @@ const GoLive = () => {
   const handleGoLive = async () => {
     if (isStarting || agoraLoading) return;
 
-    const isHost = isApprovedLiveHost(userProfile);
+    const effectiveProfile = await refreshUserProfile();
+    const resolvedProfile = effectiveProfile || userProfile;
+    const isHost = isApprovedLiveHost(resolvedProfile);
 
     // Check if user has profile photo - show modal instead of toast
-    if (!userProfile?.avatar_url) {
+    if (!resolvedProfile?.avatar_url) {
       setShowProfileError(true);
       return;
     }
 
     // Approved hosts can go live directly; regular users still need face verification.
-    if (!isHost && !userProfile?.is_face_verified) {
+    if (!isHost && !resolvedProfile?.is_face_verified) {
       setShowFaceVerificationRequired(true);
       return;
     }
