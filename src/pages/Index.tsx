@@ -47,6 +47,7 @@ interface Profile {
   isLive?: boolean;
   liveStreamId?: string;
   viewerCount?: number;
+  liveThumbnailUrl?: string | null;
   actuallyBusy?: boolean;
 }
 
