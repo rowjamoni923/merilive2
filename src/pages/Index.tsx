@@ -413,7 +413,7 @@ const Index = () => {
   };
 
   // Render user card - PREMIUM UPGRADED DESIGN (Memoized for performance)
-  const UserCard = memo(({ user, index }: { user: Profile & { isLive?: boolean; liveStreamId?: string }; index: number }) => {
+  const UserCard = memo(({ user, index }: { user: Profile & { isLive?: boolean; liveStreamId?: string; liveThumbnailUrl?: string | null }; index: number }) => {
     const isFemaleHost = user.is_host && (user.gender === 'female' || user.gender === 'Female');
     const displayLevel = isFemaleHost 
       ? (user.host_level ?? 0)
