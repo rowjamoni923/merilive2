@@ -9703,6 +9703,7 @@ export type Database = {
           completed_at: string | null
           created_at: string | null
           current_count: number | null
+          current_progress: number | null
           id: string
           is_claimed: boolean | null
           is_completed: boolean | null
@@ -9717,6 +9718,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string | null
           current_count?: number | null
+          current_progress?: number | null
           id?: string
           is_claimed?: boolean | null
           is_completed?: boolean | null
@@ -9731,6 +9733,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string | null
           current_count?: number | null
+          current_progress?: number | null
           id?: string
           is_claimed?: boolean | null
           is_completed?: boolean | null
