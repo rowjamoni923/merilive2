@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { parseCallRateSettings, resolveEffectiveCallRate } from '@/utils/callRateSettings';
 
 interface UseHostCallRateResult {
   callRate: number | null;
@@ -30,7 +31,7 @@ export function useHostCallRate(hostId: string | null | undefined): UseHostCallR
       const [{ data: hostProfile }, { data: settings }] = await Promise.all([
         supabase
           .from('profiles_public')
-          .select('host_level')
+          .select('host_level, call_rate_per_minute')
           .eq('id', hostId)
           .maybeSingle(),
         supabase
@@ -46,11 +47,12 @@ export function useHostCallRate(hostId: string | null | undefined): UseHostCallR
         return;
       }
 
-      const settingValue = settings?.setting_value as any;
-      const hostLevel = Math.max(hostProfile.host_level ?? 0, 1);
-      const levelRates = Array.isArray(settingValue?.level_rates) ? settingValue.level_rates : [];
-      const levelRate = levelRates.find((lr: { level: number; rate: number }) => lr.level === hostLevel);
-      const resolvedRate = levelRate?.rate ?? settingValue?.default_rate ?? settingValue?.per_minute_rate ?? null;
+      const callSettings = parseCallRateSettings(settings?.setting_value);
+      const resolvedRate = resolveEffectiveCallRate({
+        settings: callSettings,
+        hostLevel: hostProfile.host_level,
+        customRate: hostProfile.call_rate_per_minute,
+      });
 
       setCallRate(typeof resolvedRate === 'number' && resolvedRate > 0 ? resolvedRate : null);
     } catch (error) {

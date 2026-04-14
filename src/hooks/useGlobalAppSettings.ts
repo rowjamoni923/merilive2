@@ -16,6 +16,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { parseSettingValue } from '@/utils/adminSettingsStorage';
 
 // ========== TYPE DEFINITIONS ==========
 
@@ -105,7 +106,7 @@ const fetchAllSettings = async () => {
     
     if (data) {
       data.forEach((setting) => {
-        const value = setting.setting_value as any;
+        const value = parseSettingValue<Record<string, any>>(setting.setting_value) ?? {};
         
         switch (setting.setting_key) {
           case 'call_rates':

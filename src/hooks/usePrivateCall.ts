@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { subscribeToTables } from '@/hooks/useUniversalRealtime';
 import { useToast } from '@/hooks/use-toast';
 import { Capacitor } from '@capacitor/core';
+import { parseCallRateSettings, resolveEffectiveCallRate } from '@/utils/callRateSettings';
 
 interface CallState {
   callId: string | null;
@@ -371,7 +372,7 @@ export function usePrivateCall(userId: string | null) {
       // PARALLEL: Fetch user coins, host info, and admin call settings simultaneously
       const [userProfileRes, hostProfileRes, hostCallStatusRes, settingsRes] = await Promise.all([
         supabase.from('profiles').select('coins, display_name, avatar_url, user_level').eq('id', userId).single(),
-        supabase.from('profiles_public').select('display_name, avatar_url, is_online, host_level').eq('id', hostId).single(),
+        supabase.from('profiles_public').select('display_name, avatar_url, is_online, host_level, call_rate_per_minute').eq('id', hostId).single(),
         supabase.from('profiles').select('is_in_call, current_call_id').eq('id', hostId).single(),
         supabase.from('app_settings').select('setting_value').eq('setting_key', 'call_rates').maybeSingle(),
       ]);
@@ -379,14 +380,12 @@ export function usePrivateCall(userId: string | null) {
       const userProfile = userProfileRes.data;
       const hostProfile = hostProfileRes.data;
       const hostCallStatus = hostCallStatusRes.data;
-      const settingValue = settingsRes.data?.setting_value as any;
-
-      const effectiveHostLevel = Math.max(hostProfile?.host_level ?? 0, 1);
-      const levelRates = Array.isArray(settingValue?.level_rates) ? settingValue.level_rates : [];
-      const matchedLevelRate = levelRates.find(
-        (lr: { level: number; rate: number }) => lr.level === effectiveHostLevel
-      );
-      const callRate = matchedLevelRate?.rate ?? settingValue?.default_rate ?? settingValue?.per_minute_rate ?? null;
+      const callSettings = parseCallRateSettings(settingsRes.data?.setting_value);
+      const callRate = resolveEffectiveCallRate({
+        settings: callSettings,
+        hostLevel: hostProfile?.host_level,
+        customRate: hostProfile?.call_rate_per_minute,
+      });
 
       if (!callRate || callRate <= 0) {
         toast({

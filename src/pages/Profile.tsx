@@ -65,6 +65,7 @@ import useExpiredItemsRestorer from "@/hooks/useExpiredItemsRestorer";
  import UserBeansExchangeModal from "@/components/profile/UserBeansExchangeModal";
  import { useUserBalance, updateCachedBalance } from "@/hooks/useUserBalance";
 import { triggerLegacyProfileSync } from "@/utils/legacyProfileSync";
+import { parseCallRateSettings, resolveEffectiveCallRate, getEffectiveHostLevel } from "@/utils/callRateSettings";
 
 interface ProfileStats {
   followersCount: number;
@@ -1244,24 +1245,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         .single();
       
       if (settings?.setting_value) {
-        const settingsValue = settings.setting_value as any;
+        const settingsValue = parseCallRateSettings(settings.setting_value);
         setCallRateSettings(settingsValue);
-        
-        // Get current call rate from profile and host level
-        const currentRate = (profile as any)?.call_rate_per_minute || 0;
-        const rawHostLevel = (profile as any)?.host_level || 0;
-        const effectiveLevel = rawHostLevel === 0 ? 1 : rawHostLevel;
-        
-        // CRITICAL: When host_level is 0 (after beans transfer reset), 
-        // ALWAYS use the level-based rate, ignoring any old saved rate
-        if (rawHostLevel === 0 || currentRate === 0) {
-          const levelRates = settingsValue.level_rates || [];
-          const levelRate = levelRates.find((lr: any) => lr.level === effectiveLevel);
-          const defaultRate = levelRate?.rate || settingsValue.default_rate || 0;
-          setCallRate(defaultRate);
-        } else {
-          setCallRate(currentRate);
-        }
+        setCallRate(resolveEffectiveCallRate({
+          settings: settingsValue,
+          hostLevel: (profile as any)?.host_level,
+          customRate: (profile as any)?.call_rate_per_minute,
+        }));
       } else {
         // Fallback if no settings found
         const currentRate = (profile as any)?.call_rate_per_minute || 1000;
@@ -1328,9 +1318,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   // CRITICAL: When host_level is 0 (after beans transfer), use Level 1 rate
   const getLevelSuggestedRate = () => {
     if (!callRateSettings?.level_rates) return callRateSettings?.default_rate || 2000;
-    // When host_level is 0, treat as Level 1
-    const rawLevel = (profile as any)?.host_level || 0;
-    const effectiveLevel = rawLevel === 0 ? 1 : rawLevel;
+    const effectiveLevel = getEffectiveHostLevel((profile as any)?.host_level);
     const levelRate = callRateSettings.level_rates.find((lr: any) => lr.level === effectiveLevel);
     return levelRate?.rate || callRateSettings?.default_rate || 2000;
   };
@@ -1382,12 +1370,14 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         // If settings not loaded yet, show loading indicator
         if (!callRateSettings) return "Loading...";
         
-        const hostLevel = (profile as any)?.host_level || 1;
+        const hostLevel = getEffectiveHostLevel((profile as any)?.host_level);
         const levelRates = callRateSettings?.level_rates || [];
         const levelRate = levelRates.find((lr: any) => lr.level === hostLevel);
-        const currentRate = (profile as any)?.call_rate_per_minute;
-        // Use saved rate if exists, otherwise use level-based rate from admin
-        const diamondRate = (currentRate && currentRate > 0) ? currentRate : (levelRate?.rate || callRateSettings?.default_rate || 2000);
+        const diamondRate = resolveEffectiveCallRate({
+          settings: callRateSettings,
+          hostLevel: (profile as any)?.host_level,
+          customRate: (profile as any)?.call_rate_per_minute,
+        }) || (levelRate?.rate || callRateSettings?.default_rate || 2000);
         const commissionPercent = callRateSettings?.host_commission_percent || 55;
         const beansPerMin = Math.floor(diamondRate * commissionPercent / 100);
         return `${beansPerMin} Beans/min`;
@@ -2477,7 +2467,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             // CRITICAL: When host_level is 0 (after beans transfer), display as Level 1
             const rawHostLevel = (profile as any)?.host_level || 0;
             const displayLevel = rawHostLevel === 0 ? 1 : rawHostLevel;
-            const canCustomize = displayLevel >= 6;
+            const minCustomLevel = callRateSettings?.min_level_for_custom_rate ?? 6;
+            const canCustomize = displayLevel >= minCustomLevel;
             const commissionPercent = callRateSettings?.host_commission_percent || 55;
             const beansPerMin = Math.floor(callRate * commissionPercent / 100);
             const suggestedBeans = Math.floor(getLevelSuggestedRate() * commissionPercent / 100);
@@ -2502,7 +2493,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
                 {!canCustomize && (
                   <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
-                    <p className="text-slate-400 text-xs text-center">🔒 Reach Level 6 or higher to customize your rate</p>
+                    <p className="text-slate-400 text-xs text-center">🔒 Reach Level {minCustomLevel} or higher to customize your rate</p>
                   </div>
                 )}
 

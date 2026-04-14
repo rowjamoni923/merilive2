@@ -27,6 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { formatNumber as fmtNum } from "@/utils/formatNumber";
+import { parseCallRateSettings, resolveEffectiveCallRate } from "@/utils/callRateSettings";
 
 interface EarningStats {
   totalEarnings: number;
@@ -114,14 +115,16 @@ const HostDashboard = () => {
         table: 'app_settings',
         filter: 'setting_key=eq.call_rates'
       }, (payload) => {
-        const nextSettings = (payload.new as any)?.setting_value as any;
+        const nextSettings = parseCallRateSettings((payload.new as any)?.setting_value);
         if (nextSettings) {
           setCommissionPercent(nextSettings.host_commission_percent ?? 50);
           setMinRate(nextSettings.min_rate ?? 1000);
           setMaxRate(nextSettings.max_rate ?? 10000);
-          if (!profile?.call_rate_per_minute) {
-            setCallRate(nextSettings.default_rate ?? 2000);
-          }
+          setCallRate(resolveEffectiveCallRate({
+            settings: nextSettings,
+            hostLevel: profile?.host_level,
+            customRate: profile?.call_rate_per_minute,
+          }) || 0);
         }
       })
       .subscribe();
@@ -147,10 +150,6 @@ const HostDashboard = () => {
 
       setProfile(profileData);
       
-      if (profileData?.call_rate_per_minute) {
-        setCallRate(profileData.call_rate_per_minute);
-      }
-
       const { data: settingsData } = await supabase
         .from('app_settings')
         .select('setting_value')
@@ -158,14 +157,17 @@ const HostDashboard = () => {
         .single();
 
       if (settingsData?.setting_value) {
-        const callRates = settingsData.setting_value as any;
+        const callRates = parseCallRateSettings(settingsData.setting_value);
         setCommissionPercent(callRates?.host_commission_percent ?? 50);
         setMinRate(callRates?.min_rate ?? 1000);
         setMaxRate(callRates?.max_rate ?? 10000);
-        
-        if (!profileData?.call_rate_per_minute) {
-          setCallRate(callRates?.default_rate ?? 2000);
-        }
+        setCallRate(resolveEffectiveCallRate({
+          settings: callRates,
+          hostLevel: profileData?.host_level,
+          customRate: profileData?.call_rate_per_minute,
+        }) || 0);
+      } else if (profileData?.call_rate_per_minute) {
+        setCallRate(profileData.call_rate_per_minute);
       }
 
       const now = new Date();
