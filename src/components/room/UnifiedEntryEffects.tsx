@@ -16,7 +16,8 @@ interface UnifiedEntryEffectsProps {
     displayName: string;
     avatarUrl?: string;
     level: number;
-    customEntranceUrl?: string; // The animation URL to play
+    customEntranceUrl?: string;
+    entranceSoundUrl?: string;
   } | null;
   onEntranceComplete: () => void;
   
@@ -118,6 +119,7 @@ export const UnifiedEntryEffects: React.FC<UnifiedEntryEffectsProps> = ({
             level: entranceUserInfo.level,
           }}
           animationUrl={entranceUserInfo.customEntranceUrl}
+          soundUrl={entranceUserInfo.entranceSoundUrl}
           onComplete={onEntranceComplete}
           showDuration={4000}
         />
