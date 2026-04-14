@@ -246,10 +246,8 @@ const cleanupAndReconnect = async () => {
 
 // ============= Public API =============
 
-// ⚡ COST-OPTIMISED: Increased debounce from 180ms to 2000ms to reduce
-// channel teardown/rebuild churn. Each rebuild creates a new WebSocket
-// connection which generates realtime messages. Rapid mount/unmount
-// of components was causing dozens of rebuilds per minute.
+// ⚡ COST-OPTIMISED: Debounce channel rebuild to reduce churn.
+// But keep it fast enough for instant chat/gift delivery.
 const scheduleChannelRebuild = () => {
   if (!universalChannel || !hasActiveSubscribers()) return;
   if (channelRebuildTimer) clearTimeout(channelRebuildTimer);
@@ -257,7 +255,7 @@ const scheduleChannelRebuild = () => {
   channelRebuildTimer = setTimeout(() => {
     channelRebuildTimer = null;
     void cleanupAndReconnect();
-  }, 2000);
+  }, 500);
 };
 
 /**
