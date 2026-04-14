@@ -126,7 +126,10 @@ const EntranceAnimationInner = memo(({
     if (isSVGA) {
       // SVGA plays for its NATIVE duration ONLY - onComplete from SVGAPlayer handles completion
       // No extra timers added
-      return () => { mountedRef.current = false; };
+      return () => { 
+        mountedRef.current = false;
+        if (soundRef.current) { try { soundRef.current.stop(); soundRef.current.unload(); } catch {} }
+      };
     }
     
     // For other types (lottie, video, image), use fixed duration
