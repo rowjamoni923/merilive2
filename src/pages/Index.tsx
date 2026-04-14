@@ -324,7 +324,7 @@ const Index = () => {
   useEffect(() => {
     if (!hosts || hosts.length === 0) return;
     const snapshot = hosts.slice(0, 100);
-    setInstantHosts(snapshot as Array<Profile & { isLive?: boolean; liveStreamId?: string }>);
+    setInstantHosts(snapshot as Array<Profile & { isLive?: boolean; liveStreamId?: string; liveThumbnailUrl?: string | null }>);
     try {
       window.sessionStorage.setItem("index-hosts-instant-cache-v1", JSON.stringify(snapshot));
     } catch {
@@ -334,7 +334,7 @@ const Index = () => {
 
   const displayHosts = (hosts && hosts.length > 0
     ? hosts
-    : instantHosts) as Array<Profile & { isLive?: boolean; liveStreamId?: string }>;
+    : instantHosts) as Array<Profile & { isLive?: boolean; liveStreamId?: string; liveThumbnailUrl?: string | null }>;
 
   useEffect(() => {
     if (!hosts?.length) return;
