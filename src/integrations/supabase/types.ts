@@ -11348,7 +11348,12 @@ export type Database = {
         Args: { _stream_id: string }
         Returns: undefined
       }
-      update_task_progress: { Args: { _task_key: string }; Returns: Json }
+      update_task_progress:
+        | { Args: { _task_key: string }; Returns: Json }
+        | {
+            Args: { _increment?: number; _task_type: string; _value?: number }
+            Returns: Json
+          }
       validate_session_integrity: {
         Args: {
           p_device_fingerprint: string
