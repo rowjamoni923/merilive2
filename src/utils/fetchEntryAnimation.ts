@@ -44,8 +44,11 @@ function setCache(key: string, value: string | undefined) {
 
 export interface EntryAnimationResult {
   entranceAnimationUrl?: string;
+  entranceSoundUrl?: string;
   entryNameBarUrl?: string;
+  entryNameBarSoundUrl?: string;
   vehicleAnimationUrl?: string;
+  vehicleSoundUrl?: string;
 }
 
 /**
