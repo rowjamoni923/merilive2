@@ -69,18 +69,43 @@ const EntranceAnimationInner = memo(({
     });
   }, []);
 
+  // Play separate sound_url from DB (not embedded in SVGA)
+  useEffect(() => {
+    if (soundPlayedRef.current || !soundUrl) return;
+    soundPlayedRef.current = true;
+    
+    console.log('[EntranceAnimation] 🔊 Playing entrance sound from DB:', soundUrl);
+    const howl = new Howl({
+      src: [soundUrl],
+      volume: 0.7,
+      html5: true,
+      onloaderror: (_id: any, err: any) => {
+        console.warn('[EntranceAnimation] Sound load error:', err);
+        // Fallback to HTML5 Audio
+        const audio = new Audio(soundUrl);
+        audio.volume = 0.7;
+        audio.play().catch(() => {});
+      },
+    });
+    soundRef.current = howl;
+    howl.play();
+  }, []);
+
   // Stable callback for animation complete - immediately notify parent to unmount and stop audio - ONLY ONCE
   const handleAnimationComplete = useCallback(() => {
     if (completedRef.current || !mountedRef.current) {
-      console.log('[EntranceAnimation] ⚠️ Complete blocked - already completed');
       return;
     }
     completedRef.current = true;
     
-    console.log('[EntranceAnimation] ✅ Animation completed - notifying parent');
+    // Stop sound
+    if (soundRef.current) {
+      try { soundRef.current.stop(); soundRef.current.unload(); } catch {}
+      soundRef.current = null;
+    }
+    
     setShowAnimation(false);
     setAnimationEnded(true);
-    // Immediately call onComplete to ensure audio stops
     onComplete?.();
   }, [onComplete]);
 
