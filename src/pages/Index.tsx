@@ -453,14 +453,25 @@ const Index = () => {
           {/* Lightweight gradient overlay - single layer */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
 
-          {/* Live Badge */}
+          {/* Live Badge + Viewer Count */}
           {user.isLive && (
-            <div className="absolute top-2.5 left-2">
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-red-500 to-rose-500 shadow-[0_2px_12px_rgba(239,68,68,0.5)]">
-                <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-                <span className="text-[10px] font-extrabold text-white tracking-wider">LIVE</span>
+            <>
+              <div className="absolute top-2.5 left-2">
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-red-500 to-rose-500 shadow-[0_2px_12px_rgba(239,68,68,0.5)]">
+                  <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                  <span className="text-[10px] font-extrabold text-white tracking-wider">LIVE</span>
+                </div>
               </div>
-            </div>
+              {/* Viewer Count */}
+              {(user.viewerCount ?? 0) > 0 && (
+                <div className="absolute top-2.5 right-2">
+                  <div className="flex items-center gap-1 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1">
+                    <Eye className="w-3 h-3 text-white" />
+                    <span className="text-[10px] text-white font-bold">{user.viewerCount}</span>
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
           {/* Online / Busy Badge */}
