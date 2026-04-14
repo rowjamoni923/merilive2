@@ -208,6 +208,28 @@ const ProfileDetail = () => {
 
   const isOwnProfile = userId === currentUser?.id || !userId;
   
+  // Handle host availability toggle (online/offline)
+  const handleToggleAvailability = useCallback(async () => {
+    if (!currentUser?.id) return;
+    const newStatus = hostAvailability === 'online' ? 'offline' : 'online';
+    setHostAvailability(newStatus);
+    
+    const { error } = await supabase
+      .from('profiles')
+      .update({ host_availability: newStatus })
+      .eq('id', currentUser.id);
+    
+    if (error) {
+      setHostAvailability(hostAvailability); // revert
+      toast({ title: "Failed to update status", variant: "destructive" });
+    } else {
+      toast({ 
+        title: newStatus === 'online' ? "You are now Online" : "You are now Offline",
+        description: newStatus === 'online' ? "Users can see you on the home page" : "You won't appear on the home page",
+      });
+    }
+  }, [currentUser?.id, hostAvailability, toast]);
+
   // Handle call button click
   const handleCallClick = () => {
     if (!currentUser) {
