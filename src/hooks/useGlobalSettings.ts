@@ -84,6 +84,7 @@ export interface CallRateSettings {
 }
 
 export interface GlobalSettings {
+  rawAppSettings: Record<string, any>;
   // Exchange rates
   beansPerDollar: number;
   bdtPerDollar: number;
@@ -116,6 +117,7 @@ export interface GlobalSettings {
 }
 
 const defaultSettings: GlobalSettings = {
+  rawAppSettings: {},
   beansPerDollar: 9000,
   bdtPerDollar: 125,
   hostCommissionPercent: 55,
@@ -207,6 +209,7 @@ async function fetchAllSettings(): Promise<GlobalSettings> {
 
     // Build settings object (NO hardcoded fallbacks except for truly optional fields)
     const settings: GlobalSettings = {
+      rawAppSettings: appSettings,
       // Exchange rates from app_settings or agency_policy
       beansPerDollar: appSettings.beans_per_dollar || appSettings.exchange_rate?.rate || 9000,
       bdtPerDollar: appSettings.bdt_per_dollar || 125,
