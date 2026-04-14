@@ -123,7 +123,7 @@ const Index = () => {
   } | null>(null);
   const [callRateLoading, setCallRateLoading] = useState(true);
   const warmedHostImagesRef = useRef<Set<string>>(new Set());
-  const [instantHosts, setInstantHosts] = useState<Array<Profile & { isLive?: boolean; liveStreamId?: string }>>(() => {
+  const [instantHosts, setInstantHosts] = useState<Array<Profile & { isLive?: boolean; liveStreamId?: string; liveThumbnailUrl?: string | null }>>(() => {
     try {
       if (typeof window === "undefined") return [];
       const raw = window.sessionStorage.getItem("index-hosts-instant-cache-v1");
