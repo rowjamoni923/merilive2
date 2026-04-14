@@ -566,7 +566,6 @@ const Index = () => {
                   onClick={() => startCall(user.id)}
                   size="sm"
                   showRate={false}
-                  preloadedRate={user.call_rate_per_minute}
                 />
               </div>
             )}
