@@ -360,9 +360,10 @@ const Index = () => {
       .slice(0, 8)
       .map((host) => host.liveStreamId as string);
 
+    // Pre-warm avatar URLs + live thumbnail URLs for instant rendering
     const warmableUrls = hosts
       .slice(0, 24)
-      .map((host) => host.avatar_url)
+      .flatMap((host) => [host.avatar_url, host.liveThumbnailUrl].filter(Boolean))
       .filter((url): url is string => !!url && !warmedHostImagesRef.current.has(url));
 
     if (warmableUrls.length === 0 && liveIdsToWarm.length === 0) {
