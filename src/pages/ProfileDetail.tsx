@@ -194,6 +194,9 @@ const ProfileDetail = () => {
   const [currentUserCoins, setCurrentUserCoins] = useState(0);
   const [showGiftPanel, setShowGiftPanel] = useState(false);
   
+  // Host availability toggle
+  const [hostAvailability, setHostAvailability] = useState<string>('online');
+  
   // Live stream state
   const [activeLiveStream, setActiveLiveStream] = useState<{ id: string; title: string; viewer_count: number } | null>(null);
   // Trader status
