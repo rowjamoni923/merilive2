@@ -431,13 +431,14 @@ export async function fetchUserEntryAnimations(
   const result: EntryAnimationResult = {};
 
   // Fetch all equipped animations in parallel for better performance
-  const [entranceUrl, nameBarUrl, vehicleUrl] = await Promise.all([
-    equippedEntranceId ? fetchAnimationUrlById(equippedEntranceId) : Promise.resolve(undefined),
+  const [entranceResult, nameBarUrl, vehicleUrl] = await Promise.all([
+    equippedEntranceId ? fetchAnimationWithSoundById(equippedEntranceId) : Promise.resolve({} as AnimationWithSound),
     equippedEntryNameBarId ? fetchEntryNameBarUrlById(equippedEntryNameBarId) : Promise.resolve(undefined),
     equippedVehicleId ? fetchVehicleAnimationUrlById(equippedVehicleId) : Promise.resolve(undefined),
   ]);
 
-  result.entranceAnimationUrl = entranceUrl;
+  result.entranceAnimationUrl = entranceResult.animationUrl;
+  result.entranceSoundUrl = entranceResult.soundUrl;
   result.entryNameBarUrl = nameBarUrl;
   result.vehicleAnimationUrl = vehicleUrl;
 
