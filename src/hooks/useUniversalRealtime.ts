@@ -42,12 +42,14 @@ const pendingUpdates = new Map<string, NodeJS.Timeout>();
 let lastForcedReconnectAt = 0;
 let channelRebuildTimer: NodeJS.Timeout | null = null;
 
-// Debounce time for batch updates (ms) - tuned for ultra-fast but stable UX
-const DEBOUNCE_MS = 120;
+// Debounce time for batch updates (ms)
+const DEBOUNCE_MS = 80;
 
-// High-frequency tables get a slightly higher debounce to prevent render thrash
-const HIGH_FREQ_DEBOUNCE_MS = 180;
-const HIGH_FREQUENCY_TABLES = new Set(['messages']);
+// Messages and gift_transactions: ZERO debounce for instant delivery
+// Other high-frequency tables get a slight debounce to prevent render thrash
+const INSTANT_TABLES = new Set(['messages', 'gift_transactions', 'notifications']);
+const HIGH_FREQ_DEBOUNCE_MS = 120;
+const HIGH_FREQUENCY_TABLES = new Set(['stream_viewers', 'stream_chat']);
 
 // ⚡ COST-OPTIMISED: Only tables that MUST be monitored globally
 // All other tables subscribe on-demand via subscribeToTables()
@@ -73,15 +75,7 @@ const getActiveMonitoredTables = (): TableSubscription[] => {
 
 // ============= Event Batching =============
 const notifySubscribers = (table: string, event: EventType, payload: any) => {
-  // Clear any pending update for this table
-  const existingTimeout = pendingUpdates.get(table);
-  if (existingTimeout) {
-    clearTimeout(existingTimeout);
-  }
-
-  // Batch updates with debounce — high-frequency tables get longer delay
-  const delay = HIGH_FREQUENCY_TABLES.has(table) ? HIGH_FREQ_DEBOUNCE_MS : DEBOUNCE_MS;
-  const timeout = setTimeout(() => {
+  const fireCallbacks = () => {
     subscribers.forEach((subscriber) => {
       if (subscriber.tables.includes(table) || subscriber.tables.includes('*')) {
         try {
@@ -91,6 +85,24 @@ const notifySubscribers = (table: string, event: EventType, payload: any) => {
         }
       }
     });
+  };
+
+  // INSTANT delivery for messages, gifts, notifications — zero delay
+  if (INSTANT_TABLES.has(table)) {
+    fireCallbacks();
+    return;
+  }
+
+  // Clear any pending update for this table
+  const existingTimeout = pendingUpdates.get(table);
+  if (existingTimeout) {
+    clearTimeout(existingTimeout);
+  }
+
+  // Batch updates with debounce for other tables
+  const delay = HIGH_FREQUENCY_TABLES.has(table) ? HIGH_FREQ_DEBOUNCE_MS : DEBOUNCE_MS;
+  const timeout = setTimeout(() => {
+    fireCallbacks();
     pendingUpdates.delete(table);
   }, delay);
 
