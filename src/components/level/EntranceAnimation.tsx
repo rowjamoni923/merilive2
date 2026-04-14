@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo, useCallback, memo, forwardRef, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { Howl } from 'howler';
 
 // Eagerly import SVGAPlayerWithAudio for instant entry animations
 import SVGAPlayerWithAudio from "@/components/common/SVGAPlayerWithAudio";
@@ -12,7 +13,8 @@ interface EntranceAnimationProps {
     avatarUrl?: string;
     level: number;
   };
-  animationUrl?: string; // Direct animation URL - preferred
+  animationUrl?: string;
+  soundUrl?: string; // Separate sound file URL from DB
   onComplete?: () => void;
   showDuration?: number;
 }
@@ -37,6 +39,7 @@ const EntranceAnimationInner = memo(({
   userId, 
   userInfo, 
   animationUrl, 
+  soundUrl,
   onComplete, 
   showDuration = 4000 
 }: EntranceAnimationProps) => {
