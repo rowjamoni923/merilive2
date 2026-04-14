@@ -10851,6 +10851,55 @@ export type Database = {
         Returns: Json
       }
       get_effective_host_percent: { Args: never; Returns: number }
+      get_game_rankings_leaderboard: {
+        Args: { p_period_type?: string }
+        Returns: {
+          avatar_url: string
+          country_flag: string
+          display_name: string
+          rank: number
+          score: number
+          user_id: string
+          user_level: number
+        }[]
+      }
+      get_host_agency_request: {
+        Args: { _host_id: string }
+        Returns: {
+          agency_code: string
+          agency_id: string
+          agency_logo: string
+          agency_name: string
+          host_id: string
+          id: string
+          joined_at: string
+          status: string
+        }[]
+      }
+      get_host_earnings_leaderboard: {
+        Args: { p_period_type?: string }
+        Returns: {
+          avatar_url: string
+          country_flag: string
+          display_name: string
+          rank: number
+          score: number
+          user_id: string
+          user_level: number
+        }[]
+      }
+      get_top_gifters_leaderboard: {
+        Args: { p_period_type?: string }
+        Returns: {
+          avatar_url: string
+          country_flag: string
+          display_name: string
+          rank: number
+          score: number
+          user_id: string
+          user_level: number
+        }[]
+      }
       get_transfer_wallet_sources: {
         Args: { _user_id: string }
         Returns: {
@@ -10862,6 +10911,28 @@ export type Database = {
         }[]
       }
       get_user_balance: { Args: { _user_id: string }; Returns: Json }
+      get_user_live_ban: {
+        Args: { p_user_id: string }
+        Returns: {
+          ban_end: string
+          ban_id: string
+          ban_reason: string
+          ban_start: string
+          banned_by: string
+        }[]
+      }
+      get_user_notices: {
+        Args: { p_user_id: string }
+        Returns: {
+          created_at: string
+          id: string
+          image_url: string
+          is_read: boolean
+          message: string
+          priority: string
+          title: string
+        }[]
+      }
       handle_game_callback: {
         Args: {
           p_action: string
@@ -10887,7 +10958,7 @@ export type Database = {
           _amount: number
           _receiver_id: string
           _sender_id: string
-          _sender_type: string
+          _sender_type?: string
         }
         Returns: Json
       }
@@ -10904,14 +10975,20 @@ export type Database = {
         Args: { _amount: number; _user_id: string }
         Returns: Json
       }
+      increment_reel_view: { Args: { reel_uuid: string }; Returns: undefined }
       is_admin:
         | { Args: never; Returns: boolean }
         | { Args: { _user_id: string }; Returns: boolean }
+      is_admin_device_approved: {
+        Args: { _device_fingerprint: string; _user_id: string }
+        Returns: boolean
+      }
       is_conversation_participant: {
         Args: { _conversation_id: string; _user_id: string }
         Returns: boolean
       }
       is_real_user: { Args: never; Returns: boolean }
+      is_user_live_banned: { Args: { p_user_id: string }; Returns: boolean }
       join_agency: {
         Args: { _agency_code: string; _host_id: string; _joined_via?: string }
         Returns: boolean
@@ -10924,6 +11001,10 @@ export type Database = {
           _target_type?: string
         }
         Returns: undefined
+      }
+      mark_messages_delivered: {
+        Args: { p_conversation_id: string; p_recipient_id: string }
+        Returns: number
       }
       place_game_bet:
         | {
@@ -10947,6 +11028,26 @@ export type Database = {
             }
             Returns: Json
           }
+      place_live_game_bet: {
+        Args: {
+          p_bet_amount: number
+          p_bet_type?: string
+          p_bet_value?: string
+          p_round_id: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      process_game_bet: {
+        Args: {
+          p_bet_amount: number
+          p_bet_type?: string
+          p_bet_value?: string
+          p_game_id: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       process_game_win:
         | {
             Args: { p_amount: number; p_game_type?: string; p_user_id: string }
@@ -10983,9 +11084,42 @@ export type Database = {
         }
         Returns: Json
       }
+      process_live_game_round: {
+        Args: { p_result?: string; p_round_id: string; p_winning_value: string }
+        Returns: Json
+      }
       process_weekly_agency_transfers: { Args: never; Returns: Json }
+      raise_security_alert: {
+        Args: {
+          p_alert_type: string
+          p_description: string
+          p_device_info?: Json
+          p_ip_address?: string
+          p_metadata?: Json
+          p_severity: string
+        }
+        Returns: Json
+      }
       recalculate_all_user_levels: { Args: never; Returns: undefined }
       recalculate_user_level: { Args: { _user_id: string }; Returns: undefined }
+      record_live_violation: {
+        Args: {
+          p_auto_detected?: boolean
+          p_stream_id: string
+          p_user_id: string
+          p_violation_type: string
+        }
+        Returns: undefined
+      }
+      record_login_attempt: {
+        Args: {
+          p_identifier: string
+          p_ip_address?: string
+          p_success: boolean
+          p_user_agent?: string
+        }
+        Returns: undefined
+      }
       recover_session_by_device: {
         Args: { p_device_id: string }
         Returns: {
@@ -10998,6 +11132,24 @@ export type Database = {
           user_id: string
         }[]
       }
+      register_admin_device: {
+        Args: {
+          _device_fingerprint: string
+          _device_info?: Json
+          _device_name?: string
+          _ip_address?: string
+          _user_agent?: string
+        }
+        Returns: undefined
+      }
+      reject_host_request: {
+        Args: { _agency_id: string; _host_id: string; _rejector_id: string }
+        Returns: Json
+      }
+      request_account_deletion: {
+        Args: { user_id_param: string }
+        Returns: undefined
+      }
       request_agency_withdrawal: {
         Args: {
           _agency_id: string
@@ -11006,6 +11158,19 @@ export type Database = {
           _payment_method?: string
         }
         Returns: Json
+      }
+      reset_my_call_status: { Args: never; Returns: undefined }
+      roulette_complete_session: {
+        Args: { p_session_id: string }
+        Returns: undefined
+      }
+      roulette_get_or_create_session: {
+        Args: { p_duration_seconds?: number }
+        Returns: Json
+      }
+      roulette_spin_wheel: {
+        Args: { p_session_id: string }
+        Returns: undefined
       }
       safe_credit_diamonds: {
         Args: {
@@ -11072,6 +11237,7 @@ export type Database = {
         }
         Returns: Json
       }
+      timeout_private_call: { Args: { _call_id: string }; Returns: Json }
       transfer_coins_to_user: {
         Args: {
           _amount: number
@@ -11080,6 +11246,14 @@ export type Database = {
           _sender_id: string
         }
         Returns: boolean
+      }
+      update_active_session: {
+        Args: { _device_info?: Json; _session_id: string }
+        Returns: undefined
+      }
+      update_admin_device_status: {
+        Args: { _device_id: string; _new_status: string; _notes?: string }
+        Returns: undefined
       }
       update_host_earnings_only: {
         Args: {
@@ -11098,6 +11272,11 @@ export type Database = {
         }
         Returns: undefined
       }
+      update_stream_heartbeat: {
+        Args: { _stream_id: string }
+        Returns: undefined
+      }
+      update_task_progress: { Args: { _task_key: string }; Returns: Json }
       validate_session_integrity: {
         Args: {
           p_device_fingerprint: string
