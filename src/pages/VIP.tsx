@@ -313,21 +313,20 @@ const VIP = () => {
         }
       }
 
-      // Fetch ALL unlocked level privileges up to user's level
-      // Only include privileges with REAL animation URLs
+      // Fetch ALL level privileges (show locked ones too)
       const { data: levelPrivileges } = await supabase
         .from("level_privileges")
         .select("*")
         .eq("is_active", true)
-        .lte("unlock_level", userLevel)
-        .order("unlock_level", { ascending: false });
+        .order("unlock_level", { ascending: true });
 
       if (levelPrivileges) {
         for (const priv of levelPrivileges) {
           const privAssetUrl = priv.animation_url || priv.preview_url;
-          if (isValidAssetUrl(privAssetUrl)) {
-            let isEquipped = false;
-            const privType = priv.privilege_type;
+          const isLocked = (priv.unlock_level || 1) > userLevel;
+          let isEquipped = false;
+          const privType = priv.privilege_type;
+          if (!isLocked) {
             if (privType === 'entrance' || privType === 'entrance_effect') {
               isEquipped = priv.id === equippedEntranceId;
             } else if (privType === 'entry_bar') {
@@ -337,20 +336,21 @@ const VIP = () => {
             } else if (privType === 'vehicle' || privType === 'vehicle_entrance') {
               isEquipped = priv.id === equippedVehicleId;
             }
-            
-            allPrivileges.push({
-              id: priv.id,
-              item_id: priv.id,
-              name: priv.name,
-              category: priv.privilege_type,
-              preview_url: priv.preview_url,
-              animation_url: priv.animation_url || priv.preview_url,
-              is_equipped: isEquipped,
-              expires_at: null,
-              source: 'level',
-              unlock_level: priv.unlock_level,
-            });
           }
+          
+          allPrivileges.push({
+            id: priv.id,
+            item_id: priv.id,
+            name: priv.name,
+            category: priv.privilege_type,
+            preview_url: priv.preview_url,
+            animation_url: priv.animation_url || priv.preview_url,
+            is_equipped: isEquipped,
+            is_locked: isLocked,
+            expires_at: null,
+            source: 'level',
+            unlock_level: priv.unlock_level,
+          });
         }
       }
 
