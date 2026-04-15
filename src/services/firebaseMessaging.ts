@@ -290,37 +290,70 @@ function showBrowserNotification(title: string, body: string, image?: string, da
 function handleNotificationTap(data: any) {
   if (!data) return;
 
-  switch (data.type) {
-    case 'incoming_call':
-    case 'call':
-      window.location.href = `/call?callId=${data.call_id}`;
-      break;
-    case 'message':
-      window.location.href = `/chat/${data.conversation_id || ''}`;
-      break;
-    case 'gift':
-      window.location.href = '/profile';
-      break;
-    case 'follow':
-      window.location.href = `/profile-detail/${data.follower_id || ''}`;
-      break;
-    case 'live':
-      window.location.href = `/live/${data.stream_id || ''}`;
-      break;
-    case 'support_reply':
-      const ticketId = data.ticket_id || '';
-      const msgId = data.message_id || '';
-      const params = new URLSearchParams({ mode: 'live_chat', ticket_id: ticketId });
-      if (msgId) params.set('message_id', msgId);
-      window.location.href = `/settings/customer-service?${params.toString()}`;
-      break;
-    default:
-      if (data.link_url) {
-        window.location.href = data.link_url;
-      } else {
-        window.location.href = '/';
-      }
+  const type = data.type || '';
+
+  // Call
+  if (type === 'incoming_call' || type === 'call') { window.location.href = `/call?callId=${data.call_id}`; return; }
+  if (type === 'call_missed' || type === 'call_received') { window.location.href = '/call-history'; return; }
+
+  // Message
+  if (type === 'message') { window.location.href = `/chat/${data.conversation_id || ''}`; return; }
+  if (type === 'admin_message' || type === 'admin_message_reply') {
+    window.location.href = data.source === 'helper_messaging' ? '/helper-dashboard?tab=inbox' : '/chat'; return;
   }
+
+  // Gift
+  if (type === 'gift' || type === 'gift_received') { window.location.href = data.sender_id ? `/profile-detail/${data.sender_id}` : '/profile'; return; }
+
+  // Social
+  if (type === 'follow' || type === 'new_follower') { window.location.href = `/profile-detail/${data.follower_id || ''}`; return; }
+
+  // Live & Party
+  if (type === 'live' || type === 'live_started') { window.location.href = data.stream_id ? `/live/${data.stream_id}` : '/discover'; return; }
+  if (type === 'party_invite') { window.location.href = data.room_id ? `/party/${data.room_id}` : '/party-rooms'; return; }
+
+  // Transactions
+  if (['topup_approved', 'topup_rejected', 'coin_purchase_helper', 'coin_purchase_direct', 'payment_completed', 'payment_pending'].includes(type)) {
+    window.location.href = '/recharge-history'; return;
+  }
+  if (['coins_added', 'coins_received', 'diamonds_credited', 'beans_exchanged', 'balance_deducted'].includes(type)) {
+    window.location.href = '/profile'; return;
+  }
+  if (type === 'coin_exchange' || type === 'diamond_sent') { window.location.href = '/agency-coin-exchange'; return; }
+
+  // Withdrawal
+  if (['withdrawal', 'withdrawal_approved', 'withdrawal_rejected'].includes(type)) { window.location.href = '/agency-withdrawal'; return; }
+
+  // Level & Rewards
+  if (type === 'level_up') { window.location.href = '/level'; return; }
+  if (type === 'reward' || type === 'task_completed' || type === 'daily_bonus') { window.location.href = '/tasks'; return; }
+
+  // Host
+  if (type === 'host_approved') { window.location.href = '/host-dashboard'; return; }
+  if (type === 'host_rejected') { window.location.href = '/host-application'; return; }
+
+  // Helper
+  if (['helper_approved', 'payroll_approved', 'payroll_rejected', 'level_upgrade_approved', 'level_upgrade_rejected'].includes(type)) {
+    window.location.href = '/helper-dashboard'; return;
+  }
+  if (type === 'new_topup_order') { window.location.href = '/helper-dashboard?tab=orders'; return; }
+  if (type === 'new_withdrawal_request') { window.location.href = '/helper-dashboard?tab=agency-withdrawals'; return; }
+  if (type === 'order_completed') { window.location.href = '/helper-dashboard?tab=orders'; return; }
+
+  // Agency
+  if (type.startsWith('agency_')) { window.location.href = '/agency-dashboard'; return; }
+
+  // Support
+  if (type === 'support_reply') {
+    const params = new URLSearchParams({ mode: 'live_chat', ticket_id: data.ticket_id || '' });
+    if (data.message_id) params.set('message_id', data.message_id);
+    window.location.href = `/settings/customer-service?${params.toString()}`; return;
+  }
+
+  // Fallback
+  if (data.link_url) { window.location.href = data.link_url; return; }
+  if (data.action_url) { window.location.href = data.action_url; return; }
+  window.location.href = '/';
 }
 
 /**
