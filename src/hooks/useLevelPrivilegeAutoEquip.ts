@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { clearFrameCache } from '@/components/common/AvatarWithFrame';
+import { resolveLevelFromTiers } from '@/utils/levelResolver';
 
 const shouldShowLevelReward = (requiredLevel: number | null | undefined): boolean => {
   const level = requiredLevel ?? 1;
@@ -35,8 +36,13 @@ export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
           .select(`
             id,
             is_host,
+            gender,
             user_level,
             host_level,
+            max_user_level,
+            total_recharged,
+            total_earnings,
+            weekly_earnings,
             current_vip_tier_id,
             equipped_frame_id,
             equipped_entrance_id,
@@ -50,10 +56,22 @@ export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
 
         if (!profile || cancelled) return;
 
-        const effectiveLevel = profile.is_host
-          ? Math.max(profile.host_level || 1, 1)
-          : Math.max(profile.user_level || 1, 1);
-        const targetType = profile.is_host ? 'host' : 'user';
+        const resolvedLevel = await resolveLevelFromTiers({
+          id: userId,
+          gender: profile.gender,
+          is_host: profile.is_host,
+          user_level: profile.user_level,
+          host_level: profile.host_level,
+          max_user_level: profile.max_user_level,
+          total_recharged: profile.total_recharged,
+          total_earnings: profile.total_earnings,
+          weekly_earnings: profile.weekly_earnings,
+        });
+
+        if (cancelled) return;
+
+        const effectiveLevel = resolvedLevel.level;
+        const targetType = resolvedLevel.levelType;
 
         const [purchasesRes, assignedFramesRes, framesRes, levelPrivilegesRes, entryNameBarsRes, entryBannersRes, vehicleEntrancesRes] = await Promise.all([
           supabase.from('user_purchases').select('item_id').eq('user_id', userId).eq('is_active', true),
@@ -69,11 +87,11 @@ export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
             .eq('is_active', true),
           supabase
             .from('entry_name_bars')
-            .select('id, min_level, is_premium, price_diamonds')
+            .select('id, level_required, is_premium, price_diamonds, price_coins')
             .eq('is_active', true),
           supabase
             .from('entry_banners')
-            .select('id, min_level, is_premium, price_diamonds, price_coins')
+            .select('id, level_required, is_premium, price_diamonds, price_coins')
             .eq('is_active', true),
           supabase
             .from('vehicle_entrances' as any)
@@ -101,7 +119,7 @@ export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
 
         const entranceCandidates = [
           ...((entryBannersRes.data || []) as any[])
-            .map((item) => ({ id: item.id, level: item.min_level ?? 1, free: isFreeAsset(item) }))
+            .map((item) => ({ id: item.id, level: item.level_required ?? 1, free: isFreeAsset(item) }))
             .filter((item) => item.free && item.level <= effectiveLevel && shouldShowLevelReward(item.level)),
           ...levelPrivileges
             .filter((item) => ['entrance', 'entrance_effect', 'entry_banner'].includes(item.privilege_type))
@@ -111,7 +129,7 @@ export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
 
         const nameBarCandidates = [
           ...((entryNameBarsRes.data || []) as any[])
-            .map((item) => ({ id: item.id, level: item.min_level ?? 1, free: !item.is_premium && (item.price_diamonds ?? 0) <= 0 }))
+            .map((item) => ({ id: item.id, level: item.level_required ?? 1, free: !item.is_premium && (item.price_diamonds ?? 0) <= 0 && (item.price_coins ?? 0) <= 0 }))
             .filter((item) => item.free && item.level <= effectiveLevel && shouldShowLevelReward(item.level)),
           ...levelPrivileges
             .filter((item) => ['entry_bar', 'entry_name_bar', 'entry_bar_effect'].includes(item.privilege_type))

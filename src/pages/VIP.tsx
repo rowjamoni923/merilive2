@@ -34,6 +34,7 @@ import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlay
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
 import { clearFrameCache } from "@/components/common/AvatarWithFrame";
 import useExpiredItemsRestorer from "@/hooks/useExpiredItemsRestorer";
+import { resolveLevelFromTiers } from "@/utils/levelResolver";
 
 interface VIPTier {
   id: string;
@@ -227,15 +228,26 @@ const VIP = () => {
       // Fetch user profile - include ALL equipped fields for unified selection logic
       const { data: profileData } = await supabase
         .from("profiles")
-        .select("coins, current_vip_tier_id, vip_expires_at, user_level, host_level, is_host, gender, frame_id, equipped_frame_id, equipped_entrance_id, equipped_entry_banner_id, equipped_entry_name_bar_id, equipped_bubble_id, equipped_vehicle_id, equipped_medal_id, equipped_noble_card_id")
+        .select("coins, current_vip_tier_id, vip_expires_at, user_level, host_level, is_host, gender, max_user_level, total_recharged, total_earnings, weekly_earnings, frame_id, equipped_frame_id, equipped_entrance_id, equipped_entry_banner_id, equipped_entry_name_bar_id, equipped_bubble_id, equipped_vehicle_id, equipped_medal_id, equipped_noble_card_id")
         .eq("id", user.id)
         .maybeSingle();
 
-      const isHostUser = Boolean(profileData?.is_host);
-      const userLevel = profileData?.user_level || 1;
-      const hostLevel = profileData?.host_level || 0;
-      const effectiveLevel = isHostUser ? Math.max(hostLevel, 1) : Math.max(userLevel, 1);
-      const targetType = isHostUser ? 'host' : 'user';
+      const resolvedLevel = profileData
+        ? await resolveLevelFromTiers({
+            id: user.id,
+            gender: profileData.gender,
+            is_host: profileData.is_host,
+            user_level: profileData.user_level,
+            host_level: profileData.host_level,
+            max_user_level: profileData.max_user_level,
+            total_recharged: profileData.total_recharged,
+            total_earnings: profileData.total_earnings,
+            weekly_earnings: profileData.weekly_earnings,
+          })
+        : null;
+
+      const effectiveLevel = resolvedLevel?.level ?? 1;
+      const targetType = resolvedLevel?.levelType ?? 'user';
       // Use equipped_frame_id first, fallback to frame_id for backwards compatibility
       const equippedFrameId = profileData?.equipped_frame_id || profileData?.frame_id;
       const equippedEntranceId = profileData?.equipped_entrance_id || profileData?.equipped_entry_banner_id;
