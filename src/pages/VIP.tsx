@@ -443,26 +443,81 @@ const VIP = () => {
         for (const assigned of assignedFrames) {
           const frame = assigned.role_frames as any;
           if (frame && frame.is_active && isValidAssetUrl(frame.frame_url)) {
-              
-              // Check if this frame is equipped
-              const isEquipped = assigned.is_equipped || frame.id === equippedFrameId;
-              
-              // Avoid duplicates
-              const alreadyExists = allPrivileges.some(p => p.item_id === frame.id);
-              if (!alreadyExists) {
-                allPrivileges.push({
-                  id: assigned.id,
-                  item_id: frame.id,
-                  name: frame.frame_name,
-                  category: 'frame',
-                  preview_url: frame.frame_url, // Use frame_url as preview too
-                  animation_url: frame.frame_url,
-                  is_equipped: isEquipped,
-                  expires_at: null, // Admin-assigned frames don't expire
-                  source: 'admin_assigned',
-                  role_type: assigned.role_type,
-                });
-              }
+            const isEquipped = assigned.is_equipped || frame.id === equippedFrameId;
+            const alreadyExists = allPrivileges.some(p => p.item_id === frame.id);
+            if (!alreadyExists) {
+              allPrivileges.push({
+                id: assigned.id,
+                item_id: frame.id,
+                name: frame.frame_name,
+                category: 'frame',
+                preview_url: frame.frame_url,
+                animation_url: frame.frame_url,
+                is_equipped: isEquipped,
+                expires_at: null,
+                source: 'admin_assigned',
+                role_type: assigned.role_type,
+              });
+            }
+          }
+        }
+      }
+
+      // === ADD VIP TIER ITEMS ===
+      // If user has an active VIP subscription, show VIP-exclusive items
+      if (currentVIPTier > 0 && tiers.length > 0) {
+        const activeTier = tiers.find(t => t.tier_level === currentVIPTier) || 
+                          (vipData?.vip_tiers ? tiers.find(t => t.id === vipData.tier_id) : null);
+        if (activeTier) {
+          // VIP Frame
+          if (isValidAssetUrl(activeTier.frame_animation_url)) {
+            const alreadyExists = allPrivileges.some(p => p.item_id === activeTier.id && p.category === 'frame');
+            if (!alreadyExists) {
+              allPrivileges.push({
+                id: `vip_frame_${activeTier.id}`,
+                item_id: activeTier.id,
+                name: `${activeTier.tier_name} Frame`,
+                category: 'frame',
+                preview_url: activeTier.frame_animation_url,
+                animation_url: activeTier.frame_animation_url!,
+                is_equipped: activeTier.id === equippedFrameId,
+                expires_at: vipExpiresAt || vipData?.expires_at || null,
+                source: 'shop',
+              });
+            }
+          }
+          // VIP Entry Animation
+          if (isValidAssetUrl(activeTier.entry_animation_url)) {
+            const alreadyExists = allPrivileges.some(p => p.item_id === activeTier.id && p.category === 'entrance');
+            if (!alreadyExists) {
+              allPrivileges.push({
+                id: `vip_entry_${activeTier.id}`,
+                item_id: activeTier.id,
+                name: `${activeTier.tier_name} Entry`,
+                category: 'entrance',
+                preview_url: activeTier.entry_animation_url,
+                animation_url: activeTier.entry_animation_url!,
+                is_equipped: activeTier.id === equippedEntranceId,
+                expires_at: vipExpiresAt || vipData?.expires_at || null,
+                source: 'shop',
+              });
+            }
+          }
+          // VIP Chat Bubble
+          if (isValidAssetUrl(activeTier.bubble_animation_url)) {
+            const alreadyExists = allPrivileges.some(p => p.item_id === activeTier.id && p.category === 'bubble');
+            if (!alreadyExists) {
+              allPrivileges.push({
+                id: `vip_bubble_${activeTier.id}`,
+                item_id: activeTier.id,
+                name: `${activeTier.tier_name} Bubble`,
+                category: 'bubble',
+                preview_url: activeTier.bubble_animation_url,
+                animation_url: activeTier.bubble_animation_url!,
+                is_equipped: activeTier.id === equippedBubbleId,
+                expires_at: vipExpiresAt || vipData?.expires_at || null,
+                source: 'shop',
+              });
             }
           }
         }
