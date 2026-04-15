@@ -1803,7 +1803,8 @@ export default function AdminLayout() {
         "fixed left-0 top-0 h-full z-50 transition-all duration-300 ease-in-out flex flex-col",
         "bg-[#08080e]/95 backdrop-blur-2xl border-r border-white/[0.04]",
         "shadow-[4px_0_50px_-10px_rgba(0,0,0,0.8)]",
-        isSidebarOpen ? "w-72" : "w-20",
+        // Mobile: slightly narrower; Desktop: collapsible
+        isMobileSidebarOpen ? "w-[82vw] max-w-[300px]" : (isSidebarOpen ? "w-72" : "w-20"),
         isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       )}>
         {/* Subtle gradient overlays */}
@@ -1988,31 +1989,31 @@ export default function AdminLayout() {
         
         {/* ━━━ TOP HEADER ━━━ */}
         <header className="sticky top-0 z-30 shrink-0 bg-[#06060a]/90 backdrop-blur-2xl border-b border-white/[0.04] safe-area-top">
-          <div className="flex items-center justify-between px-3 sm:px-4 lg:px-5 py-2.5">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between px-3 sm:px-4 lg:px-5 py-2 sm:py-2.5">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
               <Button
                 variant="ghost" size="icon"
-                className="lg:hidden text-white hover:bg-white/5 rounded-xl h-10 w-10 bg-white/[0.04] border border-white/[0.06]"
+                className="lg:hidden text-white hover:bg-white/5 rounded-xl h-9 w-9 sm:h-10 sm:w-10 bg-white/[0.04] border border-white/[0.06] flex-shrink-0"
                 onClick={() => { setIsMobileSidebarOpen(true); setIsSidebarOpen(true); }}
               >
-                <Menu className="w-5 h-5" />
+                <Menu className="w-4 h-4 sm:w-5 sm:h-5" />
               </Button>
 
-              <Button variant="ghost" size="icon" className="hidden lg:flex text-slate-500 hover:text-white hover:bg-white/5 rounded-xl h-8 w-8" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+              <Button variant="ghost" size="icon" className="hidden lg:flex text-slate-500 hover:text-white hover:bg-white/5 rounded-xl h-8 w-8 flex-shrink-0" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
                 <Menu className="w-4 h-4" />
               </Button>
 
-              <div className="hidden md:block">
-                <h2 className="text-white font-bold text-[15px]">
+              <div className="min-w-0">
+                <h2 className="text-white font-bold text-sm sm:text-[15px] truncate">
                   {navGroups.flatMap(g => g.items).find(item => location.pathname === item.path || (item.path !== "/admin" && location.pathname.startsWith(item.path)))?.label || "Dashboard"}
                 </h2>
-                <p className="text-[9px] text-slate-600 font-bold uppercase tracking-[0.2em]">Admin Console</p>
+                <p className="text-[8px] sm:text-[9px] text-slate-600 font-bold uppercase tracking-[0.2em] hidden sm:block">Admin Console</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-1.5 sm:gap-2.5 flex-shrink-0">
               {/* Desktop Search */}
-              <div className="relative hidden md:block">
+              <div className="relative hidden lg:block">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
                 <Input placeholder="Global search..." className="w-56 pl-10 bg-white/[0.03] border-white/[0.06] text-white placeholder:text-slate-700 focus:bg-white/[0.05] focus:border-violet-500/25 focus:ring-1 focus:ring-violet-500/15 rounded-xl h-9 text-sm" />
               </div>
@@ -2024,12 +2025,12 @@ export default function AdminLayout() {
               <div className="relative" ref={notificationRef}>
                 <Button
                   variant="ghost" size="icon"
-                  className="relative text-slate-400 hover:text-white hover:bg-white/5 rounded-xl h-10 w-10"
+                  className="relative text-slate-400 hover:text-white hover:bg-white/5 rounded-xl h-9 w-9 sm:h-10 sm:w-10"
                   onClick={() => setShowNotifications(!showNotifications)}
                 >
-                  <Bell className="w-5 h-5" />
+                  <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
                   {totalUnreadCount > 0 && (
-                    <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute -top-0.5 -right-0.5 min-w-5 h-5 flex items-center justify-center px-1 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full text-[10px] text-white font-bold ring-2 ring-[#06060a]">
+                    <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute -top-0.5 -right-0.5 min-w-4 sm:min-w-5 h-4 sm:h-5 flex items-center justify-center px-0.5 sm:px-1 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full text-[8px] sm:text-[10px] text-white font-bold ring-2 ring-[#06060a]">
                       {formatBadgeCount(totalUnreadCount)}
                     </motion.span>
                   )}
@@ -2132,26 +2133,26 @@ export default function AdminLayout() {
                 </AnimatePresence>
               </div>
 
-              {/* Quick Stats */}
-              <div className="hidden xl:flex items-center gap-3 px-4 py-2 bg-white/[0.02] rounded-xl border border-white/[0.04]">
-                <div className="flex items-center gap-2">
+              {/* Quick Stats - visible on tablet+ */}
+              <div className="hidden md:flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 bg-white/[0.02] rounded-xl border border-white/[0.04]">
+                <div className="flex items-center gap-1.5 sm:gap-2">
                   <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-lg shadow-emerald-400/30" />
-                  <span className="text-[10px] text-slate-600 font-semibold uppercase tracking-wider">Online</span>
-                  <span className="text-sm font-bold text-emerald-400 tabular-nums">{onlineUsersCount}</span>
+                  <span className="text-[9px] sm:text-[10px] text-slate-600 font-semibold uppercase tracking-wider">Online</span>
+                  <span className="text-xs sm:text-sm font-bold text-emerald-400 tabular-nums">{onlineUsersCount}</span>
                 </div>
-                <div className="w-px h-5 bg-white/[0.06]" />
-                <div className="flex items-center gap-2">
-                  <Activity className="w-3.5 h-3.5 text-red-400" />
-                  <span className="text-[10px] text-slate-600 font-semibold uppercase tracking-wider">Live</span>
-                  <span className="text-sm font-bold text-red-400 tabular-nums">{liveStreamsCount}</span>
+                <div className="w-px h-4 sm:h-5 bg-white/[0.06]" />
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <Activity className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-red-400" />
+                  <span className="text-[9px] sm:text-[10px] text-slate-600 font-semibold uppercase tracking-wider">Live</span>
+                  <span className="text-xs sm:text-sm font-bold text-red-400 tabular-nums">{liveStreamsCount}</span>
                 </div>
               </div>
 
               {/* Mobile Avatar */}
-              <button onClick={() => setShowProfileMenu(true)} className="lg:hidden">
-                <Avatar className="w-9 h-9 border border-violet-400/20 ring-2 ring-violet-400/10 shadow-lg cursor-pointer">
+              <button onClick={() => setShowProfileMenu(true)} className="lg:hidden flex-shrink-0">
+                <Avatar className="w-8 h-8 sm:w-9 sm:h-9 border border-violet-400/20 ring-2 ring-violet-400/10 shadow-lg cursor-pointer">
                   <AvatarImage src={currentUser?.profile?.avatar_url} />
-                  <AvatarFallback className="bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-600 text-white text-xs font-bold">
+                  <AvatarFallback className="bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-600 text-white text-[10px] sm:text-xs font-bold">
                     {currentUser?.profile?.display_name?.charAt(0) || "A"}
                   </AvatarFallback>
                 </Avatar>
@@ -2161,7 +2162,7 @@ export default function AdminLayout() {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 min-h-0 overflow-y-auto overflow-x-auto p-2 sm:p-3 md:p-5 lg:p-6 admin-content overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'max(calc(env(safe-area-inset-bottom, 0px) + 120px), 120px)' }}>
+        <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-2 sm:p-3 md:p-5 lg:p-6 admin-content overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'max(calc(env(safe-area-inset-bottom, 0px) + 80px), 80px)' }}>
           <Suspense fallback={
             <div className="space-y-6 animate-in fade-in duration-200">
               <div className="bg-white/[0.02] rounded-2xl p-6 border border-white/[0.06]">
