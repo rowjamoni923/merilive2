@@ -827,8 +827,13 @@ const PartyRoom = () => {
                 timestamp: new Date()
               }]);
               
-              // NOTE: Flying join banner is now triggered directly in UnifiedPartyRoom
-              // via its own party_room_participants subscription - no need to call here
+              // Show flying join banner (Bigo-style)
+              addBigoJoinNotification({
+                userId: payload.new.user_id,
+                userName,
+                userAvatar: avatarUrl,
+                userLevel,
+              });
               
               // NOTE: Entry animations are now triggered via UnifiedPartyRoom's onTriggerEntryEffect callback
               // This ensures consistent real-time subscription handling and prevents duplicate animations
