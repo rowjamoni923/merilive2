@@ -173,9 +173,7 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
         className="fixed bottom-0 left-0 right-0" 
         style={{ zIndex: 9990, paddingBottom: 'max(env(safe-area-inset-bottom, 0px), var(--min-bottom-inset, 0px))' }}
       >
-        <div className="absolute inset-x-0 bottom-0 h-[calc(100%+max(env(safe-area-inset-bottom,0px),var(--min-bottom-inset,0px)))] backdrop-blur-2xl" style={{ background: 'rgba(0,0,0,0.7)' }} />
-        <div className="absolute inset-x-0 top-0 h-[1px]" style={{ background: 'transparent' }} />
-        <div className="absolute inset-x-0 top-[1px] h-8 bg-gradient-to-b from-white/[0.04] to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-[calc(100%+max(env(safe-area-inset-bottom,0px),var(--min-bottom-inset,0px)))] backdrop-blur-2xl" style={{ background: 'rgba(0,0,0,0.85)' }} />
         
         <div className="relative flex items-center justify-around py-1.5 px-3 max-w-lg mx-auto">
           {navItems.map((item, index) => {

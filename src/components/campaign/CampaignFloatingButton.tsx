@@ -157,7 +157,7 @@ export function CampaignFloatingButton() {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             className="fixed z-[45] flex flex-col items-center"
-            style={{ bottom: 'calc(var(--bottom-nav-height, 64px) + 16px)', right: '12px' }}
+            style={{ bottom: 'calc(var(--bottom-nav-height, 64px) + 32px)', right: '12px' }}
           >
             {/* Countdown badge on top */}
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 px-2 py-0.5 rounded-full bg-red-600 shadow-lg shadow-red-600/50 min-w-[44px] text-center">
