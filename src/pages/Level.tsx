@@ -215,37 +215,78 @@ const Level = () => {
     return isValidImageUrl(animation?.icon_url) ? animation!.icon_url : null;
   };
 
+  // Paginated sum to bypass Supabase 1000-row limit
   const resolveEffectiveUserRechargeTotal = async (userId: string, profileTotalRecharged: number) => {
     try {
-      const [coinTransactionsResult, paymentTransactionsResult] = await Promise.all([
-        supabase
+      let totalCoin = 0;
+      let totalPayment = 0;
+      const PAGE_SIZE = 1000;
+
+      // Sum coin_transactions with pagination
+      let page = 0;
+      let hasMore = true;
+      while (hasMore) {
+        const { data, error } = await supabase
           .from('coin_transactions')
-          .select('coins_amount, transaction_type, status')
+          .select('coins_amount')
           .eq('user_id', userId)
           .eq('status', 'completed')
-          .in('transaction_type', ['recharge', 'self_recharge']),
-        supabase
+          .in('transaction_type', ['recharge', 'self_recharge'])
+          .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+        if (error) throw error;
+        if (!data || data.length === 0) { hasMore = false; break; }
+        totalCoin += data.reduce((s, tx) => s + Number(tx.coins_amount ?? 0), 0);
+        if (data.length < PAGE_SIZE) hasMore = false;
+        page++;
+      }
+
+      // Sum payment_transactions with pagination
+      page = 0;
+      hasMore = true;
+      while (hasMore) {
+        const { data, error } = await supabase
           .from('payment_transactions')
-          .select('diamonds_amount, status')
+          .select('diamonds_amount')
           .eq('user_id', userId)
-          .eq('status', 'completed'),
-      ]);
+          .eq('status', 'completed')
+          .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+        if (error) throw error;
+        if (!data || data.length === 0) { hasMore = false; break; }
+        totalPayment += data.reduce((s, tx) => s + Number(tx.diamonds_amount ?? 0), 0);
+        if (data.length < PAGE_SIZE) hasMore = false;
+        page++;
+      }
 
-      if (coinTransactionsResult.error) throw coinTransactionsResult.error;
-      if (paymentTransactionsResult.error) throw paymentTransactionsResult.error;
-
-      const rechargeFromCoinTransactions = (coinTransactionsResult.data ?? []).reduce((sum, tx) => {
-        return sum + Number(tx.coins_amount ?? 0);
-      }, 0);
-
-      const rechargeFromPayments = (paymentTransactionsResult.data ?? []).reduce((sum, tx) => {
-        return sum + Number(tx.diamonds_amount ?? 0);
-      }, 0);
-
-      return Math.max(profileTotalRecharged, rechargeFromCoinTransactions, rechargeFromPayments);
+      return Math.max(profileTotalRecharged, totalCoin, totalPayment);
     } catch (error) {
       console.warn('[Level] Failed to resolve effective recharge total:', error);
       return profileTotalRecharged;
+    }
+  };
+
+  // Paginated sum for host earnings
+  const resolveEffectiveHostEarnings = async (userId: string, profileTotalEarnings: number) => {
+    try {
+      let totalGiftEarnings = 0;
+      const PAGE_SIZE = 1000;
+      let page = 0;
+      let hasMore = true;
+      while (hasMore) {
+        const { data, error } = await supabase
+          .from('gift_transactions')
+          .select('beans_amount')
+          .eq('receiver_id', userId)
+          .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+        if (error) throw error;
+        if (!data || data.length === 0) { hasMore = false; break; }
+        totalGiftEarnings += data.reduce((s, tx) => s + Number(tx.beans_amount ?? 0), 0);
+        if (data.length < PAGE_SIZE) hasMore = false;
+        page++;
+      }
+      return Math.max(profileTotalEarnings, totalGiftEarnings);
+    } catch (error) {
+      console.warn('[Level] Failed to resolve effective host earnings:', error);
+      return profileTotalEarnings;
     }
   };
 
@@ -257,7 +298,7 @@ const Level = () => {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('id, gender, is_host, total_consumption, total_earnings, total_recharged, weekly_earnings, coins, user_level, host_level, max_user_level')
+        .select('id, gender, is_host, total_consumption, total_earnings, total_recharged, beans_earned, coins, user_level, host_level, max_user_level')
         .eq('id', user.id)
         .single();
 
@@ -295,10 +336,16 @@ const Level = () => {
       setActiveLevelData(sourceTiers);
 
       const profileTotalRecharged = Number(profile.total_recharged ?? 0);
-      const effectiveUserRechargeTotal = isFemaleHost
-        ? 0
-        : await resolveEffectiveUserRechargeTotal(user.id, profileTotalRecharged);
-      const totalPoints = Number(isFemaleHost ? (profile.weekly_earnings ?? 0) : effectiveUserRechargeTotal);
+      const profileTotalEarnings = Number(profile.total_earnings ?? profile.beans_earned ?? 0);
+
+      let totalPoints = 0;
+      if (isFemaleHost) {
+        // Host level = based on total earnings (NOT weekly)
+        totalPoints = await resolveEffectiveHostEarnings(user.id, profileTotalEarnings);
+      } else {
+        // User level = based on total top-up
+        totalPoints = await resolveEffectiveUserRechargeTotal(user.id, profileTotalRecharged);
+      }
       setCurrentDiamonds(totalPoints);
 
       let resolvedLevel = 0;
@@ -318,7 +365,7 @@ const Level = () => {
 
         resolvedLevel = Math.max(storedLevel, maxLevel, derivedLevel, 1);
 
-        if (user.id && (effectiveUserRechargeTotal > profileTotalRecharged || derivedLevel > Math.max(storedLevel, maxLevel))) {
+        if (user.id && (totalPoints > profileTotalRecharged || derivedLevel > Math.max(storedLevel, maxLevel))) {
           void supabase.rpc('recalculate_user_level', { _user_id: user.id }).then(({ error }) => {
             if (error) {
               console.warn('[Level] Failed to self-heal user level:', error);
