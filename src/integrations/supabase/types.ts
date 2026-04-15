@@ -7334,6 +7334,7 @@ export type Database = {
           badge_text: string | null
           banner_image_url: string | null
           bonus_diamonds: number
+          bonus_percentage: number | null
           campaign_name: string
           campaign_type: string
           created_at: string
@@ -7343,9 +7344,12 @@ export type Database = {
           id: string
           is_active: boolean
           is_first_recharge_only: boolean
+          milestone_amount: number | null
           offer_price_usd: number | null
           original_price_usd: number
           priority: number
+          schedule_end: string | null
+          schedule_start: string | null
           target_audience: string
           updated_at: string
         }
@@ -7353,6 +7357,7 @@ export type Database = {
           badge_text?: string | null
           banner_image_url?: string | null
           bonus_diamonds?: number
+          bonus_percentage?: number | null
           campaign_name: string
           campaign_type?: string
           created_at?: string
@@ -7362,9 +7367,12 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_first_recharge_only?: boolean
+          milestone_amount?: number | null
           offer_price_usd?: number | null
           original_price_usd?: number
           priority?: number
+          schedule_end?: string | null
+          schedule_start?: string | null
           target_audience?: string
           updated_at?: string
         }
@@ -7372,6 +7380,7 @@ export type Database = {
           badge_text?: string | null
           banner_image_url?: string | null
           bonus_diamonds?: number
+          bonus_percentage?: number | null
           campaign_name?: string
           campaign_type?: string
           created_at?: string
@@ -7381,9 +7390,12 @@ export type Database = {
           id?: string
           is_active?: boolean
           is_first_recharge_only?: boolean
+          milestone_amount?: number | null
           offer_price_usd?: number | null
           original_price_usd?: number
           priority?: number
+          schedule_end?: string | null
+          schedule_start?: string | null
           target_audience?: string
           updated_at?: string
         }
