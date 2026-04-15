@@ -241,8 +241,16 @@ export function CampaignFloatingButton() {
               exit={{ scale: 0.85, y: 30 }}
               transition={{ type: 'spring', damping: 22, stiffness: 300 }}
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-[300px] rounded-3xl overflow-hidden shadow-2xl shadow-amber-500/20 border border-amber-600/30 bg-gradient-to-b from-[#1c1c1c] via-[#111111] to-[#0a0a0a]"
+              className="relative w-full max-w-[300px] rounded-3xl overflow-hidden shadow-2xl"
+              style={{
+                background: template.popupBg,
+                border: `1.5px solid ${template.popupBorder}`,
+                boxShadow: template.accentGlow,
+              }}
             >
+              {/* Top shine line */}
+              <div className="absolute inset-x-0 top-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${template.popupBorder}40, transparent)` }} />
+
               {/* Close button */}
               <button
                 onClick={() => { setShowPopup(false); setShowPaymentMethods(false); }}
@@ -251,41 +259,46 @@ export function CampaignFloatingButton() {
                 <X className="w-3.5 h-3.5 text-white/60" />
               </button>
 
+              {/* Banner image if available */}
+              {campaign.banner_image_url && (
+                <div className="h-20 overflow-hidden">
+                  <img src={campaign.banner_image_url} alt="" className="w-full h-full object-cover" />
+                </div>
+              )}
+
               {/* Top section — Bonus banner */}
               <div className="relative pt-5 pb-3 flex flex-col items-center">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-40 bg-amber-500/15 rounded-full blur-3xl" />
-                
                 {bonusText && (
-                  <div className="relative z-10 px-6 py-3 rounded-xl border-2 border-amber-500/50 bg-gradient-to-b from-amber-900/60 to-amber-950/40">
+                  <div className="relative z-10 px-6 py-3 rounded-xl" style={{ background: template.timerBg, border: `2px solid ${template.popupBorder}80` }}>
                     <p className="text-center">
-                      <span className="text-amber-400 font-extrabold text-4xl drop-shadow-lg" style={{ textShadow: '0 0 20px rgba(251,191,36,0.5)' }}>
+                      <span className="font-extrabold text-4xl drop-shadow-lg" style={{ color: template.priceColor, textShadow: `0 0 20px ${template.popupBorder}80` }}>
                         {bonusText}
                       </span>
                     </p>
-                    <p className="text-amber-300 font-bold text-xl text-center tracking-wider" style={{ textShadow: '0 0 10px rgba(251,191,36,0.4)' }}>
+                    <p className="font-bold text-xl text-center tracking-wider" style={{ color: template.subtitleColor, textShadow: `0 0 10px ${template.popupBorder}60` }}>
                       BONUS
                     </p>
                   </div>
                 )}
 
                 {campaign.badge_text && (
-                  <div className="mt-3 px-4 py-1 rounded-full bg-white/10 border border-white/20">
-                    <span className="text-white/70 text-xs font-medium">{campaign.badge_text}</span>
+                  <div className="mt-3 px-4 py-1 rounded-full" style={{ background: template.badgeBg }}>
+                    <span className="text-xs font-bold" style={{ color: template.badgeText }}>{campaign.badge_text}</span>
                   </div>
                 )}
               </div>
 
-              <p className="text-white/80 text-sm font-semibold text-center px-4">
+              <p className="text-sm font-semibold text-center px-4" style={{ color: template.titleColor }}>
                 {campaign.campaign_name}
               </p>
 
               {/* Diamond amount */}
               <div className="flex items-center justify-center gap-2 mt-3">
-                <Diamond3DIcon size={22} />
-                <span className="text-amber-400 font-bold text-2xl">
+                <span className="text-lg">{template.icon}</span>
+                <span className="font-bold text-2xl" style={{ color: template.priceColor }}>
                   {campaign.diamonds_amount.toLocaleString()}
                   {campaign.bonus_diamonds > 0 && (
-                    <span className="text-green-400 text-lg ml-1">+{campaign.bonus_diamonds.toLocaleString()}</span>
+                    <span className="text-lg ml-1" style={{ color: template.bonusColor }}>+{campaign.bonus_diamonds.toLocaleString()}</span>
                   )}
                 </span>
               </div>
@@ -294,18 +307,18 @@ export function CampaignFloatingButton() {
               <div className="flex items-center justify-center gap-2 mt-2">
                 {campaign.offer_price_usd && campaign.offer_price_usd < campaign.original_price_usd ? (
                   <>
-                    <span className="text-white/30 text-sm line-through">${campaign.original_price_usd}</span>
-                    <span className="text-white font-bold text-xl">${campaign.offer_price_usd}</span>
+                    <span className="text-sm line-through opacity-50" style={{ color: template.subtitleColor }}>${campaign.original_price_usd}</span>
+                    <span className="font-bold text-xl" style={{ color: template.priceColor }}>${campaign.offer_price_usd}</span>
                   </>
                 ) : (
-                  <span className="text-white font-bold text-xl">${campaign.original_price_usd}</span>
+                  <span className="font-bold text-xl" style={{ color: template.priceColor }}>${campaign.original_price_usd}</span>
                 )}
               </div>
 
               {/* Timer */}
-              <div className="flex items-center justify-center gap-2 mt-3 mx-6 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20">
-                <span className="text-amber-400 text-lg">👑</span>
-                <span className="text-amber-300 text-sm font-bold tabular-nums">
+              <div className="flex items-center justify-center gap-2 mt-3 mx-6 py-2 rounded-xl" style={{ background: template.timerBg }}>
+                <span className="text-lg">⏰</span>
+                <span className="text-sm font-bold tabular-nums" style={{ color: template.timerText }}>
                   {formatCountdown(remainingSeconds)} remaining
                 </span>
               </div>
@@ -316,7 +329,8 @@ export function CampaignFloatingButton() {
                   <motion.button
                     whileTap={{ scale: 0.97 }}
                     onClick={handleBuyNow}
-                    className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-500 text-black font-extrabold text-base shadow-lg shadow-amber-500/30 active:shadow-sm transition-shadow"
+                    className="w-full py-3.5 rounded-2xl font-extrabold text-base shadow-lg active:shadow-sm transition-shadow"
+                    style={{ background: template.buttonBg, color: template.buttonText }}
                   >
                     Buy Now
                   </motion.button>
@@ -326,7 +340,7 @@ export function CampaignFloatingButton() {
                     animate={{ opacity: 1, y: 0 }}
                     className="space-y-2"
                   >
-                    <p className="text-white/50 text-[10px] text-center font-medium uppercase tracking-wider mb-2">
+                    <p className="text-[10px] text-center font-medium uppercase tracking-wider mb-2" style={{ color: template.subtitleColor }}>
                       Select Payment Method
                     </p>
                     {paymentTabs.map((tab) => (
@@ -334,20 +348,17 @@ export function CampaignFloatingButton() {
                         key={tab.key}
                         whileTap={{ scale: 0.97 }}
                         onClick={() => handleSelectPayment(tab.key)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition-all ${
-                          selectedPaymentTab === tab.key
-                            ? 'border-amber-500/50 bg-amber-500/10'
-                            : 'border-white/10 bg-white/5 hover:bg-white/10'
-                        }`}
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition-all"
+                        style={{ borderColor: `${template.popupBorder}30`, background: `${template.popupBorder}10` }}
                       >
-                        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center text-amber-400">
+                        <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: `${template.popupBorder}20`, color: template.titleColor }}>
                           {tab.icon}
                         </div>
                         <div className="text-left flex-1">
-                          <p className="text-white text-sm font-semibold">{tab.label}</p>
-                          <p className="text-white/40 text-[10px]">{tab.description}</p>
+                          <p className="text-sm font-semibold" style={{ color: template.titleColor }}>{tab.label}</p>
+                          <p className="text-[10px] opacity-50" style={{ color: template.subtitleColor }}>{tab.description}</p>
                         </div>
-                        <div className="text-amber-400 text-xs font-bold">→</div>
+                        <span className="text-xs font-bold" style={{ color: template.priceColor }}>→</span>
                       </motion.button>
                     ))}
                   </motion.div>
@@ -357,7 +368,7 @@ export function CampaignFloatingButton() {
               {/* Close (not dismiss permanently) */}
               <button
                 onClick={() => { setShowPopup(false); setShowPaymentMethods(false); }}
-                className="w-full text-center text-white/25 text-[11px] pb-4"
+                className="w-full text-center text-[11px] pb-4 opacity-25" style={{ color: template.subtitleColor }}
               >
                 Not now
               </button>
