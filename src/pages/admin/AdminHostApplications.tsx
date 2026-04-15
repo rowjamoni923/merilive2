@@ -148,7 +148,33 @@ export default function AdminHostApplications() {
     }
   };
 
-  const fetchApplications = async () => {
+  const fetchPendingHostsWithoutSubmission = async () => {
+    try {
+      // Get all face_verification_submissions user_ids
+      const { data: submittedUsers } = await supabase
+        .from("face_verification_submissions")
+        .select("user_id");
+      const submittedIds = new Set((submittedUsers || []).map((s: any) => s.user_id));
+
+      // Get all pending female hosts
+      const { data: pendingProfiles } = await supabase
+        .from("profiles")
+        .select("id, display_name, app_uid, avatar_url, gender, country_code, created_at, is_verified, is_face_verified")
+        .eq("is_host", true)
+        .eq("host_status", "pending")
+        .eq("gender", "female")
+        .order("created_at", { ascending: false })
+        .limit(100);
+
+      // Filter out those who already have submissions
+      const noSubmission = (pendingProfiles || []).filter((p: any) => !submittedIds.has(p.id));
+      setPendingHosts(noSubmission);
+      setPendingHostsCount(noSubmission.length);
+    } catch (error) {
+      console.error("Error fetching pending hosts:", error);
+    }
+  };
+
     if (applications.length === 0) setLoading(true);
     try {
       let query = supabase
