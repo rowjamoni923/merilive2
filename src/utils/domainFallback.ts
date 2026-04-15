@@ -6,7 +6,6 @@
 
 const PRIMARY_DOMAIN = 'https://merilive.com';
 const FALLBACK_DOMAIN = 'https://www.merilive.com';
-const ALIAS_DOMAINS = ['merilife.com', 'www.merilife.com'];
 const HEALTH_CHECK_TIMEOUT = 5000; // 5 seconds
 
 /**
@@ -41,8 +40,7 @@ async function isDomainReachable(url: string): Promise<boolean> {
 export async function initDomainFallback(): Promise<void> {
   // Don't redirect if already on the target domain
   const currentHost = window.location.hostname;
-  // Accept both merilive.com and merilife.com as valid domains
-  const validHosts = ['merilive.com', 'www.merilive.com', 'merilife.com', 'www.merilife.com'];
+  const validHosts = ['merilive.com', 'www.merilive.com'];
   if (validHosts.includes(currentHost)) {
     console.log('[DomainFallback] Already on target domain:', currentHost);
     return;
