@@ -9,11 +9,11 @@
  * - Only visible to users (not hosts).
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { X } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Diamond3DIcon from '@/components/common/Diamond3DIcon';
+import { toast } from 'sonner';
 
 interface Campaign {
   id: string;
@@ -52,7 +52,7 @@ export function CampaignFloatingButton() {
   const [showPopup, setShowPopup] = useState(false);
   const [isHost, setIsHost] = useState<boolean | null>(null);
   const [purchased, setPurchased] = useState(false);
-  const navigate = useNavigate();
+  const [paymentLoading, setPaymentLoading] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
 
   // Check if user is host
@@ -139,12 +139,45 @@ export function CampaignFloatingButton() {
 
   const bonusText = discountPercent > 0 ? `${discountPercent}%` : '';
 
-  const handlePurchase = () => {
-    // Mark as purchased so it never shows again for this campaign
-    localStorage.setItem(PURCHASED_KEY + campaign.id, 'true');
-    setPurchased(true);
-    setShowPopup(false);
-    navigate('/recharge');
+  const handlePurchase = async () => {
+    setPaymentLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Please login first');
+        return;
+      }
+
+      // Call Stripe payment edge function directly
+      const { data, error } = await supabase.functions.invoke('create-stripe-payment', {
+        body: {
+          package_id: campaign.id,
+          diamonds: campaign.diamonds_amount + campaign.bonus_diamonds,
+          amount_usd: campaign.offer_price_usd || campaign.original_price_usd,
+          campaign_id: campaign.id,
+          user_id: user.id,
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        // Mark as purchased
+        localStorage.setItem(PURCHASED_KEY + campaign.id, 'true');
+        setPurchased(true);
+        setShowPopup(false);
+        // Open payment page
+        const { openInApp } = await import('@/utils/inAppNavigation');
+        await openInApp(data.url, { useOverlay: true });
+      } else {
+        toast.error('Could not start payment');
+      }
+    } catch (err: any) {
+      console.error('[Campaign] Payment error:', err);
+      toast.error(err.message || 'Payment failed');
+    } finally {
+      setPaymentLoading(false);
+    }
   };
 
   return (
@@ -157,7 +190,7 @@ export function CampaignFloatingButton() {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             className="fixed z-[45] flex flex-col items-center"
-            style={{ bottom: 'calc(var(--bottom-nav-height, 64px) + 16px)', right: '12px' }}
+            style={{ bottom: 'calc(var(--bottom-nav-height, 64px) + 32px)', right: '12px' }}
           >
             {/* Countdown badge on top */}
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 px-2 py-0.5 rounded-full bg-red-600 shadow-lg shadow-red-600/50 min-w-[44px] text-center">
@@ -281,9 +314,15 @@ export function CampaignFloatingButton() {
                 <motion.button
                   whileTap={{ scale: 0.97 }}
                   onClick={handlePurchase}
-                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-500 text-black font-extrabold text-base shadow-lg shadow-amber-500/30 active:shadow-sm transition-shadow"
+                  disabled={paymentLoading}
+                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-500 text-black font-extrabold text-base shadow-lg shadow-amber-500/30 active:shadow-sm transition-shadow disabled:opacity-60"
                 >
-                  Buy Now
+                  {paymentLoading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Processing...
+                    </span>
+                  ) : 'Buy Now'}
                 </motion.button>
               </div>
 
