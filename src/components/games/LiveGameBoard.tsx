@@ -67,6 +67,7 @@ interface GameSetting {
   iframe_width?: number;
   iframe_height?: number;
   category?: string;
+  provider_game_code?: string;
 }
 
 interface LiveGameBoardProps {
@@ -323,8 +324,9 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts }: Li
       
       // Generate token-injected URL for external games
       if (!externalGameUrl) {
-        // Trigger token generation
-        buildGameUrl(currentGame.game_url!, currentGame.game_id, roomId).then(url => {
+        // For third-party games, use provider_game_code as gameId (numeric)
+        const providerGameId = currentGame.provider_game_code || currentGame.game_id;
+        buildGameUrl(currentGame.game_url!, providerGameId, roomId).then(url => {
           setExternalGameUrl(url);
         });
         return (

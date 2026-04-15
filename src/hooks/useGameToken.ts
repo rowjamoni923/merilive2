@@ -100,12 +100,13 @@ export function useGameToken() {
     try {
       const url = new URL(baseUrl);
       
-      // Inject standard params
+      // Inject params matching game provider's expected format
       if (!url.searchParams.has('token')) {
         url.searchParams.set('token', tokenData.token);
       }
-      if (!url.searchParams.has('merchantId')) {
-        url.searchParams.set('merchantId', tokenData.merchant_id);
+      // Provider expects 'merchant' (not 'merchantId')
+      if (!url.searchParams.has('merchant') && !url.searchParams.has('merchantId')) {
+        url.searchParams.set('merchant', tokenData.merchant_id);
       }
       if (gameId && !url.searchParams.has('gameId')) {
         url.searchParams.set('gameId', gameId);
@@ -113,12 +114,16 @@ export function useGameToken() {
       if (roomId && !url.searchParams.has('roomId')) {
         url.searchParams.set('roomId', roomId);
       }
+      // Add landscape mode for mobile
+      if (!url.searchParams.has('isLandscape')) {
+        url.searchParams.set('isLandscape', 'true');
+      }
 
       return url.toString();
     } catch {
       // If URL parsing fails, append as query string
       const separator = baseUrl.includes('?') ? '&' : '?';
-      return `${baseUrl}${separator}token=${tokenData.token}&merchantId=${tokenData.merchant_id}`;
+      return `${baseUrl}${separator}token=${tokenData.token}&merchant=${tokenData.merchant_id}&isLandscape=true`;
     }
   }, [generateToken]);
 
