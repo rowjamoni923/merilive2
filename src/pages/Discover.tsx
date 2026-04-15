@@ -125,7 +125,6 @@ const Discover = () => {
       
       const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
       
-      // ⚡ PARALLEL: Fetch participants AND rooms at once
       const [participantsRes, roomsRes] = await Promise.all([
         supabase
           .from('party_room_participants')
@@ -134,68 +133,73 @@ const Discover = () => {
           .gte('joined_at', twoHoursAgo),
         supabase
           .from('party_rooms')
-          .select(`*, host:profiles!party_rooms_host_id_fkey(id, display_name, avatar_url, user_level, host_level, country_flag, country_code, is_online)`)
+          .select(`*, host:profiles!party_rooms_host_id_fkey(id, display_name, avatar_url, user_level, host_level, country_flag, country_code, is_online, is_host, gender, total_recharged, total_earnings, weekly_earnings, max_user_level)`)
           .eq('is_active', true)
           .gte('created_at', twoHoursAgo),
       ]);
 
       if (participantsRes.error) throw participantsRes.error;
-      const activeParticipants = participantsRes.data;
+      if (roomsRes.error) throw roomsRes.error;
 
-      // Count participants per room AND check if host is present
+      const activeParticipants = participantsRes.data || [];
       const roomParticipantCounts = new Map<string, number>();
       const roomsWithHost = new Set<string>();
       
-      activeParticipants?.forEach(p => {
+      activeParticipants.forEach(p => {
         const count = roomParticipantCounts.get(p.room_id) || 0;
         roomParticipantCounts.set(p.room_id, count + 1);
-        
-        // Track rooms that have a host participant
-        if (p.role === 'host') {
-          roomsWithHost.add(p.room_id);
-        }
+        if (p.role === 'host') roomsWithHost.add(p.room_id);
       });
 
-      // CRITICAL: Only show rooms that have at least 1 participant AND the host is present
-      // This filters out "zombie" rooms where host crashed but room wasn't properly closed
-      const activeRoomIds = Array.from(roomParticipantCounts.entries())
-        .filter(([roomId, count]) => count >= 1 && roomsWithHost.has(roomId))
-        .map(([roomId]) => roomId);
-      
-      if (activeRoomIds.length === 0) {
+      const activeRoomIds = new Set(
+        (roomsRes.data || [])
+          .filter((room: any) => room.is_active)
+          .filter((room: any) => {
+            const participantCount = roomParticipantCounts.get(room.id) || 0;
+            return participantCount > 0 || roomsWithHost.has(room.id);
+          })
+          .map((room: any) => room.id)
+      );
+
+      if (activeRoomIds.size === 0) {
         setRooms([]);
         setLoading(false);
         setLastUpdate(new Date());
         return;
       }
 
-      // Use pre-fetched rooms data, filtered to active room IDs
-      const data = (roomsRes.data || []).filter(r => activeRoomIds.includes(r.id));
-      const error = roomsRes.error;
+      const roomsData = await Promise.all(
+        ((roomsRes.data || []) as any[])
+          .filter(room => activeRoomIds.has(room.id))
+          .map(async (room) => {
+            const host = Array.isArray(room.host) ? room.host[0] : room.host;
+            const resolvedHostLevel = host
+              ? (await import('@/utils/levelResolver')).resolveLevelFromTiers({
+                  id: host.id,
+                  user_level: host.user_level,
+                  host_level: host.host_level,
+                  is_host: host.is_host,
+                  gender: host.gender,
+                  total_recharged: host.total_recharged,
+                  total_earnings: host.total_earnings,
+                  weekly_earnings: host.weekly_earnings,
+                  max_user_level: host.max_user_level,
+                }).then(result => result.level).catch(() => host.host_level || host.user_level || 1)
+              : 1;
 
-      if (error) throw error;
+            return {
+              ...room,
+              host: host ? { ...host, user_level: resolvedHostLevel } : null,
+              current_participants: roomParticipantCounts.get(room.id) || 1,
+            };
+          })
+      );
 
-      // Merge with actual participant counts and filter:
-      // 1. Room must have at least 1 participant
-      // 2. Host must be online (is_online = true) - if host is offline, room is considered closed
-      const roomsData = (data || []).map(room => ({
-        ...room,
-        current_participants: roomParticipantCounts.get(room.id) || 0
-      })).filter(room => {
-        // Must have at least 1 participant
-        if (room.current_participants < 1) return false;
-        
-        // CRITICAL: Host must be online - if host is offline, the room is effectively closed
-        // This filters out zombie rooms where host crashed/closed browser without proper cleanup
-        if (room.host && room.host.is_online === false) {
-          console.log('[Discover] Filtering out room with offline host:', room.name);
-          return false;
-        }
-        
-        return true;
-      }).sort((a, b) => b.current_participants - a.current_participants);
+      const visibleRooms = roomsData
+        .filter(room => room.current_participants >= 1)
+        .sort((a, b) => b.current_participants - a.current_participants);
 
-      setRooms(roomsData);
+      setRooms(visibleRooms);
       setLastUpdate(new Date());
     } catch (error) {
       console.error('Error fetching rooms:', error);

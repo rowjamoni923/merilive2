@@ -63,14 +63,38 @@ const Live = () => {
             country_flag,
             host_level,
             user_level,
-            is_verified
+            is_verified,
+            is_host,
+            gender,
+            total_recharged,
+            total_earnings,
+            weekly_earnings,
+            max_user_level
           )
         `)
         .eq('is_active', true)
         .order('viewer_count', { ascending: false });
 
       if (error) throw error;
-      const nextStreams = ((data || []) as any[]).map((s: any) => ({ ...s, host: Array.isArray(s.host) ? s.host[0] : s.host })) as LiveStream[];
+      const { resolveLevelFromTiers } = await import('@/utils/levelResolver');
+      const nextStreams = await Promise.all(((data || []) as any[]).map(async (s: any) => {
+        const host = Array.isArray(s.host) ? s.host[0] : s.host;
+        const resolvedLevel = host
+          ? await resolveLevelFromTiers({
+              id: host.id,
+              user_level: host.user_level,
+              host_level: host.host_level,
+              is_host: host.is_host,
+              gender: host.gender,
+              total_recharged: host.total_recharged,
+              total_earnings: host.total_earnings,
+              weekly_earnings: host.weekly_earnings,
+              max_user_level: host.max_user_level,
+            }).then(result => result.level).catch(() => Math.max(host.host_level || 0, host.user_level || 1))
+          : 1;
+
+        return { ...s, host: host ? { ...host, user_level: resolvedLevel, host_level: resolvedLevel } : null };
+      })) as LiveStream[];
       setStreams(nextStreams);
       try {
         window.sessionStorage.setItem("live-streams-cache-v1", JSON.stringify(nextStreams));
