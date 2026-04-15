@@ -615,10 +615,12 @@ export default function AdminGameSettings() {
                               "text-[9px] px-1.5",
                               game.game_type === 'iframe' && "bg-purple-500/10 text-purple-600 border-purple-500/30",
                               game.game_type === 'external' && "bg-orange-500/10 text-orange-600 border-orange-500/30",
+                              game.game_type === 'third_party' && "bg-cyan-500/10 text-cyan-600 border-cyan-500/30",
                               (!game.game_type || game.game_type === 'native') && "bg-gray-500/10 text-gray-600 border-gray-500/30"
                             )}>
                               {game.game_type === 'iframe' && <><Monitor className="w-2.5 h-2.5 mr-0.5" />iFrame</>}
                               {game.game_type === 'external' && <><ExternalLink className="w-2.5 h-2.5 mr-0.5" />External</>}
+                              {game.game_type === 'third_party' && <><Globe className="w-2.5 h-2.5 mr-0.5" />3rd Party</>}
                               {(!game.game_type || game.game_type === 'native') && <><Gamepad2 className="w-2.5 h-2.5 mr-0.5" />Native</>}
                             </Badge>
                           </div>
