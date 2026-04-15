@@ -235,7 +235,7 @@ const Discover = () => {
     
     // Per-room level check (set by room host)
     if (room.min_level > userLevel) {
-      toast.error(`Minimum level ${room.min_level} required`);
+      toast.error(`Minimum level ${room.min_level} required! Your level: ${userLevel}`);
       return;
     }
 
