@@ -135,6 +135,9 @@ export function CampaignFloatingButton() {
   // Hide if: host, no campaign, expired, purchased, or not logged in
   if (isHost === true || isHost === null || !campaign || remainingSeconds <= 0 || purchased) return null;
 
+  // Resolve template from admin selection
+  const template: CampaignTemplate = CAMPAIGN_TEMPLATES.find(t => t.id === campaign.template_id) || CAMPAIGN_TEMPLATES[0];
+
   const discountPercent = campaign.offer_price_usd && campaign.original_price_usd > 0
     ? Math.round((1 - campaign.offer_price_usd / campaign.original_price_usd) * 100)
     : campaign.bonus_percentage ?? 0;
