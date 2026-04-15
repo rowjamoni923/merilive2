@@ -231,11 +231,11 @@ const AdminBeautyFilters = () => {
       description: formData.description.trim() || null,
       category: formData.category,
       file_url: fileUrl,
-      preview_image_url: previewUrl || null,
-      file_type: selectedFile?.name.endsWith(".deepar") ? "deepar"
+      preview_url: previewUrl || null,
+      filter_type: selectedFile?.name.endsWith(".deepar") ? "deepar"
         : selectedFile?.name.endsWith(".svga") ? "svga"
         : selectedFile?.name.endsWith(".json") ? "lottie"
-        : editingItem ? (editingItem as any).file_type : "deepar",
+        : editingItem ? (editingItem as any).filter_type : "deepar",
       file_size_bytes: fileSize,
       is_premium: formData.is_premium,
       is_free: formData.is_free,
