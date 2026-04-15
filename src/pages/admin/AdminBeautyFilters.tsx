@@ -77,8 +77,9 @@ interface ARSticker {
   description: string | null;
   category: string;
   file_url: string;
-  preview_image_url: string | null;
-  file_type: string;
+  preview_url: string | null;
+  filter_type: string;
+  filter_key: string | null;
   file_size_bytes: number | null;
   is_active: boolean;
   is_premium: boolean;
@@ -87,6 +88,7 @@ interface ARSticker {
   min_level: number;
   display_order: number;
   tags: string[];
+  intensity_default: number | null;
   created_at: string;
 }
 
