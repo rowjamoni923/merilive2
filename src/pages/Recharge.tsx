@@ -196,63 +196,6 @@ const Recharge = () => {
   const currencyRate = userCountryCode ? getRateForCountry(userCountryCode) : null;
   const isBangladesh = userCountryCode?.toUpperCase() === 'BD';
 
-  const getHelperMethodPool = useCallback((baseMethod: Level5HelperPaymentMethod | null) => {
-    if (!baseMethod) return [] as Level5HelperPaymentMethod[];
-
-    const methodName = baseMethod.method_name.toLowerCase();
-    const baseGatewayType = String(baseMethod.additional_info?.gateway_type || '').toLowerCase();
-
-    const sameTypeMethods = helperPaymentMethods.filter(
-      (method) => method.method_name.toLowerCase() === methodName
-    );
-
-    const exactRouteMatches = sameTypeMethods.filter(
-      (method) => String(method.additional_info?.gateway_type || '').toLowerCase() === baseGatewayType
-    );
-
-    return exactRouteMatches.length > 0 ? exactRouteMatches : sameTypeMethods;
-  }, [helperPaymentMethods]);
-
-  const getHelperMethodCycleKey = useCallback((baseMethod: Level5HelperPaymentMethod | null) => {
-    if (!baseMethod) return '';
-    const methodName = baseMethod.method_name.toLowerCase();
-    const gatewayType = String(baseMethod.additional_info?.gateway_type || '').toLowerCase();
-    return `${methodName}:${gatewayType || 'manual'}`;
-  }, []);
-
-  const helperMethodPool = useMemo(() => getHelperMethodPool(selectedHelperMethod), [getHelperMethodPool, selectedHelperMethod]);
-
-  const helperMethodCycleProgress = useMemo(() => {
-    const cycleKey = getHelperMethodCycleKey(selectedHelperMethod);
-    const total = helperMethodPool.length;
-    if (!cycleKey || total === 0) return { current: 1, total: 1 };
-
-    const usedCount = (usedMethodsByType[cycleKey] || []).length;
-    return {
-      current: Math.min(Math.max(usedCount, 1), total),
-      total,
-    };
-  }, [getHelperMethodCycleKey, helperMethodPool.length, selectedHelperMethod, usedMethodsByType]);
-
-  const handleShowDifferentHelperNumber = useCallback(() => {
-    if (!selectedHelperMethod) return;
-
-    const pool = getHelperMethodPool(selectedHelperMethod);
-    if (pool.length <= 1) {
-      toast({
-        title: "No More Numbers",
-        description: `Only one ${selectedHelperMethod.method_name} number is available right now.`,
-      });
-      return;
-    }
-
-    const nextMethod = pickNonRepeatingMethod(pool, getHelperMethodCycleKey(selectedHelperMethod));
-    if (!nextMethod) return;
-
-    setSelectedHelperMethod(nextMethod);
-    setHelperTransactionId("");
-    setHelperPaymentProof(null);
-  }, [getHelperMethodCycleKey, getHelperMethodPool, pickNonRepeatingMethod, selectedHelperMethod, toast]);
   
   // Fetch real international exchange rates for Google tab
   useEffect(() => {
