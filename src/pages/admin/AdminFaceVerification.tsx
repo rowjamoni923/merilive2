@@ -525,6 +525,9 @@ const AdminFaceVerification = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <h3 className="font-semibold text-sm truncate">{submission.full_name || submission.profile?.display_name || 'Unknown'}</h3>
+                          {submission.profile?.is_face_verified && (
+                            <Badge className="bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[10px]">✅ Face Verified</Badge>
+                          )}
                           {getTypeBadge(getEffectiveVerificationType(submission))}
                           {getStatusBadge(submission.status)}
                         </div>
