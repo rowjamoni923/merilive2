@@ -19,7 +19,7 @@ import { Capacitor } from "@capacitor/core";
 import { ChametFaceVerificationModal, ChametSettingsPanel, ChametLiveMoreMenu } from "@/components/live/ChametStyleGoLive";
 import BeansIcon from "@/components/common/BeansIcon";
 import { BeautyFilterPanel, BeautySettings, generateBeautyCSS } from "@/components/live/BeautyFilterPanel";
-import { StickerOverlay } from "@/components/live/StickerOverlay";
+import StickerOverlay from "@/components/live/StickerOverlay";
 import { StickerPanel } from "@/components/live/StickerPanel";
 import { useDeepARBeauty } from "@/hooks/useDeepARBeauty";
 import { useNativeCameraPermission } from "@/hooks/useNativeCameraPermission";
