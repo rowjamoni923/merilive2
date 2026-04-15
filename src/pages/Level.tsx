@@ -114,9 +114,7 @@ const Level = () => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [levelType, setLevelType] = useState<'user' | 'host'>('user');
   const [levelTierIcons, setLevelTierIcons] = useState<LevelTierIcon[]>([]);
-
-  // Determine which level data to use
-  const activeLevelData = levelType === 'host' ? hostLevelData : userLevelData;
+  const [activeLevelData, setActiveLevelData] = useState<LevelData[]>(userLevelData);
 
   useEffect(() => {
     fetchUserLevel();
@@ -224,48 +222,66 @@ const Level = () => {
       if (user) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('id, gender, is_host, total_consumption, total_earnings, total_recharged, coins, user_level')
+          .select('id, gender, is_host, total_consumption, total_earnings, total_recharged, weekly_earnings, coins, user_level, host_level, max_user_level')
           .eq('id', user.id)
           .single();
 
         if (profile) {
-          setUserProfile(profile);
-          
-          // Determine level type based on user gender and host status
+          setUserProfile(profile as UserProfile);
+
           const isFemaleHost = profile.is_host && profile.gender === 'female';
           const type = isFemaleHost ? 'host' : 'user';
           setLevelType(type);
-          
-          // Calculate diamonds/points based on type
-          let totalPoints: number;
-          if (isFemaleHost) {
-            // Female hosts: Level based on earnings (gifts received)
-            totalPoints = profile.total_earnings || 0;
+
+          const { data: tiers } = await supabase
+            .from('user_level_tiers')
+            .select('level_number, min_topup_amount, min_earning_amount')
+            .eq('tier_type', type)
+            .eq('is_active', true)
+            .order('level_number', { ascending: true });
+
+          const fallbackVisuals = isFemaleHost ? hostLevelData : userLevelData;
+          const mappedTiers: LevelData[] = (tiers && tiers.length > 0 ? tiers : []).map((tier) => {
+            const visual = fallbackVisuals.find((item) => item.level === tier.level_number)
+              || [...fallbackVisuals].reverse().find((item) => item.level <= tier.level_number)
+              || fallbackVisuals[0];
+
+            return {
+              level: tier.level_number,
+              minDiamonds: Number(isFemaleHost ? (tier.min_earning_amount ?? 0) : (tier.min_topup_amount ?? 0)),
+              icon: visual?.icon || '💎',
+              color: visual?.color || 'bg-gray-400',
+              bgGradient: visual?.bgGradient || 'from-gray-300 to-gray-400',
+            };
+          });
+
+          if (mappedTiers.length > 0) {
+            setActiveLevelData(mappedTiers);
           } else {
-            // Regular users: Level based on total top-up (total_recharged)
-            totalPoints = profile.total_recharged || 0;
+            setActiveLevelData(isFemaleHost ? hostLevelData : userLevelData);
           }
-          
+
+          const totalPoints = Number(isFemaleHost ? (profile.weekly_earnings || 0) : (profile.total_recharged || 0));
           setCurrentDiamonds(totalPoints);
-          
-          // Calculate level based on points
-          const levelDataToUse = isFemaleHost ? hostLevelData : userLevelData;
-          let userLevel = 0;
-          for (let i = levelDataToUse.length - 1; i >= 0; i--) {
-            if (totalPoints >= levelDataToUse[i].minDiamonds) {
-              userLevel = levelDataToUse[i].level;
-              break;
+
+          let resolvedLevel = 0;
+          if (isFemaleHost) {
+            const sourceTiers = mappedTiers.length > 0 ? mappedTiers : hostLevelData;
+            for (const tier of sourceTiers) {
+              if (totalPoints >= tier.minDiamonds) {
+                resolvedLevel = tier.level;
+              }
             }
+          } else {
+            const sourceTiers = mappedTiers.length > 0 ? mappedTiers : userLevelData;
+            const derivedLevel = sourceTiers.reduce((highest, tier) => {
+              return totalPoints >= tier.minDiamonds ? Math.max(highest, tier.level) : highest;
+            }, 0);
+            resolvedLevel = Math.max(profile.user_level || 0, (profile as any).max_user_level || 0, derivedLevel, 1);
           }
-          setCurrentLevel(userLevel);
-          
-          // Update user level in database if changed
-          if (profile.user_level !== userLevel) {
-            await supabase
-              .from('profiles')
-              .update({ user_level: userLevel })
-              .eq('id', user.id);
-          }
+
+          setCurrentLevel(resolvedLevel);
+          setSelectedLevelTab((prev) => Math.max(prev, resolvedLevel || 1));
         }
       }
     } catch (error) {
@@ -310,9 +326,7 @@ const Level = () => {
     return num.toLocaleString();
   };
 
-  const levelTabs = levelType === 'host' 
-    ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    : [1, 2, 3, 4, 5, 6, 7, 8];
+  const levelTabs = activeLevelData.map((item) => item.level);
 
   if (loading) {
     return <LoadingSpinner fullScreen />;
@@ -559,21 +573,20 @@ const Level = () => {
         <h2 className="text-xl font-bold text-white mb-4">Level Rule</h2>
         
         <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
-          <p className="text-sm text-white/70 mb-4">
-            {levelType === 'host' 
-              ? 'Host level is determined based on your total earnings (gifts received). More gifts = higher level!'
-              : 'Level is determined based on historical top-up or consumption. Consumption includes gift sending and video call spending.'
-            }
-          </p>
-          
-          {/* Level Table */}
-          <div className="rounded-xl overflow-hidden border border-white/10">
-            <div className="grid grid-cols-2 bg-white/5">
-              <div className="p-3 font-semibold text-white/80 text-center border-r border-white/10">Level</div>
-              <div className="p-3 font-semibold text-white/80 text-center">
-                {levelType === 'host' ? 'Earnings' : 'Top-up/Consumption'}
+            <p className="text-sm text-white/70 mb-4">
+              {levelType === 'host' 
+                ? 'Host level is determined from your current weekly beans earnings using the live admin tier rules.'
+                : 'User level is determined from your lifetime total top-up using the live admin tier rules.'
+              }
+            </p>
+            
+            <div className="rounded-xl overflow-hidden border border-white/10">
+              <div className="grid grid-cols-2 bg-white/5">
+                <div className="p-3 font-semibold text-white/80 text-center border-r border-white/10">Level</div>
+                <div className="p-3 font-semibold text-white/80 text-center">
+                  {levelType === 'host' ? 'Weekly Earnings' : 'Total Top-up'}
+                </div>
               </div>
-            </div>
             
             {activeLevelData.slice(0, 11).map((level) => (
               <div 
