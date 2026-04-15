@@ -659,6 +659,13 @@ const VIP = () => {
 
   const handleEquip = async (privilege: UserPrivilege) => {
     if (equipping) return;
+    if (privilege.is_locked) {
+      toast({
+        title: "🔒 Locked",
+        description: `Reach Level ${privilege.unlock_level || '?'} to unlock this item`,
+      });
+      return;
+    }
     
     setEquipping(privilege.id);
     console.log('[VIP] Equipping privilege:', privilege);
