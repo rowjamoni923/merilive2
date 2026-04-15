@@ -1634,7 +1634,7 @@ const FaceVerification = () => {
                 <div className="bg-black/70 backdrop-blur-md rounded-full px-4 py-2 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
-                    <span className="text-white/60 text-xs">Recording</span>
+                    <span className="text-white/60 text-xs">{localizedMsg.recording}</span>
                   </div>
                   <span className="text-white font-mono font-bold text-sm">{Math.max(0, 30 - verificationTime)}s</span>
                 </div>
