@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import {
   Plus, Edit2, Trash2, RefreshCw, Diamond, Clock, Image as ImageIcon,
   Upload, Eye, EyeOff, Sparkles, Target, Zap, Gift, Timer, DollarSign,
