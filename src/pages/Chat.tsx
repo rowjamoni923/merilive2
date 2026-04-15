@@ -546,30 +546,12 @@ const Chat = () => {
       
       // Send voice message
       if (selectedConversation) {
-        const { data: newMsg, error } = await supabase
-          .from('messages')
-          .insert({
-            conversation_id: selectedConversation.id,
-            sender_id: currentUserId,
-            content: urlData.publicUrl,
-            message_type: 'audio'
-          })
-          .select()
-          .single();
-
-        if (error) throw error;
-
-        if (newMsg) {
-          setMessages(prev => {
-            if (prev.find(m => m.id === newMsg.id)) return prev;
-            return [...prev, castMessage(newMsg)];
-          });
-        }
-
-        await supabase
-          .from('conversations')
-          .update({ last_message_at: new Date().toISOString() })
-          .eq('id', selectedConversation.id);
+        await persistDirectMessage(
+          selectedConversation.id,
+          currentUserId,
+          urlData.publicUrl,
+          'audio'
+        );
 
         // 🔔 Push notification for voice message
         const recipientId = selectedConversation.other_user?.id;
