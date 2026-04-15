@@ -537,7 +537,7 @@ export default function AdminRechargeCampaigns() {
             </DialogTitle>
           </DialogHeader>
 
-          <ScrollArea className="flex-1 min-h-0 pr-4">
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-4" style={{ WebkitOverflowScrolling: 'touch' }}>
             <div className="space-y-5 pb-4">
               {/* Basic Info */}
               <div className="space-y-3">
@@ -911,7 +911,7 @@ export default function AdminRechargeCampaigns() {
                 </div>
               </div>
             </div>
-          </ScrollArea>
+          </div>
 
           <div className="flex gap-2 pt-2 flex-shrink-0">
             <Button variant="outline" className="flex-1" onClick={() => setDialogOpen(false)}>
