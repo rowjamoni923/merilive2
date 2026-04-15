@@ -1012,35 +1012,29 @@ export default function AdminCoins() {
 
       {/* Package Dialog */}
       <Dialog open={showPackageDialog} onOpenChange={setShowPackageDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle className="flex items-center gap-2">
               <Diamond className="w-5 h-5 text-cyan-500" />
               {editingPackage ? "Edit Package" : "New Package"}
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4 py-4">
+          <div className="flex-1 overflow-y-auto space-y-4 py-2 pr-1">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Diamonds (with bonus)</Label>
-                <Input
-                  type="number"
-                  value={packageForm.coins}
-                  onChange={(e) => setPackageForm({ ...packageForm, coins: parseInt(e.target.value) || 0 })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Base Diamonds (no bonus)</Label>
+                <Label>Base Diamonds</Label>
                 <Input
                   type="number"
                   value={packageForm.base_coins}
-                  onChange={(e) => setPackageForm({ ...packageForm, base_coins: parseInt(e.target.value) || 0 })}
+                  onChange={(e) => {
+                    const base = parseInt(e.target.value) || 0;
+                    const pct = packageForm.bonus_percentage || 0;
+                    const bonus = pct > 0 ? Math.round(base * pct / 100) : 0;
+                    setPackageForm({ ...packageForm, base_coins: base, coins: base + bonus });
+                  }}
                 />
               </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Price (USD)</Label>
                 <Input
@@ -1050,15 +1044,104 @@ export default function AdminCoins() {
                   onChange={(e) => setPackageForm({ ...packageForm, price_usd: parseFloat(e.target.value) || 0 })}
                 />
               </div>
-              <div className="space-y-2">
-                <Label>Bonus (%)</Label>
-                <Input
-                  type="number"
-                  value={packageForm.bonus_percentage}
-                  onChange={(e) => setPackageForm({ ...packageForm, bonus_percentage: parseInt(e.target.value) || 0 })}
-                />
-              </div>
             </div>
+
+            {/* Bonus Percentage with quick presets */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Percent className="w-4 h-4 text-amber-500" />
+                Bonus Percentage
+              </Label>
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {[0, 5, 10, 15, 20, 25, 30, 50, 75, 100].map(p => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => {
+                      const base = packageForm.base_coins || 0;
+                      const bonus = p > 0 ? Math.round(base * p / 100) : 0;
+                      setPackageForm({ ...packageForm, bonus_percentage: p, coins: base + bonus });
+                    }}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                      packageForm.bonus_percentage === p
+                        ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md scale-105"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    }`}
+                  >
+                    {p}%
+                  </button>
+                ))}
+              </div>
+              <Input
+                type="number"
+                value={packageForm.bonus_percentage}
+                onChange={(e) => {
+                  const pct = parseInt(e.target.value) || 0;
+                  const base = packageForm.base_coins || 0;
+                  const bonus = pct > 0 ? Math.round(base * pct / 100) : 0;
+                  setPackageForm({ ...packageForm, bonus_percentage: pct, coins: base + bonus });
+                }}
+                placeholder="Custom %"
+              />
+            </div>
+
+            {/* 💎 Premium Live Preview */}
+            {packageForm.base_coins > 0 && (
+              <div className="rounded-xl overflow-hidden border border-purple-200 shadow-lg">
+                <div className="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 px-4 py-2.5">
+                  <p className="text-white/80 text-[10px] font-medium tracking-wider uppercase">Live Preview — User Will See</p>
+                </div>
+                <div className="bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900 p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
+                        <Diamond className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <div className="text-white font-bold text-xl">
+                          {formatCoins(packageForm.coins)}
+                        </div>
+                        {packageForm.bonus_percentage > 0 && (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-slate-400 text-xs line-through">{formatCoins(packageForm.base_coins)}</span>
+                            <span className="text-amber-400 text-xs font-bold bg-amber-500/20 px-1.5 py-0.5 rounded">
+                              +{packageForm.bonus_percentage}%
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-emerald-400 font-bold text-lg">
+                        ${packageForm.price_usd.toFixed(2)}
+                      </div>
+                      {packageForm.bonus_percentage > 0 && (
+                        <div className="text-amber-400 text-xs font-semibold">
+                          +{formatCoins(Math.round(packageForm.base_coins * packageForm.bonus_percentage / 100))} FREE
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Local currency examples */}
+                  {currencies.filter(c => c.is_active && ['BD', 'IN', 'PK'].includes(c.country_code)).length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-white/10">
+                      <p className="text-white/40 text-[10px] mb-2 uppercase tracking-wider">Local Currency Preview</p>
+                      <div className="flex gap-2 flex-wrap">
+                        {currencies.filter(c => c.is_active && ['BD', 'IN', 'PK', 'AE', 'SA'].includes(c.country_code)).slice(0, 4).map(c => (
+                          <div key={c.id} className="bg-white/5 rounded-lg px-2.5 py-1.5 border border-white/10">
+                            <span className="text-white/50 text-[10px]">{c.country_code}</span>
+                            <span className="text-white font-bold text-xs ml-1.5">
+                              {c.currency_symbol}{Math.round(packageForm.price_usd * c.rate_to_usd).toLocaleString()}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label>Display Order</Label>
@@ -1094,7 +1177,7 @@ export default function AdminCoins() {
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex-shrink-0">
             <Button variant="outline" onClick={() => setShowPackageDialog(false)}>
               Cancel
             </Button>
