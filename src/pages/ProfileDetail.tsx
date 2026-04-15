@@ -470,9 +470,20 @@ const ProfileDetail = () => {
       if (frameData?.data) setUserFrame(frameData.data as unknown as FrameData);
       if (levelIconData?.data) setLevelIcon(levelIconData.data as unknown as LevelIconData);
       setUserPrivileges({ frames: framesData?.data || [], entryBars: entryBarsData?.data || [], badges: badgesData?.data || [] });
-      setPurchasedItems(purchasedRes?.data || []);
       setIsBlocked(!!blockData?.data);
       setIsFollowing(!!followData?.data);
+
+      // Fetch shop_items for purchased items (no FK relationship)
+      const purchases = purchasedRes?.data || [];
+      if (purchases.length > 0) {
+        const itemIds = purchases.map((p: any) => p.item_id).filter(Boolean);
+        const { data: shopItems } = await supabase.from("shop_items").select("id, name, preview_url, animation_url, svga_url, image_url, animation_file_url, file_type").in("id", itemIds);
+        const shopMap = new Map((shopItems || []).map((s: any) => [s.id, s]));
+        const merged = purchases.map((p: any) => ({ ...p, shop_items: shopMap.get(p.item_id) || null }));
+        setPurchasedItems(merged);
+      } else {
+        setPurchasedItems([]);
+      }
     }
 
     setLoading(false);
