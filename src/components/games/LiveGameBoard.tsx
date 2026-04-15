@@ -67,6 +67,7 @@ interface GameSetting {
   iframe_width?: number;
   iframe_height?: number;
   category?: string;
+  provider_game_code?: string;
 }
 
 interface LiveGameBoardProps {
