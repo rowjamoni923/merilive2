@@ -3345,6 +3345,7 @@ const LiveStream = () => {
               giftIcon: gift.emoji || "🎁",
               giftIconUrl: gift.icon_url || undefined,
               giftAnimationUrl: gift.animation_url || gift.icon_url || undefined,
+              giftSoundUrl: gift.sound_url || undefined,
               giftCoins: gift.coins,
               count: count,
               streamId: id,
