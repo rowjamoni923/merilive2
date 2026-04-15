@@ -280,38 +280,35 @@ const VIP = () => {
         }
       }
 
-      // Fetch ALL unlocked avatar frames for user's level (frames they've earned)
-      // Only include frames with REAL animation files (Supabase SVGA files)
+      // Fetch ALL avatar frames (show locked ones too)
       const { data: availableFrames } = await supabase
         .from("avatar_frames")
         .select("id, name, frame_url, preview_url, min_level")
         .eq("is_active", true)
-        .lte("min_level", userLevel)
-        .order("min_level", { ascending: false });
+        .order("min_level", { ascending: true });
 
       if (availableFrames) {
-        // First, find if ANY frame is currently equipped in this category
         const hasEquippedFrameInDB = !!equippedFrameId;
         
         for (const frame of availableFrames) {
           const frameAssetUrl = frame.frame_url || frame.preview_url;
-          if (isValidAssetUrl(frameAssetUrl)) {
-            const isEquipped = hasEquippedFrameInDB && frame.id === equippedFrameId;
-            const alreadyExists = allPrivileges.some(p => p.item_id === frame.id);
-            if (!alreadyExists) {
-              allPrivileges.push({
-                id: `frame_${frame.id}`,
-                item_id: frame.id,
-                name: frame.name,
-                category: 'frame',
-                preview_url: frame.preview_url,
-                animation_url: frame.frame_url || frame.preview_url,
-                is_equipped: isEquipped,
-                expires_at: null,
-                source: 'frame',
-                unlock_level: frame.min_level,
-              });
-            }
+          const isEquipped = hasEquippedFrameInDB && frame.id === equippedFrameId;
+          const alreadyExists = allPrivileges.some(p => p.item_id === frame.id);
+          const isLocked = (frame.min_level || 1) > userLevel;
+          if (!alreadyExists) {
+            allPrivileges.push({
+              id: `frame_${frame.id}`,
+              item_id: frame.id,
+              name: frame.name,
+              category: 'frame',
+              preview_url: frame.preview_url,
+              animation_url: frame.frame_url || frame.preview_url,
+              is_equipped: isEquipped,
+              is_locked: isLocked,
+              expires_at: null,
+              source: 'frame',
+              unlock_level: frame.min_level,
+            });
           }
         }
       }
