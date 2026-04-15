@@ -51,7 +51,7 @@ interface GameSetting {
   // New URL/iframe fields
   game_url?: string;
   logo_url?: string;
-  game_type?: 'native' | 'iframe' | 'external';
+  game_type?: 'native' | 'iframe' | 'external' | 'third_party';
   iframe_width?: number;
   iframe_height?: number;
   // Bet multipliers / rules
@@ -80,6 +80,7 @@ const CATEGORIES = [
 
 const GAME_TYPES = [
   { id: 'native', name: 'Native Game', icon: '🎮', description: 'Built-in game' },
+  { id: 'third_party', name: 'Third Party', icon: '🌐', description: 'External game with diamond integration' },
   { id: 'iframe', name: 'Iframe Game', icon: '🖼️', description: 'External game in iframe' },
   { id: 'external', name: 'External Link', icon: '🔗', description: 'Opens in new tab' },
 ];
@@ -614,10 +615,12 @@ export default function AdminGameSettings() {
                               "text-[9px] px-1.5",
                               game.game_type === 'iframe' && "bg-purple-500/10 text-purple-600 border-purple-500/30",
                               game.game_type === 'external' && "bg-orange-500/10 text-orange-600 border-orange-500/30",
+                              game.game_type === 'third_party' && "bg-cyan-500/10 text-cyan-600 border-cyan-500/30",
                               (!game.game_type || game.game_type === 'native') && "bg-gray-500/10 text-gray-600 border-gray-500/30"
                             )}>
                               {game.game_type === 'iframe' && <><Monitor className="w-2.5 h-2.5 mr-0.5" />iFrame</>}
                               {game.game_type === 'external' && <><ExternalLink className="w-2.5 h-2.5 mr-0.5" />External</>}
+                              {game.game_type === 'third_party' && <><Globe className="w-2.5 h-2.5 mr-0.5" />3rd Party</>}
                               {(!game.game_type || game.game_type === 'native') && <><Gamepad2 className="w-2.5 h-2.5 mr-0.5" />Native</>}
                             </Badge>
                           </div>
@@ -979,7 +982,7 @@ export default function AdminGameSettings() {
                     <label className="text-sm">Game Type</label>
                     <Select
                       value={editingGame.game_type || 'native'}
-                      onValueChange={(val) => setEditingGame({...editingGame, game_type: val as 'native' | 'iframe' | 'external'})}
+                      onValueChange={(val) => setEditingGame({...editingGame, game_type: val as 'native' | 'iframe' | 'external' | 'third_party'})}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -1188,7 +1191,7 @@ export default function AdminGameSettings() {
                   <label className="text-sm">Game Type</label>
                   <Select
                     value={newGame.game_type || 'native'}
-                    onValueChange={(val) => setNewGame({...newGame, game_type: val as 'native' | 'iframe' | 'external'})}
+                    onValueChange={(val) => setNewGame({...newGame, game_type: val as 'native' | 'iframe' | 'external' | 'third_party'})}
                   >
                     <SelectTrigger>
                       <SelectValue />
