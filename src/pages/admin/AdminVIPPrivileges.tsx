@@ -81,6 +81,7 @@ const AdminVIPPrivileges = () => {
   useEffect(() => {
     fetchTiers();
   }, []);
+  useAdminRealtime(['vip_tiers'], fetchTiers, 'admin-vip-privileges-rt');
 
   const fetchTiers = async () => {
     setLoading(true);

@@ -66,6 +66,7 @@ const AdminAppVersion = () => {
   useEffect(() => {
     fetchVersionSettings();
   }, []);
+  useAdminRealtime(['app_version_settings'], fetchVersionSettings, 'admin-app-version-rt');
 
   const saveSettings = async (settings: VersionSettings) => {
     setSaving(true);

@@ -196,6 +196,7 @@ export default function AdminGameProviders() {
   useEffect(() => {
     fetchProviders();
   }, []);
+  useAdminRealtime(['game_providers'], fetchProviders, 'admin-game-providers-rt');
 
   const fetchProviders = async () => {
     try {

@@ -79,6 +79,7 @@ export default function AdminGameServer() {
   useEffect(() => {
     fetchData();
   }, []);
+  useAdminRealtime(['game_server_settings'], fetchData, 'admin-game-server-rt');
 
   const fetchData = async () => {
     setLoading(true);

@@ -1233,6 +1233,9 @@ export default function AdminLayout() {
         filter: (p: any) => p?.is_active === true,
       },
       helper_withdrawal_requests: { toast: '🏦 Helper Withdrawal', desc: 'A helper withdrawal request is pending', path: '/admin/helper-withdrawals' },
+      helper_orders: { toast: '📦 New Helper Order', desc: 'A new helper order has been placed', path: '/admin/helper-management' },
+      live_bans: { toast: '🚫 New Live Ban', desc: 'A user has been banned from live', path: '/admin/live-bans' },
+      live_face_violations: { toast: '📸 Face Violation Detected', desc: 'A face violation was detected during live', path: '/admin/face-violations' },
     };
 
     const pendingTables = new Set([

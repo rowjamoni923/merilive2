@@ -317,6 +317,7 @@ const AdminGmailSupport = () => {
   useEffect(() => {
     fetchEmails("", filter);
   }, [fetchEmails, filter]);
+  useAdminRealtime(['support_tickets'], () => fetchEmails(searchQuery, filter), 'admin-gmail-support-rt');
 
   useEffect(() => {
     fetchUnreadCount();
