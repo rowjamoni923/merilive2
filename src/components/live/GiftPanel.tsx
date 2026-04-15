@@ -23,6 +23,7 @@ export interface GiftData {
   animationType: 'basic' | 'premium' | 'luxury' | 'legendary';
   icon_url?: string | null;
   animation_url?: string | null;
+  sound_url?: string | null;
 }
 
 export interface GiftCategory {
