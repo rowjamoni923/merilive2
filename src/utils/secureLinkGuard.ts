@@ -19,7 +19,6 @@ let cacheLoaded = false;
 // Hardcoded fallback (always allowed even if DB fails)
 const FALLBACK_DOMAINS = [
   'merilive.com',
-  'merilife.com',
   'play.google.com',
   'lovable.app',
   'lovableproject.com',
