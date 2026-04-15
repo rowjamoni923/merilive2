@@ -732,14 +732,9 @@ const AgencyDashboard = () => {
   // This is the agency's withdrawable pool from host activities
   const agencyBeansBalance = agency.wallet_balance || 0;
   
-  // My Beans = Agency owner's PERSONAL beans from their own gifts/calls
-  // This is separate from Total Beans — it's the owner's individual earning
-  const myBeans = ownerPersonalBeans;
-  
   // Correct USD calculation: beans / rate = USD
   const usdValue = agencyBeansBalance / coinsToUsdRate;
   const localValue = usdValue * localExchangeRate;
-  const myBeansUsdValue = myBeans / coinsToUsdRate;
 
   const getLevelInfo = (level: string) => {
     // Use database tier info if available, otherwise fallback to defaults
@@ -1100,23 +1095,6 @@ const AgencyDashboard = () => {
                 </p>
               </div>
             </div>
-
-            {/* My Beans (includes converted diamonds) */}
-            <div className="flex items-center justify-between mb-2 bg-white/10 backdrop-blur-sm rounded-lg p-2 border border-white/20">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
-                  <Coins className="w-4 h-4" />
-                </div>
-                <div>
-                  <p className="text-white/80 text-[10px] uppercase tracking-wide">My Beans</p>
-                  <p className="text-base font-bold">{fmtNum(myBeans)}</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-white/60 text-[9px]">≈ ${myBeansUsdValue.toFixed(2)}</p>
-              </div>
-            </div>
-
 
             {/* Local Currency Value - Compact */}
             <div className="bg-white/15 backdrop-blur-sm rounded-lg p-2 mb-1.5 border border-white/20">
