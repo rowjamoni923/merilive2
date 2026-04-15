@@ -1,6 +1,7 @@
 import { useMemo, forwardRef } from "react";
 import { useSingleDeviceSession } from "@/hooks/useSingleDeviceSession";
 import { useAppResumeHandler } from "@/hooks/useAppResumeHandler";
+import { useLevelPrivilegeAutoEquip } from "@/hooks/useLevelPrivilegeAutoEquip";
 import { queryClient } from "@/App";
 
 /**
@@ -14,6 +15,7 @@ const DeferredAppHooks = forwardRef<HTMLDivElement, { userId: string | null }>((
   
   useSingleDeviceSession(singleDeviceUserId);
   useAppResumeHandler(userId, queryClient);
+  useLevelPrivilegeAutoEquip(singleDeviceUserId);
   
   return null;
 });

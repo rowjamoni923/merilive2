@@ -146,6 +146,11 @@ const shouldShowLevelAvatarFrame = (requiredLevel: number | null | undefined): b
   return level === 1 || level >= 6;
 };
 
+const shouldShowLevelReward = (requiredLevel: number | null | undefined): boolean => {
+  const level = requiredLevel ?? 1;
+  return level === 1 || level >= 6;
+};
+
 const getPrivilegeSlot = (category: string): PrivilegeSlot => {
   if (category === 'frame' || category === 'portrait_frame') return 'frame';
   if (category === 'entrance' || category === 'entrance_effect' || category === 'entry_banner') return 'entrance';
@@ -389,7 +394,11 @@ const VIP = () => {
         for (const priv of levelPrivileges) {
           const requiredLevel = priv.unlock_level ?? priv.level;
           const assetUrl = priv.animation_url || priv.preview_url;
-          if (!isUnlockedByLevel(requiredLevel, effectiveLevel) || !hasRenderableAsset(assetUrl)) continue;
+          if (
+            !isUnlockedByLevel(requiredLevel, effectiveLevel) ||
+            !shouldShowLevelReward(requiredLevel) ||
+            !hasRenderableAsset(assetUrl)
+          ) continue;
 
           const slot = getPrivilegeSlot(priv.privilege_type || 'other');
           let isEquipped = false;
@@ -425,6 +434,7 @@ const VIP = () => {
         for (const bar of entryNameBars) {
           if (
             !isUnlockedByLevel(bar.level_required, effectiveLevel) ||
+            !shouldShowLevelReward(bar.level_required) ||
             isMonetizedAsset(bar) ||
             !hasRenderableAsset(bar.animation_url, bar.image_url)
           ) continue;
@@ -459,6 +469,7 @@ const VIP = () => {
         for (const banner of entryBanners) {
           if (
             !isUnlockedByLevel(banner.level_required, effectiveLevel) ||
+            !shouldShowLevelReward(banner.level_required) ||
             isMonetizedAsset(banner) ||
             !hasRenderableAsset(banner.animation_url, banner.image_url)
           ) continue;
@@ -477,6 +488,40 @@ const VIP = () => {
               expires_at: null,
               source: 'level',
               unlock_level: banner.level_required || 1,
+            });
+          }
+        }
+      }
+
+      const { data: vehicleEntrances } = await supabase
+        .from('vehicle_entrances' as any)
+        .select('*')
+        .eq('is_active', true)
+        .order('level_required', { ascending: true });
+
+      if (vehicleEntrances) {
+        for (const vehicle of vehicleEntrances as any[]) {
+          if (
+            !isUnlockedByLevel(vehicle.level_required, effectiveLevel) ||
+            !shouldShowLevelReward(vehicle.level_required) ||
+            isMonetizedAsset(vehicle) ||
+            !hasRenderableAsset(vehicle.animation_url, vehicle.preview_url, vehicle.image_url)
+          ) continue;
+
+          const isEquipped = vehicle.id === equippedVehicleId;
+          const alreadyExists = allPrivileges.some((p) => p.item_id === vehicle.id);
+          if (!alreadyExists) {
+            allPrivileges.push({
+              id: `vehicle_${vehicle.id}`,
+              item_id: vehicle.id,
+              name: vehicle.name,
+              category: 'vehicle',
+              preview_url: vehicle.preview_url || vehicle.image_url,
+              animation_url: vehicle.animation_url || vehicle.preview_url || vehicle.image_url,
+              is_equipped: isEquipped,
+              expires_at: null,
+              source: 'level',
+              unlock_level: vehicle.level_required || 1,
             });
           }
         }
