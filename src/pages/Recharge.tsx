@@ -3035,293 +3035,189 @@ const Recharge = () => {
           resetHelperPaymentForm();
         }
       }}>
-        <DialogContent className="w-[calc(100vw-2rem)] max-w-md rounded-3xl max-h-[85vh] overflow-y-auto p-0 mx-auto border-0 bg-gradient-to-b from-[#0c0c14] via-[#0a0a12] to-[#08080e] shadow-[0_0_80px_-15px_rgba(168,85,247,0.3)]">
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-md rounded-[2rem] max-h-[85vh] overflow-y-auto p-0 mx-auto border border-amber-400/60 bg-[#140d03] shadow-[0_0_60px_-12px_rgba(251,191,36,0.45)]">
           {helperPaymentStep === "form" && selectedHelperMethod && selectedPackage && (
             <>
-              {/* Premium Header with animated gradient */}
-              <div className="relative overflow-hidden rounded-t-3xl">
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-600/30 via-indigo-600/20 to-pink-600/30" />
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(168,85,247,0.15),transparent_70%)]" />
-                <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-purple-400/40 to-transparent" />
-                <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full bg-purple-500/10 blur-3xl" />
-                <div className="absolute -top-20 -left-20 w-40 h-40 rounded-full bg-indigo-500/10 blur-3xl" />
-                
-                <DialogHeader className="relative px-5 pt-5 pb-3">
-                  <DialogTitle className="text-center text-base font-bold flex items-center justify-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 via-violet-500 to-indigo-600 flex items-center justify-center shrink-0 shadow-lg shadow-purple-500/30 ring-1 ring-white/10">
-                      <Wallet className="w-4 h-4 text-white" />
-                    </div>
-                    <span className="bg-gradient-to-r from-white via-purple-100 to-white bg-clip-text text-transparent">
-                      Secure Payment
-                    </span>
-                  </DialogTitle>
-                  <DialogDescription className="text-center text-xs text-white/40">
-                    Pay via {selectedHelperMethod.method_name} to receive {formatNumber(selectedPackage.coins)} diamonds
-                  </DialogDescription>
-                </DialogHeader>
-              </div>
-
-              <div className="space-y-3 px-4 pb-5 pt-3">
-
-                {/* Amount Summary - Glass Card */}
-                <div className="relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.03] backdrop-blur-sm">
-                  <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-                  <div className="p-3.5">
-                    <div className="flex justify-between items-center mb-1.5">
-                      <span className="text-white/40 text-xs font-medium uppercase tracking-wider">Amount</span>
-                      <span className="text-xl font-extrabold bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-300 bg-clip-text text-transparent">
-                        {selectedPackage?.price_usd ? convertToLocalCurrency(selectedPackage.price_usd) : '$0.00'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-white/30 text-[11px]">You'll receive</span>
-                      <span className="font-semibold text-sm flex items-center gap-1.5">
-                        <span className="inline-block w-4 h-4">💎</span>
-                        <span className="bg-gradient-to-r from-sky-300 to-cyan-200 bg-clip-text text-transparent font-bold">
-                          {selectedPackage?.coins ? formatNumber(selectedPackage.coins) : '0'}
-                        </span>
-                        <span className="text-white/30 text-xs">Diamonds</span>
-                      </span>
-                    </div>
-                  </div>
+              <div className="px-5 pt-5 pb-4">
+                <div className="flex items-center justify-between mb-8">
+                  <button
+                    type="button"
+                    onClick={resetHelperPaymentForm}
+                    className="text-amber-200/80 text-sm font-medium"
+                  >
+                    ← Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={resetHelperPaymentForm}
+                    className="w-12 h-12 rounded-full bg-amber-100/10 text-amber-100/80 flex items-center justify-center"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
                 </div>
 
-                {/* Payment Number Card - Premium Design */}
-                <div className="relative overflow-hidden rounded-2xl border border-white/[0.06]">
-                  <div className={cn(
-                    "absolute inset-0",
-                    selectedHelperMethod.method_name.toLowerCase() === 'bkash' 
-                      ? "bg-gradient-to-br from-pink-600/15 via-purple-600/10 to-pink-600/5"
-                      : selectedHelperMethod.method_name.toLowerCase() === 'nagad'
-                      ? "bg-gradient-to-br from-orange-600/15 via-amber-600/10 to-orange-600/5"
-                      : "bg-gradient-to-br from-emerald-600/15 via-green-600/10 to-emerald-600/5"
-                  )} />
-                  <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-                  
-                  <div className="relative p-3.5">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className={cn(
-                          "w-8 h-8 rounded-lg flex items-center justify-center text-base shadow-lg",
-                          selectedHelperMethod.method_name.toLowerCase() === 'bkash'
-                            ? "bg-gradient-to-br from-pink-500 to-purple-600 shadow-pink-500/30"
-                            : selectedHelperMethod.method_name.toLowerCase() === 'nagad'
-                            ? "bg-gradient-to-br from-orange-500 to-amber-600 shadow-orange-500/30"
-                            : "bg-gradient-to-br from-emerald-500 to-green-600 shadow-emerald-500/30"
-                        )}>
-                          {selectedHelperMethod.method_name.toLowerCase() === 'bkash' ? '💜' : 
-                           selectedHelperMethod.method_name.toLowerCase() === 'nagad' ? '🧡' : '💳'}
-                        </div>
-                        <div>
-                          <p className="text-white/90 font-bold text-sm">{selectedHelperMethod.method_name}</p>
-                          <p className="text-white/30 text-[10px]">{(selectedHelperMethod as any).is_merchant ? 'Merchant' : 'Personal'}</p>
-                        </div>
-                      </div>
-                      {(selectedHelperMethod as any).is_merchant && (
-                        <div className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-full overflow-hidden">
-                          <div className="absolute inset-0 bg-gradient-to-r from-amber-500/20 via-yellow-400/25 to-amber-500/20 backdrop-blur-sm" />
-                          <div className="absolute inset-0 rounded-full ring-1 ring-inset ring-amber-400/40" />
-                          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-300/50 to-transparent" />
-                          <span className="relative text-[11px] drop-shadow-[0_0_4px_rgba(251,191,36,0.6)]">⚡</span>
-                          <span className="relative text-[10px] font-black tracking-[0.15em] bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-300 bg-clip-text text-transparent uppercase">Auto</span>
-                        </div>
+                <div className="text-center mb-6">
+                  <h3 className="text-[15px] font-semibold tracking-[0.2em] uppercase text-amber-200">
+                    Payment Number
+                  </h3>
+                </div>
+
+                <div className="rounded-[1.75rem] border border-amber-400/25 bg-amber-500/5 p-4 shadow-[inset_0_0_0_1px_rgba(251,191,36,0.08)]">
+                  <div className="rounded-[1.5rem] border border-amber-400/20 bg-amber-500/10 p-5 text-center">
+                    <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-100/10 overflow-hidden">
+                      {selectedHelperMethod.logo_url ? (
+                        <img
+                          src={selectedHelperMethod.logo_url}
+                          alt={selectedHelperMethod.method_name}
+                          className="h-10 w-10 object-contain"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <span className="text-3xl text-amber-300">
+                          {selectedHelperMethod.method_name.toLowerCase() === 'bkash' ? '💜' : selectedHelperMethod.method_name.toLowerCase() === 'nagad' ? '🧡' : '💳'}
+                        </span>
                       )}
                     </div>
-                    
-                    {/* Number display - Premium box */}
-                    <div className="relative overflow-hidden rounded-xl bg-black/30 border border-white/[0.08] p-3">
-                      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="min-w-0 flex-1">
-                          <p className="text-white/30 text-[10px] font-medium uppercase tracking-widest mb-1">
+
+                    <p className="text-2xl font-bold text-amber-300 leading-none">
+                      {selectedHelperMethod.method_name}
+                    </p>
+                    <p className="mt-2 text-lg text-amber-100/45">
+                      {selectedHelperMethod.account_name || selectedHelperMethod.method_name}
+                    </p>
+
+                    <div className="mt-6 rounded-[1.35rem] bg-amber-200/8 px-4 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="min-w-0 flex-1 text-left">
+                          <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-amber-100/70 mb-2">
                             {selectedHelperMethod.method_name} Number
                           </p>
-                          <p className="text-lg font-extrabold text-white tracking-wide break-all leading-tight select-text">
+                          <p className="text-[2rem] font-bold tracking-[0.12em] text-yellow-300 break-all leading-none">
                             {selectedHelperMethod.account_number}
                           </p>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
+                        <button
+                          type="button"
                           onClick={() => copyToClipboard(selectedHelperMethod.account_number)}
-                          className={cn(
-                            "shrink-0 h-9 px-3 rounded-lg text-xs font-bold transition-all",
-                            selectedHelperMethod.method_name.toLowerCase() === 'bkash'
-                              ? "bg-pink-500/20 text-pink-300 hover:bg-pink-500/30 border border-pink-500/20"
-                              : selectedHelperMethod.method_name.toLowerCase() === 'nagad'
-                              ? "bg-orange-500/20 text-orange-300 hover:bg-orange-500/30 border border-orange-500/20"
-                              : "bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/20"
-                          )}
+                          className="shrink-0 rounded-2xl bg-amber-300/12 px-5 py-4 text-amber-300"
                         >
-                          <Copy className="w-3.5 h-3.5 mr-1" /> Copy
-                        </Button>
+                          <Copy className="w-7 h-7" />
+                        </button>
                       </div>
-                      <div className="mt-2 pt-2 border-t border-white/[0.05]">
-                        <p className="text-[11px] text-white/40">
-                          <span className="text-white/20 mr-1">●</span>
-                          <strong className="text-white/50">Name:</strong> {selectedHelperMethod.account_name}
-                        </p>
-                        {selectedHelperMethod.bank_name && (
-                          <p className="text-[11px] text-white/40 mt-0.5">
-                            <span className="text-white/20 mr-1">●</span>
-                            <strong className="text-white/50">Bank:</strong> {selectedHelperMethod.bank_name}
-                          </p>
+                    </div>
+
+                    <p className="mt-7 text-2xl font-bold text-yellow-300">
+                      Send {selectedPackage?.price_usd ? convertToLocalCurrency(selectedPackage.price_usd) : ''}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleShowDifferentHelperNumber}
+                  disabled={helperMethodPool.length <= 1}
+                  className="mt-5 w-full rounded-2xl bg-amber-200/8 px-5 py-5 text-center text-[13px] font-medium text-amber-100 disabled:opacity-40"
+                >
+                  Show different number ({helperMethodCycleProgress.current}/{helperMethodCycleProgress.total})
+                </button>
+
+                <div className="mt-5 space-y-3">
+                  <div className="rounded-2xl border border-amber-400/20 bg-amber-500/8 p-4">
+                    <p className="text-xs font-bold text-amber-300 mb-2">{selectedHelperMethod.additional_info?.gateway_type ? 'Auto-Approve Notice' : 'Payment Notice'}</p>
+                    <p className="text-[13px] leading-6 text-amber-100/85">
+                      👉 You must send the <strong className="text-amber-200">exact amount</strong> shown above.
+                    </p>
+                    <p className="mt-2 text-[13px] leading-6 text-amber-100/65">
+                      💰 Amount to send: <strong className="text-yellow-300">{selectedPackage?.price_usd ? convertToLocalCurrency(selectedPackage.price_usd) : ''}</strong>
+                    </p>
+                    {selectedHelperMethod.additional_info?.gateway_type ? (
+                      <p className="mt-2 text-[12px] text-emerald-300/90">
+                        ⚡ Enter your transaction ID below to verify via ZiniPay.
+                      </p>
+                    ) : (
+                      <p className="mt-2 text-[12px] text-amber-100/55">
+                        Helper will check your payment proof and approve it.
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="helperTransactionId" className="text-amber-100/75 font-semibold text-xs uppercase tracking-[0.2em]">
+                      Transaction ID *
+                    </Label>
+                    <input
+                      id="helperTransactionId"
+                      type="text"
+                      value={helperTransactionId}
+                      onChange={(e) => setHelperTransactionId(e.target.value)}
+                      onInput={(e) => setHelperTransactionId((e.target as HTMLInputElement).value)}
+                      placeholder="Enter your TrxID here"
+                      className="mt-2 w-full rounded-2xl text-sm h-12 px-4 border border-amber-200/10 bg-amber-100/5 text-amber-50 placeholder:text-amber-100/20 focus:outline-none focus:ring-2 focus:ring-amber-400/30 transition-all"
+                      autoComplete="off"
+                      inputMode="text"
+                      style={{ userSelect: 'text', WebkitUserSelect: 'text' } as React.CSSProperties}
+                    />
+                  </div>
+
+                  {selectedHelperMethod.instructions && (
+                    <div className="rounded-2xl bg-amber-100/5 border border-amber-200/10 p-3">
+                      <p className="text-[11px] text-amber-300/80 font-medium mb-1">📝 Note</p>
+                      <p className="text-xs text-amber-50/70">{selectedHelperMethod.instructions}</p>
+                    </div>
+                  )}
+
+                  {!selectedHelperMethod.additional_info?.gateway_type && (
+                    <div>
+                      <Label className="text-amber-100/75 text-xs uppercase tracking-[0.2em] font-semibold">Payment Screenshot *</Label>
+                      <div className="mt-2">
+                        {helperPaymentProof ? (
+                          <div className="relative rounded-2xl overflow-hidden border border-amber-200/10">
+                            <img src={helperPaymentProof} alt="Payment proof" className="w-full h-28 object-cover" />
+                            <button
+                              onClick={() => setHelperPaymentProof(null)}
+                              className="absolute top-2 right-2 bg-red-500/80 text-white p-1 rounded-full"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <label className="flex flex-col items-center justify-center w-full h-24 border border-dashed border-amber-200/15 rounded-2xl cursor-pointer hover:bg-amber-100/[0.03] transition-colors">
+                            {uploadingHelperProof ? (
+                              <div className="w-5 h-5 border-2 border-amber-300 border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <>
+                                <Upload className="w-5 h-5 text-amber-100/35 mb-1" />
+                                <span className="text-xs text-amber-100/35">Upload screenshot</span>
+                              </>
+                            )}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={handleUploadHelperProof}
+                              disabled={uploadingHelperProof}
+                            />
+                          </label>
                         )}
                       </div>
                     </div>
-                  </div>
-                </div>
-
-                {/* Auto-Approve Notice */}
-                <div className="relative overflow-hidden rounded-xl border border-amber-500/20 bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-amber-500/10">
-                  <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-400/30 to-transparent" />
-                  <div className="p-3 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-lg bg-amber-500/20 flex items-center justify-center shrink-0">
-                        <span className="text-sm">⚠️</span>
-                      </div>
-                      <p className="text-xs font-bold text-amber-300">
-                        {isBangladesh ? 'Auto-Approve Notice' : 'Auto-Approve Notice'}
-                      </p>
-                    </div>
-                    <div className="space-y-1.5 pl-9">
-                      <p className="text-[11px] text-amber-200/90 font-medium leading-relaxed">
-                        {isBangladesh 
-                          ? <>👉 You must send the <strong className="text-amber-100">exact amount shown below, including decimals</strong>.</>
-                          : <>👉 You must send the <strong className="text-amber-100">exact amount shown below, including decimals</strong>.</>
-                        }
-                      </p>
-                      <p className="text-[11px] text-amber-200/70 leading-relaxed">
-                        💰 {isBangladesh ? 'Amount to send' : 'Amount to send'}: <strong className="text-amber-100 text-sm">{selectedPackage?.price_usd ? convertToLocalCurrency(selectedPackage.price_usd) : ''}</strong>
-                      </p>
-                      <p className="text-[10px] text-red-400/80 font-medium">
-                        {isBangladesh
-                          ? '❌ Sending the wrong amount will not auto-approve. It will only be recorded for admin review.'
-                          : '❌ Sending the wrong amount will not auto-approve. It will only be recorded for admin review.'
-                        }
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Send instruction */}
-                <div className="flex items-center gap-2.5 bg-white/[0.03] rounded-xl p-2.5 border border-white/[0.05]">
-                  <div className="w-7 h-7 rounded-lg bg-amber-500/15 flex items-center justify-center shrink-0">
-                    <span className="text-sm">👉</span>
-                  </div>
-                  <p className="text-[11px] text-amber-300/80 font-medium">
-                    {isBangladesh
-                      ? <>Send <strong className="text-amber-200">{selectedPackage?.price_usd ? convertToLocalCurrency(selectedPackage.price_usd) : ''}</strong> (exact amount) to this {selectedHelperMethod.method_name} number</>
-                      : <>Send <strong className="text-amber-200">{selectedPackage?.price_usd ? convertToLocalCurrency(selectedPackage.price_usd) : ''}</strong> (exact amount) to this {selectedHelperMethod.method_name} number</>
-                    }
-                  </p>
-                </div>
-
-                {/* Transaction ID Input - Premium */}
-                <div>
-                  <Label htmlFor="helperTransactionId" className="text-white/60 font-semibold text-xs uppercase tracking-wider">
-                    Transaction ID *
-                  </Label>
-                  <input
-                    id="helperTransactionId"
-                    type="text"
-                    value={helperTransactionId}
-                    onChange={(e) => setHelperTransactionId(e.target.value)}
-                    onInput={(e) => setHelperTransactionId((e.target as HTMLInputElement).value)}
-                    placeholder="Enter your TrxID here"
-                    className="mt-1.5 w-full rounded-xl text-sm h-11 px-4 border border-white/[0.08] bg-white/[0.04] text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500/30 transition-all select-text"
-                    autoComplete="off"
-                    inputMode="text"
-                    style={{ userSelect: 'text', WebkitUserSelect: 'text' } as React.CSSProperties}
-                  />
-                </div>
-
-                {/* Helper's Note */}
-                {selectedHelperMethod.instructions && (
-                  <div className="bg-white/[0.03] rounded-xl p-2.5 border border-white/[0.05]">
-                    <p className="text-[10px] text-blue-400/70 font-medium mb-0.5">📝 Note:</p>
-                    <p className="text-xs text-white/50">{selectedHelperMethod.instructions}</p>
-                  </div>
-                )}
-
-                {/* Payment Proof Upload - Only for manual methods, not auto-gateway */}
-                {!selectedHelperMethod.additional_info?.gateway_type && (
-                  <div>
-                    <Label className="text-white/60 text-xs uppercase tracking-wider font-semibold">Payment Screenshot *</Label>
-                    <div className="mt-1.5">
-                      {helperPaymentProof ? (
-                        <div className="relative rounded-xl overflow-hidden border border-white/[0.08]">
-                          <img src={helperPaymentProof} alt="Payment proof" className="w-full h-28 object-cover" />
-                          <button
-                            onClick={() => setHelperPaymentProof(null)}
-                            className="absolute top-1.5 right-1.5 bg-red-500/80 text-white p-1 rounded-full backdrop-blur-sm"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      ) : (
-                        <label className="flex flex-col items-center justify-center w-full h-20 border border-dashed border-white/[0.1] rounded-xl cursor-pointer hover:bg-white/[0.02] transition-colors">
-                          {uploadingHelperProof ? (
-                            <div className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
-                          ) : (
-                            <>
-                              <Upload className="w-5 h-5 text-white/30 mb-0.5" />
-                              <span className="text-xs text-white/30">Upload screenshot</span>
-                            </>
-                          )}
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={handleUploadHelperProof}
-                            disabled={uploadingHelperProof}
-                          />
-                        </label>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Auto-approval Info */}
-                {selectedHelperMethod.additional_info?.gateway_type ? (
-                  <div className="relative overflow-hidden rounded-xl border border-emerald-500/15 bg-emerald-500/[0.06]">
-                    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-400/20 to-transparent" />
-                    <div className="p-2.5 flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
-                        <span className="text-xs">⚡</span>
-                      </div>
-                      <p className="text-[11px] text-emerald-300/80">
-                        <strong className="text-emerald-200">Auto-Verify:</strong> Enter your transaction ID and it will be auto-verified in 5-10 seconds!
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="relative overflow-hidden rounded-xl border border-emerald-500/15 bg-emerald-500/[0.06]">
-                    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-400/20 to-transparent" />
-                    <div className="p-2.5 flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
-                        <span className="text-xs">⚡</span>
-                      </div>
-                      <p className="text-[11px] text-emerald-300/80">
-                        <strong className="text-emerald-200">Fast Processing:</strong> Helper will instantly verify and credit your diamonds!
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Submit Button - Premium gradient */}
-                <button
-                  type="button"
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleHelperPaymentSubmit(); }}
-                  disabled={!helperTransactionId.trim() || helperPaymentProcessing}
-                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 hover:from-purple-500 hover:via-violet-500 hover:to-indigo-500 text-white font-bold text-base shadow-lg shadow-purple-500/25 border border-white/10 transition-all disabled:opacity-40"
-                >
-                  {helperPaymentProcessing ? (
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    selectedHelperMethod.additional_info?.gateway_type ? '⚡ Verify Transaction' : '🚀 Submit to Helper'
                   )}
-                </button>
+
+                  <button
+                    type="button"
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleHelperPaymentSubmit(); }}
+                    disabled={!helperTransactionId.trim() || helperPaymentProcessing}
+                    className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 text-[#2d1a00] font-bold text-base shadow-lg transition-all disabled:opacity-40"
+                  >
+                    {helperPaymentProcessing
+                      ? 'Processing...'
+                      : selectedHelperMethod.additional_info?.gateway_type
+                        ? 'Verify Transaction'
+                        : 'Submit to Helper'}
+                  </button>
+                </div>
               </div>
             </>
           )}
