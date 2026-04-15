@@ -466,6 +466,7 @@ const VIP = () => {
         .select(`
           id,
           frame_id,
+          expires_at,
           role_type,
           is_equipped,
           role_frames (
