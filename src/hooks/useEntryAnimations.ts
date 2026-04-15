@@ -100,6 +100,7 @@ export function useEntryAnimations() {
         level: params.level,
         animationUrl: fullScreenUrl,
         animationType,
+        soundUrl: params.soundUrl,
       };
       
       console.log('[useEntryAnimations] ➕ Adding full-screen animation:', {
