@@ -286,7 +286,7 @@ const Recharge = () => {
       [methodKey]: chosenMethod.id,
     }));
 
-    console.log(`[Recharge] Round-robin pick for ${methodKey}: ${chosenMethod.account_number} (${unusedMethods.length > 0 ? unusedMethods.length - 1 : methods.length - 1} remaining in cycle)`);
+    console.log(`[Recharge] Round-robin pick for ${methodKey}: method selected`);
 
     return chosenMethod;
   }, [usedMethodsByType, lastSelectedMethodByType]);
