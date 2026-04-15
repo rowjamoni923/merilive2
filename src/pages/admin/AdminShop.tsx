@@ -579,6 +579,7 @@ const AdminShop = () => {
 
   const totalItems = items.length;
   const activeItems = items.filter(i => i.is_active).length;
+  const hiddenItems = items.filter(i => !i.is_active).length;
   const featuredItems = items.filter(i => Boolean(i.is_featured)).length;
   const totalSold = items.reduce((acc, i) => acc + (i.total_sold ?? 0), 0);
 
