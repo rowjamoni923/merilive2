@@ -101,7 +101,8 @@ export function CampaignFloatingButton() {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [campaign]);
 
-  if (isHost || !campaign || remainingSeconds <= 0 || dismissed) return null;
+  // Hide if: host, no campaign, expired, dismissed, or not logged in
+  if (isHost === true || isHost === null || !campaign || remainingSeconds <= 0 || dismissed) return null;
 
   const discountPercent = campaign.offer_price_usd && campaign.original_price_usd > 0
     ? Math.round((1 - campaign.offer_price_usd / campaign.original_price_usd) * 100)
