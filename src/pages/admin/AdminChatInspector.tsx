@@ -121,14 +121,14 @@ const AdminChatInspector = () => {
   const [banCustomHours, setBanCustomHours] = useState("");
   const [banReason, setBanReason] = useState("Number Sharing");
   const [banning, setBanning] = useState(false);
-  const [banType, setBanType] = useState<"temporary" | "permanent">("temporary");
+  const [banType, setBanType] = useState<"urgent" | "medium" | "normal">("normal");
 
   const openBanDialog = (user: UserProfile) => {
     setBanTargetUser(user);
     setBanDuration("2");
     setBanCustomHours("");
     setBanReason("Number Sharing");
-    setBanType("temporary");
+    setBanType("normal");
     setShowBanDialog(true);
   };
 
@@ -136,35 +136,108 @@ const AdminChatInspector = () => {
     if (!banTargetUser) return;
     setBanning(true);
     try {
-      if (banType === "permanent") {
+      if (banType === "urgent") {
+        // URGENT BAN: Device + Account ban, host demoted, level reset, can never use this device again
+        // 1. Demote host to user & reset level
         if (banTargetUser.is_host) {
-          const { error: roleError } = await supabase.rpc('admin_update_user_gender', {
+          await supabase.rpc('admin_update_user_gender', {
             _user_id: banTargetUser.id,
             _gender: 'male',
           });
-          if (roleError) throw roleError;
         }
+        await supabase.from('profiles').update({
+          is_host: false,
+          host_status: null,
+          is_face_verified: false,
+          user_level: 0,
+          host_level: 0,
+        }).eq('id', banTargetUser.id);
 
+        // 2. Block the account
         const { error: blockError } = await supabase.rpc('admin_block_user', {
           _user_id: banTargetUser.id,
           _block: true,
-          _reason: banReason || 'Permanent Ban - Policy Violation',
+          _reason: banReason || 'Urgent Ban - Device + Account Permanently Banned',
         });
-
         if (blockError) throw blockError;
 
+        // 3. Ban the device permanently
+        const { data: profileData } = await supabase.from('profiles').select('device_id').eq('id', banTargetUser.id).single();
+        if (profileData?.device_id) {
+          await supabase.from('banned_devices').upsert({
+            device_id: profileData.device_id,
+            user_id: banTargetUser.id,
+            reason: banReason || 'Urgent Ban - Device permanently banned',
+            is_permanent: true,
+            is_active: true,
+          }, { onConflict: 'device_id' });
+        }
+
+        // 4. Log to live_bans
         await supabase.from('live_bans').insert({
           user_id: banTargetUser.id,
-          ban_reason: banReason || 'Permanent Ban',
-          violation_type: 'permanent_ban',
+          ban_reason: banReason || 'Urgent Ban - Device + Account',
+          violation_type: 'urgent_ban',
           ban_duration_hours: null,
           ban_end: null,
           is_active: true,
           auto_banned: false,
         });
 
-        toast({ title: "🚫 Permanent Ban Successful", description: `${banTargetUser.display_name} has been permanently banned` });
+        // 5. Admin notification
+        await supabase.from('admin_notifications').insert({
+          type: 'urgent_ban',
+          title: '🚨 URGENT BAN Applied',
+          message: `${banTargetUser.display_name} (${banTargetUser.app_uid}) - Device + Account permanently banned. Reason: ${banReason}`,
+          priority: 'critical',
+          data: { user_id: banTargetUser.id, ban_type: 'urgent' },
+        });
+
+        toast({ title: "🚨 URGENT BAN Applied", description: `${banTargetUser.display_name} - Device + Account permanently banned. Cannot create new ID on this device.` });
+      } else if (banType === "medium") {
+        // MEDIUM BAN: Account permanently banned, but can make new account on same device
+        if (banTargetUser.is_host) {
+          await supabase.rpc('admin_update_user_gender', {
+            _user_id: banTargetUser.id,
+            _gender: 'male',
+          });
+        }
+        await supabase.from('profiles').update({
+          is_host: false,
+          host_status: null,
+          is_face_verified: false,
+          user_level: 0,
+          host_level: 0,
+        }).eq('id', banTargetUser.id);
+
+        const { error: blockError } = await supabase.rpc('admin_block_user', {
+          _user_id: banTargetUser.id,
+          _block: true,
+          _reason: banReason || 'Medium Ban - Account Permanently Banned',
+        });
+        if (blockError) throw blockError;
+
+        await supabase.from('live_bans').insert({
+          user_id: banTargetUser.id,
+          ban_reason: banReason || 'Medium Ban - Account Only',
+          violation_type: 'medium_ban',
+          ban_duration_hours: null,
+          ban_end: null,
+          is_active: true,
+          auto_banned: false,
+        });
+
+        await supabase.from('admin_notifications').insert({
+          type: 'medium_ban',
+          title: '🚫 Medium Ban Applied',
+          message: `${banTargetUser.display_name} (${banTargetUser.app_uid}) - Account permanently banned. Can create new ID. Reason: ${banReason}`,
+          priority: 'high',
+          data: { user_id: banTargetUser.id, ban_type: 'medium' },
+        });
+
+        toast({ title: "🚫 Medium Ban Applied", description: `${banTargetUser.display_name} - Account banned. Can create new ID on same device.` });
       } else {
+        // NORMAL BAN: Timed ban (hours-based)
         const hours = banDuration === "custom" ? parseInt(banCustomHours) : parseInt(banDuration);
         if (!hours || hours < 1) {
           toast({ title: "Invalid duration", variant: "destructive" });
@@ -173,21 +246,18 @@ const AdminChatInspector = () => {
         }
         const banEnd = new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
 
-        const { error } = await supabase
-          .from('live_bans')
-          .insert({
-            user_id: banTargetUser.id,
-            ban_reason: banReason || 'Number Sharing - Chat Inspector',
-            violation_type: 'contact_sharing',
-            ban_duration_hours: hours,
-            ban_end: banEnd,
-            is_active: true,
-            auto_banned: false,
-          });
-
+        const { error } = await supabase.from('live_bans').insert({
+          user_id: banTargetUser.id,
+          ban_reason: banReason || 'Normal Ban - Timed',
+          violation_type: 'normal_ban',
+          ban_duration_hours: hours,
+          ban_end: banEnd,
+          is_active: true,
+          auto_banned: false,
+        });
         if (error) throw error;
 
-        toast({ title: "✅ Live Ban Successful", description: `${banTargetUser.display_name} banned for ${hours} hours` });
+        toast({ title: "⏱️ Normal Ban Applied", description: `${banTargetUser.display_name} banned for ${hours} hours` });
       }
       setShowBanDialog(false);
     } catch (err) {
@@ -767,45 +837,65 @@ const AdminChatInspector = () => {
                 {banTargetUser.is_host && <Badge className="bg-pink-600/20 text-pink-300 text-[9px]">Host</Badge>}
               </div>
 
-              {/* Ban Type */}
+              {/* Ban Type - 3 Tiers */}
               <div>
                 <p className="text-white/70 text-sm mb-2 font-medium">Ban Type</p>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   <button
-                    onClick={() => setBanType("temporary")}
+                    onClick={() => setBanType("normal")}
                     className={cn(
-                      "px-3 py-2.5 rounded-lg text-xs font-medium border transition-colors",
-                      banType === "temporary"
+                      "px-2 py-2.5 rounded-lg text-xs font-medium border transition-colors",
+                      banType === "normal"
+                        ? "bg-yellow-600 border-yellow-500 text-white"
+                        : "bg-slate-800 border-slate-700 text-white/60 hover:border-yellow-500/50"
+                    )}
+                  >
+                    ⏱️ Normal
+                  </button>
+                  <button
+                    onClick={() => setBanType("medium")}
+                    className={cn(
+                      "px-2 py-2.5 rounded-lg text-xs font-medium border transition-colors",
+                      banType === "medium"
                         ? "bg-orange-600 border-orange-500 text-white"
                         : "bg-slate-800 border-slate-700 text-white/60 hover:border-orange-500/50"
                     )}
                   >
-                    ⏱️ Temporary Live Ban
+                    🚫 Medium
                   </button>
                   <button
-                    onClick={() => setBanType("permanent")}
+                    onClick={() => setBanType("urgent")}
                     className={cn(
-                      "px-3 py-2.5 rounded-lg text-xs font-medium border transition-colors",
-                      banType === "permanent"
+                      "px-2 py-2.5 rounded-lg text-xs font-medium border transition-colors",
+                      banType === "urgent"
                         ? "bg-red-700 border-red-600 text-white"
                         : "bg-slate-800 border-slate-700 text-white/60 hover:border-red-500/50"
                     )}
                   >
-                    🚫 Permanent ID Ban
+                    🚨 Urgent
                   </button>
                 </div>
               </div>
 
-              {banType === "permanent" && (
+              {banType === "urgent" && (
                 <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3">
-                  <p className="text-red-300 text-xs font-bold mb-1">⚠️ Warning!</p>
+                  <p className="text-red-300 text-xs font-bold mb-1">🚨 EMERGENCY BAN</p>
                   <p className="text-red-300/70 text-[11px] leading-relaxed">
-                    Permanent ban will: block account, convert host to user, reset all levels to 0, and prevent login.
+                    Device + Account permanently banned. Host demoted, level reset to 0. Cannot create new ID on this device.
                   </p>
                 </div>
               )}
 
-              {banType === "temporary" && (
+              {banType === "medium" && (
+                <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3">
+                  <p className="text-orange-300 text-xs font-bold mb-1">🚫 Account Ban</p>
+                  <p className="text-orange-300/70 text-[11px] leading-relaxed">
+                    Account permanently banned. Host demoted, level reset. Can create new ID on same device.
+                  </p>
+                </div>
+              )}
+
+              {banType === "normal" && (
                 <div>
                   <p className="text-white/70 text-sm mb-2 font-medium">
                     <Clock className="w-4 h-4 inline mr-1" />
@@ -813,13 +903,13 @@ const AdminChatInspector = () => {
                   </p>
                   <div className="grid grid-cols-4 gap-2">
                     {[
+                      { value: "0.5", label: "30 Min" },
+                      { value: "1", label: "1 Hour" },
                       { value: "2", label: "2 Hours" },
                       { value: "3", label: "3 Hours" },
+                      { value: "5", label: "5 Hours" },
                       { value: "6", label: "6 Hours" },
                       { value: "24", label: "24 Hours" },
-                      { value: "48", label: "2 Days" },
-                      { value: "72", label: "3 Days" },
-                      { value: "168", label: "7 Days" },
                       { value: "custom", label: "Custom" },
                     ].map((opt) => (
                       <button
@@ -828,8 +918,8 @@ const AdminChatInspector = () => {
                         className={cn(
                           "px-3 py-2 rounded-lg text-xs font-medium border transition-colors",
                           banDuration === opt.value
-                            ? "bg-red-600 border-red-500 text-white"
-                            : "bg-slate-800 border-slate-700 text-white/60 hover:border-red-500/50"
+                            ? "bg-yellow-600 border-yellow-500 text-white"
+                            : "bg-slate-800 border-slate-700 text-white/60 hover:border-yellow-500/50"
                         )}
                       >
                         {opt.label}
@@ -850,12 +940,12 @@ const AdminChatInspector = () => {
 
               <div>
                 <p className="text-white/70 text-sm mb-2 font-medium">
-                  {banType === "permanent" ? "Ban Reason (recorded)" : "Ban Reason"}
+                  Ban Reason
                 </p>
                 <Textarea
                   value={banReason}
                   onChange={(e) => setBanReason(e.target.value)}
-                  placeholder={banType === "permanent" ? "Enter detailed reason for permanent ban..." : "Enter reason..."}
+                  placeholder="Enter reason for ban..."
                   className="bg-slate-800 border-slate-700 text-white placeholder:text-white/30 min-h-[60px]"
                 />
               </div>
@@ -871,9 +961,11 @@ const AdminChatInspector = () => {
                 <Button
                   className={cn(
                     "flex-1 text-white",
-                    banType === "permanent"
+                    banType === "urgent"
                       ? "bg-red-700 hover:bg-red-800"
-                      : "bg-red-600 hover:bg-red-700"
+                      : banType === "medium"
+                      ? "bg-orange-600 hover:bg-orange-700"
+                      : "bg-yellow-600 hover:bg-yellow-700"
                   )}
                   onClick={handleBanUser}
                   disabled={banning}
@@ -883,7 +975,7 @@ const AdminChatInspector = () => {
                   ) : (
                     <Ban className="w-4 h-4 mr-1" />
                   )}
-                  {banType === "permanent" ? "🚫 Permanent Ban" : "Live Ban"}
+                  {banType === "urgent" ? "🚨 Urgent Ban" : banType === "medium" ? "🚫 Medium Ban" : "⏱️ Normal Ban"}
                 </Button>
               </div>
             </div>
