@@ -252,6 +252,7 @@ const AdminShop = () => {
   const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "hidden">("all");
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingItem, setEditingItem] = useState<ShopItem | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -530,7 +531,8 @@ const AdminShop = () => {
   const filteredItems = items.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === "all" || item.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+    const matchesStatus = statusFilter === "all" || (statusFilter === "active" ? item.is_active : !item.is_active);
+    return matchesSearch && matchesCategory && matchesStatus;
   });
 
   const getCategoryIcon = (category: string) => {
@@ -577,6 +579,7 @@ const AdminShop = () => {
 
   const totalItems = items.length;
   const activeItems = items.filter(i => i.is_active).length;
+  const hiddenItems = items.filter(i => !i.is_active).length;
   const featuredItems = items.filter(i => Boolean(i.is_featured)).length;
   const totalSold = items.reduce((acc, i) => acc + (i.total_sold ?? 0), 0);
 
@@ -623,7 +626,7 @@ const AdminShop = () => {
       </div>
 
       {/* Stats - Mobile optimized grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 mb-4 md:mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-3 mb-4 md:mb-6">
         <div className={adminCardStyles}>
           <p className="text-white/60 text-[10px] md:text-xs">Total Items</p>
           <p className="text-lg md:text-2xl font-bold text-white">{totalItems}</p>
@@ -631,6 +634,10 @@ const AdminShop = () => {
         <div className={adminCardStyles}>
           <p className="text-white/60 text-[10px] md:text-xs">Active</p>
           <p className="text-lg md:text-2xl font-bold text-green-400">{activeItems}</p>
+        </div>
+        <div className={`${adminCardStyles} cursor-pointer hover:ring-1 hover:ring-red-400/50`} onClick={() => setStatusFilter(statusFilter === 'hidden' ? 'all' : 'hidden')}>
+          <p className="text-white/60 text-[10px] md:text-xs">Hidden</p>
+          <p className="text-lg md:text-2xl font-bold text-red-400">{hiddenItems}</p>
         </div>
         <div className={adminCardStyles}>
           <p className="text-white/60 text-[10px] md:text-xs">Featured</p>
@@ -665,6 +672,17 @@ const AdminShop = () => {
             {categories.map(cat => (
               <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
             ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as "all" | "active" | "hidden")}>
+          <SelectTrigger className={`w-[140px] ${adminInputStyles}`}>
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="active">✅ Active</SelectItem>
+            <SelectItem value="hidden">🚫 Hidden</SelectItem>
           </SelectContent>
         </Select>
 
@@ -739,9 +757,10 @@ const AdminShop = () => {
                 </div>
 
                 {/* Info */}
-                <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="text-white font-semibold truncate">{item.name}</h3>
+                    {!item.is_active && <Badge className="bg-red-500/80 text-white text-[10px] px-1.5 py-0">HIDDEN</Badge>}
                     {item.is_featured && <Star className="w-4 h-4 text-amber-400 flex-shrink-0" />}
                   </div>
                   
