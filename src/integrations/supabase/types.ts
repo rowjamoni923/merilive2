@@ -1530,8 +1530,10 @@ export type Database = {
           category: string | null
           coin_price: number | null
           created_at: string | null
+          description: string | null
           display_order: number | null
           file_url: string
+          filter_key: string | null
           filter_type: string | null
           id: string
           intensity_default: number | null
@@ -1544,8 +1546,10 @@ export type Database = {
           category?: string | null
           coin_price?: number | null
           created_at?: string | null
+          description?: string | null
           display_order?: number | null
           file_url: string
+          filter_key?: string | null
           filter_type?: string | null
           id?: string
           intensity_default?: number | null
@@ -1558,8 +1562,10 @@ export type Database = {
           category?: string | null
           coin_price?: number | null
           created_at?: string | null
+          description?: string | null
           display_order?: number | null
           file_url?: string
+          filter_key?: string | null
           filter_type?: string | null
           id?: string
           intensity_default?: number | null
