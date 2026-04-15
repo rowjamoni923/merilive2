@@ -1101,23 +1101,6 @@ const AgencyDashboard = () => {
               </div>
             </div>
 
-            {/* My Beans (includes converted diamonds) */}
-            <div className="flex items-center justify-between mb-2 bg-white/10 backdrop-blur-sm rounded-lg p-2 border border-white/20">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
-                  <Coins className="w-4 h-4" />
-                </div>
-                <div>
-                  <p className="text-white/80 text-[10px] uppercase tracking-wide">My Beans</p>
-                  <p className="text-base font-bold">{fmtNum(myBeans)}</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-white/60 text-[9px]">≈ ${myBeansUsdValue.toFixed(2)}</p>
-              </div>
-            </div>
-
-
             {/* Local Currency Value - Compact */}
             <div className="bg-white/15 backdrop-blur-sm rounded-lg p-2 mb-1.5 border border-white/20">
               <div className="flex items-center justify-between">
