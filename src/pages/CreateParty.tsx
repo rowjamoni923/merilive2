@@ -26,6 +26,8 @@ import { ChametStyleSettingsPanel } from "@/components/party/ChametStyleSettings
 import { EmojiPicker } from "@/components/chat/EmojiPicker";
 import { useNativeCameraPermission } from "@/hooks/useNativeCameraPermission";
 import { useFeatureLevelCheck } from "@/hooks/useFeatureLevelCheck";
+import { useRealtimeLevelProgress } from "@/hooks/useRealtimeLevel";
+import { resolveLevelFromTiers } from "@/utils/levelResolver";
 import { setPreparedHostPreviewStream } from "@/features/live/hostPreviewSession";
 
 type PartyMode = "video" | "audio" | "game";
@@ -85,6 +87,7 @@ const CreateParty = () => {
   
   // Feature level check
   const { checkFeatureAccess, isLoading: featureLevelLoading } = useFeatureLevelCheck();
+  const { level: resolvedUserLevel, loading: resolvedLevelLoading } = useRealtimeLevelProgress(currentUser?.id ?? null);
   const [showLevelRestricted, setShowLevelRestricted] = useState(false);
   const [requiredLevel, setRequiredLevel] = useState(0);
 
@@ -100,17 +103,19 @@ const CreateParty = () => {
   
   // Check feature level access when user is loaded
   useEffect(() => {
-    if (currentUser?.profile && !featureLevelLoading) {
+    if (currentUser?.profile && !featureLevelLoading && !resolvedLevelLoading) {
       const isHost = isEligiblePartyHost(currentUser.profile);
-      const currentLevel = isHost ? (currentUser.profile.host_level || 0) : (currentUser.profile.user_level || 0);
+      const currentLevel = resolvedUserLevel;
       const result = checkFeatureAccess('create_party', currentLevel, isHost);
       
       if (!result.canAccess) {
         setRequiredLevel(result.requiredLevel);
         setShowLevelRestricted(true);
+      } else {
+        setShowLevelRestricted(false);
       }
     }
-  }, [currentUser, featureLevelLoading, checkFeatureAccess]);
+  }, [currentUser, featureLevelLoading, resolvedLevelLoading, resolvedUserLevel, checkFeatureAccess]);
 
   // Start camera with native permission handling
   const startCameraInstant = useCallback(async (videoMode: boolean) => {
@@ -243,13 +248,14 @@ const CreateParty = () => {
       // Server-side level check
       const { data: profile } = await supabase
         .from("profiles")
-        .select("user_level, host_level, is_host, host_status, gender")
+        .select("user_level, host_level, is_host, host_status, gender, total_recharged, total_earnings, weekly_earnings, max_user_level")
         .eq("id", user.id)
         .single();
 
       if (profile) {
         const isHost = isEligiblePartyHost(profile);
-        const currentLevel = isHost ? (profile.host_level || 0) : (profile.user_level || 0);
+        const resolvedLevel = await resolveLevelFromTiers({ id: user.id, ...profile });
+        const currentLevel = resolvedLevel.level;
         const result = checkFeatureAccess('create_party', currentLevel, isHost);
         if (!result.canAccess) {
           setRequiredLevel(result.requiredLevel);

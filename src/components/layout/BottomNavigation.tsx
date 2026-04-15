@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { hapticFeedback } from "@/utils/nativeUtils";
 import { useGlobalUnreadCount, formatBadgeCount } from "@/hooks/useGlobalUnreadCount";
 import { useFeatureLevelCheck } from "@/hooks/useFeatureLevelCheck";
+import { useRealtimeLevelProgress } from "@/hooks/useRealtimeLevel";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 const CampaignFloatingButton = lazy(() => import("@/components/campaign/CampaignFloatingButton"));
@@ -42,56 +43,69 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
   const unreadCounts = useGlobalUnreadCount();
   const { checkFeatureAccess, isLoading: featureLevelLoading } = useFeatureLevelCheck();
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const { level: resolvedUserLevel, loading: resolvedLevelLoading } = useRealtimeLevelProgress(currentUserId);
 
   // Load user profile for level checks
   useEffect(() => {
     const loadProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-          const { data } = await supabase
-            .from('profiles')
-            .select('user_level, host_level, is_host, host_status, gender')
-            .eq('id', user.id)
-            .single();
-          if (data) setUserProfile(data);
-        }
-      };
-      loadProfile();
-    }, []);
-    
-    const currentPath = location.pathname;
-    const activeTab = externalActiveTab || currentPath;
-
-    const handleNavClick = useCallback((item: NavItem) => {
-      hapticFeedback('light');
-      if (item.isCenter) {
-        hapticFeedback('medium');
-        setShowActionMenu(prev => !prev);
-      } else {
-        startTransition(() => { navigate(item.path); });
-        onTabChange?.(item.path);
-        setShowActionMenu(false);
+      if (!user) {
+        setCurrentUserId(null);
+        setUserProfile(null);
+        return;
       }
-    }, [navigate, onTabChange, startTransition]);
 
-    const handleActionClick = (path: string) => {
+      setCurrentUserId(user.id);
+      const { data } = await supabase
+        .from('profiles')
+        .select('user_level, host_level, is_host, host_status, gender')
+        .eq('id', user.id)
+        .single();
+
+      if (data) setUserProfile(data);
+    };
+
+    loadProfile();
+  }, []);
+    
+  const currentPath = location.pathname;
+  const activeTab = externalActiveTab || currentPath;
+
+  const handleNavClick = useCallback((item: NavItem) => {
+    hapticFeedback('light');
+    if (item.isCenter) {
       hapticFeedback('medium');
-      
-      // Level gate check for create-party and go-live
-      if (userProfile && !featureLevelLoading) {
-        const featureKey = path === '/create-party' ? 'create_party' : path === '/go-live' ? 'go_live' : null;
-        if (featureKey) {
-          const normalizedGender = String(userProfile.gender ?? '').toLowerCase();
-          const isHost = Boolean(userProfile.is_host) || String(userProfile.host_status ?? '').toLowerCase() === 'approved' || normalizedGender === 'female';
-          const currentLevel = isHost ? (userProfile.host_level || 0) : (userProfile.user_level || 0);
-          const result = checkFeatureAccess(featureKey, currentLevel, isHost);
-          if (!result.canAccess) {
-          toast.error(`Level ${result.requiredLevel} required`, {
-            description: `Your current level is ${currentLevel}. Level up to unlock this feature!`,
-          });
-          setShowActionMenu(false);
-          return;
-        }
+      setShowActionMenu(prev => !prev);
+    } else {
+      startTransition(() => { navigate(item.path); });
+      onTabChange?.(item.path);
+      setShowActionMenu(false);
+    }
+  }, [navigate, onTabChange, startTransition]);
+
+  const handleActionClick = (path: string) => {
+    hapticFeedback('medium');
+
+    const featureKey = path === '/create-party' ? 'create_party' : path === '/go-live' ? 'go_live' : null;
+    if (featureKey) {
+      if (featureLevelLoading || resolvedLevelLoading || !userProfile) {
+        toast.info('Loading your level, please try again.');
+        setShowActionMenu(false);
+        return;
+      }
+
+      const normalizedGender = String(userProfile.gender ?? '').toLowerCase();
+      const isHost = Boolean(userProfile.is_host) || String(userProfile.host_status ?? '').toLowerCase() === 'approved' || normalizedGender === 'female';
+      const currentLevel = resolvedUserLevel;
+      const result = checkFeatureAccess(featureKey, currentLevel, isHost);
+
+      if (!result.canAccess) {
+        toast.error(`Level ${result.requiredLevel} required`, {
+          description: `Your current level is ${currentLevel}. Level up to unlock this feature!`,
+        });
+        setShowActionMenu(false);
+        return;
       }
     }
     

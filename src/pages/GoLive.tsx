@@ -24,6 +24,7 @@ import { StickerPanel } from "@/components/live/StickerPanel";
 import { useDeepARBeauty } from "@/hooks/useDeepARBeauty";
 import { useNativeCameraPermission } from "@/hooks/useNativeCameraPermission";
 import { useFeatureLevelCheck } from "@/hooks/useFeatureLevelCheck";
+import { useRealtimeLevelProgress } from "@/hooks/useRealtimeLevel";
 import { trackTaskProgress } from "@/hooks/useTaskProgress";
 import { clearPreparedHostPreviewStream, setPreparedHostPreviewStream } from "@/features/live/hostPreviewSession";
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
@@ -209,6 +210,7 @@ const GoLive = () => {
     face_verification_image?: string | null;
   } | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const { level: resolvedUserLevel, loading: resolvedLevelLoading } = useRealtimeLevelProgress(currentUserId);
   const [isLoading, setIsLoading] = useState(true);
   const [showProfileError, setShowProfileError] = useState(false);
   const [showFaceVerificationRequired, setShowFaceVerificationRequired] = useState(false);
@@ -234,17 +236,19 @@ const GoLive = () => {
 
   // Check feature level access when user profile is loaded
   useEffect(() => {
-    if (userProfile && !featureLevelLoading) {
+    if (userProfile && !featureLevelLoading && !resolvedLevelLoading) {
       const isHost = isApprovedLiveHost(userProfile);
-      const currentLevel = isHost ? userProfile.host_level : userProfile.user_level;
+      const currentLevel = resolvedUserLevel;
       const result = checkFeatureAccess('go_live', currentLevel, isHost);
       
       if (!result.canAccess) {
         setRequiredLevel(result.requiredLevel);
         setShowLevelRestricted(true);
+      } else {
+        setShowLevelRestricted(false);
       }
     }
-  }, [userProfile, featureLevelLoading, checkFeatureAccess]);
+  }, [userProfile, featureLevelLoading, resolvedLevelLoading, resolvedUserLevel, checkFeatureAccess]);
 
   const loadUserProfile = useCallback(async (userId: string) => {
     const { data: profile, error } = await supabase
