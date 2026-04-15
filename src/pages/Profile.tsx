@@ -1189,9 +1189,12 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           });
 
           if (currentUser?.id && derivedLevel > Math.max(storedLevel, maxLevel)) {
-            void supabase.rpc('recalculate_user_level', { _user_id: currentUser.id }).catch((error) => {
-              console.warn('[Level] Failed to self-heal user level:', error);
-            });
+            void (async () => {
+              const { error } = await supabase.rpc('recalculate_user_level', { _user_id: currentUser.id });
+              if (error) {
+                console.warn('[Level] Failed to self-heal user level:', error);
+              }
+            })();
           }
         }
         
