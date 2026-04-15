@@ -183,6 +183,8 @@ const ProfileDetail = () => {
     entryBars: any[];
     badges: any[];
   }>({ frames: [], entryBars: [], badges: [] });
+  const [purchasedItems, setPurchasedItems] = useState<any[]>([]);
+  const [countdownTick, setCountdownTick] = useState(0);
 
   const [showBlockDialog, setShowBlockDialog] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
