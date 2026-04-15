@@ -168,6 +168,9 @@ const Recharge = () => {
   const { packages, loading: packagesLoading } = useDiamondPackagesRealtime();
   const { rates, getRateForCountry, convertUsdToLocal } = useCurrencyRatesRealtime();
   
+  // Real international exchange rates (for Google tab - exact market rates)
+  const [internationalRates, setInternationalRates] = useState<Record<string, number>>({});
+  
   // Payment Form State
   const [paymentStep, setPaymentStep] = useState<PaymentStep>("select");
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -186,6 +189,25 @@ const Recharge = () => {
   // Get currency rate for user's country
   const currencyRate = userCountryCode ? getRateForCountry(userCountryCode) : null;
   const isBangladesh = userCountryCode?.toUpperCase() === 'BD';
+  
+  // Fetch real international exchange rates for Google tab
+  useEffect(() => {
+    const fetchInternationalRates = async () => {
+      try {
+        const res = await fetch('https://open.er-api.com/v6/latest/USD');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.rates) {
+            setInternationalRates(data.rates);
+            console.log('[Recharge] Fetched international exchange rates');
+          }
+        }
+      } catch (err) {
+        console.error('[Recharge] Failed to fetch international rates:', err);
+      }
+    };
+    fetchInternationalRates();
+  }, []);
 
   // Keep bonus particles stable across re-renders (prevents visual jumping + style collision warnings)
   const bonusParticles = useMemo(() => {
