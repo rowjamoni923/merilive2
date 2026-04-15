@@ -667,7 +667,7 @@ const LiveStream = () => {
               console.log('[LiveStream] 🎬 Checking self entry animation for:', userName, 'entranceId:', selfProfile.equipped_entrance_id);
               
               // Fetch Entry Animation URL - uses centralized function that checks ALL tables
-              const { entranceAnimationUrl, entryNameBarUrl, vehicleAnimationUrl } = await fetchUserEntryAnimations(
+              const { entranceAnimationUrl, entranceSoundUrl, entryNameBarUrl, vehicleAnimationUrl } = await fetchUserEntryAnimations(
                 selfProfile.equipped_entrance_id,
                 selfProfile.equipped_entry_name_bar_id,
                 selfProfile.equipped_vehicle_id,
@@ -686,6 +686,7 @@ const LiveStream = () => {
                   entranceUrl: entranceAnimationUrl || undefined,
                   entryNameBarUrl: entryNameBarUrl || undefined,
                   vehicleAnimationUrl: vehicleAnimationUrl || undefined,
+                  soundUrl: entranceSoundUrl || undefined,
                 });
               } else {
                 console.log('[LiveStream] ⚠️ No animation URL found for self');
