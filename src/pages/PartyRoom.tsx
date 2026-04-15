@@ -1132,6 +1132,7 @@ const PartyRoom = () => {
           giftIcon: giftData.giftIcon || '🎁',
           giftImageUrl: giftData.giftImageUrl,
           animationUrl: giftData.animationUrl,
+          soundUrl: giftData.soundUrl || undefined,
           giftColor: 'from-pink-500 to-purple-500',
           count: giftData.count || 1,
           coins: giftData.coins || 0
@@ -2263,6 +2264,7 @@ const PartyRoom = () => {
                 giftIcon: gift.emoji,
                 giftImageUrl: gift.icon_url || undefined,
                 animationUrl: gift.animation_url || gift.icon_url || undefined,
+                soundUrl: gift.sound_url || undefined,
                 giftColor: 'from-pink-500 to-purple-500',
                 count: count,
                 coins: totalCost
@@ -2285,6 +2287,7 @@ const PartyRoom = () => {
                     giftIcon: gift.emoji,
                     giftImageUrl: gift.icon_url,
                     animationUrl: gift.animation_url || gift.icon_url,
+                    soundUrl: gift.sound_url || undefined,
                     count: count,
                     coins: totalCost
                   }

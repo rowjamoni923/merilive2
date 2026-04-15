@@ -667,7 +667,7 @@ const LiveStream = () => {
               console.log('[LiveStream] 🎬 Checking self entry animation for:', userName, 'entranceId:', selfProfile.equipped_entrance_id);
               
               // Fetch Entry Animation URL - uses centralized function that checks ALL tables
-              const { entranceAnimationUrl, entryNameBarUrl, vehicleAnimationUrl } = await fetchUserEntryAnimations(
+              const { entranceAnimationUrl, entranceSoundUrl, entryNameBarUrl, vehicleAnimationUrl } = await fetchUserEntryAnimations(
                 selfProfile.equipped_entrance_id,
                 selfProfile.equipped_entry_name_bar_id,
                 selfProfile.equipped_vehicle_id,
@@ -686,6 +686,7 @@ const LiveStream = () => {
                   entranceUrl: entranceAnimationUrl || undefined,
                   entryNameBarUrl: entryNameBarUrl || undefined,
                   vehicleAnimationUrl: vehicleAnimationUrl || undefined,
+                  soundUrl: entranceSoundUrl || undefined,
                 });
               } else {
                 console.log('[LiveStream] ⚠️ No animation URL found for self');
@@ -705,6 +706,7 @@ const LiveStream = () => {
                       userAvatar: avatarUrl,
                       userLevel,
                       entranceAnimationUrl: entranceAnimationUrl || null,
+                      entranceSoundUrl: entranceSoundUrl || null,
                       entryNameBarUrl: entryNameBarUrl || null,
                       vehicleAnimationUrl: vehicleAnimationUrl || null,
                       timestamp: Date.now(),
@@ -981,6 +983,7 @@ const LiveStream = () => {
           giftIcon: data.giftIcon || "🎁",
           giftImageUrl: data.giftIconUrl || undefined,
           animationUrl: data.giftAnimationUrl || data.giftIconUrl || undefined,
+          soundUrl: data.giftSoundUrl || undefined,
           giftColor: "bg-pink-500/50",
           count: data.count || 1,
           coins: data.giftCoins || 0,
@@ -1082,6 +1085,7 @@ const LiveStream = () => {
             entranceUrl: data.entranceAnimationUrl || undefined,
             entryNameBarUrl: data.entryNameBarUrl || undefined,
             vehicleAnimationUrl: data.vehicleAnimationUrl || undefined,
+            soundUrl: data.entranceSoundUrl || undefined,
           });
         }
         
@@ -1355,7 +1359,7 @@ const LiveStream = () => {
             
             // Fetch Entry Animation URLs - uses centralized function that checks ALL tables
             // This returns entranceAnimationUrl, entryNameBarUrl, AND vehicleAnimationUrl
-            const { entranceAnimationUrl, entryNameBarUrl, vehicleAnimationUrl } = await fetchUserEntryAnimations(
+            const { entranceAnimationUrl, entranceSoundUrl, entryNameBarUrl, vehicleAnimationUrl } = await fetchUserEntryAnimations(
               profile.equipped_entrance_id,
               profile.equipped_entry_name_bar_id,
               profile.equipped_vehicle_id,
@@ -1367,7 +1371,7 @@ const LiveStream = () => {
               nameBarUrl: entryNameBarUrl || 'not found',
               vehicleUrl: vehicleAnimationUrl || 'not found'
             });
-            
+
             // ==================== UNIFIED ENTRY ANIMATION (LIKE GIFTS) ====================
             // Single animation, priority-based: Vehicle > Entrance > NameBar
             if ((entranceAnimationUrl || entryNameBarUrl || vehicleAnimationUrl) && mountedRef.current) {
@@ -1381,6 +1385,7 @@ const LiveStream = () => {
                 entranceUrl: entranceAnimationUrl || undefined,
                 entryNameBarUrl: entryNameBarUrl || undefined,
                 vehicleAnimationUrl: vehicleAnimationUrl || undefined,
+                soundUrl: entranceSoundUrl || undefined,
               });
             }
           }
@@ -1530,7 +1535,7 @@ const LiveStream = () => {
         
         // Fetch Entry Animation URL - uses centralized function that checks ALL tables
         // This ensures ALL viewers (including host and the joining user) see the animation
-        const { entranceAnimationUrl, entryNameBarUrl, vehicleAnimationUrl } = await fetchUserEntryAnimations(
+        const { entranceAnimationUrl, entranceSoundUrl, entryNameBarUrl, vehicleAnimationUrl } = await fetchUserEntryAnimations(
           profile.equipped_entrance_id,
           profile.equipped_entry_name_bar_id,
           profile.equipped_vehicle_id,
@@ -1554,6 +1559,7 @@ const LiveStream = () => {
             entranceUrl: entranceAnimationUrl || undefined,
             entryNameBarUrl: entryNameBarUrl || undefined,
             vehicleAnimationUrl: vehicleAnimationUrl || undefined,
+            soundUrl: entranceSoundUrl || undefined,
           });
         }
       }
@@ -3300,6 +3306,7 @@ const LiveStream = () => {
             giftIcon: gift.emoji || "🎁",
             giftImageUrl: gift.icon_url || undefined,
             animationUrl: gift.animation_url || gift.icon_url || undefined,
+            soundUrl: gift.sound_url || undefined,
             giftColor: "bg-pink-500/50",
             count: count,
             coins: gift.coins,
@@ -3338,6 +3345,7 @@ const LiveStream = () => {
               giftIcon: gift.emoji || "🎁",
               giftIconUrl: gift.icon_url || undefined,
               giftAnimationUrl: gift.animation_url || gift.icon_url || undefined,
+              giftSoundUrl: gift.sound_url || undefined,
               giftCoins: gift.coins,
               count: count,
               streamId: id,

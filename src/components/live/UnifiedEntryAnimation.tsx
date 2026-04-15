@@ -22,6 +22,7 @@ export interface EntryAnimation {
   level: number;
   animationUrl: string;
   animationType: 'entrance' | 'vehicle';
+  soundUrl?: string;
 }
 
 interface UnifiedEntryAnimationProps {
@@ -47,6 +48,7 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
   const mountedRef = useRef(true);
   const completedRef = useRef(false);
   const animationStartedRef = useRef(false);
+  const soundPlayedRef = useRef(false);
   
   // CRITICAL FIX: Store onComplete in ref to prevent stale closures
   const onCompleteRef = useRef(onComplete);
@@ -56,11 +58,21 @@ const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnim
   const animationType = useMemo(() => getAnimationType(displayAnimationUrl), [displayAnimationUrl]);
   const isSVGA = animationType === 'svga' && !svgaError;
 
+  // Play sound_url from DB when entry animation renders
   useEffect(() => {
+    if (!soundPlayedRef.current && entry.soundUrl) {
+      soundPlayedRef.current = true;
+      const audio = new Audio(entry.soundUrl);
+      audio.volume = 0.6;
+      audio.play().catch(() => {});
+      console.log('[UnifiedEntryAnimation] 🔊 Playing entry sound:', entry.soundUrl);
+    }
+    
     console.log('[UnifiedEntryAnimation] 🚗 RENDERING ENTRY ANIMATION:', {
       userId: entry.userId,
       userName: entry.displayName,
       animationUrl: displayAnimationUrl,
+      soundUrl: entry.soundUrl,
       type: animationType,
       entryType: entry.animationType,
       isSVGA,

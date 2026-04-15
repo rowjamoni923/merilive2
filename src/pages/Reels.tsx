@@ -412,6 +412,7 @@ const Reels = () => {
       giftIcon: gift.emoji,
       giftImageUrl: gift.icon_url || undefined,
       animationUrl: gift.animation_url || gift.icon_url || undefined,
+      soundUrl: gift.sound_url || undefined,
       senderName: 'You',
       giftColor: 'from-pink-500 to-purple-500',
       count,
