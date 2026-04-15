@@ -7390,6 +7390,7 @@ export type Database = {
           schedule_end: string | null
           schedule_start: string | null
           target_audience: string
+          template_id: string | null
           updated_at: string
         }
         Insert: {
@@ -7413,6 +7414,7 @@ export type Database = {
           schedule_end?: string | null
           schedule_start?: string | null
           target_audience?: string
+          template_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -7436,6 +7438,7 @@ export type Database = {
           schedule_end?: string | null
           schedule_start?: string | null
           target_audience?: string
+          template_id?: string | null
           updated_at?: string
         }
         Relationships: []

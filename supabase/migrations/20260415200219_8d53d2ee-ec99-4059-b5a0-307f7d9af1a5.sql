@@ -1,0 +1,1 @@
+ALTER TABLE public.recharge_campaigns ADD COLUMN IF NOT EXISTS template_id TEXT DEFAULT 'royal-gold';
