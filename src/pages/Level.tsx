@@ -90,6 +90,7 @@ interface UserProfile {
   is_host: boolean | null;
   total_consumption: number | null;
   total_earnings: number | null;
+  total_recharged: number | null;
   coins: number | null;
   user_level: number | null;
 }
@@ -223,7 +224,7 @@ const Level = () => {
       if (user) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('id, gender, is_host, total_consumption, total_earnings, coins, user_level')
+          .select('id, gender, is_host, total_consumption, total_earnings, total_recharged, coins, user_level')
           .eq('id', user.id)
           .single();
 
@@ -241,8 +242,8 @@ const Level = () => {
             // Female hosts: Level based on earnings (gifts received)
             totalPoints = profile.total_earnings || 0;
           } else {
-            // Regular users: Level based on total topup (coins + consumption)
-            totalPoints = (profile.coins || 0) + (profile.total_consumption || 0);
+            // Regular users: Level based on total top-up (total_recharged)
+            totalPoints = profile.total_recharged || 0;
           }
           
           setCurrentDiamonds(totalPoints);
