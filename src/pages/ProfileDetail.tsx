@@ -361,29 +361,25 @@ const ProfileDetail = () => {
       setSlideshowInterval(parseInt(intervalSettingResult.data.setting_value as string) || 5);
     }
 
-    // Set profile - fallback to private profiles for own profile or when public view is stale/missing
+    // Set profile - fallback to private profiles when public view is stale/missing
     let profileData = profileDataResult?.data as ProfileData | null;
 
     if (!profileData && targetId) {
-      if (targetId === user?.id) {
-        const { data: ownProfile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', targetId)
-          .maybeSingle();
-        profileData = (ownProfile as ProfileData | null) ?? null;
-      } else {
-        const { data: bannedCheck } = await supabase
-          .from('profiles')
-          .select('is_blocked')
-          .eq('id', targetId)
-          .eq('is_blocked', true)
-          .maybeSingle();
-        if (bannedCheck) {
+      // Fallback: fetch from profiles table for ANY user (own or other)
+      const { data: fallbackProfile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', targetId)
+        .maybeSingle();
+      
+      if (fallbackProfile) {
+        // Check if banned
+        if (fallbackProfile.is_blocked) {
           setIsBannedProfile(true);
           setLoading(false);
           return;
         }
+        profileData = fallbackProfile as ProfileData | null;
       }
     }
 
