@@ -197,7 +197,7 @@ const Invitation = () => {
 
       const { data: inviteData, error } = await supabase
         .from('user_invitations')
-        .select('inviter_id, beans_earned')
+        .select('inviter_id')
         .eq('status', 'verified');
 
       if (!error && inviteData) {
@@ -207,7 +207,6 @@ const Invitation = () => {
             inviterStats[inv.inviter_id] = { count: 0, beans: 0 };
           }
           inviterStats[inv.inviter_id].count += 1;
-          inviterStats[inv.inviter_id].beans += inv.beans_earned || 0;
         });
 
         const inviterIds = Object.keys(inviterStats);
@@ -248,13 +247,13 @@ const Invitation = () => {
       if (user) {
         const { data: myInvites } = await supabase
           .from('user_invitations')
-          .select('invited_user_id, created_at')
+          .select('invitee_id, created_at')
           .eq('inviter_id', user.id)
           .eq('status', 'verified')
           .order('created_at', { ascending: false });
 
         if (myInvites && myInvites.length > 0) {
-          const invitedIds = myInvites.map(i => i.invited_user_id);
+          const invitedIds = myInvites.map(i => i.invitee_id).filter(Boolean);
           const { data: invitedProfiles } = await supabase
             .from('profiles_public')
             .select('id, display_name, avatar_url')
@@ -264,7 +263,7 @@ const Invitation = () => {
             const profileMap = new Map(invitedProfiles.map(p => [p.id, p]));
             const invitedList: InvitedUser[] = myInvites
               .map(inv => {
-                const profile = profileMap.get(inv.invited_user_id);
+                const profile = profileMap.get(inv.invitee_id!);
                 return profile ? {
                   id: profile.id,
                   display_name: profile.display_name || 'User',
