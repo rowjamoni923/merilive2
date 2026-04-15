@@ -1685,7 +1685,7 @@ const GoLive = () => {
             onMicToggle={() => setIsMicEnabled(!isMicEnabled)}
             onStickerClick={() => {
               setShowSettingsPanel(false);
-              void toggleNativeStickerPanel();
+              openStickerPanel();
             }}
             onBeautyClick={() => {
               setShowSettingsPanel(false);
