@@ -1156,7 +1156,7 @@ const Chat = () => {
     status: (m.status as Message['status']) || (m.is_read ? 'read' : 'sent'),
   });
 
-  const broadcastDirectMessage = useCallback(async (messageRow: any, conversationId: string) => {
+  async function broadcastDirectMessage(messageRow: any, conversationId: string) {
     if (!directMessageChannelRef.current) return;
 
     try {
@@ -1171,9 +1171,9 @@ const Chat = () => {
     } catch (error) {
       console.warn('[Chat] Broadcast fallback failed:', error);
     }
-  }, []);
+  }
 
-  const upsertLiveMessage = useCallback((messageRow: any) => {
+  function upsertLiveMessage(messageRow: any) {
     const newMessage = castMessage(messageRow);
 
     setMessages(prev => {
@@ -1217,14 +1217,14 @@ const Chat = () => {
     } else {
       playSoundDebounced('message');
     }
-  }, [currentUserId, playSoundDebounced, selectedConversation?.id]);
+  }
 
-  const persistDirectMessage = useCallback(async (
+  async function persistDirectMessage(
     conversationId: string,
     senderId: string,
     content: string,
     messageType: string
-  ) => {
+  ) {
     const { data: newMsg, error } = await supabase
       .from('messages')
       .insert({
@@ -1249,7 +1249,7 @@ const Chat = () => {
     }
 
     return newMsg;
-  }, [broadcastDirectMessage, upsertLiveMessage]);
+  }
 
   const fetchMessages = async (conversationId: string) => {
     const { data, error } = await supabase
