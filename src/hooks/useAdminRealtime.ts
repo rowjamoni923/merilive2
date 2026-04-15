@@ -38,13 +38,41 @@ export function dispatchAdminTableUpdate(detail: AdminTableUpdateEvent) {
 // AdminLayout subscribes to these via chunked channels.
 // Admin pages consume them via events — zero extra channels.
 
-// ⚡ COST-OPTIMISED: Reduced from 90+ to ~0 global subscriptions.
-// Each admin page now creates its own direct channel ONLY for the tables it needs.
-// This prevents 90-table postgres_changes subscriptions from running 24/7 even
-// when no admin is online. Previously this caused 525M realtime messages ($1,302/mo).
+// ⚡ Critical tables for AdminLayout global notifications, sounds & badges.
+// Only tables that trigger admin alerts/toasts/sound are included here.
+// Individual admin pages still create direct channels for their own data refresh.
 export const GLOBALLY_MONITORED_TABLES = new Set<string>([
-  // EMPTY — all admin tables now use direct per-page channels
-  // The useAdminRealtime hook's directTables path handles everything
+  // Pending action tables (drive badge counts + toast alerts)
+  'helper_upgrade_requests',
+  'helper_topup_requests',
+  'helper_applications',
+  'helper_message_replies',
+  'helper_withdrawal_requests',
+  'helper_orders',
+  'support_tickets',
+  'support_messages',
+  'agency_withdrawals',
+  'agencies',
+  'host_conversion_requests',
+  'payroll_requests',
+  'user_reports',
+  'face_verification_submissions',
+  'chat_moderation_logs',
+  'live_bans',
+  'live_face_violations',
+  'notifications',
+  'admin_notices',
+  'admin_notifications',
+  // Financial tables
+  'recharge_transactions',
+  'coin_transfers',
+  'agency_earnings_transfers',
+  'rating_reward_claims',
+  'leaderboard_reward_history',
+  'consumption_return_history',
+  // Activity tables
+  'live_streams',
+  'profiles',
 ]);
 
 // ============= HOOK =============
