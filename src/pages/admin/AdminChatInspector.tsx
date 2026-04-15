@@ -837,40 +837,60 @@ const AdminChatInspector = () => {
                 {banTargetUser.is_host && <Badge className="bg-pink-600/20 text-pink-300 text-[9px]">Host</Badge>}
               </div>
 
-              {/* Ban Type */}
+              {/* Ban Type - 3 Tiers */}
               <div>
                 <p className="text-white/70 text-sm mb-2 font-medium">Ban Type</p>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   <button
-                    onClick={() => setBanType("temporary")}
+                    onClick={() => setBanType("normal")}
                     className={cn(
-                      "px-3 py-2.5 rounded-lg text-xs font-medium border transition-colors",
-                      banType === "temporary"
+                      "px-2 py-2.5 rounded-lg text-xs font-medium border transition-colors",
+                      banType === "normal"
+                        ? "bg-yellow-600 border-yellow-500 text-white"
+                        : "bg-slate-800 border-slate-700 text-white/60 hover:border-yellow-500/50"
+                    )}
+                  >
+                    ⏱️ Normal
+                  </button>
+                  <button
+                    onClick={() => setBanType("medium")}
+                    className={cn(
+                      "px-2 py-2.5 rounded-lg text-xs font-medium border transition-colors",
+                      banType === "medium"
                         ? "bg-orange-600 border-orange-500 text-white"
                         : "bg-slate-800 border-slate-700 text-white/60 hover:border-orange-500/50"
                     )}
                   >
-                    ⏱️ Temporary Live Ban
+                    🚫 Medium
                   </button>
                   <button
-                    onClick={() => setBanType("permanent")}
+                    onClick={() => setBanType("urgent")}
                     className={cn(
-                      "px-3 py-2.5 rounded-lg text-xs font-medium border transition-colors",
-                      banType === "permanent"
+                      "px-2 py-2.5 rounded-lg text-xs font-medium border transition-colors",
+                      banType === "urgent"
                         ? "bg-red-700 border-red-600 text-white"
                         : "bg-slate-800 border-slate-700 text-white/60 hover:border-red-500/50"
                     )}
                   >
-                    🚫 Permanent ID Ban
+                    🚨 Urgent
                   </button>
                 </div>
               </div>
 
-              {banType === "permanent" && (
+              {banType === "urgent" && (
                 <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3">
-                  <p className="text-red-300 text-xs font-bold mb-1">⚠️ Warning!</p>
+                  <p className="text-red-300 text-xs font-bold mb-1">🚨 EMERGENCY BAN</p>
                   <p className="text-red-300/70 text-[11px] leading-relaxed">
-                    Permanent ban will: block account, convert host to user, reset all levels to 0, and prevent login.
+                    Device + Account permanently banned. Host demoted, level reset to 0. Cannot create new ID on this device.
+                  </p>
+                </div>
+              )}
+
+              {banType === "medium" && (
+                <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-3">
+                  <p className="text-orange-300 text-xs font-bold mb-1">🚫 Account Ban</p>
+                  <p className="text-orange-300/70 text-[11px] leading-relaxed">
+                    Account permanently banned. Host demoted, level reset. Can create new ID on same device.
                   </p>
                 </div>
               )}
