@@ -168,12 +168,6 @@ export default function AdminGameSettings() {
     fetchGames();
   }, []);
 
-  useAdminRealtime(
-    ['game_settings'],
-    fetchGames,
-    'admin-game-settings-rt'
-  );
-
   useEffect(() => {
     fetchStats();
   }, []);
@@ -195,6 +189,12 @@ export default function AdminGameSettings() {
     }
     setLoading(false);
   };
+
+  useAdminRealtime(
+    ['game_settings'],
+    fetchGames,
+    'admin-game-settings-rt'
+  );
 
   const fetchStats = async () => {
     const today = new Date().toISOString().split('T')[0];

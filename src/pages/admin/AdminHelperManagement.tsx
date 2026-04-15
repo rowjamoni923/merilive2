@@ -144,12 +144,6 @@ const AdminHelperManagement = () => {
     loadData();
   }, [location.pathname]);
 
-  useAdminRealtime(
-    ['helper_applications', 'helper_upgrade_requests', 'helper_topup_requests', 'helper_withdrawal_requests', 'helper_orders', 'topup_helpers'],
-    loadData,
-    'admin-helper-mgmt-rt'
-  );
-
   const loadData = async () => {
     setLoading(true);
     try {
@@ -167,6 +161,12 @@ const AdminHelperManagement = () => {
       setLoading(false);
     }
   };
+
+  useAdminRealtime(
+    ['helper_applications', 'helper_upgrade_requests', 'helper_topup_requests', 'helper_withdrawal_requests', 'helper_orders', 'topup_helpers'],
+    loadData,
+    'admin-helper-mgmt-rt'
+  );
 
   const loadApplications = async () => {
     const { data } = await supabase

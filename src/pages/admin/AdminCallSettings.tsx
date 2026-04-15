@@ -106,12 +106,6 @@ export default function AdminCallSettings() {
     fetchStats();
   }, []);
 
-  useAdminRealtime(
-    ['app_settings', 'call_events'],
-    fetchSettings,
-    'admin-call-settings-rt'
-  );
-
   const fetchSettings = async () => {
     try {
       const { data, error } = await supabase
@@ -154,6 +148,12 @@ export default function AdminCallSettings() {
       setLoading(false);
     }
   };
+
+  useAdminRealtime(
+    ['app_settings', 'call_events'],
+    fetchSettings,
+    'admin-call-settings-rt'
+  );
 
   const fetchStats = async () => {
     try {

@@ -196,12 +196,6 @@ const AdminTopupSystem = () => {
     loadAllData();
   }, []);
 
-  useAdminRealtime(
-    ['helper_topup_requests', 'recharge_transactions', 'coin_transactions', 'profiles'],
-    loadAllData,
-    'admin-topup-rt'
-  );
-
   // Auto-search with debounce when searchQuery changes
   useEffect(() => {
     // Clear previous timeout
@@ -240,6 +234,12 @@ const AdminTopupSystem = () => {
     ]);
     setLoading(false);
   };
+
+  useAdminRealtime(
+    ['helper_topup_requests', 'recharge_transactions', 'coin_transactions', 'profiles'],
+    loadAllData,
+    'admin-topup-rt'
+  );
 
   // Fetch Level Tiers
   const fetchLevelTiers = async () => {

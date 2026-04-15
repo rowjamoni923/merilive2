@@ -37,12 +37,6 @@ const AdminHelperDiamondPricing = () => {
     loadPackages();
   }, []);
 
-  useAdminRealtime(
-    ['helper_diamond_packages'],
-    loadPackages,
-    'admin-helper-pricing-rt'
-  );
-
   const loadPackages = async () => {
     setLoading(true);
     try {
@@ -59,6 +53,12 @@ const AdminHelperDiamondPricing = () => {
       setLoading(false);
     }
   };
+
+  useAdminRealtime(
+    ['helper_diamond_packages'],
+    loadPackages,
+    'admin-helper-pricing-rt'
+  );
 
   const handleUpdate = async (pkg: DiamondPackage) => {
     setSaving(true);
