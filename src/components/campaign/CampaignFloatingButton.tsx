@@ -3,9 +3,9 @@
  * Uses admin-selected template for popup styling.
  * Payment methods shown inline (no navigation to /recharge).
  */
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, type ChangeEvent } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { X, CreditCard, Wallet, Globe, Copy, Check } from 'lucide-react';
+import { X, CreditCard, Wallet, Globe, Copy, Check, Upload } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CAMPAIGN_TEMPLATES, type CampaignTemplate } from '@/components/admin/CampaignTemplates';
 import { useToast } from '@/hooks/use-toast';
@@ -34,10 +34,20 @@ interface Campaign {
 
 interface HelperMethod {
   id: string;
+  helper_id: string;
   method_name: string;
+  method_type: string;
   account_name: string;
   account_number: string;
   logo_url: string | null;
+  instructions?: string | null;
+  additional_info?: any;
+}
+
+interface MatchedPackage {
+  id: string;
+  coins_amount: number;
+  price_usd: number;
 }
 
 function formatCountdown(seconds: number): string {
@@ -54,6 +64,7 @@ const PURCHASED_KEY = 'campaign_purchased_';
 
 type PaymentTab = 'google' | 'recommend' | 'skrill';
 type PopupView = 'main' | 'payment_select' | 'payment_number';
+type PaymentStep = 'form' | 'processing' | 'pending';
 
 export function CampaignFloatingButton() {
   const [campaign, setCampaign] = useState<Campaign | null>(null);
@@ -68,14 +79,21 @@ export function CampaignFloatingButton() {
   const [currentMethodIndex, setCurrentMethodIndex] = useState(0);
   const [copiedNumber, setCopiedNumber] = useState(false);
   const [loadingMethods, setLoadingMethods] = useState(false);
+  const [matchedPackage, setMatchedPackage] = useState<MatchedPackage | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [helperPaymentStep, setHelperPaymentStep] = useState<PaymentStep>('form');
+  const [helperPaymentProcessing, setHelperPaymentProcessing] = useState(false);
+  const [helperTransactionId, setHelperTransactionId] = useState('');
+  const [helperPaymentProof, setHelperPaymentProof] = useState<string | null>(null);
+  const [uploadingHelperProof, setUploadingHelperProof] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
   const { toast } = useToast();
 
-  // Check if user is host & get country
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setIsHost(null); return; }
+      setUserId(user.id);
       const { data } = await supabase
         .from('profiles')
         .select('gender, country_code')
@@ -88,7 +106,6 @@ export function CampaignFloatingButton() {
     })();
   }, []);
 
-  // Fetch active campaign & init per-session timer
   const fetchCampaign = useCallback(async () => {
     const { data } = await supabase
       .from('recharge_campaigns')
@@ -115,7 +132,7 @@ export function CampaignFloatingButton() {
         sessionStart = String(Date.now());
         sessionStorage.setItem(sessionKey, sessionStart);
       }
-      
+
       const startMs = parseInt(sessionStart, 10);
       const endMs = startMs + (c.duration_minutes * 60 * 1000);
       const remaining = Math.max(0, Math.floor((endMs - Date.now()) / 1000));
@@ -130,7 +147,6 @@ export function CampaignFloatingButton() {
 
   useEffect(() => { fetchCampaign(); }, [fetchCampaign]);
 
-  // Countdown timer
   useEffect(() => {
     if (!campaign || remainingSeconds <= 0) return;
     timerRef.current = setInterval(() => {
@@ -140,63 +156,78 @@ export function CampaignFloatingButton() {
       });
     }, 1000);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [campaign]);
+  }, [campaign, remainingSeconds]);
 
-  // Fetch helper payment methods for Recommended
+  const fetchMatchedPackage = useCallback(async (activeCampaign: Campaign) => {
+    const { data } = await supabase
+      .from('coin_packages')
+      .select('id, coins_amount, price_usd')
+      .eq('is_active', true);
+
+    const matched = (data || []).find((pkg: any) => (
+      Number(pkg.coins_amount) === Number(activeCampaign.diamonds_amount) &&
+      Math.abs(Number(pkg.price_usd) - Number(activeCampaign.original_price_usd)) < 0.01
+    ));
+
+    setMatchedPackage(matched || null);
+  }, []);
+
   const fetchHelperPaymentMethods = useCallback(async () => {
     setLoadingMethods(true);
     try {
-      const GLOBAL_METHOD_TYPES = ['crypto', 'usdt', 'trc20', 'erc20', 'btc', 'eth', 'cryptocurrency'];
-
       const [legacyRes, countryRes] = await Promise.all([
         supabase.from('helper_payment_methods').select('id, helper_id, account_name, account_number, is_active, method_type, additional_info').eq('is_active', true),
         supabase.from('helper_country_payment_methods').select('id, helper_id, country_code, payment_method_name, icon_url, is_active, account_name, account_number, logo_url, method_type, additional_info').eq('country_code', userCountryCode).eq('is_active', true),
       ]);
 
       const legacyNorm = (legacyRes.data || []).map((m: any) => ({
-        id: m.id, helper_id: m.helper_id, method_name: m.method_type, account_name: m.account_name,
-        account_number: m.account_number, logo_url: (m.additional_info as any)?.logo_url || null,
+        id: m.id,
+        helper_id: m.helper_id,
+        method_name: m.method_type,
+        method_type: m.method_type,
+        account_name: m.account_name,
+        account_number: m.account_number,
+        logo_url: (m.additional_info as any)?.logo_url || null,
+        instructions: (m.additional_info as any)?.instructions || null,
+        additional_info: m.additional_info || null,
       }));
 
-      const countryNorm = (countryRes.data || []).flatMap((m: any) => {
-        const matched = legacyNorm.filter((l: any) => l.method_name?.toLowerCase() === String(m.payment_method_name || '').toLowerCase());
-        if (matched.length > 0) {
-          return matched.map((l: any) => ({ ...l, logo_url: m.logo_url || m.icon_url || l.logo_url, method_name: m.payment_method_name }));
-        }
-        return [{ id: m.id, helper_id: m.helper_id || `country-${m.id}`, method_name: m.payment_method_name, account_name: m.account_name || m.payment_method_name, account_number: m.account_number || '', logo_url: m.logo_url || m.icon_url }];
-      });
+      const countryNorm = (countryRes.data || []).map((m: any) => ({
+        id: m.id,
+        helper_id: m.helper_id || `country-${m.id}`,
+        method_name: m.payment_method_name,
+        method_type: m.method_type || m.payment_method_name,
+        account_name: m.account_name || m.payment_method_name,
+        account_number: m.account_number || '',
+        logo_url: m.logo_url || m.icon_url || null,
+        instructions: (m.additional_info as any)?.instructions || null,
+        additional_info: m.additional_info || null,
+      }));
 
       const combined = [...legacyNorm, ...countryNorm].filter(m => Boolean(m.account_number));
+      const helperIds = [...new Set(combined.map(m => m.helper_id).filter((id: string) => !id.startsWith('country-')))];
 
-      // Validate helpers
-      const helperIds = [...new Set(combined.map(m => m.helper_id).filter((id: string) => !id.startsWith('country-') && !id.startsWith('global-')))];
-      
       let validHelperIds = new Set<string>();
       if (helperIds.length > 0) {
-        const { data: helpers } = await supabase.from('topup_helpers').select('id, user_id, wallet_balance, trader_level, payroll_enabled, is_active, is_verified').in('id', helperIds);
-        
+        const { data: helpers } = await supabase
+          .from('topup_helpers')
+          .select('id, user_id, wallet_balance, trader_level, payroll_enabled, is_active, is_verified')
+          .in('id', helperIds);
+
         const userIds = (helpers || []).map(h => h.user_id).filter(Boolean);
         const agencyResults = await Promise.all(userIds.map(uid => supabase.rpc('get_agency_diamond_balance', { owner_user_id: uid })));
         const agencyMap = new Map<string, number>();
         userIds.forEach((uid, i) => agencyMap.set(uid, (agencyResults[i]?.data as number) ?? 0));
 
         (helpers || []).forEach(h => {
-          const combined = (h.wallet_balance ?? 0) + (agencyMap.get(h.user_id) ?? 0);
-          if (h.trader_level === 5 && h.payroll_enabled && combined >= 300000 && h.is_verified && h.is_active) {
+          const combinedBalance = (h.wallet_balance ?? 0) + (agencyMap.get(h.user_id) ?? 0);
+          if (h.trader_level === 5 && h.payroll_enabled && combinedBalance >= 300000 && h.is_verified && h.is_active) {
             validHelperIds.add(h.id);
           }
         });
       }
 
       const valid = combined.filter(m => validHelperIds.has(m.helper_id) || m.helper_id.startsWith('country-'));
-      
-      // Shuffle for variety
-      for (let i = valid.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [valid[i], valid[j]] = [valid[j], valid[i]];
-      }
-
-      // Deduplicate by account_number
       const seen = new Set<string>();
       const unique = valid.filter(m => {
         const key = `${m.method_name}-${m.account_number}`;
@@ -213,75 +244,191 @@ export function CampaignFloatingButton() {
     setLoadingMethods(false);
   }, [userCountryCode]);
 
-  // Hide if: host, no campaign, expired, purchased, or not logged in
   if (isHost === true || isHost === null || !campaign || remainingSeconds <= 0 || purchased) return null;
 
   const template: CampaignTemplate = CAMPAIGN_TEMPLATES.find(t => t.id === campaign.template_id) || CAMPAIGN_TEMPLATES[0];
-
   const discountPercent = campaign.offer_price_usd && campaign.original_price_usd > 0
     ? Math.round((1 - campaign.offer_price_usd / campaign.original_price_usd) * 100)
     : campaign.bonus_percentage ?? 0;
   const bonusText = discountPercent > 0 ? `${discountPercent}%` : '';
+  const currentMethod = helperMethods[currentMethodIndex] || null;
 
-  const handleBuyNow = () => setPopupView('payment_select');
-
-  const handleSelectPayment = async (tab: PaymentTab) => {
-    if (tab === 'google') {
-      // Google Play billing
-      if (Capacitor.isNativePlatform()) {
-        try {
-          const diamonds = campaign.diamonds_amount;
-          const product = PLAY_STORE_PRODUCTS[diamonds];
-          const productId = product?.productId || Object.values(PLAY_STORE_PRODUCTS)[0]?.productId;
-          if (!productId) { toast({ title: "Product not found", variant: "destructive" }); return; }
-          const { data: { user } } = await supabase.auth.getUser();
-          if (!user) { toast({ title: "Please login first", variant: "destructive" }); return; }
-          const result = await playStoreBilling.purchase(productId, user.id);
-          if (result.success) {
-            localStorage.setItem(PURCHASED_KEY + campaign.id, 'true');
-            setPurchased(true);
-            setShowPopup(false);
-            toast({ title: "Purchase successful!", description: "Diamonds added to your account" });
-          } else {
-            toast({ title: "Payment failed", description: result.error, variant: "destructive" });
-          }
-        } catch (e) {
-          toast({ title: "Payment failed", variant: "destructive" });
-        }
-      } else {
-        toast({ title: "Google Play", description: "Available on Android app only" });
-      }
-      return;
-    }
-
-    if (tab === 'recommend') {
-      await fetchHelperPaymentMethods();
-      setPopupView('payment_number');
-      return;
-    }
-
-    if (tab === 'skrill') {
-      toast({ title: "Skrill", description: "Skrill payment coming soon" });
-    }
+  const convertToLocalCurrency = (usdAmount: number) => {
+    if (userCountryCode === 'BD') return `৳${Math.round(usdAmount * 120)}`;
+    return `$${usdAmount.toFixed(2)}`;
   };
 
-  const handleCopyNumber = (number: string) => {
-    navigator.clipboard.writeText(number);
+  const copyToClipboard = async (text: string) => {
+    await navigator.clipboard.writeText(text);
     setCopiedNumber(true);
-    toast({ title: "Copied!", description: number });
+    toast({ title: 'Copied!', description: text });
     setTimeout(() => setCopiedNumber(false), 2000);
   };
 
-  const handleShowNextNumber = () => {
-    if (helperMethods.length > 1) {
-      setCurrentMethodIndex(prev => (prev + 1) % helperMethods.length);
-    }
+  const handleBuyNow = () => setPopupView('payment_select');
+
+  const resetHelperForm = () => {
+    setHelperPaymentStep('form');
+    setHelperTransactionId('');
+    setHelperPaymentProof(null);
+    setUploadingHelperProof(false);
+    setHelperPaymentProcessing(false);
   };
 
   const closePopup = () => {
     setShowPopup(false);
     setPopupView('main');
     setCopiedNumber(false);
+    resetHelperForm();
+  };
+
+  const handleSelectPayment = async (tab: PaymentTab) => {
+    if (tab === 'google') {
+      if (Capacitor.isNativePlatform()) {
+        try {
+          const diamonds = campaign.diamonds_amount;
+          const product = PLAY_STORE_PRODUCTS[diamonds];
+          const productId = product?.productId || Object.values(PLAY_STORE_PRODUCTS)[0]?.productId;
+          if (!productId) { toast({ title: 'Product not found', variant: 'destructive' }); return; }
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) { toast({ title: 'Please login first', variant: 'destructive' }); return; }
+          const result = await playStoreBilling.purchase(productId, user.id);
+          if (result.success) {
+            localStorage.setItem(PURCHASED_KEY + campaign.id, 'true');
+            setPurchased(true);
+            setShowPopup(false);
+            toast({ title: 'Purchase successful!', description: 'Diamonds added to your account' });
+          } else {
+            toast({ title: 'Payment failed', description: result.error, variant: 'destructive' });
+          }
+        } catch {
+          toast({ title: 'Payment failed', variant: 'destructive' });
+        }
+      } else {
+        toast({ title: 'Google Play', description: 'Available on Android app only' });
+      }
+      return;
+    }
+
+    if (tab === 'recommend') {
+      await Promise.all([fetchHelperPaymentMethods(), fetchMatchedPackage(campaign)]);
+      resetHelperForm();
+      setPopupView('payment_number');
+      return;
+    }
+
+    if (tab === 'skrill') {
+      toast({ title: 'Skrill', description: 'Skrill payment coming soon' });
+    }
+  };
+
+  const handleShowNextNumber = () => {
+    if (helperMethods.length > 1) {
+      setCurrentMethodIndex(prev => (prev + 1) % helperMethods.length);
+      setHelperTransactionId('');
+      setHelperPaymentProof(null);
+    }
+  };
+
+  const handleUploadHelperProof = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !userId) return;
+
+    setUploadingHelperProof(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage.from('payment-proofs').upload(fileName, file);
+      if (uploadError) throw uploadError;
+      const { data } = supabase.storage.from('payment-proofs').getPublicUrl(fileName);
+      setHelperPaymentProof(data.publicUrl);
+      toast({ title: 'Screenshot uploaded' });
+    } catch (err: any) {
+      toast({ title: 'Upload failed', description: err.message || 'Failed to upload screenshot', variant: 'destructive' });
+    } finally {
+      setUploadingHelperProof(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleHelperPaymentSubmit = async () => {
+    if (!campaign || !matchedPackage || !currentMethod || !userId) {
+      toast({ title: 'Error', description: 'Missing required information', variant: 'destructive' });
+      return;
+    }
+
+    if (!helperTransactionId.trim()) {
+      toast({ title: 'Transaction ID Required', description: 'Please enter your payment transaction ID', variant: 'destructive' });
+      return;
+    }
+
+    setHelperPaymentProcessing(true);
+    setHelperPaymentStep('processing');
+
+    try {
+      const localAmount = userCountryCode === 'BD' ? campaign.original_price_usd * 120 : campaign.original_price_usd;
+      const gwType = String(currentMethod.additional_info?.gateway_type || '').toLowerCase();
+
+      if (gwType === 'zinipay') {
+        const { data, error } = await supabase.functions.invoke('create-zinipay-payment', {
+          body: {
+            package_id: matchedPackage.id,
+            payment_method_id: currentMethod.id,
+            origin_url: window.location.origin,
+            transaction_id: helperTransactionId.trim(),
+            payment_proof: helperPaymentProof,
+            skip_redirect: true,
+          },
+        });
+
+        if (error || data?.error) {
+          throw new Error(data?.error || error?.message || 'ZiniPay payment failed');
+        }
+
+        setHelperPaymentStep('pending');
+        toast({ title: '⚡ Order Created!', description: 'Verifying transaction... Please wait.' });
+        return;
+      }
+
+      const { error: orderError } = await supabase
+        .from('helper_orders')
+        .insert({
+          helper_id: currentMethod.helper_id,
+          user_id: userId,
+          customer_id: userId,
+          coin_amount: campaign.diamonds_amount,
+          diamond_amount: campaign.diamonds_amount,
+          amount_usd: campaign.offer_price_usd || campaign.original_price_usd,
+          total_price_usd: campaign.offer_price_usd || campaign.original_price_usd,
+          amount_local: localAmount,
+          local_price: localAmount,
+          currency_code: userCountryCode === 'BD' ? 'BDT' : 'USD',
+          local_currency: userCountryCode === 'BD' ? 'BDT' : 'USD',
+          payment_method: currentMethod.method_name,
+          user_country_code: userCountryCode,
+          package_id: matchedPackage.id,
+          user_payment_proof: helperPaymentProof,
+          payment_details: {
+            transaction_id: helperTransactionId,
+            method_type: currentMethod.method_type,
+            account_name: currentMethod.account_name,
+            account_number: currentMethod.account_number,
+            campaign_id: campaign.id,
+          },
+          status: 'pending',
+        });
+
+      if (orderError) throw orderError;
+
+      setHelperPaymentStep('pending');
+      toast({ title: 'Order Submitted!', description: 'Helper will process your order shortly' });
+    } catch (error: any) {
+      console.error('Campaign helper payment error:', error);
+      toast({ title: 'Payment Failed', description: error.message || 'Could not process payment. Please try again.', variant: 'destructive' });
+      setHelperPaymentStep('form');
+    } finally {
+      setHelperPaymentProcessing(false);
+    }
   };
 
   const paymentTabs: { key: PaymentTab; label: string; icon: React.ReactNode; description: string }[] = [
@@ -290,11 +437,8 @@ export function CampaignFloatingButton() {
     ...(!isBangladesh ? [{ key: 'skrill' as PaymentTab, label: 'Skrill', icon: <Globe className="w-5 h-5" />, description: 'International payment' }] : []),
   ];
 
-  const currentMethod = helperMethods[currentMethodIndex];
-
   return (
     <>
-      {/* Floating Button — luxurious design */}
       <AnimatePresence>
         {!showPopup && (
           <motion.div
@@ -304,18 +448,16 @@ export function CampaignFloatingButton() {
             className="fixed z-[45] flex flex-col items-center"
             style={{ bottom: 'calc(var(--bottom-nav-height, 64px) + 48px)', right: '10px' }}
           >
-            {/* Countdown badge */}
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 px-3 py-0.5 rounded-full shadow-lg min-w-[54px] text-center"
               style={{ background: 'linear-gradient(135deg, #dc2626, #b91c1c)', boxShadow: '0 4px 15px rgba(220,38,38,0.5)' }}>
               <span className="text-[10px] font-bold text-white tabular-nums">{formatCountdown(remainingSeconds)}</span>
             </div>
-            
+
             <button
               onClick={() => setShowPopup(true)}
               className="relative w-[76px] h-[76px] rounded-full"
               style={{ filter: 'drop-shadow(0 6px 20px rgba(245,158,11,0.5))' }}
             >
-              {/* Outer animated ring */}
               <motion.div
                 className="absolute inset-0 rounded-full"
                 style={{ background: 'conic-gradient(from 0deg, #f59e0b, #ef4444, #f59e0b, #eab308, #f59e0b)', padding: '3px' }}
@@ -324,7 +466,6 @@ export function CampaignFloatingButton() {
               >
                 <div className="w-full h-full rounded-full" style={{ background: '#0f0a1a' }} />
               </motion.div>
-              {/* Inner content */}
               <div className="absolute inset-[4px] rounded-full overflow-hidden"
                 style={{ border: '2px solid rgba(245,158,11,0.6)', background: 'radial-gradient(circle at 30% 30%, #1a1028, #0a0612)' }}>
                 {campaign.banner_image_url ? (
@@ -335,7 +476,6 @@ export function CampaignFloatingButton() {
                   </div>
                 )}
               </div>
-              {/* Sparkle dots */}
               <motion.div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-yellow-400"
                 animate={{ scale: [1, 1.4, 1], opacity: [0.8, 1, 0.8] }}
                 transition={{ duration: 1.5, repeat: Infinity }} />
@@ -347,7 +487,6 @@ export function CampaignFloatingButton() {
         )}
       </AnimatePresence>
 
-      {/* Campaign Popup */}
       <AnimatePresence>
         {showPopup && (
           <motion.div
@@ -358,7 +497,7 @@ export function CampaignFloatingButton() {
             onClick={closePopup}
           >
             <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
-            
+
             <motion.div
               initial={{ scale: 0.85, y: 30 }}
               animate={{ scale: 1, y: 0 }}
@@ -372,17 +511,12 @@ export function CampaignFloatingButton() {
                 boxShadow: template.accentGlow,
               }}
             >
-              {/* Top shine */}
               <div className="absolute inset-x-0 top-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${template.popupBorder}40, transparent)` }} />
 
-              {/* Close button */}
               <button onClick={closePopup} className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/10 flex items-center justify-center z-10">
                 <X className="w-3.5 h-3.5 text-white/60" />
               </button>
 
-              {/* NO banner image here — only in floating button */}
-
-              {/* Main View */}
               {popupView === 'main' && (
                 <>
                   <div className="relative pt-6 pb-3 flex flex-col items-center">
@@ -454,10 +588,8 @@ export function CampaignFloatingButton() {
                 </>
               )}
 
-              {/* Payment Method Select View */}
               {popupView === 'payment_select' && (
                 <div className="px-5 pt-6 pb-5">
-                  {/* Back arrow */}
                   <button onClick={() => setPopupView('main')} className="text-xs mb-3 opacity-60" style={{ color: template.subtitleColor }}>
                     ← Back
                   </button>
@@ -496,81 +628,215 @@ export function CampaignFloatingButton() {
                 </div>
               )}
 
-              {/* Payment Number View (Recommended) */}
-              {popupView === 'payment_number' && (
-                <div className="px-5 pt-6 pb-5">
-                  <button onClick={() => setPopupView('payment_select')} className="text-xs mb-3 opacity-60" style={{ color: template.subtitleColor }}>
-                    ← Back
-                  </button>
+              {popupView === 'payment_number' && helperPaymentStep === 'form' && (
+                <div className="px-5 pt-5 pb-4">
+                  <div className="flex items-center justify-between mb-8">
+                    <button
+                      type="button"
+                      onClick={() => setPopupView('payment_select')}
+                      className="text-amber-200/80 text-sm font-medium"
+                    >
+                      ← Back
+                    </button>
+                    <button
+                      type="button"
+                      onClick={closePopup}
+                      className="w-12 h-12 rounded-full bg-amber-100/10 text-amber-100/80 flex items-center justify-center"
+                    >
+                      <X className="w-6 h-6" />
+                    </button>
+                  </div>
 
                   {loadingMethods ? (
                     <div className="flex items-center justify-center py-10">
                       <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                         className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full" />
                     </div>
-                  ) : helperMethods.length === 0 ? (
+                  ) : !currentMethod ? (
                     <div className="text-center py-8">
                       <p className="text-sm" style={{ color: template.subtitleColor }}>No payment methods available</p>
                     </div>
-                  ) : currentMethod ? (
-                    <motion.div
-                      key={currentMethodIndex}
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className="space-y-4"
-                    >
-                      <p className="text-xs text-center font-medium uppercase tracking-wider" style={{ color: template.subtitleColor }}>
-                        Payment Number
-                      </p>
-
-                      {/* Method card */}
-                      <div className="p-4 rounded-xl text-center" style={{ background: `${template.popupBorder}15`, border: `1px solid ${template.popupBorder}30` }}>
-                        {currentMethod.logo_url && (
-                          <img src={currentMethod.logo_url} alt="" className="w-10 h-10 mx-auto mb-2 rounded-lg object-contain" />
-                        )}
-                        <p className="text-base font-bold capitalize mb-1" style={{ color: template.titleColor }}>
-                          {currentMethod.method_name}
-                        </p>
-                        <p className="text-xs opacity-60 mb-3" style={{ color: template.subtitleColor }}>
-                          {currentMethod.account_name}
-                        </p>
-                        
-                        {/* Number with copy */}
-                        <div className="flex items-center justify-center gap-2 p-3 rounded-xl" style={{ background: `${template.popupBorder}20` }}>
-                          <span className="font-mono font-bold text-lg tracking-wider" style={{ color: template.priceColor }}>
-                            {currentMethod.account_number}
-                          </span>
-                          <button
-                            onClick={() => handleCopyNumber(currentMethod.account_number)}
-                            className="w-8 h-8 rounded-lg flex items-center justify-center"
-                            style={{ background: `${template.popupBorder}30` }}
-                          >
-                            {copiedNumber ? (
-                              <Check className="w-4 h-4 text-green-400" />
-                            ) : (
-                              <Copy className="w-4 h-4" style={{ color: template.titleColor }} />
-                            )}
-                          </button>
-                        </div>
-
-                        {/* Amount to send */}
-                        <p className="mt-3 text-sm font-bold" style={{ color: template.priceColor }}>
-                          Send ${campaign.offer_price_usd || campaign.original_price_usd}
-                        </p>
+                  ) : (
+                    <>
+                      <div className="text-center mb-6">
+                        <h3 className="text-[15px] font-semibold tracking-[0.2em] uppercase text-amber-200">
+                          Payment Number
+                        </h3>
                       </div>
 
-                      {/* Show different number */}
+                      <div className="rounded-[1.75rem] border border-amber-400/25 bg-amber-500/5 p-4 shadow-[inset_0_0_0_1px_rgba(251,191,36,0.08)]">
+                        <div className="rounded-[1.5rem] border border-amber-400/20 bg-amber-500/10 p-5 text-center">
+                          <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-100/10 overflow-hidden">
+                            {currentMethod.logo_url ? (
+                              <img
+                                src={currentMethod.logo_url}
+                                alt={currentMethod.method_name}
+                                className="h-10 w-10 object-contain"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                              />
+                            ) : (
+                              <span className="text-3xl text-amber-300">💳</span>
+                            )}
+                          </div>
+
+                          <p className="text-2xl font-bold text-amber-300 leading-none">
+                            {currentMethod.method_name}
+                          </p>
+                          <p className="mt-2 text-lg text-amber-100/45">
+                            {currentMethod.account_name || currentMethod.method_name}
+                          </p>
+
+                          <div className="mt-6 rounded-[1.35rem] bg-amber-200/8 px-4 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="min-w-0 flex-1 text-left">
+                                <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-amber-100/70 mb-2">
+                                  {currentMethod.method_name} Number
+                                </p>
+                                <p className="text-[2rem] font-bold tracking-[0.12em] text-yellow-300 break-all leading-none">
+                                  {currentMethod.account_number}
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => copyToClipboard(currentMethod.account_number)}
+                                className="shrink-0 rounded-2xl bg-amber-300/12 px-5 py-4 text-amber-300"
+                              >
+                                {copiedNumber ? <Check className="w-7 h-7" /> : <Copy className="w-7 h-7" />}
+                              </button>
+                            </div>
+                          </div>
+
+                          <p className="mt-7 text-2xl font-bold text-yellow-300">
+                            Send {convertToLocalCurrency(campaign.offer_price_usd || campaign.original_price_usd)}
+                          </p>
+                        </div>
+                      </div>
+
                       {helperMethods.length > 1 && (
                         <button
+                          type="button"
                           onClick={handleShowNextNumber}
-                          className="w-full text-center text-xs font-medium py-2 rounded-lg"
-                          style={{ color: template.priceColor, background: `${template.popupBorder}10` }}
+                          className="mt-5 w-full rounded-2xl bg-amber-200/8 px-5 py-5 text-center text-[13px] font-medium text-amber-100"
                         >
                           Show different number ({currentMethodIndex + 1}/{helperMethods.length})
                         </button>
                       )}
-                    </motion.div>
-                  ) : null}
+
+                      <div className="mt-5 space-y-3">
+                        <div className="rounded-2xl border border-amber-400/20 bg-amber-500/8 p-4">
+                          <p className="text-xs font-bold text-amber-300 mb-2">{currentMethod.additional_info?.gateway_type ? 'Auto-Approve Notice' : 'Payment Notice'}</p>
+                          <p className="text-[13px] leading-6 text-amber-100/85">👉 You must send the <strong className="text-amber-200">exact amount</strong> shown above.</p>
+                          <p className="mt-2 text-[13px] leading-6 text-amber-100/65">💰 Amount to send: <strong className="text-yellow-300">{convertToLocalCurrency(campaign.offer_price_usd || campaign.original_price_usd)}</strong></p>
+                          {currentMethod.additional_info?.gateway_type ? (
+                            <p className="mt-2 text-[12px] text-emerald-300/90">⚡ Enter your transaction ID below to verify via ZiniPay.</p>
+                          ) : (
+                            <p className="mt-2 text-[12px] text-amber-100/55">Helper will check your payment proof and approve it.</p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label htmlFor="campaignHelperTransactionId" className="text-amber-100/75 font-semibold text-xs uppercase tracking-[0.2em]">
+                            Transaction ID *
+                          </label>
+                          <input
+                            id="campaignHelperTransactionId"
+                            type="text"
+                            value={helperTransactionId}
+                            onChange={(e) => setHelperTransactionId(e.target.value)}
+                            placeholder="Enter your TrxID here"
+                            className="mt-2 w-full rounded-2xl text-sm h-12 px-4 border border-amber-200/10 bg-amber-100/5 text-amber-50 placeholder:text-amber-100/20 focus:outline-none focus:ring-2 focus:ring-amber-400/30 transition-all"
+                            autoComplete="off"
+                          />
+                        </div>
+
+                        {currentMethod.instructions && (
+                          <div className="rounded-2xl bg-amber-100/5 border border-amber-200/10 p-3">
+                            <p className="text-[11px] text-amber-300/80 font-medium mb-1">📝 Note</p>
+                            <p className="text-xs text-amber-50/70">{currentMethod.instructions}</p>
+                          </div>
+                        )}
+
+                        {!currentMethod.additional_info?.gateway_type && (
+                          <div>
+                            <label className="text-amber-100/75 text-xs uppercase tracking-[0.2em] font-semibold">Payment Screenshot</label>
+                            <div className="mt-2">
+                              {helperPaymentProof ? (
+                                <div className="relative rounded-2xl overflow-hidden border border-amber-200/10">
+                                  <img src={helperPaymentProof} alt="Payment proof" className="w-full h-28 object-cover" />
+                                  <button
+                                    onClick={() => setHelperPaymentProof(null)}
+                                    className="absolute top-2 right-2 bg-red-500/80 text-white p-1 rounded-full"
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <label className="flex flex-col items-center justify-center w-full h-24 border border-dashed border-amber-200/15 rounded-2xl cursor-pointer hover:bg-amber-100/[0.03] transition-colors">
+                                  {uploadingHelperProof ? (
+                                    <div className="w-5 h-5 border-2 border-amber-300 border-t-transparent rounded-full animate-spin" />
+                                  ) : (
+                                    <>
+                                      <Upload className="w-5 h-5 text-amber-100/35 mb-1" />
+                                      <span className="text-xs text-amber-100/35">Upload screenshot</span>
+                                    </>
+                                  )}
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={handleUploadHelperProof}
+                                    disabled={uploadingHelperProof}
+                                  />
+                                </label>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={handleHelperPaymentSubmit}
+                          disabled={!helperTransactionId.trim() || helperPaymentProcessing || !matchedPackage}
+                          className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 text-[#2d1a00] font-bold text-base shadow-lg transition-all disabled:opacity-40"
+                        >
+                          {helperPaymentProcessing
+                            ? 'Processing...'
+                            : currentMethod.additional_info?.gateway_type
+                              ? 'Verify Transaction'
+                              : 'Submit to Helper'}
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {popupView === 'payment_number' && helperPaymentStep === 'processing' && (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 mx-auto mb-4 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin" />
+                  <h3 className="text-lg font-bold text-white mb-2">Sending to Helper</h3>
+                  <p className="text-white/60">Please wait while we process your order...</p>
+                </div>
+              )}
+
+              {popupView === 'payment_number' && helperPaymentStep === 'pending' && (
+                <div className="text-center py-8 px-5">
+                  <div className="w-20 h-20 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+                    <Check className="w-10 h-10 text-green-500" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-2">Order Submitted!</h3>
+                  <p className="text-white/70 mb-4">Helper has been notified and will process your order.</p>
+                  <div className="bg-white/5 rounded-xl p-3 mb-6">
+                    <p className="text-sm text-white/80">{campaign.diamonds_amount.toLocaleString()} Diamonds will be credited after approval.</p>
+                  </div>
+                  <button
+                    onClick={closePopup}
+                    className="w-full py-3 rounded-xl bg-white/10 text-white/80 hover:bg-white/20"
+                  >
+                    Close
+                  </button>
                 </div>
               )}
             </motion.div>
