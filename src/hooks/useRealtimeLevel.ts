@@ -239,6 +239,7 @@ export const useRealtimeLevelProgress = (userId: string | null, forceHostMode: b
   const [currentXP, setCurrentXP] = useState(0);
   const [nextLevelXP, setNextLevelXP] = useState(0);
   const [nextLevelNumber, setNextLevelNumber] = useState(1);
+  const tierChannelInstanceIdRef = useRef(`rt-tier-${Math.random().toString(36).slice(2, 10)}`);
   
   // CORRECT LOGIC: Only female hosts use host_level (resets weekly)
   // Everyone else (male hosts, regular users) use user_level (permanent)
@@ -267,7 +268,7 @@ export const useRealtimeLevelProgress = (userId: string | null, forceHostMode: b
   // Real-time subscription for level tier changes
   useEffect(() => {
     const channel = supabase
-      .channel(`user-level-tiers-realtime-${channelInstanceIdRef.current}`)
+      .channel(`user-level-tiers-realtime-${tierChannelInstanceIdRef.current}`)
       .on(
         'postgres_changes',
         {
