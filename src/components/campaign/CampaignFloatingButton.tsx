@@ -75,7 +75,9 @@ export function CampaignFloatingButton() {
   const [isBangladesh, setIsBangladesh] = useState(true);
   const [userCountryCode, setUserCountryCode] = useState('BD');
   const [popupView, setPopupView] = useState<PopupView>('main');
+  const [selectedPaymentTab, setSelectedPaymentTab] = useState<PaymentTab>('google');
   const [helperMethods, setHelperMethods] = useState<HelperMethod[]>([]);
+  const [selectedLocalMethodName, setSelectedLocalMethodName] = useState<string | null>(null);
   const [currentMethodIndex, setCurrentMethodIndex] = useState(0);
   const [copiedNumber, setCopiedNumber] = useState(false);
   const [loadingMethods, setLoadingMethods] = useState(false);
@@ -236,8 +238,13 @@ export function CampaignFloatingButton() {
         return true;
       });
 
+      const availableMethodNames = Array.from(new Set(unique.map((method) => method.method_name.toLowerCase())));
       setHelperMethods(unique);
       setCurrentMethodIndex(0);
+      setSelectedLocalMethodName((prev) => {
+        if (availableMethodNames.length === 0) return null;
+        return prev && availableMethodNames.includes(prev) ? prev : availableMethodNames[0];
+      });
     } catch (e) {
       console.error('Error fetching helper payment methods:', e);
     }
@@ -251,7 +258,15 @@ export function CampaignFloatingButton() {
     ? Math.round((1 - campaign.offer_price_usd / campaign.original_price_usd) * 100)
     : campaign.bonus_percentage ?? 0;
   const bonusText = discountPercent > 0 ? `${discountPercent}%` : '';
-  const currentMethod = helperMethods[currentMethodIndex] || null;
+  const formatMethodLabel = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
+  const recommendedMethodNames = Array.from(new Set(helperMethods.map((method) => method.method_name.toLowerCase())));
+  const filteredHelperMethods = selectedLocalMethodName
+    ? helperMethods.filter((method) => method.method_name.toLowerCase() === selectedLocalMethodName)
+    : helperMethods;
+  const currentMethod = filteredHelperMethods[currentMethodIndex] || filteredHelperMethods[0] || null;
+  const recommendPreviewText = recommendedMethodNames.length > 0
+    ? recommendedMethodNames.slice(0, 2).map(formatMethodLabel).join(', ')
+    : 'Local Pay';
 
   const convertToLocalCurrency = (usdAmount: number) => {
     if (userCountryCode === 'BD') return `৳${Math.round(usdAmount * 120)}`;
@@ -265,7 +280,11 @@ export function CampaignFloatingButton() {
     setTimeout(() => setCopiedNumber(false), 2000);
   };
 
-  const handleBuyNow = () => setPopupView('payment_select');
+  const handleBuyNow = async () => {
+    setSelectedPaymentTab('google');
+    setPopupView('payment_select');
+    await fetchMatchedPackage(campaign);
+  };
 
   const resetHelperForm = () => {
     setHelperPaymentStep('form');
@@ -278,12 +297,26 @@ export function CampaignFloatingButton() {
   const closePopup = () => {
     setShowPopup(false);
     setPopupView('main');
+    setSelectedPaymentTab('google');
     setCopiedNumber(false);
     resetHelperForm();
   };
 
   const handleSelectPayment = async (tab: PaymentTab) => {
-    if (tab === 'google') {
+    setSelectedPaymentTab(tab);
+
+    if (tab === 'recommend') {
+      await Promise.all([fetchHelperPaymentMethods(), matchedPackage ? Promise.resolve() : fetchMatchedPackage(campaign)]);
+      return;
+    }
+
+    if (tab === 'skrill') {
+      return;
+    }
+  };
+
+  const handleContinueSelectedPayment = async () => {
+    if (selectedPaymentTab === 'google') {
       if (Capacitor.isNativePlatform()) {
         try {
           const diamonds = campaign.diamonds_amount;
@@ -310,21 +343,30 @@ export function CampaignFloatingButton() {
       return;
     }
 
-    if (tab === 'recommend') {
-      await Promise.all([fetchHelperPaymentMethods(), fetchMatchedPackage(campaign)]);
+    if (selectedPaymentTab === 'recommend') {
+      if (!selectedLocalMethodName) {
+        toast({ title: 'Select payment method', description: 'Please choose Nagad, Bkash, Rocket or another available method.', variant: 'destructive' });
+        return;
+      }
+
+      if (!matchedPackage) {
+        await fetchMatchedPackage(campaign);
+      }
+
       resetHelperForm();
+      setCurrentMethodIndex(0);
       setPopupView('payment_number');
       return;
     }
 
-    if (tab === 'skrill') {
+    if (selectedPaymentTab === 'skrill') {
       toast({ title: 'Skrill', description: 'Skrill payment coming soon' });
     }
   };
 
   const handleShowNextNumber = () => {
-    if (helperMethods.length > 1) {
-      setCurrentMethodIndex(prev => (prev + 1) % helperMethods.length);
+    if (filteredHelperMethods.length > 1) {
+      setCurrentMethodIndex(prev => (prev + 1) % filteredHelperMethods.length);
       setHelperTransactionId('');
       setHelperPaymentProof(null);
     }
@@ -605,25 +647,167 @@ export function CampaignFloatingButton() {
                     Select Payment Method
                   </p>
 
-                  <div className="space-y-2">
-                    {paymentTabs.map((tab) => (
-                      <motion.button
-                        key={tab.key}
-                        whileTap={{ scale: 0.97 }}
-                        onClick={() => handleSelectPayment(tab.key)}
-                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition-all"
-                        style={{ borderColor: `${template.popupBorder}30`, background: `${template.popupBorder}10` }}
+                  <div className="space-y-4">
+                    <div className="flex gap-2 flex-wrap">
+                      <button
+                        onClick={() => handleSelectPayment('google')}
+                        className={`flex-1 min-w-[130px] relative overflow-hidden rounded-2xl p-3 transition-all duration-200 ${
+                          selectedPaymentTab === 'google'
+                            ? 'bg-gradient-to-br from-emerald-500 to-green-600 shadow-lg shadow-green-500/25'
+                            : 'bg-white border-2 border-gray-100 hover:border-green-400/50 shadow-sm'
+                        }`}
                       >
-                        <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: `${template.popupBorder}20`, color: template.titleColor }}>
-                          {tab.icon}
+                        <div className="relative flex items-center gap-2">
+                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-base ${selectedPaymentTab === 'google' ? 'bg-white/20' : 'bg-green-50'}`}>
+                            🎮
+                          </div>
+                          <div className="flex-1 text-left">
+                            <p className={`font-bold text-[13px] ${selectedPaymentTab === 'google' ? 'text-white' : 'text-gray-800'}`}>
+                              Google Play
+                            </p>
+                            <p className={`text-[10px] font-medium ${selectedPaymentTab === 'google' ? 'text-white/80' : 'text-gray-500'}`}>
+                              Worldwide • Instant
+                            </p>
+                          </div>
+                          {selectedPaymentTab === 'google' && (
+                            <div className="w-5 h-5 rounded-full bg-white/25 flex items-center justify-center">
+                              <Check className="w-3 h-3 text-white" />
+                            </div>
+                          )}
                         </div>
-                        <div className="text-left flex-1">
-                          <p className="text-sm font-semibold" style={{ color: template.titleColor }}>{tab.label}</p>
-                          <p className="text-[10px] opacity-50" style={{ color: template.subtitleColor }}>{tab.description}</p>
+                      </button>
+
+                      <button
+                        onClick={() => handleSelectPayment('recommend')}
+                        className={`flex-1 min-w-[130px] relative overflow-hidden rounded-2xl p-3 transition-all duration-200 ${
+                          selectedPaymentTab === 'recommend'
+                            ? 'bg-gradient-to-br from-amber-500 to-orange-600 shadow-lg shadow-orange-500/25'
+                            : 'bg-white border-2 border-gray-100 hover:border-orange-400/50 shadow-sm'
+                        }`}
+                      >
+                        <div className="relative flex items-center gap-2">
+                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-base ${selectedPaymentTab === 'recommend' ? 'bg-white/20' : 'bg-orange-50'}`}>
+                            ⭐
+                          </div>
+                          <div className="flex-1 text-left">
+                            <p className={`font-bold text-[13px] ${selectedPaymentTab === 'recommend' ? 'text-white' : 'text-gray-800'}`}>
+                              Recommend
+                            </p>
+                            <p className={`text-[10px] truncate max-w-[70px] font-medium ${selectedPaymentTab === 'recommend' ? 'text-white/80' : 'text-gray-500'}`}>
+                              {recommendPreviewText}
+                            </p>
+                          </div>
+                          {selectedPaymentTab === 'recommend' && (
+                            <div className="w-5 h-5 rounded-full bg-white/25 flex items-center justify-center">
+                              <Check className="w-3 h-3 text-white" />
+                            </div>
+                          )}
                         </div>
-                        <span className="text-xs font-bold" style={{ color: template.priceColor }}>→</span>
-                      </motion.button>
-                    ))}
+                      </button>
+
+                      {!isBangladesh && (
+                        <button
+                          onClick={() => handleSelectPayment('skrill')}
+                          className={`w-full relative overflow-hidden rounded-2xl p-3 transition-all duration-200 ${
+                            selectedPaymentTab === 'skrill'
+                              ? 'bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/25'
+                              : 'bg-white border-2 border-gray-100 hover:border-indigo-400/50 shadow-sm'
+                          }`}
+                        >
+                          <div className="relative flex items-center gap-2">
+                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-base ${selectedPaymentTab === 'skrill' ? 'bg-white/20' : 'bg-indigo-50'}`}>
+                              💳
+                            </div>
+                            <div className="flex-1 text-left">
+                              <p className={`font-bold text-[13px] ${selectedPaymentTab === 'skrill' ? 'text-white' : 'text-gray-800'}`}>
+                                Skrill
+                              </p>
+                              <p className={`text-[10px] font-medium ${selectedPaymentTab === 'skrill' ? 'text-white/80' : 'text-gray-500'}`}>
+                                International payment
+                              </p>
+                            </div>
+                            {selectedPaymentTab === 'skrill' && (
+                              <div className="w-5 h-5 rounded-full bg-white/25 flex items-center justify-center">
+                                <Check className="w-3 h-3 text-white" />
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                      )}
+                    </div>
+
+                    {selectedPaymentTab === 'recommend' && (
+                      <div className="space-y-3">
+                        {loadingMethods ? (
+                          <div className="flex items-center justify-center py-6">
+                            <motion.div
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                              className="w-7 h-7 border-2 border-orange-400 border-t-transparent rounded-full"
+                            />
+                          </div>
+                        ) : recommendedMethodNames.length > 0 ? (
+                          <>
+                            <div className="flex flex-wrap gap-2">
+                              {recommendedMethodNames.map((methodName) => {
+                                const isSelected = selectedLocalMethodName === methodName;
+                                return (
+                                  <button
+                                    key={methodName}
+                                    type="button"
+                                    onClick={() => {
+                                      setSelectedLocalMethodName(methodName);
+                                      setCurrentMethodIndex(0);
+                                      setCopiedNumber(false);
+                                    }}
+                                    className={`min-w-[92px] rounded-2xl px-4 py-3 text-sm font-bold transition-all ${
+                                      isSelected
+                                        ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/25'
+                                        : 'bg-white text-gray-700 border border-gray-100'
+                                    }`}
+                                  >
+                                    {formatMethodLabel(methodName)}
+                                  </button>
+                                );
+                              })}
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={handleContinueSelectedPayment}
+                              disabled={!selectedLocalMethodName || !matchedPackage}
+                              className="w-full rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-3.5 text-sm font-bold text-[#2d1a00] shadow-lg disabled:opacity-40"
+                            >
+                              Continue with {selectedLocalMethodName ? formatMethodLabel(selectedLocalMethodName) : 'Local Pay'}
+                            </button>
+                          </>
+                        ) : (
+                          <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-center">
+                            <p className="text-sm text-white/80">No local payment methods available right now.</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {selectedPaymentTab === 'google' && (
+                      <button
+                        type="button"
+                        onClick={handleContinueSelectedPayment}
+                        className="w-full rounded-2xl bg-gradient-to-r from-emerald-400 to-green-500 px-4 py-3.5 text-sm font-bold text-[#062b1d] shadow-lg"
+                      >
+                        Continue with Google Play
+                      </button>
+                    )}
+
+                    {selectedPaymentTab === 'skrill' && (
+                      <button
+                        type="button"
+                        onClick={handleContinueSelectedPayment}
+                        className="w-full rounded-2xl bg-gradient-to-r from-indigo-400 to-purple-500 px-4 py-3.5 text-sm font-bold text-white shadow-lg"
+                      >
+                        Continue with Skrill
+                      </button>
+                    )}
                   </div>
                 </div>
               )}
@@ -714,13 +898,13 @@ export function CampaignFloatingButton() {
                         </div>
                       </div>
 
-                      {helperMethods.length > 1 && (
+                      {filteredHelperMethods.length > 1 && (
                         <button
                           type="button"
                           onClick={handleShowNextNumber}
                           className="mt-5 w-full rounded-2xl bg-amber-200/8 px-5 py-5 text-center text-[13px] font-medium text-amber-100"
                         >
-                          Show different number ({currentMethodIndex + 1}/{helperMethods.length})
+                          Show different number ({Math.min(currentMethodIndex + 1, filteredHelperMethods.length)}/{filteredHelperMethods.length})
                         </button>
                       )}
 
