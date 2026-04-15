@@ -1425,9 +1425,13 @@ const PartyRoom = () => {
           left_at: null // Reset left_at in case rejoining
         }, { onConflict: 'room_id,user_id' });
       
-      // REMOVED: Duplicate join message here - now ONLY added via realtime subscription
-      // This ensures single entry point for join notifications, preventing duplicates
-      // The realtime subscription handles ALL join notifications for consistency
+      // Show self-join flying banner
+      addBigoJoinNotification({
+        userId: currentUser.id,
+        userName,
+        userAvatar: avatarUrl,
+        userLevel,
+      });
       
       // ⚡ INSTANT BROADCAST: Tell ALL other participants about this join immediately
       // This fires BEFORE postgres_changes reaches other clients (sub-100ms vs 1-3s)
