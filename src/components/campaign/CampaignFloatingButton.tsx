@@ -4,16 +4,18 @@
  * Logic:
  * - Each time the user opens the app, a FRESH countdown starts (duration_minutes).
  * - If user doesn't purchase within the time, button hides until next app visit.
- * - If user purchases (navigates to recharge), mark as purchased in localStorage → never show again for this campaign.
+ * - If user purchases, mark as purchased in localStorage → never show again for this campaign.
  * - Floating button shows the admin-configured banner_image_url (NOT diamond icon).
  * - Only visible to users (not hosts).
+ * - Buy Now → shows payment method selection (Google / Recommended / Skrill for international)
+ *   then navigates to Recharge page with campaign & method pre-selected.
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { X, Loader2 } from 'lucide-react';
+import { X, CreditCard, Wallet, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Diamond3DIcon from '@/components/common/Diamond3DIcon';
-import { toast } from 'sonner';
 
 interface Campaign {
   id: string;
@@ -46,26 +48,33 @@ function formatCountdown(seconds: number): string {
 const SESSION_KEY = 'campaign_session_start';
 const PURCHASED_KEY = 'campaign_purchased_';
 
+type PaymentTab = 'google' | 'recommend' | 'skrill';
+
 export function CampaignFloatingButton() {
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [remainingSeconds, setRemainingSeconds] = useState(0);
   const [showPopup, setShowPopup] = useState(false);
   const [isHost, setIsHost] = useState<boolean | null>(null);
   const [purchased, setPurchased] = useState(false);
-  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [isBangladesh, setIsBangladesh] = useState(true);
+  const [selectedPaymentTab, setSelectedPaymentTab] = useState<PaymentTab>('google');
+  const [showPaymentMethods, setShowPaymentMethods] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
+  const navigate = useNavigate();
 
-  // Check if user is host
+  // Check if user is host & get country
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setIsHost(null); return; }
       const { data } = await supabase
         .from('profiles')
-        .select('gender')
+        .select('gender, country_code')
         .eq('id', user.id)
         .single();
       setIsHost(data?.gender === 'Female');
+      const cc = (data?.country_code || 'BD').toUpperCase();
+      setIsBangladesh(cc === 'BD');
     })();
   }, []);
 
@@ -91,11 +100,10 @@ export function CampaignFloatingButton() {
         return;
       }
 
-      // Per-session timer: use sessionStorage to track when this session started
+      // Per-session timer
       const sessionKey = SESSION_KEY + '_' + c.id;
       let sessionStart = sessionStorage.getItem(sessionKey);
       if (!sessionStart) {
-        // New app visit — start fresh timer
         sessionStart = String(Date.now());
         sessionStorage.setItem(sessionKey, sessionStart);
       }
@@ -139,46 +147,42 @@ export function CampaignFloatingButton() {
 
   const bonusText = discountPercent > 0 ? `${discountPercent}%` : '';
 
-  const handlePurchase = async () => {
-    setPaymentLoading(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error('Please login first');
-        return;
-      }
-
-      // Call Stripe payment edge function directly
-      const { data, error } = await supabase.functions.invoke('create-stripe-payment', {
-        body: {
-          package_id: campaign.id,
-          diamonds: campaign.diamonds_amount + campaign.bonus_diamonds,
-          amount_usd: campaign.offer_price_usd || campaign.original_price_usd,
-          campaign_id: campaign.id,
-          user_id: user.id,
-        }
-      });
-
-      if (error) throw error;
-
-      if (data?.url) {
-        // Mark as purchased
-        localStorage.setItem(PURCHASED_KEY + campaign.id, 'true');
-        setPurchased(true);
-        setShowPopup(false);
-        // Open payment page
-        const { openInApp } = await import('@/utils/inAppNavigation');
-        await openInApp(data.url, { useOverlay: true });
-      } else {
-        toast.error('Could not start payment');
-      }
-    } catch (err: any) {
-      console.error('[Campaign] Payment error:', err);
-      toast.error(err.message || 'Payment failed');
-    } finally {
-      setPaymentLoading(false);
-    }
+  const handleBuyNow = () => {
+    setShowPaymentMethods(true);
   };
+
+  const handleSelectPayment = (tab: PaymentTab) => {
+    // Mark as purchased so it hides permanently
+    localStorage.setItem(PURCHASED_KEY + campaign.id, 'true');
+    setPurchased(true);
+    setShowPopup(false);
+    
+    // Navigate to Recharge page with campaign and payment tab pre-selected
+    navigate(`/recharge?campaign_id=${campaign.id}&tab=${tab}`);
+  };
+
+  // Payment method tabs based on country
+  const paymentTabs: { key: PaymentTab; label: string; icon: React.ReactNode; description: string }[] = [
+    {
+      key: 'google',
+      label: 'Google Pay',
+      icon: <CreditCard className="w-5 h-5" />,
+      description: 'Pay with Google Play',
+    },
+    {
+      key: 'recommend',
+      label: 'Recommended',
+      icon: <Wallet className="w-5 h-5" />,
+      description: 'Local payment methods',
+    },
+    // Skrill only for international users
+    ...(!isBangladesh ? [{
+      key: 'skrill' as PaymentTab,
+      label: 'Skrill',
+      icon: <Globe className="w-5 h-5" />,
+      description: 'International payment',
+    }] : []),
+  ];
 
   return (
     <>
@@ -222,7 +226,7 @@ export function CampaignFloatingButton() {
         )}
       </AnimatePresence>
 
-      {/* Premium Campaign Popup */}
+      {/* Campaign Popup */}
       <AnimatePresence>
         {showPopup && (
           <motion.div
@@ -230,7 +234,7 @@ export function CampaignFloatingButton() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[100] flex items-center justify-center p-6"
-            onClick={() => setShowPopup(false)}
+            onClick={() => { setShowPopup(false); setShowPaymentMethods(false); }}
           >
             <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
             
@@ -244,7 +248,7 @@ export function CampaignFloatingButton() {
             >
               {/* Close button */}
               <button
-                onClick={() => setShowPopup(false)}
+                onClick={() => { setShowPopup(false); setShowPaymentMethods(false); }}
                 className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/10 flex items-center justify-center z-10"
               >
                 <X className="w-3.5 h-3.5 text-white/60" />
@@ -309,26 +313,53 @@ export function CampaignFloatingButton() {
                 </span>
               </div>
 
-              {/* Buy Now Button */}
+              {/* Payment Method Selection OR Buy Now Button */}
               <div className="px-5 pt-4 pb-3">
-                <motion.button
-                  whileTap={{ scale: 0.97 }}
-                  onClick={handlePurchase}
-                  disabled={paymentLoading}
-                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-500 text-black font-extrabold text-base shadow-lg shadow-amber-500/30 active:shadow-sm transition-shadow disabled:opacity-60"
-                >
-                  {paymentLoading ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Processing...
-                    </span>
-                  ) : 'Buy Now'}
-                </motion.button>
+                {!showPaymentMethods ? (
+                  <motion.button
+                    whileTap={{ scale: 0.97 }}
+                    onClick={handleBuyNow}
+                    className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-500 text-black font-extrabold text-base shadow-lg shadow-amber-500/30 active:shadow-sm transition-shadow"
+                  >
+                    Buy Now
+                  </motion.button>
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="space-y-2"
+                  >
+                    <p className="text-white/50 text-[10px] text-center font-medium uppercase tracking-wider mb-2">
+                      Select Payment Method
+                    </p>
+                    {paymentTabs.map((tab) => (
+                      <motion.button
+                        key={tab.key}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => handleSelectPayment(tab.key)}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border transition-all ${
+                          selectedPaymentTab === tab.key
+                            ? 'border-amber-500/50 bg-amber-500/10'
+                            : 'border-white/10 bg-white/5 hover:bg-white/10'
+                        }`}
+                      >
+                        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center text-amber-400">
+                          {tab.icon}
+                        </div>
+                        <div className="text-left flex-1">
+                          <p className="text-white text-sm font-semibold">{tab.label}</p>
+                          <p className="text-white/40 text-[10px]">{tab.description}</p>
+                        </div>
+                        <div className="text-amber-400 text-xs font-bold">→</div>
+                      </motion.button>
+                    ))}
+                  </motion.div>
+                )}
               </div>
 
               {/* Close (not dismiss permanently) */}
               <button
-                onClick={() => setShowPopup(false)}
+                onClick={() => { setShowPopup(false); setShowPaymentMethods(false); }}
                 className="w-full text-center text-white/25 text-[11px] pb-4"
               >
                 Not now
