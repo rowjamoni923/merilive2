@@ -34,9 +34,12 @@ const isApprovedLiveHost = (profile?: {
   is_host?: boolean | null;
   host_status?: string | null;
   gender?: string | null;
+  is_face_verified?: boolean | null;
 }) => {
-  const normalizedGender = String(profile?.gender ?? '').toLowerCase();
-  return Boolean(profile?.is_host) || String(profile?.host_status ?? '').toLowerCase() === 'approved' || normalizedGender === 'female';
+  // STRICT: Only admin-approved hosts can go live
+  return Boolean(profile?.is_host) 
+    && String(profile?.host_status ?? '').toLowerCase() === 'approved'
+    && Boolean(profile?.is_face_verified);
 };
 
 
