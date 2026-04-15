@@ -22,10 +22,10 @@ interface BlockedUser {
   blocked_id: string;
   created_at: string;
   blocked_profile: {
-    display_name: string;
-    avatar_url: string;
-    username: string;
-  };
+    display_name: string | null;
+    avatar_url: string | null;
+    username: string | null;
+  } | null;
 }
 
 const Blacklist = () => {
@@ -49,17 +49,34 @@ const Blacklist = () => {
 
       const { data, error } = await supabase
         .from("user_blocks")
-        .select(`
-          id,
-          blocked_id,
-          created_at,
-          blocked_profile:profiles!user_blocks_blocked_id_fkey(display_name, avatar_url, username)
-        `)
+        .select("id, blocked_id, created_at")
         .eq("blocker_id", user.id)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setBlockedUsers((data as any) || []);
+
+      if (data && data.length > 0) {
+        const blockedIds = data.map(b => b.blocked_id);
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, display_name, avatar_url, username")
+          .in("id", blockedIds);
+
+        const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+
+        setBlockedUsers(data.map(b => ({
+          id: b.id,
+          blocked_id: b.blocked_id,
+          created_at: b.created_at ?? '',
+          blocked_profile: profileMap.get(b.blocked_id) ? {
+            display_name: profileMap.get(b.blocked_id)!.display_name,
+            avatar_url: profileMap.get(b.blocked_id)!.avatar_url,
+            username: profileMap.get(b.blocked_id)!.username,
+          } : null,
+        })));
+      } else {
+        setBlockedUsers([]);
+      }
     } catch (error) {
       console.error("Error fetching blocked users:", error);
     } finally {
