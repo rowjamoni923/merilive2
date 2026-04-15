@@ -1189,7 +1189,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         // NOT total_earnings (accumulates forever)
         const currentXP = isFemaleHost 
           ? (profile.weekly_earnings ?? 0)  // Weekly earnings resets on transfer
-          : (profile.coins ?? 0) + (profile.total_consumption ?? 0);
+          : (profile.total_recharged ?? 0); // Users: level from total top-up only
         
         // Find next level - must be HIGHER than current calculated level
         const nextLevelTier = data.find(t => t.level_number > calculatedLevel);
