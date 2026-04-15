@@ -982,7 +982,7 @@ export default function AdminGameSettings() {
                     <label className="text-sm">Game Type</label>
                     <Select
                       value={editingGame.game_type || 'native'}
-                      onValueChange={(val) => setEditingGame({...editingGame, game_type: val as 'native' | 'iframe' | 'external'})}
+                      onValueChange={(val) => setEditingGame({...editingGame, game_type: val as 'native' | 'iframe' | 'external' | 'third_party'})}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -1191,7 +1191,7 @@ export default function AdminGameSettings() {
                   <label className="text-sm">Game Type</label>
                   <Select
                     value={newGame.game_type || 'native'}
-                    onValueChange={(val) => setNewGame({...newGame, game_type: val as 'native' | 'iframe' | 'external'})}
+                    onValueChange={(val) => setNewGame({...newGame, game_type: val as 'native' | 'iframe' | 'external' | 'third_party'})}
                   >
                     <SelectTrigger>
                       <SelectValue />
