@@ -1129,20 +1129,29 @@ const Recharge = () => {
     return parsed.toLocaleString('en-US');
   };
 
+  const SYMBOL_FALLBACK: Record<string, string> = {
+    BDT: '৳', INR: '₹', PKR: '₨', EUR: '€', GBP: '£', USD: '$',
+    MYR: 'RM', TRY: '₺', SAR: 'ر.س', AED: 'د.إ', JPY: '¥', KRW: '₩',
+    THB: '฿', VND: '₫', IDR: 'Rp', PHP: '₱', BRL: 'R$', EGP: 'E£',
+    NGN: '₦', ZAR: 'R', CNY: '¥', SGD: 'S$', HKD: 'HK$', TWD: 'NT$',
+    NPR: 'रू', OMR: 'ر.ع', QAR: 'ر.ق', KWD: 'د.ك', LKR: 'Rs', BHD: '.د.ب',
+    JOD: 'JD', KES: 'KSh', GHS: 'GH₵',
+  };
+
+  // Convert USD to local currency using REAL international exchange rates (Google Play standard)
   const convertToLocalCurrency = (priceUsd: number): string => {
     if (!currencyRate) return `$${priceUsd.toFixed(2)}`;
-    const localPrice = priceUsd * currencyRate.rate_to_usd;
-    // Use DB symbol, fallback to known symbols by currency code
-    const SYMBOL_FALLBACK: Record<string, string> = {
-      BDT: '৳', INR: '₹', PKR: '₨', EUR: '€', GBP: '£', USD: '$',
-      MYR: 'RM', TRY: '₺', SAR: 'ر.س', AED: 'د.إ', JPY: '¥', KRW: '₩',
-      THB: '฿', VND: '₫', IDR: 'Rp', PHP: '₱', BRL: 'R$', EGP: 'E£',
-      NGN: '₦', ZAR: 'R', CNY: '¥', SGD: 'S$', HKD: 'HK$', TWD: 'NT$',
-    };
-    const symbol = currencyRate.currency_symbol || SYMBOL_FALLBACK[currencyRate.currency_code] || currencyRate.currency_code + ' ';
-    // For currencies with large values (BDT, INR, PKR etc.), show integer
+    
+    const currencyCode = currencyRate.currency_code;
+    
+    // Use real international rate if available (exact market rate, no markup)
+    const internationalRate = internationalRates[currencyCode];
+    const rate = internationalRate || currencyRate.rate_to_usd;
+    const localPrice = priceUsd * rate;
+    
+    const symbol = currencyRate.currency_symbol || SYMBOL_FALLBACK[currencyCode] || currencyCode + ' ';
     const isLargeValue = localPrice >= 100;
-    return `${symbol}${isLargeValue ? Math.round(localPrice).toLocaleString() : localPrice.toFixed(2)}`;
+    return `${symbol}${isLargeValue ? Math.round(localPrice).toLocaleString('en-US') : localPrice.toFixed(2)}`;
   };
 
   // Gateway icon - No hardcoded defaults, use logo_url from database
