@@ -732,14 +732,9 @@ const AgencyDashboard = () => {
   // This is the agency's withdrawable pool from host activities
   const agencyBeansBalance = agency.wallet_balance || 0;
   
-  // My Beans = Agency owner's PERSONAL beans from their own gifts/calls
-  // This is separate from Total Beans — it's the owner's individual earning
-  const myBeans = ownerPersonalBeans;
-  
   // Correct USD calculation: beans / rate = USD
   const usdValue = agencyBeansBalance / coinsToUsdRate;
   const localValue = usdValue * localExchangeRate;
-  const myBeansUsdValue = myBeans / coinsToUsdRate;
 
   const getLevelInfo = (level: string) => {
     // Use database tier info if available, otherwise fallback to defaults
