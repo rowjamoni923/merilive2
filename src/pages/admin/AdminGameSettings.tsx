@@ -51,7 +51,7 @@ interface GameSetting {
   // New URL/iframe fields
   game_url?: string;
   logo_url?: string;
-  game_type?: 'native' | 'iframe' | 'external';
+  game_type?: 'native' | 'iframe' | 'external' | 'third_party';
   iframe_width?: number;
   iframe_height?: number;
   // Bet multipliers / rules
@@ -80,6 +80,7 @@ const CATEGORIES = [
 
 const GAME_TYPES = [
   { id: 'native', name: 'Native Game', icon: '🎮', description: 'Built-in game' },
+  { id: 'third_party', name: 'Third Party', icon: '🌐', description: 'External game with diamond integration' },
   { id: 'iframe', name: 'Iframe Game', icon: '🖼️', description: 'External game in iframe' },
   { id: 'external', name: 'External Link', icon: '🔗', description: 'Opens in new tab' },
 ];
