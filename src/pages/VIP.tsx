@@ -73,6 +73,17 @@ interface UserPrivilege {
   role_type?: string; // For admin-assigned frames
 }
 
+// Helper: check if a URL is a valid asset (not just placeholder text)
+const isValidAssetUrl = (url: string | null | undefined): boolean => {
+  if (!url || url.length < 10) return false;
+  // Accept any HTTP(S) URL or relative path with known extensions
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/')) return true;
+  if (url.endsWith('.svga') || url.endsWith('.json') || url.endsWith('.png') || 
+      url.endsWith('.jpg') || url.endsWith('.webp') || url.endsWith('.gif') ||
+      url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.svg')) return true;
+  return false;
+};
+
 // Helper function to format expiration time
 const formatExpiration = (expiresAt: string | null): string | null => {
   if (!expiresAt) return null;
@@ -232,13 +243,13 @@ const VIP = () => {
             }
             
             const animUrl = (p.shop_items as any).animation_url || (p.shop_items as any).animation_file_url;
+            const previewUrl = (p.shop_items as any).preview_url;
             const shopCategory = (p.shop_items as any).category;
             const isFrameCategory = shopCategory === 'frame' || shopCategory === 'portrait_frame';
             
-            // Only include items with REAL animation files (Supabase storage URLs or .svga/.json files)
-            if (animUrl && (animUrl.includes('supabase.co/storage') || animUrl.endsWith('.svga') || animUrl.endsWith('.json') || animUrl.includes('.r2.dev'))) {
-              // Check equipped status - UNIFIED entry effects (only ONE entry effect can be equipped)
-              // Since we now clear the other entry effect field when equipping, direct match is correct
+            // Include items with valid animation OR preview URLs
+            const displayUrl = animUrl || previewUrl;
+            if (isValidAssetUrl(displayUrl)) {
               let isEquipped = false;
               if (isFrameCategory) {
                 isEquipped = p.item_id === equippedFrameId;
@@ -249,7 +260,6 @@ const VIP = () => {
               } else if (shopCategory === 'bubble') {
                 isEquipped = p.item_id === equippedBubbleId;
               } else if (shopCategory === 'vehicle' || shopCategory === 'vehicle_entrance') {
-                // Support both vehicle and vehicle_entrance
                 isEquipped = p.item_id === equippedVehicleId;
               }
               
@@ -258,8 +268,8 @@ const VIP = () => {
                 item_id: p.item_id,
                 name: (p.shop_items as any).name,
                 category: shopCategory,
-                preview_url: (p.shop_items as any).preview_url,
-                animation_url: animUrl,
+                preview_url: previewUrl,
+                animation_url: animUrl || previewUrl,
                 is_equipped: isEquipped,
                 expires_at: p.expires_at,
                 source: 'shop',
@@ -283,9 +293,8 @@ const VIP = () => {
         const hasEquippedFrameInDB = !!equippedFrameId;
         
         for (const frame of availableFrames) {
-          // Only include frames with REAL animation URLs (Supabase storage SVGA files)
-          if (frame.frame_url && frame.frame_url.includes('supabase.co/storage') && frame.frame_url.endsWith('.svga')) {
-            // Check if this SPECIFIC frame is equipped - only ONE can be equipped
+          const frameAssetUrl = frame.frame_url || frame.preview_url;
+          if (isValidAssetUrl(frameAssetUrl)) {
             const isEquipped = hasEquippedFrameInDB && frame.id === equippedFrameId;
             const alreadyExists = allPrivileges.some(p => p.item_id === frame.id);
             if (!alreadyExists) {
@@ -295,7 +304,7 @@ const VIP = () => {
                 name: frame.name,
                 category: 'frame',
                 preview_url: frame.preview_url,
-                animation_url: frame.frame_url,
+                animation_url: frame.frame_url || frame.preview_url,
                 is_equipped: isEquipped,
                 expires_at: null,
                 source: 'frame',
@@ -317,10 +326,8 @@ const VIP = () => {
 
       if (levelPrivileges) {
         for (const priv of levelPrivileges) {
-          // Only include privileges with REAL animation URLs (Supabase storage)
-          if (priv.animation_url && (priv.animation_url.includes('supabase.co/storage') || priv.animation_url.endsWith('.svga') || priv.animation_url.endsWith('.json'))) {
-            // Check equipped status - UNIFIED entry effects (only ONE entry effect can be equipped)
-            // Since we now clear the other entry effect field when equipping, direct match is correct
+          const privAssetUrl = priv.animation_url || priv.preview_url;
+          if (isValidAssetUrl(privAssetUrl)) {
             let isEquipped = false;
             const privType = priv.privilege_type;
             if (privType === 'entrance' || privType === 'entrance_effect') {
@@ -330,11 +337,8 @@ const VIP = () => {
             } else if (privType === 'bubble') {
               isEquipped = priv.id === equippedBubbleId;
             } else if (privType === 'vehicle' || privType === 'vehicle_entrance') {
-              // Support both 'vehicle' and 'vehicle_entrance' types from database
               isEquipped = priv.id === equippedVehicleId;
             }
-            
-            console.log('[VIP] Level privilege:', priv.name, 'type:', privType, 'id:', priv.id, 'isEquipped:', isEquipped);
             
             allPrivileges.push({
               id: priv.id,
@@ -342,7 +346,7 @@ const VIP = () => {
               name: priv.name,
               category: priv.privilege_type,
               preview_url: priv.preview_url,
-              animation_url: priv.animation_url,
+              animation_url: priv.animation_url || priv.preview_url,
               is_equipped: isEquipped,
               expires_at: null,
               source: 'level',
@@ -362,7 +366,8 @@ const VIP = () => {
 
       if (entryNameBars) {
         for (const bar of entryNameBars) {
-          if (bar.animation_url && (bar.animation_url.includes('supabase.co/storage') || bar.animation_url.endsWith('.svga') || bar.animation_url.endsWith('.json') || bar.animation_url.includes('.r2.dev'))) {
+          const barAssetUrl = bar.animation_url || bar.preview_url;
+          if (isValidAssetUrl(barAssetUrl)) {
             const isEquipped = bar.id === equippedEntryNameBarId;
             const alreadyExists = allPrivileges.some(p => p.item_id === bar.id);
             if (!alreadyExists) {
@@ -372,7 +377,7 @@ const VIP = () => {
                 name: bar.name,
                 category: 'entry_name_bar',
                 preview_url: bar.preview_url,
-                animation_url: bar.animation_url,
+                animation_url: bar.animation_url || bar.preview_url,
                 is_equipped: isEquipped,
                 expires_at: null,
                 source: 'level',
@@ -393,7 +398,8 @@ const VIP = () => {
 
       if (entryBanners) {
         for (const banner of entryBanners) {
-          if (banner.animation_url && (banner.animation_url.includes('supabase.co/storage') || banner.animation_url.endsWith('.svga') || banner.animation_url.endsWith('.json') || banner.animation_url.includes('.r2.dev'))) {
+          const bannerAssetUrl = banner.animation_url || banner.preview_url;
+          if (isValidAssetUrl(bannerAssetUrl)) {
             const isEquipped = banner.id === equippedEntranceId;
             const alreadyExists = allPrivileges.some(p => p.item_id === banner.id);
             if (!alreadyExists) {
@@ -403,7 +409,7 @@ const VIP = () => {
                 name: banner.name,
                 category: 'entrance',
                 preview_url: banner.preview_url,
-                animation_url: banner.animation_url,
+                animation_url: banner.animation_url || banner.preview_url,
                 is_equipped: isEquipped,
                 expires_at: null,
                 source: 'level',
@@ -436,32 +442,83 @@ const VIP = () => {
       if (assignedFrames) {
         for (const assigned of assignedFrames) {
           const frame = assigned.role_frames as any;
-          if (frame && frame.is_active && frame.frame_url) {
-            // Only include frames with valid animation URLs
-            if (frame.frame_url.includes('supabase.co/storage') || 
-                frame.frame_url.endsWith('.svga') || 
-                frame.frame_url.endsWith('.json') ||
-                frame.frame_url.includes('.r2.dev')) {
-              
-              // Check if this frame is equipped
-              const isEquipped = assigned.is_equipped || frame.id === equippedFrameId;
-              
-              // Avoid duplicates
-              const alreadyExists = allPrivileges.some(p => p.item_id === frame.id);
-              if (!alreadyExists) {
-                allPrivileges.push({
-                  id: assigned.id,
-                  item_id: frame.id,
-                  name: frame.frame_name,
-                  category: 'frame',
-                  preview_url: frame.frame_url, // Use frame_url as preview too
-                  animation_url: frame.frame_url,
-                  is_equipped: isEquipped,
-                  expires_at: null, // Admin-assigned frames don't expire
-                  source: 'admin_assigned',
-                  role_type: assigned.role_type,
-                });
-              }
+          if (frame && frame.is_active && isValidAssetUrl(frame.frame_url)) {
+            const isEquipped = assigned.is_equipped || frame.id === equippedFrameId;
+            const alreadyExists = allPrivileges.some(p => p.item_id === frame.id);
+            if (!alreadyExists) {
+              allPrivileges.push({
+                id: assigned.id,
+                item_id: frame.id,
+                name: frame.frame_name,
+                category: 'frame',
+                preview_url: frame.frame_url,
+                animation_url: frame.frame_url,
+                is_equipped: isEquipped,
+                expires_at: null,
+                source: 'admin_assigned',
+                role_type: assigned.role_type,
+              });
+            }
+          }
+        }
+      }
+
+      // === ADD VIP TIER ITEMS ===
+      // If user has an active VIP subscription, show VIP-exclusive items
+      const localVIPLevel = vipData?.vip_tiers ? (vipData.vip_tiers as any).tier_level || 0 : 0;
+      if (localVIPLevel > 0 && tiersData && tiersData.length > 0) {
+        const activeTier = tiersData.find(t => t.tier_level === localVIPLevel) || 
+                          (vipData?.tier_id ? tiersData.find(t => t.id === vipData.tier_id) : null);
+        if (activeTier) {
+          // VIP Frame
+          if (isValidAssetUrl(activeTier.frame_animation_url)) {
+            const alreadyExists = allPrivileges.some(p => p.item_id === activeTier.id && p.category === 'frame');
+            if (!alreadyExists) {
+              allPrivileges.push({
+                id: `vip_frame_${activeTier.id}`,
+                item_id: activeTier.id,
+                name: `${activeTier.tier_name} Frame`,
+                category: 'frame',
+                preview_url: activeTier.frame_animation_url,
+                animation_url: activeTier.frame_animation_url!,
+                is_equipped: activeTier.id === equippedFrameId,
+                expires_at: vipData?.expires_at || null,
+                source: 'shop',
+              });
+            }
+          }
+          // VIP Entry Animation
+          if (isValidAssetUrl(activeTier.entry_animation_url)) {
+            const alreadyExists = allPrivileges.some(p => p.item_id === activeTier.id && p.category === 'entrance');
+            if (!alreadyExists) {
+              allPrivileges.push({
+                id: `vip_entry_${activeTier.id}`,
+                item_id: activeTier.id,
+                name: `${activeTier.tier_name} Entry`,
+                category: 'entrance',
+                preview_url: activeTier.entry_animation_url,
+                animation_url: activeTier.entry_animation_url!,
+                is_equipped: activeTier.id === equippedEntranceId,
+                expires_at: vipData?.expires_at || null,
+                source: 'shop',
+              });
+            }
+          }
+          // VIP Chat Bubble
+          if (isValidAssetUrl(activeTier.bubble_animation_url)) {
+            const alreadyExists = allPrivileges.some(p => p.item_id === activeTier.id && p.category === 'bubble');
+            if (!alreadyExists) {
+              allPrivileges.push({
+                id: `vip_bubble_${activeTier.id}`,
+                item_id: activeTier.id,
+                name: `${activeTier.tier_name} Bubble`,
+                category: 'bubble',
+                preview_url: activeTier.bubble_animation_url,
+                animation_url: activeTier.bubble_animation_url!,
+                is_equipped: activeTier.id === equippedBubbleId,
+                expires_at: vipData?.expires_at || null,
+                source: 'shop',
+              });
             }
           }
         }
