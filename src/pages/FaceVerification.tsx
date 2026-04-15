@@ -223,6 +223,10 @@ const FaceVerification = () => {
   const isFemale = profile?.gender === 'female' || profile?.gender === 'Female';
   const isHostVerification = isFemale;
   
+  // Country-based localized instructions and messages
+  const faceInstructions = React.useMemo(() => getLocalizedInstructions(profile?.country_name), [profile?.country_name]);
+  const localizedMsg = React.useMemo(() => getLocalizedMessages(profile?.country_name), [profile?.country_name]);
+
   // Current step for multi-step verification (for hosts)
   const [currentStep, setCurrentStep] = useState(1);
   
