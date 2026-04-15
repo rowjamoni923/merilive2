@@ -706,6 +706,7 @@ const LiveStream = () => {
                       userAvatar: avatarUrl,
                       userLevel,
                       entranceAnimationUrl: entranceAnimationUrl || null,
+                      entranceSoundUrl: entranceSoundUrl || null,
                       entryNameBarUrl: entryNameBarUrl || null,
                       vehicleAnimationUrl: vehicleAnimationUrl || null,
                       timestamp: Date.now(),
