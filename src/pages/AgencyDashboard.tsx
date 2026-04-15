@@ -293,7 +293,10 @@ const AgencyDashboard = () => {
           .eq("owner_id", user.id)
           .maybeSingle();
 
-        if (agencyError || !agencyData) {
+        if (agencyError) {
+          console.error('[AgencyDashboard] Error fetching agency:', agencyError);
+        }
+        if (!agencyData) {
           navigate("/agency");
           return;
         }
