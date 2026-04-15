@@ -39,7 +39,6 @@ interface TopUpCampaignBannerProps {
 export function TopUpCampaignBanner({ location, compact = false, className }: TopUpCampaignBannerProps) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
-  const { user } = useAuth();
   const navigate = useNavigate();
 
   const fetchCampaigns = useCallback(async () => {
