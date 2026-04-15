@@ -314,9 +314,15 @@ export function CampaignFloatingButton() {
                 <motion.button
                   whileTap={{ scale: 0.97 }}
                   onClick={handlePurchase}
-                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-500 text-black font-extrabold text-base shadow-lg shadow-amber-500/30 active:shadow-sm transition-shadow"
+                  disabled={paymentLoading}
+                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-500 text-black font-extrabold text-base shadow-lg shadow-amber-500/30 active:shadow-sm transition-shadow disabled:opacity-60"
                 >
-                  Buy Now
+                  {paymentLoading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Processing...
+                    </span>
+                  ) : 'Buy Now'}
                 </motion.button>
               </div>
 
