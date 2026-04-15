@@ -26,6 +26,7 @@ const PUBLICATION_TABLES = new Set([
   'agencies', 'agency_withdrawals', 'support_tickets',
   'support_messages', 'stream_chat', 'stream_viewers',
   'rating_reward_claims', 'face_verification_submissions',
+  'followers', 'topup_helpers', 'shop_items',
 ]);
 
 const isInPublication = (table: string) => PUBLICATION_TABLES.has(table);
