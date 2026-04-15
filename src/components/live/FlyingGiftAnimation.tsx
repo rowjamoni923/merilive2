@@ -355,23 +355,4 @@ export const FlyingGiftAnimation = forwardRef<HTMLDivElement, FlyingGiftAnimatio
   (props, ref) => <FlyingGiftAnimationInner {...props} />
 );
 
-// Hook to manage flying gift queue - supports stacking up to 2 banners
-export function useFlyingGifts() {
-  const [gifts, setGifts] = useState<FlyingGift[]>([]);
-
-  const addGift = useCallback((gift: Omit<FlyingGift, 'id'>) => {
-    const newGift: FlyingGift = {
-      ...gift,
-      id: `${Date.now()}-${Math.random()}`,
-    };
-    setGifts(prev => [...prev, newGift]);
-  }, []);
-
-  const removeGift = useCallback((id: string) => {
-    setGifts(prev => prev.filter(g => g.id !== id));
-  }, []);
-
-  return { gifts, addGift, removeGift };
-}
-
 export default FlyingGiftAnimation;

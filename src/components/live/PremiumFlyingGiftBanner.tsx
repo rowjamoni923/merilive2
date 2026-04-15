@@ -247,24 +247,4 @@ export const PremiumFlyingGiftBanner = ({
   );
 };
 
-// Hook to manage flying gift banner queue
-export const useFlyingGiftBanners = () => {
-  const [banners, setBanners] = useState<Array<{
-    id: string;
-    props: Omit<FlyingGiftBannerProps, 'onComplete'>;
-  }>>([]);
-
-  const addBanner = (props: Omit<FlyingGiftBannerProps, 'onComplete'>) => {
-    const id = `${Date.now()}-${Math.random()}`;
-    setBanners(prev => [...prev, { id, props }]);
-    return id;
-  };
-
-  const removeBanner = (id: string) => {
-    setBanners(prev => prev.filter(b => b.id !== id));
-  };
-
-  return { banners, addBanner, removeBanner };
-};
-
 export default PremiumFlyingGiftBanner;
