@@ -50,7 +50,7 @@ export function ParticipantVideo({
         "relative overflow-hidden transition-all",
         roomType === 'audio' 
           ? "aspect-square rounded-2xl" 
-          : "aspect-[3/4] rounded-3xl",
+          : "aspect-[9/16] rounded-3xl",
         "bg-gradient-to-br from-slate-900/60 to-black/40 backdrop-blur-sm border border-white/10"
       )}
     >
