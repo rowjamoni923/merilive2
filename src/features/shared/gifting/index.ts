@@ -26,14 +26,16 @@ export { GiftPanel } from '@/components/live/GiftPanel';
 export type { GiftData } from '@/components/live/GiftPanel';
 
 // ========== ANIMATION COMPONENTS ==========
-export { FlyingGiftAnimation, useFlyingGifts } from '@/components/live/FlyingGiftAnimation';
+export { FlyingGiftAnimation } from '@/components/live/FlyingGiftAnimation';
+export { useFlyingGifts } from '@/hooks/useFlyingGifts';
 export type { FlyingGift } from '@/components/live/FlyingGiftAnimation';
 
 export { default as GiftComboDisplay, MiniGiftNotification } from '@/components/live/GiftComboDisplay';
 export { default as FullScreenGiftAnimation } from '@/components/level/FullScreenGiftAnimation';
 export { default as GiftAnimation } from '@/components/live/GiftAnimation';
 export { default as LottieGiftAnimation } from '@/components/live/LottieGiftEffects';
-export { default as PremiumFlyingGiftBanner, useFlyingGiftBanners } from '@/components/live/PremiumFlyingGiftBanner';
+export { default as PremiumFlyingGiftBanner } from '@/components/live/PremiumFlyingGiftBanner';
+export { useFlyingGiftBanners } from '@/hooks/useFlyingGiftBanners';
 
 // ========== ROOM GIFTS (From Room System) ==========
 export { useRoomGifts } from '@/features/shared/room/useRoomGifts';

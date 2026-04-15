@@ -16,7 +16,8 @@ import FramedAvatarWithPrivileges from "@/components/common/FramedAvatarWithPriv
 import { LevelBadge } from "@/components/common/LevelBadge";
 import { ReelUploadModal } from "@/components/reels/ReelUploadModal";
 import { GiftPanel, GiftData } from "@/components/live/GiftPanel";
-import { FlyingGiftAnimation, useFlyingGifts } from "@/components/live/FlyingGiftAnimation";
+import { FlyingGiftAnimation } from "@/components/live/FlyingGiftAnimation";
+import { useFlyingGifts } from "@/hooks/useFlyingGifts";
 import { sendGift } from "@/features/shared/gifting/GiftingService";
 interface Sound {
   id: string;
