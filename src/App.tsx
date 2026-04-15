@@ -241,6 +241,7 @@ const AdminPaymentGateways = lazy(lazyRetry(() => import("./pages/admin/AdminPay
 const AdminTransferScheduler = lazy(lazyRetry(() => import("./pages/admin/AdminTransferScheduler")));
 const AdminTransferHistory = lazy(lazyRetry(() => import("./pages/admin/AdminTransferHistory")));
 const AdminRechargeHistory = lazy(lazyRetry(() => import("./pages/admin/AdminRechargeHistory")));
+const AdminRechargeCampaigns = lazy(lazyRetry(() => import("./pages/admin/AdminRechargeCampaigns")));
 const AdminShop = lazy(lazyRetry(() => import("./pages/admin/AdminShop")));
 const AdminPushBroadcast = lazy(lazyRetry(() => import("./pages/admin/AdminPushBroadcast")));
 const AdminNoticeBroadcast = lazy(lazyRetry(() => import("./pages/admin/AdminNoticeBroadcast")));
@@ -1059,6 +1060,7 @@ const App = () => {
                   <Route path="transfer-scheduler" element={<AdminRouteGuard routeSegment="transfer-scheduler"><AdminTransferScheduler /></AdminRouteGuard>} />
                   <Route path="transfer-history" element={<AdminRouteGuard routeSegment="transfer-history"><AdminTransferHistory /></AdminRouteGuard>} />
                   <Route path="recharge-history" element={<AdminRouteGuard routeSegment="recharge-history"><AdminRechargeHistory /></AdminRouteGuard>} />
+                  <Route path="recharge-campaigns" element={<AdminRouteGuard routeSegment="recharge-campaigns"><AdminRechargeCampaigns /></AdminRouteGuard>} />
                   <Route path="shop" element={<AdminRouteGuard routeSegment="shop"><AdminShop /></AdminRouteGuard>} />
                   <Route path="balance-deduction" element={<AdminRouteGuard routeSegment="balance-deduction"><AdminBalanceDeduction /></AdminRouteGuard>} />
                   <Route path="feature-levels" element={<AdminRouteGuard routeSegment="feature-levels"><AdminFeatureLevels /></AdminRouteGuard>} />

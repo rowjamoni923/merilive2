@@ -80,6 +80,7 @@ export const GLOBALLY_MONITORED_TABLES = new Set<string>([
   'vip_tiers',
   'branding_settings',
   'app_version_settings',
+  'recharge_campaigns',
 ]);
 
 // ============= HOOK =============
