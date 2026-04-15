@@ -107,6 +107,8 @@ export default function AdminHostApplications() {
   const [expandedPhoto, setExpandedPhoto] = useState<string | null>(null);
   const [approveAsRole, setApproveAsRole] = useState<'host' | 'user'>('host');
   const [statusCounts, setStatusCounts] = useState({ pending: 0, under_review: 0, approved: 0, rejected: 0 });
+  const [pendingHosts, setPendingHosts] = useState<Array<{id: string; display_name: string|null; app_uid: string|null; avatar_url: string|null; gender: string|null; country_code: string|null; created_at: string|null; is_verified: boolean|null; is_face_verified: boolean|null}>>([]);
+  const [pendingHostsCount, setPendingHostsCount] = useState(0);
   const actionGuardRef = useRef<Set<string>>(new Set());
   const guardStart = (key: string) => { if (actionGuardRef.current.has(key)) return false; actionGuardRef.current.add(key); return true; };
   const guardEnd = (key: string) => { actionGuardRef.current.delete(key); };
