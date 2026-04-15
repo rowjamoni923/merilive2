@@ -465,8 +465,9 @@ export function usePrivateCall(userId: string | null) {
 
       // ⚡ RPC + early broadcast in parallel
       const rpcPromise = supabase.rpc('start_private_call', {
-        _host_id: hostId,
-        _stream_id: streamId || null,
+        p_caller_id: userId,
+        p_receiver_id: hostId,
+        p_call_type: 'video',
       });
 
       // ✅ FIXED: Send broadcast on the EXACT same channel name the host listens on
