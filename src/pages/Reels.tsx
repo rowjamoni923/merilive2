@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { TopUpCampaignBanner } from "@/components/campaign/TopUpCampaignBanner";
 import { useNavigate } from "react-router-dom";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { Heart, MessageCircle, Share2, Music2, Plus, User, Bookmark, MoreVertical, Flag, X, Send, Play, Pause, Volume2, VolumeX, Gift, Coins } from "lucide-react";
@@ -478,6 +479,9 @@ const Reels = () => {
         </div>
       </div>
 
+      {/* Campaign Banner */}
+      <TopUpCampaignBanner location="reels" compact />
+      
       {/* Reels Container - Full Screen with native scroll */}
       <div className="flex-1 overflow-hidden">
         {loading ? (

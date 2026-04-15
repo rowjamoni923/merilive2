@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, Suspense, lazy, useCallback } from "react";
+import { TopUpCampaignBanner } from "@/components/campaign/TopUpCampaignBanner";
 
 import { useContentModeration } from "@/hooks/useContentModeration";
 import { detectAndProcessViolation } from "@/utils/contactDetection";
@@ -2885,6 +2886,7 @@ const Chat = () => {
       {/* Scrollable Content */}
       <div className="flex-1 min-h-0">
       <main className="h-full min-h-0 overflow-y-auto overscroll-contain touch-pan-y" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
+      <TopUpCampaignBanner location="chat" compact />
       {loading ? (
         <div className="divide-y divide-border">
           {[1, 2, 3, 4].map((i) => (
