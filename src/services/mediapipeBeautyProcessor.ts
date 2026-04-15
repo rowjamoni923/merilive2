@@ -49,6 +49,7 @@ let _initPromise: Promise<FaceLandmarker | null> | null = null;
 let _params: BeautyParams = { ...DEFAULT_PARAMS };
 let _enabled = false;
 let _processing = false;
+let _lastFaceBounds: { x: number; y: number; width: number; height: number } | null = null;
 
 // Canvas elements for offscreen processing
 let _offscreenCanvas: OffscreenCanvas | HTMLCanvasElement | null = null;
@@ -470,6 +471,17 @@ export function processVideoFrame(
       const results = _faceLandmarker.detectForVideo(videoEl, performance.now());
       if (results.faceLandmarks && results.faceLandmarks.length > 0) {
         landmarks = results.faceLandmarks[0];
+        // Calculate and cache face bounding box from landmarks
+        let minX = 1, minY = 1, maxX = 0, maxY = 0;
+        for (const lm of landmarks) {
+          if (lm.x < minX) minX = lm.x;
+          if (lm.y < minY) minY = lm.y;
+          if (lm.x > maxX) maxX = lm.x;
+          if (lm.y > maxY) maxY = lm.y;
+        }
+        _lastFaceBounds = { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+      } else {
+        _lastFaceBounds = null;
       }
     } catch {
       // Silently continue without landmarks
@@ -622,6 +634,13 @@ export function isBeautyEnabled(): boolean {
 
 export function isMediaPipeReady(): boolean {
   return !!_faceLandmarker;
+}
+
+/**
+ * Get the last detected face bounding box (normalized 0-1 coordinates)
+ */
+export function getLastFaceBounds(): { x: number; y: number; width: number; height: number } | null {
+  return _lastFaceBounds;
 }
 
 /**
