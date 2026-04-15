@@ -1,48 +1,17 @@
 /**
- * BeautyFilterPanel v6.0 — MediaPipe AI Beauty Studio + Stickers
+ * BeautyFilterPanel v7.0 — MediaPipe AI Beauty Studio (Beauty Only)
  * 
  * ✅ All platforms: Google MediaPipe Face Landmarker (478 3D landmarks)
  * ✅ 100% Free — No license key required — Apache 2.0
  * ✅ Professional skin smoothing, whitening, face reshape, lip color
- * ✅ 12 Professional AI Stickers (face overlay)
+ * ✅ Stickers moved to separate StickerPanel component
  */
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sparkles, Sun, Droplets, Heart, Contrast, Palette, Flame, Eye, Moon, Zap, CircleDot, Flower2, Star, Smile } from 'lucide-react';
+import { X, Sparkles, Sun, Droplets, Heart, Contrast, Palette, Flame, Eye, Moon, Zap, CircleDot, Flower2, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { setBeautyParams, setBeautyEnabled, mapUIToParams, isBeautyEnabled } from '@/services/mediapipeBeautyProcessor';
 import { isNativeAndroidApp } from '@/utils/nativeUtils';
-import { supabase } from '@/integrations/supabase/client';
-import { getStickerAsset } from './StickerOverlay';
-
-// Import sticker assets for preview
-import catEars from '@/assets/stickers/cat-ears.png';
-import crown from '@/assets/stickers/crown.png';
-import bunnyEars from '@/assets/stickers/bunny-ears.png';
-import sunglasses from '@/assets/stickers/sunglasses.png';
-import butterfly from '@/assets/stickers/butterfly.png';
-import puppy from '@/assets/stickers/puppy.png';
-import heartEyes from '@/assets/stickers/heart-eyes.png';
-import flowerCrown from '@/assets/stickers/flower-crown.png';
-import sparkleStars from '@/assets/stickers/sparkle-stars.png';
-import foxEars from '@/assets/stickers/fox-ears.png';
-import neonFrame from '@/assets/stickers/neon-frame.png';
-import angel from '@/assets/stickers/angel.png';
-
-const STICKER_PREVIEW_MAP: Record<string, string> = {
-  'Cat Ears': catEars,
-  'Golden Crown': crown,
-  'Bunny Ears': bunnyEars,
-  'Cool Sunglasses': sunglasses,
-  'Butterfly Wings': butterfly,
-  'Cute Puppy': puppy,
-  'Heart Eyes': heartEyes,
-  'Flower Crown': flowerCrown,
-  'Sparkle Stars': sparkleStars,
-  'Fox Ears': foxEars,
-  'Neon Frame': neonFrame,
-  'Angel Halo': angel,
-};
 
 const isNativeAndroid = isNativeAndroidApp();
 
