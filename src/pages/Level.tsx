@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchActiveLevelTiers, isFemaleHostProfile, resolveLevelFromTiers } from "@/utils/levelResolver";
 import PrivilegePreviewModal from "@/components/level/PrivilegePreviewModal";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -309,16 +310,11 @@ const Level = () => {
 
       setUserProfile(profile as UserProfile);
 
-      const isFemaleHost = profile.is_host && (profile.gender === 'female' || profile.gender === 'Female');
+      const isFemaleHost = isFemaleHostProfile(profile);
       const type = isFemaleHost ? 'host' : 'user';
       setLevelType(type);
 
-      const { data: tiers } = await supabase
-        .from('user_level_tiers')
-        .select('level_number, min_topup_amount, min_earning_amount')
-        .eq('tier_type', type)
-        .eq('is_active', true)
-        .order('level_number', { ascending: true });
+      const tiers = await fetchActiveLevelTiers(type);
 
       const fallbackVisuals = isFemaleHost ? hostLevelData : userLevelData;
       const mappedTiers: LevelData[] = (tiers && tiers.length > 0 ? tiers : []).map((tier) => {
@@ -338,47 +334,10 @@ const Level = () => {
       const sourceTiers = mappedTiers.length > 0 ? mappedTiers : (isFemaleHost ? hostLevelData : userLevelData);
       setActiveLevelData(sourceTiers);
 
-      const profileTotalRecharged = Number(profile.total_recharged ?? 0);
-      const profileTotalEarnings = Number(profile.total_earnings ?? profile.weekly_earnings ?? 0);
-
-      let totalPoints = 0;
-      if (isFemaleHost) {
-        // Host level = based on total earnings (NOT weekly)
-        totalPoints = await resolveEffectiveHostEarnings(user.id, profileTotalEarnings);
-      } else {
-        // User level = based on total top-up
-        totalPoints = await resolveEffectiveUserRechargeTotal(user.id, profileTotalRecharged);
-      }
-      setCurrentDiamonds(totalPoints);
-
-      let resolvedLevel = 0;
-
-      if (isFemaleHost) {
-        for (const tier of sourceTiers) {
-          if (totalPoints >= tier.minDiamonds) {
-            resolvedLevel = tier.level;
-          }
-        }
-      } else {
-        const storedLevel = Number(profile.user_level ?? 0);
-        const maxLevel = Number((profile as any).max_user_level ?? 0);
-        const derivedLevel = sourceTiers.reduce((highest, tier) => {
-          return totalPoints >= tier.minDiamonds ? Math.max(highest, tier.level) : highest;
-        }, 0);
-
-        resolvedLevel = Math.max(storedLevel, maxLevel, derivedLevel, 1);
-
-        if (user.id && (totalPoints > profileTotalRecharged || derivedLevel > Math.max(storedLevel, maxLevel))) {
-          void supabase.rpc('recalculate_user_level', { _user_id: user.id }).then(({ error }) => {
-            if (error) {
-              console.warn('[Level] Failed to self-heal user level:', error);
-            }
-          });
-        }
-      }
-
-      setCurrentLevel(resolvedLevel);
-      setSelectedLevelTab(resolvedLevel || 1);
+      const resolved = await resolveLevelFromTiers(profile, tiers);
+      setCurrentDiamonds(resolved.totalPoints);
+      setCurrentLevel(resolved.level);
+      setSelectedLevelTab(resolved.levelType === 'host' ? resolved.level : Math.max(resolved.level, 1));
     } catch (error) {
       console.error('Error fetching user level:', error);
     } finally {

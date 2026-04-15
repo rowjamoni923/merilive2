@@ -64,6 +64,7 @@ import { Slider } from "@/components/ui/slider";
 import useExpiredItemsRestorer from "@/hooks/useExpiredItemsRestorer";
  import UserBeansExchangeModal from "@/components/profile/UserBeansExchangeModal";
  import { useUserBalance, updateCachedBalance } from "@/hooks/useUserBalance";
+import { useRealtimeLevelProgress } from "@/hooks/useRealtimeLevel";
 import { triggerLegacyProfileSync } from "@/utils/legacyProfileSync";
 import { parseCallRateSettings, resolveEffectiveCallRate, getEffectiveHostLevel } from "@/utils/callRateSettings";
 
@@ -293,6 +294,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   // Determine if viewing own profile or another user's profile
   const isOwnProfile = !userId || userId === currentUser?.id;
   const profileId = userId || currentUser?.id;
+  const { level: resolvedUserLevel, progress: resolvedLevelProgress, nextLevelNumber: resolvedNextLevel } = useRealtimeLevelProgress(profileId ?? null);
 
   // Presence is managed globally by PresenceProvider (avoid duplicate write storm here)
   // usePresence(isOwnProfile ? currentUser?.id : null);
@@ -1133,111 +1135,18 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   // Female hosts show host_level, all others show user_level
   // CRITICAL: Fall back to cached userLevel to prevent "level 0 flash" during navigation
   const displayLevel = useMemo(() => {
-    const dbLevel = isFemaleHost ? (profile?.host_level ?? null) : (profile?.user_level ?? null);
-    // If profile hasn't loaded yet or level is null, use cached userLevel
-    if (dbLevel === null || dbLevel === undefined) return userLevel;
-    return dbLevel;
-  }, [isFemaleHost, profile?.host_level, profile?.user_level, userLevel]);
+    if (isFemaleHost) {
+      return Math.max(resolvedUserLevel ?? profile?.host_level ?? userLevel ?? 0, 0);
+    }
+
+    return Math.max(resolvedUserLevel ?? profile?.user_level ?? userLevel ?? 1, 1);
+  }, [isFemaleHost, resolvedUserLevel, profile?.host_level, profile?.user_level, userLevel]);
   
-  // Auto-calculate level progress when profile changes (including realtime updates)
-  // CRITICAL: Use weekly_earnings for hosts (resets weekly when beans transfer)
-  // IMPORTANT: Calculate level from weekly_earnings, NOT from stored host_level
   useEffect(() => {
-    const calculateLevelProgress = async () => {
-      if (!profile) return;
-      
-      // Female hosts use 'host' tier type, all others use 'user' tier type
-      const tierType = isFemaleHost ? 'host' : 'user';
-      const { data } = await supabase
-        .from('user_level_tiers')
-        .select('level_number, level_name, min_topup_amount, min_earning_amount, level_icon')
-        .eq('tier_type', tierType)
-        .eq('is_active', true)
-        .order('level_number', { ascending: true });
-      
-      if (data && data.length > 0) {
-        setLevelTiers(data);
-        
-        // CRITICAL FIX: For hosts, CALCULATE level from weekly_earnings in REAL-TIME
-        // For regular users, use the HIGHEST reliable level source so stale DB values never show a lower level
-        let calculatedLevel = 0;
-        
-        if (isFemaleHost) {
-          const weeklyEarnings = profile.weekly_earnings ?? 0;
-          for (const tier of data) {
-            if (weeklyEarnings >= tier.min_earning_amount) {
-              calculatedLevel = tier.level_number;
-            }
-          }
-          console.log('[Level] Host level calculated from weekly_earnings:', weeklyEarnings, '-> Level:', calculatedLevel);
-        } else {
-          const totalRecharged = Number((profile as any).total_recharged ?? 0);
-          const storedLevel = Number(profile.user_level ?? 0);
-          const maxLevel = Number((profile as any).max_user_level ?? 0);
-          const derivedLevel = data.reduce((highest, tier) => {
-            const threshold = Number(tier.min_topup_amount ?? 0);
-            return totalRecharged >= threshold ? Math.max(highest, tier.level_number) : highest;
-          }, 0);
-
-          calculatedLevel = Math.max(storedLevel, maxLevel, derivedLevel, 1);
-          console.log('[Level] Regular user level resolved:', {
-            totalRecharged,
-            storedLevel,
-            maxLevel,
-            derivedLevel,
-            finalLevel: calculatedLevel,
-          });
-
-          if (currentUser?.id && derivedLevel > Math.max(storedLevel, maxLevel)) {
-            void (async () => {
-              const { error } = await supabase.rpc('recalculate_user_level', { _user_id: currentUser.id });
-              if (error) {
-                console.warn('[Level] Failed to self-heal user level:', error);
-              }
-            })();
-          }
-        }
-        
-        console.log('[Level] Final display level - isFemaleHost:', isFemaleHost, 'calculated:', calculatedLevel, 'stored host_level:', profile.host_level, 'weekly_earnings:', profile.weekly_earnings);
-        
-        setUserLevel(calculatedLevel);
-        
-        // Calculate XP based on type
-        // CRITICAL: For hosts, use weekly_earnings (resets when beans transfer)
-        // NOT total_earnings (accumulates forever)
-        const currentXP = isFemaleHost 
-          ? (profile.weekly_earnings ?? 0)  // Weekly earnings resets on transfer
-          : (profile.total_recharged ?? 0); // Users: level from total top-up only
-        
-        // Find next level - must be HIGHER than current calculated level
-        const nextLevelTier = data.find(t => t.level_number > calculatedLevel);
-        // If no higher level exists, we're at max level - show max level + 1 as "goal"
-        const nextLevelNum = nextLevelTier ? nextLevelTier.level_number : calculatedLevel + 1;
-        setNextLevel(nextLevelNum);
-        
-        // Calculate progress to next level
-        const currentTier = data.find(t => t.level_number === calculatedLevel);
-        
-        if (currentTier && nextLevelTier && currentTier.level_number !== nextLevelTier.level_number) {
-          const currentMin = isFemaleHost ? currentTier.min_earning_amount : currentTier.min_topup_amount;
-          const nextMin = isFemaleHost ? nextLevelTier.min_earning_amount : nextLevelTier.min_topup_amount;
-          const range = nextMin - currentMin;
-          const progressInRange = currentXP - currentMin;
-          const progress = range > 0 ? (progressInRange / range) * 100 : 0;
-          setLevelProgress(Math.min(Math.max(progress, 0), 100));
-        } else if (!currentTier && nextLevelTier) {
-          // Level 0 case - show progress to level 1
-          const nextMin = isFemaleHost ? nextLevelTier.min_earning_amount : nextLevelTier.min_topup_amount;
-          const progress = nextMin > 0 ? (currentXP / nextMin) * 100 : 0;
-          setLevelProgress(Math.min(Math.max(progress, 0), 100));
-        } else {
-          setLevelProgress(100); // Max level reached
-        }
-      }
-    };
-    
-    calculateLevelProgress();
-  }, [profile, profile?.user_level, profile?.host_level, profile?.coins, profile?.total_consumption, profile?.weekly_earnings, isFemaleHost]);
+    setUserLevel(isFemaleHost ? Math.max(resolvedUserLevel ?? 0, 0) : Math.max(resolvedUserLevel ?? 1, 1));
+    setNextLevel(Math.max(resolvedNextLevel ?? ((resolvedUserLevel ?? 1) + 1), (resolvedUserLevel ?? 1) + 1));
+    setLevelProgress(Math.min(Math.max(resolvedLevelProgress ?? 0, 0), 100));
+  }, [resolvedUserLevel, resolvedNextLevel, resolvedLevelProgress, isFemaleHost]);
 
   // Check if user should see Agency Center
   const isAgencyOwner = profile?.is_agency_owner || false;

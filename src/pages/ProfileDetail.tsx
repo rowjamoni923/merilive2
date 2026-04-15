@@ -36,6 +36,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useCall } from "@/components/call/CallProvider";
 import { CallConfirmModal } from "@/components/call/CallConfirmModal";
 import { useHostCallRate } from "@/hooks/useHostCallRate";
+import { useRealtimeLevel } from "@/hooks/useRealtimeLevel";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   DropdownMenu,
@@ -208,6 +209,7 @@ const ProfileDetail = () => {
   
   // Use centralized hook for consistent rate - auto-updates when host changes rate
   const { callRate } = useHostCallRate(userId);
+  const { level: resolvedLevel, loading: resolvedLevelLoading } = useRealtimeLevel(userId || null);
 
   const isOwnProfile = userId === currentUser?.id || !userId;
   
@@ -439,15 +441,16 @@ const ProfileDetail = () => {
     if (profileData) {
       const userLevel = profileData.user_level || 1;
       const hostLevel = profileData.host_level || 0;
-      const isHostUser = profileData.is_host || profileData.gender === 'female';
-      const effectiveLevel = isHostUser ? Math.max(hostLevel, userLevel) : userLevel;
+      const isHostUser = profileData.is_host && (profileData.gender === 'female' || profileData.gender === 'Female');
+      const fallbackLevel = isHostUser ? hostLevel : userLevel;
+      const effectiveLevel = resolvedLevelLoading ? fallbackLevel : resolvedLevel;
       const targetType = isHostUser ? 'host' : 'user';
 
       const [frameData, levelIconData, framesData, entryBarsData, badgesData, blockData, followData] = await Promise.all([
         // User's frame based on level
-        supabase.from("avatar_frames" as any).select("*").lte("min_level", profileData.user_level || 1).eq("is_active", true).order("min_level", { ascending: false }).limit(1).maybeSingle(),
+        supabase.from("avatar_frames" as any).select("*").lte("min_level", effectiveLevel).eq("is_active", true).order("min_level", { ascending: false }).limit(1).maybeSingle(),
         // Level icon from user_level_tiers
-        supabase.from("user_level_tiers").select("level_number, icon_url, animation_url, level_name").eq("level_number", isHostUser ? hostLevel : userLevel).eq("tier_type", targetType).eq("is_active", true).maybeSingle(),
+        supabase.from("user_level_tiers").select("level_number, icon_url, animation_url, level_name").eq("level_number", effectiveLevel).eq("tier_type", targetType).eq("is_active", true).maybeSingle(),
         // Level frames
         supabase.from("avatar_frames").select("id, name, frame_url, frame_type, min_level, is_premium, category, target_type").eq("is_active", true).lte("min_level", effectiveLevel).in("target_type", ['both', targetType]).or('frame_url.like.%.svga,frame_url.like.%.json,frame_url.like.%supabase.co/storage%').order("min_level", { ascending: false }).limit(1),
         // Entry bars
@@ -468,7 +471,7 @@ const ProfileDetail = () => {
     }
 
     setLoading(false);
-  }, [userId]);
+  }, [userId, resolvedLevel, resolvedLevelLoading]);
 
   useEffect(() => {
     fetchData();
@@ -493,25 +496,7 @@ const ProfileDetail = () => {
           console.log("[ProfileDetail] Real-time update:", payload.new);
           // Update profile with new data including level
           setProfile((prev) => prev ? { ...prev, ...payload.new } as ProfileData : null);
-          
-          // Refetch level icon if level changed
-          const newLevel = (payload.new as any).user_level;
-          const newProfile = payload.new as any;
-          const isHost = newProfile.is_host && (newProfile.gender === 'female' || newProfile.gender === 'Female');
-          if (newLevel) {
-            supabase
-              .from("user_level_tiers")
-              .select("level_number, icon_url, animation_url, level_name")
-              .eq("level_number", newLevel)
-              .eq("tier_type", isHost ? 'host' : 'user')
-              .eq("is_active", true)
-              .maybeSingle()
-              .then(({ data }) => {
-                if (data) {
-                  setLevelIcon(data as unknown as LevelIconData);
-                }
-              });
-          }
+          void fetchData(true);
         }
       )
       .on(
@@ -694,9 +679,10 @@ const ProfileDetail = () => {
 
   // CRITICAL: Female hosts use host_level (resets weekly), others use user_level
   const isFemaleHost = profile.is_host && (profile.gender === 'female' || profile.gender === 'Female');
-  const level = isFemaleHost 
-    ? (profile.host_level ?? 0)  // Can be 0 after weekly reset
+  const fallbackLevel = isFemaleHost 
+    ? (profile.host_level ?? 0)
     : (profile.user_level ?? 1);
+  const level = resolvedLevelLoading ? fallbackLevel : resolvedLevel;
   const isVideo = posterImages[currentSlideIndex]?.image_url?.match(/\.(mp4|webm|mov)$/i);
 
   return (
@@ -1518,7 +1504,7 @@ const ProfileDetail = () => {
         hostId={userId || ''}
         hostName={profile?.display_name || 'Host'}
         hostAvatar={profile?.avatar_url || null}
-        hostLevel={profile?.user_level || 1}
+        hostLevel={level}
         userCoins={currentUserCoins}
       />
       
