@@ -17,7 +17,9 @@ import {
   Ban,
   Headphones,
   CheckCircle2,
-  Clock
+  Clock,
+  Lock,
+  Car
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -67,6 +69,7 @@ interface UserPrivilege {
   preview_url: string | null;
   animation_url: string | null;
   is_equipped: boolean;
+  is_locked?: boolean;
   expires_at: string | null;
   source: 'shop' | 'level' | 'frame' | 'admin_assigned';
   unlock_level?: number;
@@ -279,57 +282,53 @@ const VIP = () => {
         }
       }
 
-      // Fetch ALL unlocked avatar frames for user's level (frames they've earned)
-      // Only include frames with REAL animation files (Supabase SVGA files)
+      // Fetch ALL avatar frames (show locked ones too)
       const { data: availableFrames } = await supabase
         .from("avatar_frames")
         .select("id, name, frame_url, preview_url, min_level")
         .eq("is_active", true)
-        .lte("min_level", userLevel)
-        .order("min_level", { ascending: false });
+        .order("min_level", { ascending: true });
 
       if (availableFrames) {
-        // First, find if ANY frame is currently equipped in this category
         const hasEquippedFrameInDB = !!equippedFrameId;
         
         for (const frame of availableFrames) {
           const frameAssetUrl = frame.frame_url || frame.preview_url;
-          if (isValidAssetUrl(frameAssetUrl)) {
-            const isEquipped = hasEquippedFrameInDB && frame.id === equippedFrameId;
-            const alreadyExists = allPrivileges.some(p => p.item_id === frame.id);
-            if (!alreadyExists) {
-              allPrivileges.push({
-                id: `frame_${frame.id}`,
-                item_id: frame.id,
-                name: frame.name,
-                category: 'frame',
-                preview_url: frame.preview_url,
-                animation_url: frame.frame_url || frame.preview_url,
-                is_equipped: isEquipped,
-                expires_at: null,
-                source: 'frame',
-                unlock_level: frame.min_level,
-              });
-            }
+          const isEquipped = hasEquippedFrameInDB && frame.id === equippedFrameId;
+          const alreadyExists = allPrivileges.some(p => p.item_id === frame.id);
+          const isLocked = (frame.min_level || 1) > userLevel;
+          if (!alreadyExists) {
+            allPrivileges.push({
+              id: `frame_${frame.id}`,
+              item_id: frame.id,
+              name: frame.name,
+              category: 'frame',
+              preview_url: frame.preview_url,
+              animation_url: frame.frame_url || frame.preview_url,
+              is_equipped: isEquipped,
+              is_locked: isLocked,
+              expires_at: null,
+              source: 'frame',
+              unlock_level: frame.min_level,
+            });
           }
         }
       }
 
-      // Fetch ALL unlocked level privileges up to user's level
-      // Only include privileges with REAL animation URLs
+      // Fetch ALL level privileges (show locked ones too)
       const { data: levelPrivileges } = await supabase
         .from("level_privileges")
         .select("*")
         .eq("is_active", true)
-        .lte("unlock_level", userLevel)
-        .order("unlock_level", { ascending: false });
+        .order("unlock_level", { ascending: true });
 
       if (levelPrivileges) {
         for (const priv of levelPrivileges) {
           const privAssetUrl = priv.animation_url || priv.preview_url;
-          if (isValidAssetUrl(privAssetUrl)) {
-            let isEquipped = false;
-            const privType = priv.privilege_type;
+          const isLocked = (priv.unlock_level || 1) > userLevel;
+          let isEquipped = false;
+          const privType = priv.privilege_type;
+          if (!isLocked) {
             if (privType === 'entrance' || privType === 'entrance_effect') {
               isEquipped = priv.id === equippedEntranceId;
             } else if (privType === 'entry_bar') {
@@ -339,83 +338,81 @@ const VIP = () => {
             } else if (privType === 'vehicle' || privType === 'vehicle_entrance') {
               isEquipped = priv.id === equippedVehicleId;
             }
-            
+          }
+          
+          allPrivileges.push({
+            id: priv.id,
+            item_id: priv.id,
+            name: priv.name,
+            category: priv.privilege_type,
+            preview_url: priv.preview_url,
+            animation_url: priv.animation_url || priv.preview_url,
+            is_equipped: isEquipped,
+            is_locked: isLocked,
+            expires_at: null,
+            source: 'level',
+            unlock_level: priv.unlock_level,
+          });
+        }
+      }
+
+      // Fetch ALL entry name bars (show locked ones too)
+      const { data: entryNameBars } = await supabase
+        .from("entry_name_bars")
+        .select("*")
+        .eq("is_active", true)
+        .order("min_level", { ascending: true });
+
+      if (entryNameBars) {
+        for (const bar of entryNameBars) {
+          const barAssetUrl = bar.animation_url || bar.preview_url;
+          const isEquipped = bar.id === equippedEntryNameBarId;
+          const alreadyExists = allPrivileges.some(p => p.item_id === bar.id);
+          const isLocked = (bar.min_level || 1) > userLevel;
+          if (!alreadyExists) {
             allPrivileges.push({
-              id: priv.id,
-              item_id: priv.id,
-              name: priv.name,
-              category: priv.privilege_type,
-              preview_url: priv.preview_url,
-              animation_url: priv.animation_url || priv.preview_url,
+              id: `enb_${bar.id}`,
+              item_id: bar.id,
+              name: bar.name,
+              category: 'entry_name_bar',
+              preview_url: bar.preview_url,
+              animation_url: bar.animation_url || bar.preview_url,
               is_equipped: isEquipped,
+              is_locked: isLocked,
               expires_at: null,
               source: 'level',
-              unlock_level: priv.unlock_level,
+              unlock_level: bar.min_level || 1,
             });
           }
         }
       }
 
-      // Fetch ALL unlocked entry name bars for user's level
-      const { data: entryNameBars } = await supabase
-        .from("entry_name_bars")
-        .select("*")
-        .eq("is_active", true)
-        .lte("min_level", userLevel)
-        .order("min_level", { ascending: false });
-
-      if (entryNameBars) {
-        for (const bar of entryNameBars) {
-          const barAssetUrl = bar.animation_url || bar.preview_url;
-          if (isValidAssetUrl(barAssetUrl)) {
-            const isEquipped = bar.id === equippedEntryNameBarId;
-            const alreadyExists = allPrivileges.some(p => p.item_id === bar.id);
-            if (!alreadyExists) {
-              allPrivileges.push({
-                id: `enb_${bar.id}`,
-                item_id: bar.id,
-                name: bar.name,
-                category: 'entry_name_bar',
-                preview_url: bar.preview_url,
-                animation_url: bar.animation_url || bar.preview_url,
-                is_equipped: isEquipped,
-                expires_at: null,
-                source: 'level',
-                unlock_level: bar.min_level || 1,
-              });
-            }
-          }
-        }
-      }
-
-      // Fetch ALL unlocked entry banners (entrance animations) for user's level
+      // Fetch ALL entry banners (entrance animations) - show locked ones too
       const { data: entryBanners } = await supabase
         .from("entry_banners")
         .select("*")
         .eq("is_active", true)
-        .lte("min_level", userLevel)
-        .order("min_level", { ascending: false });
+        .order("min_level", { ascending: true });
 
       if (entryBanners) {
         for (const banner of entryBanners) {
-          const bannerAssetUrl = banner.animation_url || banner.preview_url;
-          if (isValidAssetUrl(bannerAssetUrl)) {
-            const isEquipped = banner.id === equippedEntranceId;
-            const alreadyExists = allPrivileges.some(p => p.item_id === banner.id);
-            if (!alreadyExists) {
-              allPrivileges.push({
-                id: `eb_${banner.id}`,
-                item_id: banner.id,
-                name: banner.name,
-                category: 'entrance',
-                preview_url: banner.preview_url,
-                animation_url: banner.animation_url || banner.preview_url,
-                is_equipped: isEquipped,
-                expires_at: null,
-                source: 'level',
-                unlock_level: banner.min_level || 1,
-              });
-            }
+          const isEquipped = banner.id === equippedEntranceId;
+          const alreadyExists = allPrivileges.some(p => p.item_id === banner.id);
+          const isLocked = (banner.min_level || 1) > userLevel;
+          if (!alreadyExists) {
+            allPrivileges.push({
+              id: `eb_${banner.id}`,
+              item_id: banner.id,
+              name: banner.name,
+              category: 'entrance',
+              preview_url: banner.preview_url,
+              animation_url: banner.animation_url || banner.preview_url,
+              is_equipped: isEquipped,
+              is_locked: isLocked,
+              expires_at: null,
+              source: 'level',
+              unlock_level: banner.min_level || 1,
+            });
           }
         }
       }
@@ -664,6 +661,13 @@ const VIP = () => {
 
   const handleEquip = async (privilege: UserPrivilege) => {
     if (equipping) return;
+    if (privilege.is_locked) {
+      toast({
+        title: "🔒 Locked",
+        description: `Reach Level ${privilege.unlock_level || '?'} to unlock this item`,
+      });
+      return;
+    }
     
     setEquipping(privilege.id);
     console.log('[VIP] Equipping privilege:', privilege);
@@ -893,21 +897,29 @@ const VIP = () => {
     }
   };
 
-  // Group privileges by category - SEPARATE entry effects and entry name bars
+  // Group privileges by category - SEPARATE sections
   const framePrivileges = userPrivileges.filter(p => 
     p.category === 'frame' || p.category === 'portrait_frame'
   );
-  // Entry Effects = full-screen entrance animations (entrance, entrance_effect, entry_bar, vehicle, vehicle_entrance)
+  // Entry Effects = full-screen entrance animations
   const entryEffectPrivileges = userPrivileges.filter(p => 
-    p.category === 'entrance' || p.category === 'entrance_effect' || p.category === 'entry_bar' ||
+    p.category === 'entrance' || p.category === 'entrance_effect'
+  );
+  // Entry Name Bars = sliding name banner
+  const entryNameBarPrivileges = userPrivileges.filter(p => 
+    p.category === 'entry_name_bar' || p.category === 'entry_bar'
+  );
+  // Chat Bubbles
+  const bubblePrivileges = userPrivileges.filter(p => 
+    p.category === 'bubble'
+  );
+  // Vehicles
+  const vehiclePrivileges = userPrivileges.filter(p => 
     p.category === 'vehicle' || p.category === 'vehicle_entrance'
   );
-  // Entry Name Bars = sliding name banner from entry_name_bars table (category: entry_name_bar)
-  const entryNameBarPrivileges = userPrivileges.filter(p => 
-    p.category === 'entry_name_bar'
-  );
+  // Other
   const otherPrivileges = userPrivileges.filter(p => 
-    !['frame', 'portrait_frame', 'entrance', 'entry_bar', 'entrance_effect', 'entry_name_bar', 'vehicle', 'vehicle_entrance'].includes(p.category)
+    !['frame', 'portrait_frame', 'entrance', 'entrance_effect', 'entry_name_bar', 'entry_bar', 'bubble', 'vehicle', 'vehicle_entrance'].includes(p.category)
   );
 
   const getCategoryLabel = (category: string) => {
@@ -1100,313 +1112,111 @@ const VIP = () => {
             </div>
           ) : (
             <div className="space-y-6">
-              {/* Avatar Frames Section - ProfileDetail Style */}
-              {framePrivileges.length > 0 && (
-                <motion.div
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.1 }}
-                >
-                  <div className="flex items-center gap-2 text-lg font-bold mb-3">
-                    <span>👑</span>
-                    <span className="text-white">Avatar Frames</span>
-                    <span className="text-white/50 text-sm font-normal ml-auto">Tap to equip</span>
-                  </div>
-                  
-                  {/* Clean App Icon Style Grid - like ProfileDetail */}
-                  <div className="flex flex-wrap gap-3">
-                    {framePrivileges.map((priv) => (
-                      <motion.div
-                        key={priv.id}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handleEquip(priv)}
-                        className="flex flex-col items-center"
-                      >
-                        <div className={`flex-shrink-0 w-20 h-20 rounded-2xl overflow-hidden shadow-lg cursor-pointer transition-all relative ${
-                          priv.is_equipped 
-                            ? 'ring-2 ring-green-500 shadow-green-500/30' 
-                            : 'ring-1 ring-white/10 hover:ring-purple-500/50'
-                        }`}>
-                          <div className="w-full h-full bg-gradient-to-br from-purple-900/40 to-pink-900/40 flex items-center justify-center">
-                            {priv.animation_url ? (
-                              <UniversalFramePlayer
-                                src={priv.animation_url}
-                                className="w-full h-full"
-                                loop={true}
-                                autoPlay={true}
-                              />
-                            ) : (
-                              <Crown className="w-8 h-8 text-amber-400" />
+              {/* Reusable privilege item renderer */}
+              {[
+                { items: framePrivileges, icon: '👑', title: 'Avatar Frames', fallbackIcon: <Crown className="w-8 h-8 text-amber-400" />, bgFrom: 'from-purple-900/40', bgTo: 'to-pink-900/40', ringColor: 'hover:ring-purple-500/50', delay: 0.1 },
+                { items: entryEffectPrivileges, icon: '✨', title: 'Entry Effects', fallbackIcon: <Sparkles className="w-8 h-8 text-pink-400" />, bgFrom: 'from-pink-900/40', bgTo: 'to-purple-900/40', ringColor: 'hover:ring-pink-500/50', delay: 0.15 },
+                { items: entryNameBarPrivileges, icon: '🏷️', title: 'Entry Name Bar', fallbackIcon: <Sparkles className="w-8 h-8 text-amber-400" />, bgFrom: 'from-amber-900/40', bgTo: 'to-orange-900/40', ringColor: 'hover:ring-amber-500/50', delay: 0.2 },
+                { items: bubblePrivileges, icon: '💬', title: 'Chat Bubbles', fallbackIcon: <MessageCircle className="w-8 h-8 text-cyan-400" />, bgFrom: 'from-cyan-900/40', bgTo: 'to-blue-900/40', ringColor: 'hover:ring-cyan-500/50', delay: 0.25 },
+                { items: vehiclePrivileges, icon: '🚗', title: 'Vehicles', fallbackIcon: <Car className="w-8 h-8 text-emerald-400" />, bgFrom: 'from-emerald-900/40', bgTo: 'to-teal-900/40', ringColor: 'hover:ring-emerald-500/50', delay: 0.3 },
+                { items: otherPrivileges, icon: '🎁', title: 'Other Privileges', fallbackIcon: <Gift className="w-8 h-8 text-cyan-400" />, bgFrom: 'from-cyan-900/40', bgTo: 'to-slate-900', ringColor: 'hover:ring-cyan-500/50', delay: 0.35 },
+              ].map(({ items, icon, title, fallbackIcon, bgFrom, bgTo, ringColor, delay }) => (
+                items.length > 0 && (
+                  <motion.div
+                    key={title}
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay }}
+                  >
+                    <div className="flex items-center gap-2 text-lg font-bold mb-3">
+                      <span>{icon}</span>
+                      <span className="text-white">{title}</span>
+                      <span className="text-white/50 text-sm font-normal ml-auto">Tap to equip</span>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-3">
+                      {items.map((priv) => (
+                        <motion.div
+                          key={priv.id}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => handleEquip(priv)}
+                          className="flex flex-col items-center"
+                        >
+                          <div className={`flex-shrink-0 w-20 h-20 rounded-2xl overflow-hidden shadow-lg cursor-pointer transition-all relative ${
+                            priv.is_locked 
+                              ? 'ring-1 ring-white/5 opacity-60'
+                              : priv.is_equipped 
+                                ? 'ring-2 ring-green-500 shadow-green-500/30' 
+                                : `ring-1 ring-white/10 ${ringColor}`
+                          }`}>
+                            <div className={`w-full h-full bg-gradient-to-br ${bgFrom} ${bgTo} flex items-center justify-center`}>
+                              {priv.animation_url && isValidAssetUrl(priv.animation_url) ? (
+                                <UniversalFramePlayer
+                                  src={priv.animation_url}
+                                  className="w-full h-full"
+                                  loop={true}
+                                  autoPlay={true}
+                                  muted={true}
+                                />
+                              ) : priv.preview_url && isValidAssetUrl(priv.preview_url) ? (
+                                <img 
+                                  src={priv.preview_url} 
+                                  alt={priv.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                fallbackIcon
+                              )}
+                            </div>
+                            
+                            {/* Locked overlay */}
+                            {priv.is_locked && (
+                              <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center">
+                                <Lock className="w-5 h-5 text-white/70" />
+                              </div>
+                            )}
+                            
+                            {/* Equipped indicator */}
+                            {priv.is_equipped && !priv.is_locked && (
+                              <div className="absolute top-1 right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                                <Check className="w-3 h-3 text-white" />
+                              </div>
+                            )}
+                            
+                            {/* Loading state */}
+                            {equipping === priv.id && (
+                              <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              </div>
                             )}
                           </div>
                           
-                          {/* Equipped indicator */}
-                          {priv.is_equipped && (
-                            <div className="absolute top-1 right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                              <Check className="w-3 h-3 text-white" />
-                            </div>
-                          )}
-                          
-                          {/* Loading state */}
-                          {equipping === priv.id && (
-                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* Status/Timer below frame */}
-                        <div className="flex items-center gap-1 mt-1 text-xs">
-                          {priv.source === 'admin_assigned' ? (
-                            <>
-                              <Shield className="w-3 h-3 text-amber-400" />
-                              <span className="text-amber-400">{priv.role_type?.replace('_', ' ') || 'Assigned'}</span>
-                            </>
-                          ) : priv.expires_at ? (
-                            <>
-                              <Clock className="w-3 h-3 text-amber-400" />
-                              <span className="text-amber-400">{formatExpiration(priv.expires_at)}</span>
-                            </>
-                          ) : priv.source === 'level' || priv.source === 'frame' ? (
-                            <span className="text-emerald-400">Lv.{priv.unlock_level || 1}+</span>
-                          ) : (
-                            <span className="text-purple-400">∞ Permanent</span>
-                          )}
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Entry Effects Section - Full-screen entrance animations */}
-              {entryEffectPrivileges.length > 0 && (
-                <motion.div
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  <div className="flex items-center gap-2 text-lg font-bold mb-3">
-                    <span>✨</span>
-                    <span className="text-white">Entry Effects</span>
-                    <span className="text-white/50 text-sm font-normal ml-auto">Tap to equip</span>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-3">
-                    {entryEffectPrivileges.map((priv) => (
-                      <motion.div
-                        key={priv.id}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handleEquip(priv)}
-                        className="flex flex-col items-center"
-                      >
-                        <div className={`flex-shrink-0 w-20 h-20 rounded-2xl overflow-hidden shadow-lg cursor-pointer transition-all relative ${
-                          priv.is_equipped 
-                            ? 'ring-2 ring-green-500 shadow-green-500/30' 
-                            : 'ring-1 ring-white/10 hover:ring-pink-500/50'
-                        }`}>
-                          <div className="w-full h-full bg-gradient-to-br from-pink-900/40 to-purple-900/40 flex items-center justify-center">
-                            {priv.preview_url ? (
-                              <img 
-                                src={priv.preview_url} 
-                                alt={priv.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : priv.animation_url ? (
-                              <UniversalFramePlayer
-                                src={priv.animation_url}
-                                className="w-full h-full"
-                                loop={true}
-                                autoPlay={true}
-                                muted={true}
-                              />
+                          {/* Status/Timer below item */}
+                          <div className="flex items-center gap-1 mt-1 text-xs">
+                            {priv.is_locked ? (
+                              <span className="text-white/40">Lv.{priv.unlock_level || '?'}+</span>
+                            ) : priv.source === 'admin_assigned' ? (
+                              <>
+                                <Shield className="w-3 h-3 text-amber-400" />
+                                <span className="text-amber-400">{priv.role_type?.replace('_', ' ') || 'Assigned'}</span>
+                              </>
+                            ) : priv.expires_at ? (
+                              <>
+                                <Clock className="w-3 h-3 text-amber-400" />
+                                <span className="text-amber-400">{formatExpiration(priv.expires_at)}</span>
+                              </>
+                            ) : priv.source === 'level' || priv.source === 'frame' ? (
+                              <span className="text-emerald-400">Lv.{priv.unlock_level || 1}+</span>
                             ) : (
-                              <Sparkles className="w-8 h-8 text-pink-400" />
+                              <span className="text-purple-400">∞ Permanent</span>
                             )}
                           </div>
-                          
-                          {priv.is_equipped && (
-                            <div className="absolute top-1 right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                              <Check className="w-3 h-3 text-white" />
-                            </div>
-                          )}
-                          
-                          {equipping === priv.id && (
-                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div className="flex items-center gap-1 mt-1 text-xs">
-                          {priv.expires_at ? (
-                            <>
-                              <Clock className="w-3 h-3 text-amber-400" />
-                              <span className="text-amber-400">{formatExpiration(priv.expires_at)}</span>
-                            </>
-                          ) : priv.source === 'level' ? (
-                            <span className="text-emerald-400">Lv.{priv.unlock_level || 1}+</span>
-                          ) : (
-                            <span className="text-purple-400">∞ Permanent</span>
-                          )}
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Entry Name Bar Section - Sliding name banner with user name + level */}
-              {entryNameBarPrivileges.length > 0 && (
-                <motion.div
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.25 }}
-                >
-                  <div className="flex items-center gap-2 text-lg font-bold mb-3">
-                    <span>🏷️</span>
-                    <span className="text-white">Entry Name Bar</span>
-                    <span className="text-white/50 text-sm font-normal ml-auto">Tap to equip</span>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-3">
-                    {entryNameBarPrivileges.map((priv) => (
-                      <motion.div
-                        key={priv.id}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handleEquip(priv)}
-                        className="flex flex-col items-center"
-                      >
-                        <div className={`flex-shrink-0 w-20 h-20 rounded-2xl overflow-hidden shadow-lg cursor-pointer transition-all relative ${
-                          priv.is_equipped 
-                            ? 'ring-2 ring-green-500 shadow-green-500/30' 
-                            : 'ring-1 ring-white/10 hover:ring-amber-500/50'
-                        }`}>
-                          <div className="w-full h-full bg-gradient-to-br from-amber-900/40 to-orange-900/40 flex items-center justify-center">
-                            {priv.preview_url ? (
-                              <img 
-                                src={priv.preview_url} 
-                                alt={priv.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : priv.animation_url ? (
-                              <UniversalFramePlayer
-                                src={priv.animation_url}
-                                className="w-full h-full"
-                                loop={true}
-                                autoPlay={true}
-                                muted={true}
-                              />
-                            ) : (
-                              <Sparkles className="w-8 h-8 text-amber-400" />
-                            )}
-                          </div>
-                          
-                          {priv.is_equipped && (
-                            <div className="absolute top-1 right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                              <Check className="w-3 h-3 text-white" />
-                            </div>
-                          )}
-                          
-                          {equipping === priv.id && (
-                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div className="flex items-center gap-1 mt-1 text-xs">
-                          {priv.expires_at ? (
-                            <>
-                              <Clock className="w-3 h-3 text-amber-400" />
-                              <span className="text-amber-400">{formatExpiration(priv.expires_at)}</span>
-                            </>
-                          ) : priv.source === 'level' ? (
-                            <span className="text-emerald-400">Lv.{priv.unlock_level || 1}+</span>
-                          ) : (
-                            <span className="text-purple-400">∞ Permanent</span>
-                          )}
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Other Privileges Section */}
-              {otherPrivileges.length > 0 && (
-                <motion.div
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  <div className="flex items-center gap-2 text-lg font-bold mb-3">
-                    <span>🎁</span>
-                    <span className="text-white">Other Privileges</span>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-3">
-                    {otherPrivileges.map((priv) => (
-                      <motion.div
-                        key={priv.id}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handleEquip(priv)}
-                        className="flex flex-col items-center"
-                      >
-                        <div className={`flex-shrink-0 w-20 h-20 rounded-2xl overflow-hidden shadow-lg cursor-pointer transition-all relative ${
-                          priv.is_equipped 
-                            ? 'ring-2 ring-green-500 shadow-green-500/30' 
-                            : 'ring-1 ring-white/10 hover:ring-cyan-500/50'
-                        }`}>
-                          <div className="w-full h-full bg-gradient-to-br from-cyan-900/40 to-slate-900 flex items-center justify-center">
-                            {priv.animation_url ? (
-                              <UniversalFramePlayer
-                                src={priv.animation_url}
-                                className="w-full h-full"
-                                loop={true}
-                                autoPlay={true}
-                                muted={true}
-                              />
-                            ) : priv.preview_url ? (
-                              <img 
-                                src={priv.preview_url} 
-                                alt={priv.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <Gift className="w-8 h-8 text-cyan-400" />
-                            )}
-                          </div>
-                          
-                          {priv.is_equipped && (
-                            <div className="absolute top-1 right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                              <Check className="w-3 h-3 text-white" />
-                            </div>
-                          )}
-                          
-                          {equipping === priv.id && (
-                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* Status/Timer below item */}
-                        <div className="flex items-center gap-1 mt-1 text-xs">
-                          {priv.expires_at ? (
-                            <>
-                              <Clock className="w-3 h-3 text-amber-400" />
-                              <span className="text-amber-400">{formatExpiration(priv.expires_at)}</span>
-                            </>
-                          ) : (
-                            <span className="text-purple-400">∞ Permanent</span>
-                          )}
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
+                        </motion.div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )
+              ))}
               
               {/* Info Note */}
               <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-4 mt-4">
