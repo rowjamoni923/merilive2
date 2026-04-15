@@ -175,6 +175,7 @@ export default function AdminHostApplications() {
     }
   };
 
+  const fetchApplications = async () => {
     if (applications.length === 0) setLoading(true);
     try {
       let query = supabase
