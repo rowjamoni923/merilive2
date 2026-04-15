@@ -66,10 +66,10 @@ const ESSENTIAL_TABLES = new Set([
 ]);
 
 const MANUAL_ONLY_CHANNELS = new Set(['admin-users-realtime', 'admin-hosts-realtime']);
-const MAX_POSTGRES_BINDINGS_PER_WINDOW = 80;
-const BINDING_WINDOW_MS = 10_000;
-const MAX_ACTIVE_CHANNELS = 35;
-const PRESSURE_BACKOFF_MS = 45_000;
+const MAX_POSTGRES_BINDINGS_PER_WINDOW = 120;
+const BINDING_WINDOW_MS = 15_000;
+const MAX_ACTIVE_CHANNELS = 50;
+const PRESSURE_BACKOFF_MS = 20_000;
 
 // Keep pressure mode safeguards, but do NOT globally disable non-essential realtime.
 const ESSENTIAL_ONLY_MODE = false;
