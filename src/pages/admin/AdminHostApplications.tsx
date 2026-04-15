@@ -118,6 +118,7 @@ export default function AdminHostApplications() {
   useEffect(() => {
     fetchApplications();
     fetchStatusCounts();
+    fetchPendingHostsWithoutSubmission();
   }, [currentPage, filterStatus, searchQuery]);
 
   useAdminRealtime(['face_verification_submissions'], () => {
