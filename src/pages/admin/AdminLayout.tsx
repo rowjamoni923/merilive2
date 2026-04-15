@@ -271,6 +271,7 @@ const navGroups: NavGroup[] = [
       { label: "Animation Store", icon: Play, path: "/admin/animation-store", hubKey: "visual-hub" },
       { label: "Icon Registry", icon: Package, path: "/admin/icon-registry", hubKey: "visual-hub" },
       { label: "Beauty Filters", icon: Sparkles, path: "/admin/beauty-filters", hubKey: "visual-hub" },
+      { label: "Verified Badges", icon: Check, path: "/admin/verified-badges", hubKey: "visual-hub" },
     ]
   },
   {

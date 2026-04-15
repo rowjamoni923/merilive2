@@ -195,6 +195,7 @@ const AdminCommissionCalculator = lazy(lazyRetry(() => import("./pages/admin/Adm
 const AdminAnimationStore = lazy(lazyRetry(() => import("./pages/admin/AdminAnimationStore")));
 const AdminTopupSystem = lazy(lazyRetry(() => import("./pages/admin/AdminTopupSystem")));
 const AdminIconRegistry = lazy(lazyRetry(() => import("./pages/admin/AdminIconRegistry")));
+const AdminVerifiedBadges = lazy(lazyRetry(() => import("./pages/admin/AdminVerifiedBadges")));
 const AdminPartyBackgrounds = lazy(lazyRetry(() => import("./pages/admin/AdminPartyBackgrounds")));
 const AdminCallSettings = lazy(lazyRetry(() => import("./pages/admin/AdminCallSettings")));
 const AdminOnlineUsers = lazy(lazyRetry(() => import("./pages/admin/AdminOnlineUsers")));
@@ -1123,6 +1124,7 @@ const App = () => {
                   <Route path="game-leaderboard" element={<AdminRouteGuard routeSegment="game-leaderboard"><AdminGameLeaderboard /></AdminRouteGuard>} />
                   <Route path="user-beans-exchange" element={<AdminRouteGuard routeSegment="user-beans-exchange"><AdminUserBeansExchange /></AdminRouteGuard>} />
                   <Route path="blueprint" element={<AdminBlueprint />} />
+                  <Route path="verified-badges" element={<AdminRouteGuard routeSegment="verified-badges"><AdminVerifiedBadges /></AdminRouteGuard>} />
                 </Route>
                 
                 <Route path="*" element={<NotFound />} />
