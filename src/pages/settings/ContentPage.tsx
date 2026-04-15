@@ -39,8 +39,6 @@ const ContentPageView = () => {
 
         if (error) throw error;
         const data = rows && rows.length > 0 ? rows[0] : null;
-
-        if (error) throw error;
         setPageData(data);
       } catch (error) {
         console.error("Error fetching content:", error);

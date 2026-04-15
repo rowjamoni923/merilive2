@@ -940,9 +940,9 @@ const Settings = () => {
                   <p>Are you sure you want to delete your account?</p>
                   <ul className="text-sm space-y-1 text-muted-foreground">
                     <li>• Your account will be scheduled for deletion</li>
-                    <li>• After 15 days, it will be permanently removed</li>
+                    <li>• After 30 days, it will be permanently removed</li>
                     <li>• All your data, coins, and earnings will be lost</li>
-                    <li>• You can cancel deletion within 15 days</li>
+                    <li>• You can cancel deletion within 30 days</li>
                   </ul>
                 </div>
               )}
@@ -987,13 +987,13 @@ const Settings = () => {
               <div className="space-y-3 mt-2">
                 <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
                   <p className="text-sm text-destructive font-medium">
-                    ⚠️ This action cannot be undone after 15 days!
+                    ⚠️ This action cannot be undone after 30 days!
                   </p>
                 </div>
                 <p className="text-sm">
                   Your account will be permanently deleted on{" "}
-                  <strong>
-                    {new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toLocaleDateString()}
+                   <strong>
+                    {new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()}
                   </strong>
                 </p>
               </div>
