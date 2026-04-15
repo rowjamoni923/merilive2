@@ -121,9 +121,10 @@ export default function AdminHostApplications() {
     fetchPendingHostsWithoutSubmission();
   }, [currentPage, filterStatus, searchQuery]);
 
-  useAdminRealtime(['face_verification_submissions'], () => {
+  useAdminRealtime(['face_verification_submissions', 'profiles'], () => {
     fetchApplications();
     fetchStatusCounts();
+    fetchPendingHostsWithoutSubmission();
   });
 
   const fetchStatusCounts = async () => {
