@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { useAgoraCall } from "@/hooks/useAgoraCall";
 import { useDeepARBeauty } from "@/hooks/useDeepARBeauty";
 import { BeautyFilterPanel } from "@/components/live/BeautyFilterPanel";
-import { StickerOverlay } from "@/components/live/StickerOverlay";
+import StickerOverlay from "@/components/live/StickerOverlay";
 
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { AgoraVideoPlayer } from "@/components/live/AgoraVideoPlayer";

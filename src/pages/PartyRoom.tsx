@@ -87,7 +87,7 @@ import { useRoomProtection } from "@/hooks/useRoomProtection";
 import { useFeatureLevelCheck } from "@/hooks/useFeatureLevelCheck";
 import { useDeepARBeauty } from "@/hooks/useDeepARBeauty";
 import { BeautyFilterPanel } from "@/components/live/BeautyFilterPanel";
-import { StickerOverlay } from "@/components/live/StickerOverlay";
+import StickerOverlay from "@/components/live/StickerOverlay";
 
 interface PartyRoom {
   id: string;
