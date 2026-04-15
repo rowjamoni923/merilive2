@@ -1,8 +1,7 @@
-import { forwardRef } from "react";
 import { ShieldAlert, X } from "lucide-react";
 import { useVpnDetection } from "@/hooks/useVpnDetection";
 
-const VpnWarningBanner = forwardRef<HTMLDivElement>((_, ref) => {
+const VpnWarningBanner = () => {
   const { isAnyDetected, isVpn, isProxy, isTor, isRelay, isChecking, dismissed, dismiss } = useVpnDetection();
 
   if (isChecking || !isAnyDetected || dismissed) return null;
@@ -15,7 +14,7 @@ const VpnWarningBanner = forwardRef<HTMLDivElement>((_, ref) => {
   ].filter(Boolean).join(", ");
 
   return (
-    <div ref={ref} className="fixed top-0 left-0 right-0 z-[9999] bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-3 shadow-lg animate-in slide-in-from-top duration-300">
+    <div className="fixed top-0 left-0 right-0 z-[9999] bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-3 shadow-lg animate-in slide-in-from-top duration-300">
       <div className="flex items-center justify-between max-w-lg mx-auto">
         <div className="flex items-center gap-2 flex-1">
           <ShieldAlert className="w-5 h-5 flex-shrink-0" />
@@ -32,8 +31,6 @@ const VpnWarningBanner = forwardRef<HTMLDivElement>((_, ref) => {
       </div>
     </div>
   );
-});
-
-VpnWarningBanner.displayName = 'VpnWarningBanner';
+};
 
 export default VpnWarningBanner;
