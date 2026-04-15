@@ -189,6 +189,7 @@ const Chat = () => {
   const [isOtherTyping, setIsOtherTyping] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const typingChannelRef = useRef<any>(null);
+  const directMessageChannelRef = useRef<any>(null);
   const [otherUserTrader, setOtherUserTrader] = useState<{ isTrader: boolean; traderLevel: number }>({ isTrader: false, traderLevel: 0 });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
@@ -1172,6 +1173,101 @@ const Chat = () => {
     ...m,
     status: (m.status as Message['status']) || (m.is_read ? 'read' : 'sent'),
   });
+
+  const broadcastDirectMessage = useCallback(async (messageRow: any, conversationId: string) => {
+    if (!directMessageChannelRef.current) return;
+
+    try {
+      await directMessageChannelRef.current.send({
+        type: 'broadcast',
+        event: 'message',
+        payload: {
+          conversationId,
+          message: messageRow,
+        },
+      });
+    } catch (error) {
+      console.warn('[Chat] Broadcast fallback failed:', error);
+    }
+  }, []);
+
+  const upsertLiveMessage = useCallback((messageRow: any) => {
+    const newMessage = castMessage(messageRow);
+
+    setMessages(prev => {
+      const baseMessages = newMessage.sender_id === currentUserId
+        ? prev.filter(
+            m =>
+              !m._optimistic ||
+              m.content !== newMessage.content ||
+              m.message_type !== newMessage.message_type
+          )
+        : prev;
+
+      if (baseMessages.find(m => m.id === newMessage.id)) return baseMessages;
+
+      return [
+        ...baseMessages,
+        newMessage.sender_id === currentUserId
+          ? { ...newMessage, status: (newMessage.status || 'sent') as Message['status'] }
+          : newMessage,
+      ];
+    });
+
+    if (newMessage.sender_id === currentUserId) return;
+
+    void markMessageAsRead(newMessage.id);
+
+    if (selectedConversation?.id) {
+      supabase.channel(`receipts-${selectedConversation.id}`).send({
+        type: 'broadcast',
+        event: 'read',
+        payload: { userId: currentUserId, conversationId: selectedConversation.id }
+      });
+    }
+
+    if (newMessage.message_type === 'gift') {
+      playSoundDebounced('gift');
+      const { mediaUrl, emoji } = parseGiftContent(newMessage.content || '');
+      setAnimatingGiftEmoji(mediaUrl || emoji);
+      setGiftAnimationInstance(prev => prev + 1);
+      setShowGiftAnimation(true);
+    } else {
+      playSoundDebounced('message');
+    }
+  }, [currentUserId, playSoundDebounced, selectedConversation?.id]);
+
+  const persistDirectMessage = useCallback(async (
+    conversationId: string,
+    senderId: string,
+    content: string,
+    messageType: string
+  ) => {
+    const { data: newMsg, error } = await supabase
+      .from('messages')
+      .insert({
+        conversation_id: conversationId,
+        sender_id: senderId,
+        content,
+        message_type: messageType,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    await supabase
+      .from('conversations')
+      .update({ last_message_at: new Date().toISOString() })
+      .eq('id', conversationId);
+
+    if (newMsg) {
+      upsertLiveMessage(newMsg);
+      void broadcastDirectMessage(newMsg, conversationId);
+    }
+
+    return newMsg;
+  }, [broadcastDirectMessage, upsertLiveMessage]);
 
   const fetchMessages = async (conversationId: string) => {
     const { data, error } = await supabase
