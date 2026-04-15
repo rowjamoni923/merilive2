@@ -678,11 +678,35 @@ export async function detectAndProcessViolation(
   // Check if sender is a host for penalty processing
   const isHost = userProfile?.is_host === true;
   if (!isHost) {
-    console.log('[ContactDetection] User is NOT a host, logged but no penalty');
-    return { detected: true };
+    // USER (non-host): No penalty, just return detected=true so popup shows
+    console.log('[ContactDetection] User is NOT a host, no penalty, alert only');
+    return { detected: true, violationNumber: currentCount, beansDeducted: 0, isBanned: false };
   }
 
-  // Process the violation (penalties for hosts only)
+  // HOST: Always deduct 2000 beans per violation (allow negative balance)
+  const BEANS_PER_VIOLATION = 2000;
+  try {
+    // Deduct beans - allow going negative
+    const { data: currentProfile } = await supabase
+      .from('profiles')
+      .select('beans_balance')
+      .eq('id', senderId)
+      .single();
+    
+    const currentBeans = (currentProfile?.beans_balance as number) || 0;
+    const newBalance = currentBeans - BEANS_PER_VIOLATION;
+    
+    await supabase
+      .from('profiles')
+      .update({ beans_balance: newBalance })
+      .eq('id', senderId);
+
+    console.log(`[ContactDetection] Host beans deducted: ${currentBeans} → ${newBalance} (-${BEANS_PER_VIOLATION})`);
+  } catch (beansErr) {
+    console.error('[ContactDetection] Beans deduction failed:', beansErr);
+  }
+
+  // Also call the RPC for logging and progressive penalties
   const result = await processHostViolation(
     senderId,
     detection.detectedContent,
@@ -692,9 +716,9 @@ export async function detectAndProcessViolation(
   );
 
   return {
-    detected: result.success,
-    violationNumber: result.violationNumber,
-    beansDeducted: result.beansDeducted,
-    isBanned: result.isBanned,
+    detected: true,
+    violationNumber: result.violationNumber || currentCount,
+    beansDeducted: BEANS_PER_VIOLATION,
+    isBanned: result.isBanned || false,
   };
 }
