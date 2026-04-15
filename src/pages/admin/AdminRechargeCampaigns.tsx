@@ -187,6 +187,10 @@ export default function AdminRechargeCampaigns() {
       schedule_end: c.schedule_end,
       milestone_amount: c.milestone_amount,
     });
+    // Restore template selection
+    const savedTemplateId = (c as any).template_id;
+    const matchedTemplate = CAMPAIGN_TEMPLATES.find(t => t.id === savedTemplateId);
+    if (matchedTemplate) setSelectedTemplate(matchedTemplate);
     // Try to match a coin package
     const matchedPkg = coinPackages.find(p => p.coins_amount === c.diamonds_amount && Math.abs(p.price_usd - c.original_price_usd) < 0.01);
     setSelectedPackageId(matchedPkg?.id || null);
@@ -251,6 +255,7 @@ export default function AdminRechargeCampaigns() {
         schedule_start: form.schedule_start || null,
         schedule_end: form.schedule_end || null,
         milestone_amount: form.milestone_amount || null,
+        template_id: selectedTemplate?.id || 'royal-gold',
       };
 
       if (editing) {
