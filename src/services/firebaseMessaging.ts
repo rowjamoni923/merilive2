@@ -16,6 +16,7 @@ const FIREBASE_CONFIG = {
   storageBucket: "merilive-913fc.firebasestorage.app",
   messagingSenderId: "830608832747",
   appId: "1:830608832747:web:49bd5ca4cdbec7a05ee6ae",
+  measurementId: "G-N8Z7KPE5VN",
 };
 
 // Singleton instances
@@ -291,7 +292,7 @@ function handleNotificationTap(data: any) {
 
   switch (data.type) {
     case 'incoming_call':
-      // Navigate to call screen
+    case 'call':
       window.location.href = `/call?callId=${data.call_id}`;
       break;
     case 'message':
@@ -306,8 +307,19 @@ function handleNotificationTap(data: any) {
     case 'live':
       window.location.href = `/live/${data.stream_id || ''}`;
       break;
+    case 'support_reply':
+      const ticketId = data.ticket_id || '';
+      const msgId = data.message_id || '';
+      const params = new URLSearchParams({ mode: 'live_chat', ticket_id: ticketId });
+      if (msgId) params.set('message_id', msgId);
+      window.location.href = `/settings/customer-service?${params.toString()}`;
+      break;
     default:
-      window.location.href = '/';
+      if (data.link_url) {
+        window.location.href = data.link_url;
+      } else {
+        window.location.href = '/';
+      }
   }
 }
 
