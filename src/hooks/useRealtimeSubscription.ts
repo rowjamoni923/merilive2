@@ -21,9 +21,12 @@ interface SubscriptionConfig {
 // and cause server overload. Non-publication tables use polling fallback.
 const PUBLICATION_TABLES = new Set([
   'messages', 'conversations', 'live_streams', 'party_rooms',
-  'notifications', 'profiles', 'gift_transactions', 'private_calls',
-  'app_settings', 'agencies', 'agency_withdrawals', 'support_tickets',
-  'support_messages'
+  'party_room_participants', 'notifications', 'profiles',
+  'gift_transactions', 'private_calls', 'app_settings',
+  'agencies', 'agency_withdrawals', 'support_tickets',
+  'support_messages', 'stream_chat', 'stream_viewers',
+  'rating_reward_claims', 'face_verification_submissions',
+  'followers', 'topup_helpers', 'shop_items',
 ]);
 
 const isInPublication = (table: string) => PUBLICATION_TABLES.has(table);
