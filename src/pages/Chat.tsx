@@ -189,6 +189,7 @@ const Chat = () => {
   const [isOtherTyping, setIsOtherTyping] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const typingChannelRef = useRef<any>(null);
+  const directMessageChannelRef = useRef<any>(null);
   const [otherUserTrader, setOtherUserTrader] = useState<{ isTrader: boolean; traderLevel: number }>({ isTrader: false, traderLevel: 0 });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
@@ -545,30 +546,12 @@ const Chat = () => {
       
       // Send voice message
       if (selectedConversation) {
-        const { data: newMsg, error } = await supabase
-          .from('messages')
-          .insert({
-            conversation_id: selectedConversation.id,
-            sender_id: currentUserId,
-            content: urlData.publicUrl,
-            message_type: 'audio'
-          })
-          .select()
-          .single();
-
-        if (error) throw error;
-
-        if (newMsg) {
-          setMessages(prev => {
-            if (prev.find(m => m.id === newMsg.id)) return prev;
-            return [...prev, castMessage(newMsg)];
-          });
-        }
-
-        await supabase
-          .from('conversations')
-          .update({ last_message_at: new Date().toISOString() })
-          .eq('id', selectedConversation.id);
+        await persistDirectMessage(
+          selectedConversation.id,
+          currentUserId,
+          urlData.publicUrl,
+          'audio'
+        );
 
         // 🔔 Push notification for voice message
         const recipientId = selectedConversation.other_user?.id;
@@ -704,14 +687,12 @@ const Chat = () => {
           ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | +${beansEarned} beans]`
           : `[Gift: ${giftEmoji} ${gift.name} x${count} | +${beansEarned} beans]`;
         
-        await supabase
-          .from('messages')
-          .insert({
-            conversation_id: selectedConversation.id,
-            sender_id: currentUserId,
-            content: messageContent,
-            message_type: 'gift'
-          });
+        await persistDirectMessage(
+          selectedConversation.id,
+          currentUserId,
+          messageContent,
+          'gift'
+        );
         
         // Sync actual balance
         const { data: updatedProfile } = await supabase
@@ -771,6 +752,14 @@ const Chat = () => {
     const channel = supabase
       .channel(channelName)
       .on(
+        'broadcast',
+        { event: 'message' },
+        (payload: any) => {
+          if (payload.payload?.conversationId !== selectedConversation.id || !payload.payload?.message) return;
+          upsertLiveMessage(payload.payload.message);
+        }
+      )
+      .on(
         'postgres_changes',
         {
           event: 'INSERT',
@@ -779,37 +768,7 @@ const Chat = () => {
           filter: `conversation_id=eq.${selectedConversation.id}`,
         },
         (payload) => {
-          const newMessage = castMessage(payload.new);
-
-          if (newMessage.sender_id === currentUserId) {
-            setMessages(prev => {
-              const withoutOptimistic = prev.filter(m => !m._optimistic || m.content !== newMessage.content);
-              if (withoutOptimistic.find(m => m.id === newMessage.id)) return withoutOptimistic;
-              return [...withoutOptimistic, { ...newMessage, status: 'sent' as const }];
-            });
-          } else {
-            setMessages(prev => {
-              if (prev.find(m => m.id === newMessage.id)) return prev;
-              return [...prev, newMessage];
-            });
-            markMessageAsRead(newMessage.id);
-
-            supabase.channel(`receipts-${selectedConversation.id}`).send({
-              type: 'broadcast',
-              event: 'read',
-              payload: { userId: currentUserId, conversationId: selectedConversation.id }
-            });
-
-            if (newMessage.message_type === 'gift') {
-              playSoundDebounced('gift');
-              const { mediaUrl, emoji } = parseGiftContent(newMessage.content || '');
-              setAnimatingGiftEmoji(mediaUrl || emoji);
-              setGiftAnimationInstance(prev => prev + 1);
-              setShowGiftAnimation(true);
-            } else {
-              playSoundDebounced('message');
-            }
-          }
+          upsertLiveMessage(payload.new);
         }
       )
       .on(
@@ -827,15 +786,19 @@ const Chat = () => {
       )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
+          directMessageChannelRef.current = channel;
           console.log(`[Chat] ✅ Direct message channel active for ${selectedConversation.id}`);
         }
       });
 
     return () => {
+      if (directMessageChannelRef.current === channel) {
+        directMessageChannelRef.current = null;
+      }
       supabase.removeChannel(channel);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedConversation, currentUserId]);
+  }, [selectedConversation, currentUserId, upsertLiveMessage]);
 
   // 📩 Read/Delivered receipt listener via Supabase broadcast
   useEffect(() => {
@@ -972,7 +935,7 @@ const Chat = () => {
     let refreshTimer: NodeJS.Timeout | null = null;
     const debouncedRefresh = () => {
       if (refreshTimer) clearTimeout(refreshTimer);
-      refreshTimer = setTimeout(() => fetchConversations(), 1500);
+      refreshTimer = setTimeout(() => fetchConversations(), 250);
     };
 
     const channelName = `conv-refresh-${currentUserId}-${Date.now()}`;
@@ -1172,6 +1135,101 @@ const Chat = () => {
     ...m,
     status: (m.status as Message['status']) || (m.is_read ? 'read' : 'sent'),
   });
+
+  async function broadcastDirectMessage(messageRow: any, conversationId: string) {
+    if (!directMessageChannelRef.current) return;
+
+    try {
+      await directMessageChannelRef.current.send({
+        type: 'broadcast',
+        event: 'message',
+        payload: {
+          conversationId,
+          message: messageRow,
+        },
+      });
+    } catch (error) {
+      console.warn('[Chat] Broadcast fallback failed:', error);
+    }
+  }
+
+  function upsertLiveMessage(messageRow: any) {
+    const newMessage = castMessage(messageRow);
+
+    setMessages(prev => {
+      const baseMessages = newMessage.sender_id === currentUserId
+        ? prev.filter(
+            m =>
+              !m._optimistic ||
+              m.content !== newMessage.content ||
+              m.message_type !== newMessage.message_type
+          )
+        : prev;
+
+      if (baseMessages.find(m => m.id === newMessage.id)) return baseMessages;
+
+      return [
+        ...baseMessages,
+        newMessage.sender_id === currentUserId
+          ? { ...newMessage, status: (newMessage.status || 'sent') as Message['status'] }
+          : newMessage,
+      ];
+    });
+
+    if (newMessage.sender_id === currentUserId) return;
+
+    void markMessageAsRead(newMessage.id);
+
+    if (selectedConversation?.id) {
+      supabase.channel(`receipts-${selectedConversation.id}`).send({
+        type: 'broadcast',
+        event: 'read',
+        payload: { userId: currentUserId, conversationId: selectedConversation.id }
+      });
+    }
+
+    if (newMessage.message_type === 'gift') {
+      playSoundDebounced('gift');
+      const { mediaUrl, emoji } = parseGiftContent(newMessage.content || '');
+      setAnimatingGiftEmoji(mediaUrl || emoji);
+      setGiftAnimationInstance(prev => prev + 1);
+      setShowGiftAnimation(true);
+    } else {
+      playSoundDebounced('message');
+    }
+  }
+
+  async function persistDirectMessage(
+    conversationId: string,
+    senderId: string,
+    content: string,
+    messageType: string
+  ) {
+    const { data: newMsg, error } = await supabase
+      .from('messages')
+      .insert({
+        conversation_id: conversationId,
+        sender_id: senderId,
+        content,
+        message_type: messageType,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    await supabase
+      .from('conversations')
+      .update({ last_message_at: new Date().toISOString() })
+      .eq('id', conversationId);
+
+    if (newMsg) {
+      upsertLiveMessage(newMsg);
+      void broadcastDirectMessage(newMsg, conversationId);
+    }
+
+    return newMsg;
+  }
 
   const fetchMessages = async (conversationId: string) => {
     const { data, error } = await supabase
@@ -1402,21 +1460,12 @@ const Chat = () => {
 
     try {
       if (selectedConversation) {
-        const insertPromise = supabase
-          .from('messages')
-          .insert({
-            conversation_id: selectedConversation.id,
-            sender_id: currentUserId,
-            content: contentToSend,
-            message_type: 'text'
-          });
-
-        const updatePromise = supabase
-          .from('conversations')
-          .update({ last_message_at: new Date().toISOString() })
-          .eq('id', selectedConversation.id);
-        
-        await Promise.all([insertPromise, updatePromise]);
+        await persistDirectMessage(
+          selectedConversation.id,
+          currentUserId,
+          contentToSend,
+          'text'
+        );
         
         // Track message sent for task progress
         trackTaskProgress('messages_sent', { increment: 1 });
@@ -2315,15 +2364,12 @@ const Chat = () => {
                         setMessage("");
                         
                         if (selectedConversation) {
-                          Promise.all([
-                            supabase.from('messages').insert({
-                              conversation_id: selectedConversation.id,
-                              sender_id: currentUserId,
-                              content,
-                              message_type: 'text'
-                            }),
-                            supabase.from('conversations').update({ last_message_at: new Date().toISOString() }).eq('id', selectedConversation.id)
-                          ]).then(() => {
+                          persistDirectMessage(
+                            selectedConversation.id,
+                            currentUserId!,
+                            content,
+                            'text'
+                          ).then(() => {
                             setSending(false);
                             // 🔔 Push notification for quick reply
                             const recipientId = selectedConversation.other_user?.id;
@@ -2504,28 +2550,12 @@ const Chat = () => {
                       }
 
                       if (selectedConversation) {
-                        const { data: newMsg, error } = await supabase
-                          .from('messages')
-                          .insert({
-                            conversation_id: selectedConversation.id,
-                            sender_id: currentUserId,
-                            content: pendingMedia.url,
-                            message_type: pendingMedia.type
-                          })
-                          .select()
-                          .single();
-
-                        if (!error && newMsg) {
-                          setMessages(prev => {
-                            if (prev.find(m => m.id === newMsg.id)) return prev;
-                            return [...prev, castMessage(newMsg)];
-                          });
-                        }
-
-                        await supabase
-                          .from('conversations')
-                          .update({ last_message_at: new Date().toISOString() })
-                          .eq('id', selectedConversation.id);
+                        await persistDirectMessage(
+                          selectedConversation.id,
+                          currentUserId!,
+                          pendingMedia.url,
+                          pendingMedia.type
+                        );
                       } else if (selectedGroup) {
                         const { data: newMsg, error } = await supabase
                           .from('group_messages')
