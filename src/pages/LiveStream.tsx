@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { BeautyFilterPanel, generateBeautyCSS } from "@/components/live/BeautyFilterPanel";
 import type { BeautySettings } from "@/components/live/BeautyFilterPanel";
+import { StickerOverlay } from "@/components/live/StickerOverlay";
 import { useDeepARBeauty } from "@/hooks/useDeepARBeauty";
 import { detectAndProcessViolation } from "@/utils/contactDetection";
 import { scanImageForContactInfo } from "@/utils/imageContactDetection";
