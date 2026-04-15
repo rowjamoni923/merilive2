@@ -4815,6 +4815,9 @@ export type Database = {
           description: string | null
           display_order: number | null
           duration_ms: number | null
+          icon_bg_color: string | null
+          icon_color: string | null
+          icon_name: string | null
           icon_url: string | null
           id: string
           is_active: boolean | null
@@ -4833,6 +4836,9 @@ export type Database = {
           description?: string | null
           display_order?: number | null
           duration_ms?: number | null
+          icon_bg_color?: string | null
+          icon_color?: string | null
+          icon_name?: string | null
           icon_url?: string | null
           id?: string
           is_active?: boolean | null
@@ -4851,6 +4857,9 @@ export type Database = {
           description?: string | null
           display_order?: number | null
           duration_ms?: number | null
+          icon_bg_color?: string | null
+          icon_color?: string | null
+          icon_name?: string | null
           icon_url?: string | null
           id?: string
           is_active?: boolean | null
