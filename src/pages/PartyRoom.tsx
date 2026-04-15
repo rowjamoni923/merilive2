@@ -1178,7 +1178,15 @@ const PartyRoom = () => {
         // 1. INSTANT participant refresh
         fetchParticipants();
         
-        // 2. INSTANT join message to chat
+        // 2. INSTANT flying join banner (Bigo-style)
+        addBigoJoinNotification({
+          userId: data.userId,
+          userName: data.userName,
+          userAvatar: data.userAvatar,
+          userLevel: data.userLevel,
+        });
+        
+        // 3. INSTANT join message to chat
         setJoinMessages(prev => [...prev.slice(-20), {
           id: `broadcast_join_${Date.now()}_${data.userId}`,
           userId: data.userId,
