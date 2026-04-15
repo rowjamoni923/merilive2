@@ -366,7 +366,8 @@ const VIP = () => {
 
       if (entryNameBars) {
         for (const bar of entryNameBars) {
-          if (bar.animation_url && (bar.animation_url.includes('supabase.co/storage') || bar.animation_url.endsWith('.svga') || bar.animation_url.endsWith('.json') || bar.animation_url.includes('.r2.dev'))) {
+          const barAssetUrl = bar.animation_url || bar.preview_url;
+          if (isValidAssetUrl(barAssetUrl)) {
             const isEquipped = bar.id === equippedEntryNameBarId;
             const alreadyExists = allPrivileges.some(p => p.item_id === bar.id);
             if (!alreadyExists) {
@@ -376,7 +377,7 @@ const VIP = () => {
                 name: bar.name,
                 category: 'entry_name_bar',
                 preview_url: bar.preview_url,
-                animation_url: bar.animation_url,
+                animation_url: bar.animation_url || bar.preview_url,
                 is_equipped: isEquipped,
                 expires_at: null,
                 source: 'level',
