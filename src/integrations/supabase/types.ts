@@ -11334,6 +11334,10 @@ export type Database = {
         Returns: Json
       }
       recalculate_all_user_levels: { Args: never; Returns: undefined }
+      recalculate_single_user_level: {
+        Args: { _user_id: string }
+        Returns: undefined
+      }
       recalculate_user_level: { Args: { _user_id: string }; Returns: undefined }
       record_live_violation: {
         Args: {
