@@ -684,6 +684,7 @@ const AdminShop = () => {
             <SelectItem value="active">✅ Active</SelectItem>
             <SelectItem value="hidden">🚫 Hidden</SelectItem>
           </SelectContent>
+        </Select>
 
         <Button
           variant="outline"
