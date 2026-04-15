@@ -9,11 +9,11 @@
  * - Only visible to users (not hosts).
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { X } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Diamond3DIcon from '@/components/common/Diamond3DIcon';
+import { toast } from 'sonner';
 
 interface Campaign {
   id: string;
