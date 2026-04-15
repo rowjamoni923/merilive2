@@ -364,16 +364,18 @@ export default function AdminCoins() {
       const baseCoins = Number(packageForm.base_coins || packageForm.coins || 0);
       const totalCoins = Number(packageForm.coins || 0);
       const bonusCoins = Math.max(totalCoins - baseCoins, 0);
+      // Only send columns that exist in the DB schema
       const packagePayload = {
-        ...packageForm,
-        coins: totalCoins,
-        base_coins: baseCoins,
-        price_usd: Number(packageForm.price_usd || 0),
-        bonus_percentage: Number(packageForm.bonus_percentage || 0),
-        display_order: Number(packageForm.display_order || 0),
         coins_amount: baseCoins,
         bonus_coins: bonusCoins,
+        price_usd: Number(packageForm.price_usd || 0),
         discount_percent: Number(packageForm.bonus_percentage || 0),
+        display_order: Number(packageForm.display_order || 0),
+        is_popular: packageForm.is_popular,
+        is_active: packageForm.is_active,
+        name: `${baseCoins} Diamonds`,
+        description: '',
+        product_id: `diamonds_${baseCoins}`,
       };
 
       if (editingPackage) {
