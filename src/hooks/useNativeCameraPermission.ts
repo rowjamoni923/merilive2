@@ -247,23 +247,19 @@ export function useNativeCameraPermission() {
         throw new Error(permResult.error || 'Camera permission not granted');
       }
 
-      // Full-screen portrait camera — matches native phone camera (9:16)
-      // Forces highest possible resolution in portrait orientation
+      // Full HD camera — NO aspectRatio constraint to avoid zoom/crop on Android WebView
+      // The display layer (CSS object-fit:cover) handles full-screen fill
       const constraintOptions: MediaStreamConstraints[] = [
         {
-          video: { facingMode: 'user', width: { ideal: 1080, min: 720 }, height: { ideal: 1920, min: 1280 }, frameRate: { ideal: 30, min: 24 }, aspectRatio: { ideal: 9/16 } },
+          video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } },
           audio: includeAudio,
         },
         {
-          video: { facingMode: { ideal: 'user' }, width: { ideal: 720 }, height: { ideal: 1280 }, frameRate: { ideal: 30 }, aspectRatio: { ideal: 9/16 } },
+          video: { facingMode: { ideal: 'user' }, width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } },
           audio: includeAudio,
         },
         {
-          video: { facingMode: 'user', width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 } },
-          audio: includeAudio,
-        },
-        {
-          video: { facingMode: { ideal: 'user' }, width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } },
+          video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 30 } },
           audio: includeAudio,
         },
         {

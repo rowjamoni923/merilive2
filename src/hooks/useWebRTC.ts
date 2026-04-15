@@ -84,32 +84,12 @@ export function useWebRTC(callId: string | null, userId: string | null, isHost: 
   const initializeMedia = useCallback(async () => {
     console.log('[WebRTC] Initializing local media (HD profile)...');
     
-    // Full-screen portrait camera — native phone ratio (9:16)
+    // Full HD camera — NO aspectRatio to avoid zoom/crop on Android WebView
     const constraints: MediaStreamConstraints[] = [
       {
         video: {
-          width: { ideal: 1080, min: 720 },
-          height: { ideal: 1920, min: 1280 },
-          frameRate: { ideal: 30, max: 30 },
-          facingMode: 'user',
-          aspectRatio: { ideal: 9/16 },
-        },
-        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
-      },
-      {
-        video: {
-          width: { ideal: 720 },
-          height: { ideal: 1280 },
-          frameRate: { ideal: 30, max: 30 },
-          facingMode: 'user',
-          aspectRatio: { ideal: 9/16 },
-        },
-        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
-      },
-      {
-        video: {
-          width: { ideal: 1920, max: 1920 },
-          height: { ideal: 1080, max: 1080 },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
           frameRate: { ideal: 30, max: 30 },
           facingMode: 'user',
         },
@@ -117,8 +97,17 @@ export function useWebRTC(callId: string | null, userId: string | null, isHost: 
       },
       {
         video: {
-          width: { ideal: 1280, max: 1280 },
-          height: { ideal: 720, max: 720 },
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+          frameRate: { ideal: 30, max: 30 },
+          facingMode: 'user',
+        },
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+      },
+      {
+        video: {
+          width: { ideal: 640 },
+          height: { ideal: 480 },
           frameRate: { ideal: 30, max: 30 },
           facingMode: 'user',
         },
@@ -449,12 +438,11 @@ export function useWebRTC(callId: string | null, userId: string | null, isHost: 
         console.log('[WebRTC] Initializing for callId:', callId, 'userId:', userId, 'isHost:', isHost);
 
         // Initialize media
-        // Full-screen portrait camera — native phone ratio (9:16)
+        // Full HD camera — NO aspectRatio to avoid zoom/crop
         const mediaConstraints: MediaStreamConstraints[] = [
-          { video: { width: { ideal: 1080, min: 720 }, height: { ideal: 1920, min: 1280 }, frameRate: { ideal: 30 }, facingMode: 'user', aspectRatio: { ideal: 9/16 } }, audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } },
-          { video: { width: { ideal: 720 }, height: { ideal: 1280 }, frameRate: { ideal: 30 }, facingMode: 'user', aspectRatio: { ideal: 9/16 } }, audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } },
+          { video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 }, facingMode: 'user' }, audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } },
           { video: { width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30 }, facingMode: 'user' }, audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } },
-          { video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 }, facingMode: 'user' }, audio: { echoCancellation: true, noiseSuppression: true } },
+          { video: { width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 30 }, facingMode: 'user' }, audio: { echoCancellation: true, noiseSuppression: true } },
           { video: { facingMode: 'user' }, audio: true },
           { video: false, audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } },
         ];
