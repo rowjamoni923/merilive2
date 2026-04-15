@@ -155,10 +155,10 @@ const ErrorMessages: Record<string, CameraError> = {
 // =============================================================================
 
 const QualityPresets = {
-  fullhd: { width: 1080, height: 1920 },  // Portrait full-screen (9:16)
-  hd: { width: 720, height: 1280 },       // Portrait HD
-  sd: { width: 480, height: 854 },        // Portrait SD
-  low: { width: 360, height: 640 },       // Portrait low
+  fullhd: { width: 1920, height: 1080 },
+  hd: { width: 1280, height: 720 },
+  sd: { width: 640, height: 480 },
+  low: { width: 320, height: 240 },
 };
 
 // =============================================================================
@@ -487,13 +487,12 @@ export class NativeCameraSDK {
 
     // Add constraints in order of preference
     for (const res of resolutions) {
-      // Exact facing mode — portrait full-screen
+      // NO aspectRatio constraint — prevents zoom/crop on Android WebView
       constraints.push({
         video: {
           facingMode: facing,
           width: { ideal: res.width },
           height: { ideal: res.height },
-          aspectRatio: { ideal: 9/16 },
         },
         audio: includeAudio,
       });
