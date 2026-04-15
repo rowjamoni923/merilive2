@@ -643,11 +643,25 @@ export default function AdminUserManagement() {
 
     setActionLoading(true);
     try {
-      const { error } = await supabase.rpc('admin_update_user_gender', {
+      // Set gender to female (host convention)
+      const { error: genderErr } = await supabase.rpc('admin_update_user_gender', {
         _user_id: hostId,
         _gender: 'female',
       });
-      if (error) throw error;
+      if (genderErr) throw genderErr;
+
+      // Set host_status = approved, is_face_verified = true, is_verified = true
+      const { error: profileErr } = await supabase
+        .from("profiles")
+        .update({
+          host_status: 'approved',
+          is_face_verified: true,
+          is_verified: true,
+          face_verified_at: new Date().toISOString(),
+        })
+        .eq("id", hostId);
+      if (profileErr) throw profileErr;
+
       toast.success("Host approved successfully");
       fetchHosts();
       fetchHostStats();
