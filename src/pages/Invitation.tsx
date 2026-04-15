@@ -92,10 +92,10 @@ const Invitation = () => {
       if (!user) return;
       const { data } = await supabase
         .from('invitation_reward_claims')
-        .select('tier_id')
-        .eq('user_id', user.id);
+        .select('invitation_id')
+        .eq('claimed_by', user.id);
       if (data) {
-        setClaimedTierIds(new Set(data.map(c => c.tier_id)));
+        setClaimedTierIds(new Set(data.map(c => c.invitation_id)));
       }
     } catch (error) {
       console.error('Error fetching claims:', error);
@@ -105,21 +105,40 @@ const Invitation = () => {
   const claimTierReward = async (tier: InvitationTier) => {
     try {
       setClaimingTierId(tier.id);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Please login first');
+        return;
+      }
+
+      // Check eligibility
+      if (myInviteCount < tier.min_invites) {
+        toast.error(`Need at least ${tier.min_invites} invites to claim this tier`);
+        return;
+      }
+
+      const beansReward = tier.reward_beans ?? 0;
+      const coinsReward = tier.reward_coins ?? 0;
+
       const { data, error } = await supabase.rpc('claim_invitation_reward', {
-        p_tier_id: tier.id,
-        p_reward_beans: tier.reward_beans ?? 0,
-        p_reward_coins: tier.reward_coins ?? 0,
-        p_invite_count: myInviteCount,
+        _user_id: user.id,
+        _beans: beansReward,
+        _coins: coinsReward,
+        _diamonds: coinsReward,
       });
       
       if (error) throw error;
-      const result = data as any;
-      if (result?.success) {
-        toast.success(`🎉 ${tier.tier_name} Reward Claimed! +${result.diamonds_awarded?.toLocaleString()} 💎 Diamonds`);
-        setClaimedTierIds(prev => new Set([...prev, tier.id]));
-      } else {
-        toast.error(result?.error || 'Failed to claim reward');
-      }
+      
+      // Record the claim
+      await supabase.from('invitation_reward_claims').insert({
+        claimed_by: user.id,
+        invitation_id: tier.id,
+        reward_amount: coinsReward,
+        reward_type: 'tier_reward',
+      });
+
+      toast.success(`🎉 ${tier.tier_name} Reward Claimed! +${coinsReward.toLocaleString()} 💎 Diamonds`);
+      setClaimedTierIds(prev => new Set([...prev, tier.id]));
     } catch (error: any) {
       console.error('Error claiming reward:', error);
       toast.error('Failed to claim reward');
