@@ -107,6 +107,8 @@ export default function AdminHostApplications() {
   const [expandedPhoto, setExpandedPhoto] = useState<string | null>(null);
   const [approveAsRole, setApproveAsRole] = useState<'host' | 'user'>('host');
   const [statusCounts, setStatusCounts] = useState({ pending: 0, under_review: 0, approved: 0, rejected: 0 });
+  const [pendingHosts, setPendingHosts] = useState<Array<{id: string; display_name: string|null; app_uid: string|null; avatar_url: string|null; gender: string|null; country_code: string|null; created_at: string|null; is_verified: boolean|null; is_face_verified: boolean|null}>>([]);
+  const [pendingHostsCount, setPendingHostsCount] = useState(0);
   const actionGuardRef = useRef<Set<string>>(new Set());
   const guardStart = (key: string) => { if (actionGuardRef.current.has(key)) return false; actionGuardRef.current.add(key); return true; };
   const guardEnd = (key: string) => { actionGuardRef.current.delete(key); };
@@ -116,11 +118,13 @@ export default function AdminHostApplications() {
   useEffect(() => {
     fetchApplications();
     fetchStatusCounts();
+    fetchPendingHostsWithoutSubmission();
   }, [currentPage, filterStatus, searchQuery]);
 
-  useAdminRealtime(['face_verification_submissions'], () => {
+  useAdminRealtime(['face_verification_submissions', 'profiles'], () => {
     fetchApplications();
     fetchStatusCounts();
+    fetchPendingHostsWithoutSubmission();
   });
 
   const fetchStatusCounts = async () => {
@@ -144,7 +148,33 @@ export default function AdminHostApplications() {
     }
   };
 
-  const fetchApplications = async () => {
+  const fetchPendingHostsWithoutSubmission = async () => {
+    try {
+      // Get all face_verification_submissions user_ids
+      const { data: submittedUsers } = await supabase
+        .from("face_verification_submissions")
+        .select("user_id");
+      const submittedIds = new Set((submittedUsers || []).map((s: any) => s.user_id));
+
+      // Get all pending female hosts
+      const { data: pendingProfiles } = await supabase
+        .from("profiles")
+        .select("id, display_name, app_uid, avatar_url, gender, country_code, created_at, is_verified, is_face_verified")
+        .eq("is_host", true)
+        .eq("host_status", "pending")
+        .eq("gender", "female")
+        .order("created_at", { ascending: false })
+        .limit(100);
+
+      // Filter out those who already have submissions
+      const noSubmission = (pendingProfiles || []).filter((p: any) => !submittedIds.has(p.id));
+      setPendingHosts(noSubmission);
+      setPendingHostsCount(noSubmission.length);
+    } catch (error) {
+      console.error("Error fetching pending hosts:", error);
+    }
+  };
+
     if (applications.length === 0) setLoading(true);
     try {
       let query = supabase
@@ -319,7 +349,10 @@ export default function AdminHostApplications() {
                 </div>
                 Host Application Management
               </h1>
-              <p className="text-white/70 text-sm mt-1.5">Total {statusCounts.pending + statusCounts.under_review + statusCounts.approved + statusCounts.rejected} applications received</p>
+              <p className="text-white/70 text-sm mt-1.5">
+                {statusCounts.pending + statusCounts.under_review + statusCounts.approved + statusCounts.rejected} submissions
+                {pendingHostsCount > 0 && <span className="text-orange-400 font-semibold"> • {pendingHostsCount} awaiting verification</span>}
+              </p>
             </div>
             <Button
               variant="ghost"
@@ -506,6 +539,58 @@ export default function AdminHostApplications() {
           <Button variant="outline" size="sm" disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)} className="bg-white/5 border-white/10 text-white/70 h-8">
             Next <ChevronRight className="w-4 h-4 ml-1" />
           </Button>
+        </div>
+      )}
+
+      {/* ============ PENDING HOSTS WITHOUT SUBMISSION ============ */}
+      {pendingHostsCount > 0 && (
+        <div className="mt-6 space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="p-2 bg-orange-500/15 rounded-lg">
+              <AlertTriangle className="w-5 h-5 text-orange-400" />
+            </div>
+            <div>
+              <h2 className="text-white font-bold text-base">Pending Hosts — No Verification Submitted</h2>
+              <p className="text-white/50 text-xs">{pendingHostsCount} hosts registered as female but haven't submitted face verification yet</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {pendingHosts.map((host) => (
+              <Card key={host.id} className="bg-orange-500/[0.05] border-orange-500/20 hover:bg-orange-500/[0.1] transition-all">
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="w-12 h-12 ring-2 ring-orange-500/30">
+                      <AvatarImage src={host.avatar_url || undefined} className="object-cover" />
+                      <AvatarFallback className="bg-gradient-to-br from-orange-500/30 to-amber-500/30 text-orange-300 font-bold">
+                        {host.display_name?.charAt(0) || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-semibold text-sm truncate">{host.display_name || 'Unknown'}</p>
+                      <p className="text-white/40 text-xs font-mono">#{host.app_uid || host.id.slice(0, 8)}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge className="bg-orange-500/15 text-orange-400 border-0 text-[10px]">
+                          <Clock className="w-2.5 h-2.5 mr-1" />Pending
+                        </Badge>
+                        {host.is_verified && (
+                          <Badge className="bg-yellow-500/15 text-yellow-400 border-0 text-[10px]">
+                            ⚠️ is_verified=true
+                          </Badge>
+                        )}
+                        {host.country_code && (
+                          <span className="text-[10px] text-white/40">{host.country_code}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-white/30 mt-2">
+                    Registered: {host.created_at ? new Date(host.created_at).toLocaleDateString() : '-'}
+                    {' • '}No face verification submitted yet
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       )}
 
