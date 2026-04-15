@@ -79,17 +79,35 @@ export function usePushNotifications(): UsePushNotificationsReturn {
     console.log('[Push] Notification action performed:', action);
     
     const data = action.notification.data as Record<string, string> | undefined;
-    
-    // Handle call notification tap
-    if (data?.type === 'call' && data?.callId) {
-      // Navigate to call or handle call acceptance
-      console.log('[Push] User tapped call notification, callId:', data.callId);
-      // The app will be opened and CallProvider will handle the incoming call
-    }
-    
-    // Handle message notification tap
-    if (data?.type === 'message' && data?.conversationId) {
-      window.location.href = `/chat?conversation=${data.conversationId}`;
+    if (!data) return;
+
+    const type = data.type || '';
+
+    // Use comprehensive deep-linking
+    if (type === 'incoming_call' || type === 'call') {
+      window.location.href = `/call?callId=${data.call_id || data.callId || ''}`;
+    } else if (type === 'call_missed' || type === 'call_received') {
+      window.location.href = '/call-history';
+    } else if (type === 'message') {
+      window.location.href = `/chat/${data.conversation_id || data.conversationId || ''}`;
+    } else if (type === 'gift' || type === 'gift_received') {
+      window.location.href = data.sender_id ? `/profile-detail/${data.sender_id}` : '/profile';
+    } else if (type === 'follow' || type === 'new_follower') {
+      window.location.href = `/profile-detail/${data.follower_id || ''}`;
+    } else if (type === 'live' || type === 'live_started') {
+      window.location.href = data.stream_id ? `/live/${data.stream_id}` : '/discover';
+    } else if (type === 'party_invite') {
+      window.location.href = data.room_id ? `/party/${data.room_id}` : '/party-rooms';
+    } else if (type === 'support_reply') {
+      window.location.href = `/settings/customer-service?mode=live_chat&ticket_id=${data.ticket_id || ''}`;
+    } else if (type.startsWith('agency_')) {
+      window.location.href = '/agency-dashboard';
+    } else if (data.link_url) {
+      window.location.href = data.link_url;
+    } else if (data.action_url) {
+      window.location.href = data.action_url;
+    } else {
+      window.location.href = '/chat?tab=notifications';
     }
   }, []);
 
