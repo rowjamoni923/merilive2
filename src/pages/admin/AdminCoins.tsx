@@ -1014,7 +1014,7 @@ export default function AdminCoins() {
 
       {/* Package Dialog */}
       <Dialog open={showPackageDialog} onOpenChange={setShowPackageDialog}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogContent className="max-w-lg max-h-[88dvh] overflow-hidden flex flex-col">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle className="flex items-center gap-2">
               <Diamond className="w-5 h-5 text-cyan-500" />
