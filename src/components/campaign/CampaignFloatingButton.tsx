@@ -139,12 +139,45 @@ export function CampaignFloatingButton() {
 
   const bonusText = discountPercent > 0 ? `${discountPercent}%` : '';
 
-  const handlePurchase = () => {
-    // Mark as purchased so it never shows again for this campaign
-    localStorage.setItem(PURCHASED_KEY + campaign.id, 'true');
-    setPurchased(true);
-    setShowPopup(false);
-    navigate('/recharge');
+  const handlePurchase = async () => {
+    setPaymentLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Please login first');
+        return;
+      }
+
+      // Call Stripe payment edge function directly
+      const { data, error } = await supabase.functions.invoke('create-stripe-payment', {
+        body: {
+          package_id: campaign.id,
+          diamonds: campaign.diamonds_amount + campaign.bonus_diamonds,
+          amount_usd: campaign.offer_price_usd || campaign.original_price_usd,
+          campaign_id: campaign.id,
+          user_id: user.id,
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        // Mark as purchased
+        localStorage.setItem(PURCHASED_KEY + campaign.id, 'true');
+        setPurchased(true);
+        setShowPopup(false);
+        // Open payment page
+        const { openInApp } = await import('@/utils/inAppNavigation');
+        await openInApp(data.url, { useOverlay: true });
+      } else {
+        toast.error('Could not start payment');
+      }
+    } catch (err: any) {
+      console.error('[Campaign] Payment error:', err);
+      toast.error(err.message || 'Payment failed');
+    } finally {
+      setPaymentLoading(false);
+    }
   };
 
   return (
