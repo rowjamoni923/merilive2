@@ -98,6 +98,7 @@ export function useDeepARBeauty() {
   const isNativeAndroid = isNativeAndroidApp();
   const [showBeautyPanel, setShowBeautyPanel] = useState(false);
   const [stickerActive, setStickerActive] = useState(false);
+  const [activeSticker, setActiveSticker] = useState<string | null>(null);
   const [beautyEnabled, setBeautyEnabled] = useState(true);
   const [beautySettings, setBeautySettings] = useState<BeautySettings>({ ...DEFAULT_BEAUTY });
   const [cameraRunning, setCameraRunning] = useState(false);
