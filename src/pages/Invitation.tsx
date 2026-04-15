@@ -75,7 +75,7 @@ const Invitation = () => {
 
     const tiersChannel = supabase
       .channel('invitation-tiers-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'invitation_settings' }, () => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'invitation_reward_tiers' }, () => {
         fetchTiers();
       })
       .subscribe();
@@ -166,7 +166,7 @@ const Invitation = () => {
   const fetchTiers = async () => {
     try {
       const { data, error } = await supabase
-        .from('invitation_settings')
+        .from('invitation_reward_tiers')
         .select('*')
         .eq('is_active', true)
         .order('display_order');
