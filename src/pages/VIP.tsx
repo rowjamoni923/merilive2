@@ -243,13 +243,13 @@ const VIP = () => {
             }
             
             const animUrl = (p.shop_items as any).animation_url || (p.shop_items as any).animation_file_url;
+            const previewUrl = (p.shop_items as any).preview_url;
             const shopCategory = (p.shop_items as any).category;
             const isFrameCategory = shopCategory === 'frame' || shopCategory === 'portrait_frame';
             
-            // Only include items with REAL animation files (Supabase storage URLs or .svga/.json files)
-            if (animUrl && (animUrl.includes('supabase.co/storage') || animUrl.endsWith('.svga') || animUrl.endsWith('.json') || animUrl.includes('.r2.dev'))) {
-              // Check equipped status - UNIFIED entry effects (only ONE entry effect can be equipped)
-              // Since we now clear the other entry effect field when equipping, direct match is correct
+            // Include items with valid animation OR preview URLs
+            const displayUrl = animUrl || previewUrl;
+            if (isValidAssetUrl(displayUrl)) {
               let isEquipped = false;
               if (isFrameCategory) {
                 isEquipped = p.item_id === equippedFrameId;
@@ -260,7 +260,6 @@ const VIP = () => {
               } else if (shopCategory === 'bubble') {
                 isEquipped = p.item_id === equippedBubbleId;
               } else if (shopCategory === 'vehicle' || shopCategory === 'vehicle_entrance') {
-                // Support both vehicle and vehicle_entrance
                 isEquipped = p.item_id === equippedVehicleId;
               }
               
@@ -269,8 +268,8 @@ const VIP = () => {
                 item_id: p.item_id,
                 name: (p.shop_items as any).name,
                 category: shopCategory,
-                preview_url: (p.shop_items as any).preview_url,
-                animation_url: animUrl,
+                preview_url: previewUrl,
+                animation_url: animUrl || previewUrl,
                 is_equipped: isEquipped,
                 expires_at: p.expires_at,
                 source: 'shop',
