@@ -539,9 +539,10 @@ export default function AdminRechargeCampaigns() {
             </DialogTitle>
           </DialogHeader>
 
-          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-4" style={{ WebkitOverflowScrolling: 'touch' }}>
-            <div className="space-y-5 pb-4">
-              {/* Basic Info */}
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-2" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <div className="flex flex-col md:flex-row gap-4">
+              {/* Left: Form */}
+              <div className="flex-1 space-y-5 pb-4 min-w-0">
               <div className="space-y-3">
                 <h3 className="text-sm font-semibold flex items-center gap-2">
                   <Zap className="w-4 h-4" /> Basic Info
