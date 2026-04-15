@@ -289,7 +289,52 @@ const Level = () => {
       return profileTotalEarnings;
     }
   };
-...
+
+  const fetchUserLevel = async () => {
+    try {
+      const { getCachedUser } = await import('@/utils/cachedAuth');
+      const user = await getCachedUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id, gender, is_host, total_consumption, total_earnings, total_recharged, beans_earned, coins, user_level, host_level, max_user_level')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile) return;
+
+      setUserProfile(profile as UserProfile);
+
+      const isFemaleHost = profile.is_host && (profile.gender === 'female' || profile.gender === 'Female');
+      const type = isFemaleHost ? 'host' : 'user';
+      setLevelType(type);
+
+      const { data: tiers } = await supabase
+        .from('user_level_tiers')
+        .select('level_number, min_topup_amount, min_earning_amount')
+        .eq('tier_type', type)
+        .eq('is_active', true)
+        .order('level_number', { ascending: true });
+
+      const fallbackVisuals = isFemaleHost ? hostLevelData : userLevelData;
+      const mappedTiers: LevelData[] = (tiers && tiers.length > 0 ? tiers : []).map((tier) => {
+        const visual = fallbackVisuals.find((item) => item.level === tier.level_number)
+          || [...fallbackVisuals].reverse().find((item) => item.level <= tier.level_number)
+          || fallbackVisuals[0];
+
+        return {
+          level: tier.level_number,
+          minDiamonds: Number(isFemaleHost ? (tier.min_earning_amount ?? 0) : (tier.min_topup_amount ?? 0)),
+          icon: visual?.icon || '💎',
+          color: visual?.color || 'bg-gray-400',
+          bgGradient: visual?.bgGradient || 'from-gray-300 to-gray-400',
+        };
+      });
+
+      const sourceTiers = mappedTiers.length > 0 ? mappedTiers : (isFemaleHost ? hostLevelData : userLevelData);
+      setActiveLevelData(sourceTiers);
+
       const profileTotalRecharged = Number(profile.total_recharged ?? 0);
       const profileTotalEarnings = Number(profile.total_earnings ?? profile.beans_earned ?? 0);
 
