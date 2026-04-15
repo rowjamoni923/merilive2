@@ -692,11 +692,13 @@ const ProfileDetail = () => {
         <UserIcon className="w-16 h-16 text-muted-foreground mb-4" />
         <h1 className="text-xl font-bold mb-2">Profile not found</h1>
         <p className="text-muted-foreground text-sm mb-4 text-center">
-          Your profile data was not found. Please create a new account.
+          {isOwnProfile 
+            ? "Your profile data was not found. Please create a new account."
+            : "This user's profile could not be found. They may have deactivated their account."}
         </p>
         <div className="flex gap-3">
           <Button variant="outline" onClick={() => navigate(-1)}>Go Back</Button>
-          <Button 
+          {isOwnProfile && <Button 
             className="bg-gradient-to-r from-purple-500 to-pink-500 text-white"
             onClick={handleLogoutAndReregister}
           >
