@@ -19,14 +19,46 @@ import {
   RefreshCw, Wand2, Smile, Search, Crown, Star, Diamond
 } from "lucide-react";
 
+// Preview image imports for built-in MediaPipe filters
+import skinSmoothingImg from '@/assets/beauty-filters/skin-smoothing.png';
+import skinWhiteningImg from '@/assets/beauty-filters/skin-whitening.png';
+import rosyCheeksImg from '@/assets/beauty-filters/rosy-cheeks.png';
+import sharpnessImg from '@/assets/beauty-filters/sharpness.png';
+import glowImg from '@/assets/beauty-filters/glow.png';
+import warmToneImg from '@/assets/beauty-filters/warm-tone.png';
+import eyeBrightImg from '@/assets/beauty-filters/eye-bright.png';
+import skinToneImg from '@/assets/beauty-filters/skin-tone.png';
+import faceSlimImg from '@/assets/beauty-filters/face-slim.png';
+import chinSlimImg from '@/assets/beauty-filters/chin-slim.png';
+import eyeEnlargeImg from '@/assets/beauty-filters/eye-enlarge.png';
+import noseNarrowImg from '@/assets/beauty-filters/nose-narrow.png';
+import lipColorImg from '@/assets/beauty-filters/lip-color.png';
+
+const MEDIAPIPE_PREVIEW_MAP: Record<string, string> = {
+  smoothness: skinSmoothingImg,
+  whitening: skinWhiteningImg,
+  redness: rosyCheeksImg,
+  sharpness: sharpnessImg,
+  glow: glowImg,
+  warmth: warmToneImg,
+  eyeBright: eyeBrightImg,
+  skinTone: skinToneImg,
+  faceSlim: faceSlimImg,
+  chinSlim: chinSlimImg,
+  eyeEnlarge: eyeEnlargeImg,
+  noseNarrow: noseNarrowImg,
+  lipColor: lipColorImg,
+};
+
 interface BeautyFilter {
   id: string;
   name: string;
   description: string | null;
   category: string;
   file_url: string;
-  preview_image_url: string | null;
-  file_type: string;
+  preview_url: string | null;
+  filter_type: string;
+  filter_key: string | null;
   file_size_bytes: number | null;
   is_active: boolean;
   is_premium: boolean;
@@ -35,6 +67,7 @@ interface BeautyFilter {
   min_level: number;
   display_order: number;
   tags: string[];
+  intensity_default: number | null;
   created_at: string;
 }
 
