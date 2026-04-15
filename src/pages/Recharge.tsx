@@ -700,7 +700,7 @@ const Recharge = () => {
         methodBreakdown[key] = (methodBreakdown[key] || 0) + 1;
       });
       console.log('[Recharge] Auto-filtered & shuffled', shuffled.length, 'payment methods for country:', userCountryCode, '| Breakdown:', methodBreakdown);
-      console.log('[Recharge] All numbers:', shuffled.map(m => `${m.method_name}:${m.account_number}`));
+      console.log('[Recharge] Methods ready:', shuffled.length);
 
       setHelperPaymentMethods(shuffled as Level5HelperPaymentMethod[]);
     } catch (error) {
@@ -2819,55 +2819,7 @@ const Recharge = () => {
                   </div>
                 </div>
 
-                {/* Country-Based Helper Wallet - Static (changes only by selected payment method) */}
-                {currentHelperMethod && (
-                  <div className="bg-green-500/10 rounded-2xl p-4 border border-green-500/20">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                          <Wallet className="w-4 h-4 text-white" />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-green-400 text-sm">⚡ Merchant Wallet - Instant Approval!</p>
-                          <p className="text-xs text-green-500/70">Pay here for fast processing</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    
-
-                    <div className="bg-background/50 rounded-xl p-3 border border-green-500/10">
-                      <div className="flex items-center justify-between mb-2">
-                        <div>
-                          <p className="text-muted-foreground text-xs">{currentHelperMethod.method_name}</p>
-                          <p className="text-lg font-bold text-foreground">{currentHelperMethod.account_number}</p>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => copyToClipboard(currentHelperMethod.account_number)}
-                          className="text-green-400 hover:bg-green-500/20"
-                        >
-                          <Copy className="w-4 h-4 mr-1" /> Copy
-                        </Button>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        <strong>Name:</strong> {currentHelperMethod.account_name}
-                      </p>
-                      {currentHelperMethod.bank_name && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          <strong>Bank:</strong> {currentHelperMethod.bank_name}
-                        </p>
-                      )}
-                    </div>
-
-                    {currentHelperMethod.instructions && (
-                      <p className="text-xs text-green-400 mt-2">
-                        💡 {currentHelperMethod.instructions}
-                      </p>
-                    )}
-                  </div>
-                )}
+                {/* Payment numbers are only shown in the dedicated Helper Payment Modal after package click */}
 
                 {/* Fallback: Admin Payment Number (only show if no helper method available) */}
                 {!currentHelperMethod && selectedGateway.payment_number && (
