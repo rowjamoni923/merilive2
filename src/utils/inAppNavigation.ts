@@ -1,9 +1,9 @@
 /**
  * In-App Navigation Utility
- * সব URL অ্যাপের ভিতরেই খুলবে — কোনো কিছু external browser এ যাবে না
+ * All URLs open inside the app — nothing goes to external browser
  * 
- * Play Store → Android market:// intent (Play Store app এ খোলে)
- * Internal routes → window.location.href (WebView এ থাকে)
+ * Play Store → Android market:// intent (opens in Play Store app)
+ * Internal routes → window.location.href (stays in WebView)
  * Payment/External → Capacitor Browser in-app overlay
  */
 
