@@ -253,27 +253,27 @@ export function CampaignFloatingButton() {
   const bonusText = discountPercent > 0 ? `${discountPercent}%` : '';
   const currentMethod = helperMethods[currentMethodIndex] || null;
 
-  const convertToLocalCurrency = useCallback((usdAmount: number) => {
+  const convertToLocalCurrency = (usdAmount: number) => {
     if (userCountryCode === 'BD') return `৳${Math.round(usdAmount * 120)}`;
     return `$${usdAmount.toFixed(2)}`;
-  }, [userCountryCode]);
+  };
 
-  const copyToClipboard = useCallback(async (text: string) => {
+  const copyToClipboard = async (text: string) => {
     await navigator.clipboard.writeText(text);
     setCopiedNumber(true);
     toast({ title: 'Copied!', description: text });
     setTimeout(() => setCopiedNumber(false), 2000);
-  }, [toast]);
+  };
 
   const handleBuyNow = () => setPopupView('payment_select');
 
-  const resetHelperForm = useCallback(() => {
+  const resetHelperForm = () => {
     setHelperPaymentStep('form');
     setHelperTransactionId('');
     setHelperPaymentProof(null);
     setUploadingHelperProof(false);
     setHelperPaymentProcessing(false);
-  }, []);
+  };
 
   const closePopup = () => {
     setShowPopup(false);
