@@ -562,9 +562,9 @@ export default function AdminUserManagement() {
 
     setActionLoading(true);
     try {
-      // Toggle both is_verified AND is_face_verified together
-      // This ensures Go Live page and all other checks see the correct state
       const newVerified = !isVerified;
+      
+      // Update is_verified
       const { error } = await supabase
         .from("profiles")
         .update({ 
@@ -574,7 +574,8 @@ export default function AdminUserManagement() {
         })
         .eq("id", userId);
       if (error) throw error;
-      toast.success(isVerified ? "Verification removed" : "User verified");
+      
+      toast.success(isVerified ? "Verification removed (face + profile)" : "User fully verified");
       fetchUsers();
     } catch (error) {
       console.error("Error verifying user:", error);
