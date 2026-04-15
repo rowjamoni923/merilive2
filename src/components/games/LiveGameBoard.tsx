@@ -452,7 +452,7 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts }: Li
 
   // Check if current game is external/iframe
   const isCurrentGameExternal = currentGame && 
-    (currentGame.game_type === 'external' || currentGame.game_type === 'iframe') && 
+    (currentGame.game_type === 'external' || currentGame.game_type === 'iframe' || currentGame.game_type === 'third_party') && 
     currentGame.game_url?.startsWith('http');
 
   return (
