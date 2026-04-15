@@ -173,6 +173,8 @@ export default function AdminGameSettings() {
     fetchGames,
     'admin-game-settings-rt'
   );
+
+  useEffect(() => {
     fetchStats();
   }, []);
 
