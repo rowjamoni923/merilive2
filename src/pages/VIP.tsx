@@ -482,7 +482,7 @@ const VIP = () => {
                 preview_url: activeTier.frame_animation_url,
                 animation_url: activeTier.frame_animation_url!,
                 is_equipped: activeTier.id === equippedFrameId,
-                expires_at: vipExpiresAt || vipData?.expires_at || null,
+                expires_at: vipData?.expires_at || null,
                 source: 'shop',
               });
             }
@@ -499,7 +499,7 @@ const VIP = () => {
                 preview_url: activeTier.entry_animation_url,
                 animation_url: activeTier.entry_animation_url!,
                 is_equipped: activeTier.id === equippedEntranceId,
-                expires_at: vipExpiresAt || vipData?.expires_at || null,
+                expires_at: vipData?.expires_at || null,
                 source: 'shop',
               });
             }
@@ -516,7 +516,7 @@ const VIP = () => {
                 preview_url: activeTier.bubble_animation_url,
                 animation_url: activeTier.bubble_animation_url!,
                 is_equipped: activeTier.id === equippedBubbleId,
-                expires_at: vipExpiresAt || vipData?.expires_at || null,
+                expires_at: vipData?.expires_at || null,
                 source: 'shop',
               });
             }
