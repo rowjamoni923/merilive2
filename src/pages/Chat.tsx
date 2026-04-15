@@ -2654,7 +2654,7 @@ const Chat = () => {
                 </motion.button>
                 
                 {/* Video Call */}
-                {selectedConversation?.other_user?.is_host && (
+                {selectedConversation?.other_user?.is_host && selectedConversation?.other_user?.is_online && (
                   <motion.button
                     whileTap={{ scale: 0.95 }}
                     onClick={() => {
