@@ -129,9 +129,9 @@ const Level = () => {
       
       return subscribeToTables(
         subscriberId,
-        ['profiles', 'gift_transactions', 'level_animations', 'user_level_tiers', 'level_privileges'],
+        ['profiles', 'gift_transactions', 'coin_transactions', 'payment_transactions', 'level_animations', 'user_level_tiers', 'level_privileges'],
         (table) => {
-          if (table === 'profiles' || table === 'gift_transactions') {
+          if (table === 'profiles' || table === 'gift_transactions' || table === 'coin_transactions' || table === 'payment_transactions') {
             fetchUserLevel();
           } else if (table === 'level_animations') {
             fetchLevelAnimations();
@@ -215,7 +215,7 @@ const Level = () => {
     return isValidImageUrl(animation?.icon_url) ? animation!.icon_url : null;
   };
 
-  const fetchUserLevel = async () => {
+  const resolveEffectiveUserRechargeTotal = async (userId: string, profileTotalRecharged: number) => {
     try {
       const { getCachedUser } = await import('@/utils/cachedAuth');
       const user = await getCachedUser();
