@@ -698,12 +698,14 @@ const ProfileDetail = () => {
         </p>
         <div className="flex gap-3">
           <Button variant="outline" onClick={() => navigate(-1)}>Go Back</Button>
-          {isOwnProfile && <Button 
-            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white"
-            onClick={handleLogoutAndReregister}
-          >
-            Create New Account
-          </Button>
+          {isOwnProfile && (
+            <Button 
+              className="bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+              onClick={handleLogoutAndReregister}
+            >
+              Create New Account
+            </Button>
+          )}
         </div>
       </div>
     );
