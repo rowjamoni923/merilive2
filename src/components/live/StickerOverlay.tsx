@@ -5,34 +5,7 @@
 import { memo, useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getLastFaceBounds } from '@/services/mediapipeBeautyProcessor';
-
-import tiara from '@/assets/stickers/cat-ears.png';
-import crown from '@/assets/stickers/crown.png';
-import cowboyHat from '@/assets/stickers/bunny-ears.png';
-import sunglasses from '@/assets/stickers/sunglasses.png';
-import butterfly from '@/assets/stickers/butterfly.png';
-import puppy from '@/assets/stickers/puppy.png';
-import heartEyes from '@/assets/stickers/heart-eyes.png';
-import flowerCrown from '@/assets/stickers/flower-crown.png';
-import starGlasses from '@/assets/stickers/sparkle-stars.png';
-import foxEars from '@/assets/stickers/fox-ears.png';
-import neonFrame from '@/assets/stickers/neon-frame.png';
-import angel from '@/assets/stickers/angel.png';
-
-const STICKER_ASSET_MAP: Record<string, string> = {
-  'Princess Tiara': tiara,
-  'Golden Crown': crown,
-  'Cowboy Hat': cowboyHat,
-  'Cool Sunglasses': sunglasses,
-  'Butterfly Wings': butterfly,
-  'Cute Puppy': puppy,
-  'Heart Eyes': heartEyes,
-  'Flower Crown': flowerCrown,
-  'Star Glasses': starGlasses,
-  'Fox Ears': foxEars,
-  'Neon Frame': neonFrame,
-  'Angel Halo': angel,
-};
+import { STICKER_ASSET_MAP } from './stickerAssets';
 
 /**
  * Sticker placement anchored to face landmarks:
@@ -66,7 +39,7 @@ interface StickerOverlayProps {
   className?: string;
 }
 
-export const StickerOverlay = memo(({ stickerName, className = '' }: StickerOverlayProps) => {
+const StickerOverlay = memo(({ stickerName, className = '' }: StickerOverlayProps) => {
   const [faceBounds, setFaceBounds] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
   const rafRef = useRef<number>(0);
 
@@ -101,7 +74,7 @@ export const StickerOverlay = memo(({ stickerName, className = '' }: StickerOver
     const faceW = faceBounds.width * 100;
     const faceH = faceBounds.height * 100;
     const faceCenterX = faceX + faceW / 2;
-    const eyeY = faceY + faceH * 0.35; // approximate eye line
+    const eyeY = faceY + faceH * 0.35;
 
     const stickerW = faceW * placement.scale;
     const stickerLeft = faceCenterX - stickerW / 2;
@@ -112,11 +85,7 @@ export const StickerOverlay = memo(({ stickerName, className = '' }: StickerOver
         stickerTop = eyeY + faceH * placement.yOffset;
         break;
       case 'face':
-        stickerTop = faceY + faceH * placement.yOffset;
-        break;
       case 'around':
-        stickerTop = faceY + faceH * placement.yOffset;
-        break;
       case 'top':
       default:
         stickerTop = faceY + faceH * placement.yOffset;
@@ -137,7 +106,7 @@ export const StickerOverlay = memo(({ stickerName, className = '' }: StickerOver
             left: `${stickerLeft}%`,
             top: `${stickerTop}%`,
             width: `${stickerW}%`,
-            transform: 'scaleX(-1)', // Mirror for front camera
+            transform: 'scaleX(-1)',
             filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.3))',
           }}
           draggable={false}
@@ -174,7 +143,5 @@ export const StickerOverlay = memo(({ stickerName, className = '' }: StickerOver
 });
 
 StickerOverlay.displayName = 'StickerOverlay';
-
-export const getStickerAsset = (name: string) => STICKER_ASSET_MAP[name] || null;
 
 export default StickerOverlay;
