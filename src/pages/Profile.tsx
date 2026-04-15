@@ -152,6 +152,21 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     return cachedBalance > 0 ? cachedBalance : profileBalance;
   }, [cachedBalance, profile?.coins, (profile as any)?.diamonds]);
 
+  const syncBeansFromProfile = (profileData: any) => {
+    if (!profileData || profileData.is_agency_owner) return;
+
+    if (profileData.is_host) {
+      const giftEarnings = Number(profileData.pending_earnings || 0);
+      const callEarnings = Number(profileData.beans || 0);
+      setBeans(giftEarnings + callEarnings);
+      return;
+    }
+
+    if (profileData.beans !== undefined) {
+      setBeans(Math.max(0, Number(profileData.beans || 0)));
+    }
+  };
+
   // Transfer modal state
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [transferTab, setTransferTab] = useState<"user" | "agency" | "self">("user");
@@ -497,17 +512,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             diamond_balance: agencyDiamonds,
           });
           console.log('[Profile] Agency owner beans:', agencyBeans, 'Agency diamonds:', agencyDiamonds, 'Helper wallet:', helperWalletBalance, 'Total Trader Wallet:', agencyDiamonds + helperWalletBalance);
-        } else if (profileData?.is_host) {
-          // Regular host - combine pending_earnings (gifts) + beans (calls)
-          // Allow negative to show penalty debt
-          const giftEarnings = profileData?.pending_earnings || 0;
-          const callEarnings = profileData?.beans || 0;
-          setBeans(giftEarnings + callEarnings);
         } else {
-          // Regular user - beans come from profile.beans (earned from receiving gifts/calls)
-          // NOT from profile.coins (which is diamonds/recharge balance)
-          const profileBeans = profileData?.beans || 0;
-          setBeans(Math.max(0, profileBeans)); // Regular users: no negative
+          syncBeansFromProfile(profileData);
         }
 
         // Set call rate settings
@@ -616,15 +622,18 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         (table, event, payload) => {
           // Profile updates — including admin approval of verification/host
           if (table === 'profiles' && payload?.id === activeProfileId) {
-            setProfile((prev: any) => ({ ...prev, ...payload }));
+            let mergedProfile: any = null;
+            setProfile((prev: any) => {
+              mergedProfile = { ...prev, ...payload };
+              return mergedProfile;
+            });
+
             if (payload?.coins !== undefined) {
               updateCachedBalance(payload.coins);
             }
-            if (payload?.is_host) {
-              const giftEarnings = payload.pending_earnings || 0;
-              const callEarnings = payload.beans || 0;
-              setBeans(giftEarnings + callEarnings);
-            }
+
+            syncBeansFromProfile(mergedProfile);
+
             // When admin approves face verification, instantly hide the menu item
             if (payload?.is_face_verified === true) {
               setFaceVerificationPending(false);
