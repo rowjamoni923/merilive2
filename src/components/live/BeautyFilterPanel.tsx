@@ -82,15 +82,7 @@ const PRESETS: BeautyPreset[] = [
   },
 ];
 
-type BeautyTab = 'skin' | 'reshape' | 'effects' | 'stickers';
-
-interface StickerItem {
-  id: string;
-  name: string;
-  category: string;
-  preview_url: string;
-  is_free: boolean;
-}
+type BeautyTab = 'skin' | 'reshape' | 'effects';
 
 interface SliderControlProps {
   label: string;
@@ -142,8 +134,6 @@ interface BeautyFilterPanelProps {
   enabled: boolean;
   onSettingsChange: (settings: BeautySettings) => void;
   onEnabledChange: (enabled: boolean) => void;
-  activeSticker?: string | null;
-  onStickerChange?: (stickerName: string | null) => void;
 }
 
 export function BeautyFilterPanel({
@@ -153,27 +143,9 @@ export function BeautyFilterPanel({
   enabled,
   onSettingsChange,
   onEnabledChange,
-  activeSticker = null,
-  onStickerChange,
 }: BeautyFilterPanelProps) {
   const [activePreset, setActivePreset] = useState<string | null>('natural');
   const [activeTab, setActiveTab] = useState<BeautyTab>('skin');
-  const [stickers, setStickers] = useState<StickerItem[]>([]);
-  const [stickerCategory, setStickerCategory] = useState<string>('all');
-
-  // Load stickers from DB
-  useEffect(() => {
-    if (!isOpen) return;
-    const load = async () => {
-      const { data } = await supabase
-        .from('ar_stickers' as any)
-        .select('id, name, category, preview_url, is_free')
-        .eq('is_active', true)
-        .order('display_order');
-      if (data) setStickers(data as any);
-    };
-    load();
-  }, [isOpen]);
 
   const applyPreset = (preset: BeautyPreset) => {
     setActivePreset(preset.id);
