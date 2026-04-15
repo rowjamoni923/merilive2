@@ -1,14 +1,6 @@
 /**
  * CampaignFloatingButton — Floating button with per-session countdown timer.
- * 
- * Logic:
- * - Each time the user opens the app, a FRESH countdown starts (duration_minutes).
- * - If user doesn't purchase within the time, button hides until next app visit.
- * - If user purchases, mark as purchased in localStorage → never show again for this campaign.
- * - Floating button shows the admin-configured banner_image_url (NOT diamond icon).
- * - Only visible to users (not hosts).
- * - Buy Now → shows payment method selection (Google / Recommended / Skrill for international)
- *   then navigates to Recharge page with campaign & method pre-selected.
+ * Uses admin-selected template for popup styling.
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -16,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { X, CreditCard, Wallet, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Diamond3DIcon from '@/components/common/Diamond3DIcon';
+import { CAMPAIGN_TEMPLATES, type CampaignTemplate } from '@/components/admin/CampaignTemplates';
 
 interface Campaign {
   id: string;
@@ -34,6 +27,7 @@ interface Campaign {
   priority: number;
   schedule_start: string | null;
   schedule_end: string | null;
+  template_id?: string | null;
 }
 
 function formatCountdown(seconds: number): string {
