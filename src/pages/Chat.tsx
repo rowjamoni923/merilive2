@@ -762,56 +762,77 @@ const Chat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, groupMessages, isOtherTyping]);
 
-  // Subscribe to real-time messages via universal system
+  // Subscribe to real-time messages via DEDICATED direct channel
+  // (bypasses universal system to avoid gaps during channel rebuild loops)
   useEffect(() => {
-    if (!selectedConversation) return;
+    if (!selectedConversation || !currentUserId) return;
 
-    const unsubscribe = subscribeToTables(
-      `chat-messages-${selectedConversation.id}`,
-      ['messages'],
-      (table: string, event: string, payload: any) => {
-        if (table !== 'messages') return;
-        if (payload?.conversation_id !== selectedConversation.id) return;
-        
-        const newMessage = castMessage(payload);
-        
-        // If this is our own message coming back from DB, replace the optimistic version
-        if (newMessage.sender_id === currentUserId) {
-          setMessages(prev => {
-            // Remove optimistic message and add real one
-            const withoutOptimistic = prev.filter(m => !m._optimistic || m.content !== newMessage.content);
-            if (withoutOptimistic.find(m => m.id === newMessage.id)) return withoutOptimistic;
-            return [...withoutOptimistic, { ...newMessage, status: 'sent' as const }];
-          });
-        } else {
-          setMessages(prev => {
-            if (prev.find(m => m.id === newMessage.id)) return prev;
-            return [...prev, newMessage];
-          });
-          markMessageAsRead(newMessage.id);
-          
-          // Broadcast read receipt to sender
-          supabase.channel(`receipts-${selectedConversation.id}`).send({
-            type: 'broadcast',
-            event: 'read',
-            payload: { userId: currentUserId, conversationId: selectedConversation.id }
-          });
-          
-          if (newMessage.message_type === 'gift') {
-            playSoundDebounced('gift');
-            const { mediaUrl, emoji } = parseGiftContent(newMessage.content || '');
-            setAnimatingGiftEmoji(mediaUrl || emoji);
-            setGiftAnimationInstance(prev => prev + 1);
-            setShowGiftAnimation(true);
+    const channelName = `dm-live-${selectedConversation.id}-${Date.now()}`;
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversation_id=eq.${selectedConversation.id}`,
+        },
+        (payload) => {
+          const newMessage = castMessage(payload.new);
+
+          if (newMessage.sender_id === currentUserId) {
+            setMessages(prev => {
+              const withoutOptimistic = prev.filter(m => !m._optimistic || m.content !== newMessage.content);
+              if (withoutOptimistic.find(m => m.id === newMessage.id)) return withoutOptimistic;
+              return [...withoutOptimistic, { ...newMessage, status: 'sent' as const }];
+            });
           } else {
-            playSoundDebounced('message');
+            setMessages(prev => {
+              if (prev.find(m => m.id === newMessage.id)) return prev;
+              return [...prev, newMessage];
+            });
+            markMessageAsRead(newMessage.id);
+
+            supabase.channel(`receipts-${selectedConversation.id}`).send({
+              type: 'broadcast',
+              event: 'read',
+              payload: { userId: currentUserId, conversationId: selectedConversation.id }
+            });
+
+            if (newMessage.message_type === 'gift') {
+              playSoundDebounced('gift');
+              const { mediaUrl, emoji } = parseGiftContent(newMessage.content || '');
+              setAnimatingGiftEmoji(mediaUrl || emoji);
+              setGiftAnimationInstance(prev => prev + 1);
+              setShowGiftAnimation(true);
+            } else {
+              playSoundDebounced('message');
+            }
           }
         }
-      }
-    );
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversation_id=eq.${selectedConversation.id}`,
+        },
+        (payload) => {
+          const updated = castMessage(payload.new);
+          setMessages(prev => prev.map(m => m.id === updated.id ? { ...m, ...updated } : m));
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log(`[Chat] ✅ Direct message channel active for ${selectedConversation.id}`);
+        }
+      });
 
     return () => {
-      unsubscribe();
+      supabase.removeChannel(channel);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedConversation, currentUserId]);
