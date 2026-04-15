@@ -219,71 +219,78 @@ const Level = () => {
     try {
       const { getCachedUser } = await import('@/utils/cachedAuth');
       const user = await getCachedUser();
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('id, gender, is_host, total_consumption, total_earnings, total_recharged, weekly_earnings, coins, user_level, host_level, max_user_level')
-          .eq('id', user.id)
-          .single();
+      if (!user) return;
 
-        if (profile) {
-          setUserProfile(profile as UserProfile);
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id, gender, is_host, total_consumption, total_earnings, total_recharged, weekly_earnings, coins, user_level, host_level, max_user_level')
+        .eq('id', user.id)
+        .single();
 
-          const isFemaleHost = profile.is_host && profile.gender === 'female';
-          const type = isFemaleHost ? 'host' : 'user';
-          setLevelType(type);
+      if (!profile) return;
 
-          const { data: tiers } = await supabase
-            .from('user_level_tiers')
-            .select('level_number, min_topup_amount, min_earning_amount')
-            .eq('tier_type', type)
-            .eq('is_active', true)
-            .order('level_number', { ascending: true });
+      setUserProfile(profile as UserProfile);
 
-          const fallbackVisuals = isFemaleHost ? hostLevelData : userLevelData;
-          const mappedTiers: LevelData[] = (tiers && tiers.length > 0 ? tiers : []).map((tier) => {
-            const visual = fallbackVisuals.find((item) => item.level === tier.level_number)
-              || [...fallbackVisuals].reverse().find((item) => item.level <= tier.level_number)
-              || fallbackVisuals[0];
+      const isFemaleHost = profile.is_host && (profile.gender === 'female' || profile.gender === 'Female');
+      const type = isFemaleHost ? 'host' : 'user';
+      setLevelType(type);
 
-            return {
-              level: tier.level_number,
-              minDiamonds: Number(isFemaleHost ? (tier.min_earning_amount ?? 0) : (tier.min_topup_amount ?? 0)),
-              icon: visual?.icon || '💎',
-              color: visual?.color || 'bg-gray-400',
-              bgGradient: visual?.bgGradient || 'from-gray-300 to-gray-400',
-            };
-          });
+      const { data: tiers } = await supabase
+        .from('user_level_tiers')
+        .select('level_number, min_topup_amount, min_earning_amount')
+        .eq('tier_type', type)
+        .eq('is_active', true)
+        .order('level_number', { ascending: true });
 
-          if (mappedTiers.length > 0) {
-            setActiveLevelData(mappedTiers);
-          } else {
-            setActiveLevelData(isFemaleHost ? hostLevelData : userLevelData);
+      const fallbackVisuals = isFemaleHost ? hostLevelData : userLevelData;
+      const mappedTiers: LevelData[] = (tiers && tiers.length > 0 ? tiers : []).map((tier) => {
+        const visual = fallbackVisuals.find((item) => item.level === tier.level_number)
+          || [...fallbackVisuals].reverse().find((item) => item.level <= tier.level_number)
+          || fallbackVisuals[0];
+
+        return {
+          level: tier.level_number,
+          minDiamonds: Number(isFemaleHost ? (tier.min_earning_amount ?? 0) : (tier.min_topup_amount ?? 0)),
+          icon: visual?.icon || '💎',
+          color: visual?.color || 'bg-gray-400',
+          bgGradient: visual?.bgGradient || 'from-gray-300 to-gray-400',
+        };
+      });
+
+      const sourceTiers = mappedTiers.length > 0 ? mappedTiers : (isFemaleHost ? hostLevelData : userLevelData);
+      setActiveLevelData(sourceTiers);
+
+      const totalPoints = Number(isFemaleHost ? (profile.weekly_earnings ?? 0) : (profile.total_recharged ?? 0));
+      setCurrentDiamonds(totalPoints);
+
+      let resolvedLevel = 0;
+
+      if (isFemaleHost) {
+        for (const tier of sourceTiers) {
+          if (totalPoints >= tier.minDiamonds) {
+            resolvedLevel = tier.level;
           }
+        }
+      } else {
+        const storedLevel = Number(profile.user_level ?? 0);
+        const maxLevel = Number((profile as any).max_user_level ?? 0);
+        const derivedLevel = sourceTiers.reduce((highest, tier) => {
+          return totalPoints >= tier.minDiamonds ? Math.max(highest, tier.level) : highest;
+        }, 0);
 
-          const totalPoints = Number(isFemaleHost ? (profile.weekly_earnings || 0) : (profile.total_recharged || 0));
-          setCurrentDiamonds(totalPoints);
+        resolvedLevel = Math.max(storedLevel, maxLevel, derivedLevel, 1);
 
-          let resolvedLevel = 0;
-          if (isFemaleHost) {
-            const sourceTiers = mappedTiers.length > 0 ? mappedTiers : hostLevelData;
-            for (const tier of sourceTiers) {
-              if (totalPoints >= tier.minDiamonds) {
-                resolvedLevel = tier.level;
-              }
+        if (user.id && derivedLevel > Math.max(storedLevel, maxLevel)) {
+          void supabase.rpc('recalculate_user_level', { _user_id: user.id }).then(({ error }) => {
+            if (error) {
+              console.warn('[Level] Failed to self-heal user level:', error);
             }
-          } else {
-            const sourceTiers = mappedTiers.length > 0 ? mappedTiers : userLevelData;
-            const derivedLevel = sourceTiers.reduce((highest, tier) => {
-              return totalPoints >= tier.minDiamonds ? Math.max(highest, tier.level) : highest;
-            }, 0);
-            resolvedLevel = Math.max(profile.user_level || 0, (profile as any).max_user_level || 0, derivedLevel, 1);
-          }
-
-          setCurrentLevel(resolvedLevel);
-          setSelectedLevelTab((prev) => Math.max(prev, resolvedLevel || 1));
+          });
         }
       }
+
+      setCurrentLevel(resolvedLevel);
+      setSelectedLevelTab(resolvedLevel || 1);
     } catch (error) {
       console.error('Error fetching user level:', error);
     } finally {
