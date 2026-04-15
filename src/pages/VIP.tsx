@@ -293,9 +293,8 @@ const VIP = () => {
         const hasEquippedFrameInDB = !!equippedFrameId;
         
         for (const frame of availableFrames) {
-          // Only include frames with REAL animation URLs (Supabase storage SVGA files)
-          if (frame.frame_url && frame.frame_url.includes('supabase.co/storage') && frame.frame_url.endsWith('.svga')) {
-            // Check if this SPECIFIC frame is equipped - only ONE can be equipped
+          const frameAssetUrl = frame.frame_url || frame.preview_url;
+          if (isValidAssetUrl(frameAssetUrl)) {
             const isEquipped = hasEquippedFrameInDB && frame.id === equippedFrameId;
             const alreadyExists = allPrivileges.some(p => p.item_id === frame.id);
             if (!alreadyExists) {
@@ -305,7 +304,7 @@ const VIP = () => {
                 name: frame.name,
                 category: 'frame',
                 preview_url: frame.preview_url,
-                animation_url: frame.frame_url,
+                animation_url: frame.frame_url || frame.preview_url,
                 is_equipped: isEquipped,
                 expires_at: null,
                 source: 'frame',
