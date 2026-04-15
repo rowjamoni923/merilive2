@@ -76,6 +76,16 @@ interface UserPrivilege {
   role_type?: string; // For admin-assigned frames
 }
 
+type PrivilegeSlot =
+  | 'frame'
+  | 'entrance'
+  | 'entry_name_bar'
+  | 'bubble'
+  | 'vehicle'
+  | 'medal'
+  | 'noble_card'
+  | 'other';
+
 // Helper: check if a URL is a valid asset (not just placeholder text)
 const isValidAssetUrl = (url: string | null | undefined): boolean => {
   if (!url || url.length < 10) return false;
@@ -88,7 +98,7 @@ const isValidAssetUrl = (url: string | null | undefined): boolean => {
 };
 
 // Helper function to format expiration time
-const formatExpiration = (expiresAt: string | null): string | null => {
+const formatExpiration = (expiresAt: string | null, _tick: number = 0): string | null => {
   if (!expiresAt) return null;
   
   const expiry = new Date(expiresAt);
@@ -104,6 +114,22 @@ const formatExpiration = (expiresAt: string | null): string | null => {
     return `${days}d ${hours}h`;
   }
   return `${hours}h`;
+};
+
+const isPrivilegeExpired = (expiresAt: string | null): boolean => {
+  if (!expiresAt) return false;
+  return new Date(expiresAt).getTime() <= Date.now();
+};
+
+const getPrivilegeSlot = (category: string): PrivilegeSlot => {
+  if (category === 'frame' || category === 'portrait_frame') return 'frame';
+  if (category === 'entrance' || category === 'entrance_effect' || category === 'entry_banner') return 'entrance';
+  if (category === 'entry_name_bar' || category === 'entry_bar') return 'entry_name_bar';
+  if (category === 'bubble') return 'bubble';
+  if (category === 'vehicle' || category === 'vehicle_entrance') return 'vehicle';
+  if (category === 'badge' || category === 'medal' || category === 'vip_medal') return 'medal';
+  if (category === 'noble_card') return 'noble_card';
+  return 'other';
 };
 
 // VIP Page Component - Updated 2026-01-27
@@ -123,6 +149,7 @@ const VIP = () => {
   const [userPrivileges, setUserPrivileges] = useState<UserPrivilege[]>([]);
   const [equipping, setEquipping] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [countdownTick, setCountdownTick] = useState(0);
 
   // Check and restore expired VIP items automatically  
   useExpiredItemsRestorer(currentUserId);
@@ -147,6 +174,14 @@ const VIP = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const hasTimedItems = userPrivileges.some((item) => item.expires_at && !isPrivilegeExpired(item.expires_at));
+    if (!hasTimedItems) return;
+
+    const interval = setInterval(() => setCountdownTick((tick) => tick + 1), 1000);
+    return () => clearInterval(interval);
+  }, [userPrivileges]);
+
   const fetchData = async () => {
     try {
       const { getCachedUser } = await import('@/utils/cachedAuth');
@@ -162,17 +197,23 @@ const VIP = () => {
       // Fetch user profile - include ALL equipped fields for unified selection logic
       const { data: profileData } = await supabase
         .from("profiles")
-        .select("coins, current_vip_tier_id, vip_expires_at, user_level, frame_id, equipped_frame_id, equipped_entrance_id, equipped_entry_name_bar_id, equipped_bubble_id, equipped_vehicle_id")
+        .select("coins, current_vip_tier_id, vip_expires_at, user_level, host_level, is_host, gender, frame_id, equipped_frame_id, equipped_entrance_id, equipped_entry_banner_id, equipped_entry_name_bar_id, equipped_bubble_id, equipped_vehicle_id, equipped_medal_id, equipped_noble_card_id")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
+      const isHostUser = !!(profileData?.is_host && (profileData?.gender === 'female' || profileData?.gender === 'Female'));
       const userLevel = profileData?.user_level || 1;
+      const hostLevel = profileData?.host_level || 0;
+      const effectiveLevel = isHostUser ? Math.max(hostLevel, 1) : Math.max(userLevel, 1);
+      const targetType = isHostUser ? 'host' : 'user';
       // Use equipped_frame_id first, fallback to frame_id for backwards compatibility
       const equippedFrameId = profileData?.equipped_frame_id || profileData?.frame_id;
-      const equippedEntranceId = profileData?.equipped_entrance_id;
+      const equippedEntranceId = profileData?.equipped_entrance_id || profileData?.equipped_entry_banner_id;
       const equippedEntryNameBarId = profileData?.equipped_entry_name_bar_id;
       const equippedBubbleId = profileData?.equipped_bubble_id;
       const equippedVehicleId = profileData?.equipped_vehicle_id;
+      const equippedMedalId = profileData?.equipped_medal_id;
+      const equippedNobleCardId = profileData?.equipped_noble_card_id;
       
       console.log('[VIP] Profile equipped IDs:', {
         frame: equippedFrameId || 'none',
@@ -180,7 +221,10 @@ const VIP = () => {
         entryBar: equippedEntryNameBarId || 'none',
         bubble: equippedBubbleId || 'none',
         vehicle: equippedVehicleId || 'none',
-        userLevel
+        medal: equippedMedalId || 'none',
+        nobleCard: equippedNobleCardId || 'none',
+        effectiveLevel,
+        targetType
       });
 
       if (profileData) {
@@ -217,86 +261,74 @@ const VIP = () => {
 
       const allPrivileges: UserPrivilege[] = [];
 
-      // Fetch ONLY user's purchased items (from shop) that have REAL animation files
+      // Fetch ONLY user's purchased items (from shop)
       const { data: purchases } = await supabase
         .from("user_purchases")
-        .select(`
-          id,
-          item_id,
-          is_equipped,
-          expires_at,
-          shop_items (
-            id,
-            name,
-            category,
-            preview_url,
-            animation_url,
-            animation_file_url
-          )
-        `)
+        .select("id, item_id, is_equipped, expires_at, item_type")
         .eq("user_id", user.id)
         .eq("is_active", true);
 
+      const purchaseItemIds = (purchases || []).map((purchase) => purchase.item_id).filter(Boolean);
+      const { data: purchasedShopItems } = purchaseItemIds.length > 0
+        ? await supabase
+            .from("shop_items")
+            .select("id, name, category, preview_url, animation_url, animation_file_url")
+            .in("id", purchaseItemIds)
+        : { data: [] as any[] };
+
+      const shopItemsMap = new Map((purchasedShopItems || []).map((item: any) => [item.id, item]));
+
       if (purchases) {
         for (const p of purchases) {
-          if (p.shop_items) {
-            // Skip expired items
-            if (p.expires_at && new Date(p.expires_at) < new Date()) {
-              continue;
-            }
-            
-            const animUrl = (p.shop_items as any).animation_url || (p.shop_items as any).animation_file_url;
-            const previewUrl = (p.shop_items as any).preview_url;
-            const shopCategory = (p.shop_items as any).category;
-            const isFrameCategory = shopCategory === 'frame' || shopCategory === 'portrait_frame';
-            
-            // Include items with valid animation OR preview URLs
-            const displayUrl = animUrl || previewUrl;
-            if (isValidAssetUrl(displayUrl)) {
-              let isEquipped = false;
-              if (isFrameCategory) {
-                isEquipped = p.item_id === equippedFrameId;
-              } else if (shopCategory === 'entrance' || shopCategory === 'entrance_effect') {
-                isEquipped = p.item_id === equippedEntranceId;
-              } else if (shopCategory === 'entry_bar') {
-                isEquipped = p.item_id === equippedEntryNameBarId;
-              } else if (shopCategory === 'bubble') {
-                isEquipped = p.item_id === equippedBubbleId;
-              } else if (shopCategory === 'vehicle' || shopCategory === 'vehicle_entrance') {
-                isEquipped = p.item_id === equippedVehicleId;
-              }
-              
-              allPrivileges.push({
-                id: p.id,
-                item_id: p.item_id,
-                name: (p.shop_items as any).name,
-                category: shopCategory,
-                preview_url: previewUrl,
-                animation_url: animUrl || previewUrl,
-                is_equipped: isEquipped,
-                expires_at: p.expires_at,
-                source: 'shop',
-              });
-            }
-          }
+          const shopItem = shopItemsMap.get(p.item_id);
+          if (!shopItem || isPrivilegeExpired(p.expires_at)) continue;
+
+          const animUrl = shopItem.animation_url || shopItem.animation_file_url;
+          const previewUrl = shopItem.preview_url;
+          const shopCategory = shopItem.category || p.item_type;
+          const displayUrl = animUrl || previewUrl;
+
+          if (!isValidAssetUrl(displayUrl)) continue;
+
+          const slot = getPrivilegeSlot(shopCategory);
+          const isEquipped =
+            (slot === 'frame' && p.item_id === equippedFrameId) ||
+            (slot === 'entrance' && p.item_id === equippedEntranceId) ||
+            (slot === 'entry_name_bar' && p.item_id === equippedEntryNameBarId) ||
+            (slot === 'bubble' && p.item_id === equippedBubbleId) ||
+            (slot === 'vehicle' && p.item_id === equippedVehicleId) ||
+            (slot === 'medal' && p.item_id === equippedMedalId) ||
+            (slot === 'noble_card' && p.item_id === equippedNobleCardId);
+
+          allPrivileges.push({
+            id: p.id,
+            item_id: p.item_id,
+            name: shopItem.name,
+            category: shopCategory,
+            preview_url: previewUrl,
+            animation_url: animUrl || previewUrl,
+            is_equipped: isEquipped,
+            expires_at: p.expires_at,
+            source: 'shop',
+          });
         }
       }
 
-      // Fetch ALL avatar frames (show locked ones too)
+      // Fetch unlocked avatar frames only for the current role/level
       const { data: availableFrames } = await supabase
         .from("avatar_frames")
-        .select("id, name, frame_url, preview_url, min_level")
+        .select("id, name, frame_url, preview_url, min_level, target_type")
         .eq("is_active", true)
+        .lte("min_level", effectiveLevel)
+        .or(`target_type.is.null,target_type.eq.both,target_type.eq.${targetType}`)
         .order("min_level", { ascending: true });
 
       if (availableFrames) {
         const hasEquippedFrameInDB = !!equippedFrameId;
         
         for (const frame of availableFrames) {
-          const frameAssetUrl = frame.frame_url || frame.preview_url;
           const isEquipped = hasEquippedFrameInDB && frame.id === equippedFrameId;
           const alreadyExists = allPrivileges.some(p => p.item_id === frame.id);
-          const isLocked = (frame.min_level || 1) > userLevel;
           if (!alreadyExists) {
             allPrivileges.push({
               id: `frame_${frame.id}`,
@@ -306,7 +338,6 @@ const VIP = () => {
               preview_url: frame.preview_url,
               animation_url: frame.frame_url || frame.preview_url,
               is_equipped: isEquipped,
-              is_locked: isLocked,
               expires_at: null,
               source: 'frame',
               unlock_level: frame.min_level,
@@ -315,30 +346,23 @@ const VIP = () => {
         }
       }
 
-      // Fetch ALL level privileges (show locked ones too)
+      // Fetch unlocked level privileges only
       const { data: levelPrivileges } = await supabase
         .from("level_privileges")
         .select("*")
         .eq("is_active", true)
+        .lte("unlock_level", effectiveLevel)
         .order("unlock_level", { ascending: true });
 
       if (levelPrivileges) {
         for (const priv of levelPrivileges) {
-          const privAssetUrl = priv.animation_url || priv.preview_url;
-          const isLocked = (priv.unlock_level || 1) > userLevel;
+          const slot = getPrivilegeSlot(priv.privilege_type || 'other');
           let isEquipped = false;
-          const privType = priv.privilege_type;
-          if (!isLocked) {
-            if (privType === 'entrance' || privType === 'entrance_effect') {
-              isEquipped = priv.id === equippedEntranceId;
-            } else if (privType === 'entry_bar') {
-              isEquipped = priv.id === equippedEntryNameBarId;
-            } else if (privType === 'bubble') {
-              isEquipped = priv.id === equippedBubbleId;
-            } else if (privType === 'vehicle' || privType === 'vehicle_entrance') {
-              isEquipped = priv.id === equippedVehicleId;
-            }
-          }
+          if (slot === 'entrance') isEquipped = priv.id === equippedEntranceId;
+          else if (slot === 'entry_name_bar') isEquipped = priv.id === equippedEntryNameBarId;
+          else if (slot === 'bubble') isEquipped = priv.id === equippedBubbleId;
+          else if (slot === 'vehicle') isEquipped = priv.id === equippedVehicleId;
+          else if (slot === 'medal') isEquipped = priv.id === equippedMedalId;
           
           allPrivileges.push({
             id: priv.id,
@@ -348,7 +372,6 @@ const VIP = () => {
             preview_url: priv.preview_url,
             animation_url: priv.animation_url || priv.preview_url,
             is_equipped: isEquipped,
-            is_locked: isLocked,
             expires_at: null,
             source: 'level',
             unlock_level: priv.unlock_level,
@@ -356,62 +379,59 @@ const VIP = () => {
         }
       }
 
-      // Fetch ALL entry name bars (show locked ones too)
+      // Fetch unlocked entry name bars only
       const { data: entryNameBars } = await supabase
         .from("entry_name_bars")
         .select("*")
         .eq("is_active", true)
-        .order("min_level", { ascending: true });
+        .lte("level_required", effectiveLevel)
+        .order("level_required", { ascending: true });
 
       if (entryNameBars) {
         for (const bar of entryNameBars) {
-          const barAssetUrl = bar.animation_url || bar.preview_url;
           const isEquipped = bar.id === equippedEntryNameBarId;
           const alreadyExists = allPrivileges.some(p => p.item_id === bar.id);
-          const isLocked = (bar.min_level || 1) > userLevel;
           if (!alreadyExists) {
             allPrivileges.push({
               id: `enb_${bar.id}`,
               item_id: bar.id,
               name: bar.name,
               category: 'entry_name_bar',
-              preview_url: bar.preview_url,
-              animation_url: bar.animation_url || bar.preview_url,
+              preview_url: bar.preview_url || bar.image_url,
+              animation_url: bar.animation_url || bar.preview_url || bar.image_url,
               is_equipped: isEquipped,
-              is_locked: isLocked,
               expires_at: null,
               source: 'level',
-              unlock_level: bar.min_level || 1,
+              unlock_level: bar.level_required || 1,
             });
           }
         }
       }
 
-      // Fetch ALL entry banners (entrance animations) - show locked ones too
+      // Fetch unlocked entry banners only
       const { data: entryBanners } = await supabase
         .from("entry_banners")
         .select("*")
         .eq("is_active", true)
-        .order("min_level", { ascending: true });
+        .lte("level_required", effectiveLevel)
+        .order("level_required", { ascending: true });
 
       if (entryBanners) {
         for (const banner of entryBanners) {
           const isEquipped = banner.id === equippedEntranceId;
           const alreadyExists = allPrivileges.some(p => p.item_id === banner.id);
-          const isLocked = (banner.min_level || 1) > userLevel;
           if (!alreadyExists) {
             allPrivileges.push({
               id: `eb_${banner.id}`,
               item_id: banner.id,
               name: banner.name,
               category: 'entrance',
-              preview_url: banner.preview_url,
-              animation_url: banner.animation_url || banner.preview_url,
+              preview_url: banner.preview_url || banner.image_url,
+              animation_url: banner.animation_url || banner.preview_url || banner.image_url,
               is_equipped: isEquipped,
-              is_locked: isLocked,
               expires_at: null,
               source: 'level',
-              unlock_level: banner.min_level || 1,
+              unlock_level: banner.level_required || 1,
             });
           }
         }
@@ -521,18 +541,20 @@ const VIP = () => {
         }
       }
 
+      const visiblePrivileges = allPrivileges.filter((priv) => !isPrivilegeExpired(priv.expires_at));
+
       // Debug log to see what privileges we have
       console.log('[VIP] All privileges loaded:', {
-        total: allPrivileges.length,
-        frames: allPrivileges.filter(p => p.category === 'frame' || p.category === 'portrait_frame').length,
-        adminAssigned: allPrivileges.filter(p => p.source === 'admin_assigned').length,
-        entryEffects: allPrivileges.filter(p => ['entrance', 'entrance_effect', 'entry_bar'].includes(p.category)).length,
-        other: allPrivileges.filter(p => ['vehicle', 'vehicle_entrance', 'bubble'].includes(p.category)).length,
-        categories: [...new Set(allPrivileges.map(p => p.category))],
-        equipped: allPrivileges.filter(p => p.is_equipped).map(p => ({ name: p.name, category: p.category, source: p.source }))
+        total: visiblePrivileges.length,
+        frames: visiblePrivileges.filter(p => getPrivilegeSlot(p.category) === 'frame').length,
+        adminAssigned: visiblePrivileges.filter(p => p.source === 'admin_assigned').length,
+        entryEffects: visiblePrivileges.filter(p => getPrivilegeSlot(p.category) === 'entrance').length,
+        vehicles: visiblePrivileges.filter(p => getPrivilegeSlot(p.category) === 'vehicle').length,
+        categories: [...new Set(visiblePrivileges.map(p => p.category))],
+        equipped: visiblePrivileges.filter(p => p.is_equipped).map(p => ({ name: p.name, category: p.category, source: p.source }))
       });
 
-      setUserPrivileges(allPrivileges);
+      setUserPrivileges(visiblePrivileges);
     } catch (error) {
       console.error("Error fetching VIP data:", error);
     } finally {
@@ -570,7 +592,7 @@ const VIP = () => {
           equipped_entry_banner_id, equipped_noble_card_id
         `)
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       // STEP 2: Build profile update with VIP tier info + auto-equip VIP assets
       const expiresAt = new Date(Date.now() + tier.duration_days * 24 * 60 * 60 * 1000).toISOString();
@@ -661,13 +683,6 @@ const VIP = () => {
 
   const handleEquip = async (privilege: UserPrivilege) => {
     if (equipping) return;
-    if (privilege.is_locked) {
-      toast({
-        title: "🔒 Locked",
-        description: `Reach Level ${privilege.unlock_level || '?'} to unlock this item`,
-      });
-      return;
-    }
     
     setEquipping(privilege.id);
     console.log('[VIP] Equipping privilege:', privilege);
@@ -690,23 +705,10 @@ const VIP = () => {
       // CRITICAL: Entry Effects and Entry Name Bars are SEPARATE categories
       // Entry Effects = full-screen entrance animations (entrance, entrance_effect, entry_bar from level_privileges)
       // Entry Name Bar = sliding name banner (entry_name_bar from entry_name_bars table)
-      const isFrame = privilege.category === 'frame' || privilege.category === 'portrait_frame';
-      
-      // Entry Effects - includes entrance, entrance_effect, entry_bar, vehicle, vehicle_entrance
-      // ALL full-screen entry animations share the Entry Effects category
-      const isEntryEffect = privilege.category === 'entrance' || 
-                           privilege.category === 'entrance_effect' || 
-                           privilege.category === 'entry_bar' ||
-                           privilege.category === 'vehicle' ||
-                           privilege.category === 'vehicle_entrance';
-      
-      // Entry Name Bar - SEPARATE from entry effects, only from entry_name_bars table
-      const isEntryNameBar = privilege.category === 'entry_name_bar';
-      
-      const isBubble = privilege.category === 'bubble';
-      const isVehicle = false; // Vehicle is now part of Entry Effects
+      const privilegeSlot = getPrivilegeSlot(privilege.category);
+      const isFrame = privilegeSlot === 'frame';
 
-      console.log('[VIP] Category detection:', { isFrame, isEntryEffect, isEntryNameBar, isBubble, isVehicle, category: privilege.category });
+      console.log('[VIP] Category detection:', { privilegeSlot, category: privilege.category });
 
       // For shop purchases, update user_purchases table
       if (privilege.source === 'shop') {
@@ -722,11 +724,7 @@ const VIP = () => {
         const sameCategoryIds = allPurchases
           ?.filter(p => {
             const pCategory = (p.shop_items as any)?.category;
-            if (isFrame && (pCategory === 'frame' || pCategory === 'portrait_frame')) return true;
-            if (isEntryEffect && (pCategory === 'entrance' || pCategory === 'entrance_effect' || pCategory === 'entry_bar' || pCategory === 'vehicle' || pCategory === 'vehicle_entrance')) return true;
-            if (isEntryNameBar && pCategory === 'entry_name_bar') return true;
-            if (isBubble && pCategory === 'bubble') return true;
-            return false;
+            return getPrivilegeSlot(pCategory || 'other') === privilegeSlot;
           })
           .map(p => p.id) || [];
 
@@ -756,8 +754,7 @@ const VIP = () => {
       }
 
       // For admin-assigned frames, update user_role_frames table
-      if (privilege.source === 'admin_assigned') {
-        // Unequip all other admin-assigned frames for this user
+      if (privilegeSlot === 'frame') {
         const { error: unequipError } = await supabase
           .from("user_role_frames")
           .update({ is_equipped: false })
@@ -766,7 +763,10 @@ const VIP = () => {
         if (unequipError) {
           console.error('[VIP] Error unequipping admin-assigned frames:', unequipError);
         }
+      }
 
+      if (privilege.source === 'admin_assigned') {
+        // Unequip all other admin-assigned frames for this user
         // Equip the selected admin-assigned frame
         const { error: equipError } = await supabase
           .from("user_role_frames")
@@ -782,20 +782,28 @@ const VIP = () => {
       // Entry Effects and Entry Name Bars are SEPARATE slots
       const updateData: Record<string, string | null> = {};
       
-      if (isFrame) {
+      if (privilegeSlot === 'frame') {
         updateData.equipped_frame_id = privilege.item_id;
         console.log('[VIP] Setting equipped_frame_id to:', privilege.item_id);
-      } else if (isEntryEffect) {
-        // Entry Effects (full-screen animations) use equipped_entrance_id
+      } else if (privilegeSlot === 'entrance') {
         updateData.equipped_entrance_id = privilege.item_id;
-        console.log('[VIP] Setting equipped_entrance_id to:', privilege.item_id, 'type:', privilege.category);
-      } else if (isEntryNameBar) {
-        // Entry Name Bar (sliding name banner) uses equipped_entry_name_bar_id - SEPARATE from entry effects
+        updateData.equipped_entry_banner_id = privilege.item_id;
+        console.log('[VIP] Setting entrance slot to:', privilege.item_id, 'type:', privilege.category);
+      } else if (privilegeSlot === 'entry_name_bar') {
         updateData.equipped_entry_name_bar_id = privilege.item_id;
         console.log('[VIP] Setting equipped_entry_name_bar_id to:', privilege.item_id);
-      } else if (isBubble) {
+      } else if (privilegeSlot === 'bubble') {
         updateData.equipped_bubble_id = privilege.item_id;
         console.log('[VIP] Setting equipped_bubble_id to:', privilege.item_id);
+      } else if (privilegeSlot === 'vehicle') {
+        updateData.equipped_vehicle_id = privilege.item_id;
+        console.log('[VIP] Setting equipped_vehicle_id to:', privilege.item_id);
+      } else if (privilegeSlot === 'medal') {
+        updateData.equipped_medal_id = privilege.item_id;
+        console.log('[VIP] Setting equipped_medal_id to:', privilege.item_id);
+      } else if (privilegeSlot === 'noble_card') {
+        updateData.equipped_noble_card_id = privilege.item_id;
+        console.log('[VIP] Setting equipped_noble_card_id to:', privilege.item_id);
       }
 
       console.log('[VIP] Profile update data:', updateData);
@@ -826,25 +834,13 @@ const VIP = () => {
       }
 
       // Update local state - unequip items in the SAME category
-      // Entry Effects and Entry Name Bars are SEPARATE categories
       setUserPrivileges(prev => prev.map(p => {
-        const pIsFrame = p.category === 'frame' || p.category === 'portrait_frame';
-        // Entry Effects = entrance, entrance_effect, entry_bar, vehicle, vehicle_entrance (ALL full-screen)
-        const pIsEntryEffect = p.category === 'entrance' || p.category === 'entrance_effect' || p.category === 'entry_bar' || p.category === 'vehicle' || p.category === 'vehicle_entrance';
-        // Entry Name Bar = entry_name_bar (from entry_name_bars table) - SEPARATE slot
-        const pIsEntryNameBar = p.category === 'entry_name_bar';
-        const pIsBubble = p.category === 'bubble';
-        
         // If this is the selected item, equip it
         if (p.id === privilege.id) {
           return { ...p, is_equipped: true };
         }
         
-        // If same category, unequip ALL items in that category
-        if (isFrame && pIsFrame) return { ...p, is_equipped: false };
-        if (isEntryEffect && pIsEntryEffect) return { ...p, is_equipped: false };
-        if (isEntryNameBar && pIsEntryNameBar) return { ...p, is_equipped: false };
-        if (isBubble && pIsBubble) return { ...p, is_equipped: false };
+        if (getPrivilegeSlot(p.category) === privilegeSlot) return { ...p, is_equipped: false };
         
         return p;
       }));
@@ -899,27 +895,29 @@ const VIP = () => {
 
   // Group privileges by category - SEPARATE sections
   const framePrivileges = userPrivileges.filter(p => 
-    p.category === 'frame' || p.category === 'portrait_frame'
+    getPrivilegeSlot(p.category) === 'frame'
   );
   // Entry Effects = full-screen entrance animations
   const entryEffectPrivileges = userPrivileges.filter(p => 
-    p.category === 'entrance' || p.category === 'entrance_effect'
+    getPrivilegeSlot(p.category) === 'entrance'
   );
   // Entry Name Bars = sliding name banner
   const entryNameBarPrivileges = userPrivileges.filter(p => 
-    p.category === 'entry_name_bar' || p.category === 'entry_bar'
+    getPrivilegeSlot(p.category) === 'entry_name_bar'
   );
   // Chat Bubbles
   const bubblePrivileges = userPrivileges.filter(p => 
-    p.category === 'bubble'
+    getPrivilegeSlot(p.category) === 'bubble'
   );
   // Vehicles
   const vehiclePrivileges = userPrivileges.filter(p => 
-    p.category === 'vehicle' || p.category === 'vehicle_entrance'
+    getPrivilegeSlot(p.category) === 'vehicle'
   );
   // Other
   const otherPrivileges = userPrivileges.filter(p => 
-    !['frame', 'portrait_frame', 'entrance', 'entrance_effect', 'entry_name_bar', 'entry_bar', 'bubble', 'vehicle', 'vehicle_entrance'].includes(p.category)
+    getPrivilegeSlot(p.category) === 'medal' ||
+    getPrivilegeSlot(p.category) === 'noble_card' ||
+    getPrivilegeSlot(p.category) === 'other'
   );
 
   const getCategoryLabel = (category: string) => {
@@ -1131,7 +1129,7 @@ const VIP = () => {
                     <div className="flex items-center gap-2 text-lg font-bold mb-3">
                       <span>{icon}</span>
                       <span className="text-white">{title}</span>
-                      <span className="text-white/50 text-sm font-normal ml-auto">Tap to equip</span>
+                        <span className="text-white/50 text-sm font-normal ml-auto">Choose 1</span>
                     </div>
                     
                     <div className="flex flex-wrap gap-3">
@@ -1143,9 +1141,7 @@ const VIP = () => {
                           className="flex flex-col items-center"
                         >
                           <div className={`flex-shrink-0 w-20 h-20 rounded-2xl overflow-hidden shadow-lg cursor-pointer transition-all relative ${
-                            priv.is_locked 
-                              ? 'ring-1 ring-white/5 opacity-60'
-                              : priv.is_equipped 
+                            priv.is_equipped 
                                 ? 'ring-2 ring-green-500 shadow-green-500/30' 
                                 : `ring-1 ring-white/10 ${ringColor}`
                           }`}>
@@ -1169,15 +1165,8 @@ const VIP = () => {
                               )}
                             </div>
                             
-                            {/* Locked overlay */}
-                            {priv.is_locked && (
-                              <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center">
-                                <Lock className="w-5 h-5 text-white/70" />
-                              </div>
-                            )}
-                            
                             {/* Equipped indicator */}
-                            {priv.is_equipped && !priv.is_locked && (
+                            {priv.is_equipped && (
                               <div className="absolute top-1 right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
                                 <Check className="w-3 h-3 text-white" />
                               </div>
@@ -1193,9 +1182,7 @@ const VIP = () => {
                           
                           {/* Status/Timer below item */}
                           <div className="flex items-center gap-1 mt-1 text-xs">
-                            {priv.is_locked ? (
-                              <span className="text-white/40">Lv.{priv.unlock_level || '?'}+</span>
-                            ) : priv.source === 'admin_assigned' ? (
+                            {priv.source === 'admin_assigned' ? (
                               <>
                                 <Shield className="w-3 h-3 text-amber-400" />
                                 <span className="text-amber-400">{priv.role_type?.replace('_', ' ') || 'Assigned'}</span>
@@ -1203,7 +1190,7 @@ const VIP = () => {
                             ) : priv.expires_at ? (
                               <>
                                 <Clock className="w-3 h-3 text-amber-400" />
-                                <span className="text-amber-400">{formatExpiration(priv.expires_at)}</span>
+                                <span className="text-amber-400">{formatExpiration(priv.expires_at, countdownTick)}</span>
                               </>
                             ) : priv.source === 'level' || priv.source === 'frame' ? (
                               <span className="text-emerald-400">Lv.{priv.unlock_level || 1}+</span>
@@ -1211,6 +1198,21 @@ const VIP = () => {
                               <span className="text-purple-400">∞ Permanent</span>
                             )}
                           </div>
+
+                          <Button
+                            size="sm"
+                            type="button"
+                            disabled={equipping === priv.id || priv.is_equipped}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleEquip(priv);
+                            }}
+                            className={priv.is_equipped
+                              ? 'mt-2 h-7 rounded-full bg-green-500/20 text-green-400 hover:bg-green-500/20'
+                              : 'mt-2 h-7 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white'}
+                          >
+                            {priv.is_equipped ? 'Equipped' : 'Equip'}
+                          </Button>
                         </motion.div>
                       ))}
                     </div>
