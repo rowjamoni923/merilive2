@@ -847,9 +847,10 @@ const App = () => {
   }
 
   // 🔒 BROWSER GUARD: Block public browser access to protected app routes
-  // Only native app and Lovable preview can access the full app
-  if (!isNative && !isLovablePreview && !isBrowserAllowedRoute) {
-    // Redirect unauthorized browser users to auth page
+  // Only native app, Lovable preview, OR authenticated users can access the full app
+  // Authenticated users are allowed from any browser (Chrome, Safari, etc.)
+  if (!isNative && !isLovablePreview && !isBrowserAllowedRoute && !session) {
+    // Redirect unauthenticated browser users to auth page
     if (currentPath !== '/auth' && !currentPath.startsWith('/auth')) {
       window.location.replace('/auth');
       return <div className="min-h-screen bg-background" />;
