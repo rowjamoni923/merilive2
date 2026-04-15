@@ -1803,7 +1803,8 @@ export default function AdminLayout() {
         "fixed left-0 top-0 h-full z-50 transition-all duration-300 ease-in-out flex flex-col",
         "bg-[#08080e]/95 backdrop-blur-2xl border-r border-white/[0.04]",
         "shadow-[4px_0_50px_-10px_rgba(0,0,0,0.8)]",
-        isSidebarOpen ? "w-72" : "w-20",
+        // Mobile: slightly narrower; Desktop: collapsible
+        isMobileSidebarOpen ? "w-[82vw] max-w-[300px]" : (isSidebarOpen ? "w-72" : "w-20"),
         isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       )}>
         {/* Subtle gradient overlays */}
