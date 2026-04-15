@@ -35,11 +35,15 @@ export interface AdminNotice {
 }
 
 // Sound player for notifications (using Web Audio API)
-const playNotificationSound = () => {
+const playNotificationSound = (type?: string) => {
   try {
+    // Check localStorage cache for sound preference
+    const soundDisabledCategories = JSON.parse(localStorage.getItem('meri_sound_disabled') || '[]');
+    const category = getNotificationCategory(type || '');
+    if (soundDisabledCategories.includes(category)) return;
+
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     
-    // Resume if suspended (browser policy)
     if (audioContext.state === 'suspended') {
       audioContext.resume();
     }
@@ -47,33 +51,68 @@ const playNotificationSound = () => {
     const gainNode = audioContext.createGain();
     gainNode.connect(audioContext.destination);
 
-    // Play a pleasant chime sound
-    const frequencies = [880, 1108.73, 1318.51]; // A5, C#6, E6 - major chord
+    // Different tones for different notification types
+    const isCall = type === 'call_received' || type === 'incoming_call';
+    const isMissedCall = type === 'call_missed';
+    const isGift = type === 'gift_received' || type === 'gift';
+    const isCoins = type?.includes('coin') || type?.includes('diamond') || type === 'topup_approved';
+
+    let frequencies: number[];
+    let duration: number;
+
+    if (isCall) {
+      frequencies = [784, 988, 784, 988, 784]; // Ringtone pattern
+      duration = 0.8;
+    } else if (isMissedCall) {
+      frequencies = [523, 392]; // Descending tone
+      duration = 0.5;
+    } else if (isGift) {
+      frequencies = [1047, 1319, 1568]; // Ascending sparkle
+      duration = 0.4;
+    } else if (isCoins) {
+      frequencies = [1175, 1397, 1760]; // Ka-ching
+      duration = 0.5;
+    } else {
+      frequencies = [880, 1109, 1319]; // Default pleasant chime
+      duration = 0.4;
+    }
     
     frequencies.forEach((freq, i) => {
       const oscillator = audioContext.createOscillator();
       const noteGain = audioContext.createGain();
       
-      oscillator.type = 'sine';
+      oscillator.type = isCall ? 'square' : 'sine';
       oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
       
-      noteGain.gain.setValueAtTime(0.15, audioContext.currentTime + i * 0.05);
-      noteGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+      noteGain.gain.setValueAtTime(0.15, audioContext.currentTime + i * 0.08);
+      noteGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
       
       oscillator.connect(noteGain);
       noteGain.connect(gainNode);
       
-      oscillator.start(audioContext.currentTime + i * 0.05);
-      oscillator.stop(audioContext.currentTime + 0.5);
+      oscillator.start(audioContext.currentTime + i * 0.08);
+      oscillator.stop(audioContext.currentTime + duration + 0.1);
     });
 
-    // Cleanup after sound finishes
-    setTimeout(() => {
-      audioContext.close();
-    }, 1000);
+    setTimeout(() => { audioContext.close(); }, 1500);
   } catch (error) {
     console.error('Error playing notification sound:', error);
   }
+};
+
+// Map notification type to category for preference checking
+const getNotificationCategory = (type: string): string => {
+  if (['gift', 'gift_received', 'gift_sent'].includes(type)) return 'gifts';
+  if (['call_missed', 'call_received', 'incoming_call'].includes(type)) return 'calls';
+  if (['new_follower', 'follow'].includes(type)) return 'social';
+  if (['live_started', 'party_invite', 'room_joined'].includes(type)) return 'live';
+  if (['coins_added', 'coin_purchase_helper', 'coin_purchase_direct', 'topup_approved', 'topup_rejected', 'diamonds_credited', 'coins_received', 'payment_completed', 'withdrawal', 'withdrawal_approved', 'withdrawal_rejected', 'beans_exchanged', 'balance_deducted', 'coin_exchange', 'diamond_sent'].includes(type)) return 'transactions';
+  if (['level_up', 'reward', 'task_completed', 'daily_bonus'].includes(type)) return 'rewards';
+  if (['admin_message', 'admin_message_reply', 'system', 'security'].includes(type)) return 'system';
+  if (type.startsWith('agency_')) return 'agency';
+  if (['helper_approved', 'helper_rejected', 'payroll_approved', 'payroll_rejected', 'new_topup_order', 'order_completed', 'helper_notification'].includes(type)) return 'helper';
+  if (['host_approved', 'host_rejected', 'host_application'].includes(type)) return 'host';
+  return 'general';
 };
 
 // Get emoji icon based on notification type
@@ -285,7 +324,7 @@ export const useNotifications = () => {
 
           // Play notification sound if user has interacted
           if (hasInteractedRef.current) {
-            playNotificationSound();
+            playNotificationSound(newNotification.type);
           }
 
           // Show visible toast popup
@@ -354,7 +393,7 @@ export const useNotifications = () => {
             setUnreadCount(prev => prev + 1);
 
             if (hasInteractedRef.current) {
-              playNotificationSound();
+              playNotificationSound(newNotification.type);
             }
 
             // Show visible toast popup for helper notifications

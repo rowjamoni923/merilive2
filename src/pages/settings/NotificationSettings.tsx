@@ -1,0 +1,224 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft, Bell, Gift, Phone, Users, Video, Coins, Award, Shield, Building2, HeadphonesIcon, Crown, Volume2, VolumeX } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface NotificationCategory {
+  key: string;
+  label: string;
+  description: string;
+  icon: any;
+  color: string;
+}
+
+const CATEGORIES: NotificationCategory[] = [
+  { key: 'calls', label: 'Calls', description: 'Incoming calls, missed calls', icon: Phone, color: 'bg-blue-500' },
+  { key: 'gifts', label: 'Gifts', description: 'Gift sent & received', icon: Gift, color: 'bg-pink-500' },
+  { key: 'social', label: 'Social', description: 'New followers, messages', icon: Users, color: 'bg-indigo-500' },
+  { key: 'live', label: 'Live & Party', description: 'Live streams, party invites', icon: Video, color: 'bg-red-500' },
+  { key: 'transactions', label: 'Transactions', description: 'Top-up, withdrawal, diamonds', icon: Coins, color: 'bg-amber-500' },
+  { key: 'rewards', label: 'Rewards', description: 'Level up, tasks, bonuses', icon: Award, color: 'bg-green-500' },
+  { key: 'system', label: 'System', description: 'Admin messages, security', icon: Shield, color: 'bg-gray-500' },
+  { key: 'agency', label: 'Agency', description: 'Agency notifications', icon: Building2, color: 'bg-purple-500' },
+  { key: 'helper', label: 'Helper', description: 'Orders, payroll, level', icon: HeadphonesIcon, color: 'bg-teal-500' },
+  { key: 'host', label: 'Host', description: 'Application status', icon: Crown, color: 'bg-yellow-500' },
+  { key: 'general', label: 'General', description: 'Other notifications', icon: Bell, color: 'bg-muted' },
+];
+
+interface PrefState {
+  enabled: boolean;
+  push_enabled: boolean;
+  sound_enabled: boolean;
+}
+
+const DEFAULT_PREF: PrefState = { enabled: true, push_enabled: true, sound_enabled: true };
+
+export default function NotificationSettings() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [prefs, setPrefs] = useState<Record<string, PrefState>>({});
+  const [loading, setLoading] = useState(true);
+  const [globalSound, setGlobalSound] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from('notification_preferences')
+        .select('category, enabled, push_enabled, sound_enabled')
+        .eq('user_id', user.id);
+
+      const map: Record<string, PrefState> = {};
+      data?.forEach(p => {
+        map[p.category] = { enabled: p.enabled, push_enabled: p.push_enabled, sound_enabled: p.sound_enabled };
+      });
+      setPrefs(map);
+
+      // Check if any sound is disabled
+      const anySoundOff = data?.some(p => !p.sound_enabled);
+      setGlobalSound(!anySoundOff);
+      setLoading(false);
+    };
+    load();
+  }, []);
+
+  const updatePref = async (category: string, field: keyof PrefState, value: boolean) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const current = prefs[category] || { ...DEFAULT_PREF };
+    const updated = { ...current, [field]: value };
+
+    // If disabling main toggle, also disable push
+    if (field === 'enabled' && !value) {
+      updated.push_enabled = false;
+    }
+    // If enabling push, also enable main
+    if (field === 'push_enabled' && value) {
+      updated.enabled = true;
+    }
+
+    setPrefs(prev => ({ ...prev, [category]: updated }));
+
+    const { error } = await supabase
+      .from('notification_preferences')
+      .upsert({
+        user_id: user.id,
+        category,
+        enabled: updated.enabled,
+        push_enabled: updated.push_enabled,
+        sound_enabled: updated.sound_enabled,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id,category' });
+
+    if (error) {
+      console.error('Failed to update preference:', error);
+      toast({ title: 'Error', description: 'Failed to save preference', variant: 'destructive' });
+    }
+  };
+
+  const toggleGlobalSound = async (value: boolean) => {
+    setGlobalSound(value);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    // Update all categories
+    const updates = CATEGORIES.map(cat => ({
+      user_id: user.id,
+      category: cat.key,
+      enabled: (prefs[cat.key] || DEFAULT_PREF).enabled,
+      push_enabled: (prefs[cat.key] || DEFAULT_PREF).push_enabled,
+      sound_enabled: value,
+      updated_at: new Date().toISOString(),
+    }));
+
+    const { error } = await supabase.from('notification_preferences').upsert(updates, { onConflict: 'user_id,category' });
+    if (error) {
+      console.error('Failed to update sound:', error);
+    } else {
+      setPrefs(prev => {
+        const next = { ...prev };
+        CATEGORIES.forEach(cat => {
+          next[cat.key] = { ...(next[cat.key] || DEFAULT_PREF), sound_enabled: value };
+        });
+        return next;
+      });
+    }
+  };
+
+  const getPref = (key: string): PrefState => prefs[key] || DEFAULT_PREF;
+
+  if (loading) {
+    return (
+      <div className="mobile-page bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="mobile-page bg-background">
+      <div className="mobile-header bg-background border-b border-border">
+        <div className="flex items-center h-14 px-4">
+          <button onClick={() => navigate(-1)} className="p-2 -ml-2 hover:bg-muted rounded-full transition-colors">
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <h1 className="flex-1 text-center text-lg font-semibold pr-7">Notification Settings</h1>
+        </div>
+      </div>
+
+      <div className="mobile-page-scrollable">
+        {/* Global Sound Toggle */}
+        <div className="px-4 py-3 bg-muted/30 border-b border-border">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {globalSound ? (
+                <Volume2 className="w-5 h-5 text-primary" />
+              ) : (
+                <VolumeX className="w-5 h-5 text-muted-foreground" />
+              )}
+              <div>
+                <p className="font-medium text-foreground">Notification Sound</p>
+                <p className="text-xs text-muted-foreground">Play sound for all notifications</p>
+              </div>
+            </div>
+            <Switch checked={globalSound} onCheckedChange={toggleGlobalSound} />
+          </div>
+        </div>
+
+        {/* Category List */}
+        <div className="divide-y divide-border">
+          {CATEGORIES.map(cat => {
+            const pref = getPref(cat.key);
+            const Icon = cat.icon;
+            return (
+              <div key={cat.key} className="px-4 py-3.5">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className={`w-8 h-8 rounded-lg ${cat.color} flex items-center justify-center`}>
+                    <Icon className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-foreground text-sm">{cat.label}</p>
+                    <p className="text-xs text-muted-foreground">{cat.description}</p>
+                  </div>
+                  <Switch
+                    checked={pref.enabled}
+                    onCheckedChange={(v) => updatePref(cat.key, 'enabled', v)}
+                  />
+                </div>
+                {pref.enabled && (
+                  <div className="ml-11 flex items-center gap-4 mt-1">
+                    <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Switch
+                        className="scale-75"
+                        checked={pref.push_enabled}
+                        onCheckedChange={(v) => updatePref(cat.key, 'push_enabled', v)}
+                      />
+                      Push
+                    </label>
+                    <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Switch
+                        className="scale-75"
+                        checked={pref.sound_enabled}
+                        onCheckedChange={(v) => updatePref(cat.key, 'sound_enabled', v)}
+                      />
+                      Sound
+                    </label>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="p-4 text-center text-xs text-muted-foreground">
+          Disabled categories will not appear in your notifications. Push notifications require device permission to be enabled.
+        </div>
+      </div>
+    </div>
+  );
+}
