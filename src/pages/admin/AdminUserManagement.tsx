@@ -933,7 +933,8 @@ export default function AdminUserManagement() {
         _submission_id: submission.id,
         _action: faceActionType,
         _reason: faceActionReason || null,
-        _approve_as: faceActionType === 'approve' ? faceApproveAs : 'user'
+        _approve_as: faceActionType === 'approve' ? faceApproveAs : 'user',
+        _set_gender: faceActionType === 'approve' ? (faceApproveAs === 'host' ? 'female' : 'male') : null
       });
 
       if (error) throw error;

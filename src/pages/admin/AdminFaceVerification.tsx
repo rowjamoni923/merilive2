@@ -70,6 +70,8 @@ interface Submission {
     app_uid: string;
     gender: string;
     is_host: boolean;
+    is_face_verified: boolean | null;
+    is_verified: boolean | null;
     country_code: string | null;
     country_flag: string | null;
     country_name: string | null;
@@ -153,7 +155,7 @@ const AdminFaceVerification = () => {
       if (userIds.length > 0) {
         const { data: profiles } = await supabase
           .from('profiles')
-          .select('id, display_name, avatar_url, app_uid, gender, is_host, country_code, country_flag, country_name, city, region, registration_ip, last_login_ip')
+          .select('id, display_name, avatar_url, app_uid, gender, is_host, is_face_verified, is_verified, country_code, country_flag, country_name, city, region, registration_ip, last_login_ip')
           .in('id', userIds);
         if (profiles) {
           profiles.forEach((p: any) => { profileMap[p.id] = p; });
@@ -525,6 +527,9 @@ const AdminFaceVerification = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <h3 className="font-semibold text-sm truncate">{submission.full_name || submission.profile?.display_name || 'Unknown'}</h3>
+                          {submission.profile?.is_face_verified && (
+                            <Badge className="bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[10px]">✅ Face Verified</Badge>
+                          )}
                           {getTypeBadge(getEffectiveVerificationType(submission))}
                           {getStatusBadge(submission.status)}
                         </div>
@@ -636,6 +641,9 @@ const AdminFaceVerification = () => {
                     <h3 className="font-bold text-lg">{selectedSubmission.profile?.display_name}</h3>
                     <p className="text-sm text-muted-foreground">UID: {selectedSubmission.profile?.app_uid}</p>
                     <div className="flex items-center gap-2 mt-1">
+                      {selectedSubmission.profile?.is_face_verified && (
+                        <Badge className="bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[10px]">✅ Face Verified</Badge>
+                      )}
                       {getTypeBadge(getEffectiveVerificationType(selectedSubmission))}
                       {getStatusBadge(selectedSubmission.status)}
                     </div>
