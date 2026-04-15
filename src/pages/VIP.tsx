@@ -1112,313 +1112,111 @@ const VIP = () => {
             </div>
           ) : (
             <div className="space-y-6">
-              {/* Avatar Frames Section - ProfileDetail Style */}
-              {framePrivileges.length > 0 && (
-                <motion.div
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.1 }}
-                >
-                  <div className="flex items-center gap-2 text-lg font-bold mb-3">
-                    <span>👑</span>
-                    <span className="text-white">Avatar Frames</span>
-                    <span className="text-white/50 text-sm font-normal ml-auto">Tap to equip</span>
-                  </div>
-                  
-                  {/* Clean App Icon Style Grid - like ProfileDetail */}
-                  <div className="flex flex-wrap gap-3">
-                    {framePrivileges.map((priv) => (
-                      <motion.div
-                        key={priv.id}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handleEquip(priv)}
-                        className="flex flex-col items-center"
-                      >
-                        <div className={`flex-shrink-0 w-20 h-20 rounded-2xl overflow-hidden shadow-lg cursor-pointer transition-all relative ${
-                          priv.is_equipped 
-                            ? 'ring-2 ring-green-500 shadow-green-500/30' 
-                            : 'ring-1 ring-white/10 hover:ring-purple-500/50'
-                        }`}>
-                          <div className="w-full h-full bg-gradient-to-br from-purple-900/40 to-pink-900/40 flex items-center justify-center">
-                            {priv.animation_url ? (
-                              <UniversalFramePlayer
-                                src={priv.animation_url}
-                                className="w-full h-full"
-                                loop={true}
-                                autoPlay={true}
-                              />
-                            ) : (
-                              <Crown className="w-8 h-8 text-amber-400" />
+              {/* Reusable privilege item renderer */}
+              {[
+                { items: framePrivileges, icon: '👑', title: 'Avatar Frames', fallbackIcon: <Crown className="w-8 h-8 text-amber-400" />, bgFrom: 'from-purple-900/40', bgTo: 'to-pink-900/40', ringColor: 'hover:ring-purple-500/50', delay: 0.1 },
+                { items: entryEffectPrivileges, icon: '✨', title: 'Entry Effects', fallbackIcon: <Sparkles className="w-8 h-8 text-pink-400" />, bgFrom: 'from-pink-900/40', bgTo: 'to-purple-900/40', ringColor: 'hover:ring-pink-500/50', delay: 0.15 },
+                { items: entryNameBarPrivileges, icon: '🏷️', title: 'Entry Name Bar', fallbackIcon: <Sparkles className="w-8 h-8 text-amber-400" />, bgFrom: 'from-amber-900/40', bgTo: 'to-orange-900/40', ringColor: 'hover:ring-amber-500/50', delay: 0.2 },
+                { items: bubblePrivileges, icon: '💬', title: 'Chat Bubbles', fallbackIcon: <MessageCircle className="w-8 h-8 text-cyan-400" />, bgFrom: 'from-cyan-900/40', bgTo: 'to-blue-900/40', ringColor: 'hover:ring-cyan-500/50', delay: 0.25 },
+                { items: vehiclePrivileges, icon: '🚗', title: 'Vehicles', fallbackIcon: <Car className="w-8 h-8 text-emerald-400" />, bgFrom: 'from-emerald-900/40', bgTo: 'to-teal-900/40', ringColor: 'hover:ring-emerald-500/50', delay: 0.3 },
+                { items: otherPrivileges, icon: '🎁', title: 'Other Privileges', fallbackIcon: <Gift className="w-8 h-8 text-cyan-400" />, bgFrom: 'from-cyan-900/40', bgTo: 'to-slate-900', ringColor: 'hover:ring-cyan-500/50', delay: 0.35 },
+              ].map(({ items, icon, title, fallbackIcon, bgFrom, bgTo, ringColor, delay }) => (
+                items.length > 0 && (
+                  <motion.div
+                    key={title}
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay }}
+                  >
+                    <div className="flex items-center gap-2 text-lg font-bold mb-3">
+                      <span>{icon}</span>
+                      <span className="text-white">{title}</span>
+                      <span className="text-white/50 text-sm font-normal ml-auto">Tap to equip</span>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-3">
+                      {items.map((priv) => (
+                        <motion.div
+                          key={priv.id}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => handleEquip(priv)}
+                          className="flex flex-col items-center"
+                        >
+                          <div className={`flex-shrink-0 w-20 h-20 rounded-2xl overflow-hidden shadow-lg cursor-pointer transition-all relative ${
+                            priv.is_locked 
+                              ? 'ring-1 ring-white/5 opacity-60'
+                              : priv.is_equipped 
+                                ? 'ring-2 ring-green-500 shadow-green-500/30' 
+                                : `ring-1 ring-white/10 ${ringColor}`
+                          }`}>
+                            <div className={`w-full h-full bg-gradient-to-br ${bgFrom} ${bgTo} flex items-center justify-center`}>
+                              {priv.animation_url && isValidAssetUrl(priv.animation_url) ? (
+                                <UniversalFramePlayer
+                                  src={priv.animation_url}
+                                  className="w-full h-full"
+                                  loop={true}
+                                  autoPlay={true}
+                                  muted={true}
+                                />
+                              ) : priv.preview_url && isValidAssetUrl(priv.preview_url) ? (
+                                <img 
+                                  src={priv.preview_url} 
+                                  alt={priv.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                fallbackIcon
+                              )}
+                            </div>
+                            
+                            {/* Locked overlay */}
+                            {priv.is_locked && (
+                              <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center">
+                                <Lock className="w-5 h-5 text-white/70" />
+                              </div>
+                            )}
+                            
+                            {/* Equipped indicator */}
+                            {priv.is_equipped && !priv.is_locked && (
+                              <div className="absolute top-1 right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                                <Check className="w-3 h-3 text-white" />
+                              </div>
+                            )}
+                            
+                            {/* Loading state */}
+                            {equipping === priv.id && (
+                              <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              </div>
                             )}
                           </div>
                           
-                          {/* Equipped indicator */}
-                          {priv.is_equipped && (
-                            <div className="absolute top-1 right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                              <Check className="w-3 h-3 text-white" />
-                            </div>
-                          )}
-                          
-                          {/* Loading state */}
-                          {equipping === priv.id && (
-                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* Status/Timer below frame */}
-                        <div className="flex items-center gap-1 mt-1 text-xs">
-                          {priv.source === 'admin_assigned' ? (
-                            <>
-                              <Shield className="w-3 h-3 text-amber-400" />
-                              <span className="text-amber-400">{priv.role_type?.replace('_', ' ') || 'Assigned'}</span>
-                            </>
-                          ) : priv.expires_at ? (
-                            <>
-                              <Clock className="w-3 h-3 text-amber-400" />
-                              <span className="text-amber-400">{formatExpiration(priv.expires_at)}</span>
-                            </>
-                          ) : priv.source === 'level' || priv.source === 'frame' ? (
-                            <span className="text-emerald-400">Lv.{priv.unlock_level || 1}+</span>
-                          ) : (
-                            <span className="text-purple-400">∞ Permanent</span>
-                          )}
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Entry Effects Section - Full-screen entrance animations */}
-              {entryEffectPrivileges.length > 0 && (
-                <motion.div
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  <div className="flex items-center gap-2 text-lg font-bold mb-3">
-                    <span>✨</span>
-                    <span className="text-white">Entry Effects</span>
-                    <span className="text-white/50 text-sm font-normal ml-auto">Tap to equip</span>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-3">
-                    {entryEffectPrivileges.map((priv) => (
-                      <motion.div
-                        key={priv.id}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handleEquip(priv)}
-                        className="flex flex-col items-center"
-                      >
-                        <div className={`flex-shrink-0 w-20 h-20 rounded-2xl overflow-hidden shadow-lg cursor-pointer transition-all relative ${
-                          priv.is_equipped 
-                            ? 'ring-2 ring-green-500 shadow-green-500/30' 
-                            : 'ring-1 ring-white/10 hover:ring-pink-500/50'
-                        }`}>
-                          <div className="w-full h-full bg-gradient-to-br from-pink-900/40 to-purple-900/40 flex items-center justify-center">
-                            {priv.preview_url ? (
-                              <img 
-                                src={priv.preview_url} 
-                                alt={priv.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : priv.animation_url ? (
-                              <UniversalFramePlayer
-                                src={priv.animation_url}
-                                className="w-full h-full"
-                                loop={true}
-                                autoPlay={true}
-                                muted={true}
-                              />
+                          {/* Status/Timer below item */}
+                          <div className="flex items-center gap-1 mt-1 text-xs">
+                            {priv.is_locked ? (
+                              <span className="text-white/40">Lv.{priv.unlock_level || '?'}+</span>
+                            ) : priv.source === 'admin_assigned' ? (
+                              <>
+                                <Shield className="w-3 h-3 text-amber-400" />
+                                <span className="text-amber-400">{priv.role_type?.replace('_', ' ') || 'Assigned'}</span>
+                              </>
+                            ) : priv.expires_at ? (
+                              <>
+                                <Clock className="w-3 h-3 text-amber-400" />
+                                <span className="text-amber-400">{formatExpiration(priv.expires_at)}</span>
+                              </>
+                            ) : priv.source === 'level' || priv.source === 'frame' ? (
+                              <span className="text-emerald-400">Lv.{priv.unlock_level || 1}+</span>
                             ) : (
-                              <Sparkles className="w-8 h-8 text-pink-400" />
+                              <span className="text-purple-400">∞ Permanent</span>
                             )}
                           </div>
-                          
-                          {priv.is_equipped && (
-                            <div className="absolute top-1 right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                              <Check className="w-3 h-3 text-white" />
-                            </div>
-                          )}
-                          
-                          {equipping === priv.id && (
-                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div className="flex items-center gap-1 mt-1 text-xs">
-                          {priv.expires_at ? (
-                            <>
-                              <Clock className="w-3 h-3 text-amber-400" />
-                              <span className="text-amber-400">{formatExpiration(priv.expires_at)}</span>
-                            </>
-                          ) : priv.source === 'level' ? (
-                            <span className="text-emerald-400">Lv.{priv.unlock_level || 1}+</span>
-                          ) : (
-                            <span className="text-purple-400">∞ Permanent</span>
-                          )}
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Entry Name Bar Section - Sliding name banner with user name + level */}
-              {entryNameBarPrivileges.length > 0 && (
-                <motion.div
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.25 }}
-                >
-                  <div className="flex items-center gap-2 text-lg font-bold mb-3">
-                    <span>🏷️</span>
-                    <span className="text-white">Entry Name Bar</span>
-                    <span className="text-white/50 text-sm font-normal ml-auto">Tap to equip</span>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-3">
-                    {entryNameBarPrivileges.map((priv) => (
-                      <motion.div
-                        key={priv.id}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handleEquip(priv)}
-                        className="flex flex-col items-center"
-                      >
-                        <div className={`flex-shrink-0 w-20 h-20 rounded-2xl overflow-hidden shadow-lg cursor-pointer transition-all relative ${
-                          priv.is_equipped 
-                            ? 'ring-2 ring-green-500 shadow-green-500/30' 
-                            : 'ring-1 ring-white/10 hover:ring-amber-500/50'
-                        }`}>
-                          <div className="w-full h-full bg-gradient-to-br from-amber-900/40 to-orange-900/40 flex items-center justify-center">
-                            {priv.preview_url ? (
-                              <img 
-                                src={priv.preview_url} 
-                                alt={priv.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : priv.animation_url ? (
-                              <UniversalFramePlayer
-                                src={priv.animation_url}
-                                className="w-full h-full"
-                                loop={true}
-                                autoPlay={true}
-                                muted={true}
-                              />
-                            ) : (
-                              <Sparkles className="w-8 h-8 text-amber-400" />
-                            )}
-                          </div>
-                          
-                          {priv.is_equipped && (
-                            <div className="absolute top-1 right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                              <Check className="w-3 h-3 text-white" />
-                            </div>
-                          )}
-                          
-                          {equipping === priv.id && (
-                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div className="flex items-center gap-1 mt-1 text-xs">
-                          {priv.expires_at ? (
-                            <>
-                              <Clock className="w-3 h-3 text-amber-400" />
-                              <span className="text-amber-400">{formatExpiration(priv.expires_at)}</span>
-                            </>
-                          ) : priv.source === 'level' ? (
-                            <span className="text-emerald-400">Lv.{priv.unlock_level || 1}+</span>
-                          ) : (
-                            <span className="text-purple-400">∞ Permanent</span>
-                          )}
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Other Privileges Section */}
-              {otherPrivileges.length > 0 && (
-                <motion.div
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  <div className="flex items-center gap-2 text-lg font-bold mb-3">
-                    <span>🎁</span>
-                    <span className="text-white">Other Privileges</span>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-3">
-                    {otherPrivileges.map((priv) => (
-                      <motion.div
-                        key={priv.id}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handleEquip(priv)}
-                        className="flex flex-col items-center"
-                      >
-                        <div className={`flex-shrink-0 w-20 h-20 rounded-2xl overflow-hidden shadow-lg cursor-pointer transition-all relative ${
-                          priv.is_equipped 
-                            ? 'ring-2 ring-green-500 shadow-green-500/30' 
-                            : 'ring-1 ring-white/10 hover:ring-cyan-500/50'
-                        }`}>
-                          <div className="w-full h-full bg-gradient-to-br from-cyan-900/40 to-slate-900 flex items-center justify-center">
-                            {priv.animation_url ? (
-                              <UniversalFramePlayer
-                                src={priv.animation_url}
-                                className="w-full h-full"
-                                loop={true}
-                                autoPlay={true}
-                                muted={true}
-                              />
-                            ) : priv.preview_url ? (
-                              <img 
-                                src={priv.preview_url} 
-                                alt={priv.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <Gift className="w-8 h-8 text-cyan-400" />
-                            )}
-                          </div>
-                          
-                          {priv.is_equipped && (
-                            <div className="absolute top-1 right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                              <Check className="w-3 h-3 text-white" />
-                            </div>
-                          )}
-                          
-                          {equipping === priv.id && (
-                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* Status/Timer below item */}
-                        <div className="flex items-center gap-1 mt-1 text-xs">
-                          {priv.expires_at ? (
-                            <>
-                              <Clock className="w-3 h-3 text-amber-400" />
-                              <span className="text-amber-400">{formatExpiration(priv.expires_at)}</span>
-                            </>
-                          ) : (
-                            <span className="text-purple-400">∞ Permanent</span>
-                          )}
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
+                        </motion.div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )
+              ))}
               
               {/* Info Note */}
               <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-4 mt-4">
