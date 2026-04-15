@@ -554,9 +554,19 @@ export async function detectAndProcessViolation(
     return { detected: false };
   }
 
+  // Get user profile for notification
+  let userProfile: { display_name: string | null; app_uid: string | null; is_host: boolean } | null = null;
+  try {
+    const { data } = await supabase
+      .from('profiles')
+      .select('display_name, app_uid, is_host, phone_violation_count')
+      .eq('id', senderId)
+      .single();
+    userProfile = data;
+  } catch {}
+
   // Log to chat_moderation_logs for ALL users (so admin sees it)
   try {
-    // Validate sourceId is a proper UUID before inserting
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     const validConversationId = sourceId && uuidRegex.test(sourceId) ? sourceId : null;
     
@@ -578,8 +588,95 @@ export async function detectAndProcessViolation(
     console.error('[ContactDetection] Failed to log moderation:', logErr);
   }
 
+  // Send INSTANT admin notification for every violation
+  try {
+    await supabase.from('admin_notifications').insert({
+      type: 'contact_sharing_alert',
+      title: '📱 Contact Sharing Detected',
+      message: `${userProfile?.display_name || 'Unknown'} (${userProfile?.app_uid || senderId}) shared: "${detection.detectedContent}" via ${sourceType}. Pattern: ${detection.pattern}`,
+      priority: 'high',
+      data: {
+        user_id: senderId,
+        detected_content: detection.detectedContent,
+        pattern: detection.pattern,
+        source_type: sourceType,
+        source_id: sourceId,
+      },
+    });
+    console.log('[ContactDetection] ✅ Admin notification sent');
+  } catch (notifErr) {
+    console.error('[ContactDetection] Failed to send admin notification:', notifErr);
+  }
+
+  // Increment violation count for ALL users
+  try {
+    await supabase.rpc('increment_field', {
+      row_id: senderId,
+      table_name: 'profiles',
+      field_name: 'phone_violation_count',
+      increment_value: 1,
+    });
+  } catch {}
+
+  // Check violation count - AUTO-BAN after 10+ violations
+  const currentCount = ((userProfile as any)?.phone_violation_count || 0) + 1;
+  if (currentCount >= 10) {
+    console.log(`[ContactDetection] 🚨 AUTO-BAN triggered for ${senderId} - ${currentCount} violations`);
+    try {
+      // Demote host, reset levels
+      await supabase.from('profiles').update({
+        is_host: false,
+        host_status: null,
+        is_face_verified: false,
+        user_level: 0,
+        host_level: 0,
+      }).eq('id', senderId);
+
+      // Block account
+      await supabase.rpc('admin_block_user', {
+        _user_id: senderId,
+        _block: true,
+        _reason: `AI Auto-Ban: ${currentCount} contact sharing violations`,
+      });
+
+      // Ban device permanently
+      const { data: devData } = await supabase.from('profiles').select('device_id').eq('id', senderId).single();
+      if (devData?.device_id) {
+        await supabase.from('banned_devices').upsert({
+          device_id: devData.device_id,
+          user_id: senderId,
+          reason: `AI Auto-Ban: ${currentCount} violations`,
+          is_permanent: true,
+          is_active: true,
+        }, { onConflict: 'device_id' });
+      }
+
+      // Log ban
+      await supabase.from('live_bans').insert({
+        user_id: senderId,
+        ban_reason: `AI Auto-Ban: ${currentCount} contact sharing violations`,
+        violation_type: 'auto_ban',
+        is_active: true,
+        auto_banned: true,
+      });
+
+      // Critical admin notification
+      await supabase.from('admin_notifications').insert({
+        type: 'auto_ban',
+        title: '🤖 AI AUTO-BAN Executed',
+        message: `${userProfile?.display_name || 'Unknown'} (${userProfile?.app_uid || senderId}) auto-banned after ${currentCount} violations. Device + Account banned.`,
+        priority: 'critical',
+        data: { user_id: senderId, violation_count: currentCount, ban_type: 'auto_urgent' },
+      });
+
+      return { detected: true, violationNumber: currentCount, beansDeducted: 0, isBanned: true };
+    } catch (banErr) {
+      console.error('[ContactDetection] Auto-ban failed:', banErr);
+    }
+  }
+
   // Check if sender is a host for penalty processing
-  const isHost = await checkIsHost(senderId);
+  const isHost = userProfile?.is_host === true;
   if (!isHost) {
     console.log('[ContactDetection] User is NOT a host, logged but no penalty');
     return { detected: true };
