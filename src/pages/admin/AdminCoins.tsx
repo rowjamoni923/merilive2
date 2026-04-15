@@ -373,9 +373,9 @@ export default function AdminCoins() {
         display_order: Number(packageForm.display_order || 0),
         is_popular: packageForm.is_popular,
         is_active: packageForm.is_active,
-        name: packageForm.name || `${baseCoins} Diamonds`,
-        description: packageForm.description || '',
-        product_id: packageForm.product_id || `diamonds_${baseCoins}`,
+        name: `${baseCoins} Diamonds`,
+        description: '',
+        product_id: `diamonds_${baseCoins}`,
       };
 
       if (editingPackage) {
