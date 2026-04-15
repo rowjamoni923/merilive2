@@ -448,7 +448,7 @@ const ProfileDetail = () => {
       const effectiveLevel = resolvedLevelLoading ? fallbackLevel : resolvedLevel;
       const targetType = isHostUser ? 'host' : 'user';
 
-      const [frameData, levelIconData, framesData, entryBarsData, badgesData, blockData, followData] = await Promise.all([
+      const [frameData, levelIconData, framesData, entryBarsData, badgesData, blockData, followData, purchasedRes] = await Promise.all([
         // User's frame based on level
         supabase.from("avatar_frames" as any).select("*").lte("min_level", effectiveLevel).eq("is_active", true).order("min_level", { ascending: false }).limit(1).maybeSingle(),
         // Level icon from user_level_tiers
@@ -463,11 +463,14 @@ const ProfileDetail = () => {
         user && userId && user.id !== userId ? supabase.from("user_blocks").select("id").eq("blocker_id", user.id).eq("blocked_id", userId).maybeSingle() : { data: null },
         // Check if following
         user && userId && user.id !== userId ? supabase.from("followers").select("id").eq("follower_id", user.id).eq("following_id", userId).maybeSingle() : { data: null },
+        // Purchased items (frames + entry animations) from shop
+        supabase.from("user_purchases").select("id, item_type, expires_at, is_active, is_equipped, item_id, shop_items(id, name, preview_url, animation_url, svga_url, image_url, animation_file_url, file_type)").eq("user_id", userId).eq("is_active", true).gte("expires_at", new Date().toISOString()),
       ]);
 
       if (frameData?.data) setUserFrame(frameData.data as unknown as FrameData);
       if (levelIconData?.data) setLevelIcon(levelIconData.data as unknown as LevelIconData);
       setUserPrivileges({ frames: framesData?.data || [], entryBars: entryBarsData?.data || [], badges: badgesData?.data || [] });
+      setPurchasedItems(purchasedRes?.data || []);
       setIsBlocked(!!blockData?.data);
       setIsFollowing(!!followData?.data);
     }
