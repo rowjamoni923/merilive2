@@ -73,6 +73,17 @@ interface UserPrivilege {
   role_type?: string; // For admin-assigned frames
 }
 
+// Helper: check if a URL is a valid asset (not just placeholder text)
+const isValidAssetUrl = (url: string | null | undefined): boolean => {
+  if (!url || url.length < 10) return false;
+  // Accept any HTTP(S) URL or relative path with known extensions
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/')) return true;
+  if (url.endsWith('.svga') || url.endsWith('.json') || url.endsWith('.png') || 
+      url.endsWith('.jpg') || url.endsWith('.webp') || url.endsWith('.gif') ||
+      url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.svg')) return true;
+  return false;
+};
+
 // Helper function to format expiration time
 const formatExpiration = (expiresAt: string | null): string | null => {
   if (!expiresAt) return null;
