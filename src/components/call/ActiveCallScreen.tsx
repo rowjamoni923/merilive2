@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useAgoraCall } from "@/hooks/useAgoraCall";
 import { useDeepARBeauty } from "@/hooks/useDeepARBeauty";
 import { BeautyFilterPanel } from "@/components/live/BeautyFilterPanel";
+import { StickerOverlay } from "@/components/live/StickerOverlay";
 
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { AgoraVideoPlayer } from "@/components/live/AgoraVideoPlayer";
@@ -1022,7 +1023,7 @@ export function ActiveCallScreen({
         ))}
       </AnimatePresence>
 
-      {/* Beauty Filter Panel — REAL DeepAR Native */}
+      {/* Beauty Filter Panel with Stickers */}
       <BeautyFilterPanel
         isOpen={deepAR.showBeautyPanel}
         onClose={() => deepAR.setShowBeautyPanel(false)}
@@ -1030,7 +1031,10 @@ export function ActiveCallScreen({
         enabled={deepAR.beautyEnabled}
         onSettingsChange={deepAR.handleBeautySettingsChange}
         onEnabledChange={deepAR.handleBeautyEnabledChange}
+        activeSticker={deepAR.activeSticker}
+        onStickerChange={deepAR.handleStickerChange}
       />
+      <StickerOverlay stickerName={deepAR.activeSticker} />
     </div>
   );
 

@@ -19,6 +19,7 @@ import { Capacitor } from "@capacitor/core";
 import { ChametFaceVerificationModal, ChametSettingsPanel, ChametLiveMoreMenu } from "@/components/live/ChametStyleGoLive";
 import BeansIcon from "@/components/common/BeansIcon";
 import { BeautyFilterPanel, BeautySettings, generateBeautyCSS } from "@/components/live/BeautyFilterPanel";
+import { StickerOverlay } from "@/components/live/StickerOverlay";
 import { useDeepARBeauty } from "@/hooks/useDeepARBeauty";
 import { useNativeCameraPermission } from "@/hooks/useNativeCameraPermission";
 import { useFeatureLevelCheck } from "@/hooks/useFeatureLevelCheck";
@@ -91,10 +92,12 @@ const GoLive = () => {
     showBeautyPanel,
     setShowBeautyPanel,
     stickerActive,
+    activeSticker,
     beautyEnabled,
     beautySettings,
     handleBeautySettingsChange,
     handleBeautyEnabledChange,
+    handleStickerChange,
   } = useDeepARBeauty();
 
 
@@ -155,13 +158,10 @@ const GoLive = () => {
     }
   }, [isNativeAndroid, openBeautyPanel]);
 
-  const toggleNativeStickerPanel = useCallback(async () => {
-    if (!isNativeAndroid) {
-      toast.info("AR Stickers are available in the Android app only");
-      return;
-    }
-    await toggleSticker();
-  }, [isNativeAndroid, toggleSticker]);
+  const openStickerPanel = useCallback(() => {
+    setShowBeautyPanel(true);
+    // The sticker tab will be visible inside the panel
+  }, [setShowBeautyPanel]);
 
   // Apply CSS beauty filter for web preview (also as fallback when native DeepAR fails)
   const beautyCSS = (isNativeAndroid && nativePreviewActive) ? "" : generateBeautyCSS(beautyEnabled, beautySettings);
@@ -1599,12 +1599,10 @@ const GoLive = () => {
             <span className={cn("text-[11px] font-semibold", beautyEnabled ? "text-pink-300" : "text-white/50")}>Beauty</span>
           </motion.button>
 
-          {/* Sticker — DeepAR native AR effects (Android only) */}
+          {/* Sticker — Opens Beauty Panel Stickers Tab */}
           <motion.button
             whileTap={{ scale: 0.9 }}
-            onClick={() => {
-              void toggleNativeStickerPanel();
-            }}
+            onClick={openStickerPanel}
             className="flex flex-col items-center gap-1 touch-manipulation"
           >
             <div className={cn(
@@ -1687,7 +1685,7 @@ const GoLive = () => {
             onMicToggle={() => setIsMicEnabled(!isMicEnabled)}
             onStickerClick={() => {
               setShowSettingsPanel(false);
-              void toggleNativeStickerPanel();
+              openStickerPanel();
             }}
             onBeautyClick={() => {
               setShowSettingsPanel(false);
@@ -1869,7 +1867,7 @@ const GoLive = () => {
         )}
       </AnimatePresence>
 
-      {/* Beauty Filter Panel */}
+      {/* Beauty Filter Panel with Stickers */}
       <BeautyFilterPanel
         isOpen={showBeautyPanel}
         onClose={() => setShowBeautyPanel(false)}
@@ -1877,7 +1875,12 @@ const GoLive = () => {
         enabled={beautyEnabled}
         onSettingsChange={handleBeautySettingsChange}
         onEnabledChange={handleBeautyEnabledChange}
+        activeSticker={activeSticker}
+        onStickerChange={handleStickerChange}
       />
+
+      {/* Sticker Overlay on video */}
+      <StickerOverlay stickerName={activeSticker} />
     </div>
   );
 };

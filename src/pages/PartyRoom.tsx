@@ -87,6 +87,7 @@ import { useRoomProtection } from "@/hooks/useRoomProtection";
 import { useFeatureLevelCheck } from "@/hooks/useFeatureLevelCheck";
 import { useDeepARBeauty } from "@/hooks/useDeepARBeauty";
 import { BeautyFilterPanel } from "@/components/live/BeautyFilterPanel";
+import { StickerOverlay } from "@/components/live/StickerOverlay";
 
 interface PartyRoom {
   id: string;
@@ -2423,7 +2424,7 @@ const PartyRoom = () => {
         }}
       />
 
-      {/* Beauty Filter Panel — REAL DeepAR Native for Party Rooms */}
+      {/* Beauty Filter Panel with Stickers */}
       <BeautyFilterPanel
         isOpen={deepAR.showBeautyPanel}
         onClose={() => deepAR.setShowBeautyPanel(false)}
@@ -2431,7 +2432,10 @@ const PartyRoom = () => {
         enabled={deepAR.beautyEnabled}
         onSettingsChange={deepAR.handleBeautySettingsChange}
         onEnabledChange={deepAR.handleBeautyEnabledChange}
+        activeSticker={deepAR.activeSticker}
+        onStickerChange={deepAR.handleStickerChange}
       />
+      <StickerOverlay stickerName={deepAR.activeSticker} />
     </>
   );
 };

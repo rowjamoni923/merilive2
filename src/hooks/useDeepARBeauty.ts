@@ -98,6 +98,7 @@ export function useDeepARBeauty() {
   const isNativeAndroid = isNativeAndroidApp();
   const [showBeautyPanel, setShowBeautyPanel] = useState(false);
   const [stickerActive, setStickerActive] = useState(false);
+  const [activeSticker, setActiveSticker] = useState<string | null>(null);
   const [beautyEnabled, setBeautyEnabled] = useState(true);
   const [beautySettings, setBeautySettings] = useState<BeautySettings>({ ...DEFAULT_BEAUTY });
   const [cameraRunning, setCameraRunning] = useState(false);
@@ -417,6 +418,11 @@ export function useDeepARBeauty() {
     }
   }, [stickerActive, ensureDeepARReady]);
 
+  const handleStickerChange = useCallback((stickerName: string | null) => {
+    setActiveSticker(stickerName);
+    setStickerActive(!!stickerName);
+  }, []);
+
   const handleBeautySettingsChange = useCallback((settings: BeautySettings) => {
     setBeautySettings(settings);
     if (isNativeAndroid) {
@@ -447,10 +453,12 @@ export function useDeepARBeauty() {
     showBeautyPanel,
     setShowBeautyPanel,
     stickerActive,
+    activeSticker,
     beautyEnabled,
     beautySettings,
     openBeautyPanel,
     toggleSticker,
+    handleStickerChange,
     handleBeautySettingsChange,
     handleBeautyEnabledChange,
     syncBeautyToNative,

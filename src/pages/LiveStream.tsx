@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { BeautyFilterPanel, generateBeautyCSS } from "@/components/live/BeautyFilterPanel";
 import type { BeautySettings } from "@/components/live/BeautyFilterPanel";
+import { StickerOverlay } from "@/components/live/StickerOverlay";
 import { useDeepARBeauty } from "@/hooks/useDeepARBeauty";
 import { detectAndProcessViolation } from "@/utils/contactDetection";
 import { scanImageForContactInfo } from "@/utils/imageContactDetection";
@@ -3548,16 +3549,21 @@ const LiveStream = () => {
         isBanned={numberWarning.warningState.isBanned}
         isGenericWarning={numberWarning.warningState.isGenericWarning}
       />
-      {/* Beauty Filter Panel for Host — REAL DeepAR Native */}
+      {/* Beauty Filter Panel with Stickers for Host */}
       {isHost && (
-        <BeautyFilterPanel
-          isOpen={showBeautyPanel}
-          onClose={() => setShowBeautyPanel(false)}
-          settings={deepAR.beautySettings}
-          enabled={deepAR.beautyEnabled}
-          onSettingsChange={deepAR.handleBeautySettingsChange}
-          onEnabledChange={deepAR.handleBeautyEnabledChange}
-        />
+        <>
+          <BeautyFilterPanel
+            isOpen={showBeautyPanel}
+            onClose={() => setShowBeautyPanel(false)}
+            settings={deepAR.beautySettings}
+            enabled={deepAR.beautyEnabled}
+            onSettingsChange={deepAR.handleBeautySettingsChange}
+            onEnabledChange={deepAR.handleBeautyEnabledChange}
+            activeSticker={deepAR.activeSticker}
+            onStickerChange={deepAR.handleStickerChange}
+          />
+          <StickerOverlay stickerName={deepAR.activeSticker} />
+        </>
       )}
     </div>
   );

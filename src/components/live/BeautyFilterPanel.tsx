@@ -1,36 +1,68 @@
 /**
- * BeautyFilterPanel v5.0 — MediaPipe AI Beauty Studio
+ * BeautyFilterPanel v6.0 — MediaPipe AI Beauty Studio + Stickers
  * 
  * ✅ All platforms: Google MediaPipe Face Landmarker (478 3D landmarks)
  * ✅ 100% Free — No license key required — Apache 2.0
  * ✅ Professional skin smoothing, whitening, face reshape, lip color
+ * ✅ 12 Professional AI Stickers (face overlay)
  */
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sparkles, Sun, Droplets, Heart, Contrast, Palette, Flame, Eye, Moon, Zap, CircleDot, Flower2, Star } from 'lucide-react';
+import { X, Sparkles, Sun, Droplets, Heart, Contrast, Palette, Flame, Eye, Moon, Zap, CircleDot, Flower2, Star, Smile } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { setBeautyParams, setBeautyEnabled, mapUIToParams, isBeautyEnabled } from '@/services/mediapipeBeautyProcessor';
 import { isNativeAndroidApp } from '@/utils/nativeUtils';
+import { supabase } from '@/integrations/supabase/client';
+import { getStickerAsset } from './StickerOverlay';
+
+// Import sticker assets for preview
+import catEars from '@/assets/stickers/cat-ears.png';
+import crown from '@/assets/stickers/crown.png';
+import bunnyEars from '@/assets/stickers/bunny-ears.png';
+import sunglasses from '@/assets/stickers/sunglasses.png';
+import butterfly from '@/assets/stickers/butterfly.png';
+import puppy from '@/assets/stickers/puppy.png';
+import heartEyes from '@/assets/stickers/heart-eyes.png';
+import flowerCrown from '@/assets/stickers/flower-crown.png';
+import sparkleStars from '@/assets/stickers/sparkle-stars.png';
+import foxEars from '@/assets/stickers/fox-ears.png';
+import neonFrame from '@/assets/stickers/neon-frame.png';
+import angel from '@/assets/stickers/angel.png';
+
+const STICKER_PREVIEW_MAP: Record<string, string> = {
+  'Cat Ears': catEars,
+  'Golden Crown': crown,
+  'Bunny Ears': bunnyEars,
+  'Cool Sunglasses': sunglasses,
+  'Butterfly Wings': butterfly,
+  'Cute Puppy': puppy,
+  'Heart Eyes': heartEyes,
+  'Flower Crown': flowerCrown,
+  'Sparkle Stars': sparkleStars,
+  'Fox Ears': foxEars,
+  'Neon Frame': neonFrame,
+  'Angel Halo': angel,
+};
 
 const isNativeAndroid = isNativeAndroidApp();
 
 export interface BeautySettings {
   // Skin
-  smoothness: number;   // 0-100: Skin smoothing
-  whitening: number;    // 0-100: Skin brightening
-  redness: number;      // 0-100: Rosy blush
-  sharpness: number;    // 0-100: Detail enhancement
+  smoothness: number;
+  whitening: number;
+  redness: number;
+  sharpness: number;
   // Effects
-  glow: number;         // 0-100: Soft glow
-  warmth: number;       // 0-100: Warm tone
-  eyeBright: number;    // 0-100: Eye brightening
-  skinTone: number;     // 0-100: Cool(0) → Warm(100)
-  // Face Reshape (native DeepAR only, CSS fallback uses approximation)
-  faceSlim: number;     // 0-100: Face slimming
-  chinSlim: number;     // 0-100: Chin sharpening
-  eyeEnlarge: number;   // 0-100: Eye enlargement
-  noseNarrow: number;   // 0-100: Nose narrowing
-  lipColor: number;     // 0-100: Lip color intensity
+  glow: number;
+  warmth: number;
+  eyeBright: number;
+  skinTone: number;
+  // Face Reshape
+  faceSlim: number;
+  chinSlim: number;
+  eyeEnlarge: number;
+  noseNarrow: number;
+  lipColor: number;
 }
 
 export const DEFAULT_BEAUTY: BeautySettings = {
@@ -48,57 +80,48 @@ interface BeautyPreset {
 
 const PRESETS: BeautyPreset[] = [
   {
-    id: 'natural',
-    label: 'Natural',
-    icon: <Sparkles className="w-4 h-4" />,
+    id: 'natural', label: 'Natural', icon: <Sparkles className="w-4 h-4" />,
     settings: { smoothness: 35, whitening: 20, redness: 10, sharpness: 15, glow: 10, warmth: 10, eyeBright: 15, skinTone: 55, faceSlim: 15, chinSlim: 10, eyeEnlarge: 10, noseNarrow: 5, lipColor: 10 },
   },
   {
-    id: 'fair',
-    label: 'Fair Skin',
-    icon: <Sun className="w-4 h-4" />,
+    id: 'fair', label: 'Fair Skin', icon: <Sun className="w-4 h-4" />,
     settings: { smoothness: 50, whitening: 65, redness: 0, sharpness: 10, glow: 20, warmth: 0, eyeBright: 25, skinTone: 40, faceSlim: 20, chinSlim: 15, eyeEnlarge: 15, noseNarrow: 10, lipColor: 5 },
   },
   {
-    id: 'glow',
-    label: 'Glow',
-    icon: <Droplets className="w-4 h-4" />,
+    id: 'glow', label: 'Glow', icon: <Droplets className="w-4 h-4" />,
     settings: { smoothness: 40, whitening: 30, redness: 15, sharpness: 20, glow: 55, warmth: 15, eyeBright: 20, skinTone: 55, faceSlim: 10, chinSlim: 5, eyeEnlarge: 20, noseNarrow: 5, lipColor: 15 },
   },
   {
-    id: 'lovely',
-    label: 'Lovely',
-    icon: <Heart className="w-4 h-4" />,
+    id: 'lovely', label: 'Lovely', icon: <Heart className="w-4 h-4" />,
     settings: { smoothness: 60, whitening: 45, redness: 30, sharpness: 5, glow: 30, warmth: 20, eyeBright: 30, skinTone: 60, faceSlim: 25, chinSlim: 20, eyeEnlarge: 25, noseNarrow: 15, lipColor: 30 },
   },
   {
-    id: 'glamour',
-    label: 'Glamour',
-    icon: <Star className="w-4 h-4" />,
+    id: 'glamour', label: 'Glamour', icon: <Star className="w-4 h-4" />,
     settings: { smoothness: 55, whitening: 40, redness: 20, sharpness: 30, glow: 40, warmth: 10, eyeBright: 35, skinTone: 50, faceSlim: 30, chinSlim: 25, eyeEnlarge: 30, noseNarrow: 20, lipColor: 25 },
   },
   {
-    id: 'warm',
-    label: 'Warm',
-    icon: <Flame className="w-4 h-4" />,
+    id: 'warm', label: 'Warm', icon: <Flame className="w-4 h-4" />,
     settings: { smoothness: 30, whitening: 10, redness: 25, sharpness: 15, glow: 15, warmth: 55, eyeBright: 10, skinTone: 70, faceSlim: 10, chinSlim: 5, eyeEnlarge: 10, noseNarrow: 5, lipColor: 20 },
   },
   {
-    id: 'cool',
-    label: 'Cool',
-    icon: <Moon className="w-4 h-4" />,
+    id: 'cool', label: 'Cool', icon: <Moon className="w-4 h-4" />,
     settings: { smoothness: 35, whitening: 40, redness: 0, sharpness: 25, glow: 10, warmth: 0, eyeBright: 20, skinTone: 30, faceSlim: 15, chinSlim: 10, eyeEnlarge: 15, noseNarrow: 10, lipColor: 5 },
   },
   {
-    id: 'hd',
-    label: 'HD Sharp',
-    icon: <Contrast className="w-4 h-4" />,
+    id: 'hd', label: 'HD Sharp', icon: <Contrast className="w-4 h-4" />,
     settings: { smoothness: 20, whitening: 15, redness: 5, sharpness: 60, glow: 5, warmth: 5, eyeBright: 15, skinTone: 50, faceSlim: 5, chinSlim: 0, eyeEnlarge: 5, noseNarrow: 0, lipColor: 0 },
   },
 ];
 
-// Tab types
-type BeautyTab = 'skin' | 'reshape' | 'effects';
+type BeautyTab = 'skin' | 'reshape' | 'effects' | 'stickers';
+
+interface StickerItem {
+  id: string;
+  name: string;
+  category: string;
+  preview_url: string;
+  is_free: boolean;
+}
 
 interface SliderControlProps {
   label: string;
@@ -150,6 +173,8 @@ interface BeautyFilterPanelProps {
   enabled: boolean;
   onSettingsChange: (settings: BeautySettings) => void;
   onEnabledChange: (enabled: boolean) => void;
+  activeSticker?: string | null;
+  onStickerChange?: (stickerName: string | null) => void;
 }
 
 export function BeautyFilterPanel({
@@ -159,15 +184,32 @@ export function BeautyFilterPanel({
   enabled,
   onSettingsChange,
   onEnabledChange,
+  activeSticker = null,
+  onStickerChange,
 }: BeautyFilterPanelProps) {
   const [activePreset, setActivePreset] = useState<string | null>('natural');
   const [activeTab, setActiveTab] = useState<BeautyTab>('skin');
+  const [stickers, setStickers] = useState<StickerItem[]>([]);
+  const [stickerCategory, setStickerCategory] = useState<string>('all');
+
+  // Load stickers from DB
+  useEffect(() => {
+    if (!isOpen) return;
+    const load = async () => {
+      const { data } = await supabase
+        .from('ar_stickers' as any)
+        .select('id, name, category, preview_url, is_free')
+        .eq('is_active', true)
+        .order('display_order');
+      if (data) setStickers(data as any);
+    };
+    load();
+  }, [isOpen]);
 
   const applyPreset = (preset: BeautyPreset) => {
     setActivePreset(preset.id);
     onSettingsChange(preset.settings);
     onEnabledChange(true);
-    // Send to MediaPipe beauty processor
     setBeautyEnabled(true);
     setBeautyParams(mapUIToParams(preset.settings));
   };
@@ -184,16 +226,28 @@ export function BeautyFilterPanel({
     const newSettings = { ...settings, [key]: value };
     onSettingsChange(newSettings);
     if (!enabled && value > 0) onEnabledChange(true);
-
-    // Send to MediaPipe beauty processor in real-time
     setBeautyEnabled(true);
     setBeautyParams(mapUIToParams(newSettings));
+  };
+
+  const stickerCategories = ['all', ...new Set(stickers.map(s => s.category))];
+  const filteredStickers = stickerCategory === 'all' 
+    ? stickers 
+    : stickers.filter(s => s.category === stickerCategory);
+
+  const handleStickerSelect = (stickerName: string) => {
+    if (activeSticker === stickerName) {
+      onStickerChange?.(null); // Deselect
+    } else {
+      onStickerChange?.(stickerName);
+    }
   };
 
   const tabs: { key: BeautyTab; label: string; icon: React.ReactNode }[] = [
     { key: 'skin', label: 'Skin', icon: <Sparkles className="w-3.5 h-3.5" /> },
     { key: 'reshape', label: 'Reshape', icon: <CircleDot className="w-3.5 h-3.5" /> },
     { key: 'effects', label: 'Effects', icon: <Zap className="w-3.5 h-3.5" /> },
+    { key: 'stickers', label: 'Stickers', icon: <Smile className="w-3.5 h-3.5" /> },
   ];
 
   return (
@@ -228,10 +282,13 @@ export function BeautyFilterPanel({
                 {enabled && (
                   <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-pink-500/20 text-pink-300 font-medium">ON</span>
                 )}
+                {activeSticker && (
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-medium">🎭</span>
+                )}
               </div>
               <div className="flex items-center gap-3">
                 <button
-                  onClick={resetAll}
+                  onClick={() => { resetAll(); onStickerChange?.(null); }}
                   className="text-xs text-white/50 hover:text-white/80 transition-colors px-2 py-1"
                 >
                   Reset
@@ -245,33 +302,35 @@ export function BeautyFilterPanel({
               </div>
             </div>
 
-            {/* Presets Row */}
-            <div className="flex gap-2 px-4 pb-3 overflow-x-auto no-scrollbar">
-              <button
-                onClick={resetAll}
-                className={cn(
-                  'shrink-0 px-4 py-2 rounded-xl text-sm font-medium transition-all',
-                  !enabled ? 'bg-white/20 text-white' : 'bg-white/5 text-white/50'
-                )}
-              >
-                Off
-              </button>
-              {PRESETS.map((preset) => (
+            {/* Presets Row — only show for beauty tabs */}
+            {activeTab !== 'stickers' && (
+              <div className="flex gap-2 px-4 pb-3 overflow-x-auto no-scrollbar">
                 <button
-                  key={preset.id}
-                  onClick={() => applyPreset(preset)}
+                  onClick={resetAll}
                   className={cn(
-                    'shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all',
-                    activePreset === preset.id && enabled
-                      ? 'bg-gradient-to-r from-pink-500/80 to-purple-500/80 text-white shadow-lg shadow-pink-500/20'
-                      : 'bg-white/5 text-white/50 hover:bg-white/10'
+                    'shrink-0 px-4 py-2 rounded-xl text-sm font-medium transition-all',
+                    !enabled ? 'bg-white/20 text-white' : 'bg-white/5 text-white/50'
                   )}
                 >
-                  {preset.icon}
-                  <span>{preset.label}</span>
+                  Off
                 </button>
-              ))}
-            </div>
+                {PRESETS.map((preset) => (
+                  <button
+                    key={preset.id}
+                    onClick={() => applyPreset(preset)}
+                    className={cn(
+                      'shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-all',
+                      activePreset === preset.id && enabled
+                        ? 'bg-gradient-to-r from-pink-500/80 to-purple-500/80 text-white shadow-lg shadow-pink-500/20'
+                        : 'bg-white/5 text-white/50 hover:bg-white/10'
+                    )}
+                  >
+                    {preset.icon}
+                    <span>{preset.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* Tab Switcher */}
             <div className="flex gap-1 mx-4 mb-3 p-1 rounded-xl bg-white/5">
@@ -296,133 +355,118 @@ export function BeautyFilterPanel({
             <div className="overflow-y-auto max-h-[45vh] pb-6">
               <AnimatePresence mode="wait">
                 {activeTab === 'skin' && (
-                  <motion.div
-                    key="skin"
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 10 }}
-                    className="space-y-3"
-                  >
-                    <SliderControl
-                      label="Smoothness"
-                      value={settings.smoothness}
-                      onChange={(v) => updateSetting('smoothness', v)}
-                      icon={<Sparkles className="w-4 h-4" />}
-                      color="from-pink-400 to-rose-500"
-                    />
-                    <SliderControl
-                      label="Whitening"
-                      value={settings.whitening}
-                      onChange={(v) => updateSetting('whitening', v)}
-                      icon={<Sun className="w-4 h-4" />}
-                      color="from-yellow-300 to-amber-400"
-                    />
-                    <SliderControl
-                      label="Redness"
-                      value={settings.redness}
-                      onChange={(v) => updateSetting('redness', v)}
-                      icon={<Heart className="w-4 h-4" />}
-                      color="from-red-400 to-pink-500"
-                    />
-                    <SliderControl
-                      label="Sharpness"
-                      value={settings.sharpness}
-                      onChange={(v) => updateSetting('sharpness', v)}
-                      icon={<Contrast className="w-4 h-4" />}
-                      color="from-blue-400 to-cyan-500"
-                    />
-                    <SliderControl
-                      label="Skin Tone"
-                      value={settings.skinTone}
-                      onChange={(v) => updateSetting('skinTone', v)}
-                      icon={<Palette className="w-4 h-4" />}
-                      color="from-amber-300 to-orange-500"
-                    />
+                  <motion.div key="skin" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} className="space-y-3">
+                    <SliderControl label="Smoothness" value={settings.smoothness} onChange={(v) => updateSetting('smoothness', v)} icon={<Sparkles className="w-4 h-4" />} color="from-pink-400 to-rose-500" />
+                    <SliderControl label="Whitening" value={settings.whitening} onChange={(v) => updateSetting('whitening', v)} icon={<Sun className="w-4 h-4" />} color="from-yellow-300 to-amber-400" />
+                    <SliderControl label="Redness" value={settings.redness} onChange={(v) => updateSetting('redness', v)} icon={<Heart className="w-4 h-4" />} color="from-red-400 to-pink-500" />
+                    <SliderControl label="Sharpness" value={settings.sharpness} onChange={(v) => updateSetting('sharpness', v)} icon={<Contrast className="w-4 h-4" />} color="from-blue-400 to-cyan-500" />
+                    <SliderControl label="Skin Tone" value={settings.skinTone} onChange={(v) => updateSetting('skinTone', v)} icon={<Palette className="w-4 h-4" />} color="from-amber-300 to-orange-500" />
                   </motion.div>
                 )}
 
                 {activeTab === 'reshape' && (
-                  <motion.div
-                    key="reshape"
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 10 }}
-                    className="space-y-3"
-                  >
-                    <SliderControl
-                      label="Face Slim"
-                      value={settings.faceSlim}
-                      onChange={(v) => updateSetting('faceSlim', v)}
-                      icon={<CircleDot className="w-4 h-4" />}
-                      color="from-violet-400 to-purple-500"
-                    />
-                    <SliderControl
-                      label="Chin Slim"
-                      value={settings.chinSlim}
-                      onChange={(v) => updateSetting('chinSlim', v)}
-                      icon={<CircleDot className="w-4 h-4" />}
-                      color="from-fuchsia-400 to-pink-500"
-                    />
-                    <SliderControl
-                      label="Eye Enlarge"
-                      value={settings.eyeEnlarge}
-                      onChange={(v) => updateSetting('eyeEnlarge', v)}
-                      icon={<Eye className="w-4 h-4" />}
-                      color="from-emerald-400 to-teal-500"
-                    />
-                    <SliderControl
-                      label="Nose Narrow"
-                      value={settings.noseNarrow}
-                      onChange={(v) => updateSetting('noseNarrow', v)}
-                      icon={<CircleDot className="w-4 h-4" />}
-                      color="from-sky-400 to-blue-500"
-                    />
-                    <SliderControl
-                      label="Lip Color"
-                      value={settings.lipColor}
-                      onChange={(v) => updateSetting('lipColor', v)}
-                      icon={<Flower2 className="w-4 h-4" />}
-                      color="from-rose-400 to-red-500"
-                    />
-                    
-                    {/* Platform info */}
+                  <motion.div key="reshape" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} className="space-y-3">
+                    <SliderControl label="Face Slim" value={settings.faceSlim} onChange={(v) => updateSetting('faceSlim', v)} icon={<CircleDot className="w-4 h-4" />} color="from-violet-400 to-purple-500" />
+                    <SliderControl label="Chin Slim" value={settings.chinSlim} onChange={(v) => updateSetting('chinSlim', v)} icon={<CircleDot className="w-4 h-4" />} color="from-fuchsia-400 to-pink-500" />
+                    <SliderControl label="Eye Enlarge" value={settings.eyeEnlarge} onChange={(v) => updateSetting('eyeEnlarge', v)} icon={<Eye className="w-4 h-4" />} color="from-emerald-400 to-teal-500" />
+                    <SliderControl label="Nose Narrow" value={settings.noseNarrow} onChange={(v) => updateSetting('noseNarrow', v)} icon={<CircleDot className="w-4 h-4" />} color="from-sky-400 to-blue-500" />
+                    <SliderControl label="Lip Color" value={settings.lipColor} onChange={(v) => updateSetting('lipColor', v)} icon={<Flower2 className="w-4 h-4" />} color="from-rose-400 to-red-500" />
                     <div className="mx-4 mt-2 p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20">
-                      <p className="text-purple-300 text-[10px] text-center">
-                        ✨ Face reshape powered by Google MediaPipe AI (Free)
-                      </p>
+                      <p className="text-purple-300 text-[10px] text-center">✨ Face reshape powered by Google MediaPipe AI (Free)</p>
                     </div>
                   </motion.div>
                 )}
 
                 {activeTab === 'effects' && (
-                  <motion.div
-                    key="effects"
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 10 }}
-                    className="space-y-3"
-                  >
-                    <SliderControl
-                      label="Glow"
-                      value={settings.glow}
-                      onChange={(v) => updateSetting('glow', v)}
-                      icon={<Droplets className="w-4 h-4" />}
-                      color="from-purple-400 to-pink-400"
-                    />
-                    <SliderControl
-                      label="Warmth"
-                      value={settings.warmth}
-                      onChange={(v) => updateSetting('warmth', v)}
-                      icon={<Flame className="w-4 h-4" />}
-                      color="from-orange-400 to-red-400"
-                    />
-                    <SliderControl
-                      label="Eye Bright"
-                      value={settings.eyeBright}
-                      onChange={(v) => updateSetting('eyeBright', v)}
-                      icon={<Eye className="w-4 h-4" />}
-                      color="from-emerald-400 to-teal-500"
-                    />
+                  <motion.div key="effects" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} className="space-y-3">
+                    <SliderControl label="Glow" value={settings.glow} onChange={(v) => updateSetting('glow', v)} icon={<Droplets className="w-4 h-4" />} color="from-purple-400 to-pink-400" />
+                    <SliderControl label="Warmth" value={settings.warmth} onChange={(v) => updateSetting('warmth', v)} icon={<Flame className="w-4 h-4" />} color="from-orange-400 to-red-400" />
+                    <SliderControl label="Eye Bright" value={settings.eyeBright} onChange={(v) => updateSetting('eyeBright', v)} icon={<Eye className="w-4 h-4" />} color="from-emerald-400 to-teal-500" />
+                  </motion.div>
+                )}
+
+                {activeTab === 'stickers' && (
+                  <motion.div key="stickers" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}>
+                    {/* Category pills */}
+                    <div className="flex gap-2 px-4 pb-3 overflow-x-auto no-scrollbar">
+                      {stickerCategories.map((cat) => (
+                        <button
+                          key={cat}
+                          onClick={() => setStickerCategory(cat)}
+                          className={cn(
+                            'shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all capitalize',
+                            stickerCategory === cat
+                              ? 'bg-gradient-to-r from-amber-500/80 to-orange-500/80 text-white'
+                              : 'bg-white/5 text-white/50 hover:bg-white/10'
+                          )}
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Remove sticker button */}
+                    {activeSticker && (
+                      <div className="px-4 pb-3">
+                        <button
+                          onClick={() => onStickerChange?.(null)}
+                          className="w-full py-2 rounded-xl bg-red-500/20 text-red-300 text-xs font-medium hover:bg-red-500/30 transition-all"
+                        >
+                          ✕ Remove Sticker
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Sticker grid */}
+                    <div className="grid grid-cols-4 gap-3 px-4 pb-4">
+                      {filteredStickers.map((sticker) => {
+                        const previewSrc = STICKER_PREVIEW_MAP[sticker.name] || sticker.preview_url;
+                        const isActive = activeSticker === sticker.name;
+                        return (
+                          <button
+                            key={sticker.id}
+                            onClick={() => handleStickerSelect(sticker.name)}
+                            className={cn(
+                              'relative flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all',
+                              isActive
+                                ? 'bg-gradient-to-br from-amber-500/30 to-orange-500/30 border border-amber-400/50 shadow-lg shadow-amber-500/20'
+                                : 'bg-white/5 border border-white/5 hover:bg-white/10'
+                            )}
+                          >
+                            <div className="w-14 h-14 rounded-lg overflow-hidden bg-white/5 flex items-center justify-center">
+                              <img
+                                src={previewSrc}
+                                alt={sticker.name}
+                                className="w-12 h-12 object-contain"
+                                loading="lazy"
+                              />
+                            </div>
+                            <span className={cn(
+                              'text-[10px] font-medium truncate w-full text-center',
+                              isActive ? 'text-amber-300' : 'text-white/50'
+                            )}>
+                              {sticker.name}
+                            </span>
+                            {isActive && (
+                              <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center">
+                                <span className="text-[8px] text-white">✓</span>
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {stickers.length === 0 && (
+                      <div className="text-center py-8">
+                        <Smile className="w-10 h-10 text-white/20 mx-auto mb-2" />
+                        <p className="text-white/30 text-xs">Loading stickers...</p>
+                      </div>
+                    )}
+
+                    <div className="mx-4 mt-1 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                      <p className="text-amber-300 text-[10px] text-center">🎭 Professional AI Stickers — Free & No License Required</p>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -436,55 +480,25 @@ export function BeautyFilterPanel({
 
 /**
  * Generate CSS filter string from beauty settings.
- * Face reshape settings (faceSlim, chinSlim, eyeEnlarge, noseNarrow, lipColor)
- * are handled natively by DeepAR on Android APK — CSS only provides skin/color effects.
  */
 export function generateBeautyCSS(enabled: boolean, settings: BeautySettings): string {
   if (!enabled) return '';
 
-  const { smoothness, whitening, redness, sharpness, glow, warmth, eyeBright, skinTone, lipColor } = settings;
   const filters: string[] = [];
+  if (settings.smoothness > 0) filters.push(`blur(${settings.smoothness * 0.02}px)`);
+  if (settings.whitening > 0) filters.push(`brightness(${1 + settings.whitening * 0.004})`);
+  if (settings.sharpness > 0) filters.push(`contrast(${1 + settings.sharpness * 0.003})`);
+  if (settings.glow > 0) filters.push(`brightness(${1 + settings.glow * 0.003})`);
+  if (settings.warmth > 0) filters.push(`sepia(${settings.warmth * 0.003})`);
 
-  // ── Brightness ──
-  const brightBoost = (whitening * 0.004) + (glow * 0.003) + (eyeBright * 0.001) + (smoothness * 0.001);
-  const brightness = 1 + brightBoost;
-  if (brightness > 1.001) {
-    filters.push(`brightness(${Math.min(brightness, 1.45).toFixed(3)})`);
-  }
+  const satBase = 1;
+  const redBoost = settings.redness * 0.004;
+  const toneShift = (settings.skinTone - 50) * 0.005;
+  const finalSat = satBase + redBoost + toneShift;
+  if (Math.abs(finalSat - 1) > 0.01) filters.push(`saturate(${finalSat})`);
 
-  // ── Contrast ──
-  const contrastBoost = (sharpness * 0.004) - (smoothness * 0.002) - (whitening * 0.001);
-  const contrast = 1 + contrastBoost;
-  if (Math.abs(contrast - 1) > 0.005) {
-    filters.push(`contrast(${Math.min(Math.max(contrast, 0.82), 1.30).toFixed(3)})`);
-  }
+  const hueShift = (settings.skinTone - 50) * 0.3;
+  if (Math.abs(hueShift) > 0.5) filters.push(`hue-rotate(${hueShift}deg)`);
 
-  // ── Saturation ──
-  const satBoost = (redness * 0.004) + (warmth * 0.003) - (whitening * 0.002) + (lipColor * 0.002);
-  const saturate = 1 + satBoost;
-  if (Math.abs(saturate - 1) > 0.005) {
-    filters.push(`saturate(${Math.min(Math.max(saturate, 0.75), 1.50).toFixed(3)})`);
-  }
-
-  // ── Sepia (warmth effect) ──
-  const skinWarmth = Math.max(0, (skinTone - 50)) / 50;
-  const sepiaVal = (warmth * 0.002) + (skinWarmth * 0.08);
-  if (sepiaVal > 0.01) {
-    filters.push(`sepia(${Math.min(sepiaVal, 0.30).toFixed(3)})`);
-  }
-
-  // ── Hue Rotate ──
-  const skinCoolness = Math.max(0, (50 - skinTone)) / 50;
-  const hueShift = (skinCoolness * -8) + (redness * 0.05);
-  if (Math.abs(hueShift) > 0.5) {
-    filters.push(`hue-rotate(${hueShift.toFixed(1)}deg)`);
-  }
-
-  // ── Blur (skin smoothing) ──
-  const blurVal = smoothness * 0.006;
-  if (blurVal > 0.05) {
-    filters.push(`blur(${Math.min(blurVal, 0.6).toFixed(2)}px)`);
-  }
-
-  return filters.join(' ');
+  return filters.length ? filters.join(' ') : '';
 }
