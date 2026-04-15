@@ -59,6 +59,7 @@ export const useRealtimeLevel = (userId: string | null) => {
   const [level, setLevel] = useState<number>(cached?.level ?? 1);
   const [levelData, setLevelData] = useState<LevelData | null>(cached?.levelData ?? null);
   const [loading, setLoading] = useState(!cached);
+  const channelInstanceIdRef = useRef(`rt-${Math.random().toString(36).slice(2, 10)}`);
   
   // Track previous level to detect level-up and trigger frame refresh
   const previousLevelRef = useRef<number | null>(cached?.level ?? null);
@@ -141,7 +142,7 @@ export const useRealtimeLevel = (userId: string | null) => {
     if (!userId) return;
 
     const channel = supabase
-      .channel(`level-updates-${userId}`)
+      .channel(`level-updates-${userId}-${channelInstanceIdRef.current}`)
       .on(
         "postgres_changes",
         {
@@ -168,7 +169,7 @@ export const useRealtimeLevel = (userId: string | null) => {
     if (!userId) return;
 
     const channel = supabase
-      .channel(`level-transaction-updates-${userId}`)
+      .channel(`level-transaction-updates-${userId}-${channelInstanceIdRef.current}`)
       .on(
         "postgres_changes",
         {
@@ -266,7 +267,7 @@ export const useRealtimeLevelProgress = (userId: string | null, forceHostMode: b
   // Real-time subscription for level tier changes
   useEffect(() => {
     const channel = supabase
-      .channel('user-level-tiers-realtime')
+      .channel(`user-level-tiers-realtime-${channelInstanceIdRef.current}`)
       .on(
         'postgres_changes',
         {
