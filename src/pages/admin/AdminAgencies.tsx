@@ -246,9 +246,15 @@ export default function AdminAgencies() {
     fetchLevelTiers();
   }, []);
 
+  // Track if we're currently saving to prevent realtime from overwriting edits
+  const isSavingRef = useRef(false);
+
   useAdminRealtime(['agencies', 'agency_level_tiers'], () => {
     fetchAgencies();
-    fetchLevelTiers();
+    // Don't refetch level tiers while saving — prevents stale data overwriting edits
+    if (!isSavingRef.current) {
+      fetchLevelTiers();
+    }
   });
 
   // Fetch agencies when filters change
@@ -258,6 +264,7 @@ export default function AdminAgencies() {
 
   const saveLevelTiers = async () => {
     setSavingLevels(true);
+    isSavingRef.current = true;
     try {
       for (const tier of levelTiers) {
         const { error } = await supabase
@@ -275,11 +282,15 @@ export default function AdminAgencies() {
         if (error) throw error;
       }
       toast.success("Level settings saved");
+      // Re-fetch after all saves complete to get confirmed DB state
+      await fetchLevelTiers();
     } catch (error) {
       console.error("Error saving level tiers:", error);
       toast.error("Failed to save");
     } finally {
       setSavingLevels(false);
+      // Small delay before allowing realtime refetch to avoid race condition
+      setTimeout(() => { isSavingRef.current = false; }, 2000);
     }
   };
 
