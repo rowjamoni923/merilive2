@@ -45,13 +45,13 @@ interface AvatarWithFrameProps {
 // Size configurations - Frame is slightly LARGER than avatar for proper overlay
 // Size configs: frame overlays directly on avatar (same visual size)
 const sizeConfigs = {
-  xxs: { container: 24, avatar: 20, frameSize: 24, frameInset: -2, text: 'text-[6px]', online: 4 },
-  xs: { container: 36, avatar: 30, frameSize: 36, frameInset: -3, text: 'text-[7px]', online: 6 },
-  sm: { container: 48, avatar: 40, frameSize: 48, frameInset: -4, text: 'text-[10px]', online: 8 },
-  md: { container: 60, avatar: 50, frameSize: 60, frameInset: -5, text: 'text-xs', online: 10 },
-  lg: { container: 80, avatar: 66, frameSize: 80, frameInset: -7, text: 'text-sm', online: 12 },
-  xl: { container: 100, avatar: 82, frameSize: 100, frameInset: -9, text: 'text-base', online: 14 },
-  '2xl': { container: 124, avatar: 102, frameSize: 124, frameInset: -10, text: 'text-lg', online: 16 },
+  xxs: { container: 24, avatar: 22, frameSize: 24, frameInset: -1, text: 'text-[6px]', online: 4 },
+  xs: { container: 36, avatar: 32, frameSize: 36, frameInset: -2, text: 'text-[7px]', online: 6 },
+  sm: { container: 48, avatar: 44, frameSize: 48, frameInset: -2, text: 'text-[10px]', online: 8 },
+  md: { container: 60, avatar: 54, frameSize: 60, frameInset: -3, text: 'text-xs', online: 10 },
+  lg: { container: 80, avatar: 72, frameSize: 80, frameInset: -4, text: 'text-sm', online: 12 },
+  xl: { container: 100, avatar: 90, frameSize: 100, frameInset: -5, text: 'text-base', online: 14 },
+  '2xl': { container: 124, avatar: 112, frameSize: 124, frameInset: -6, text: 'text-lg', online: 16 },
 };
 
 // Track broken frame URLs globally

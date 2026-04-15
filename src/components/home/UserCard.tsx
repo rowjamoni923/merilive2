@@ -104,7 +104,7 @@ export const UserCard = ({
         )}
 
         {/* Call Button for Hosts - Bottom Right */}
-        {isHost && (
+        {isHost && isOnline && (
           <div 
             className="absolute bottom-3 right-2 z-10"
             onClick={(e) => e.stopPropagation()}
