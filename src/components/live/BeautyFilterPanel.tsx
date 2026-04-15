@@ -388,10 +388,7 @@ export function BeautyFilterPanel({
                     {/* Platform info */}
                     <div className="mx-4 mt-2 p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20">
                       <p className="text-purple-300 text-[10px] text-center">
-                        {isNativeAndroid 
-                          ? '✨ Face reshape powered by DeepAR native engine'
-                          : '✨ Face reshape powered by Tencent Beauty AR SDK'
-                        }
+                        ✨ Face reshape powered by Google MediaPipe AI (Free)
                       </p>
                     </div>
                   </motion.div>
