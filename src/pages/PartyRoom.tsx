@@ -2398,9 +2398,11 @@ const PartyRoom = () => {
         totalBeans={totalRoomBeans}
       />
 
-      {/* ==================== PREMIUM JOIN BANNERS ==================== */}
-      {/* REMOVED: JoinBannerContainer - Using ONLY FlyingJoinBannerContainer in UnifiedPartyRoom */}
-      {/* This ensures single link system - all banners go through UnifiedPartyRoom.flyingBanner */}
+      {/* ==================== BIGO-STYLE JOIN BANNERS ==================== */}
+      <BigoJoinBannerContainer
+        activeNotification={activeBigoJoin}
+        onComplete={completeBigoJoin}
+      />
 
       {/* ==================== PREMIUM ROOM CLOSED MODAL ==================== */}
       <RoomEndedModal
