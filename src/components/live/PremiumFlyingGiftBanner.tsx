@@ -54,16 +54,14 @@ export const PremiumFlyingGiftBanner = ({
   const isPremium = coins >= 1000;
   const isLegendary = coins >= 10000;
 
-  // Animate count up quickly and auto-hide in less than 1 second
+  // Animate count and auto-hide after 3.5 seconds (Bigo/Chamet standard)
   useEffect(() => {
-    // Show count immediately
     setCurrentCount(count);
 
-    // Auto complete in 600ms (very fast - less than 1 second)
     const timer = setTimeout(() => {
       setIsVisible(false);
-      setTimeout(onComplete, 150);
-    }, 600);
+      setTimeout(onComplete, 200);
+    }, 3500);
 
     return () => {
       clearTimeout(timer);
