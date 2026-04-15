@@ -349,7 +349,10 @@ export default function AdminHostApplications() {
                 </div>
                 Host Application Management
               </h1>
-              <p className="text-white/70 text-sm mt-1.5">Total {statusCounts.pending + statusCounts.under_review + statusCounts.approved + statusCounts.rejected} applications received</p>
+              <p className="text-white/70 text-sm mt-1.5">
+                {statusCounts.pending + statusCounts.under_review + statusCounts.approved + statusCounts.rejected} submissions
+                {pendingHostsCount > 0 && <span className="text-orange-400 font-semibold"> • {pendingHostsCount} awaiting verification</span>}
+              </p>
             </div>
             <Button
               variant="ghost"
