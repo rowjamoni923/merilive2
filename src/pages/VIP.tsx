@@ -398,7 +398,8 @@ const VIP = () => {
 
       if (entryBanners) {
         for (const banner of entryBanners) {
-          if (banner.animation_url && (banner.animation_url.includes('supabase.co/storage') || banner.animation_url.endsWith('.svga') || banner.animation_url.endsWith('.json') || banner.animation_url.includes('.r2.dev'))) {
+          const bannerAssetUrl = banner.animation_url || banner.preview_url;
+          if (isValidAssetUrl(bannerAssetUrl)) {
             const isEquipped = banner.id === equippedEntranceId;
             const alreadyExists = allPrivileges.some(p => p.item_id === banner.id);
             if (!alreadyExists) {
@@ -408,7 +409,7 @@ const VIP = () => {
                 name: banner.name,
                 category: 'entrance',
                 preview_url: banner.preview_url,
-                animation_url: banner.animation_url,
+                animation_url: banner.animation_url || banner.preview_url,
                 is_equipped: isEquipped,
                 expires_at: null,
                 source: 'level',
@@ -441,12 +442,7 @@ const VIP = () => {
       if (assignedFrames) {
         for (const assigned of assignedFrames) {
           const frame = assigned.role_frames as any;
-          if (frame && frame.is_active && frame.frame_url) {
-            // Only include frames with valid animation URLs
-            if (frame.frame_url.includes('supabase.co/storage') || 
-                frame.frame_url.endsWith('.svga') || 
-                frame.frame_url.endsWith('.json') ||
-                frame.frame_url.includes('.r2.dev')) {
+          if (frame && frame.is_active && isValidAssetUrl(frame.frame_url)) {
               
               // Check if this frame is equipped
               const isEquipped = assigned.is_equipped || frame.id === equippedFrameId;
