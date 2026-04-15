@@ -35,6 +35,7 @@ export interface AddEntryParams {
   entranceUrl?: string;
   entryNameBarUrl?: string;
   vehicleAnimationUrl?: string;
+  soundUrl?: string;
 }
 
 export function useEntryAnimations() {

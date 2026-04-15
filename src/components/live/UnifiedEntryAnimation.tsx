@@ -22,6 +22,7 @@ export interface EntryAnimation {
   level: number;
   animationUrl: string;
   animationType: 'entrance' | 'vehicle';
+  soundUrl?: string;
 }
 
 interface UnifiedEntryAnimationProps {
