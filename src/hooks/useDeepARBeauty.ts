@@ -418,6 +418,11 @@ export function useDeepARBeauty() {
     }
   }, [stickerActive, ensureDeepARReady]);
 
+  const handleStickerChange = useCallback((stickerName: string | null) => {
+    setActiveSticker(stickerName);
+    setStickerActive(!!stickerName);
+  }, []);
+
   const handleBeautySettingsChange = useCallback((settings: BeautySettings) => {
     setBeautySettings(settings);
     if (isNativeAndroid) {
