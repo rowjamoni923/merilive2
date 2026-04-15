@@ -1599,12 +1599,10 @@ const GoLive = () => {
             <span className={cn("text-[11px] font-semibold", beautyEnabled ? "text-pink-300" : "text-white/50")}>Beauty</span>
           </motion.button>
 
-          {/* Sticker — DeepAR native AR effects (Android only) */}
+          {/* Sticker — Opens Beauty Panel Stickers Tab */}
           <motion.button
             whileTap={{ scale: 0.9 }}
-            onClick={() => {
-              void toggleNativeStickerPanel();
-            }}
+            onClick={openStickerPanel}
             className="flex flex-col items-center gap-1 touch-manipulation"
           >
             <div className={cn(
@@ -1869,7 +1867,7 @@ const GoLive = () => {
         )}
       </AnimatePresence>
 
-      {/* Beauty Filter Panel */}
+      {/* Beauty Filter Panel with Stickers */}
       <BeautyFilterPanel
         isOpen={showBeautyPanel}
         onClose={() => setShowBeautyPanel(false)}
@@ -1877,7 +1875,12 @@ const GoLive = () => {
         enabled={beautyEnabled}
         onSettingsChange={handleBeautySettingsChange}
         onEnabledChange={handleBeautyEnabledChange}
+        activeSticker={activeSticker}
+        onStickerChange={handleStickerChange}
       />
+
+      {/* Sticker Overlay on video */}
+      <StickerOverlay stickerName={activeSticker} />
     </div>
   );
 };
