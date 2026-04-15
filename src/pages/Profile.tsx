@@ -611,9 +611,9 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       // Use universal realtime system instead of manual channel
       unsubscribeRealtime = subscribeToTables(
         `profile-${activeProfileId}`,
-        ['profiles', 'gift_transactions', 'private_calls', 'agencies', 'topup_helpers'],
+        ['profiles', 'gift_transactions', 'private_calls', 'agencies', 'topup_helpers', 'face_verification_submissions'],
         (table, event, payload) => {
-          // Profile updates
+          // Profile updates — including admin approval of verification/host
           if (table === 'profiles' && payload?.id === activeProfileId) {
             setProfile((prev: any) => ({ ...prev, ...payload }));
             if (payload?.coins !== undefined) {
@@ -623,6 +623,23 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               const giftEarnings = payload.pending_earnings || 0;
               const callEarnings = payload.beans || 0;
               setBeans(giftEarnings + callEarnings);
+            }
+            // When admin approves face verification, instantly hide the menu item
+            if (payload?.is_face_verified === true) {
+              setFaceVerificationPending(false);
+            }
+          }
+
+          // Face verification submission status changes (pending/approved/rejected)
+          if (table === 'face_verification_submissions' && payload?.user_id === activeProfileId) {
+            if (payload?.status === 'approved') {
+              setFaceVerificationPending(false);
+              // Also refresh profile to get is_face_verified update
+              void fetchData();
+            } else if (payload?.status === 'pending') {
+              setFaceVerificationPending(true);
+            } else if (payload?.status === 'rejected') {
+              setFaceVerificationPending(false);
             }
           }
           
