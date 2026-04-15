@@ -52,7 +52,7 @@ export function CampaignFloatingButton() {
   const [showPopup, setShowPopup] = useState(false);
   const [isHost, setIsHost] = useState<boolean | null>(null);
   const [purchased, setPurchased] = useState(false);
-  const navigate = useNavigate();
+  const [paymentLoading, setPaymentLoading] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
 
   // Check if user is host
