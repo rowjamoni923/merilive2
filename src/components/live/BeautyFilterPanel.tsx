@@ -1,48 +1,17 @@
 /**
- * BeautyFilterPanel v6.0 — MediaPipe AI Beauty Studio + Stickers
+ * BeautyFilterPanel v7.0 — MediaPipe AI Beauty Studio (Beauty Only)
  * 
  * ✅ All platforms: Google MediaPipe Face Landmarker (478 3D landmarks)
  * ✅ 100% Free — No license key required — Apache 2.0
  * ✅ Professional skin smoothing, whitening, face reshape, lip color
- * ✅ 12 Professional AI Stickers (face overlay)
+ * ✅ Stickers moved to separate StickerPanel component
  */
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sparkles, Sun, Droplets, Heart, Contrast, Palette, Flame, Eye, Moon, Zap, CircleDot, Flower2, Star, Smile } from 'lucide-react';
+import { X, Sparkles, Sun, Droplets, Heart, Contrast, Palette, Flame, Eye, Moon, Zap, CircleDot, Flower2, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { setBeautyParams, setBeautyEnabled, mapUIToParams, isBeautyEnabled } from '@/services/mediapipeBeautyProcessor';
 import { isNativeAndroidApp } from '@/utils/nativeUtils';
-import { supabase } from '@/integrations/supabase/client';
-import { getStickerAsset } from './StickerOverlay';
-
-// Import sticker assets for preview
-import catEars from '@/assets/stickers/cat-ears.png';
-import crown from '@/assets/stickers/crown.png';
-import bunnyEars from '@/assets/stickers/bunny-ears.png';
-import sunglasses from '@/assets/stickers/sunglasses.png';
-import butterfly from '@/assets/stickers/butterfly.png';
-import puppy from '@/assets/stickers/puppy.png';
-import heartEyes from '@/assets/stickers/heart-eyes.png';
-import flowerCrown from '@/assets/stickers/flower-crown.png';
-import sparkleStars from '@/assets/stickers/sparkle-stars.png';
-import foxEars from '@/assets/stickers/fox-ears.png';
-import neonFrame from '@/assets/stickers/neon-frame.png';
-import angel from '@/assets/stickers/angel.png';
-
-const STICKER_PREVIEW_MAP: Record<string, string> = {
-  'Cat Ears': catEars,
-  'Golden Crown': crown,
-  'Bunny Ears': bunnyEars,
-  'Cool Sunglasses': sunglasses,
-  'Butterfly Wings': butterfly,
-  'Cute Puppy': puppy,
-  'Heart Eyes': heartEyes,
-  'Flower Crown': flowerCrown,
-  'Sparkle Stars': sparkleStars,
-  'Fox Ears': foxEars,
-  'Neon Frame': neonFrame,
-  'Angel Halo': angel,
-};
 
 const isNativeAndroid = isNativeAndroidApp();
 
@@ -113,15 +82,7 @@ const PRESETS: BeautyPreset[] = [
   },
 ];
 
-type BeautyTab = 'skin' | 'reshape' | 'effects' | 'stickers';
-
-interface StickerItem {
-  id: string;
-  name: string;
-  category: string;
-  preview_url: string;
-  is_free: boolean;
-}
+type BeautyTab = 'skin' | 'reshape' | 'effects';
 
 interface SliderControlProps {
   label: string;
@@ -173,8 +134,6 @@ interface BeautyFilterPanelProps {
   enabled: boolean;
   onSettingsChange: (settings: BeautySettings) => void;
   onEnabledChange: (enabled: boolean) => void;
-  activeSticker?: string | null;
-  onStickerChange?: (stickerName: string | null) => void;
 }
 
 export function BeautyFilterPanel({
@@ -184,27 +143,9 @@ export function BeautyFilterPanel({
   enabled,
   onSettingsChange,
   onEnabledChange,
-  activeSticker = null,
-  onStickerChange,
 }: BeautyFilterPanelProps) {
   const [activePreset, setActivePreset] = useState<string | null>('natural');
   const [activeTab, setActiveTab] = useState<BeautyTab>('skin');
-  const [stickers, setStickers] = useState<StickerItem[]>([]);
-  const [stickerCategory, setStickerCategory] = useState<string>('all');
-
-  // Load stickers from DB
-  useEffect(() => {
-    if (!isOpen) return;
-    const load = async () => {
-      const { data } = await supabase
-        .from('ar_stickers' as any)
-        .select('id, name, category, preview_url, is_free')
-        .eq('is_active', true)
-        .order('display_order');
-      if (data) setStickers(data as any);
-    };
-    load();
-  }, [isOpen]);
 
   const applyPreset = (preset: BeautyPreset) => {
     setActivePreset(preset.id);
@@ -230,24 +171,10 @@ export function BeautyFilterPanel({
     setBeautyParams(mapUIToParams(newSettings));
   };
 
-  const stickerCategories = ['all', ...new Set(stickers.map(s => s.category))];
-  const filteredStickers = stickerCategory === 'all' 
-    ? stickers 
-    : stickers.filter(s => s.category === stickerCategory);
-
-  const handleStickerSelect = (stickerName: string) => {
-    if (activeSticker === stickerName) {
-      onStickerChange?.(null); // Deselect
-    } else {
-      onStickerChange?.(stickerName);
-    }
-  };
-
   const tabs: { key: BeautyTab; label: string; icon: React.ReactNode }[] = [
     { key: 'skin', label: 'Skin', icon: <Sparkles className="w-3.5 h-3.5" /> },
     { key: 'reshape', label: 'Reshape', icon: <CircleDot className="w-3.5 h-3.5" /> },
     { key: 'effects', label: 'Effects', icon: <Zap className="w-3.5 h-3.5" /> },
-    { key: 'stickers', label: 'Stickers', icon: <Smile className="w-3.5 h-3.5" /> },
   ];
 
   return (
@@ -282,13 +209,10 @@ export function BeautyFilterPanel({
                 {enabled && (
                   <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-pink-500/20 text-pink-300 font-medium">ON</span>
                 )}
-                {activeSticker && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-medium">🎭</span>
-                )}
               </div>
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => { resetAll(); onStickerChange?.(null); }}
+                  onClick={resetAll}
                   className="text-xs text-white/50 hover:text-white/80 transition-colors px-2 py-1"
                 >
                   Reset
@@ -303,7 +227,7 @@ export function BeautyFilterPanel({
             </div>
 
             {/* Presets Row — only show for beauty tabs */}
-            {activeTab !== 'stickers' && (
+            {(
               <div className="flex gap-2 px-4 pb-3 overflow-x-auto no-scrollbar">
                 <button
                   onClick={resetAll}
@@ -385,90 +309,6 @@ export function BeautyFilterPanel({
                   </motion.div>
                 )}
 
-                {activeTab === 'stickers' && (
-                  <motion.div key="stickers" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}>
-                    {/* Category pills */}
-                    <div className="flex gap-2 px-4 pb-3 overflow-x-auto no-scrollbar">
-                      {stickerCategories.map((cat) => (
-                        <button
-                          key={cat}
-                          onClick={() => setStickerCategory(cat)}
-                          className={cn(
-                            'shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all capitalize',
-                            stickerCategory === cat
-                              ? 'bg-gradient-to-r from-amber-500/80 to-orange-500/80 text-white'
-                              : 'bg-white/5 text-white/50 hover:bg-white/10'
-                          )}
-                        >
-                          {cat}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Remove sticker button */}
-                    {activeSticker && (
-                      <div className="px-4 pb-3">
-                        <button
-                          onClick={() => onStickerChange?.(null)}
-                          className="w-full py-2 rounded-xl bg-red-500/20 text-red-300 text-xs font-medium hover:bg-red-500/30 transition-all"
-                        >
-                          ✕ Remove Sticker
-                        </button>
-                      </div>
-                    )}
-
-                    {/* Sticker grid */}
-                    <div className="grid grid-cols-4 gap-3 px-4 pb-4">
-                      {filteredStickers.map((sticker) => {
-                        const previewSrc = STICKER_PREVIEW_MAP[sticker.name] || sticker.preview_url;
-                        const isActive = activeSticker === sticker.name;
-                        return (
-                          <button
-                            key={sticker.id}
-                            onClick={() => handleStickerSelect(sticker.name)}
-                            className={cn(
-                              'relative flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all',
-                              isActive
-                                ? 'bg-gradient-to-br from-amber-500/30 to-orange-500/30 border border-amber-400/50 shadow-lg shadow-amber-500/20'
-                                : 'bg-white/5 border border-white/5 hover:bg-white/10'
-                            )}
-                          >
-                            <div className="w-14 h-14 rounded-lg overflow-hidden bg-white/5 flex items-center justify-center">
-                              <img
-                                src={previewSrc}
-                                alt={sticker.name}
-                                className="w-12 h-12 object-contain"
-                                loading="lazy"
-                              />
-                            </div>
-                            <span className={cn(
-                              'text-[10px] font-medium truncate w-full text-center',
-                              isActive ? 'text-amber-300' : 'text-white/50'
-                            )}>
-                              {sticker.name}
-                            </span>
-                            {isActive && (
-                              <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center">
-                                <span className="text-[8px] text-white">✓</span>
-                              </div>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {stickers.length === 0 && (
-                      <div className="text-center py-8">
-                        <Smile className="w-10 h-10 text-white/20 mx-auto mb-2" />
-                        <p className="text-white/30 text-xs">Loading stickers...</p>
-                      </div>
-                    )}
-
-                    <div className="mx-4 mt-1 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20">
-                      <p className="text-amber-300 text-[10px] text-center">🎭 Professional AI Stickers — Free & No License Required</p>
-                    </div>
-                  </motion.div>
-                )}
               </AnimatePresence>
             </div>
           </motion.div>

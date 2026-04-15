@@ -20,6 +20,7 @@ import { ChametFaceVerificationModal, ChametSettingsPanel, ChametLiveMoreMenu } 
 import BeansIcon from "@/components/common/BeansIcon";
 import { BeautyFilterPanel, BeautySettings, generateBeautyCSS } from "@/components/live/BeautyFilterPanel";
 import { StickerOverlay } from "@/components/live/StickerOverlay";
+import { StickerPanel } from "@/components/live/StickerPanel";
 import { useDeepARBeauty } from "@/hooks/useDeepARBeauty";
 import { useNativeCameraPermission } from "@/hooks/useNativeCameraPermission";
 import { useFeatureLevelCheck } from "@/hooks/useFeatureLevelCheck";
@@ -158,10 +159,11 @@ const GoLive = () => {
     }
   }, [isNativeAndroid, openBeautyPanel]);
 
+  const [showStickerPanel, setShowStickerPanel] = useState(false);
+
   const openStickerPanel = useCallback(() => {
-    setShowBeautyPanel(true);
-    // The sticker tab will be visible inside the panel
-  }, [setShowBeautyPanel]);
+    setShowStickerPanel(true);
+  }, []);
 
   // Apply CSS beauty filter for web preview (also as fallback when native DeepAR fails)
   const beautyCSS = (isNativeAndroid && nativePreviewActive) ? "" : generateBeautyCSS(beautyEnabled, beautySettings);
@@ -1867,7 +1869,7 @@ const GoLive = () => {
         )}
       </AnimatePresence>
 
-      {/* Beauty Filter Panel with Stickers */}
+      {/* Beauty Filter Panel (Beauty Only) */}
       <BeautyFilterPanel
         isOpen={showBeautyPanel}
         onClose={() => setShowBeautyPanel(false)}
@@ -1875,11 +1877,17 @@ const GoLive = () => {
         enabled={beautyEnabled}
         onSettingsChange={handleBeautySettingsChange}
         onEnabledChange={handleBeautyEnabledChange}
+      />
+
+      {/* Separate Sticker Panel */}
+      <StickerPanel
+        isOpen={showStickerPanel}
+        onClose={() => setShowStickerPanel(false)}
         activeSticker={activeSticker}
         onStickerChange={handleStickerChange}
       />
 
-      {/* Sticker Overlay on video */}
+      {/* Face-tracked Sticker Overlay */}
       <StickerOverlay stickerName={activeSticker} />
     </div>
   );

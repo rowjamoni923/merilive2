@@ -1023,7 +1023,7 @@ export function ActiveCallScreen({
         ))}
       </AnimatePresence>
 
-      {/* Beauty Filter Panel with Stickers */}
+      {/* Beauty Filter Panel */}
       <BeautyFilterPanel
         isOpen={deepAR.showBeautyPanel}
         onClose={() => deepAR.setShowBeautyPanel(false)}
@@ -1031,8 +1031,6 @@ export function ActiveCallScreen({
         enabled={deepAR.beautyEnabled}
         onSettingsChange={deepAR.handleBeautySettingsChange}
         onEnabledChange={deepAR.handleBeautyEnabledChange}
-        activeSticker={deepAR.activeSticker}
-        onStickerChange={deepAR.handleStickerChange}
       />
       <StickerOverlay stickerName={deepAR.activeSticker} />
     </div>
