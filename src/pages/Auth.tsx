@@ -252,7 +252,7 @@ const Auth = () => {
         .from('user_invitations')
         .select('id')
         .eq('inviter_id', inviter.id)
-        .eq('invited_user_id', newUserId)
+        .eq('invitee_id', newUserId)
         .maybeSingle();
 
       if (existing) return; // Already tracked
@@ -262,10 +262,9 @@ const Auth = () => {
         .from('user_invitations')
         .insert({
           inviter_id: inviter.id,
-          invited_user_id: newUserId,
+          invitee_id: newUserId,
           invitation_code: inviterRef,
           status: 'verified',
-          verified_at: new Date().toISOString(),
         });
 
       console.log('[Invitation] Tracked: inviter', inviter.id, '-> new user', newUserId);
