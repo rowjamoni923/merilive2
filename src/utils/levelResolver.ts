@@ -84,8 +84,8 @@ export const resolveEffectiveUserRechargeTotal = async (
   try {
     const [totalCoinRecharge, totalPaymentRecharge] = await Promise.all([
       sumPaginated(
-        (from, to) =>
-          supabase
+        async (from, to) =>
+          await supabase
             .from("coin_transactions")
             .select("coins_amount")
             .eq("user_id", userId)
@@ -95,8 +95,8 @@ export const resolveEffectiveUserRechargeTotal = async (
         (row) => Number(row?.coins_amount ?? 0),
       ),
       sumPaginated(
-        (from, to) =>
-          supabase
+        async (from, to) =>
+          await supabase
             .from("payment_transactions")
             .select("diamonds_amount")
             .eq("user_id", userId)
@@ -120,8 +120,8 @@ export const resolveEffectiveHostEarnings = async (
 ): Promise<number> => {
   try {
     const totalGiftEarnings = await sumPaginated(
-      (from, to) =>
-        supabase
+      async (from, to) =>
+        await supabase
           .from("gift_transactions")
           .select("receiver_beans")
           .eq("receiver_id", userId)
