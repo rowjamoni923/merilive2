@@ -1110,7 +1110,17 @@ const Recharge = () => {
   const convertToLocalCurrency = (priceUsd: number): string => {
     if (!currencyRate) return `$${priceUsd.toFixed(2)}`;
     const localPrice = priceUsd * currencyRate.rate_to_usd;
-    return `${currencyRate.currency_symbol}${localPrice.toFixed(2)}`;
+    // Use DB symbol, fallback to known symbols by currency code
+    const SYMBOL_FALLBACK: Record<string, string> = {
+      BDT: '৳', INR: '₹', PKR: '₨', EUR: '€', GBP: '£', USD: '$',
+      MYR: 'RM', TRY: '₺', SAR: 'ر.س', AED: 'د.إ', JPY: '¥', KRW: '₩',
+      THB: '฿', VND: '₫', IDR: 'Rp', PHP: '₱', BRL: 'R$', EGP: 'E£',
+      NGN: '₦', ZAR: 'R', CNY: '¥', SGD: 'S$', HKD: 'HK$', TWD: 'NT$',
+    };
+    const symbol = currencyRate.currency_symbol || SYMBOL_FALLBACK[currencyRate.currency_code] || currencyRate.currency_code + ' ';
+    // For currencies with large values (BDT, INR, PKR etc.), show integer
+    const isLargeValue = localPrice >= 100;
+    return `${symbol}${isLargeValue ? Math.round(localPrice).toLocaleString() : localPrice.toFixed(2)}`;
   };
 
   // Gateway icon - No hardcoded defaults, use logo_url from database
