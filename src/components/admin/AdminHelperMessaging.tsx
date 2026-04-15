@@ -70,6 +70,39 @@ const AdminHelperMessaging = () => {
     loadUnreadRepliesCount();
   }, [selectedMessage]);
 
+  // ⚡ REALTIME: Zero-refresh instant message & reply updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-helper-messaging-rt')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'helper_admin_messages' },
+        (payload) => {
+          console.log('[AdminHelperMessaging] Message update:', payload.eventType);
+          loadRecentMessages();
+          loadUnreadRepliesCount();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'helper_message_replies' },
+        (payload) => {
+          console.log('[AdminHelperMessaging] Reply update:', payload.eventType);
+          loadUnreadRepliesCount();
+          // If viewing a message's replies, refresh them instantly
+          if (selectedMessage) {
+            loadMessageReplies(selectedMessage.id);
+          }
+          loadRecentMessages();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedMessage]);
+
   const loadHelpers = async () => {
     const { data } = await supabase
       .from('topup_helpers')

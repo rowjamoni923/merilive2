@@ -47,6 +47,7 @@ export const GLOBALLY_MONITORED_TABLES = new Set<string>([
   'helper_topup_requests',
   'helper_applications',
   'helper_message_replies',
+  'helper_admin_messages',
   'helper_withdrawal_requests',
   'helper_orders',
   'support_tickets',
