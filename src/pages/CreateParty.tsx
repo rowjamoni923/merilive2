@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { TopUpCampaignBanner } from "@/components/campaign/TopUpCampaignBanner";
+
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -508,7 +508,7 @@ const CreateParty = () => {
       </header>
 
       {/* Campaign Banner */}
-      <TopUpCampaignBanner location="party" compact className="relative z-10" />
+      
 
       {/* Main Content - Seat Grid */}
       <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 pb-4">
