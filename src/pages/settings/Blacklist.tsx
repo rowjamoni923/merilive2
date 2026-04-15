@@ -22,10 +22,10 @@ interface BlockedUser {
   blocked_id: string;
   created_at: string;
   blocked_profile: {
-    display_name: string;
-    avatar_url: string;
-    username: string;
-  };
+    display_name: string | null;
+    avatar_url: string | null;
+    username: string | null;
+  } | null;
 }
 
 const Blacklist = () => {
