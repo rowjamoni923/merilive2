@@ -83,6 +83,10 @@ self.addEventListener('notificationclick', (event) => {
     url = `/profile-detail/${data.follower_id || ''}`;
   } else if (data.type === 'live') {
     url = `/live/${data.stream_id || ''}`;
+  } else if (data.type === 'support_reply') {
+    var sp = 'mode=live_chat&ticket_id=' + (data.ticket_id || '');
+    if (data.message_id) sp += '&message_id=' + data.message_id;
+    url = '/settings/customer-service?' + sp;
   } else if (data.link_url) {
     url = data.link_url;
   }
