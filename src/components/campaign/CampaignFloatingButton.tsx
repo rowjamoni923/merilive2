@@ -149,10 +149,10 @@ export function CampaignFloatingButton() {
   };
 
   const handleSelectPayment = (tab: PaymentTab) => {
-    // Mark as purchased so it hides permanently
-    localStorage.setItem(PURCHASED_KEY + campaign.id, 'true');
-    setPurchased(true);
+    // DON'T mark as purchased here — only hide after actual top-up completes
+    // The Recharge page will mark it purchased after successful payment
     setShowPopup(false);
+    setShowPaymentMethods(false);
     
     // Navigate to Recharge page with campaign and payment tab pre-selected
     navigate(`/recharge?campaign_id=${campaign.id}&tab=${tab}`);
