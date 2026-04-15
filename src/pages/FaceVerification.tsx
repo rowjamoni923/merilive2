@@ -42,6 +42,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNativeCameraPermission } from "@/hooks/useNativeCameraPermission";
+import { hydrateProfileVerificationState } from "@/utils/profileVerification";
+import { useRefreshOnResume } from "@/hooks/useAppResumeHandler";
 
 const languages = [
   { code: "bn", name: "Bengali", flag: "🇧🇩" },
@@ -178,6 +180,45 @@ const FaceVerification = () => {
       const hasLiveTrack = stream.getVideoTracks().some((track) => track.readyState === 'live');
       if (hasLiveTrack) markReady();
     }, 1600);
+  }, []);
+
+  const refreshVerificationState = useCallback(async (targetUserId: string) => {
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', targetUserId)
+      .single();
+
+    const resolvedProfile = profileData ? await hydrateProfileVerificationState(profileData) : null;
+    setProfile(resolvedProfile);
+
+    if (resolvedProfile?.is_face_verified || resolvedProfile?.face_verification_image) {
+      setVerificationStatus('verified');
+      setRejectionReason(null);
+      return;
+    }
+
+    const { data: latestSubmission } = await supabase
+      .from('face_verification_submissions')
+      .select('id, status, rejection_reason, admin_notes')
+      .eq('user_id', targetUserId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (latestSubmission?.status === 'approved') {
+      setVerificationStatus('verified');
+      setRejectionReason(null);
+    } else if (latestSubmission?.status === 'pending') {
+      setVerificationStatus('submitted');
+      setRejectionReason(null);
+    } else if (latestSubmission?.status === 'rejected') {
+      setVerificationStatus('rejected');
+      setRejectionReason((latestSubmission as any).rejection_reason || null);
+    } else {
+      setVerificationStatus('unverified');
+      setRejectionReason(null);
+    }
   }, []);
   
   // Existing account detection states
@@ -345,37 +386,7 @@ const FaceVerification = () => {
         return;
       }
       setUserId(user.id);
-      
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-      
-      setProfile(profileData);
-      
-      const isFaceVerified = (profileData as any)?.is_face_verified || profileData?.face_verification_image;
-      if (isFaceVerified) {
-        setVerificationStatus('verified');
-      } else {
-        // Check if user has any pending or rejected submission
-        const { data: latestSubmission } = await supabase
-          .from('face_verification_submissions')
-          .select('id, status, rejection_reason, admin_notes')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        
-        if (latestSubmission) {
-          if (latestSubmission.status === 'pending') {
-            setVerificationStatus('submitted');
-          } else if (latestSubmission.status === 'rejected') {
-            setVerificationStatus('rejected');
-            setRejectionReason((latestSubmission as any).rejection_reason || null);
-          }
-        }
-      }
+      await refreshVerificationState(user.id);
       
       setLoading(false);
     };
@@ -398,7 +409,54 @@ const FaceVerification = () => {
         clearInterval(poseCheckIntervalRef.current);
       }
     };
-  }, [navigate]);
+  }, [navigate, refreshVerificationState]);
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const syncVerificationState = () => {
+      void refreshVerificationState(userId);
+    };
+
+    const handleVisibilityRefresh = () => {
+      if (document.visibilityState === 'visible') syncVerificationState();
+    };
+
+    const channel = supabase
+      .channel(`face-verification-sync-${userId}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'profiles',
+        filter: `id=eq.${userId}`,
+      }, syncVerificationState)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'face_verification_submissions',
+        filter: `user_id=eq.${userId}`,
+      }, syncVerificationState)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'host_applications',
+        filter: `user_id=eq.${userId}`,
+      }, syncVerificationState)
+      .subscribe();
+
+    window.addEventListener('focus', syncVerificationState);
+    document.addEventListener('visibilitychange', handleVisibilityRefresh);
+
+    return () => {
+      window.removeEventListener('focus', syncVerificationState);
+      document.removeEventListener('visibilitychange', handleVisibilityRefresh);
+      supabase.removeChannel(channel);
+    };
+  }, [userId, refreshVerificationState]);
+
+  useRefreshOnResume(() => {
+    if (userId) void refreshVerificationState(userId);
+  });
 
   // Handle photo selection (Step 1)
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {

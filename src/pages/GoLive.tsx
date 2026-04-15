@@ -25,6 +25,8 @@ import { useFeatureLevelCheck } from "@/hooks/useFeatureLevelCheck";
 import { trackTaskProgress } from "@/hooks/useTaskProgress";
 import { clearPreparedHostPreviewStream, setPreparedHostPreviewStream } from "@/features/live/hostPreviewSession";
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
+import { hydrateProfileVerificationState } from "@/utils/profileVerification";
+import { useRefreshOnResume } from "@/hooks/useAppResumeHandler";
 
 const GO_LIVE_PROFILE_FIELDS = "id, display_name, avatar_url, user_level, host_level, is_host, host_status, gender, is_face_verified, face_verification_image";
 
@@ -247,28 +249,9 @@ const GoLive = () => {
       .single();
 
     if (error) throw error;
-    if (!profile || profile.is_face_verified) return profile;
+    if (!profile) return profile;
 
-    const { data: approvedSubmission } = await supabase
-      .from("face_verification_submissions")
-      .select("status, verification_type, face_image_url")
-      .eq("user_id", userId)
-      .eq("status", "approved")
-      .order("reviewed_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (!approvedSubmission) return profile;
-
-    return {
-      ...profile,
-      is_face_verified: true,
-      face_verification_image: profile.face_verification_image || approvedSubmission.face_image_url || null,
-      is_host: profile.is_host || approvedSubmission.verification_type === 'host',
-      host_status: approvedSubmission.verification_type === 'host'
-        ? (profile.host_status || 'approved')
-        : profile.host_status,
-    };
+    return hydrateProfileVerificationState(profile);
   }, []);
 
   const refreshUserProfile = useCallback(async (userId?: string | null) => {
@@ -497,6 +480,12 @@ const GoLive = () => {
         table: 'face_verification_submissions',
         filter: `user_id=eq.${currentUserId}`,
       }, syncVerificationState)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'host_applications',
+        filter: `user_id=eq.${currentUserId}`,
+      }, syncVerificationState)
       .subscribe();
 
     window.addEventListener('focus', syncVerificationState);
@@ -508,6 +497,10 @@ const GoLive = () => {
       supabase.removeChannel(channel);
     };
   }, [currentUserId, refreshUserProfile]);
+
+  useRefreshOnResume(() => {
+    if (currentUserId) void refreshUserProfile(currentUserId);
+  });
 
   // Function to actually request permissions when user clicks Allow
   const handleAllowPermissions = async () => {
