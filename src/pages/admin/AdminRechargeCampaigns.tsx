@@ -16,6 +16,7 @@ import {
   Upload, Eye, EyeOff, Sparkles, Target, Zap, Gift, Timer, DollarSign,
   CalendarClock, Trophy, Percent, Check
 } from "lucide-react";
+import { CampaignTemplateSelector, CampaignPopupPreview, CAMPAIGN_TEMPLATES, type CampaignTemplate } from "@/components/admin/CampaignTemplates";
 
 interface Campaign {
   id: string;
@@ -124,6 +125,7 @@ export default function AdminRechargeCampaigns() {
   const [uploading, setUploading] = useState(false);
   const [coinPackages, setCoinPackages] = useState<CoinPackage[]>([]);
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<CampaignTemplate>(CAMPAIGN_TEMPLATES[0]);
 
   const fetchCampaigns = useCallback(async () => {
     setLoading(true);
@@ -529,7 +531,7 @@ export default function AdminRechargeCampaigns() {
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-yellow-500" />
@@ -537,9 +539,10 @@ export default function AdminRechargeCampaigns() {
             </DialogTitle>
           </DialogHeader>
 
-          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-4" style={{ WebkitOverflowScrolling: 'touch' }}>
-            <div className="space-y-5 pb-4">
-              {/* Basic Info */}
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-2" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <div className="flex flex-col md:flex-row gap-4">
+              {/* Left: Form */}
+              <div className="flex-1 space-y-5 pb-4 min-w-0">
               <div className="space-y-3">
                 <h3 className="text-sm font-semibold flex items-center gap-2">
                   <Zap className="w-4 h-4" /> Basic Info
@@ -909,6 +912,29 @@ export default function AdminRechargeCampaigns() {
                     onCheckedChange={v => setForm(p => ({ ...p, is_active: v }))}
                   />
                 </div>
+              </div>
+
+              {/* Template Selector */}
+              <CampaignTemplateSelector
+                selectedId={selectedTemplate.id}
+                onSelect={setSelectedTemplate}
+              />
+            </div>
+
+              {/* Right: Preview (sticky on desktop) */}
+              <div className="md:w-[260px] md:sticky md:top-0 flex-shrink-0">
+                <CampaignPopupPreview
+                  template={selectedTemplate}
+                  campaignName={form.campaign_name || ""}
+                  badgeText={form.badge_text || ""}
+                  diamondsAmount={form.diamonds_amount || 0}
+                  bonusDiamonds={form.bonus_diamonds || 0}
+                  bonusPercentage={form.bonus_percentage || 0}
+                  priceUsd={form.original_price_usd || 0}
+                  offerPriceUsd={form.offer_price_usd || null}
+                  durationMinutes={form.duration_minutes || 60}
+                  bannerImageUrl={form.banner_image_url || null}
+                />
               </div>
             </div>
           </div>
