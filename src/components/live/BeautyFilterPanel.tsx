@@ -1,16 +1,15 @@
 /**
- * BeautyFilterPanel v4.0 — Cross-Platform Beauty Studio
+ * BeautyFilterPanel v5.0 — MediaPipe AI Beauty Studio
  * 
- * ✅ Android: DeepAR native engine handles beauty at hardware level.
- * ✅ Web: Tencent RTC Beauty AR SDK handles real-time face beautification.
- * 
- * Slider values are sent to native DeepAR (Android) or Tencent SDK (Web).
+ * ✅ All platforms: Google MediaPipe Face Landmarker (478 3D landmarks)
+ * ✅ 100% Free — No license key required — Apache 2.0
+ * ✅ Professional skin smoothing, whitening, face reshape, lip color
  */
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Sparkles, Sun, Droplets, Heart, Contrast, Palette, Flame, Eye, Moon, Zap, CircleDot, Flower2, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { updateBeautyFromUI, isBeautyProcessorActive } from '@/services/tencentBeautyProcessor';
+import { setBeautyParams, setBeautyEnabled, mapUIToParams, isBeautyEnabled } from '@/services/mediapipeBeautyProcessor';
 import { isNativeAndroidApp } from '@/utils/nativeUtils';
 
 const isNativeAndroid = isNativeAndroidApp();
@@ -168,16 +167,16 @@ export function BeautyFilterPanel({
     setActivePreset(preset.id);
     onSettingsChange(preset.settings);
     onEnabledChange(true);
-    // On Web: send preset to Tencent SDK
-    if (!isNativeAndroid && isBeautyProcessorActive()) {
-      updateBeautyFromUI(preset.settings);
-    }
+    // Send to MediaPipe beauty processor
+    setBeautyEnabled(true);
+    setBeautyParams(mapUIToParams(preset.settings));
   };
 
   const resetAll = () => {
     setActivePreset(null);
     onSettingsChange(DEFAULT_BEAUTY);
     onEnabledChange(false);
+    setBeautyEnabled(false);
   };
 
   const updateSetting = (key: keyof BeautySettings, value: number) => {
@@ -186,10 +185,9 @@ export function BeautyFilterPanel({
     onSettingsChange(newSettings);
     if (!enabled && value > 0) onEnabledChange(true);
 
-    // On Web: send to Tencent Beauty SDK in real-time
-    if (!isNativeAndroid && isBeautyProcessorActive()) {
-      updateBeautyFromUI(newSettings);
-    }
+    // Send to MediaPipe beauty processor in real-time
+    setBeautyEnabled(true);
+    setBeautyParams(mapUIToParams(newSettings));
   };
 
   const tabs: { key: BeautyTab; label: string; icon: React.ReactNode }[] = [
@@ -390,10 +388,7 @@ export function BeautyFilterPanel({
                     {/* Platform info */}
                     <div className="mx-4 mt-2 p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20">
                       <p className="text-purple-300 text-[10px] text-center">
-                        {isNativeAndroid 
-                          ? '✨ Face reshape powered by DeepAR native engine'
-                          : '✨ Face reshape powered by Tencent Beauty AR SDK'
-                        }
+                        ✨ Face reshape powered by Google MediaPipe AI (Free)
                       </p>
                     </div>
                   </motion.div>
