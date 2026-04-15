@@ -1,5 +1,6 @@
 /**
  * StickerPanel — Standalone sticker selection panel (separate from beauty filters)
+ * Shows ONLY accessory stickers (no faces) that overlay on user's face
  */
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -7,41 +8,34 @@ import { X, Smile } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 
-import catEars from '@/assets/stickers/cat-ears.png';
+import tiara from '@/assets/stickers/cat-ears.png';
 import crown from '@/assets/stickers/crown.png';
-import bunnyEars from '@/assets/stickers/bunny-ears.png';
+import cowboyHat from '@/assets/stickers/bunny-ears.png';
 import sunglasses from '@/assets/stickers/sunglasses.png';
 import butterfly from '@/assets/stickers/butterfly.png';
 import puppy from '@/assets/stickers/puppy.png';
 import heartEyes from '@/assets/stickers/heart-eyes.png';
 import flowerCrown from '@/assets/stickers/flower-crown.png';
-import sparkleStars from '@/assets/stickers/sparkle-stars.png';
+import starGlasses from '@/assets/stickers/sparkle-stars.png';
 import foxEars from '@/assets/stickers/fox-ears.png';
 import neonFrame from '@/assets/stickers/neon-frame.png';
 import angel from '@/assets/stickers/angel.png';
 
-const STICKER_PREVIEW_MAP: Record<string, string> = {
-  'Cat Ears': catEars,
-  'Golden Crown': crown,
-  'Bunny Ears': bunnyEars,
-  'Cool Sunglasses': sunglasses,
-  'Butterfly Wings': butterfly,
-  'Cute Puppy': puppy,
-  'Heart Eyes': heartEyes,
-  'Flower Crown': flowerCrown,
-  'Sparkle Stars': sparkleStars,
-  'Fox Ears': foxEars,
-  'Neon Frame': neonFrame,
-  'Angel Halo': angel,
-};
-
-interface StickerItem {
-  id: string;
-  name: string;
-  category: string;
-  preview_url: string;
-  is_free: boolean;
-}
+// Local built-in stickers (accessory-only, no faces)
+const BUILTIN_STICKERS = [
+  { id: 'builtin-1', name: 'Princess Tiara', category: 'headwear', preview: tiara, is_free: true },
+  { id: 'builtin-2', name: 'Golden Crown', category: 'headwear', preview: crown, is_free: true },
+  { id: 'builtin-3', name: 'Cowboy Hat', category: 'headwear', preview: cowboyHat, is_free: true },
+  { id: 'builtin-4', name: 'Cool Sunglasses', category: 'glasses', preview: sunglasses, is_free: true },
+  { id: 'builtin-5', name: 'Star Glasses', category: 'glasses', preview: starGlasses, is_free: true },
+  { id: 'builtin-6', name: 'Heart Eyes', category: 'glasses', preview: heartEyes, is_free: true },
+  { id: 'builtin-7', name: 'Flower Crown', category: 'headwear', preview: flowerCrown, is_free: true },
+  { id: 'builtin-8', name: 'Angel Halo', category: 'headwear', preview: angel, is_free: true },
+  { id: 'builtin-9', name: 'Fox Ears', category: 'headwear', preview: foxEars, is_free: true },
+  { id: 'builtin-10', name: 'Cute Puppy', category: 'face', preview: puppy, is_free: true },
+  { id: 'builtin-11', name: 'Butterfly Wings', category: 'effects', preview: butterfly, is_free: true },
+  { id: 'builtin-12', name: 'Neon Frame', category: 'effects', preview: neonFrame, is_free: true },
+];
 
 interface StickerPanelProps {
   isOpen: boolean;
@@ -51,24 +45,10 @@ interface StickerPanelProps {
 }
 
 export function StickerPanel({ isOpen, onClose, activeSticker, onStickerChange }: StickerPanelProps) {
-  const [stickers, setStickers] = useState<StickerItem[]>([]);
   const [category, setCategory] = useState<string>('all');
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const load = async () => {
-      const { data } = await supabase
-        .from('ar_stickers' as any)
-        .select('id, name, category, preview_url, is_free')
-        .eq('is_active', true)
-        .order('display_order');
-      if (data) setStickers(data as any);
-    };
-    load();
-  }, [isOpen]);
-
-  const categories = ['all', ...new Set(stickers.map(s => s.category))];
-  const filtered = category === 'all' ? stickers : stickers.filter(s => s.category === category);
+  const categories = ['all', 'headwear', 'glasses', 'face', 'effects'];
+  const filtered = category === 'all' ? BUILTIN_STICKERS : BUILTIN_STICKERS.filter(s => s.category === category);
 
   return (
     <AnimatePresence>
@@ -120,7 +100,7 @@ export function StickerPanel({ isOpen, onClose, activeSticker, onStickerChange }
                       : 'bg-white/5 text-white/50 hover:bg-white/10'
                   )}
                 >
-                  {cat}
+                  {cat === 'all' ? '✨ All' : cat}
                 </button>
               ))}
             </div>
@@ -141,7 +121,6 @@ export function StickerPanel({ isOpen, onClose, activeSticker, onStickerChange }
             <div className="overflow-y-auto max-h-[40vh] px-4 pb-6">
               <div className="grid grid-cols-4 gap-3">
                 {filtered.map((sticker) => {
-                  const previewSrc = STICKER_PREVIEW_MAP[sticker.name] || sticker.preview_url;
                   const isActive = activeSticker === sticker.name;
                   return (
                     <button
@@ -155,7 +134,7 @@ export function StickerPanel({ isOpen, onClose, activeSticker, onStickerChange }
                       )}
                     >
                       <div className="w-14 h-14 rounded-lg overflow-hidden bg-white/5 flex items-center justify-center">
-                        <img src={previewSrc} alt={sticker.name} className="w-12 h-12 object-contain" loading="lazy" />
+                        <img src={sticker.preview} alt={sticker.name} className="w-12 h-12 object-contain" loading="lazy" />
                       </div>
                       <span className={cn('text-[10px] font-medium truncate w-full text-center', isActive ? 'text-amber-300' : 'text-white/50')}>
                         {sticker.name}
@@ -170,15 +149,8 @@ export function StickerPanel({ isOpen, onClose, activeSticker, onStickerChange }
                 })}
               </div>
 
-              {stickers.length === 0 && (
-                <div className="text-center py-8">
-                  <Smile className="w-10 h-10 text-white/20 mx-auto mb-2" />
-                  <p className="text-white/30 text-xs">Loading stickers...</p>
-                </div>
-              )}
-
               <div className="mt-3 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20">
-                <p className="text-amber-300 text-[10px] text-center">🎭 Face-tracked AI Stickers — Detects your face automatically</p>
+                <p className="text-amber-300 text-[10px] text-center">🎭 Face-tracked stickers — accessories adjust to your face automatically</p>
               </div>
             </div>
           </motion.div>
