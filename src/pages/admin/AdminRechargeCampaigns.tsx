@@ -16,6 +16,7 @@ import {
   Upload, Eye, EyeOff, Sparkles, Target, Zap, Gift, Timer, DollarSign,
   CalendarClock, Trophy, Percent, Check
 } from "lucide-react";
+import { CampaignTemplateSelector, CampaignPopupPreview, CAMPAIGN_TEMPLATES, type CampaignTemplate } from "@/components/admin/CampaignTemplates";
 
 interface Campaign {
   id: string;
