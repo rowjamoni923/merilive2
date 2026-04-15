@@ -1652,13 +1652,11 @@ const FaceVerification = () => {
                 >
                   <XCircle className="w-12 h-12 text-red-400" />
                 </motion.div>
-                <p className="text-white font-bold text-lg mb-1">Verification Failed</p>
+                <p className="text-white font-bold text-lg mb-1">{localizedMsg.failed}</p>
                 <p className="text-white/50 text-sm text-center px-6 mb-1">
-                  {failedAttempts >= 3 
-                    ? "Too many failed attempts. Please try again later."
-                    : "Follow each instruction carefully. Move your head as shown."}
+                  {localizedMsg.failedDesc}
                 </p>
-                <p className="text-white/30 text-xs">Attempt {failedAttempts}/3</p>
+                <p className="text-white/30 text-xs">Attempt {failedAttempts}</p>
               </div>
             )}
           </>
@@ -1671,7 +1669,7 @@ const FaceVerification = () => {
       {!faceStream && !faceVerified && (
         <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-xl p-3 mb-4">
           <p className="text-cyan-300 text-xs text-center">
-            💡 Ensure good lighting • Remove glasses/masks • Keep face centered in the oval
+            {localizedMsg.tips}
           </p>
         </div>
       )}
@@ -1681,10 +1679,9 @@ const FaceVerification = () => {
         <Button
           className="w-full h-14 bg-gradient-to-r from-cyan-600 via-purple-600 to-pink-600 hover:from-cyan-500 hover:via-purple-500 hover:to-pink-500 rounded-2xl text-lg font-bold shadow-lg shadow-purple-500/20"
           onClick={startFaceCamera}
-          disabled={failedAttempts >= 3}
         >
           <ScanFace className="w-6 h-6 mr-3" />
-          {failedAttempts >= 3 ? 'Too Many Attempts' : 'Start Face Scan'}
+          {localizedMsg.startScan}
         </Button>
       )}
       
@@ -1703,7 +1700,7 @@ const FaceVerification = () => {
             ) : (
               <>
                 <Play className="w-6 h-6 mr-3" />
-                Begin Liveness Check
+                {localizedMsg.beginCheck}
               </>
             )}
           </Button>
@@ -1712,7 +1709,7 @@ const FaceVerification = () => {
             className="w-full border-white/20 text-white hover:bg-white/10 rounded-xl"
             onClick={stopFaceCamera}
           >
-            Cancel
+            {localizedMsg.cancel}
           </Button>
         </div>
       )}
@@ -1721,10 +1718,9 @@ const FaceVerification = () => {
         <Button
           className="w-full h-14 bg-gradient-to-r from-amber-600 to-orange-600 rounded-2xl text-lg font-bold"
           onClick={resetVerification}
-          disabled={failedAttempts >= 3}
         >
           <RotateCcw className="w-6 h-6 mr-3" />
-          {failedAttempts >= 3 ? 'Maximum Attempts Reached' : 'Try Again'}
+          {localizedMsg.tryAgain}
         </Button>
       )}
       
