@@ -465,9 +465,10 @@ const VIP = () => {
 
       // === ADD VIP TIER ITEMS ===
       // If user has an active VIP subscription, show VIP-exclusive items
-      if (currentVIPTier > 0 && tiers.length > 0) {
-        const activeTier = tiers.find(t => t.tier_level === currentVIPTier) || 
-                          (vipData?.vip_tiers ? tiers.find(t => t.id === vipData.tier_id) : null);
+      const localVIPLevel = vipData?.vip_tiers ? (vipData.vip_tiers as any).tier_level || 0 : 0;
+      if (localVIPLevel > 0 && tiersData && tiersData.length > 0) {
+        const activeTier = tiersData.find(t => t.tier_level === localVIPLevel) || 
+                          (vipData?.tier_id ? tiersData.find(t => t.id === vipData.tier_id) : null);
         if (activeTier) {
           // VIP Frame
           if (isValidAssetUrl(activeTier.frame_animation_url)) {
