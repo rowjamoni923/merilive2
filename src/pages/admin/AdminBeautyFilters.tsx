@@ -658,13 +658,20 @@ const ItemGrid = ({
               {/* Info */}
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-sm truncate text-foreground">{item.name}</h3>
+                {item.description && (
+                  <p className="text-[10px] text-muted-foreground truncate mt-0.5">{item.description}</p>
+                )}
                 <div className="flex items-center gap-1 mt-1 flex-wrap">
                   <Badge variant="outline" className="text-[10px] px-1.5 py-0">
                     {item.category}
                   </Badge>
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                    {item.filter_type}
-                  </Badge>
+                  {item.filter_type === 'mediapipe' ? (
+                    <Badge className="bg-blue-500/20 text-blue-400 text-[10px] px-1.5 py-0 border-0">🤖 AI</Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                      {item.filter_type}
+                    </Badge>
+                  )}
                   <span className="text-[10px] text-muted-foreground">{formatSize(item.file_size_bytes)}</span>
                 </div>
                 <div className="flex items-center gap-1 mt-1">
