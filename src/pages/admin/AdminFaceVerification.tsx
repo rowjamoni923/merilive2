@@ -641,6 +641,9 @@ const AdminFaceVerification = () => {
                     <h3 className="font-bold text-lg">{selectedSubmission.profile?.display_name}</h3>
                     <p className="text-sm text-muted-foreground">UID: {selectedSubmission.profile?.app_uid}</p>
                     <div className="flex items-center gap-2 mt-1">
+                      {selectedSubmission.profile?.is_face_verified && (
+                        <Badge className="bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[10px]">✅ Face Verified</Badge>
+                      )}
                       {getTypeBadge(getEffectiveVerificationType(selectedSubmission))}
                       {getStatusBadge(selectedSubmission.status)}
                     </div>
