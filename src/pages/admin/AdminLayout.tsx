@@ -191,6 +191,9 @@ const getAdminNotificationPath = (notification: AdminNotification): string => {
   if (type.includes('topup') || type.includes('coin_purchase')) return '/admin/topup-system';
   if (type.includes('coin_exchange') || type.includes('diamond_sent')) return '/admin/coin-traders';
   if (type.includes('report') || type.includes('violation')) return '/admin/live-bans';
+  if (type.includes('face_violation') || type === 'face_violation') return '/admin/face-violations';
+  if (type.includes('chat_moderation') || type === 'chat_moderation') return '/admin/chat-inspector';
+  if (type.includes('helper_order') || type === 'helper_order') return '/admin/helper-management';
   if (type.includes('security')) return '/admin/logs';
   if (type === 'system') return '/admin/settings';
   if (type.includes('party') || type.includes('room')) return '/admin/party-rooms';
@@ -200,6 +203,8 @@ const getAdminNotificationPath = (notification: AdminNotification): string => {
   if (type.includes('gift') || title.includes('gift')) return '/admin/gifts';
   if (type.includes('daily') || title.includes('daily login')) return '/admin/rewards-management';
   if (type.includes('transfer') || title.includes('transfer')) return '/admin/transfer-history';
+  if (type.includes('game') || type === 'game') return '/admin/game-management';
+  if (type.includes('app_version') || type === 'app_version') return '/admin/app-version';
 
   return '/admin';
 };
