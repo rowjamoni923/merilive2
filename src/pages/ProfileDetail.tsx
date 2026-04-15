@@ -463,8 +463,8 @@ const ProfileDetail = () => {
         user && userId && user.id !== userId ? supabase.from("user_blocks").select("id").eq("blocker_id", user.id).eq("blocked_id", userId).maybeSingle() : { data: null },
         // Check if following
         user && userId && user.id !== userId ? supabase.from("followers").select("id").eq("follower_id", user.id).eq("following_id", userId).maybeSingle() : { data: null },
-        // Purchased items (frames + entry animations) from shop
-        supabase.from("user_purchases").select("id, item_type, expires_at, is_active, is_equipped, item_id, shop_items(id, name, preview_url, animation_url, svga_url, image_url, animation_file_url, file_type)").eq("user_id", userId).eq("is_active", true).gte("expires_at", new Date().toISOString()),
+        // Purchased items (frames + entry animations) from shop — no FK so fetch separately
+        supabase.from("user_purchases").select("id, item_type, expires_at, is_active, is_equipped, item_id").eq("user_id", userId).eq("is_active", true).gte("expires_at", new Date().toISOString()),
       ]);
 
       if (frameData?.data) setUserFrame(frameData.data as unknown as FrameData);
