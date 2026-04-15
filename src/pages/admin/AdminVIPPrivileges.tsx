@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -77,10 +78,6 @@ const AdminVIPPrivileges = () => {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchTiers();
-  }, []);
-
   const fetchTiers = async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -94,6 +91,11 @@ const AdminVIPPrivileges = () => {
     setTiers(data || []);
     setLoading(false);
   };
+
+  useEffect(() => {
+    fetchTiers();
+  }, []);
+  useAdminRealtime(['vip_tiers'], fetchTiers, 'admin-vip-privileges-rt');
 
   const handleFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>, 

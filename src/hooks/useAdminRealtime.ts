@@ -54,6 +54,7 @@ export const GLOBALLY_MONITORED_TABLES = new Set<string>([
   'agency_withdrawals',
   'agencies',
   'host_conversion_requests',
+  'host_applications',
   'payroll_requests',
   'user_reports',
   'face_verification_submissions',
@@ -73,6 +74,12 @@ export const GLOBALLY_MONITORED_TABLES = new Set<string>([
   // Activity tables
   'live_streams',
   'profiles',
+  // Settings tables (admin-managed)
+  'game_providers',
+  'game_server_settings',
+  'vip_tiers',
+  'branding_settings',
+  'app_version_settings',
 ]);
 
 // ============= HOOK =============

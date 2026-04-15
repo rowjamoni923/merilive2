@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -65,6 +66,7 @@ const AdminAppVersion = () => {
   useEffect(() => {
     fetchVersionSettings();
   }, []);
+  useAdminRealtime(['app_version_settings'], fetchVersionSettings, 'admin-app-version-rt');
 
   const saveSettings = async (settings: VersionSettings) => {
     setSaving(true);

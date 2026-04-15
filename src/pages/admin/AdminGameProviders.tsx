@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -192,10 +193,6 @@ export default function AdminGameProviders() {
     settings: {},
   });
 
-  useEffect(() => {
-    fetchProviders();
-  }, []);
-
   const fetchProviders = async () => {
     try {
       const { data, error } = await supabase
@@ -228,6 +225,11 @@ export default function AdminGameProviders() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchProviders();
+  }, []);
+  useAdminRealtime(['game_providers'], fetchProviders, 'admin-game-providers-rt');
 
   const saveProviders = async (updatedProviders: GameProvider[]) => {
     setProviders(updatedProviders);

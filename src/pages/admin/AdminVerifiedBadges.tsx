@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +42,7 @@ const AdminVerifiedBadges = () => {
   };
 
   useEffect(() => { fetchBadges(); }, []);
+  useAdminRealtime(['branding_settings'], fetchBadges, 'admin-badges-rt');
 
   const handleUpload = async (key: string, file: File) => {
     if (!file.type.startsWith("image/")) {
