@@ -153,7 +153,20 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   }, [cachedBalance, profile?.coins, (profile as any)?.diamonds]);
 
   const syncBeansFromProfile = (profileData: any) => {
-    if (!profileData || profileData.is_agency_owner) return;
+    if (!profileData) return;
+
+    // Agency owner: refetch agency beans + add personal beans
+    if (profileData.is_agency_owner) {
+      const personalBeans = Number(profileData.pending_earnings || 0) + Number(profileData.beans || 0);
+      const userId = profileData.id;
+      if (userId) {
+        supabase.from('agencies').select('beans_balance').eq('owner_id', userId).eq('is_active', true).maybeSingle().then(({ data }) => {
+          const agencyBeans = data?.beans_balance || 0;
+          setBeans(agencyBeans + personalBeans);
+        });
+      }
+      return;
+    }
 
     if (profileData.is_host) {
       const giftEarnings = Number(profileData.pending_earnings || 0);
@@ -498,9 +511,9 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
         // Set beans - PRIORITY: Agency owners use agency.beans_balance
         if (profileData?.is_agency_owner && agencyBeansResult?.data) {
-          // Agency owner - use agency's beans_balance (allow negative for penalty display)
           const rawAgencyBeans = agencyBeansResult.data.beans_balance || 0;
-          const agencyBeans = rawAgencyBeans; // Allow negative to show penalty debt
+          const personalBeans = (profileData?.pending_earnings || 0) + (profileData?.beans || 0);
+          const agencyBeans = rawAgencyBeans + personalBeans;
           const agencyDiamonds = agencyBeansResult.data.diamond_balance || 0;
           const helperWalletBalance = helperResult?.data?.wallet_balance ?? 0;
 
