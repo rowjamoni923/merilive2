@@ -52,7 +52,7 @@ const AdminInvitationSettings = () => {
     fetchBannerUrl();
   }, []);
 
-  useAdminRealtime(['invitation_settings', 'app_settings'], () => { fetchTiers(); fetchBannerUrl(); });
+  useAdminRealtime(['invitation_reward_tiers', 'app_settings'], () => { fetchTiers(); fetchBannerUrl(); });
 
   const fetchBannerUrl = async () => {
     try {
@@ -120,7 +120,7 @@ const AdminInvitationSettings = () => {
   const fetchTiers = async () => {
     try {
       const { data, error } = await supabase
-        .from('invitation_settings')
+        .from('invitation_reward_tiers')
         .select('*')
         .order('display_order');
 
@@ -139,7 +139,7 @@ const AdminInvitationSettings = () => {
     try {
       if (editingTier) {
         const { error } = await supabase
-          .from('invitation_settings')
+          .from('invitation_reward_tiers')
           .update(formData)
           .eq('id', editingTier.id);
         if (error) throw error;
@@ -157,7 +157,7 @@ const AdminInvitationSettings = () => {
           is_active: formData.is_active ?? true
         };
         const { error } = await supabase
-          .from('invitation_settings')
+          .from('invitation_reward_tiers')
           .insert([insertData]);
         if (error) throw error;
         toast.success('New tier created');
@@ -178,7 +178,7 @@ const AdminInvitationSettings = () => {
     if (!confirm('Delete this tier?')) return;
     try {
       const { error } = await supabase
-        .from('invitation_settings')
+        .from('invitation_reward_tiers')
         .delete()
         .eq('id', id);
       if (error) throw error;

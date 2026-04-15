@@ -75,7 +75,7 @@ const Invitation = () => {
 
     const tiersChannel = supabase
       .channel('invitation-tiers-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'invitation_settings' }, () => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'invitation_reward_tiers' }, () => {
         fetchTiers();
       })
       .subscribe();
@@ -92,10 +92,10 @@ const Invitation = () => {
       if (!user) return;
       const { data } = await supabase
         .from('invitation_reward_claims')
-        .select('tier_id')
-        .eq('user_id', user.id);
+        .select('invitation_id')
+        .eq('claimed_by', user.id);
       if (data) {
-        setClaimedTierIds(new Set(data.map(c => c.tier_id)));
+        setClaimedTierIds(new Set(data.map(c => c.invitation_id)));
       }
     } catch (error) {
       console.error('Error fetching claims:', error);
@@ -105,21 +105,40 @@ const Invitation = () => {
   const claimTierReward = async (tier: InvitationTier) => {
     try {
       setClaimingTierId(tier.id);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Please login first');
+        return;
+      }
+
+      // Check eligibility
+      if (myInviteCount < tier.min_invites) {
+        toast.error(`Need at least ${tier.min_invites} invites to claim this tier`);
+        return;
+      }
+
+      const beansReward = tier.reward_beans ?? 0;
+      const coinsReward = tier.reward_coins ?? 0;
+
       const { data, error } = await supabase.rpc('claim_invitation_reward', {
-        p_tier_id: tier.id,
-        p_reward_beans: tier.reward_beans ?? 0,
-        p_reward_coins: tier.reward_coins ?? 0,
-        p_invite_count: myInviteCount,
+        _user_id: user.id,
+        _beans: beansReward,
+        _coins: coinsReward,
+        _diamonds: coinsReward,
       });
       
       if (error) throw error;
-      const result = data as any;
-      if (result?.success) {
-        toast.success(`🎉 ${tier.tier_name} Reward Claimed! +${result.diamonds_awarded?.toLocaleString()} 💎 Diamonds`);
-        setClaimedTierIds(prev => new Set([...prev, tier.id]));
-      } else {
-        toast.error(result?.error || 'Failed to claim reward');
-      }
+      
+      // Record the claim
+      await supabase.from('invitation_reward_claims').insert({
+        claimed_by: user.id,
+        invitation_id: tier.id,
+        reward_amount: coinsReward,
+        reward_type: 'tier_reward',
+      });
+
+      toast.success(`🎉 ${tier.tier_name} Reward Claimed! +${coinsReward.toLocaleString()} 💎 Diamonds`);
+      setClaimedTierIds(prev => new Set([...prev, tier.id]));
     } catch (error: any) {
       console.error('Error claiming reward:', error);
       toast.error('Failed to claim reward');
@@ -147,7 +166,7 @@ const Invitation = () => {
   const fetchTiers = async () => {
     try {
       const { data, error } = await supabase
-        .from('invitation_settings')
+        .from('invitation_reward_tiers')
         .select('*')
         .eq('is_active', true)
         .order('display_order');
@@ -178,7 +197,7 @@ const Invitation = () => {
 
       const { data: inviteData, error } = await supabase
         .from('user_invitations')
-        .select('inviter_id, beans_earned')
+        .select('inviter_id')
         .eq('status', 'verified');
 
       if (!error && inviteData) {
@@ -188,7 +207,6 @@ const Invitation = () => {
             inviterStats[inv.inviter_id] = { count: 0, beans: 0 };
           }
           inviterStats[inv.inviter_id].count += 1;
-          inviterStats[inv.inviter_id].beans += inv.beans_earned || 0;
         });
 
         const inviterIds = Object.keys(inviterStats);
@@ -229,13 +247,13 @@ const Invitation = () => {
       if (user) {
         const { data: myInvites } = await supabase
           .from('user_invitations')
-          .select('invited_user_id, created_at')
+          .select('invitee_id, created_at')
           .eq('inviter_id', user.id)
           .eq('status', 'verified')
           .order('created_at', { ascending: false });
 
         if (myInvites && myInvites.length > 0) {
-          const invitedIds = myInvites.map(i => i.invited_user_id);
+          const invitedIds = myInvites.map(i => i.invitee_id).filter(Boolean);
           const { data: invitedProfiles } = await supabase
             .from('profiles_public')
             .select('id, display_name, avatar_url')
@@ -245,7 +263,7 @@ const Invitation = () => {
             const profileMap = new Map(invitedProfiles.map(p => [p.id, p]));
             const invitedList: InvitedUser[] = myInvites
               .map(inv => {
-                const profile = profileMap.get(inv.invited_user_id);
+                const profile = profileMap.get(inv.invitee_id!);
                 return profile ? {
                   id: profile.id,
                   display_name: profile.display_name || 'User',
