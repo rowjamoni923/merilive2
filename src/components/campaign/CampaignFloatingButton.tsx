@@ -230,13 +230,21 @@ export function CampaignFloatingButton() {
       // Google Play billing
       if (Capacitor.isNativePlatform()) {
         try {
-          const price = campaign.offer_price_usd || campaign.original_price_usd;
-          const productId = PLAY_STORE_PRODUCTS.find(p => Math.abs(p.price - price) < 0.5)?.id || PLAY_STORE_PRODUCTS[0].id;
-          await playStoreBilling.purchaseProduct(productId);
-          localStorage.setItem(PURCHASED_KEY + campaign.id, 'true');
-          setPurchased(true);
-          setShowPopup(false);
-          toast({ title: "Purchase successful!", description: "Diamonds added to your account" });
+          const diamonds = campaign.diamonds_amount;
+          const product = PLAY_STORE_PRODUCTS[diamonds];
+          const productId = product?.productId || Object.values(PLAY_STORE_PRODUCTS)[0]?.productId;
+          if (!productId) { toast({ title: "Product not found", variant: "destructive" }); return; }
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) { toast({ title: "Please login first", variant: "destructive" }); return; }
+          const result = await playStoreBilling.purchase(productId, user.id);
+          if (result.success) {
+            localStorage.setItem(PURCHASED_KEY + campaign.id, 'true');
+            setPurchased(true);
+            setShowPopup(false);
+            toast({ title: "Purchase successful!", description: "Diamonds added to your account" });
+          } else {
+            toast({ title: "Payment failed", description: result.error, variant: "destructive" });
+          }
         } catch (e) {
           toast({ title: "Payment failed", variant: "destructive" });
         }
