@@ -720,7 +720,16 @@ const AISupportChat = ({
         },
       });
 
-      if (response.error) throw new Error(response.error.message || "Failed to get response");
+      if (response.error) {
+        const statusCode = (response.error as any)?.status || 0;
+        if (statusCode === 429) {
+          throw new Error("Too many requests. Please wait a moment and try again.");
+        }
+        if (statusCode === 402) {
+          throw new Error("AI service is temporarily unavailable. Please try again later.");
+        }
+        throw new Error(response.error.message || "Failed to get response");
+      }
 
       if (response.data) {
         const aiContent = response.data.response || "I apologize, I couldn't process your request.";
