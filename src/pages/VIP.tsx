@@ -137,6 +137,15 @@ const isMonetizedAsset = (asset: {
   );
 };
 
+const hasRenderableAsset = (...urls: Array<string | null | undefined>): boolean => {
+  return urls.some((url) => isValidAssetUrl(url));
+};
+
+const shouldShowLevelAvatarFrame = (requiredLevel: number | null | undefined): boolean => {
+  const level = requiredLevel ?? 1;
+  return level === 1 || level >= 6;
+};
+
 const getPrivilegeSlot = (category: string): PrivilegeSlot => {
   if (category === 'frame' || category === 'portrait_frame') return 'frame';
   if (category === 'entrance' || category === 'entrance_effect' || category === 'entry_banner') return 'entrance';
@@ -343,7 +352,12 @@ const VIP = () => {
         
         for (const frame of availableFrames) {
           const requiredLevel = frame.min_level ?? frame.level_required;
-          if (!isUnlockedByLevel(requiredLevel, effectiveLevel) || isMonetizedAsset(frame)) continue;
+          if (
+            !isUnlockedByLevel(requiredLevel, effectiveLevel) ||
+            isMonetizedAsset(frame) ||
+            !shouldShowLevelAvatarFrame(requiredLevel) ||
+            !hasRenderableAsset(frame.frame_url, frame.preview_url)
+          ) continue;
 
           const isEquipped = hasEquippedFrameInDB && frame.id === equippedFrameId;
           const alreadyExists = allPrivileges.some(p => p.item_id === frame.id);
@@ -374,7 +388,8 @@ const VIP = () => {
       if (levelPrivileges) {
         for (const priv of levelPrivileges) {
           const requiredLevel = priv.unlock_level ?? priv.level;
-          if (!isUnlockedByLevel(requiredLevel, effectiveLevel)) continue;
+          const assetUrl = priv.animation_url || priv.preview_url;
+          if (!isUnlockedByLevel(requiredLevel, effectiveLevel) || !hasRenderableAsset(assetUrl)) continue;
 
           const slot = getPrivilegeSlot(priv.privilege_type || 'other');
           let isEquipped = false;
@@ -408,7 +423,11 @@ const VIP = () => {
 
       if (entryNameBars) {
         for (const bar of entryNameBars) {
-          if (!isUnlockedByLevel(bar.level_required, effectiveLevel) || isMonetizedAsset(bar)) continue;
+          if (
+            !isUnlockedByLevel(bar.level_required, effectiveLevel) ||
+            isMonetizedAsset(bar) ||
+            !hasRenderableAsset(bar.animation_url, bar.image_url)
+          ) continue;
 
           const isEquipped = bar.id === equippedEntryNameBarId;
           const alreadyExists = allPrivileges.some(p => p.item_id === bar.id);
@@ -418,8 +437,8 @@ const VIP = () => {
               item_id: bar.id,
               name: bar.name,
               category: 'entry_name_bar',
-              preview_url: bar.preview_url || bar.image_url,
-              animation_url: bar.animation_url || bar.preview_url || bar.image_url,
+              preview_url: bar.image_url,
+              animation_url: bar.animation_url || bar.image_url,
               is_equipped: isEquipped,
               expires_at: null,
               source: 'level',
@@ -438,7 +457,11 @@ const VIP = () => {
 
       if (entryBanners) {
         for (const banner of entryBanners) {
-          if (!isUnlockedByLevel(banner.level_required, effectiveLevel) || isMonetizedAsset(banner)) continue;
+          if (
+            !isUnlockedByLevel(banner.level_required, effectiveLevel) ||
+            isMonetizedAsset(banner) ||
+            !hasRenderableAsset(banner.animation_url, banner.image_url)
+          ) continue;
 
           const isEquipped = banner.id === equippedEntranceId;
           const alreadyExists = allPrivileges.some(p => p.item_id === banner.id);
@@ -448,8 +471,8 @@ const VIP = () => {
               item_id: banner.id,
               name: banner.name,
               category: 'entrance',
-              preview_url: banner.preview_url || banner.image_url,
-              animation_url: banner.animation_url || banner.preview_url || banner.image_url,
+              preview_url: banner.image_url,
+              animation_url: banner.animation_url || banner.image_url,
               is_equipped: isEquipped,
               expires_at: null,
               source: 'level',
@@ -1215,24 +1238,26 @@ const VIP = () => {
                             )}
                           </div>
                           
-                          {/* Status/Timer below item */}
-                          <div className="flex items-center gap-1 mt-1 text-xs">
-                            {priv.source === 'admin_assigned' ? (
-                              <>
-                                <Shield className="w-3 h-3 text-amber-400" />
-                                <span className="text-amber-400">{priv.role_type?.replace('_', ' ') || 'Assigned'}</span>
-                              </>
-                            ) : priv.expires_at ? (
-                              <>
-                                <Clock className="w-3 h-3 text-amber-400" />
-                                <span className="text-amber-400">{formatExpiration(priv.expires_at, countdownTick)}</span>
-                              </>
-                            ) : priv.source === 'level' || priv.source === 'frame' ? (
-                              <span className="text-emerald-400">Lv.{priv.unlock_level || 1}+</span>
-                            ) : (
-                              <span className="text-purple-400">∞ Permanent</span>
-                            )}
+                          <div className="mt-1 max-w-20 truncate text-center text-[11px] font-medium text-white/90">
+                            {priv.name}
                           </div>
+
+                          {/* Status/Timer below item */}
+                          {(priv.source === 'admin_assigned' || priv.expires_at) && (
+                            <div className="flex items-center gap-1 mt-1 text-xs">
+                              {priv.source === 'admin_assigned' ? (
+                                <>
+                                  <Shield className="w-3 h-3 text-amber-400" />
+                                  <span className="text-amber-400">{priv.role_type?.replace('_', ' ') || 'Assigned'}</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Clock className="w-3 h-3 text-amber-400" />
+                                  <span className="text-amber-400">{formatExpiration(priv.expires_at, countdownTick)}</span>
+                                </>
+                              )}
+                            </div>
+                          )}
 
                           <Button
                             size="sm"
