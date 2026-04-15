@@ -123,7 +123,7 @@ export function useGameToken() {
     } catch {
       // If URL parsing fails, append as query string
       const separator = baseUrl.includes('?') ? '&' : '?';
-      return `${baseUrl}${separator}token=${tokenData.token}&merchantId=${tokenData.merchant_id}`;
+      return `${baseUrl}${separator}token=${tokenData.token}&merchant=${tokenData.merchant_id}&isLandscape=true`;
     }
   }, [generateToken]);
 
