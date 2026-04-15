@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Gamepad2, TrendingUp, Coins, Loader2, BarChart3, Edit, Star, Trophy, Zap, Target, Sparkles, DollarSign, Plus, Link, Monitor, Trash2, Globe, ExternalLink, Image, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
+import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 
 interface BetMultiplier {
   bet_type: string;
@@ -165,6 +166,9 @@ export default function AdminGameSettings() {
 
   useEffect(() => {
     fetchGames();
+  }, []);
+
+  useEffect(() => {
     fetchStats();
   }, []);
 
@@ -185,6 +189,12 @@ export default function AdminGameSettings() {
     }
     setLoading(false);
   };
+
+  useAdminRealtime(
+    ['game_settings'],
+    fetchGames,
+    'admin-game-settings-rt'
+  );
 
   const fetchStats = async () => {
     const today = new Date().toISOString().split('T')[0];

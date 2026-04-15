@@ -30,6 +30,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import AdminHelperDiamondTopup from "@/components/admin/AdminHelperDiamondTopup";
+import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 
 // Interfaces
 interface HelperApplication {
@@ -160,6 +161,12 @@ const AdminHelperManagement = () => {
       setLoading(false);
     }
   };
+
+  useAdminRealtime(
+    ['helper_applications', 'helper_upgrade_requests', 'helper_topup_requests', 'helper_withdrawal_requests', 'helper_orders', 'topup_helpers'],
+    loadData,
+    'admin-helper-mgmt-rt'
+  );
 
   const loadApplications = async () => {
     const { data } = await supabase

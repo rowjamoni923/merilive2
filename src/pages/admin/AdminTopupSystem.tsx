@@ -34,6 +34,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 
 // Interfaces
 interface UserProfile {
@@ -233,6 +234,12 @@ const AdminTopupSystem = () => {
     ]);
     setLoading(false);
   };
+
+  useAdminRealtime(
+    ['helper_topup_requests', 'recharge_transactions', 'coin_transactions', 'profiles'],
+    loadAllData,
+    'admin-topup-rt'
+  );
 
   // Fetch Level Tiers
   const fetchLevelTiers = async () => {

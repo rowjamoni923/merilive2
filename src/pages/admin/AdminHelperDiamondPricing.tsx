@@ -15,6 +15,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 
 interface DiamondPackage {
   id: string;
@@ -52,6 +53,12 @@ const AdminHelperDiamondPricing = () => {
       setLoading(false);
     }
   };
+
+  useAdminRealtime(
+    ['helper_diamond_packages'],
+    loadPackages,
+    'admin-helper-pricing-rt'
+  );
 
   const handleUpdate = async (pkg: DiamondPackage) => {
     setSaving(true);
