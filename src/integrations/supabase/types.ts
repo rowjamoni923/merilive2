@@ -5682,6 +5682,36 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          category: string
+          enabled: boolean
+          id: string
+          push_enabled: boolean
+          sound_enabled: boolean
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          category: string
+          enabled?: boolean
+          id?: string
+          push_enabled?: boolean
+          sound_enabled?: boolean
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string
+          enabled?: boolean
+          id?: string
+          push_enabled?: boolean
+          sound_enabled?: boolean
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       notification_templates: {
         Row: {
           action_data: Json | null
