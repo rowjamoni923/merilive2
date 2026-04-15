@@ -149,10 +149,10 @@ export function CampaignFloatingButton() {
   };
 
   const handleSelectPayment = (tab: PaymentTab) => {
-    // Mark as purchased so it hides permanently
-    localStorage.setItem(PURCHASED_KEY + campaign.id, 'true');
-    setPurchased(true);
+    // DON'T mark as purchased here — only hide after actual top-up completes
+    // The Recharge page will mark it purchased after successful payment
     setShowPopup(false);
+    setShowPaymentMethods(false);
     
     // Navigate to Recharge page with campaign and payment tab pre-selected
     navigate(`/recharge?campaign_id=${campaign.id}&tab=${tab}`);
@@ -191,23 +191,23 @@ export function CampaignFloatingButton() {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             className="fixed z-[45] flex flex-col items-center"
-            style={{ bottom: 'calc(var(--bottom-nav-height, 64px) + 32px)', right: '12px' }}
+            style={{ bottom: 'calc(var(--bottom-nav-height, 64px) + 44px)', right: '10px' }}
           >
             {/* Countdown badge on top */}
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 px-2 py-0.5 rounded-full bg-red-600 shadow-lg shadow-red-600/50 min-w-[44px] text-center">
-              <span className="text-[9px] font-bold text-white tabular-nums">{formatCountdown(remainingSeconds)}</span>
+            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10 px-2.5 py-0.5 rounded-full bg-red-600 shadow-lg shadow-red-600/50 min-w-[50px] text-center">
+              <span className="text-[10px] font-bold text-white tabular-nums">{formatCountdown(remainingSeconds)}</span>
             </div>
             
             <button
               onClick={() => setShowPopup(true)}
-              className="relative w-[56px] h-[56px] rounded-full shadow-xl shadow-amber-500/40"
+              className="relative w-[68px] h-[68px] rounded-full shadow-xl shadow-amber-500/40"
             >
               {/* Animated glow ring */}
               <div className="absolute inset-0 rounded-full animate-pulse" style={{ animationDuration: '2s' }}>
                 <div className="w-full h-full rounded-full bg-gradient-to-tr from-amber-400 via-yellow-500 to-orange-500 opacity-80" />
               </div>
               {/* Inner circle — admin logo from banner_image_url */}
-              <div className="absolute inset-[3px] rounded-full bg-gradient-to-br from-[#1a1a2e] to-[#16213e] flex items-center justify-center border border-amber-500/40 overflow-hidden">
+              <div className="absolute inset-[3px] rounded-full bg-gradient-to-br from-[#1a1a2e] to-[#16213e] flex items-center justify-center border-2 border-amber-500/50 overflow-hidden">
                 {campaign.banner_image_url ? (
                   <img 
                     src={campaign.banner_image_url} 
@@ -215,7 +215,7 @@ export function CampaignFloatingButton() {
                     className="w-full h-full rounded-full object-cover"
                   />
                 ) : (
-                  <Diamond3DIcon size={30} />
+                  <Diamond3DIcon size={36} />
                 )}
               </div>
             </button>
