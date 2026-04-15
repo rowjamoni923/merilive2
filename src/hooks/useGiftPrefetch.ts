@@ -67,7 +67,7 @@ export async function prefetchGifts(): Promise<GiftCacheItem[]> {
   try {
     const { data, error } = await supabase
       .from('gifts')
-      .select('id, name, coin_value, category, icon_url, animation_url, display_order')
+      .select('id, name, coin_value, category, icon_url, animation_url, sound_url, display_order')
       .eq('is_active', true)
       .order('display_order', { ascending: true })
       .order('coin_value', { ascending: true });

@@ -280,7 +280,7 @@ export function ActiveCallScreen({
           const [giftResult, senderResult] = await Promise.all([
             supabase
               .from("gifts")
-              .select("name, icon_url, animation_url, coin_value")
+              .select("name, icon_url, animation_url, sound_url, coin_value")
               .eq("id", payload.new.gift_id)
               .single(),
             supabase
@@ -306,6 +306,7 @@ export function ActiveCallScreen({
               giftIcon: "🎁",
               giftImageUrl: gift.icon_url || undefined,
               animationUrl: gift.animation_url || gift.icon_url || undefined,
+              soundUrl: gift.sound_url || undefined,
               giftColor: "bg-pink-500/50",
               count: 1,
               coins: gift.coin_value,
@@ -371,6 +372,7 @@ export function ActiveCallScreen({
         giftIcon: "🎁",
         giftImageUrl: gift.icon_url || undefined,
         animationUrl: gift.animation_url || gift.icon_url || undefined,
+        soundUrl: gift.sound_url || undefined,
         giftColor: "bg-pink-500/50",
         count,
         coins: result.transaction?.coins_spent || totalCost,
