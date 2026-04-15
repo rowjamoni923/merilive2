@@ -43,7 +43,7 @@ const getAnimationType = (url?: string): 'svga' | 'lottie' | 'video' | 'image' |
 const UnifiedEntryAnimationInner = memo(({ entry, onComplete }: UnifiedEntryAnimationProps) => {
   const [showAnimation, setShowAnimation] = useState(true);
   const [animationEnded, setAnimationEnded] = useState(false);
-  const [svgaError, setSvgaError] = false);
+  const [svgaError, setSvgaError] = useState(false);
   
   const mountedRef = useRef(true);
   const completedRef = useRef(false);
