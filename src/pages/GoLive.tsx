@@ -19,6 +19,7 @@ import { Capacitor } from "@capacitor/core";
 import { ChametFaceVerificationModal, ChametSettingsPanel, ChametLiveMoreMenu } from "@/components/live/ChametStyleGoLive";
 import BeansIcon from "@/components/common/BeansIcon";
 import { BeautyFilterPanel, BeautySettings, generateBeautyCSS } from "@/components/live/BeautyFilterPanel";
+import { StickerOverlay } from "@/components/live/StickerOverlay";
 import { useDeepARBeauty } from "@/hooks/useDeepARBeauty";
 import { useNativeCameraPermission } from "@/hooks/useNativeCameraPermission";
 import { useFeatureLevelCheck } from "@/hooks/useFeatureLevelCheck";
@@ -91,10 +92,12 @@ const GoLive = () => {
     showBeautyPanel,
     setShowBeautyPanel,
     stickerActive,
+    activeSticker,
     beautyEnabled,
     beautySettings,
     handleBeautySettingsChange,
     handleBeautyEnabledChange,
+    handleStickerChange,
   } = useDeepARBeauty();
 
 
@@ -155,13 +158,10 @@ const GoLive = () => {
     }
   }, [isNativeAndroid, openBeautyPanel]);
 
-  const toggleNativeStickerPanel = useCallback(async () => {
-    if (!isNativeAndroid) {
-      toast.info("AR Stickers are available in the Android app only");
-      return;
-    }
-    await toggleSticker();
-  }, [isNativeAndroid, toggleSticker]);
+  const openStickerPanel = useCallback(() => {
+    setShowBeautyPanel(true);
+    // The sticker tab will be visible inside the panel
+  }, [setShowBeautyPanel]);
 
   // Apply CSS beauty filter for web preview (also as fallback when native DeepAR fails)
   const beautyCSS = (isNativeAndroid && nativePreviewActive) ? "" : generateBeautyCSS(beautyEnabled, beautySettings);
