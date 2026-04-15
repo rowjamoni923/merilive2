@@ -913,6 +913,29 @@ export default function AdminRechargeCampaigns() {
                   />
                 </div>
               </div>
+
+              {/* Template Selector */}
+              <CampaignTemplateSelector
+                selectedId={selectedTemplate.id}
+                onSelect={setSelectedTemplate}
+              />
+            </div>
+
+              {/* Right: Preview (sticky on desktop) */}
+              <div className="md:w-[260px] md:sticky md:top-0 flex-shrink-0">
+                <CampaignPopupPreview
+                  template={selectedTemplate}
+                  campaignName={form.campaign_name || ""}
+                  badgeText={form.badge_text || ""}
+                  diamondsAmount={form.diamonds_amount || 0}
+                  bonusDiamonds={form.bonus_diamonds || 0}
+                  bonusPercentage={form.bonus_percentage || 0}
+                  priceUsd={form.original_price_usd || 0}
+                  offerPriceUsd={form.offer_price_usd || null}
+                  durationMinutes={form.duration_minutes || 60}
+                  bannerImageUrl={form.banner_image_url || null}
+                />
+              </div>
             </div>
           </div>
 
