@@ -217,6 +217,40 @@ const Level = () => {
 
   const resolveEffectiveUserRechargeTotal = async (userId: string, profileTotalRecharged: number) => {
     try {
+      const [coinTransactionsResult, paymentTransactionsResult] = await Promise.all([
+        supabase
+          .from('coin_transactions')
+          .select('coins_amount, transaction_type, status')
+          .eq('user_id', userId)
+          .eq('status', 'completed')
+          .in('transaction_type', ['recharge', 'self_recharge']),
+        supabase
+          .from('payment_transactions')
+          .select('diamonds_amount, status')
+          .eq('user_id', userId)
+          .eq('status', 'completed'),
+      ]);
+
+      if (coinTransactionsResult.error) throw coinTransactionsResult.error;
+      if (paymentTransactionsResult.error) throw paymentTransactionsResult.error;
+
+      const rechargeFromCoinTransactions = (coinTransactionsResult.data ?? []).reduce((sum, tx) => {
+        return sum + Number(tx.coins_amount ?? 0);
+      }, 0);
+
+      const rechargeFromPayments = (paymentTransactionsResult.data ?? []).reduce((sum, tx) => {
+        return sum + Number(tx.diamonds_amount ?? 0);
+      }, 0);
+
+      return Math.max(profileTotalRecharged, rechargeFromCoinTransactions, rechargeFromPayments);
+    } catch (error) {
+      console.warn('[Level] Failed to resolve effective recharge total:', error);
+      return profileTotalRecharged;
+    }
+  };
+
+  const fetchUserLevel = async () => {
+    try {
       const { getCachedUser } = await import('@/utils/cachedAuth');
       const user = await getCachedUser();
       if (!user) return;
@@ -260,7 +294,11 @@ const Level = () => {
       const sourceTiers = mappedTiers.length > 0 ? mappedTiers : (isFemaleHost ? hostLevelData : userLevelData);
       setActiveLevelData(sourceTiers);
 
-      const totalPoints = Number(isFemaleHost ? (profile.weekly_earnings ?? 0) : (profile.total_recharged ?? 0));
+      const profileTotalRecharged = Number(profile.total_recharged ?? 0);
+      const effectiveUserRechargeTotal = isFemaleHost
+        ? 0
+        : await resolveEffectiveUserRechargeTotal(user.id, profileTotalRecharged);
+      const totalPoints = Number(isFemaleHost ? (profile.weekly_earnings ?? 0) : effectiveUserRechargeTotal);
       setCurrentDiamonds(totalPoints);
 
       let resolvedLevel = 0;
@@ -280,7 +318,7 @@ const Level = () => {
 
         resolvedLevel = Math.max(storedLevel, maxLevel, derivedLevel, 1);
 
-        if (user.id && derivedLevel > Math.max(storedLevel, maxLevel)) {
+        if (user.id && (effectiveUserRechargeTotal > profileTotalRecharged || derivedLevel > Math.max(storedLevel, maxLevel))) {
           void supabase.rpc('recalculate_user_level', { _user_id: user.id }).then(({ error }) => {
             if (error) {
               console.warn('[Level] Failed to self-heal user level:', error);
