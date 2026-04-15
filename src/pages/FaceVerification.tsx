@@ -287,28 +287,53 @@ const FaceVerification = () => {
 
   const attachFacePreviewStream = useCallback((stream: MediaStream) => {
     const videoEl = faceVideoRef.current;
-    if (!videoEl) return;
+    if (!videoEl) {
+      console.warn('[FaceVerification] faceVideoRef not ready, retrying in 200ms...');
+      setTimeout(() => {
+        const retryEl = faceVideoRef.current;
+        if (retryEl) {
+          retryEl.srcObject = stream;
+          retryEl.play().catch(console.error);
+          setCameraReady(true);
+        }
+      }, 200);
+      return;
+    }
 
     setCameraReady(false);
-    videoEl.srcObject = stream;
-
-    const markReady = () => setCameraReady(true);
-
-    videoEl.onloadedmetadata = () => {
-      markReady();
-      videoEl.play().catch((e) => console.error('Video play error:', e));
-    };
-
+    
+    // Clear any previous srcObject
+    videoEl.srcObject = null;
+    
+    // Small delay to let the browser release previous resources
     requestAnimationFrame(() => {
-      videoEl.play().then(markReady).catch((e) => {
-        console.error('Video play retry error:', e);
-      });
-    });
+      videoEl.srcObject = stream;
+      
+      const markReady = () => {
+        if (!cameraReadyMarked) {
+          cameraReadyMarked = true;
+          setCameraReady(true);
+        }
+      };
+      let cameraReadyMarked = false;
 
-    window.setTimeout(() => {
-      const hasLiveTrack = stream.getVideoTracks().some((track) => track.readyState === 'live');
-      if (hasLiveTrack) markReady();
-    }, 1600);
+      videoEl.onloadedmetadata = () => {
+        videoEl.play().then(markReady).catch((e) => console.error('Video play error:', e));
+      };
+
+      // Fallback: force play after a short delay
+      setTimeout(() => {
+        if (!cameraReadyMarked) {
+          videoEl.play().then(markReady).catch(console.error);
+        }
+      }, 500);
+
+      // Last resort: check track state
+      setTimeout(() => {
+        const hasLiveTrack = stream.getVideoTracks().some((track) => track.readyState === 'live');
+        if (hasLiveTrack) markReady();
+      }, 1600);
+    });
   }, []);
 
   const refreshVerificationState = useCallback(async (targetUserId: string) => {
@@ -737,27 +762,20 @@ const FaceVerification = () => {
       // Stop any existing stream first
       if (faceStream) {
         faceStream.getTracks().forEach(track => track.stop());
+        setFaceStream(null);
       }
       
-      // Request camera permission first using native API
-      const permResult = await requestCameraPermission();
-      if (!permResult.granted) {
-        toast({
-          title: "Camera Permission Required",
-          description: permResult.error || "Please allow camera access to continue",
-          variant: "destructive",
-        });
-        return;
-      }
+      // Small delay to let the camera hardware fully release
+      await new Promise(resolve => setTimeout(resolve, 300));
       
-      // Use native camera hook with fallback
-      const stream = await getCameraStream(false); // false for no audio
+      // getCameraStream already handles permission internally — no separate probe needed
+      // This avoids the double getUserMedia issue that causes black screen on Android WebView
+      const stream = await getCameraStream(false);
       if (!stream) {
         throw new Error('Failed to get camera stream');
       }
       
       setFaceStream(stream);
-      
       attachFacePreviewStream(stream);
     } catch (error: any) {
       console.error('Face camera error:', error);
@@ -767,7 +785,7 @@ const FaceVerification = () => {
         variant: "destructive",
       });
     }
-  }, [faceStream, toast, getCameraStream, requestCameraPermission, attachFacePreviewStream]);
+  }, [faceStream, toast, getCameraStream, attachFacePreviewStream]);
   
   useEffect(() => {
     if (faceStream) {
