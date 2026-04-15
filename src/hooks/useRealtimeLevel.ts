@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { clearUserFrameCache, clearFrameCache, clearLevelFrameCache } from "@/components/common/AvatarWithFrame";
+import { resolveLevelFromTiers } from "@/utils/levelResolver";
 
 interface LevelData {
   user_level: number;
@@ -79,50 +80,18 @@ export const useRealtimeLevel = (userId: string | null) => {
     const data = profileRes.data;
 
     if (data) {
-      const isFemaleHost = data.is_host && (data.gender === 'female' || data.gender === 'Female');
-      
-      // CRITICAL: For regular users, ALWAYS use stored user_level from DB
-      // The DB trigger (recalculate_single_user_level) already enforces NEVER DROP
-      // DO NOT recalculate on frontend - trust the database value
+      const resolved = await resolveLevelFromTiers({
+        id: userId,
+        ...data,
+      });
+
+      const isFemaleHost = resolved.isFemaleHost;
       const storedLevel = data.user_level ?? 1;
       const maxLevel = (data as any).max_user_level ?? storedLevel;
-      
-      let displayLevel: number;
-      
-      if (isFemaleHost) {
-        // Female hosts: fetch host tiers and calculate from weekly_earnings
-        const { data: hostTiers } = await supabase
-          .from("user_level_tiers")
-          .select("level_number, min_earning_amount")
-          .eq("tier_type", "host")
-          .eq("is_active", true)
-          .order("level_number", { ascending: true });
-        
-        let calculatedLevel = 0;
-        const weeklyEarnings = data.weekly_earnings ?? 0;
-        if (hostTiers && hostTiers.length > 0) {
-          for (const tier of hostTiers) {
-            if (weeklyEarnings >= tier.min_earning_amount) {
-              calculatedLevel = tier.level_number;
-            }
-          }
-        }
-        // Hosts: current week level comes ONLY from weekly beans earnings.
-        // After weekly transfer/reset, current level becomes 0 while previous_host_level stays visible elsewhere.
-        displayLevel = Math.max(calculatedLevel, 0);
-      } else {
-        // Users / agencies: level comes ONLY from top-up history tracked in total_recharged.
-        // Never derive from gifts, calls, or total consumption.
-        displayLevel = Math.max(storedLevel, maxLevel, 1);
-      }
-      
-      console.log('[useRealtimeLevel] Level:', displayLevel, 'stored:', storedLevel, 'max:', maxLevel);
+      const displayLevel = resolved.level;
       
       // CRITICAL: Detect level change and clear frame cache for automatic frame upgrade
       if (previousLevelRef.current !== null && previousLevelRef.current !== displayLevel) {
-        console.log('[useRealtimeLevel] 🎉 LEVEL CHANGED! Previous:', previousLevelRef.current, '-> New:', displayLevel);
-        console.log('[useRealtimeLevel] 🖼️ Clearing frame cache to trigger automatic frame upgrade...');
-        
         // Clear this user's frame cache so new level-based frame is fetched
         if (userId) {
           clearUserFrameCache(userId);
@@ -133,14 +102,14 @@ export const useRealtimeLevel = (userId: string | null) => {
       previousLevelRef.current = displayLevel;
       
       const newLevelData: LevelData = {
-        user_level: data.user_level ?? 0,
-        host_level: displayLevel,
+        user_level: resolved.levelType === 'user' ? displayLevel : (data.user_level ?? 0),
+        host_level: resolved.levelType === 'host' ? displayLevel : (data.host_level ?? 0),
         coins: data.coins ?? 0,
         total_earnings: data.total_earnings ?? 0,
         total_consumption: data.total_consumption ?? 0,
-        total_recharged: (data as any).total_recharged ?? 0,
+        total_recharged: resolved.levelType === 'user' ? resolved.totalPoints : ((data as any).total_recharged ?? 0),
         is_host: data.is_host ?? false,
-        weekly_earnings: data.weekly_earnings ?? 0,
+        weekly_earnings: resolved.levelType === 'host' ? resolved.currentXP : (data.weekly_earnings ?? 0),
         weekly_reset_at: data.weekly_reset_at ?? null,
         gender: data.gender ?? null,
       };
@@ -182,72 +151,8 @@ export const useRealtimeLevel = (userId: string | null) => {
           filter: `id=eq.${userId}`,
         },
         async (payload) => {
-          const newData = payload.new as any;
-          if (newData) {
-            const isFemaleHost = newData.is_host && (newData.gender === 'female' || newData.gender === 'Female');
-            const storedLevel = newData.user_level ?? 1;
-            const maxLevel = newData.max_user_level ?? storedLevel;
-            const previousLevel = previousLevelRef.current ?? 1;
-            
-            let displayLevel: number;
-            
-            if (isFemaleHost) {
-              const { data: tiers } = await supabase
-                .from("user_level_tiers")
-                .select("level_number, min_earning_amount")
-                .eq("tier_type", "host")
-                .eq("is_active", true)
-                .order("level_number", { ascending: true });
-              
-              let calculatedLevel = 0;
-              const weeklyEarnings = newData.weekly_earnings ?? 0;
-              if (tiers && tiers.length > 0) {
-                for (const tier of tiers) {
-                  if (weeklyEarnings >= tier.min_earning_amount) {
-                    calculatedLevel = tier.level_number;
-                  }
-                }
-              }
-              displayLevel = Math.max(calculatedLevel, 0);
-            } else {
-              // Regular users / agencies: trust DB top-up-based level only
-              displayLevel = Math.max(storedLevel, maxLevel, previousLevel, 1);
-            }
-            
-            console.log('[useRealtimeLevel] Realtime level:', displayLevel, 'prev:', previousLevel);
-            
-            // CRITICAL: Detect level change via realtime and clear frame cache
-            if (previousLevelRef.current !== null && previousLevelRef.current !== displayLevel) {
-              console.log('[useRealtimeLevel] 🎉 REALTIME LEVEL CHANGED! Previous:', previousLevelRef.current, '-> New:', displayLevel);
-              console.log('[useRealtimeLevel] 🖼️ Clearing frame cache for automatic frame upgrade...');
-              
-              if (userId) {
-                clearUserFrameCache(userId);
-              }
-              // Clear level-based cache entries
-              clearLevelFrameCache(displayLevel, isFemaleHost);
-            }
-            previousLevelRef.current = displayLevel;
-            
-            setLevel(displayLevel);
-            const newLevelData: LevelData = {
-              user_level: newData.user_level ?? 0,
-              host_level: displayLevel,
-              coins: newData.coins ?? 0,
-              total_earnings: newData.total_earnings ?? 0,
-              total_consumption: newData.total_consumption ?? 0,
-              total_recharged: newData.total_recharged ?? 0,
-              is_host: newData.is_host ?? false,
-              weekly_earnings: newData.weekly_earnings ?? 0,
-              weekly_reset_at: newData.weekly_reset_at ?? null,
-              gender: newData.gender ?? null,
-            };
-            setLevelData(newLevelData);
-            
-            // Persist to localStorage for instant restore on navigation
-            if (userId) {
-              setCachedLevel(userId, displayLevel, newLevelData);
-            }
+          if (payload.new) {
+            await fetchLevel();
           }
         }
       )
@@ -256,25 +161,52 @@ export const useRealtimeLevel = (userId: string | null) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [userId]);
+  }, [userId, fetchLevel]);
 
   // Also listen for gift transactions that might affect level
   useEffect(() => {
     if (!userId) return;
 
     const channel = supabase
-      .channel(`gift-level-updates-${userId}`)
+      .channel(`level-transaction-updates-${userId}`)
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "*",
           schema: "public",
           table: "gift_transactions",
         },
         (payload) => {
           const transaction = payload.new as any;
-          // Refetch if this user is sender or receiver
-          if (transaction.sender_id === userId || transaction.receiver_id === userId) {
+          if (transaction?.receiver_id === userId) {
+            fetchLevel();
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "coin_transactions",
+        },
+        (payload) => {
+          const transaction = payload.new as any;
+          if (transaction?.user_id === userId) {
+            fetchLevel();
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "payment_transactions",
+        },
+        (payload) => {
+          const transaction = payload.new as any;
+          if (transaction?.user_id === userId) {
             fetchLevel();
           }
         }
@@ -305,6 +237,7 @@ export const useRealtimeLevelProgress = (userId: string | null, forceHostMode: b
   const [progress, setProgress] = useState(0);
   const [currentXP, setCurrentXP] = useState(0);
   const [nextLevelXP, setNextLevelXP] = useState(0);
+  const [nextLevelNumber, setNextLevelNumber] = useState(1);
   
   // CORRECT LOGIC: Only female hosts use host_level (resets weekly)
   // Everyone else (male hosts, regular users) use user_level (permanent)
@@ -364,11 +297,7 @@ export const useRealtimeLevelProgress = (userId: string | null, forceHostMode: b
     setCurrentXP(xp);
 
     // Use the correct level based on user type - handle 0 properly
-    const displayLevel = isHost 
-      ? (levelData.host_level ?? 0)  // Can be 0 after reset
-      : (levelData.user_level ?? 1);
-    
-    console.log('[useRealtimeLevelProgress] Progress calc - isHost:', isHost, 'displayLevel:', displayLevel, 'xp:', xp);
+    const displayLevel = isHost ? Math.max(level, 0) : Math.max(level, 1);
     
     const currentTier = tiers.find((t) => t.level_number === displayLevel);
     const nextTier = tiers.find((t) => t.level_number === displayLevel + 1);
@@ -382,16 +311,19 @@ export const useRealtimeLevelProgress = (userId: string | null, forceHostMode: b
       
       setProgress(Math.max(0, progressPercent));
       setNextLevelXP(nextMin);
+      setNextLevelNumber(nextTier.level_number);
     } else if (!currentTier && nextTier) {
       // Level 0 case - show progress to level 1
       const nextMin = isHost ? nextTier.min_earning_amount : nextTier.min_topup_amount;
       const progressPercent = nextMin > 0 ? Math.min((xp / nextMin) * 100, 100) : 0;
       setProgress(Math.max(0, progressPercent));
       setNextLevelXP(nextMin);
+      setNextLevelNumber(nextTier.level_number);
     } else if (currentTier) {
       // Max level reached
       setProgress(100);
       setNextLevelXP(isHost ? currentTier.min_earning_amount : currentTier.min_topup_amount);
+      setNextLevelNumber(displayLevel + 1);
     }
   }, [levelData, tiers, isHost]);
 
@@ -400,6 +332,7 @@ export const useRealtimeLevelProgress = (userId: string | null, forceHostMode: b
     progress,
     currentXP,
     nextLevelXP,
+    nextLevelNumber,
     loading,
     refetch,
     tiers,
