@@ -169,9 +169,9 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     }
 
     if (profileData.is_host) {
-      const giftEarnings = Number(profileData.pending_earnings || 0);
-      const callEarnings = Number(profileData.beans || 0);
-      setBeans(giftEarnings + callEarnings);
+      // beans column already contains the correct amount after commission
+      // pending_earnings tracks the same value for weekly transfer - DO NOT add both
+      setBeans(Math.max(0, Number(profileData.beans || 0)));
       return;
     }
 
