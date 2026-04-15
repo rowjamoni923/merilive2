@@ -496,9 +496,9 @@ const Level = () => {
           <ScrollBar orientation="horizontal" className="bg-white/10" />
         </ScrollArea>
 
-        {/* Privilege Items */}
+        {/* Privilege Items - Filtered by selected level tab */}
         <div className="space-y-3">
-          {privileges.map((privilege, index) => {
+          {privileges.filter(p => p.unlock_level <= selectedLevelTab).map((privilege, index) => {
             const IconComponent = iconMap[privilege.icon_name] || Star;
             const isUnlocked = privilege.unlock_level <= currentLevel;
             return (
