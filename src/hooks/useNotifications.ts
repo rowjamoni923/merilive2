@@ -324,7 +324,7 @@ export const useNotifications = () => {
 
           // Play notification sound if user has interacted
           if (hasInteractedRef.current) {
-            playNotificationSound();
+            playNotificationSound(newNotification.type);
           }
 
           // Show visible toast popup
@@ -393,7 +393,7 @@ export const useNotifications = () => {
             setUnreadCount(prev => prev + 1);
 
             if (hasInteractedRef.current) {
-              playNotificationSound();
+              playNotificationSound(newNotification.type);
             }
 
             // Show visible toast popup for helper notifications
