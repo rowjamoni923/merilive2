@@ -3549,16 +3549,21 @@ const LiveStream = () => {
         isBanned={numberWarning.warningState.isBanned}
         isGenericWarning={numberWarning.warningState.isGenericWarning}
       />
-      {/* Beauty Filter Panel for Host — REAL DeepAR Native */}
+      {/* Beauty Filter Panel with Stickers for Host */}
       {isHost && (
-        <BeautyFilterPanel
-          isOpen={showBeautyPanel}
-          onClose={() => setShowBeautyPanel(false)}
-          settings={deepAR.beautySettings}
-          enabled={deepAR.beautyEnabled}
-          onSettingsChange={deepAR.handleBeautySettingsChange}
-          onEnabledChange={deepAR.handleBeautyEnabledChange}
-        />
+        <>
+          <BeautyFilterPanel
+            isOpen={showBeautyPanel}
+            onClose={() => setShowBeautyPanel(false)}
+            settings={deepAR.beautySettings}
+            enabled={deepAR.beautyEnabled}
+            onSettingsChange={deepAR.handleBeautySettingsChange}
+            onEnabledChange={deepAR.handleBeautyEnabledChange}
+            activeSticker={deepAR.activeSticker}
+            onStickerChange={deepAR.handleStickerChange}
+          />
+          <StickerOverlay stickerName={deepAR.activeSticker} />
+        </>
       )}
     </div>
   );
