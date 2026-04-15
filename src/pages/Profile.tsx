@@ -521,6 +521,9 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         // Set following status
         setIsFollowing(!!followDataResult?.data);
 
+        // Set face verification pending status
+        setFaceVerificationPending((faceVerifPendingResult?.count || 0) > 0);
+
         // Own profile specific data
         if (isOwnProfileCheck && user) {
           setHasUnclaimedReward((unclaimedResult?.count || 0) > 0);
