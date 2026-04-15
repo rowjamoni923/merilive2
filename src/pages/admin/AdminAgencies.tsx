@@ -247,7 +247,7 @@ export default function AdminAgencies() {
   }, []);
 
   // Track if we're currently saving to prevent realtime from overwriting edits
-  const isSavingRef = React.useRef(false);
+  const isSavingRef = useRef(false);
 
   useAdminRealtime(['agencies', 'agency_level_tiers'], () => {
     fetchAgencies();
