@@ -96,7 +96,13 @@ const LAST_METHOD_STORAGE_KEY = "recharge_last_method_by_type_v1";
 const Recharge = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [selectedTab, setSelectedTab] = useState<TabType>("google");
+  
+  // Support campaign deep-link: /recharge?campaign_id=xxx&tab=google|recommend|skrill
+  const urlParams = new URLSearchParams(window.location.search);
+  const campaignTab = urlParams.get('tab') as TabType | null;
+  const campaignId = urlParams.get('campaign_id');
+  
+  const [selectedTab, setSelectedTab] = useState<TabType>(campaignTab && ['google', 'recommend'].includes(campaignTab) ? campaignTab : "google");
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
   const [selectedGateway, setSelectedGateway] = useState<PaymentGateway | null>(null);
   // Use global shared balance hook for real-time sync across all pages
