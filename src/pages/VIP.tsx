@@ -326,10 +326,8 @@ const VIP = () => {
 
       if (levelPrivileges) {
         for (const priv of levelPrivileges) {
-          // Only include privileges with REAL animation URLs (Supabase storage)
-          if (priv.animation_url && (priv.animation_url.includes('supabase.co/storage') || priv.animation_url.endsWith('.svga') || priv.animation_url.endsWith('.json'))) {
-            // Check equipped status - UNIFIED entry effects (only ONE entry effect can be equipped)
-            // Since we now clear the other entry effect field when equipping, direct match is correct
+          const privAssetUrl = priv.animation_url || priv.preview_url;
+          if (isValidAssetUrl(privAssetUrl)) {
             let isEquipped = false;
             const privType = priv.privilege_type;
             if (privType === 'entrance' || privType === 'entrance_effect') {
@@ -339,11 +337,8 @@ const VIP = () => {
             } else if (privType === 'bubble') {
               isEquipped = priv.id === equippedBubbleId;
             } else if (privType === 'vehicle' || privType === 'vehicle_entrance') {
-              // Support both 'vehicle' and 'vehicle_entrance' types from database
               isEquipped = priv.id === equippedVehicleId;
             }
-            
-            console.log('[VIP] Level privilege:', priv.name, 'type:', privType, 'id:', priv.id, 'isEquipped:', isEquipped);
             
             allPrivileges.push({
               id: priv.id,
@@ -351,7 +346,7 @@ const VIP = () => {
               name: priv.name,
               category: priv.privilege_type,
               preview_url: priv.preview_url,
-              animation_url: priv.animation_url,
+              animation_url: priv.animation_url || priv.preview_url,
               is_equipped: isEquipped,
               expires_at: null,
               source: 'level',
