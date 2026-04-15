@@ -626,7 +626,7 @@ const AdminShop = () => {
       </div>
 
       {/* Stats - Mobile optimized grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 mb-4 md:mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-3 mb-4 md:mb-6">
         <div className={adminCardStyles}>
           <p className="text-white/60 text-[10px] md:text-xs">Total Items</p>
           <p className="text-lg md:text-2xl font-bold text-white">{totalItems}</p>
@@ -634,6 +634,10 @@ const AdminShop = () => {
         <div className={adminCardStyles}>
           <p className="text-white/60 text-[10px] md:text-xs">Active</p>
           <p className="text-lg md:text-2xl font-bold text-green-400">{activeItems}</p>
+        </div>
+        <div className={`${adminCardStyles} cursor-pointer hover:ring-1 hover:ring-red-400/50`} onClick={() => setStatusFilter(statusFilter === 'hidden' ? 'all' : 'hidden')}>
+          <p className="text-white/60 text-[10px] md:text-xs">Hidden</p>
+          <p className="text-lg md:text-2xl font-bold text-red-400">{hiddenItems}</p>
         </div>
         <div className={adminCardStyles}>
           <p className="text-white/60 text-[10px] md:text-xs">Featured</p>
