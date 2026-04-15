@@ -93,6 +93,9 @@ interface UserProfile {
   total_recharged: number | null;
   coins: number | null;
   user_level: number | null;
+  host_level?: number | null;
+  max_user_level?: number | null;
+  weekly_earnings?: number | null;
 }
 
 
@@ -274,12 +277,12 @@ const Level = () => {
       while (hasMore) {
         const { data, error } = await supabase
           .from('gift_transactions')
-          .select('beans_amount')
+          .select('receiver_beans')
           .eq('receiver_id', userId)
           .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
         if (error) throw error;
         if (!data || data.length === 0) { hasMore = false; break; }
-        totalGiftEarnings += data.reduce((s, tx) => s + Number(tx.beans_amount ?? 0), 0);
+        totalGiftEarnings += data.reduce((s, tx) => s + Number((tx as { receiver_beans?: number | null }).receiver_beans ?? 0), 0);
         if (data.length < PAGE_SIZE) hasMore = false;
         page++;
       }
@@ -298,7 +301,7 @@ const Level = () => {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('id, gender, is_host, total_consumption, total_earnings, total_recharged, beans_earned, coins, user_level, host_level, max_user_level')
+        .select('id, gender, is_host, total_consumption, total_earnings, total_recharged, coins, user_level, host_level, max_user_level, weekly_earnings')
         .eq('id', user.id)
         .single();
 
@@ -336,7 +339,7 @@ const Level = () => {
       setActiveLevelData(sourceTiers);
 
       const profileTotalRecharged = Number(profile.total_recharged ?? 0);
-      const profileTotalEarnings = Number(profile.total_earnings ?? profile.beans_earned ?? 0);
+      const profileTotalEarnings = Number(profile.total_earnings ?? profile.weekly_earnings ?? 0);
 
       let totalPoints = 0;
       if (isFemaleHost) {
