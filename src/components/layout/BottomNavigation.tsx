@@ -1,4 +1,4 @@
-import { useState, useTransition, useMemo, useEffect, useCallback, memo } from "react";
+import { useState, useTransition, useMemo, useEffect, useCallback, memo, lazy, Suspense } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Home, Users, Play, User, Radio, PartyPopper, X, Plus, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -9,6 +9,7 @@ import { useGlobalUnreadCount, formatBadgeCount } from "@/hooks/useGlobalUnreadC
 import { useFeatureLevelCheck } from "@/hooks/useFeatureLevelCheck";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+const CampaignFloatingButton = lazy(() => import("@/components/campaign/CampaignFloatingButton"));
 interface NavItem {
   icon: React.ElementType;
   label: string;
@@ -250,6 +251,9 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
           })}
         </div>
       </nav>
+      <Suspense fallback={null}>
+        <CampaignFloatingButton />
+      </Suspense>
     </>
   );
 };

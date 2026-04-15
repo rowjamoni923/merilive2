@@ -1,6 +1,6 @@
 // Profile Page - Main user profile view
 import { useState, useEffect, useMemo } from "react";
-import { TopUpCampaignBanner } from "@/components/campaign/TopUpCampaignBanner";
+
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { useNavigate, useParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -1639,7 +1639,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       >
 
       {/* Top-Up Campaign Banner */}
-      <TopUpCampaignBanner location="profile" compact className="mt-2" />
+      
 
       {/* Header Section - Premium Design */}
       <div className="relative pt-14 pb-5 px-4 flex flex-col items-center">
