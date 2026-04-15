@@ -67,6 +67,7 @@ interface UserPrivilege {
   preview_url: string | null;
   animation_url: string | null;
   is_equipped: boolean;
+  is_locked?: boolean;
   expires_at: string | null;
   source: 'shop' | 'level' | 'frame' | 'admin_assigned';
   unlock_level?: number;
