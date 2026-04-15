@@ -687,14 +687,12 @@ const Chat = () => {
           ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | +${beansEarned} beans]`
           : `[Gift: ${giftEmoji} ${gift.name} x${count} | +${beansEarned} beans]`;
         
-        await supabase
-          .from('messages')
-          .insert({
-            conversation_id: selectedConversation.id,
-            sender_id: currentUserId,
-            content: messageContent,
-            message_type: 'gift'
-          });
+        await persistDirectMessage(
+          selectedConversation.id,
+          currentUserId,
+          messageContent,
+          'gift'
+        );
         
         // Sync actual balance
         const { data: updatedProfile } = await supabase
@@ -1462,21 +1460,12 @@ const Chat = () => {
 
     try {
       if (selectedConversation) {
-        const insertPromise = supabase
-          .from('messages')
-          .insert({
-            conversation_id: selectedConversation.id,
-            sender_id: currentUserId,
-            content: contentToSend,
-            message_type: 'text'
-          });
-
-        const updatePromise = supabase
-          .from('conversations')
-          .update({ last_message_at: new Date().toISOString() })
-          .eq('id', selectedConversation.id);
-        
-        await Promise.all([insertPromise, updatePromise]);
+        await persistDirectMessage(
+          selectedConversation.id,
+          currentUserId,
+          contentToSend,
+          'text'
+        );
         
         // Track message sent for task progress
         trackTaskProgress('messages_sent', { increment: 1 });
