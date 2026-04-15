@@ -531,7 +531,8 @@ const AdminShop = () => {
   const filteredItems = items.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === "all" || item.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+    const matchesStatus = statusFilter === "all" || (statusFilter === "active" ? item.is_active : !item.is_active);
+    return matchesSearch && matchesCategory && matchesStatus;
   });
 
   const getCategoryIcon = (category: string) => {
