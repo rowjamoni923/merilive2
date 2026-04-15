@@ -183,6 +183,8 @@ const ProfileDetail = () => {
     entryBars: any[];
     badges: any[];
   }>({ frames: [], entryBars: [], badges: [] });
+  const [purchasedItems, setPurchasedItems] = useState<any[]>([]);
+  const [countdownTick, setCountdownTick] = useState(0);
 
   const [showBlockDialog, setShowBlockDialog] = useState(false);
   const [showReportDialog, setShowReportDialog] = useState(false);
@@ -446,7 +448,7 @@ const ProfileDetail = () => {
       const effectiveLevel = resolvedLevelLoading ? fallbackLevel : resolvedLevel;
       const targetType = isHostUser ? 'host' : 'user';
 
-      const [frameData, levelIconData, framesData, entryBarsData, badgesData, blockData, followData] = await Promise.all([
+      const [frameData, levelIconData, framesData, entryBarsData, badgesData, blockData, followData, purchasedRes] = await Promise.all([
         // User's frame based on level
         supabase.from("avatar_frames" as any).select("*").lte("min_level", effectiveLevel).eq("is_active", true).order("min_level", { ascending: false }).limit(1).maybeSingle(),
         // Level icon from user_level_tiers
@@ -461,11 +463,14 @@ const ProfileDetail = () => {
         user && userId && user.id !== userId ? supabase.from("user_blocks").select("id").eq("blocker_id", user.id).eq("blocked_id", userId).maybeSingle() : { data: null },
         // Check if following
         user && userId && user.id !== userId ? supabase.from("followers").select("id").eq("follower_id", user.id).eq("following_id", userId).maybeSingle() : { data: null },
+        // Purchased items (frames + entry animations) from shop
+        supabase.from("user_purchases").select("id, item_type, expires_at, is_active, is_equipped, item_id, shop_items(id, name, preview_url, animation_url, svga_url, image_url, animation_file_url, file_type)").eq("user_id", userId).eq("is_active", true).gte("expires_at", new Date().toISOString()),
       ]);
 
       if (frameData?.data) setUserFrame(frameData.data as unknown as FrameData);
       if (levelIconData?.data) setLevelIcon(levelIconData.data as unknown as LevelIconData);
       setUserPrivileges({ frames: framesData?.data || [], entryBars: entryBarsData?.data || [], badges: badgesData?.data || [] });
+      setPurchasedItems(purchasedRes?.data || []);
       setIsBlocked(!!blockData?.data);
       setIsFollowing(!!followData?.data);
     }
@@ -476,6 +481,13 @@ const ProfileDetail = () => {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Countdown timer for purchased items
+  useEffect(() => {
+    if (purchasedItems.length === 0) return;
+    const interval = setInterval(() => setCountdownTick(t => t + 1), 1000);
+    return () => clearInterval(interval);
+  }, [purchasedItems.length]);
 
   // Real-time subscription for profile level updates
   useEffect(() => {
@@ -985,7 +997,7 @@ const ProfileDetail = () => {
             </div>
           </div>
           {/* Privileges & Animations - Premium Glass Card */}
-          {(userPrivileges.frames.length > 0 || userPrivileges.entryBars.length > 0) && (
+          {(userPrivileges.frames.length > 0 || userPrivileges.entryBars.length > 0 || purchasedItems.length > 0) && (
             <motion.div
               className="mt-4 p-4 rounded-2xl relative overflow-hidden"
               style={{
@@ -1015,7 +1027,7 @@ const ProfileDetail = () => {
                 </div>
 
                 <div className="flex flex-wrap gap-2.5">
-                  {/* Avatar Frames */}
+                  {/* Level-based Avatar Frames */}
                   {userPrivileges.frames
                     .filter((frame: any) => {
                       const url = frame.frame_url?.toLowerCase() || '';
@@ -1042,7 +1054,7 @@ const ProfileDetail = () => {
                     </motion.div>
                   ))}
 
-                  {/* Entry Bars */}
+                  {/* Level-based Entry Bars */}
                   {userPrivileges.entryBars.map((bar: any) => (
                     <motion.div
                       key={bar.id}
@@ -1067,6 +1079,63 @@ const ProfileDetail = () => {
                       )}
                     </motion.div>
                   ))}
+
+                  {/* Purchased Items (Frames & Entry Animations from Shop) with Countdown */}
+                  {purchasedItems.map((item: any) => {
+                    const shopItem = item.shop_items;
+                    if (!shopItem) return null;
+                    const assetUrl = shopItem.preview_url || shopItem.svga_url || shopItem.animation_url || shopItem.animation_file_url || shopItem.image_url;
+                    const isSvga = assetUrl?.toLowerCase()?.endsWith('.svga');
+                    const isLottie = assetUrl?.toLowerCase()?.endsWith('.json');
+
+                    // Calculate remaining time
+                    const expiresAt = new Date(item.expires_at).getTime();
+                    const now = Date.now();
+                    const remaining = Math.max(0, expiresAt - now);
+                    const days = Math.floor(remaining / 86400000);
+                    const hours = Math.floor((remaining % 86400000) / 3600000);
+                    const mins = Math.floor((remaining % 3600000) / 60000);
+                    const timeStr = days > 0 ? `${days}d ${hours}h` : hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+
+                    if (remaining <= 0) return null;
+
+                    return (
+                      <motion.div
+                        key={item.id}
+                        whileHover={{ scale: 1.08 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="flex flex-col items-center gap-1"
+                      >
+                        <div className="w-14 h-14 rounded-xl overflow-hidden ring-2 ring-amber-500/40 shadow-lg relative"
+                          style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.15), rgba(217,70,239,0.15))' }}
+                        >
+                          {assetUrl ? (
+                            isSvga ? (
+                              <UniversalFramePlayer src={assetUrl} type="svga" className="w-full h-full" loop={true} autoPlay={true} />
+                            ) : isLottie ? (
+                              <UniversalFramePlayer src={assetUrl} type="lottie" className="w-full h-full" loop={true} autoPlay={true} />
+                            ) : (
+                              <img src={assetUrl} alt="" className="w-full h-full object-contain" />
+                            )
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-amber-500/30 to-purple-500/30 flex items-center justify-center">
+                              <Play className="w-4 h-4 text-amber-400/60" />
+                            </div>
+                          )}
+                          {/* Type badge */}
+                          {item.item_type === 'entrance' && (
+                            <div className="absolute top-0.5 right-0.5 bg-amber-500/90 rounded px-1" style={{ fontSize: '6px', lineHeight: '10px' }}>
+                              <span className="text-black font-bold">FX</span>
+                            </div>
+                          )}
+                        </div>
+                        {/* Countdown timer */}
+                        <span className="text-[8px] text-amber-400/80 font-medium whitespace-nowrap">
+                          ⏳ {timeStr}
+                        </span>
+                      </motion.div>
+                    );
+                  })}
                 </div>
               </div>
             </motion.div>
