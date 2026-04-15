@@ -105,7 +105,7 @@ export const useLevelPrivilegeAutoEquip = (userId: string | null) => {
             .filter((item) => item.free && item.level <= effectiveLevel && shouldShowLevelReward(item.level)),
           ...levelPrivileges
             .filter((item) => ['entrance', 'entrance_effect', 'entry_banner'].includes(item.privilege_type))
-            .map((item) => ({ id: item.id, level: item.unlock_level ?? item.level ?? 1 })))
+            .map((item) => ({ id: item.id, level: item.unlock_level ?? item.level ?? 1 }))
             .filter((item) => item.level <= effectiveLevel && shouldShowLevelReward(item.level)),
         ];
 
