@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -14,7 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Plus, Edit2, Trash2, RefreshCw, Diamond, Clock, Image as ImageIcon,
-  Upload, Eye, EyeOff, Sparkles, Target, Zap, Gift, Timer, DollarSign
+  Upload, Eye, EyeOff, Sparkles, Target, Zap, Gift, Timer, DollarSign,
+  CalendarClock, Trophy, Percent
 } from "lucide-react";
 
 interface Campaign {
@@ -25,6 +25,7 @@ interface Campaign {
   offer_price_usd: number | null;
   diamonds_amount: number;
   bonus_diamonds: number;
+  bonus_percentage: number;
   duration_minutes: number;
   banner_image_url: string | null;
   badge_text: string | null;
@@ -33,6 +34,9 @@ interface Campaign {
   is_first_recharge_only: boolean;
   is_active: boolean;
   priority: number;
+  schedule_start: string | null;
+  schedule_end: string | null;
+  milestone_amount: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -44,6 +48,7 @@ const defaultForm: Partial<Campaign> = {
   offer_price_usd: null,
   diamonds_amount: 0,
   bonus_diamonds: 0,
+  bonus_percentage: 0,
   duration_minutes: 60,
   banner_image_url: null,
   badge_text: "Limited Offer",
@@ -52,12 +57,16 @@ const defaultForm: Partial<Campaign> = {
   is_first_recharge_only: false,
   is_active: true,
   priority: 0,
+  schedule_start: null,
+  schedule_end: null,
+  milestone_amount: null,
 };
 
 const CAMPAIGN_TYPES = [
   { value: "bonus", label: "Bonus Diamonds", icon: "🎁" },
   { value: "discount", label: "Discounted Price", icon: "💰" },
   { value: "first_recharge", label: "First Recharge Bonus", icon: "⭐" },
+  { value: "milestone", label: "Milestone Reward", icon: "🏆" },
   { value: "custom", label: "Custom Offer", icon: "✨" },
 ];
 
@@ -83,6 +92,17 @@ const TIMER_PRESETS = [
   { value: 720, label: "12 Hours" },
   { value: 1440, label: "24 Hours" },
 ];
+
+const MILESTONE_PRESETS = [
+  { value: 100000, label: "100K" },
+  { value: 500000, label: "500K" },
+  { value: 1000000, label: "1M" },
+  { value: 2000000, label: "2M" },
+  { value: 5000000, label: "5M" },
+  { value: 10000000, label: "10M" },
+];
+
+const PERCENTAGE_PRESETS = [10, 20, 30, 50, 75, 100, 150, 200];
 
 export default function AdminRechargeCampaigns() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -129,6 +149,7 @@ export default function AdminRechargeCampaigns() {
       offer_price_usd: c.offer_price_usd,
       diamonds_amount: c.diamonds_amount,
       bonus_diamonds: c.bonus_diamonds,
+      bonus_percentage: c.bonus_percentage || 0,
       duration_minutes: c.duration_minutes,
       banner_image_url: c.banner_image_url,
       badge_text: c.badge_text,
@@ -137,6 +158,9 @@ export default function AdminRechargeCampaigns() {
       is_first_recharge_only: c.is_first_recharge_only,
       is_active: c.is_active,
       priority: c.priority,
+      schedule_start: c.schedule_start,
+      schedule_end: c.schedule_end,
+      milestone_amount: c.milestone_amount,
     });
     setDialogOpen(true);
   };
@@ -150,6 +174,10 @@ export default function AdminRechargeCampaigns() {
       toast.error("Diamonds amount must be greater than 0");
       return;
     }
+    if (form.campaign_type === "milestone" && !form.milestone_amount) {
+      toast.error("Milestone amount is required for milestone campaigns");
+      return;
+    }
 
     setSaving(true);
     try {
@@ -160,6 +188,7 @@ export default function AdminRechargeCampaigns() {
         offer_price_usd: form.offer_price_usd || null,
         diamonds_amount: form.diamonds_amount || 0,
         bonus_diamonds: form.bonus_diamonds || 0,
+        bonus_percentage: form.bonus_percentage || 0,
         duration_minutes: form.duration_minutes || 60,
         banner_image_url: form.banner_image_url || null,
         badge_text: form.badge_text || "Limited Offer",
@@ -168,6 +197,9 @@ export default function AdminRechargeCampaigns() {
         is_first_recharge_only: form.is_first_recharge_only || false,
         is_active: form.is_active ?? true,
         priority: form.priority || 0,
+        schedule_start: form.schedule_start || null,
+        schedule_end: form.schedule_end || null,
+        milestone_amount: form.milestone_amount || null,
       };
 
       if (editing) {
@@ -256,6 +288,14 @@ export default function AdminRechargeCampaigns() {
   const getCampaignTypeInfo = (type: string) =>
     CAMPAIGN_TYPES.find(t => t.value === type) || CAMPAIGN_TYPES[0];
 
+  const formatMilestone = (amount: number) => {
+    if (amount >= 1000000) return `${(amount / 1000000).toFixed(amount % 1000000 === 0 ? 0 : 1)}M`;
+    if (amount >= 1000) return `${(amount / 1000).toFixed(amount % 1000 === 0 ? 0 : 1)}K`;
+    return amount.toString();
+  };
+
+  const isMilestone = form.campaign_type === "milestone";
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -266,7 +306,7 @@ export default function AdminRechargeCampaigns() {
             Recharge Campaigns
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Create time-limited diamond offers to boost recharges
+            Create time-limited & milestone diamond offers to boost recharges
           </p>
         </div>
         <div className="flex gap-2">
@@ -282,11 +322,11 @@ export default function AdminRechargeCampaigns() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold">{campaigns.length}</p>
-            <p className="text-xs text-muted-foreground">Total Campaigns</p>
+            <p className="text-xs text-muted-foreground">Total</p>
           </CardContent>
         </Card>
         <Card>
@@ -310,7 +350,15 @@ export default function AdminRechargeCampaigns() {
             <p className="text-2xl font-bold text-purple-500">
               {campaigns.filter(c => c.campaign_type === "bonus").length}
             </p>
-            <p className="text-xs text-muted-foreground">Bonus Offers</p>
+            <p className="text-xs text-muted-foreground">Bonus</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <p className="text-2xl font-bold text-amber-500">
+              {campaigns.filter(c => c.campaign_type === "milestone").length}
+            </p>
+            <p className="text-xs text-muted-foreground">Milestone</p>
           </CardContent>
         </Card>
       </div>
@@ -331,16 +379,13 @@ export default function AdminRechargeCampaigns() {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {campaigns.map(c => {
             const typeInfo = getCampaignTypeInfo(c.campaign_type);
+            const isScheduled = c.schedule_start || c.schedule_end;
             return (
               <Card key={c.id} className={`relative overflow-hidden transition-all ${!c.is_active ? "opacity-60" : ""}`}>
                 {/* Banner */}
                 {c.banner_image_url && (
                   <div className="h-32 bg-gradient-to-br from-primary/20 to-primary/5 overflow-hidden">
-                    <img
-                      src={c.banner_image_url}
-                      alt={c.campaign_name}
-                      className="w-full h-full object-cover"
-                    />
+                    <img src={c.banner_image_url} alt={c.campaign_name} className="w-full h-full object-cover" />
                   </div>
                 )}
 
@@ -351,9 +396,16 @@ export default function AdminRechargeCampaigns() {
                         <span>{typeInfo.icon}</span>
                         {c.campaign_name}
                       </CardTitle>
-                      <Badge variant={c.is_active ? "default" : "secondary"} className="mt-1 text-[10px]">
-                        {c.is_active ? "✅ Active" : "⏸ Inactive"}
-                      </Badge>
+                      <div className="flex gap-1 mt-1">
+                        <Badge variant={c.is_active ? "default" : "secondary"} className="text-[10px]">
+                          {c.is_active ? "✅ Active" : "⏸ Inactive"}
+                        </Badge>
+                        {c.bonus_percentage > 0 && (
+                          <Badge className="text-[10px] bg-gradient-to-r from-amber-500 to-orange-500 border-0">
+                            {c.bonus_percentage}% Bonus
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                     <div className="flex gap-1">
                       <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => toggleActive(c)}>
@@ -370,7 +422,6 @@ export default function AdminRechargeCampaigns() {
                 </CardHeader>
 
                 <CardContent className="space-y-3 pt-0">
-                  {/* Offer Details */}
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div className="flex items-center gap-1.5">
                       <Diamond className="w-3.5 h-3.5 text-blue-400" />
@@ -383,28 +434,33 @@ export default function AdminRechargeCampaigns() {
                       </div>
                     )}
                     <div className="flex items-center gap-1.5">
-                      <DollarSign className="w-3.5 h-3.5 text-green-500" />
-                      <span>${Number(c.original_price_usd).toFixed(2)}</span>
-                      {c.offer_price_usd && (
-                        <span className="text-green-500 font-semibold">${Number(c.offer_price_usd).toFixed(2)}</span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1.5">
                       <Timer className="w-3.5 h-3.5 text-orange-500" />
                       <span>{c.duration_minutes >= 60 ? `${c.duration_minutes / 60}h` : `${c.duration_minutes}m`}</span>
                     </div>
+                    {c.milestone_amount && (
+                      <div className="flex items-center gap-1.5">
+                        <Trophy className="w-3.5 h-3.5 text-amber-500" />
+                        <span className="text-amber-600 font-semibold">{formatMilestone(c.milestone_amount)} Recharge</span>
+                      </div>
+                    )}
                   </div>
+
+                  {/* Schedule */}
+                  {isScheduled && (
+                    <div className="text-[11px] text-muted-foreground flex items-center gap-1">
+                      <CalendarClock className="w-3 h-3" />
+                      {c.schedule_start && <span>From: {new Date(c.schedule_start).toLocaleDateString()}</span>}
+                      {c.schedule_end && <span> — To: {new Date(c.schedule_end).toLocaleDateString()}</span>}
+                    </div>
+                  )}
 
                   {/* Locations */}
                   <div className="flex flex-wrap gap-1">
                     {(c.display_locations || []).map(loc => (
-                      <Badge key={loc} variant="outline" className="text-[10px] capitalize">
-                        {loc}
-                      </Badge>
+                      <Badge key={loc} variant="outline" className="text-[10px] capitalize">{loc}</Badge>
                     ))}
                   </div>
 
-                  {/* Target */}
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Target className="w-3 h-3" />
                     <span className="capitalize">{c.target_audience.replace("_", " ")}</span>
@@ -478,34 +534,42 @@ export default function AdminRechargeCampaigns() {
                 </div>
               </div>
 
-              {/* Pricing */}
+              {/* Bonus Percentage */}
               <div className="space-y-3">
                 <h3 className="text-sm font-semibold flex items-center gap-2">
-                  <DollarSign className="w-4 h-4" /> Pricing & Diamonds
+                  <Percent className="w-4 h-4" /> Bonus Percentage
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {PERCENTAGE_PRESETS.map(p => (
+                    <Button
+                      key={p}
+                      variant={form.bonus_percentage === p ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setForm(prev => ({ ...prev, bonus_percentage: p }))}
+                    >
+                      {p}%
+                    </Button>
+                  ))}
+                </div>
+                <div>
+                  <Label>Custom Percentage (%)</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    max="500"
+                    value={form.bonus_percentage || ""}
+                    onChange={e => setForm(p => ({ ...p, bonus_percentage: parseInt(e.target.value) || 0 }))}
+                    placeholder="e.g. 50"
+                  />
+                </div>
+              </div>
+
+              {/* Diamonds */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold flex items-center gap-2">
+                  <Diamond className="w-4 h-4" /> Diamonds
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label>Original Price (USD)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={form.original_price_usd || ""}
-                      onChange={e => setForm(p => ({ ...p, original_price_usd: parseFloat(e.target.value) || 0 }))}
-                      placeholder="5.00"
-                    />
-                  </div>
-                  <div>
-                    <Label>Offer Price (USD) <span className="text-muted-foreground text-xs">optional</span></Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={form.offer_price_usd ?? ""}
-                      onChange={e => setForm(p => ({ ...p, offer_price_usd: e.target.value ? parseFloat(e.target.value) : null }))}
-                      placeholder="3.99"
-                    />
-                  </div>
                   <div>
                     <Label>Diamonds Amount</Label>
                     <Input
@@ -528,6 +592,40 @@ export default function AdminRechargeCampaigns() {
                   </div>
                 </div>
               </div>
+
+              {/* Milestone (only for milestone type) */}
+              {isMilestone && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold flex items-center gap-2">
+                    <Trophy className="w-4 h-4" /> Milestone Trigger
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    This campaign triggers when a user completes this recharge amount
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {MILESTONE_PRESETS.map(m => (
+                      <Button
+                        key={m.value}
+                        variant={form.milestone_amount === m.value ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setForm(prev => ({ ...prev, milestone_amount: m.value }))}
+                      >
+                        {m.label}
+                      </Button>
+                    ))}
+                  </div>
+                  <div>
+                    <Label>Custom Milestone Amount</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      value={form.milestone_amount || ""}
+                      onChange={e => setForm(p => ({ ...p, milestone_amount: parseInt(e.target.value) || null }))}
+                      placeholder="e.g. 1000000"
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* Timer */}
               <div className="space-y-3">
@@ -554,6 +652,34 @@ export default function AdminRechargeCampaigns() {
                     value={form.duration_minutes || ""}
                     onChange={e => setForm(p => ({ ...p, duration_minutes: parseInt(e.target.value) || 60 }))}
                   />
+                </div>
+              </div>
+
+              {/* Schedule */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold flex items-center gap-2">
+                  <CalendarClock className="w-4 h-4" /> Schedule <span className="text-muted-foreground text-xs font-normal">(optional)</span>
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Set start/end dates to auto-activate and deactivate the campaign
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>Start Date & Time</Label>
+                    <Input
+                      type="datetime-local"
+                      value={form.schedule_start ? form.schedule_start.slice(0, 16) : ""}
+                      onChange={e => setForm(p => ({ ...p, schedule_start: e.target.value ? new Date(e.target.value).toISOString() : null }))}
+                    />
+                  </div>
+                  <div>
+                    <Label>End Date & Time</Label>
+                    <Input
+                      type="datetime-local"
+                      value={form.schedule_end ? form.schedule_end.slice(0, 16) : ""}
+                      onChange={e => setForm(p => ({ ...p, schedule_end: e.target.value ? new Date(e.target.value).toISOString() : null }))}
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -602,8 +728,16 @@ export default function AdminRechargeCampaigns() {
                   <ImageIcon className="w-4 h-4" /> Banner Image
                 </h3>
                 {form.banner_image_url && (
-                  <div className="rounded-lg overflow-hidden border h-32">
+                  <div className="rounded-lg overflow-hidden border h-32 relative group">
                     <img src={form.banner_image_url} alt="Banner" className="w-full h-full object-cover" />
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-7"
+                      onClick={() => setForm(p => ({ ...p, banner_image_url: null }))}
+                    >
+                      <Trash2 className="w-3 h-3 mr-1" /> Remove
+                    </Button>
                   </div>
                 )}
                 <label>
