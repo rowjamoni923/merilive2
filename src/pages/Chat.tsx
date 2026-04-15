@@ -965,7 +965,7 @@ const Chat = () => {
     };
   }, [selectedConversation?.other_user?.id]);
 
-  // Debounced conversation list refresh on new messages - via universal system
+  // Debounced conversation list refresh on new messages - via direct channel
   useEffect(() => {
     if (!currentUserId) return;
 
@@ -975,15 +975,24 @@ const Chat = () => {
       refreshTimer = setTimeout(() => fetchConversations(), 1500);
     };
 
-    const unsubscribe = subscribeToTables(
-      `conv-refresh-${currentUserId}`,
-      ['messages', 'conversations'],
-      () => debouncedRefresh()
-    );
+    const channelName = `conv-refresh-${currentUserId}-${Date.now()}`;
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages' },
+        () => debouncedRefresh()
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'conversations' },
+        () => debouncedRefresh()
+      )
+      .subscribe();
 
     return () => {
       if (refreshTimer) clearTimeout(refreshTimer);
-      unsubscribe();
+      supabase.removeChannel(channel);
     };
   }, [currentUserId]);
 
