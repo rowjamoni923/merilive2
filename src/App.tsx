@@ -97,7 +97,7 @@ const CORE_PAGE_IMPORTERS = [
 ];
 
 let coreChunksPreloaded = false;
-export function preloadCoreRoutes() {
+function preloadCoreRoutes() {
   if (coreChunksPreloaded) return;
   coreChunksPreloaded = true;
   // Stagger imports to avoid blocking network
