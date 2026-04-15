@@ -139,15 +139,6 @@ export function useNativeCameraPermission() {
       return { granted: true, microphoneGranted: includeMicrophone ? true : undefined };
     }
 
-    // Prevent infinite loops
-    if (permissionDeniedCount >= MAX_DENIAL_RETRIES) {
-      console.log('[Camera Permission] Max denial retries reached');
-      return {
-        granted: false,
-        error: 'Camera permission denied. Please enable from Settings > Apps > MeriLive > Permissions.',
-      };
-    }
-
     // Single-flight
     if (permissionRequestInFlight) {
       return permissionRequestInFlight;

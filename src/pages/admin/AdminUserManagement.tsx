@@ -772,6 +772,12 @@ export default function AdminUserManagement() {
       });
 
       if (!profileError) {
+        const { error: faceVerifyError } = await supabase.rpc('admin_toggle_face_verification', {
+          _user_id: selectedApplication.user_id,
+          _verified: true,
+        });
+        if (faceVerifyError) throw faceVerifyError;
+
         const { error: verifyError } = await supabase
           .from("profiles")
           .update({ is_verified: true })

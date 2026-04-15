@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { isNativeApp } from "@/utils/nativeUtils";
@@ -43,6 +43,7 @@ import { PushNotifications } from "@capacitor/push-notifications";
 import { Camera as CapCamera } from "@capacitor/camera";
 import { Geolocation } from "@capacitor/geolocation";
 import { getAppInfo } from "@/utils/nativeUtils";
+import { useRefreshOnResume } from "@/hooks/useAppResumeHandler";
 
 // World languages - English names only (no native scripts)
 const worldLanguages = [
@@ -118,6 +119,59 @@ const Settings = () => {
     microphone: false,
     location: false,
   });
+
+  const refreshPermissions = useCallback(async () => {
+    try {
+      const nextPermissions = {
+        notifications: false,
+        camera: false,
+        microphone: false,
+        location: false,
+      };
+
+      if (Capacitor.isNativePlatform()) {
+        const [notifStatus, camStatus, locStatus] = await Promise.all([
+          PushNotifications.checkPermissions().catch(() => null),
+          CapCamera.checkPermissions().catch(() => null),
+          Geolocation.checkPermissions().catch(() => null),
+        ]);
+
+        nextPermissions.notifications = notifStatus?.receive === 'granted';
+        nextPermissions.camera = camStatus?.camera === 'granted';
+        nextPermissions.location = locStatus?.location === 'granted' || locStatus?.coarseLocation === 'granted';
+
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          stream.getTracks().forEach(track => track.stop());
+          nextPermissions.microphone = true;
+        } catch {
+          nextPermissions.microphone = false;
+        }
+      } else {
+        if ('Notification' in window) {
+          nextPermissions.notifications = Notification.permission === 'granted';
+        }
+        if (navigator.permissions) {
+          try {
+            const camPerm = await navigator.permissions.query({ name: 'camera' as PermissionName });
+            nextPermissions.camera = camPerm.state === 'granted';
+          } catch {}
+          try {
+            const micPerm = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+            nextPermissions.microphone = micPerm.state === 'granted';
+          } catch {}
+          try {
+            const locPerm = await navigator.permissions.query({ name: 'geolocation' as PermissionName });
+            nextPermissions.location = locPerm.state === 'granted';
+          } catch {}
+        }
+      }
+
+      setPermissions(nextPermissions);
+    } catch (error) {
+      console.error('Error checking permissions:', error);
+    }
+  }, []);
   
   // App version state
   const [appVersion, setAppVersion] = useState<{ version: string; build: string }>({ version: "1.0.0", build: "1" });
@@ -244,66 +298,34 @@ const Settings = () => {
 
   // Check permission status on mount
   useEffect(() => {
-    const checkPermissions = async () => {
-      if (Capacitor.isNativePlatform()) {
-        try {
-          // Check notification permission
-          const notifStatus = await PushNotifications.checkPermissions();
-          setPermissions(prev => ({ ...prev, notifications: notifStatus.receive === 'granted' }));
+    void refreshPermissions();
+  }, [refreshPermissions]);
 
-          // Check camera permission
-          const camStatus = await CapCamera.checkPermissions();
-          setPermissions(prev => ({ ...prev, camera: camStatus.camera === 'granted' }));
+  useEffect(() => {
+    if (showPermissionsDialog) void refreshPermissions();
+  }, [showPermissionsDialog, refreshPermissions]);
 
-          // Check location permission
-          const locStatus = await Geolocation.checkPermissions();
-          setPermissions(prev => ({ ...prev, location: locStatus.location === 'granted' }));
-
-          // Check microphone permission via getUserMedia test
-          try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            stream.getTracks().forEach(track => track.stop());
-            setPermissions(prev => ({ ...prev, microphone: true }));
-          } catch {
-            setPermissions(prev => ({ ...prev, microphone: false }));
-          }
-        } catch (error) {
-          console.error('Error checking permissions:', error);
-        }
-      } else {
-        // Web fallback
-        try {
-          if ('Notification' in window) {
-            setPermissions(prev => ({ ...prev, notifications: Notification.permission === 'granted' }));
-          }
-          // Check via Permissions API if available
-          if (navigator.permissions) {
-            try {
-              const camPerm = await navigator.permissions.query({ name: 'camera' as PermissionName });
-              setPermissions(prev => ({ ...prev, camera: camPerm.state === 'granted' }));
-            } catch {
-              // Camera permission query not supported
-            }
-            try {
-              const micPerm = await navigator.permissions.query({ name: 'microphone' as PermissionName });
-              setPermissions(prev => ({ ...prev, microphone: micPerm.state === 'granted' }));
-            } catch {
-              // Microphone permission query not supported
-            }
-            try {
-              const locPerm = await navigator.permissions.query({ name: 'geolocation' as PermissionName });
-              setPermissions(prev => ({ ...prev, location: locPerm.state === 'granted' }));
-            } catch {
-              // Location permission query not supported
-            }
-          }
-        } catch (e) {
-          console.log('Notification check failed:', e);
-        }
-      }
+  useEffect(() => {
+    const syncPermissions = () => {
+      void refreshPermissions();
     };
-    checkPermissions();
-  }, []);
+
+    const handleVisibilityRefresh = () => {
+      if (document.visibilityState === 'visible') syncPermissions();
+    };
+
+    window.addEventListener('focus', syncPermissions);
+    document.addEventListener('visibilitychange', handleVisibilityRefresh);
+
+    return () => {
+      window.removeEventListener('focus', syncPermissions);
+      document.removeEventListener('visibilitychange', handleVisibilityRefresh);
+    };
+  }, [refreshPermissions]);
+
+  useRefreshOnResume(() => {
+    void refreshPermissions();
+  });
 
   // Request notification permission
   const requestNotificationPermission = async () => {
