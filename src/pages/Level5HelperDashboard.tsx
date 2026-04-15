@@ -2796,12 +2796,12 @@ const Level5HelperDashboard = () => {
                   <p className="text-emerald-300 font-semibold text-sm">ZiniPay Auto Pay Setup</p>
                 </div>
                 <p className="text-xs text-emerald-400/70 mb-2">
-                  🎯 পার্সোনাল bKash/Nagad নাম্বার দিয়ে অটো পেমেন্ট। মার্চেন্ট একাউন্ট লাগবে না!
+                  🎯 Auto payment using personal bKash/Nagad number. No merchant account needed!
                 </p>
 
                 {/* Display As */}
                 <div>
-                  <Label className="text-slate-300 text-xs">Display As (ইউজার যা দেখবে) *</Label>
+                  <Label className="text-slate-300 text-xs">Display As (visible to users) *</Label>
                   <Select value={gatewayDisplayMethod} onValueChange={setGatewayDisplayMethod}>
                     <SelectTrigger className="bg-slate-800 border-emerald-500/30 text-white mt-1">
                       <SelectValue placeholder="Select method..." />
@@ -2817,7 +2817,7 @@ const Level5HelperDashboard = () => {
 
                 {/* Personal Number */}
                 <div>
-                  <Label className="text-slate-300 text-xs">পার্সোনাল নাম্বার (ইউজার দেখবে) *</Label>
+                  <Label className="text-slate-300 text-xs">Personal Number (visible to users) *</Label>
                   <Input
                     value={gatewayDisplayNumber}
                     onChange={(e) => setGatewayDisplayNumber(e.target.value)}
@@ -2842,7 +2842,7 @@ const Level5HelperDashboard = () => {
                 </div>
                 <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-2">
                   <p className="text-[10px] text-yellow-300">
-                    ⚠️ zinipay.com থেকে একাউন্ট করে Dashboard → Brand → API Key কপি করুন। এই নাম্বারটি ZiniPay ড্যাশবোর্ডেও যুক্ত করুন!
+                    ⚠️ Create an account on zinipay.com, then go to Dashboard → Brand → copy API Key. Add this number to your ZiniPay dashboard too!
                   </p>
                 </div>
               </div>

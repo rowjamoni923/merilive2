@@ -1671,8 +1671,8 @@ const Recharge = () => {
 
         // Show success and poll for verification
         toast({
-          title: "⚡ অর্ডার তৈরি হয়েছে!",
-          description: "ট্রানজ্যাকশন ভেরিফাই হচ্ছে... ৫-১০ সেকেন্ড অপেক্ষা করুন।",
+          title: "⚡ Order Created!",
+          description: "Verifying transaction... Please wait 5-10 seconds.",
         });
         
         setHelperPaymentStep("pending");
@@ -1702,23 +1702,23 @@ const Recharge = () => {
               if (orderStatus?.status === 'completed') {
                 clearInterval(pollInterval);
                 toast({
-                  title: "✅ ডায়মন্ড যোগ হয়েছে!",
-                  description: `${formatNumber(selectedPackage.coins)} 💎 আপনার একাউন্টে যোগ হয়েছে!`,
+                  title: "✅ Diamonds Added!",
+                  description: `${formatNumber(selectedPackage.coins)} 💎 has been added to your account!`,
                 });
                 resetHelperPaymentForm();
               } else if (orderStatus?.status === 'failed') {
                 clearInterval(pollInterval);
                 toast({
-                  title: "❌ পেমেন্ট ব্যর্থ",
-                  description: "পেমেন্ট ভেরিফাই করা যায়নি। আবার চেষ্টা করুন।",
+                  title: "❌ Payment Failed",
+                  description: "Payment could not be verified. Please try again.",
                   variant: "destructive",
                 });
                 setHelperPaymentStep("form");
               } else if (attempts >= maxAttempts) {
                 clearInterval(pollInterval);
                 toast({
-                  title: "⏳ ভেরিফিকেশন চলছে",
-                  description: "ভেরিফিকেশনে একটু সময় লাগছে। Helper ম্যানুয়ালি প্রসেস করবে।",
+                  title: "⏳ Verification in Progress",
+                  description: "Verification is taking a moment. The helper will process it manually.",
                 });
               }
             } catch {
@@ -2486,7 +2486,7 @@ const Recharge = () => {
                     if (isBangladesh) {
                       toast({
                         title: "Card Payment Unavailable",
-                        description: "বাংলাদেশে Card Payment বন্ধ আছে। Local method ব্যবহার করুন।",
+                        description: "Card Payment is not available in Bangladesh. Please use a local method.",
                         variant: "destructive"
                       });
                       return;
@@ -3159,22 +3159,22 @@ const Recharge = () => {
                         <span className="text-sm">⚠️</span>
                       </div>
                       <p className="text-xs font-bold text-amber-300">
-                        {isBangladesh ? 'অটো এপ্রুভ নোটিশ' : 'Auto-Approve Notice'}
+                        {isBangladesh ? 'Auto-Approve Notice' : 'Auto-Approve Notice'}
                       </p>
                     </div>
                     <div className="space-y-1.5 pl-9">
                       <p className="text-[11px] text-amber-200/90 font-medium leading-relaxed">
                         {isBangladesh 
-                          ? <>👉 এখানে যত টাকা লেখা আছে, <strong className="text-amber-100">পয়সা সহ হুবহু সেই পরিমাণ</strong> পাঠাতে হবে।</>
+                          ? <>👉 You must send the <strong className="text-amber-100">exact amount shown below, including decimals</strong>.</>
                           : <>👉 You must send the <strong className="text-amber-100">exact amount shown below, including decimals</strong>.</>
                         }
                       </p>
                       <p className="text-[11px] text-amber-200/70 leading-relaxed">
-                        💰 {isBangladesh ? 'পাঠানোর পরিমাণ' : 'Amount to send'}: <strong className="text-amber-100 text-sm">{selectedPackage?.price_usd ? convertToLocalCurrency(selectedPackage.price_usd) : ''}</strong>
+                        💰 {isBangladesh ? 'Amount to send' : 'Amount to send'}: <strong className="text-amber-100 text-sm">{selectedPackage?.price_usd ? convertToLocalCurrency(selectedPackage.price_usd) : ''}</strong>
                       </p>
                       <p className="text-[10px] text-red-400/80 font-medium">
                         {isBangladesh
-                          ? '❌ ভুল পরিমাণ পাঠালে অটো এপ্রুভ হবে না, শুধু রেকর্ড হবে।'
+                          ? '❌ Sending the wrong amount will not auto-approve. It will only be recorded for admin review.'
                           : '❌ Sending the wrong amount will not auto-approve. It will only be recorded for admin review.'
                         }
                       </p>
@@ -3189,7 +3189,7 @@ const Recharge = () => {
                   </div>
                   <p className="text-[11px] text-amber-300/80 font-medium">
                     {isBangladesh
-                      ? <><strong className="text-amber-200">{selectedPackage?.price_usd ? convertToLocalCurrency(selectedPackage.price_usd) : ''}</strong> (পয়সা সহ) এই {selectedHelperMethod.method_name} নম্বরে পাঠান</>
+                      ? <>Send <strong className="text-amber-200">{selectedPackage?.price_usd ? convertToLocalCurrency(selectedPackage.price_usd) : ''}</strong> (exact amount) to this {selectedHelperMethod.method_name} number</>
                       : <>Send <strong className="text-amber-200">{selectedPackage?.price_usd ? convertToLocalCurrency(selectedPackage.price_usd) : ''}</strong> (exact amount) to this {selectedHelperMethod.method_name} number</>
                     }
                   </p>
@@ -3269,7 +3269,7 @@ const Recharge = () => {
                         <span className="text-xs">⚡</span>
                       </div>
                       <p className="text-[11px] text-emerald-300/80">
-                        <strong className="text-emerald-200">Auto-Verify:</strong> ট্রানজ্যাকশন আইডি দিলেই ৫-১০ সেকেন্ডে অটো ভেরিফাই হবে!
+                        <strong className="text-emerald-200">Auto-Verify:</strong> Enter your transaction ID and it will be auto-verified in 5-10 seconds!
                       </p>
                     </div>
                   </div>
