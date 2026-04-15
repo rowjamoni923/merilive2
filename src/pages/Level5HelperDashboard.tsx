@@ -246,8 +246,29 @@ const Level5HelperDashboard = () => {
         { event: '*', schema: 'public', table: 'agency_withdrawals' },
         (payload) => {
           console.log('[Level5Helper] Agency withdrawal updated:', payload.eventType, payload.new);
-          // Immediately refresh the list when any withdrawal changes
           loadAgencyWithdrawals();
+        }
+      )
+      // ⚡ REALTIME: Admin messages - instant delivery, zero refresh
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'helper_admin_messages', filter: `helper_id=eq.${helperData.id}` },
+        (payload) => {
+          console.log('[Level5Helper] Admin message update:', payload.eventType);
+          loadAdminMessages();
+        }
+      )
+      // ⚡ REALTIME: Message replies - instant delivery, zero refresh
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'helper_message_replies' },
+        (payload) => {
+          console.log('[Level5Helper] Message reply update:', payload.eventType);
+          // Refresh replies if viewing a message
+          if (selectedMessage) {
+            loadMessageReplies(selectedMessage.id);
+          }
+          loadAdminMessages();
         }
       )
       .subscribe();
