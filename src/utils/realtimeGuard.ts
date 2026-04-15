@@ -42,6 +42,7 @@ const PUBLICATION_TABLES = new Set([
   'stream_chat',
   'stream_viewers',
   'rating_reward_claims',
+  'face_verification_submissions',
 ]);
 
 // During DB pressure we preserve only mission-critical realtime tables.
