@@ -27,6 +27,7 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { parseSettingValue, saveAppSetting } from "@/utils/adminSettingsStorage";
+import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 
 interface LevelRate {
   level: number;
@@ -104,6 +105,12 @@ export default function AdminCallSettings() {
     fetchSettings();
     fetchStats();
   }, []);
+
+  useAdminRealtime(
+    ['app_settings', 'call_events'],
+    fetchSettings,
+    'admin-call-settings-rt'
+  );
 
   const fetchSettings = async () => {
     try {
