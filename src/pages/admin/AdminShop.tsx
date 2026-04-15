@@ -675,6 +675,16 @@ const AdminShop = () => {
           </SelectContent>
         </Select>
 
+        <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as "all" | "active" | "hidden")}>
+          <SelectTrigger className={`w-[140px] ${adminInputStyles}`}>
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="active">✅ Active</SelectItem>
+            <SelectItem value="hidden">🚫 Hidden</SelectItem>
+          </SelectContent>
+
         <Button
           variant="outline"
           size="sm"
