@@ -762,27 +762,20 @@ const FaceVerification = () => {
       // Stop any existing stream first
       if (faceStream) {
         faceStream.getTracks().forEach(track => track.stop());
+        setFaceStream(null);
       }
       
-      // Request camera permission first using native API
-      const permResult = await requestCameraPermission();
-      if (!permResult.granted) {
-        toast({
-          title: "Camera Permission Required",
-          description: permResult.error || "Please allow camera access to continue",
-          variant: "destructive",
-        });
-        return;
-      }
+      // Small delay to let the camera hardware fully release
+      await new Promise(resolve => setTimeout(resolve, 300));
       
-      // Use native camera hook with fallback
-      const stream = await getCameraStream(false); // false for no audio
+      // getCameraStream already handles permission internally — no separate probe needed
+      // This avoids the double getUserMedia issue that causes black screen on Android WebView
+      const stream = await getCameraStream(false);
       if (!stream) {
         throw new Error('Failed to get camera stream');
       }
       
       setFaceStream(stream);
-      
       attachFacePreviewStream(stream);
     } catch (error: any) {
       console.error('Face camera error:', error);
@@ -792,7 +785,7 @@ const FaceVerification = () => {
         variant: "destructive",
       });
     }
-  }, [faceStream, toast, getCameraStream, requestCameraPermission, attachFacePreviewStream]);
+  }, [faceStream, toast, getCameraStream, attachFacePreviewStream]);
   
   useEffect(() => {
     if (faceStream) {
