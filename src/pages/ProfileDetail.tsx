@@ -211,7 +211,8 @@ const ProfileDetail = () => {
   
   // Use centralized hook for consistent rate - auto-updates when host changes rate
   const { callRate } = useHostCallRate(userId);
-  const { level: resolvedLevel, loading: resolvedLevelLoading } = useRealtimeLevel(userId || null);
+  const levelTargetUserId = userId || currentUser?.id || null;
+  const { level: resolvedLevel, loading: resolvedLevelLoading } = useRealtimeLevel(levelTargetUserId);
 
   const isOwnProfile = userId === currentUser?.id || !userId;
   
@@ -360,22 +361,32 @@ const ProfileDetail = () => {
       setSlideshowInterval(parseInt(intervalSettingResult.data.setting_value as string) || 5);
     }
 
-    // Set profile - check if banned when not found in profiles_public
-    const profileData = profileDataResult?.data;
-    if (!profileData && targetId && targetId !== user?.id) {
-      // Check if this user is banned (profiles_public filters them out)
-      const { data: bannedCheck } = await supabase
-        .from('profiles')
-        .select('is_blocked')
-        .eq('id', targetId)
-        .eq('is_blocked', true)
-        .maybeSingle();
-      if (bannedCheck) {
-        setIsBannedProfile(true);
-        setLoading(false);
-        return;
+    // Set profile - fallback to private profiles for own profile or when public view is stale/missing
+    let profileData = profileDataResult?.data as ProfileData | null;
+
+    if (!profileData && targetId) {
+      if (targetId === user?.id) {
+        const { data: ownProfile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', targetId)
+          .maybeSingle();
+        profileData = (ownProfile as ProfileData | null) ?? null;
+      } else {
+        const { data: bannedCheck } = await supabase
+          .from('profiles')
+          .select('is_blocked')
+          .eq('id', targetId)
+          .eq('is_blocked', true)
+          .maybeSingle();
+        if (bannedCheck) {
+          setIsBannedProfile(true);
+          setLoading(false);
+          return;
+        }
       }
     }
+
     setProfile(profileData as ProfileData);
     
     // Set host availability

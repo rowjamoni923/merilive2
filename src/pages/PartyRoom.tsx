@@ -705,8 +705,10 @@ const PartyRoom = () => {
           const isHost = roomData.data?.host_id === userData.id;
           if (!isHost) {
             const profile = userData.profile;
-            const isFemaleHost = profile?.is_host || profile?.gender === 'female';
-            const currentLevel = isFemaleHost ? (profile?.host_level || 0) : (profile?.user_level || 0);
+            const { resolveLevelFromTiers } = await import('@/utils/levelResolver');
+            const resolvedLevel = await resolveLevelFromTiers({ id: userData.id, ...profile });
+            const isFemaleHost = resolvedLevel.isFemaleHost;
+            const currentLevel = resolvedLevel.level;
             const result = checkFeatureAccess('join_party', currentLevel, isFemaleHost);
             
             if (!result.canAccess) {
@@ -795,15 +797,20 @@ const PartyRoom = () => {
             // Fetch user profile with entry effect info
             const { data: profile } = await supabase
               .from('profiles')
-              .select('display_name, avatar_url, user_level, equipped_entrance_id, equipped_entry_name_bar_id')
+              .select('display_name, avatar_url, user_level, host_level, is_host, gender, total_recharged, total_earnings, weekly_earnings, max_user_level, equipped_entrance_id, equipped_entry_name_bar_id')
               .eq('id', payload.new.user_id)
               .single();
             
-            console.log('[PartyRoom] Profile fetched:', profile?.display_name, 'Level:', profile?.user_level);
+            const { resolveLevelFromTiers } = await import('@/utils/levelResolver');
+            const resolvedParticipantLevel = profile
+              ? await resolveLevelFromTiers({ id: payload.new.user_id, ...profile }).then(result => result.level).catch(() => profile.user_level || profile.host_level || 1)
+              : 1;
+
+            console.log('[PartyRoom] Profile fetched:', profile?.display_name, 'Level:', resolvedParticipantLevel);
             
             if (profile && isMountedRef.current) {
               const userName = profile.display_name || 'User';
-              const userLevel = profile.user_level || 1;
+              const userLevel = resolvedParticipantLevel;
               const avatarUrl = profile.avatar_url || undefined;
               
               console.log('[PartyRoom] Adding join message for:', userName, 'Level:', userLevel);
@@ -2076,7 +2083,7 @@ const PartyRoom = () => {
           position: participants.find(p => p.user_id === room.host?.id)?.position ?? 0,
           displayName: room.host.display_name || 'Host',
           avatarUrl: room.host.avatar_url || undefined,
-          level: room.host.user_level || room.host.host_level || 1,
+          level: Math.max(room.host.host_level || 0, room.host.user_level || 1),
           countryFlag: room.host.country_flag || '🌍',
           beansCount: totalRoomBeans,
           isSpeaking: true,
