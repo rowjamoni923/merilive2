@@ -479,6 +479,9 @@ const Reels = () => {
         </div>
       </div>
 
+      {/* Campaign Banner */}
+      <TopUpCampaignBanner location="reels" compact />
+      
       {/* Reels Container - Full Screen with native scroll */}
       <div className="flex-1 overflow-hidden">
         {loading ? (
