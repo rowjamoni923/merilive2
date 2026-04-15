@@ -1289,12 +1289,15 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     { 
       icon: UserCheck, 
       label: "Face Verification", 
-      path: "/face-verification", 
-      rightText: isFaceVerified ? "Verified" : "Required",
-      highlight: !isFaceVerified,
-      iconBg: isFaceVerified ? "bg-green-100" : "bg-amber-100",
-      iconColor: isFaceVerified ? "text-green-500" : "text-amber-500",
-      show: isOwnProfile && !isFaceVerified // Hide after face verification is approved
+      path: faceVerificationPending ? "" : "/face-verification", 
+      rightText: faceVerificationPending ? "Under Review" : "Required",
+      highlight: !faceVerificationPending,
+      iconBg: faceVerificationPending ? "bg-blue-100" : "bg-amber-100",
+      iconColor: faceVerificationPending ? "text-blue-500" : "text-amber-500",
+      show: isOwnProfile && !isFaceVerified, // Hide completely after approved
+      onClick: faceVerificationPending ? () => {
+        toast({ title: "Under Review", description: "Your face verification is being reviewed by our team. Please wait." });
+      } : undefined,
     },
     { 
       icon: PhoneCall, 
