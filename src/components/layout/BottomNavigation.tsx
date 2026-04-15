@@ -1,4 +1,4 @@
-import { useState, useTransition, useMemo, useEffect, useCallback, memo } from "react";
+import { useState, useTransition, useMemo, useEffect, useCallback, memo, lazy, Suspense } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Home, Users, Play, User, Radio, PartyPopper, X, Plus, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
