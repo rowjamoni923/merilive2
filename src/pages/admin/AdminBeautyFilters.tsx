@@ -197,7 +197,7 @@ const AdminBeautyFilters = () => {
     const folder = activeTab === "beauty" ? "beauty-filters" : "ar-stickers";
 
     let fileUrl = editingItem?.file_url || "";
-    let previewUrl = editingItem?.preview_image_url || "";
+    let previewUrl = editingItem?.preview_url || "";
     let fileSize = editingItem?.file_size_bytes || 0;
 
     // Upload main file (.deepar / .svga / .json)
@@ -643,11 +643,16 @@ const ItemGrid = ({
             <div className="flex items-start gap-3">
               {/* Preview */}
               <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-fuchsia-500/20 to-purple-500/20 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                {item.preview_image_url ? (
-                  <img src={item.preview_image_url} alt={item.name} className="w-full h-full object-cover rounded-xl" />
-                ) : (
-                  <div className="text-fuchsia-400">{getFileTypeIcon(item.file_type)}</div>
-                )}
+                {(() => {
+                  // For MediaPipe filters, use imported asset images
+                  const mpKey = (item as any).filter_key;
+                  const mpPreview = mpKey ? MEDIAPIPE_PREVIEW_MAP[mpKey] : null;
+                  const previewSrc = mpPreview || item.preview_url;
+                  if (previewSrc) {
+                    return <img src={previewSrc} alt={item.name} className="w-full h-full object-cover rounded-xl" loading="lazy" />;
+                  }
+                  return <div className="text-fuchsia-400">{getFileTypeIcon(item.filter_type)}</div>;
+                })()}
               </div>
 
               {/* Info */}
@@ -658,7 +663,7 @@ const ItemGrid = ({
                     {item.category}
                   </Badge>
                   <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                    {item.file_type}
+                    {item.filter_type}
                   </Badge>
                   <span className="text-[10px] text-muted-foreground">{formatSize(item.file_size_bytes)}</span>
                 </div>
