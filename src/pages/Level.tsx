@@ -365,7 +365,7 @@ const Level = () => {
 
         resolvedLevel = Math.max(storedLevel, maxLevel, derivedLevel, 1);
 
-        if (user.id && (effectiveUserRechargeTotal > profileTotalRecharged || derivedLevel > Math.max(storedLevel, maxLevel))) {
+        if (user.id && (totalPoints > profileTotalRecharged || derivedLevel > Math.max(storedLevel, maxLevel))) {
           void supabase.rpc('recalculate_user_level', { _user_id: user.id }).then(({ error }) => {
             if (error) {
               console.warn('[Level] Failed to self-heal user level:', error);
