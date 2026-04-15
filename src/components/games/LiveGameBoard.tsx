@@ -315,7 +315,7 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts }: Li
 
     // If game has an external URL and game_type is 'external', AND no built-in component
     const isExternalGame = !hasBuiltInComponent && 
-      (currentGame.game_type === 'external' || currentGame.game_type === 'iframe') && 
+      (currentGame.game_type === 'external' || currentGame.game_type === 'iframe' || currentGame.game_type === 'third_party') && 
       currentGame.game_url?.startsWith('http');
     
     if (isExternalGame) {
@@ -452,7 +452,7 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts }: Li
 
   // Check if current game is external/iframe
   const isCurrentGameExternal = currentGame && 
-    (currentGame.game_type === 'external' || currentGame.game_type === 'iframe') && 
+    (currentGame.game_type === 'external' || currentGame.game_type === 'iframe' || currentGame.game_type === 'third_party') && 
     currentGame.game_url?.startsWith('http');
 
   return (
