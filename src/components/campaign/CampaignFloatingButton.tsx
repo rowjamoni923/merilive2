@@ -535,7 +535,7 @@ export function CampaignFloatingButton() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-6"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
             onClick={closePopup}
           >
             <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
@@ -546,11 +546,12 @@ export function CampaignFloatingButton() {
               exit={{ scale: 0.85, y: 30 }}
               transition={{ type: 'spring', damping: 22, stiffness: 300 }}
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-[320px] rounded-3xl overflow-hidden shadow-2xl"
+              className="relative w-full max-w-[340px] rounded-3xl overflow-hidden shadow-2xl max-h-[85vh] overflow-y-auto"
               style={{
                 background: template.popupBg,
                 border: `1.5px solid ${template.popupBorder}`,
                 boxShadow: template.accentGlow,
+                WebkitOverflowScrolling: 'touch',
               }}
             >
               <div className="absolute inset-x-0 top-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${template.popupBorder}40, transparent)` }} />
