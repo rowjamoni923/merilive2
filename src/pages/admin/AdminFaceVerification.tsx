@@ -153,7 +153,7 @@ const AdminFaceVerification = () => {
       if (userIds.length > 0) {
         const { data: profiles } = await supabase
           .from('profiles')
-          .select('id, display_name, avatar_url, app_uid, gender, is_host, country_code, country_flag, country_name, city, region, registration_ip, last_login_ip')
+          .select('id, display_name, avatar_url, app_uid, gender, is_host, is_face_verified, is_verified, country_code, country_flag, country_name, city, region, registration_ip, last_login_ip')
           .in('id', userIds);
         if (profiles) {
           profiles.forEach((p: any) => { profileMap[p.id] = p; });
