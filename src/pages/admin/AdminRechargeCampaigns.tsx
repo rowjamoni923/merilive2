@@ -125,6 +125,7 @@ export default function AdminRechargeCampaigns() {
   const [uploading, setUploading] = useState(false);
   const [coinPackages, setCoinPackages] = useState<CoinPackage[]>([]);
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<CampaignTemplate>(CAMPAIGN_TEMPLATES[0]);
 
   const fetchCampaigns = useCallback(async () => {
     setLoading(true);
