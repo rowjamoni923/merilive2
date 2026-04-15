@@ -955,8 +955,8 @@ const FaceVerification = () => {
           setVerificationFailed(true);
           setFailedAttempts(prev => prev + 1);
           toast({
-            title: "❌ Verification Failed",
-            description: "Static face detected. Please use a real camera, not a photo.",
+            title: "❌ " + localizedMsg.failed,
+            description: localizedMsg.staticFace,
             variant: "destructive",
           });
           return;
@@ -965,15 +965,15 @@ const FaceVerification = () => {
       
       setFaceVerified(true);
       toast({
-        title: "✅ Face Verification Successful!",
-        description: "All liveness checks passed. Your identity has been verified.",
+        title: localizedMsg.success,
+        description: localizedMsg.successDesc,
       });
     } else {
       setVerificationFailed(true);
       setFailedAttempts(prev => prev + 1);
       toast({
-        title: "❌ Verification Failed",
-        description: "Please follow the on-screen instructions carefully and try again.",
+        title: "❌ " + localizedMsg.failed,
+        description: localizedMsg.failedDesc,
         variant: "destructive",
       });
     }
