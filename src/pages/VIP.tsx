@@ -121,11 +121,27 @@ const isPrivilegeExpired = (expiresAt: string | null): boolean => {
   return new Date(expiresAt).getTime() <= Date.now();
 };
 
+const isUnlockedByLevel = (requiredLevel: number | null | undefined, effectiveLevel: number): boolean => {
+  return (requiredLevel ?? 1) <= effectiveLevel;
+};
+
+const isMonetizedAsset = (asset: {
+  is_premium?: boolean | null;
+  price_diamonds?: number | null;
+  price_coins?: number | null;
+}): boolean => {
+  return Boolean(
+    asset.is_premium ||
+    (asset.price_diamonds ?? 0) > 0 ||
+    (asset.price_coins ?? 0) > 0,
+  );
+};
+
 const getPrivilegeSlot = (category: string): PrivilegeSlot => {
   if (category === 'frame' || category === 'portrait_frame') return 'frame';
   if (category === 'entrance' || category === 'entrance_effect' || category === 'entry_banner') return 'entrance';
-  if (category === 'entry_name_bar' || category === 'entry_bar') return 'entry_name_bar';
-  if (category === 'bubble') return 'bubble';
+  if (category === 'entry_name_bar' || category === 'entry_bar' || category === 'entry_bar_effect') return 'entry_name_bar';
+  if (category === 'bubble' || category === 'chat_bubble') return 'bubble';
   if (category === 'vehicle' || category === 'vehicle_entrance') return 'vehicle';
   if (category === 'badge' || category === 'medal' || category === 'vip_medal') return 'medal';
   if (category === 'noble_card') return 'noble_card';
@@ -162,7 +178,7 @@ const VIP = () => {
     import('@/hooks/useUniversalRealtime').then(({ subscribeToTables }) => {
       unsubscribe = subscribeToTables(
         `vip-page-${Date.now()}`,
-        ['vip_tiers', 'user_vip_subscriptions', 'level_privileges', 'avatar_frames', 'user_purchases', 'shop_items', 'entry_banners', 'entry_name_bars'],
+        ['profiles', 'vip_tiers', 'user_vip_subscriptions', 'level_privileges', 'avatar_frames', 'user_purchases', 'shop_items', 'entry_banners', 'entry_name_bars', 'user_role_frames'],
         () => {
           fetchData();
         }
@@ -201,7 +217,7 @@ const VIP = () => {
         .eq("id", user.id)
         .maybeSingle();
 
-      const isHostUser = !!(profileData?.is_host && (profileData?.gender === 'female' || profileData?.gender === 'Female'));
+      const isHostUser = Boolean(profileData?.is_host);
       const userLevel = profileData?.user_level || 1;
       const hostLevel = profileData?.host_level || 0;
       const effectiveLevel = isHostUser ? Math.max(hostLevel, 1) : Math.max(userLevel, 1);
@@ -317,9 +333,8 @@ const VIP = () => {
       // Fetch unlocked avatar frames only for the current role/level
       const { data: availableFrames } = await supabase
         .from("avatar_frames")
-        .select("id, name, frame_url, preview_url, min_level, target_type")
+        .select("id, name, frame_url, preview_url, min_level, level_required, target_type, is_premium, price_diamonds, price_coins")
         .eq("is_active", true)
-        .lte("min_level", effectiveLevel)
         .or(`target_type.is.null,target_type.eq.both,target_type.eq.${targetType}`)
         .order("min_level", { ascending: true });
 
@@ -327,6 +342,9 @@ const VIP = () => {
         const hasEquippedFrameInDB = !!equippedFrameId;
         
         for (const frame of availableFrames) {
+          const requiredLevel = frame.min_level ?? frame.level_required;
+          if (!isUnlockedByLevel(requiredLevel, effectiveLevel) || isMonetizedAsset(frame)) continue;
+
           const isEquipped = hasEquippedFrameInDB && frame.id === equippedFrameId;
           const alreadyExists = allPrivileges.some(p => p.item_id === frame.id);
           if (!alreadyExists) {
@@ -340,7 +358,7 @@ const VIP = () => {
               is_equipped: isEquipped,
               expires_at: null,
               source: 'frame',
-              unlock_level: frame.min_level,
+              unlock_level: requiredLevel,
             });
           }
         }
@@ -351,11 +369,13 @@ const VIP = () => {
         .from("level_privileges")
         .select("*")
         .eq("is_active", true)
-        .lte("unlock_level", effectiveLevel)
         .order("unlock_level", { ascending: true });
 
       if (levelPrivileges) {
         for (const priv of levelPrivileges) {
+          const requiredLevel = priv.unlock_level ?? priv.level;
+          if (!isUnlockedByLevel(requiredLevel, effectiveLevel)) continue;
+
           const slot = getPrivilegeSlot(priv.privilege_type || 'other');
           let isEquipped = false;
           if (slot === 'entrance') isEquipped = priv.id === equippedEntranceId;
@@ -367,14 +387,14 @@ const VIP = () => {
           allPrivileges.push({
             id: priv.id,
             item_id: priv.id,
-            name: priv.name,
+            name: priv.name || priv.privilege_name,
             category: priv.privilege_type,
             preview_url: priv.preview_url,
             animation_url: priv.animation_url || priv.preview_url,
             is_equipped: isEquipped,
             expires_at: null,
             source: 'level',
-            unlock_level: priv.unlock_level,
+            unlock_level: requiredLevel,
           });
         }
       }
@@ -384,11 +404,12 @@ const VIP = () => {
         .from("entry_name_bars")
         .select("*")
         .eq("is_active", true)
-        .lte("level_required", effectiveLevel)
         .order("level_required", { ascending: true });
 
       if (entryNameBars) {
         for (const bar of entryNameBars) {
+          if (!isUnlockedByLevel(bar.level_required, effectiveLevel) || isMonetizedAsset(bar)) continue;
+
           const isEquipped = bar.id === equippedEntryNameBarId;
           const alreadyExists = allPrivileges.some(p => p.item_id === bar.id);
           if (!alreadyExists) {
@@ -413,11 +434,12 @@ const VIP = () => {
         .from("entry_banners")
         .select("*")
         .eq("is_active", true)
-        .lte("level_required", effectiveLevel)
         .order("level_required", { ascending: true });
 
       if (entryBanners) {
         for (const banner of entryBanners) {
+          if (!isUnlockedByLevel(banner.level_required, effectiveLevel) || isMonetizedAsset(banner)) continue;
+
           const isEquipped = banner.id === equippedEntranceId;
           const alreadyExists = allPrivileges.some(p => p.item_id === banner.id);
           if (!alreadyExists) {
@@ -471,7 +493,7 @@ const VIP = () => {
                 preview_url: frame.frame_url,
                 animation_url: frame.frame_url,
                 is_equipped: isEquipped,
-                expires_at: null,
+                expires_at: assigned.expires_at,
                 source: 'admin_assigned',
                 role_type: assigned.role_type,
               });
@@ -710,6 +732,15 @@ const VIP = () => {
 
       console.log('[VIP] Category detection:', { privilegeSlot, category: privilege.category });
 
+      if (privilegeSlot === 'other') {
+        toast({
+          title: 'Unsupported Item',
+          description: 'This privilege cannot be equipped yet.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       // For shop purchases, update user_purchases table
       if (privilege.source === 'shop') {
         // Get all user purchases to filter by category
@@ -849,6 +880,8 @@ const VIP = () => {
         title: "✨ Equipped!",
         description: `${privilege.name} is now active everywhere - Profile, Live, Party Rooms, Chat!`,
       });
+
+      void fetchData();
     } catch (error: any) {
       console.error("[VIP] Error equipping:", error);
       toast({
@@ -923,9 +956,10 @@ const VIP = () => {
   const getCategoryLabel = (category: string) => {
     switch (category) {
       case 'frame': case 'portrait_frame': return 'Avatar Frame';
-      case 'entrance': case 'entry_bar': case 'entrance_effect': case 'vehicle': case 'vehicle_entrance': return 'Entry Effect';
-      case 'entry_name_bar': return 'Entry Name Bar';
-      case 'bubble': return 'Chat Bubble';
+      case 'entrance': case 'entrance_effect': case 'entry_banner': return 'Entry Effect';
+      case 'entry_name_bar': case 'entry_bar': return 'Entry Name Bar';
+      case 'vehicle': case 'vehicle_entrance': return 'Vehicle';
+      case 'bubble': case 'chat_bubble': return 'Chat Bubble';
       default: return category;
     }
   };
