@@ -193,11 +193,6 @@ export default function AdminGameProviders() {
     settings: {},
   });
 
-  useEffect(() => {
-    fetchProviders();
-  }, []);
-  useAdminRealtime(['game_providers'], fetchProviders, 'admin-game-providers-rt');
-
   const fetchProviders = async () => {
     try {
       const { data, error } = await supabase
@@ -230,6 +225,11 @@ export default function AdminGameProviders() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchProviders();
+  }, []);
+  useAdminRealtime(['game_providers'], fetchProviders, 'admin-game-providers-rt');
 
   const saveProviders = async (updatedProviders: GameProvider[]) => {
     setProviders(updatedProviders);

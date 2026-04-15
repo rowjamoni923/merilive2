@@ -76,16 +76,16 @@ export default function AdminGameServer() {
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-  useAdminRealtime(['game_server_settings'], fetchData, 'admin-game-server-rt');
-
   const fetchData = async () => {
     setLoading(true);
     await Promise.all([fetchSettings(), fetchRoundStats(), fetchLiveRounds()]);
     setLoading(false);
   };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+  useAdminRealtime(['game_server_settings'], fetchData, 'admin-game-server-rt');
 
   const fetchSettings = async () => {
     const { data, error } = await supabase

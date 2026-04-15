@@ -78,11 +78,6 @@ const AdminVIPPrivileges = () => {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchTiers();
-  }, []);
-  useAdminRealtime(['vip_tiers'], fetchTiers, 'admin-vip-privileges-rt');
-
   const fetchTiers = async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -96,6 +91,11 @@ const AdminVIPPrivileges = () => {
     setTiers(data || []);
     setLoading(false);
   };
+
+  useEffect(() => {
+    fetchTiers();
+  }, []);
+  useAdminRealtime(['vip_tiers'], fetchTiers, 'admin-vip-privileges-rt');
 
   const handleFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>, 
