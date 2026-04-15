@@ -539,6 +539,58 @@ export default function AdminHostApplications() {
         </div>
       )}
 
+      {/* ============ PENDING HOSTS WITHOUT SUBMISSION ============ */}
+      {pendingHostsCount > 0 && (
+        <div className="mt-6 space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="p-2 bg-orange-500/15 rounded-lg">
+              <AlertTriangle className="w-5 h-5 text-orange-400" />
+            </div>
+            <div>
+              <h2 className="text-white font-bold text-base">Pending Hosts — No Verification Submitted</h2>
+              <p className="text-white/50 text-xs">{pendingHostsCount} hosts registered as female but haven't submitted face verification yet</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {pendingHosts.map((host) => (
+              <Card key={host.id} className="bg-orange-500/[0.05] border-orange-500/20 hover:bg-orange-500/[0.1] transition-all">
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="w-12 h-12 ring-2 ring-orange-500/30">
+                      <AvatarImage src={host.avatar_url || undefined} className="object-cover" />
+                      <AvatarFallback className="bg-gradient-to-br from-orange-500/30 to-amber-500/30 text-orange-300 font-bold">
+                        {host.display_name?.charAt(0) || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-semibold text-sm truncate">{host.display_name || 'Unknown'}</p>
+                      <p className="text-white/40 text-xs font-mono">#{host.app_uid || host.id.slice(0, 8)}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge className="bg-orange-500/15 text-orange-400 border-0 text-[10px]">
+                          <Clock className="w-2.5 h-2.5 mr-1" />Pending
+                        </Badge>
+                        {host.is_verified && (
+                          <Badge className="bg-yellow-500/15 text-yellow-400 border-0 text-[10px]">
+                            ⚠️ is_verified=true
+                          </Badge>
+                        )}
+                        {host.country_code && (
+                          <span className="text-[10px] text-white/40">{host.country_code}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-white/30 mt-2">
+                    Registered: {host.created_at ? new Date(host.created_at).toLocaleDateString() : '-'}
+                    {' • '}No face verification submitted yet
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ============ DETAIL DIALOG ============ */}
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
         <DialogContent className="bg-gradient-to-b from-slate-800 to-slate-900 border-white/10 max-w-4xl max-h-[92vh] overflow-y-auto p-0">
