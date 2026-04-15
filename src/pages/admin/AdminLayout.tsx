@@ -1988,25 +1988,25 @@ export default function AdminLayout() {
         
         {/* ━━━ TOP HEADER ━━━ */}
         <header className="sticky top-0 z-30 shrink-0 bg-[#06060a]/90 backdrop-blur-2xl border-b border-white/[0.04] safe-area-top">
-          <div className="flex items-center justify-between px-3 sm:px-4 lg:px-5 py-2.5">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between px-3 sm:px-4 lg:px-5 py-2 sm:py-2.5">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
               <Button
                 variant="ghost" size="icon"
-                className="lg:hidden text-white hover:bg-white/5 rounded-xl h-10 w-10 bg-white/[0.04] border border-white/[0.06]"
+                className="lg:hidden text-white hover:bg-white/5 rounded-xl h-9 w-9 sm:h-10 sm:w-10 bg-white/[0.04] border border-white/[0.06] flex-shrink-0"
                 onClick={() => { setIsMobileSidebarOpen(true); setIsSidebarOpen(true); }}
               >
-                <Menu className="w-5 h-5" />
+                <Menu className="w-4 h-4 sm:w-5 sm:h-5" />
               </Button>
 
-              <Button variant="ghost" size="icon" className="hidden lg:flex text-slate-500 hover:text-white hover:bg-white/5 rounded-xl h-8 w-8" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+              <Button variant="ghost" size="icon" className="hidden lg:flex text-slate-500 hover:text-white hover:bg-white/5 rounded-xl h-8 w-8 flex-shrink-0" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
                 <Menu className="w-4 h-4" />
               </Button>
 
-              <div className="hidden md:block">
-                <h2 className="text-white font-bold text-[15px]">
+              <div className="min-w-0">
+                <h2 className="text-white font-bold text-sm sm:text-[15px] truncate">
                   {navGroups.flatMap(g => g.items).find(item => location.pathname === item.path || (item.path !== "/admin" && location.pathname.startsWith(item.path)))?.label || "Dashboard"}
                 </h2>
-                <p className="text-[9px] text-slate-600 font-bold uppercase tracking-[0.2em]">Admin Console</p>
+                <p className="text-[8px] sm:text-[9px] text-slate-600 font-bold uppercase tracking-[0.2em] hidden sm:block">Admin Console</p>
               </div>
             </div>
 
