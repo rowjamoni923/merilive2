@@ -60,7 +60,7 @@ import UnifiedEntryAnimation from "@/components/live/UnifiedEntryAnimation";
 import { EntryNameBarAnimation } from "@/components/live/EntryNameBarAnimation";
 import { useEntryAnimations } from "@/hooks/useEntryAnimations";
 import { RoomEndedModal } from "@/components/room/RoomEndedModal";
-// REMOVED: JoinBannerContainer - Using ONLY FlyingJoinBannerContainer in UnifiedPartyRoom
+import { useBigoJoinNotifications, BigoJoinBannerContainer } from "@/components/live/BigoStyleJoinBanner";
 import { ProfessionalAudioRoom } from "@/components/party/ProfessionalAudioRoom";
 import { AdvancedPartyBottomBar } from "@/components/party/AdvancedPartyBottomBar";
 import { ProfessionalGameOverlay } from "@/components/party/ProfessionalGameOverlay";
@@ -255,8 +255,12 @@ const PartyRoom = () => {
     removeNameBarAnimation,
   } = useEntryAnimations();
   
-  // REMOVED: joinBannerNotifications state - Now handled by UnifiedPartyRoom's direct subscription
-  // Flying join banner is triggered directly in UnifiedPartyRoom via party_room_participants listener
+  // Bigo-style flying join notifications for party room
+  const { 
+    activeNotification: activeBigoJoin, 
+    addNotification: addBigoJoinNotification, 
+    completeNotification: completeBigoJoin 
+  } = useBigoJoinNotifications();
   
   
   // Flying gift animation
