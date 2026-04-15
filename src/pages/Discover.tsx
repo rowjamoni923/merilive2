@@ -219,8 +219,12 @@ const Discover = () => {
     }
 
     const profile = currentUser.profile;
-    const isFemaleHost = profile?.is_host || profile?.gender === 'female';
-    const userLevel = isFemaleHost ? (profile?.host_level || 0) : (profile?.user_level || 0);
+    
+    // ✅ USE RESOLVED LEVEL - same as everywhere else
+    const { resolveLevelFromTiers } = await import('@/utils/levelResolver');
+    const resolved = await resolveLevelFromTiers({ id: currentUser.id, ...profile });
+    const isFemaleHost = resolved.isFemaleHost;
+    const userLevel = resolved.level;
     
     // ✅ GLOBAL LEVEL CHECK from admin panel (feature_level_requirements)
     const featureResult = checkFeatureAccess('join_party', userLevel, isFemaleHost);
@@ -231,7 +235,7 @@ const Discover = () => {
     
     // Per-room level check (set by room host)
     if (room.min_level > userLevel) {
-      toast.error(`Minimum level ${room.min_level} required`);
+      toast.error(`Minimum level ${room.min_level} required! Your level: ${userLevel}`);
       return;
     }
 

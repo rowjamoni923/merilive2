@@ -146,10 +146,10 @@ const Live = () => {
       )
       .subscribe();
 
-    // Fast polling fallback (3s) for viewer count accuracy
+    // Polling fallback (10s) - realtime handles instant updates
     const pollInterval = setInterval(() => {
       fetchLiveStreams();
-    }, 3000);
+    }, 10000);
 
     return () => {
       clearInterval(pollInterval);
