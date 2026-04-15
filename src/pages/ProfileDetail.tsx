@@ -1255,7 +1255,7 @@ const ProfileDetail = () => {
 
 
       {/* Gifts Received Section - For Hosts */}
-      {profile?.is_host && (
+      {giftsReceived.length > 0 && (
         <div className="mx-3 mt-4">
           <motion.div
             initial={{ y: 20, opacity: 0 }}
