@@ -297,6 +297,7 @@ const navGroups: NavGroup[] = [
       { label: "Balance Deduction", icon: TrendingDown, path: "/admin/balance-deduction", hubKey: "finance-hub" },
       { label: "Transfer History", icon: Activity, path: "/admin/transfer-history", hubKey: "finance-hub" },
       { label: "Recharge History", icon: CreditCard, path: "/admin/recharge-history", hubKey: "finance-hub" },
+      { label: "💎 Recharge Campaigns", icon: Sparkles, path: "/admin/recharge-campaigns", hubKey: "finance-hub" },
       { label: "Transfer Scheduler", icon: Clock, path: "/admin/transfer-scheduler", hubKey: "finance-hub" },
       { label: "Payroll Orders", icon: Wallet, path: "/admin/payroll-orders", hubKey: "finance-hub" },
       { label: "Shop", icon: ShoppingBag, path: "/admin/shop", hubKey: "finance-hub" },
