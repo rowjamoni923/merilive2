@@ -535,7 +535,7 @@ export function CampaignFloatingButton() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-6"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
             onClick={closePopup}
           >
             <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
@@ -546,11 +546,12 @@ export function CampaignFloatingButton() {
               exit={{ scale: 0.85, y: 30 }}
               transition={{ type: 'spring', damping: 22, stiffness: 300 }}
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-[320px] rounded-3xl overflow-hidden shadow-2xl"
+              className="relative w-full max-w-[340px] rounded-3xl overflow-hidden shadow-2xl max-h-[85vh] overflow-y-auto"
               style={{
                 background: template.popupBg,
                 border: `1.5px solid ${template.popupBorder}`,
                 boxShadow: template.accentGlow,
+                WebkitOverflowScrolling: 'touch',
               }}
             >
               <div className="absolute inset-x-0 top-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${template.popupBorder}40, transparent)` }} />
@@ -813,21 +814,17 @@ export function CampaignFloatingButton() {
               )}
 
               {popupView === 'payment_number' && helperPaymentStep === 'form' && (
-                <div className="px-5 pt-5 pb-4">
-                  <div className="flex items-center justify-between mb-8">
-                    <button
-                      type="button"
-                      onClick={() => setPopupView('payment_select')}
-                      className="text-amber-200/80 text-sm font-medium"
-                    >
-                      ← Back
-                    </button>
-                    <button
-                      type="button"
-                      onClick={closePopup}
-                      className="w-12 h-12 rounded-full bg-amber-100/10 text-amber-100/80 flex items-center justify-center"
-                    >
-                      <X className="w-6 h-6" />
+                <div className="px-4 pt-4 pb-4" style={{ maxHeight: '80vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
+                  {/* Secure Payment Header */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-9 h-9 rounded-xl bg-purple-500/20 flex items-center justify-center">
+                        <CreditCard className="w-5 h-5 text-purple-400" />
+                      </div>
+                      <h3 className="text-base font-bold text-white">Secure Payment</h3>
+                    </div>
+                    <button onClick={closePopup} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                      <X className="w-4 h-4 text-white/60" />
                     </button>
                   </div>
 
@@ -838,160 +835,160 @@ export function CampaignFloatingButton() {
                     </div>
                   ) : !currentMethod ? (
                     <div className="text-center py-8">
-                      <p className="text-sm" style={{ color: template.subtitleColor }}>No payment methods available</p>
+                      <p className="text-sm text-white/50">No payment methods available</p>
                     </div>
                   ) : (
                     <>
-                      <div className="text-center mb-6">
-                        <h3 className="text-[15px] font-semibold tracking-[0.2em] uppercase text-amber-200">
-                          Payment Number
-                        </h3>
-                      </div>
+                      <p className="text-xs text-white/60 mb-3">
+                        Pay via {currentMethod.method_name} to receive {campaign.diamonds_amount.toLocaleString()} diamonds
+                      </p>
 
-                      <div className="rounded-[1.75rem] border border-amber-400/25 bg-amber-500/5 p-4 shadow-[inset_0_0_0_1px_rgba(251,191,36,0.08)]">
-                        <div className="rounded-[1.5rem] border border-amber-400/20 bg-amber-500/10 p-5 text-center">
-                          <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-100/10 overflow-hidden">
-                            {currentMethod.logo_url ? (
-                              <img
-                                src={currentMethod.logo_url}
-                                alt={currentMethod.method_name}
-                                className="h-10 w-10 object-contain"
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).style.display = 'none';
-                                }}
-                              />
-                            ) : (
-                              <span className="text-3xl text-amber-300">💳</span>
-                            )}
-                          </div>
-
-                          <p className="text-2xl font-bold text-amber-300 leading-none">
-                            {currentMethod.method_name}
-                          </p>
-                          <p className="mt-2 text-lg text-amber-100/45">
-                            {currentMethod.account_name || currentMethod.method_name}
-                          </p>
-
-                          <div className="mt-6 rounded-[1.35rem] bg-amber-200/8 px-4 py-4">
-                            <div className="flex items-center gap-3">
-                              <div className="min-w-0 flex-1 text-left">
-                                <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-amber-100/70 mb-2">
-                                  {currentMethod.method_name} Number
-                                </p>
-                                <p className="text-[2rem] font-bold tracking-[0.12em] text-yellow-300 break-all leading-none">
-                                  {currentMethod.account_number}
-                                </p>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => copyToClipboard(currentMethod.account_number)}
-                                className="shrink-0 rounded-2xl bg-amber-300/12 px-5 py-4 text-amber-300"
-                              >
-                                {copiedNumber ? <Check className="w-7 h-7" /> : <Copy className="w-7 h-7" />}
-                              </button>
-                            </div>
-                          </div>
-
-                          <p className="mt-7 text-2xl font-bold text-yellow-300">
-                            Send {convertToLocalCurrency(campaign.offer_price_usd || campaign.original_price_usd)}
-                          </p>
+                      {/* Amount Card */}
+                      <div className="rounded-2xl bg-white/5 border border-white/10 p-3 mb-3">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-xs font-semibold text-white/50 uppercase tracking-wider">Amount</span>
+                          <span className="text-xl font-bold text-white">
+                            {convertToLocalCurrency(campaign.offer_price_usd || campaign.original_price_usd)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs text-white/50">You'll receive</span>
+                          <span className="text-sm font-semibold text-white">
+                            💎 {campaign.diamonds_amount.toLocaleString()} Diamonds
+                          </span>
                         </div>
                       </div>
 
+                      {/* Payment Method Card */}
+                      <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-900/40 to-amber-800/20 p-3 mb-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <div className="w-9 h-9 rounded-xl bg-amber-500/20 flex items-center justify-center overflow-hidden">
+                              {currentMethod.logo_url ? (
+                                <img src={currentMethod.logo_url} alt={currentMethod.method_name} className="h-6 w-6 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                              ) : (
+                                <span className="text-lg">{currentMethod.method_name.toLowerCase() === 'nagad' ? '🧡' : currentMethod.method_name.toLowerCase() === 'bkash' ? '💜' : '💳'}</span>
+                              )}
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-white">{currentMethod.method_name}</p>
+                              <p className="text-[10px] text-white/50">{currentMethod.additional_info?.gateway_type === 'zinipay' ? 'Merchant' : (currentMethod.account_name || currentMethod.method_name)}</p>
+                            </div>
+                          </div>
+                          {currentMethod.additional_info?.gateway_type && (
+                            <div className="px-3 py-1 rounded-full bg-amber-600/30 border border-amber-500/40 flex items-center gap-1">
+                              <span className="text-[10px]">⚡</span>
+                              <span className="text-[10px] font-bold text-amber-300 uppercase">Auto</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Number + Copy */}
+                        <div className="rounded-xl bg-black/20 border border-white/5 p-3">
+                          <p className="text-[10px] font-medium uppercase tracking-wider text-white/40 mb-1">
+                            {currentMethod.method_name} Number
+                          </p>
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-lg font-bold text-white tracking-wide break-all">
+                              {currentMethod.account_number}
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => copyToClipboard(currentMethod.account_number)}
+                              className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-xl bg-amber-600/30 border border-amber-500/30 text-amber-300 text-xs font-semibold"
+                            >
+                              {copiedNumber ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                              Copy
+                            </button>
+                          </div>
+                          {currentMethod.account_name && (
+                            <p className="mt-1 text-[11px] text-white/40">• Name: {currentMethod.account_name}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Auto-Approve / Payment Notice */}
+                      <div className="rounded-2xl border border-amber-400/20 bg-amber-900/20 p-3 mb-3">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-base">⚠️</span>
+                          <p className="text-xs font-bold text-amber-300">
+                            {currentMethod.additional_info?.gateway_type ? 'Auto-Approve Notice' : 'Payment Notice'}
+                          </p>
+                        </div>
+                        <p className="text-[11px] leading-5 text-white/70">
+                          👉 You must send the <strong className="text-white">exact amount shown below</strong>, including decimals.
+                        </p>
+                        <p className="mt-1 text-[11px] text-white/60">
+                          💰 Amount to send: <strong className="text-amber-300">{convertToLocalCurrency(campaign.offer_price_usd || campaign.original_price_usd)}</strong>
+                        </p>
+                      </div>
+
+                      {/* Show different number */}
                       {filteredHelperMethods.length > 1 && (
                         <button
                           type="button"
                           onClick={handleShowNextNumber}
-                          className="mt-5 w-full rounded-2xl bg-amber-200/8 px-5 py-5 text-center text-[13px] font-medium text-amber-100"
+                          className="w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2.5 text-center text-[11px] font-medium text-white/60 mb-3"
                         >
                           Show different number ({Math.min(currentMethodIndex + 1, filteredHelperMethods.length)}/{filteredHelperMethods.length})
                         </button>
                       )}
 
-                      <div className="mt-5 space-y-3">
-                        <div className="rounded-2xl border border-amber-400/20 bg-amber-500/8 p-4">
-                          <p className="text-xs font-bold text-amber-300 mb-2">{currentMethod.additional_info?.gateway_type ? 'Auto-Approve Notice' : 'Payment Notice'}</p>
-                          <p className="text-[13px] leading-6 text-amber-100/85">👉 You must send the <strong className="text-amber-200">exact amount</strong> shown above.</p>
-                          <p className="mt-2 text-[13px] leading-6 text-amber-100/65">💰 Amount to send: <strong className="text-yellow-300">{convertToLocalCurrency(campaign.offer_price_usd || campaign.original_price_usd)}</strong></p>
-                          {currentMethod.additional_info?.gateway_type ? (
-                            <p className="mt-2 text-[12px] text-emerald-300/90">⚡ Enter your transaction ID below to verify via ZiniPay.</p>
-                          ) : (
-                            <p className="mt-2 text-[12px] text-amber-100/55">Helper will check your payment proof and approve it.</p>
-                          )}
-                        </div>
-
-                        <div>
-                          <label htmlFor="campaignHelperTransactionId" className="text-amber-100/75 font-semibold text-xs uppercase tracking-[0.2em]">
-                            Transaction ID *
-                          </label>
-                          <input
-                            id="campaignHelperTransactionId"
-                            type="text"
-                            value={helperTransactionId}
-                            onChange={(e) => setHelperTransactionId(e.target.value)}
-                            placeholder="Enter your TrxID here"
-                            className="mt-2 w-full rounded-2xl text-sm h-12 px-4 border border-amber-200/10 bg-amber-100/5 text-amber-50 placeholder:text-amber-100/20 focus:outline-none focus:ring-2 focus:ring-amber-400/30 transition-all"
-                            autoComplete="off"
-                          />
-                        </div>
-
-                        {currentMethod.instructions && (
-                          <div className="rounded-2xl bg-amber-100/5 border border-amber-200/10 p-3">
-                            <p className="text-[11px] text-amber-300/80 font-medium mb-1">📝 Note</p>
-                            <p className="text-xs text-amber-50/70">{currentMethod.instructions}</p>
-                          </div>
-                        )}
-
-                        {!currentMethod.additional_info?.gateway_type && (
-                          <div>
-                            <label className="text-amber-100/75 text-xs uppercase tracking-[0.2em] font-semibold">Payment Screenshot</label>
-                            <div className="mt-2">
-                              {helperPaymentProof ? (
-                                <div className="relative rounded-2xl overflow-hidden border border-amber-200/10">
-                                  <img src={helperPaymentProof} alt="Payment proof" className="w-full h-28 object-cover" />
-                                  <button
-                                    onClick={() => setHelperPaymentProof(null)}
-                                    className="absolute top-2 right-2 bg-red-500/80 text-white p-1 rounded-full"
-                                  >
-                                    <X className="w-3.5 h-3.5" />
-                                  </button>
-                                </div>
-                              ) : (
-                                <label className="flex flex-col items-center justify-center w-full h-24 border border-dashed border-amber-200/15 rounded-2xl cursor-pointer hover:bg-amber-100/[0.03] transition-colors">
-                                  {uploadingHelperProof ? (
-                                    <div className="w-5 h-5 border-2 border-amber-300 border-t-transparent rounded-full animate-spin" />
-                                  ) : (
-                                    <>
-                                      <Upload className="w-5 h-5 text-amber-100/35 mb-1" />
-                                      <span className="text-xs text-amber-100/35">Upload screenshot</span>
-                                    </>
-                                  )}
-                                  <input
-                                    type="file"
-                                    accept="image/*"
-                                    className="hidden"
-                                    onChange={handleUploadHelperProof}
-                                    disabled={uploadingHelperProof}
-                                  />
-                                </label>
-                              )}
-                            </div>
-                          </div>
-                        )}
-
-                        <button
-                          type="button"
-                          onClick={handleHelperPaymentSubmit}
-                          disabled={!helperTransactionId.trim() || helperPaymentProcessing || !matchedPackage}
-                          className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 text-[#2d1a00] font-bold text-base shadow-lg transition-all disabled:opacity-40"
-                        >
-                          {helperPaymentProcessing
-                            ? 'Processing...'
-                            : currentMethod.additional_info?.gateway_type
-                              ? 'Verify Transaction'
-                              : 'Submit to Helper'}
-                        </button>
+                      {/* Transaction ID */}
+                      <div className="mb-2">
+                        <label className="text-white/50 font-semibold text-[10px] uppercase tracking-wider">Transaction ID *</label>
+                        <input
+                          type="text"
+                          value={helperTransactionId}
+                          onChange={(e) => setHelperTransactionId(e.target.value)}
+                          placeholder="Enter your TrxID here"
+                          className="mt-1 w-full rounded-xl text-sm h-10 px-3 border border-white/10 bg-white/5 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-amber-400/30"
+                          autoComplete="off"
+                        />
                       </div>
+
+                      {/* Payment Screenshot */}
+                      {!currentMethod.additional_info?.gateway_type && (
+                        <div className="mb-3">
+                          <label className="text-white/50 text-[10px] uppercase tracking-wider font-semibold">Payment Screenshot</label>
+                          <div className="mt-1">
+                            {helperPaymentProof ? (
+                              <div className="relative rounded-xl overflow-hidden border border-white/10">
+                                <img src={helperPaymentProof} alt="Proof" className="w-full h-20 object-cover" />
+                                <button onClick={() => setHelperPaymentProof(null)} className="absolute top-1 right-1 bg-red-500/80 text-white p-0.5 rounded-full">
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ) : (
+                              <label className="flex flex-col items-center justify-center w-full h-16 border border-dashed border-white/15 rounded-xl cursor-pointer hover:bg-white/[0.02]">
+                                {uploadingHelperProof ? (
+                                  <div className="w-4 h-4 border-2 border-amber-300 border-t-transparent rounded-full animate-spin" />
+                                ) : (
+                                  <>
+                                    <Upload className="w-4 h-4 text-white/30 mb-0.5" />
+                                    <span className="text-[10px] text-white/30">Upload screenshot</span>
+                                  </>
+                                )}
+                                <input type="file" accept="image/*" className="hidden" onChange={handleUploadHelperProof} disabled={uploadingHelperProof} />
+                              </label>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Submit Button */}
+                      <button
+                        type="button"
+                        onClick={handleHelperPaymentSubmit}
+                        disabled={!helperTransactionId.trim() || helperPaymentProcessing || !matchedPackage}
+                        className="w-full py-3 rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 text-[#2d1a00] font-bold text-sm shadow-lg disabled:opacity-40"
+                      >
+                        {helperPaymentProcessing
+                          ? 'Processing...'
+                          : currentMethod.additional_info?.gateway_type
+                            ? 'Verify Transaction'
+                            : 'Submit to Helper'}
+                      </button>
                     </>
                   )}
                 </div>
