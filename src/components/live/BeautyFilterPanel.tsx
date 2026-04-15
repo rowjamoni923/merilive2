@@ -171,24 +171,10 @@ export function BeautyFilterPanel({
     setBeautyParams(mapUIToParams(newSettings));
   };
 
-  const stickerCategories = ['all', ...new Set(stickers.map(s => s.category))];
-  const filteredStickers = stickerCategory === 'all' 
-    ? stickers 
-    : stickers.filter(s => s.category === stickerCategory);
-
-  const handleStickerSelect = (stickerName: string) => {
-    if (activeSticker === stickerName) {
-      onStickerChange?.(null); // Deselect
-    } else {
-      onStickerChange?.(stickerName);
-    }
-  };
-
   const tabs: { key: BeautyTab; label: string; icon: React.ReactNode }[] = [
     { key: 'skin', label: 'Skin', icon: <Sparkles className="w-3.5 h-3.5" /> },
     { key: 'reshape', label: 'Reshape', icon: <CircleDot className="w-3.5 h-3.5" /> },
     { key: 'effects', label: 'Effects', icon: <Zap className="w-3.5 h-3.5" /> },
-    { key: 'stickers', label: 'Stickers', icon: <Smile className="w-3.5 h-3.5" /> },
   ];
 
   return (
@@ -223,13 +209,10 @@ export function BeautyFilterPanel({
                 {enabled && (
                   <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-pink-500/20 text-pink-300 font-medium">ON</span>
                 )}
-                {activeSticker && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-medium">🎭</span>
-                )}
               </div>
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => { resetAll(); onStickerChange?.(null); }}
+                  onClick={resetAll}
                   className="text-xs text-white/50 hover:text-white/80 transition-colors px-2 py-1"
                 >
                   Reset
@@ -244,7 +227,7 @@ export function BeautyFilterPanel({
             </div>
 
             {/* Presets Row — only show for beauty tabs */}
-            {activeTab !== 'stickers' && (
+            {(
               <div className="flex gap-2 px-4 pb-3 overflow-x-auto no-scrollbar">
                 <button
                   onClick={resetAll}
