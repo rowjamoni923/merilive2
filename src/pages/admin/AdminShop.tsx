@@ -757,9 +757,10 @@ const AdminShop = () => {
                 </div>
 
                 {/* Info */}
-                <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="text-white font-semibold truncate">{item.name}</h3>
+                    {!item.is_active && <Badge className="bg-red-500/80 text-white text-[10px] px-1.5 py-0">HIDDEN</Badge>}
                     {item.is_featured && <Star className="w-4 h-4 text-amber-400 flex-shrink-0" />}
                   </div>
                   
