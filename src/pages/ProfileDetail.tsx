@@ -482,6 +482,13 @@ const ProfileDetail = () => {
     fetchData();
   }, [fetchData]);
 
+  // Countdown timer for purchased items
+  useEffect(() => {
+    if (purchasedItems.length === 0) return;
+    const interval = setInterval(() => setCountdownTick(t => t + 1), 1000);
+    return () => clearInterval(interval);
+  }, [purchasedItems.length]);
+
   // Real-time subscription for profile level updates
   useEffect(() => {
     const targetId = userId || currentUser?.id;
