@@ -1159,12 +1159,10 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         setLevelTiers(data);
         
         // CRITICAL FIX: For hosts, CALCULATE level from weekly_earnings in REAL-TIME
-        // DO NOT use stored host_level because it may not be updated yet
-        // This ensures when beans transfer and weekly_earnings becomes 0, level shows 0
+        // For regular users, use the HIGHEST reliable level source so stale DB values never show a lower level
         let calculatedLevel = 0;
         
         if (isFemaleHost) {
-          // Calculate host level from weekly_earnings (resets weekly)
           const weeklyEarnings = profile.weekly_earnings ?? 0;
           for (const tier of data) {
             if (weeklyEarnings >= tier.min_earning_amount) {
@@ -1173,11 +1171,28 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           }
           console.log('[Level] Host level calculated from weekly_earnings:', weeklyEarnings, '-> Level:', calculatedLevel);
         } else {
-          // CRITICAL FIX: Use stored user_level from database directly
-          // The user_level is maintained by database triggers and can exceed tier table max
-          // DO NOT recalculate from tiers - tiers are only for progress bar display
-          calculatedLevel = profile.user_level ?? 0;
-          console.log('[Level] Regular user using stored user_level:', calculatedLevel);
+          const totalRecharged = Number((profile as any).total_recharged ?? 0);
+          const storedLevel = Number(profile.user_level ?? 0);
+          const maxLevel = Number((profile as any).max_user_level ?? 0);
+          const derivedLevel = data.reduce((highest, tier) => {
+            const threshold = Number(tier.min_topup_amount ?? 0);
+            return totalRecharged >= threshold ? Math.max(highest, tier.level_number) : highest;
+          }, 0);
+
+          calculatedLevel = Math.max(storedLevel, maxLevel, derivedLevel, 1);
+          console.log('[Level] Regular user level resolved:', {
+            totalRecharged,
+            storedLevel,
+            maxLevel,
+            derivedLevel,
+            finalLevel: calculatedLevel,
+          });
+
+          if (currentUser?.id && derivedLevel > Math.max(storedLevel, maxLevel)) {
+            void supabase.rpc('recalculate_user_level', { _user_id: currentUser.id }).catch((error) => {
+              console.warn('[Level] Failed to self-heal user level:', error);
+            });
+          }
         }
         
         console.log('[Level] Final display level - isFemaleHost:', isFemaleHost, 'calculated:', calculatedLevel, 'stored host_level:', profile.host_level, 'weekly_earnings:', profile.weekly_earnings);
