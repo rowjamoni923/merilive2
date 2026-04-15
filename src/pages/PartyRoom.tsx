@@ -60,7 +60,7 @@ import UnifiedEntryAnimation from "@/components/live/UnifiedEntryAnimation";
 import { EntryNameBarAnimation } from "@/components/live/EntryNameBarAnimation";
 import { useEntryAnimations } from "@/hooks/useEntryAnimations";
 import { RoomEndedModal } from "@/components/room/RoomEndedModal";
-// REMOVED: JoinBannerContainer - Using ONLY FlyingJoinBannerContainer in UnifiedPartyRoom
+import { useBigoJoinNotifications, BigoJoinBannerContainer } from "@/components/live/BigoStyleJoinBanner";
 import { ProfessionalAudioRoom } from "@/components/party/ProfessionalAudioRoom";
 import { AdvancedPartyBottomBar } from "@/components/party/AdvancedPartyBottomBar";
 import { ProfessionalGameOverlay } from "@/components/party/ProfessionalGameOverlay";
@@ -255,8 +255,12 @@ const PartyRoom = () => {
     removeNameBarAnimation,
   } = useEntryAnimations();
   
-  // REMOVED: joinBannerNotifications state - Now handled by UnifiedPartyRoom's direct subscription
-  // Flying join banner is triggered directly in UnifiedPartyRoom via party_room_participants listener
+  // Bigo-style flying join notifications for party room
+  const { 
+    activeNotification: activeBigoJoin, 
+    addNotification: addBigoJoinNotification, 
+    completeNotification: completeBigoJoin 
+  } = useBigoJoinNotifications();
   
   
   // Flying gift animation
@@ -823,8 +827,13 @@ const PartyRoom = () => {
                 timestamp: new Date()
               }]);
               
-              // NOTE: Flying join banner is now triggered directly in UnifiedPartyRoom
-              // via its own party_room_participants subscription - no need to call here
+              // Show flying join banner (Bigo-style)
+              addBigoJoinNotification({
+                userId: payload.new.user_id,
+                userName,
+                userAvatar: avatarUrl,
+                userLevel,
+              });
               
               // NOTE: Entry animations are now triggered via UnifiedPartyRoom's onTriggerEntryEffect callback
               // This ensures consistent real-time subscription handling and prevents duplicate animations
@@ -1174,7 +1183,15 @@ const PartyRoom = () => {
         // 1. INSTANT participant refresh
         fetchParticipants();
         
-        // 2. INSTANT join message to chat
+        // 2. INSTANT flying join banner (Bigo-style)
+        addBigoJoinNotification({
+          userId: data.userId,
+          userName: data.userName,
+          userAvatar: data.userAvatar,
+          userLevel: data.userLevel,
+        });
+        
+        // 3. INSTANT join message to chat
         setJoinMessages(prev => [...prev.slice(-20), {
           id: `broadcast_join_${Date.now()}_${data.userId}`,
           userId: data.userId,
@@ -1408,9 +1425,13 @@ const PartyRoom = () => {
           left_at: null // Reset left_at in case rejoining
         }, { onConflict: 'room_id,user_id' });
       
-      // REMOVED: Duplicate join message here - now ONLY added via realtime subscription
-      // This ensures single entry point for join notifications, preventing duplicates
-      // The realtime subscription handles ALL join notifications for consistency
+      // Show self-join flying banner
+      addBigoJoinNotification({
+        userId: currentUser.id,
+        userName,
+        userAvatar: avatarUrl,
+        userLevel,
+      });
       
       // ⚡ INSTANT BROADCAST: Tell ALL other participants about this join immediately
       // This fires BEFORE postgres_changes reaches other clients (sub-100ms vs 1-3s)
@@ -2381,9 +2402,11 @@ const PartyRoom = () => {
         totalBeans={totalRoomBeans}
       />
 
-      {/* ==================== PREMIUM JOIN BANNERS ==================== */}
-      {/* REMOVED: JoinBannerContainer - Using ONLY FlyingJoinBannerContainer in UnifiedPartyRoom */}
-      {/* This ensures single link system - all banners go through UnifiedPartyRoom.flyingBanner */}
+      {/* ==================== BIGO-STYLE JOIN BANNERS ==================== */}
+      <BigoJoinBannerContainer
+        activeNotification={activeBigoJoin}
+        onComplete={completeBigoJoin}
+      />
 
       {/* ==================== PREMIUM ROOM CLOSED MODAL ==================== */}
       <RoomEndedModal
