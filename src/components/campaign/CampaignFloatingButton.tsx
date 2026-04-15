@@ -1,12 +1,17 @@
 /**
- * CampaignFloatingButton — Floating diamond icon with countdown timer
- * Shows near bottom-right above bottom nav. Click opens premium campaign popup.
- * Only visible to users (not hosts). Auto-vanishes when timer expires.
+ * CampaignFloatingButton — Floating button with per-session countdown timer.
+ * 
+ * Logic:
+ * - Each time the user opens the app, a FRESH countdown starts (duration_minutes).
+ * - If user doesn't purchase within the time, button hides until next app visit.
+ * - If user purchases (navigates to recharge), mark as purchased in localStorage → never show again for this campaign.
+ * - Floating button shows the admin-configured banner_image_url (NOT diamond icon).
+ * - Only visible to users (not hosts).
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { X, Timer } from 'lucide-react';
+import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Diamond3DIcon from '@/components/common/Diamond3DIcon';
 
@@ -27,7 +32,6 @@ interface Campaign {
   priority: number;
   schedule_start: string | null;
   schedule_end: string | null;
-  created_at?: string;
 }
 
 function formatCountdown(seconds: number): string {
@@ -39,15 +43,19 @@ function formatCountdown(seconds: number): string {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
+const SESSION_KEY = 'campaign_session_start';
+const PURCHASED_KEY = 'campaign_purchased_';
+
 export function CampaignFloatingButton() {
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [remainingSeconds, setRemainingSeconds] = useState(0);
   const [showPopup, setShowPopup] = useState(false);
   const [isHost, setIsHost] = useState<boolean | null>(null);
-  const [dismissed, setDismissed] = useState(false);
+  const [purchased, setPurchased] = useState(false);
   const navigate = useNavigate();
   const timerRef = useRef<ReturnType<typeof setInterval>>();
 
+  // Check if user is host
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -61,6 +69,7 @@ export function CampaignFloatingButton() {
     })();
   }, []);
 
+  // Fetch active campaign & init per-session timer
   const fetchCampaign = useCallback(async () => {
     const { data } = await supabase
       .from('recharge_campaigns')
@@ -74,13 +83,32 @@ export function CampaignFloatingButton() {
       const now = new Date();
       if (c.schedule_start && new Date(c.schedule_start) > now) { setCampaign(null); return; }
       if (c.schedule_end && new Date(c.schedule_end) < now) { setCampaign(null); return; }
+
+      // Check if already purchased this campaign
+      if (localStorage.getItem(PURCHASED_KEY + c.id)) {
+        setPurchased(true);
+        setCampaign(null);
+        return;
+      }
+
+      // Per-session timer: use sessionStorage to track when this session started
+      const sessionKey = SESSION_KEY + '_' + c.id;
+      let sessionStart = sessionStorage.getItem(sessionKey);
+      if (!sessionStart) {
+        // New app visit — start fresh timer
+        sessionStart = String(Date.now());
+        sessionStorage.setItem(sessionKey, sessionStart);
+      }
       
-      const startTime = c.schedule_start ? new Date(c.schedule_start).getTime() : 
-                        (c.created_at ? new Date(c.created_at).getTime() : now.getTime());
-      const endTime = startTime + (c.duration_minutes * 60 * 1000);
-      const remaining = Math.max(0, Math.floor((endTime - now.getTime()) / 1000));
-      
-      if (remaining <= 0) { setCampaign(null); return; }
+      const startMs = parseInt(sessionStart, 10);
+      const endMs = startMs + (c.duration_minutes * 60 * 1000);
+      const remaining = Math.max(0, Math.floor((endMs - Date.now()) / 1000));
+
+      if (remaining <= 0) {
+        setCampaign(null);
+        return;
+      }
+
       setCampaign(c);
       setRemainingSeconds(remaining);
     } else {
@@ -90,6 +118,7 @@ export function CampaignFloatingButton() {
 
   useEffect(() => { fetchCampaign(); }, [fetchCampaign]);
 
+  // Countdown timer
   useEffect(() => {
     if (!campaign || remainingSeconds <= 0) return;
     timerRef.current = setInterval(() => {
@@ -101,8 +130,8 @@ export function CampaignFloatingButton() {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [campaign]);
 
-  // Hide if: host, no campaign, expired, dismissed, or not logged in
-  if (isHost === true || isHost === null || !campaign || remainingSeconds <= 0 || dismissed) return null;
+  // Hide if: host, no campaign, expired, purchased, or not logged in
+  if (isHost === true || isHost === null || !campaign || remainingSeconds <= 0 || purchased) return null;
 
   const discountPercent = campaign.offer_price_usd && campaign.original_price_usd > 0
     ? Math.round((1 - campaign.offer_price_usd / campaign.original_price_usd) * 100)
@@ -110,9 +139,17 @@ export function CampaignFloatingButton() {
 
   const bonusText = discountPercent > 0 ? `${discountPercent}%` : '';
 
+  const handlePurchase = () => {
+    // Mark as purchased so it never shows again for this campaign
+    localStorage.setItem(PURCHASED_KEY + campaign.id, 'true');
+    setPurchased(true);
+    setShowPopup(false);
+    navigate('/recharge');
+  };
+
   return (
     <>
-      {/* Floating Diamond Button */}
+      {/* Floating Button — shows admin banner_image_url */}
       <AnimatePresence>
         {!showPopup && (
           <motion.div
@@ -135,9 +172,17 @@ export function CampaignFloatingButton() {
               <div className="absolute inset-0 rounded-full animate-pulse" style={{ animationDuration: '2s' }}>
                 <div className="w-full h-full rounded-full bg-gradient-to-tr from-amber-400 via-yellow-500 to-orange-500 opacity-80" />
               </div>
-              {/* Inner circle with Diamond icon */}
-              <div className="absolute inset-[3px] rounded-full bg-gradient-to-br from-[#1a1a2e] to-[#16213e] flex items-center justify-center border border-amber-500/40">
-                <Diamond3DIcon size={30} />
+              {/* Inner circle — admin logo from banner_image_url */}
+              <div className="absolute inset-[3px] rounded-full bg-gradient-to-br from-[#1a1a2e] to-[#16213e] flex items-center justify-center border border-amber-500/40 overflow-hidden">
+                {campaign.banner_image_url ? (
+                  <img 
+                    src={campaign.banner_image_url} 
+                    alt="" 
+                    className="w-full h-full rounded-full object-cover"
+                  />
+                ) : (
+                  <Diamond3DIcon size={30} />
+                )}
               </div>
             </button>
           </motion.div>
@@ -174,10 +219,8 @@ export function CampaignFloatingButton() {
 
               {/* Top section — Bonus banner */}
               <div className="relative pt-5 pb-3 flex flex-col items-center">
-                {/* Golden glow background */}
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-40 bg-amber-500/15 rounded-full blur-3xl" />
                 
-                {/* Bonus percentage - big golden text */}
                 {bonusText && (
                   <div className="relative z-10 px-6 py-3 rounded-xl border-2 border-amber-500/50 bg-gradient-to-b from-amber-900/60 to-amber-950/40">
                     <p className="text-center">
@@ -191,7 +234,6 @@ export function CampaignFloatingButton() {
                   </div>
                 )}
 
-                {/* Badge text */}
                 {campaign.badge_text && (
                   <div className="mt-3 px-4 py-1 rounded-full bg-white/10 border border-white/20">
                     <span className="text-white/70 text-xs font-medium">{campaign.badge_text}</span>
@@ -199,12 +241,11 @@ export function CampaignFloatingButton() {
                 )}
               </div>
 
-              {/* Campaign name */}
               <p className="text-white/80 text-sm font-semibold text-center px-4">
                 {campaign.campaign_name}
               </p>
 
-              {/* Diamond amount with icon */}
+              {/* Diamond amount */}
               <div className="flex items-center justify-center gap-2 mt-3">
                 <Diamond3DIcon size={22} />
                 <span className="text-amber-400 font-bold text-2xl">
@@ -239,22 +280,19 @@ export function CampaignFloatingButton() {
               <div className="px-5 pt-4 pb-3">
                 <motion.button
                   whileTap={{ scale: 0.97 }}
-                  onClick={() => {
-                    setShowPopup(false);
-                    navigate('/recharge');
-                  }}
+                  onClick={handlePurchase}
                   className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-500 text-black font-extrabold text-base shadow-lg shadow-amber-500/30 active:shadow-sm transition-shadow"
                 >
                   Buy Now
                 </motion.button>
               </div>
 
-              {/* Dismiss */}
+              {/* Close (not dismiss permanently) */}
               <button
-                onClick={() => { setShowPopup(false); setDismissed(true); }}
+                onClick={() => setShowPopup(false)}
                 className="w-full text-center text-white/25 text-[11px] pb-4"
               >
-                Not interested
+                Not now
               </button>
             </motion.div>
           </motion.div>
