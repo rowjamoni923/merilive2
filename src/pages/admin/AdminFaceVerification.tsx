@@ -70,6 +70,8 @@ interface Submission {
     app_uid: string;
     gender: string;
     is_host: boolean;
+    is_face_verified: boolean | null;
+    is_verified: boolean | null;
     country_code: string | null;
     country_flag: string | null;
     country_name: string | null;
