@@ -7329,6 +7329,66 @@ export type Database = {
         }
         Relationships: []
       }
+      recharge_campaigns: {
+        Row: {
+          badge_text: string | null
+          banner_image_url: string | null
+          bonus_diamonds: number
+          campaign_name: string
+          campaign_type: string
+          created_at: string
+          diamonds_amount: number
+          display_locations: string[] | null
+          duration_minutes: number
+          id: string
+          is_active: boolean
+          is_first_recharge_only: boolean
+          offer_price_usd: number | null
+          original_price_usd: number
+          priority: number
+          target_audience: string
+          updated_at: string
+        }
+        Insert: {
+          badge_text?: string | null
+          banner_image_url?: string | null
+          bonus_diamonds?: number
+          campaign_name: string
+          campaign_type?: string
+          created_at?: string
+          diamonds_amount?: number
+          display_locations?: string[] | null
+          duration_minutes?: number
+          id?: string
+          is_active?: boolean
+          is_first_recharge_only?: boolean
+          offer_price_usd?: number | null
+          original_price_usd?: number
+          priority?: number
+          target_audience?: string
+          updated_at?: string
+        }
+        Update: {
+          badge_text?: string | null
+          banner_image_url?: string | null
+          bonus_diamonds?: number
+          campaign_name?: string
+          campaign_type?: string
+          created_at?: string
+          diamonds_amount?: number
+          display_locations?: string[] | null
+          duration_minutes?: number
+          id?: string
+          is_active?: boolean
+          is_first_recharge_only?: boolean
+          offer_price_usd?: number | null
+          original_price_usd?: number
+          priority?: number
+          target_audience?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       recharge_transactions: {
         Row: {
           admin_notes: string | null
@@ -9209,6 +9269,47 @@ export type Database = {
           id?: string
         }
         Relationships: []
+      }
+      user_campaign_views: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          first_seen_at: string
+          id: string
+          is_redeemed: boolean
+          redeemed_at: string | null
+          timer_started_at: string
+          user_id: string
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          first_seen_at?: string
+          id?: string
+          is_redeemed?: boolean
+          redeemed_at?: string | null
+          timer_started_at?: string
+          user_id: string
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          first_seen_at?: string
+          id?: string
+          is_redeemed?: boolean
+          redeemed_at?: string | null
+          timer_started_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_campaign_views_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "recharge_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_entry_banners: {
         Row: {
