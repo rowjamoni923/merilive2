@@ -19,14 +19,46 @@ import {
   RefreshCw, Wand2, Smile, Search, Crown, Star, Diamond
 } from "lucide-react";
 
+// Preview image imports for built-in MediaPipe filters
+import skinSmoothingImg from '@/assets/beauty-filters/skin-smoothing.png';
+import skinWhiteningImg from '@/assets/beauty-filters/skin-whitening.png';
+import rosyCheeksImg from '@/assets/beauty-filters/rosy-cheeks.png';
+import sharpnessImg from '@/assets/beauty-filters/sharpness.png';
+import glowImg from '@/assets/beauty-filters/glow.png';
+import warmToneImg from '@/assets/beauty-filters/warm-tone.png';
+import eyeBrightImg from '@/assets/beauty-filters/eye-bright.png';
+import skinToneImg from '@/assets/beauty-filters/skin-tone.png';
+import faceSlimImg from '@/assets/beauty-filters/face-slim.png';
+import chinSlimImg from '@/assets/beauty-filters/chin-slim.png';
+import eyeEnlargeImg from '@/assets/beauty-filters/eye-enlarge.png';
+import noseNarrowImg from '@/assets/beauty-filters/nose-narrow.png';
+import lipColorImg from '@/assets/beauty-filters/lip-color.png';
+
+const MEDIAPIPE_PREVIEW_MAP: Record<string, string> = {
+  smoothness: skinSmoothingImg,
+  whitening: skinWhiteningImg,
+  redness: rosyCheeksImg,
+  sharpness: sharpnessImg,
+  glow: glowImg,
+  warmth: warmToneImg,
+  eyeBright: eyeBrightImg,
+  skinTone: skinToneImg,
+  faceSlim: faceSlimImg,
+  chinSlim: chinSlimImg,
+  eyeEnlarge: eyeEnlargeImg,
+  noseNarrow: noseNarrowImg,
+  lipColor: lipColorImg,
+};
+
 interface BeautyFilter {
   id: string;
   name: string;
   description: string | null;
   category: string;
   file_url: string;
-  preview_image_url: string | null;
-  file_type: string;
+  preview_url: string | null;
+  filter_type: string;
+  filter_key: string | null;
   file_size_bytes: number | null;
   is_active: boolean;
   is_premium: boolean;
@@ -35,6 +67,7 @@ interface BeautyFilter {
   min_level: number;
   display_order: number;
   tags: string[];
+  intensity_default: number | null;
   created_at: string;
 }
 
@@ -44,8 +77,9 @@ interface ARSticker {
   description: string | null;
   category: string;
   file_url: string;
-  preview_image_url: string | null;
-  file_type: string;
+  preview_url: string | null;
+  filter_type: string;
+  filter_key: string | null;
   file_size_bytes: number | null;
   is_active: boolean;
   is_premium: boolean;
@@ -54,6 +88,7 @@ interface ARSticker {
   min_level: number;
   display_order: number;
   tags: string[];
+  intensity_default: number | null;
   created_at: string;
 }
 
@@ -162,7 +197,7 @@ const AdminBeautyFilters = () => {
     const folder = activeTab === "beauty" ? "beauty-filters" : "ar-stickers";
 
     let fileUrl = editingItem?.file_url || "";
-    let previewUrl = editingItem?.preview_image_url || "";
+    let previewUrl = editingItem?.preview_url || "";
     let fileSize = editingItem?.file_size_bytes || 0;
 
     // Upload main file (.deepar / .svga / .json)
@@ -196,11 +231,11 @@ const AdminBeautyFilters = () => {
       description: formData.description.trim() || null,
       category: formData.category,
       file_url: fileUrl,
-      preview_image_url: previewUrl || null,
-      file_type: selectedFile?.name.endsWith(".deepar") ? "deepar"
+      preview_url: previewUrl || null,
+      filter_type: selectedFile?.name.endsWith(".deepar") ? "deepar"
         : selectedFile?.name.endsWith(".svga") ? "svga"
         : selectedFile?.name.endsWith(".json") ? "lottie"
-        : editingItem ? (editingItem as any).file_type : "deepar",
+        : editingItem ? (editingItem as any).filter_type : "deepar",
       file_size_bytes: fileSize,
       is_premium: formData.is_premium,
       is_free: formData.is_free,
@@ -608,23 +643,35 @@ const ItemGrid = ({
             <div className="flex items-start gap-3">
               {/* Preview */}
               <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-fuchsia-500/20 to-purple-500/20 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                {item.preview_image_url ? (
-                  <img src={item.preview_image_url} alt={item.name} className="w-full h-full object-cover rounded-xl" />
-                ) : (
-                  <div className="text-fuchsia-400">{getFileTypeIcon(item.file_type)}</div>
-                )}
+                {(() => {
+                  // For MediaPipe filters, use imported asset images
+                  const mpKey = (item as any).filter_key;
+                  const mpPreview = mpKey ? MEDIAPIPE_PREVIEW_MAP[mpKey] : null;
+                  const previewSrc = mpPreview || item.preview_url;
+                  if (previewSrc) {
+                    return <img src={previewSrc} alt={item.name} className="w-full h-full object-cover rounded-xl" loading="lazy" />;
+                  }
+                  return <div className="text-fuchsia-400">{getFileTypeIcon(item.filter_type)}</div>;
+                })()}
               </div>
 
               {/* Info */}
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-sm truncate text-foreground">{item.name}</h3>
+                {item.description && (
+                  <p className="text-[10px] text-muted-foreground truncate mt-0.5">{item.description}</p>
+                )}
                 <div className="flex items-center gap-1 mt-1 flex-wrap">
                   <Badge variant="outline" className="text-[10px] px-1.5 py-0">
                     {item.category}
                   </Badge>
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                    {item.file_type}
-                  </Badge>
+                  {item.filter_type === 'mediapipe' ? (
+                    <Badge className="bg-blue-500/20 text-blue-400 text-[10px] px-1.5 py-0 border-0">🤖 AI</Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                      {item.filter_type}
+                    </Badge>
+                  )}
                   <span className="text-[10px] text-muted-foreground">{formatSize(item.file_size_bytes)}</span>
                 </div>
                 <div className="flex items-center gap-1 mt-1">
