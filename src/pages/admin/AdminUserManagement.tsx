@@ -562,12 +562,20 @@ export default function AdminUserManagement() {
 
     setActionLoading(true);
     try {
+      const newVerified = !isVerified;
+      
+      // Update is_verified
       const { error } = await supabase
         .from("profiles")
-        .update({ is_verified: !isVerified })
+        .update({ 
+          is_verified: newVerified,
+          is_face_verified: newVerified,
+          face_verified_at: newVerified ? new Date().toISOString() : null,
+        })
         .eq("id", userId);
       if (error) throw error;
-      toast.success(isVerified ? "Verification removed" : "User verified");
+      
+      toast.success(isVerified ? "Verification removed (face + profile)" : "User fully verified");
       fetchUsers();
     } catch (error) {
       console.error("Error verifying user:", error);
@@ -636,11 +644,25 @@ export default function AdminUserManagement() {
 
     setActionLoading(true);
     try {
-      const { error } = await supabase.rpc('admin_update_user_gender', {
+      // Set gender to female (host convention)
+      const { error: genderErr } = await supabase.rpc('admin_update_user_gender', {
         _user_id: hostId,
         _gender: 'female',
       });
-      if (error) throw error;
+      if (genderErr) throw genderErr;
+
+      // Set host_status = approved, is_face_verified = true, is_verified = true
+      const { error: profileErr } = await supabase
+        .from("profiles")
+        .update({
+          host_status: 'approved',
+          is_face_verified: true,
+          is_verified: true,
+          face_verified_at: new Date().toISOString(),
+        })
+        .eq("id", hostId);
+      if (profileErr) throw profileErr;
+
       toast.success("Host approved successfully");
       fetchHosts();
       fetchHostStats();
@@ -659,11 +681,23 @@ export default function AdminUserManagement() {
 
     setActionLoading(true);
     try {
-      const { error } = await supabase.rpc('admin_update_user_gender', {
+      const { error: genderErr } = await supabase.rpc('admin_update_user_gender', {
         _user_id: hostId,
         _gender: 'male',
       });
-      if (error) throw error;
+      if (genderErr) throw genderErr;
+
+      // Also reject host_status and clear face verification
+      const { error: profileErr } = await supabase
+        .from("profiles")
+        .update({
+          host_status: 'rejected',
+          is_face_verified: false,
+          face_verified_at: null,
+        })
+        .eq("id", hostId);
+      if (profileErr) throw profileErr;
+
       toast.success("Host rejected successfully");
       fetchHosts();
       fetchHostStats();
