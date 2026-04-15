@@ -2432,8 +2432,6 @@ const PartyRoom = () => {
         enabled={deepAR.beautyEnabled}
         onSettingsChange={deepAR.handleBeautySettingsChange}
         onEnabledChange={deepAR.handleBeautyEnabledChange}
-        activeSticker={deepAR.activeSticker}
-        onStickerChange={deepAR.handleStickerChange}
       />
       <StickerOverlay stickerName={deepAR.activeSticker} />
     </>
