@@ -845,6 +845,16 @@ const App = () => {
     return <div className="min-h-screen bg-background" />;
   }
 
+  // 🔒 BROWSER GUARD: Block public browser access to protected app routes
+  // Only native app and Lovable preview can access the full app
+  if (!isNative && !isLovablePreview && !isBrowserAllowedRoute) {
+    // Redirect unauthorized browser users to auth page
+    if (currentPath !== '/auth' && !currentPath.startsWith('/auth')) {
+      window.location.replace('/auth');
+      return <div className="min-h-screen bg-background" />;
+    }
+  }
+
   // 🛠️ MAINTENANCE MODE SCREEN - Block all user access (allow admin)
   const isAdmin = window.location.pathname.startsWith('/admin');
   if (maintenanceMode?.enabled && !isAdmin) {
