@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import {
   Plus, Edit2, Trash2, RefreshCw, Diamond, Clock, Image as ImageIcon,
   Upload, Eye, EyeOff, Sparkles, Target, Zap, Gift, Timer, DollarSign,
@@ -537,7 +537,7 @@ export default function AdminRechargeCampaigns() {
             </DialogTitle>
           </DialogHeader>
 
-          <ScrollArea className="flex-1 min-h-0 pr-4">
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain pr-4" style={{ WebkitOverflowScrolling: 'touch' }}>
             <div className="space-y-5 pb-4">
               {/* Basic Info */}
               <div className="space-y-3">
@@ -911,7 +911,7 @@ export default function AdminRechargeCampaigns() {
                 </div>
               </div>
             </div>
-          </ScrollArea>
+          </div>
 
           <div className="flex gap-2 pt-2 flex-shrink-0">
             <Button variant="outline" className="flex-1" onClick={() => setDialogOpen(false)}>
