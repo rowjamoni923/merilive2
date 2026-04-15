@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, Suspense, lazy, useCallback } from "react";
+import { TopUpCampaignBanner } from "@/components/campaign/TopUpCampaignBanner";
 
 import { useContentModeration } from "@/hooks/useContentModeration";
 import { detectAndProcessViolation } from "@/utils/contactDetection";
