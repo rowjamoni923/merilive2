@@ -12,6 +12,8 @@ import { Capacitor } from '@capacitor/core';
 const INTERNAL_DOMAINS = [
   'merilive.com',
   'www.merilive.com',
+  'merilife.com',
+  'www.merilife.com',
   'merilive.top',
   'merilive.lovable.app',
   new URL(import.meta.env.VITE_SUPABASE_URL).hostname,
