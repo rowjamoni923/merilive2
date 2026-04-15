@@ -433,6 +433,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           vipResult,
           conversationsResult,
           agencyBeansResult,
+          faceVerifPendingResult,
         ] = await Promise.all([
           // Followers count
           supabase.from("followers").select("*", { count: 'exact', head: true }).eq("following_id", targetUserId),
@@ -462,6 +463,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           isOwnProfileCheck && user ? supabase.from("conversations").select("id").or(`participant1_id.eq.${user.id},participant2_id.eq.${user.id}`) : { data: null },
           // Agency beans_balance (for agency owners)
           isOwnProfileCheck && user && profileData?.is_agency_owner ? supabase.from("agencies").select("id, beans_balance, diamond_balance").eq("owner_id", user.id).eq("is_active", true).maybeSingle() : { data: null },
+          // Face verification pending check
+          isOwnProfileCheck && user && !profileData?.is_face_verified ? supabase.from("face_verification_submissions").select("id", { count: 'exact', head: true }).eq("user_id", user.id).eq("status", "pending") : { count: 0 },
         ]);
 
         if (!isMounted) return;
@@ -1160,6 +1163,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
   // Check face verification status
   const isFaceVerified = (profile as any)?.is_face_verified;
+  const [faceVerificationPending, setFaceVerificationPending] = useState(false);
 
   // Open Call Price Modal - fetch settings and current rate
   const handleOpenCallPriceModal = async () => {
