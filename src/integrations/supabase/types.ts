@@ -2129,6 +2129,7 @@ export type Database = {
           country_name: string | null
           created_at: string | null
           currency_code: string
+          currency_symbol: string | null
           id: string
           is_active: boolean | null
           rate_to_usd: number
@@ -2140,6 +2141,7 @@ export type Database = {
           country_name?: string | null
           created_at?: string | null
           currency_code: string
+          currency_symbol?: string | null
           id?: string
           is_active?: boolean | null
           rate_to_usd: number
@@ -2151,6 +2153,7 @@ export type Database = {
           country_name?: string | null
           created_at?: string | null
           currency_code?: string
+          currency_symbol?: string | null
           id?: string
           is_active?: boolean | null
           rate_to_usd?: number
