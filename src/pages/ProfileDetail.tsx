@@ -1196,7 +1196,7 @@ const ProfileDetail = () => {
 
           {/* Action Buttons - Only for OTHER users' profiles */}
           {!isOwnProfile && (
-            <div className="grid grid-cols-2 gap-3 mt-5">
+            <div className={`grid ${profile.is_online && !profile.is_in_call && (profile.gender === 'female' || profile.gender === 'Female' || profile.is_host) ? 'grid-cols-3' : 'grid-cols-2'} gap-3 mt-5`}>
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={() => navigate(`/chat?user=${userId}`)}
@@ -1210,7 +1210,7 @@ const ProfileDetail = () => {
                 <span>Message</span>
               </motion.button>
 
-              {profile.is_online && !profile.is_in_call && (profile.gender === 'female' || profile.gender === 'Female' || profile.is_host) ? (
+              {profile.is_online && !profile.is_in_call && (profile.gender === 'female' || profile.gender === 'Female' || profile.is_host) && (
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={handleCallClick}
@@ -1234,20 +1234,20 @@ const ProfileDetail = () => {
                     <span className="text-xs font-bold">{callRate ? `${callRate}/min` : '...'}</span>
                   </div>
                 </motion.button>
-              ) : (
-                <motion.button
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setShowGiftPanel(true)}
-                  className="flex items-center justify-center gap-2 py-4 rounded-2xl text-white font-semibold"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(245,158,11,0.8), rgba(249,115,22,0.8))',
-                    boxShadow: '0 8px 30px rgba(245,158,11,0.3)',
-                  }}
-                >
-                  <Gift className="w-5 h-5" />
-                  <span>Gift</span>
-                </motion.button>
               )}
+
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowGiftPanel(true)}
+                className="flex items-center justify-center gap-2 py-4 rounded-2xl text-white font-semibold"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(245,158,11,0.8), rgba(249,115,22,0.8))',
+                  boxShadow: '0 8px 30px rgba(245,158,11,0.3)',
+                }}
+              >
+                <Gift className="w-5 h-5" />
+                <span>Gift</span>
+              </motion.button>
             </div>
           )}
         </div>
@@ -1255,7 +1255,7 @@ const ProfileDetail = () => {
 
 
       {/* Gifts Received Section - For Hosts */}
-      {profile?.is_host && (
+      {giftsReceived.length > 0 && (
         <div className="mx-3 mt-4">
           <motion.div
             initial={{ y: 20, opacity: 0 }}
