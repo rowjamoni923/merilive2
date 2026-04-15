@@ -9,5 +9,7 @@
         <domain includeSubdomains="true">supabase.co</domain>
         <domain includeSubdomains="true">livekit.cloud</domain>
         <domain includeSubdomains="true">deepar.ai</domain>
+        <domain includeSubdomains="true">merilive.com</domain>
+        <domain includeSubdomains="true">merilife.com</domain>
     </domain-config>
 </network-security-config>
