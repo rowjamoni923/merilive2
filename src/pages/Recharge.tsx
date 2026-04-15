@@ -1248,6 +1248,8 @@ const Recharge = () => {
           description: `${formatNumber(selectedPackage.coins)} diamonds added to your account`,
         });
         
+        // Mark campaign as purchased if navigated from campaign
+        if (campaignId) localStorage.setItem('campaign_purchased_' + campaignId, 'true');
         setSelectedPackageId(null);
       } else {
         toast({
@@ -1512,6 +1514,9 @@ const Recharge = () => {
           title: "🎉 Instant Success!",
           description: `${formatNumber(totalCoinsToAdd)} diamonds added to your account!${bonusCoins > 0 ? ` (+${formatNumber(bonusCoins)} bonus!)` : ''}`,
         });
+
+        // Mark campaign as purchased if navigated from campaign
+        if (campaignId) localStorage.setItem('campaign_purchased_' + campaignId, 'true');
 
         // Update local balance
         updateCachedBalance(currentBalance + totalCoinsToAdd);
