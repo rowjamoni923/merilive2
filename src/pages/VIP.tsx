@@ -354,34 +354,33 @@ const VIP = () => {
         }
       }
 
-      // Fetch ALL unlocked entry name bars for user's level
+      // Fetch ALL entry name bars (show locked ones too)
       const { data: entryNameBars } = await supabase
         .from("entry_name_bars")
         .select("*")
         .eq("is_active", true)
-        .lte("min_level", userLevel)
-        .order("min_level", { ascending: false });
+        .order("min_level", { ascending: true });
 
       if (entryNameBars) {
         for (const bar of entryNameBars) {
           const barAssetUrl = bar.animation_url || bar.preview_url;
-          if (isValidAssetUrl(barAssetUrl)) {
-            const isEquipped = bar.id === equippedEntryNameBarId;
-            const alreadyExists = allPrivileges.some(p => p.item_id === bar.id);
-            if (!alreadyExists) {
-              allPrivileges.push({
-                id: `enb_${bar.id}`,
-                item_id: bar.id,
-                name: bar.name,
-                category: 'entry_name_bar',
-                preview_url: bar.preview_url,
-                animation_url: bar.animation_url || bar.preview_url,
-                is_equipped: isEquipped,
-                expires_at: null,
-                source: 'level',
-                unlock_level: bar.min_level || 1,
-              });
-            }
+          const isEquipped = bar.id === equippedEntryNameBarId;
+          const alreadyExists = allPrivileges.some(p => p.item_id === bar.id);
+          const isLocked = (bar.min_level || 1) > userLevel;
+          if (!alreadyExists) {
+            allPrivileges.push({
+              id: `enb_${bar.id}`,
+              item_id: bar.id,
+              name: bar.name,
+              category: 'entry_name_bar',
+              preview_url: bar.preview_url,
+              animation_url: bar.animation_url || bar.preview_url,
+              is_equipped: isEquipped,
+              is_locked: isLocked,
+              expires_at: null,
+              source: 'level',
+              unlock_level: bar.min_level || 1,
+            });
           }
         }
       }
