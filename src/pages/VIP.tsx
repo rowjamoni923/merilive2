@@ -888,21 +888,29 @@ const VIP = () => {
     }
   };
 
-  // Group privileges by category - SEPARATE entry effects and entry name bars
+  // Group privileges by category - SEPARATE sections
   const framePrivileges = userPrivileges.filter(p => 
     p.category === 'frame' || p.category === 'portrait_frame'
   );
-  // Entry Effects = full-screen entrance animations (entrance, entrance_effect, entry_bar, vehicle, vehicle_entrance)
+  // Entry Effects = full-screen entrance animations
   const entryEffectPrivileges = userPrivileges.filter(p => 
-    p.category === 'entrance' || p.category === 'entrance_effect' || p.category === 'entry_bar' ||
+    p.category === 'entrance' || p.category === 'entrance_effect'
+  );
+  // Entry Name Bars = sliding name banner
+  const entryNameBarPrivileges = userPrivileges.filter(p => 
+    p.category === 'entry_name_bar' || p.category === 'entry_bar'
+  );
+  // Chat Bubbles
+  const bubblePrivileges = userPrivileges.filter(p => 
+    p.category === 'bubble'
+  );
+  // Vehicles
+  const vehiclePrivileges = userPrivileges.filter(p => 
     p.category === 'vehicle' || p.category === 'vehicle_entrance'
   );
-  // Entry Name Bars = sliding name banner from entry_name_bars table (category: entry_name_bar)
-  const entryNameBarPrivileges = userPrivileges.filter(p => 
-    p.category === 'entry_name_bar'
-  );
+  // Other
   const otherPrivileges = userPrivileges.filter(p => 
-    !['frame', 'portrait_frame', 'entrance', 'entry_bar', 'entrance_effect', 'entry_name_bar', 'vehicle', 'vehicle_entrance'].includes(p.category)
+    !['frame', 'portrait_frame', 'entrance', 'entrance_effect', 'entry_name_bar', 'entry_bar', 'bubble', 'vehicle', 'vehicle_entrance'].includes(p.category)
   );
 
   const getCategoryLabel = (category: string) => {
