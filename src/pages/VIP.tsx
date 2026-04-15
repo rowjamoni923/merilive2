@@ -385,34 +385,32 @@ const VIP = () => {
         }
       }
 
-      // Fetch ALL unlocked entry banners (entrance animations) for user's level
+      // Fetch ALL entry banners (entrance animations) - show locked ones too
       const { data: entryBanners } = await supabase
         .from("entry_banners")
         .select("*")
         .eq("is_active", true)
-        .lte("min_level", userLevel)
-        .order("min_level", { ascending: false });
+        .order("min_level", { ascending: true });
 
       if (entryBanners) {
         for (const banner of entryBanners) {
-          const bannerAssetUrl = banner.animation_url || banner.preview_url;
-          if (isValidAssetUrl(bannerAssetUrl)) {
-            const isEquipped = banner.id === equippedEntranceId;
-            const alreadyExists = allPrivileges.some(p => p.item_id === banner.id);
-            if (!alreadyExists) {
-              allPrivileges.push({
-                id: `eb_${banner.id}`,
-                item_id: banner.id,
-                name: banner.name,
-                category: 'entrance',
-                preview_url: banner.preview_url,
-                animation_url: banner.animation_url || banner.preview_url,
-                is_equipped: isEquipped,
-                expires_at: null,
-                source: 'level',
-                unlock_level: banner.min_level || 1,
-              });
-            }
+          const isEquipped = banner.id === equippedEntranceId;
+          const alreadyExists = allPrivileges.some(p => p.item_id === banner.id);
+          const isLocked = (banner.min_level || 1) > userLevel;
+          if (!alreadyExists) {
+            allPrivileges.push({
+              id: `eb_${banner.id}`,
+              item_id: banner.id,
+              name: banner.name,
+              category: 'entrance',
+              preview_url: banner.preview_url,
+              animation_url: banner.animation_url || banner.preview_url,
+              is_equipped: isEquipped,
+              is_locked: isLocked,
+              expires_at: null,
+              source: 'level',
+              unlock_level: banner.min_level || 1,
+            });
           }
         }
       }
