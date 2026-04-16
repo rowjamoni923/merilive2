@@ -93,7 +93,20 @@ interface DiamondPackage {
   diamond_amount: number;
   price_usd: number;
   is_active: boolean;
+  display_order?: number | null;
+  description?: string | null;
 }
+
+const getDiamondPackageLevel = (pkg: Partial<DiamondPackage>, index: number) => {
+  const descriptionMatch = pkg.description?.match(/level\s*(\d+)/i);
+  return pkg.display_order || (descriptionMatch ? Number(descriptionMatch[1]) : index + 1);
+};
+
+const normalizeDiamondPackages = (rows: any[] = []): DiamondPackage[] =>
+  rows.map((pkg, index) => ({
+    ...pkg,
+    level_number: getDiamondPackageLevel(pkg, index),
+  }));
 
 const AdminHelperManagement = () => {
   const { toast } = useToast();
@@ -208,8 +221,8 @@ const AdminHelperManagement = () => {
     const { data } = await supabase
       .from('helper_diamond_packages')
       .select('*')
-      .order('level_number', { ascending: true });
-    setDiamondPackages((data || []) as DiamondPackage[]);
+      .order('display_order', { ascending: true });
+    setDiamondPackages(normalizeDiamondPackages(data || []));
   };
 
   const loadStats = async () => {
@@ -531,7 +544,7 @@ const AdminHelperManagement = () => {
 
   const updateDiamondPackage = async (pkg: DiamondPackage) => {
     try {
-      await supabase
+      const { error } = await supabase
         .from('helper_diamond_packages')
         .update({
           diamond_amount: pkg.diamond_amount,
@@ -540,6 +553,8 @@ const AdminHelperManagement = () => {
           updated_at: new Date().toISOString()
         })
         .eq('id', pkg.id);
+
+      if (error) throw error;
 
       toast({ title: "Saved!", description: `Level ${pkg.level_number} pricing updated` });
       loadDiamondPricing();

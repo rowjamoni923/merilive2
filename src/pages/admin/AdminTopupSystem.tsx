@@ -115,6 +115,7 @@ interface LevelTier {
   badge_color: string;
   description: string;
   is_active: boolean;
+  benefits?: any;
 }
 
 const LEVEL_COLORS: { [key: number]: string } = {
@@ -126,6 +127,26 @@ const LEVEL_COLORS: { [key: number]: string } = {
 };
 
 const LEVEL_NAMES = ['Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond'];
+
+const DEFAULT_LEVEL_TIERS: LevelTier[] = [
+  { id: 'temp-1', level_number: 1, level_name: 'Bronze Trader', upgrade_cost_usd: 0, min_withdrawal_amount: 0, max_withdrawal_amount: 0, commission_rate: 0, badge_color: '#94A3B8', description: 'Entry level helper access', is_active: true },
+  { id: 'temp-2', level_number: 2, level_name: 'Silver Trader', upgrade_cost_usd: 25, min_withdrawal_amount: 0, max_withdrawal_amount: 0, commission_rate: 2, badge_color: '#10B981', description: 'Improved pricing and transfer access', is_active: true },
+  { id: 'temp-3', level_number: 3, level_name: 'Gold Trader', upgrade_cost_usd: 50, min_withdrawal_amount: 0, max_withdrawal_amount: 0, commission_rate: 4, badge_color: '#3B82F6', description: 'Higher commission and larger limits', is_active: true },
+  { id: 'temp-4', level_number: 4, level_name: 'Platinum Trader', upgrade_cost_usd: 100, min_withdrawal_amount: 0, max_withdrawal_amount: 0, commission_rate: 6, badge_color: '#8B5CF6', description: 'Advanced helper privileges', is_active: true },
+  { id: 'temp-5', level_number: 5, level_name: 'Diamond Trader', upgrade_cost_usd: 200, min_withdrawal_amount: 0, max_withdrawal_amount: 0, commission_rate: 8, badge_color: '#F59E0B', description: 'Payroll helper access', is_active: true },
+];
+
+const getTierDescription = (benefits: any) => {
+  if (!benefits) return '';
+  if (typeof benefits === 'string') return benefits;
+  if (typeof benefits === 'object' && typeof benefits.description === 'string') return benefits.description;
+  return '';
+};
+
+const normalizeLevelTier = (tier: any): LevelTier => ({
+  ...tier,
+  description: getTierDescription(tier?.benefits),
+});
 
 const AdminTopupSystem = () => {
   const navigate = useNavigate();
@@ -251,10 +272,11 @@ const AdminTopupSystem = () => {
         .select('*')
         .order('level_number', { ascending: true });
       if (!error && data) {
-        setLevelTiers(data);
+        setLevelTiers(data.length > 0 ? data.map(normalizeLevelTier) : DEFAULT_LEVEL_TIERS);
       }
     } catch (error) {
       console.error('Error fetching level tiers:', error);
+      setLevelTiers(DEFAULT_LEVEL_TIERS);
     }
   };
 
@@ -271,16 +293,24 @@ const AdminTopupSystem = () => {
         max_withdrawal_amount: Number(editingTier.max_withdrawal_amount) || 0,
         commission_rate: Number(editingTier.commission_rate) || 0,
         badge_color: editingTier.badge_color,
-        description: editingTier.description,
+        benefits: editingTier.description?.trim() ? { description: editingTier.description.trim() } : null,
         is_active: editingTier.is_active
       };
       
       console.log('[AdminTopupSystem] Saving tier:', editingTier.id, updateData);
-      
-      const { error } = await supabase
-        .from('trader_level_tiers')
-        .update(updateData)
-        .eq('id', editingTier.id);
+
+      const isNewTier = editingTier.id.startsWith('temp-');
+      const { error } = isNewTier
+        ? await supabase
+            .from('trader_level_tiers')
+            .insert({
+              ...updateData,
+              level_number: editingTier.level_number,
+            })
+        : await supabase
+            .from('trader_level_tiers')
+            .update(updateData)
+            .eq('id', editingTier.id);
       
       if (error) {
         console.error('[AdminTopupSystem] Save error:', error);

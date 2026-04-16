@@ -22,10 +22,21 @@ interface DiamondPackage {
   level_number: number;
   diamond_amount: number;
   price_usd: number;
-  price_local: number | null;
-  currency_code: string;
   is_active: boolean;
+  display_order: number | null;
+  description?: string | null;
 }
+
+const getPackageLevelNumber = (pkg: Partial<DiamondPackage>, index: number) => {
+  const descriptionMatch = pkg.description?.match(/level\s*(\d+)/i);
+  return pkg.display_order || (descriptionMatch ? Number(descriptionMatch[1]) : index + 1);
+};
+
+const normalizePackages = (rows: any[] = []): DiamondPackage[] =>
+  rows.map((pkg, index) => ({
+    ...pkg,
+    level_number: getPackageLevelNumber(pkg, index),
+  }));
 
 const AdminHelperDiamondPricing = () => {
   const { toast } = useToast();
@@ -43,10 +54,10 @@ const AdminHelperDiamondPricing = () => {
       const { data, error } = await supabase
         .from('helper_diamond_packages')
         .select('*')
-        .order('level_number', { ascending: true });
+        .order('display_order', { ascending: true });
 
       if (error) throw error;
-      setPackages((data || []) as DiamondPackage[]);
+      setPackages(normalizePackages(data || []));
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
@@ -68,8 +79,6 @@ const AdminHelperDiamondPricing = () => {
         .update({
           diamond_amount: pkg.diamond_amount,
           price_usd: pkg.price_usd,
-          price_local: pkg.price_local,
-          currency_code: pkg.currency_code,
           is_active: pkg.is_active,
           updated_at: new Date().toISOString()
         })
@@ -163,8 +172,6 @@ const AdminHelperDiamondPricing = () => {
                 <TableHead>Level</TableHead>
                 <TableHead>Diamond Amount</TableHead>
                 <TableHead>Price (USD)</TableHead>
-                <TableHead>Price (Local)</TableHead>
-                <TableHead>Currency</TableHead>
                 <TableHead>Active</TableHead>
                 <TableHead>Action</TableHead>
               </TableRow>
@@ -212,23 +219,6 @@ const AdminHelperDiamondPricing = () => {
                           step="0.01"
                         />
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        type="number"
-                        value={pkg.price_local || ''}
-                        onChange={(e) => updatePackage(pkg.id, 'price_local', e.target.value ? Number(e.target.value) : null)}
-                        className="w-28"
-                        placeholder="Optional"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Input
-                        value={pkg.currency_code}
-                        onChange={(e) => updatePackage(pkg.id, 'currency_code', e.target.value)}
-                        className="w-20"
-                        placeholder="USD"
-                      />
                     </TableCell>
                     <TableCell>
                       <Switch
