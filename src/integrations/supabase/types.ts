@@ -1152,47 +1152,113 @@ export type Database = {
       }
       app_event_themes: {
         Row: {
+          accent_color: string | null
+          auto_schedule: boolean | null
+          card_border_color: string | null
           color_scheme: Json | null
+          country_code: string | null
           created_at: string | null
+          description: string | null
+          display_order: number | null
           end_date: string | null
+          ends_at: string | null
           event_type: string
+          floating_particles: string[] | null
+          header_gradient_from: string | null
+          header_gradient_to: string | null
           home_banner_url: string | null
           icon_set: Json | null
           id: string
           is_active: boolean | null
           login_bg_url: string | null
+          nav_active_color: string | null
+          nav_bg_color: string | null
+          nav_home_icon_url: string | null
+          nav_party_icon_url: string | null
+          nav_profile_icon_url: string | null
+          nav_reels_icon_url: string | null
+          primary_color: string | null
+          secondary_color: string | null
           splash_image_url: string | null
           start_date: string | null
+          starts_at: string | null
+          tab_active_color: string | null
+          theme_icon: string | null
+          theme_key: string | null
           theme_name: string
           updated_at: string | null
         }
         Insert: {
+          accent_color?: string | null
+          auto_schedule?: boolean | null
+          card_border_color?: string | null
           color_scheme?: Json | null
+          country_code?: string | null
           created_at?: string | null
+          description?: string | null
+          display_order?: number | null
           end_date?: string | null
+          ends_at?: string | null
           event_type: string
+          floating_particles?: string[] | null
+          header_gradient_from?: string | null
+          header_gradient_to?: string | null
           home_banner_url?: string | null
           icon_set?: Json | null
           id?: string
           is_active?: boolean | null
           login_bg_url?: string | null
+          nav_active_color?: string | null
+          nav_bg_color?: string | null
+          nav_home_icon_url?: string | null
+          nav_party_icon_url?: string | null
+          nav_profile_icon_url?: string | null
+          nav_reels_icon_url?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
           splash_image_url?: string | null
           start_date?: string | null
+          starts_at?: string | null
+          tab_active_color?: string | null
+          theme_icon?: string | null
+          theme_key?: string | null
           theme_name: string
           updated_at?: string | null
         }
         Update: {
+          accent_color?: string | null
+          auto_schedule?: boolean | null
+          card_border_color?: string | null
           color_scheme?: Json | null
+          country_code?: string | null
           created_at?: string | null
+          description?: string | null
+          display_order?: number | null
           end_date?: string | null
+          ends_at?: string | null
           event_type?: string
+          floating_particles?: string[] | null
+          header_gradient_from?: string | null
+          header_gradient_to?: string | null
           home_banner_url?: string | null
           icon_set?: Json | null
           id?: string
           is_active?: boolean | null
           login_bg_url?: string | null
+          nav_active_color?: string | null
+          nav_bg_color?: string | null
+          nav_home_icon_url?: string | null
+          nav_party_icon_url?: string | null
+          nav_profile_icon_url?: string | null
+          nav_reels_icon_url?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
           splash_image_url?: string | null
           start_date?: string | null
+          starts_at?: string | null
+          tab_active_color?: string | null
+          theme_icon?: string | null
+          theme_key?: string | null
           theme_name?: string
           updated_at?: string | null
         }
@@ -1200,46 +1266,67 @@ export type Database = {
       }
       app_icon_registry: {
         Row: {
+          animation_url: string | null
           category: string | null
+          color_hex: string | null
           created_at: string | null
           current_url: string | null
           default_url: string | null
           description: string | null
           display_order: number | null
+          fallback_emoji: string | null
           icon_key: string
           icon_label: string
+          icon_name: string | null
+          icon_type: string | null
+          icon_url: string | null
           id: string
           is_active: boolean | null
+          lucide_name: string | null
           platform: string | null
           updated_at: string | null
           updated_by: string | null
         }
         Insert: {
+          animation_url?: string | null
           category?: string | null
+          color_hex?: string | null
           created_at?: string | null
           current_url?: string | null
           default_url?: string | null
           description?: string | null
           display_order?: number | null
+          fallback_emoji?: string | null
           icon_key: string
           icon_label: string
+          icon_name?: string | null
+          icon_type?: string | null
+          icon_url?: string | null
           id?: string
           is_active?: boolean | null
+          lucide_name?: string | null
           platform?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
         Update: {
+          animation_url?: string | null
           category?: string | null
+          color_hex?: string | null
           created_at?: string | null
           current_url?: string | null
           default_url?: string | null
           description?: string | null
           display_order?: number | null
+          fallback_emoji?: string | null
           icon_key?: string
           icon_label?: string
+          icon_name?: string | null
+          icon_type?: string | null
+          icon_url?: string | null
           id?: string
           is_active?: boolean | null
+          lucide_name?: string | null
           platform?: string | null
           updated_at?: string | null
           updated_by?: string | null
