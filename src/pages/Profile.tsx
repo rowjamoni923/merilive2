@@ -68,7 +68,6 @@ import useExpiredItemsRestorer from "@/hooks/useExpiredItemsRestorer";
 import { useRealtimeLevelProgress } from "@/hooks/useRealtimeLevel";
 import { triggerLegacyProfileSync } from "@/utils/legacyProfileSync";
 import { parseCallRateSettings, resolveEffectiveCallRate, getEffectiveHostLevel } from "@/utils/callRateSettings";
-import { parseCallRateSettings, resolveEffectiveCallRate, getEffectiveHostLevel } from "@/utils/callRateSettings";
 
 interface ProfileStats {
   followersCount: number;
