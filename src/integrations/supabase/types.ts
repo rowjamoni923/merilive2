@@ -11426,6 +11426,7 @@ export type Database = {
         Args: { _conversation_id: string; _user_id: string }
         Returns: boolean
       }
+      is_own_profile: { Args: { _profile_id: string }; Returns: boolean }
       is_real_user: { Args: never; Returns: boolean }
       is_user_live_banned: { Args: { p_user_id: string }; Returns: boolean }
       join_agency: {
