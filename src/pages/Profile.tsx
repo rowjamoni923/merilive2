@@ -2707,68 +2707,59 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   return;
                 }
                 
-                // CRITICAL FIX: For agency owners, check AGENCY wallet_balance (source of truth)
-                const currentAgencyBeans = agencyData.beans_balance || 0;
-                
-                if (beansNum > currentAgencyBeans) {
-                  toast({ title: "Insufficient beans", description: `Need ${beansNum.toLocaleString()} but have ${currentAgencyBeans.toLocaleString()}`, variant: "destructive" });
+                // Check personal My Beans (profiles.beans), NOT agency wallet_balance
+                if (beansNum > beans) {
+                  toast({ title: "Insufficient beans", description: `Need ${beansNum.toLocaleString()} but have ${beans.toLocaleString()} My Beans`, variant: "destructive" });
                   return;
                 }
                 
                 setExchangeProcessing(true);
                 
                 try {
-                  // CRITICAL FIX: Deduct beans from AGENCY.wallet_balance (source of truth)
-                  // And add diamonds to AGENCY.diamond_balance (Trader Wallet)
-                  const newAgencyBeans = currentAgencyBeans - beansNum;
-                  const newAgencyDiamonds = (agencyData.diamond_balance || 0) + exchangeDiamondsToGet;
-                  
-                  const { error: agencyUpdateError } = await supabase
-                    .from("agencies")
-                    .update({ 
-                      wallet_balance: newAgencyBeans,
-                      diamond_balance: newAgencyDiamonds
-                    })
-                    .eq("id", agencyData.id);
-                  
-                  if (agencyUpdateError) throw agencyUpdateError;
-                  
-                  // Record in agency_diamond_transactions
-                  await supabase
-                    .from("agency_diamond_transactions")
-                    .insert({
-                      agency_id: agencyData.id,
-                      transaction_type: "exchange",
-                      beans_amount: beansNum,
-                      diamond_amount: exchangeDiamondsToGet,
-                      fee_amount: exchangeFeeAmount,
-                      user_id: currentUser.id
-                    });
-                  
-                  // Update local state - deduct beans and add diamonds
-                  setBeans(newAgencyBeans);
-                  setAgencyData({ 
-                    ...agencyData, 
-                    beans_balance: newAgencyBeans,
-                    diamond_balance: newAgencyDiamonds 
+                  // Use unified RPC - deducts from profiles.beans and credits agency diamond_balance
+                  const { data: result, error: rpcError } = await supabase.rpc('exchange_user_beans_to_diamonds', {
+                    _user_id: currentUser.id,
+                    _beans_amount: beansNum,
+                    _diamonds_reward: exchangeDiamondsToGet,
+                    _tier_id: null
                   });
                   
-                  console.log('[Profile] Agency Exchange successful:', {
+                  if (rpcError) throw rpcError;
+                  
+                  const exchangeResult = result as any;
+                  if (!exchangeResult?.success) {
+                    throw new Error(exchangeResult?.error || 'Exchange failed');
+                  }
+                  
+                  // Update local state - deduct from personal My Beans (NOT agency wallet)
+                  const newPersonalBeans = exchangeResult.new_beans ?? (beans - beansNum);
+                  setBeans(newPersonalBeans);
+                  
+                  // Update agency diamond_balance in local state
+                  if (exchangeResult.destination === 'trader_wallet_agency') {
+                    setAgencyData({ 
+                      ...agencyData, 
+                      diamond_balance: (agencyData.diamond_balance || 0) + exchangeDiamondsToGet
+                    });
+                  }
+                  
+                  console.log('[Profile] Agency Exchange successful via RPC:', {
                     beansDeducted: beansNum,
                     diamondsAdded: exchangeDiamondsToGet,
-                    newAgencyBeans,
-                    newAgencyDiamonds
+                    destination: exchangeResult.destination,
+                    newPersonalBeans
                   });
                   
                   toast({ 
                     title: "Exchange Successful! ✨", 
-                    description: `Converted ${beansNum.toLocaleString()} beans to ${exchangeDiamondsToGet.toLocaleString()} diamonds` 
+                    description: `Converted ${beansNum.toLocaleString()} beans to ${exchangeDiamondsToGet.toLocaleString()} diamonds (Trader Wallet)` 
                   });
                   
                   setExchangeBeansAmount("");
                   setExchangeDiamondsToGet(0);
                   setExchangeFeeAmount(0);
                   setShowAgencyExchangeModal(false);
+                  refetchBalance();
                 } catch (error: any) {
                   console.error('Exchange error:', error);
                   toast({ title: "Exchange failed", description: error.message, variant: "destructive" });
