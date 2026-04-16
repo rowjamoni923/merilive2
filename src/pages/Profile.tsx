@@ -68,7 +68,6 @@ import useExpiredItemsRestorer from "@/hooks/useExpiredItemsRestorer";
 import { useRealtimeLevelProgress } from "@/hooks/useRealtimeLevel";
 import { triggerLegacyProfileSync } from "@/utils/legacyProfileSync";
 import { parseCallRateSettings, resolveEffectiveCallRate, getEffectiveHostLevel } from "@/utils/callRateSettings";
-import { TopUpCampaignBanner } from "@/components/campaign/TopUpCampaignBanner";
 
 interface ProfileStats {
   followersCount: number;
@@ -1637,7 +1636,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       >
 
       {/* Top-Up Campaign Banner */}
-      <TopUpCampaignBanner location="profile" className="mx-4 mt-2" />
+      
 
       {/* Header Section - Premium Design */}
       <div className="relative pt-14 pb-5 px-4 flex flex-col items-center">

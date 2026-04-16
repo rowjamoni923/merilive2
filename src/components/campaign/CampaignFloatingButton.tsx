@@ -98,18 +98,38 @@ export function CampaignFloatingButton() {
 
   useEffect(() => {
     (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setIsHost(null); return; }
-      setUserId(user.id);
-      const { data } = await supabase
-        .from('profiles')
-        .select('gender, country_code')
-        .eq('id', user.id)
-        .single();
-      setIsHost(data?.gender === 'Female');
-      const cc = (data?.country_code || 'BD').toUpperCase();
-      setUserCountryCode(cc);
-      setIsBangladesh(cc === 'BD');
+      try {
+        const { getCachedUser } = await import('@/utils/cachedAuth');
+        const user = await getCachedUser();
+        if (!user) {
+          // Fallback to getSession for users not yet cached
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session?.user) { setIsHost(false); return; }
+          setUserId(session.user.id);
+          const { data } = await supabase
+            .from('profiles')
+            .select('gender, country_code')
+            .eq('id', session.user.id)
+            .single();
+          setIsHost(data?.gender === 'Female');
+          const cc = (data?.country_code || 'BD').toUpperCase();
+          setUserCountryCode(cc);
+          setIsBangladesh(cc === 'BD');
+          return;
+        }
+        setUserId(user.id);
+        const { data } = await supabase
+          .from('profiles')
+          .select('gender, country_code')
+          .eq('id', user.id)
+          .single();
+        setIsHost(data?.gender === 'Female');
+        const cc = (data?.country_code || 'BD').toUpperCase();
+        setUserCountryCode(cc);
+        setIsBangladesh(cc === 'BD');
+      } catch {
+        setIsHost(false);
+      }
     })();
   }, []);
 

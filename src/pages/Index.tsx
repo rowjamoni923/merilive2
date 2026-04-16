@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { DynamicBanner } from "@/components/home/DynamicBanner";
 import { FullScreenPromoBanners } from "@/components/home/FullScreenPromoBanners";
-import { TopUpCampaignBanner } from "@/components/campaign/TopUpCampaignBanner";
 
 
 import { BarChart3, Search, Users, Phone, Bell, Crown, Eye, Trophy } from "lucide-react";
@@ -656,9 +655,7 @@ const Index = () => {
 
         {/* Top Banner (first banner) */}
         <DynamicBanner position="top" />
-        
-        {/* Top-Up Campaign Banner */}
-        <TopUpCampaignBanner location="home" compact className="mb-2" />
+
 
 
         {displayHosts.length > 0 ? (
