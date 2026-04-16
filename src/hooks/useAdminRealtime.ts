@@ -39,9 +39,9 @@ export function dispatchAdminTableUpdate(detail: AdminTableUpdateEvent) {
 // AdminLayout subscribes to these via chunked channels.
 // Admin pages consume them via events — zero extra channels.
 
-// ⚡ Critical tables for AdminLayout global notifications, sounds & badges.
-// Only tables that trigger admin alerts/toasts/sound are included here.
-// Individual admin pages still create direct channels for their own data refresh.
+// ⚡ Global admin subscription coverage.
+// Any table listed here is watched once by AdminLayout and fan-outs updates to pages
+// via window events, letting most admin pages refresh without opening extra channels.
 export const GLOBALLY_MONITORED_TABLES = new Set<string>([
   // Pending action tables (drive badge counts + toast alerts)
   'helper_upgrade_requests',
@@ -66,23 +66,69 @@ export const GLOBALLY_MONITORED_TABLES = new Set<string>([
   'notifications',
   'admin_notices',
   'admin_notifications',
-  // Financial tables
+
+  // Core shared lookup/data tables used across many admin pages
+  'profiles',
+  'topup_helpers',
+  'agency_hosts',
+  'app_settings',
+  'admin_logs',
+  'admin_users',
+  'admin_allowed_devices',
+  'admin_sections',
+  'admin_section_permissions',
+  'banners',
+  'animations',
+  'assets',
+
+  // Financial / operational tables
   'recharge_transactions',
   'coin_transfers',
   'agency_earnings_transfers',
   'rating_reward_claims',
   'leaderboard_reward_history',
   'consumption_return_history',
-  // Activity tables
+  'helper_transactions',
+  'payment_transactions',
+  'private_calls',
+  'stream_viewers',
+
+  // Activity / moderation
   'live_streams',
-  'profiles',
-  // Settings tables (admin-managed)
+  'host_contact_violations',
+  'banned_devices',
+
+  // Settings / content tables (admin-managed)
   'game_providers',
   'game_server_settings',
   'vip_tiers',
   'branding_settings',
   'app_version_settings',
   'recharge_campaigns',
+  'invitation_settings',
+  'invitation_reward_tiers',
+  'coin_packages',
+  'level_privileges',
+  'level_animations',
+  'user_level_tiers',
+  'leaderboard_reward_config',
+  'party_rooms',
+  'party_room_banners',
+  'party_room_backgrounds',
+  'popup_event_banners',
+  'reels',
+  'reel_categories',
+  'reel_reports',
+  'avatar_frames',
+  'role_frames',
+  'user_role_frames',
+  'gifts',
+  'sounds',
+  'helper_diamond_packages',
+  'helper_level_config',
+  'helper_notifications',
+  'helper_country_payment_methods',
+  'trader_level_tiers',
 ]);
 
 // ============= HOOK =============
