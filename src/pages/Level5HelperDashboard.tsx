@@ -3169,11 +3169,6 @@ const Level5HelperDashboard = () => {
                   
                   {/* Account Details Grid */}
                   <div className="space-y-2 text-sm">
-                    {/* Account Name */}
-                    {(selectedAgencyWithdrawal.payment_details as any)?.account_name && (
-                      <div className="flex items-center justify-between bg-slate-900/50 rounded-lg p-2">
-                        <span className="text-slate-400">Paid to:</span>
-                        <span className="text-green-400 font-semibold">
                     {/* Local Amount - FIRST */}
                     {(selectedAgencyWithdrawal.payment_details as any)?.local_amount && (
                       <div className="flex items-center justify-between bg-emerald-500/10 rounded-lg p-2 border border-emerald-500/20">
