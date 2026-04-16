@@ -75,6 +75,7 @@ interface AgencyWithdrawal {
   diamond_reward?: number;
   helper_processed_at?: string | null;
   assigned_helper_id?: string | null;
+  claim_locked_until?: string | null;
   locked_at?: string | null;
   locked_by_helper_name?: string | null;
   agency?: { name: string; agency_code: string; logo_url?: string; owner_id: string };
@@ -122,6 +123,31 @@ interface CurrencyRate {
   currency_symbol: string;
   rate_to_usd: number;
 }
+
+const CLAIM_LOCK_SECONDS = 30;
+
+const getClaimLockExpiryMs = (withdrawal?: { claim_locked_until?: string | null } | null) => {
+  if (!withdrawal?.claim_locked_until) return null;
+  const expiry = new Date(withdrawal.claim_locked_until).getTime();
+  return Number.isFinite(expiry) ? expiry : null;
+};
+
+const hasActiveClaimLock = (
+  withdrawal?: { status?: string | null; assigned_helper_id?: string | null; claim_locked_until?: string | null } | null,
+  now = Date.now()
+) => {
+  if (withdrawal?.status !== 'pending' || !withdrawal?.assigned_helper_id) return false;
+  const expiry = getClaimLockExpiryMs(withdrawal);
+  return expiry !== null && expiry > now;
+};
+
+const isWithdrawalAvailableForClaim = (
+  withdrawal?: { status?: string | null; assigned_helper_id?: string | null; claim_locked_until?: string | null } | null,
+  now = Date.now()
+) => {
+  if (withdrawal?.status !== 'pending') return false;
+  return !withdrawal?.assigned_helper_id || !hasActiveClaimLock(withdrawal, now);
+};
 
 const Level5HelperDashboard = () => {
   const navigate = useNavigate();
@@ -171,6 +197,7 @@ const Level5HelperDashboard = () => {
   const [selectedWithdrawal, setSelectedWithdrawal] = useState<WithdrawalRequest | null>(null);
   const [selectedAgencyWithdrawal, setSelectedAgencyWithdrawal] = useState<AgencyWithdrawal | null>(null);
   const [claimingWithdrawalId, setClaimingWithdrawalId] = useState<string | null>(null); // Track which withdrawal is being claimed
+  const [lockClock, setLockClock] = useState(() => Date.now());
   
   // Form states
   const [paymentType, setPaymentType] = useState("bkash");
@@ -190,8 +217,33 @@ const Level5HelperDashboard = () => {
   const [isMerchant, setIsMerchant] = useState(false);
 
   useEffect(() => {
+    const intervalId = window.setInterval(() => setLockClock(Date.now()), 1000);
+    return () => window.clearInterval(intervalId);
+  }, []);
+
+  useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    if (!selectedAgencyWithdrawal?.id || !helperData?.id || !showAgencyWithdrawalDialog) return;
+
+    const releaseClaim = () => {
+      void supabase.rpc('release_agency_withdrawal_claim' as any, {
+        _withdrawal_id: selectedAgencyWithdrawal.id,
+        _helper_id: helperData.id,
+      });
+    };
+
+    const handlePageHide = () => releaseClaim();
+
+    window.addEventListener('pagehide', handlePageHide);
+
+    return () => {
+      window.removeEventListener('pagehide', handlePageHide);
+      releaseClaim();
+    };
+  }, [selectedAgencyWithdrawal?.id, helperData?.id, showAgencyWithdrawalDialog]);
 
   // Real-time subscription - ALL helpers receive ALL withdrawal updates
   useEffect(() => {
@@ -907,7 +959,7 @@ const Level5HelperDashboard = () => {
       // CRITICAL: First check current state from database (not local state)
       const { data: currentState, error: checkError } = await supabase
         .from('agency_withdrawals')
-        .select('status, assigned_helper_id')
+        .select('status, assigned_helper_id, claim_locked_until')
         .eq('id', withdrawal.id)
         .single();
       
@@ -920,9 +972,21 @@ const Level5HelperDashboard = () => {
         loadAgencyWithdrawals();
         return;
       }
+
+      if (currentState.status !== 'pending') {
+        toast({ 
+          title: "⚠️ Unavailable", 
+          description: "This withdrawal is no longer available", 
+          variant: "destructive" 
+        });
+        loadAgencyWithdrawals();
+        loadCompletedHistory();
+        return;
+      }
       
-      // Check if already claimed by another helper
-      if (currentState.assigned_helper_id && currentState.assigned_helper_id !== helperData?.id) {
+      const lockIsActive = hasActiveClaimLock(currentState);
+
+      if (lockIsActive && currentState.assigned_helper_id && currentState.assigned_helper_id !== helperData?.id) {
         toast({ 
           title: "⚠️ Already Claimed", 
           description: "Another helper already claimed this withdrawal. Refreshing list...", 
@@ -931,50 +995,29 @@ const Level5HelperDashboard = () => {
         loadAgencyWithdrawals(); // Refresh to show updated state
         return;
       }
-      
-      // Check if already being processed
-      if (currentState.status === 'processing' && currentState.assigned_helper_id !== helperData?.id) {
+
+      const { data: claimResult, error: claimError } = await supabase.rpc('claim_agency_withdrawal' as any, {
+        _withdrawal_id: withdrawal.id,
+        _helper_id: helperData.id,
+        _lock_seconds: CLAIM_LOCK_SECONDS,
+      });
+
+      const claimResponse = claimResult as { success?: boolean; error?: string; claim_locked_until?: string | null } | null;
+
+      if (claimError || !claimResponse?.success) {
         toast({ 
-          title: "⚠️ Already Processing", 
-          description: "Another helper is already processing this withdrawal", 
+          title: "⚠️ Already Claimed", 
+          description: claimResponse?.error || "Another helper just claimed this withdrawal. Refreshing list...", 
           variant: "destructive" 
         });
         loadAgencyWithdrawals();
         return;
       }
-      
-      // If pending and not claimed, try to LOCK it for this helper
-      if (currentState.status === 'pending' && !currentState.assigned_helper_id) {
-        // Optimistic lock - set assigned_helper_id to claim this withdrawal
-        const { data, error } = await supabase
-          .from('agency_withdrawals')
-          .update({ 
-            assigned_helper_id: helperData.id,
-            // Keep status as pending until they actually submit payment proof
-          })
-          .eq('id', withdrawal.id)
-          .eq('status', 'pending') // Only if still pending (avoid race condition)
-          .is('assigned_helper_id', null) // Only if not already claimed
-          .select()
-          .single();
-        
-        if (error || !data) {
-          // Someone else claimed it first (race condition)
-          toast({ 
-            title: "⚠️ Already Claimed", 
-            description: "Another helper just claimed this withdrawal. Refreshing list...", 
-            variant: "destructive" 
-          });
-          loadAgencyWithdrawals(); // Refresh the list
-          return;
-        }
-        
-        // Successfully claimed - update local state and refresh list for all users
-        withdrawal.assigned_helper_id = helperData.id;
-        
-        // Immediately refresh to update UI for all helpers via realtime
-        loadAgencyWithdrawals();
-      }
+
+      withdrawal.assigned_helper_id = helperData.id;
+      withdrawal.claim_locked_until = claimResponse.claim_locked_until || new Date(Date.now() + CLAIM_LOCK_SECONDS * 1000).toISOString();
+
+      loadAgencyWithdrawals();
       
       setSelectedAgencyWithdrawal(withdrawal);
       setShowAgencyWithdrawalDialog(true);
@@ -986,14 +1029,13 @@ const Level5HelperDashboard = () => {
   
   // Handle closing the dialog - release lock if not submitted
   const handleCloseAgencyWithdrawalDialog = async () => {
-    if (selectedAgencyWithdrawal && selectedAgencyWithdrawal.status === 'pending' && 
-        selectedAgencyWithdrawal.assigned_helper_id === helperData?.id) {
-      // Release the lock if they close without submitting
-      await supabase
-        .from('agency_withdrawals')
-        .update({ assigned_helper_id: null })
-        .eq('id', selectedAgencyWithdrawal.id)
-        .eq('status', 'pending');
+    const withdrawalId = selectedAgencyWithdrawal?.id;
+
+    if (withdrawalId && helperData?.id) {
+      await supabase.rpc('release_agency_withdrawal_claim' as any, {
+        _withdrawal_id: withdrawalId,
+        _helper_id: helperData.id,
+      });
     }
     
     setShowAgencyWithdrawalDialog(false);
@@ -1011,22 +1053,18 @@ const Level5HelperDashboard = () => {
 
     setProcessing(true);
     try {
-      // Double-check this withdrawal is still available for this helper
-      const { data: currentWithdrawal, error: checkError } = await supabase
-        .from('agency_withdrawals')
-        .select('assigned_helper_id, status')
-        .eq('id', selectedAgencyWithdrawal.id)
-        .maybeSingle();
-      
-      if (checkError || !currentWithdrawal) {
-        throw new Error('Withdrawal not found');
-      }
-      
-      if (currentWithdrawal.status !== 'pending' || 
-          (currentWithdrawal.assigned_helper_id && currentWithdrawal.assigned_helper_id !== helperData.id)) {
+      const { data: claimResult, error: claimError } = await supabase.rpc('claim_agency_withdrawal' as any, {
+        _withdrawal_id: selectedAgencyWithdrawal.id,
+        _helper_id: helperData.id,
+        _lock_seconds: CLAIM_LOCK_SECONDS,
+      });
+
+      const claimResponse = claimResult as { success?: boolean; error?: string } | null;
+
+      if (claimError || !claimResponse?.success) {
         toast({ 
           title: '⚠️ Cannot Process', 
-          description: 'This withdrawal has been claimed by another helper or already processed', 
+          description: claimResponse?.error || 'This withdrawal has been claimed by another helper or already processed', 
           variant: 'destructive' 
         });
         handleCloseAgencyWithdrawalDialog();
@@ -1078,6 +1116,7 @@ const Level5HelperDashboard = () => {
 
       toast({ title: 'Success!', description: 'Payment submitted and sent for admin approval' });
       setShowAgencyWithdrawalDialog(false);
+      setSelectedAgencyWithdrawal(null);
       setScreenshotFile(null);
       setHelperNotes("");
       loadAgencyWithdrawals();
@@ -1304,7 +1343,7 @@ const Level5HelperDashboard = () => {
                 All Agency Withdrawals
               </h3>
               <Badge className="bg-emerald-500/20 text-emerald-400 text-xs">
-                {agencyWithdrawals.filter(w => w.status === 'pending' && !w.assigned_helper_id).length} Available
+                {agencyWithdrawals.filter(w => isWithdrawalAvailableForClaim(w, lockClock)).length} Available
               </Badge>
             </div>
             
@@ -1327,12 +1366,11 @@ const Level5HelperDashboard = () => {
               </Card>
             ) : (
               agencyWithdrawals.map((withdrawal) => {
-                const isLockedByOther = withdrawal.assigned_helper_id && 
-                                        withdrawal.assigned_helper_id !== helperData?.id && 
-                                        withdrawal.status === 'pending';
-                const isLockedByMe = withdrawal.assigned_helper_id === helperData?.id;
+                const isLocked = hasActiveClaimLock(withdrawal, lockClock);
+                const isLockedByOther = isLocked && withdrawal.assigned_helper_id !== helperData?.id;
+                const isLockedByMe = isLocked && withdrawal.assigned_helper_id === helperData?.id;
                 const isProcessing = withdrawal.status === 'processing';
-                const isAvailable = withdrawal.status === 'pending' && !withdrawal.assigned_helper_id;
+                const isAvailable = isWithdrawalAvailableForClaim(withdrawal, lockClock);
                 
                 // Get helper name who is processing
                 const processingHelperName = withdrawal.assigned_helper?.profiles?.display_name || 'Another Helper';
