@@ -342,7 +342,7 @@ export default function AdminWithdrawals() {
       case 'processing':
         return <Badge className="bg-purple-100 text-purple-700 border border-purple-200"><Loader2 className="w-3 h-3 mr-1" /> Processing</Badge>;
       case 'approved':
-        return <Badge className="bg-blue-100 text-blue-700 border border-blue-200"><CheckCircle className="w-3 h-3 mr-1" /> Approved</Badge>;
+        return <Badge className="bg-green-100 text-green-700 border border-green-200"><CheckCircle className="w-3 h-3 mr-1" /> Completed</Badge>;
       case 'completed':
         return <Badge className="bg-green-100 text-green-700 border border-green-200"><CheckCircle className="w-3 h-3 mr-1" /> Completed</Badge>;
       case 'rejected':
@@ -601,7 +601,7 @@ export default function AdminWithdrawals() {
               </div>
               <div>
                 <p className="text-lg md:text-2xl font-bold text-blue-700">{approvedCount}</p>
-                <p className="text-blue-600/80 text-xs md:text-sm">Approved</p>
+                <p className="text-blue-600/80 text-xs md:text-sm">Completed</p>
               </div>
             </div>
           </CardContent>
@@ -672,7 +672,7 @@ export default function AdminWithdrawals() {
                   Pending
                 </TabsTrigger>
                 <TabsTrigger value="approved" className="data-[state=active]:bg-primary data-[state=active]:text-white text-slate-600 text-xs">
-                  Approved
+                  Completed
                 </TabsTrigger>
                 <TabsTrigger value="completed" className="data-[state=active]:bg-primary data-[state=active]:text-white text-slate-600 text-xs">
                   Completed
@@ -808,7 +808,7 @@ export default function AdminWithdrawals() {
                                   onClick={() => openActionDialog(withdrawal, 'complete')}
                                 >
                                   <CheckCircle className="w-4 h-4" />
-                                  Approve
+                                    Complete
                                 </Button>
                                 <Button
                                   variant="ghost"
