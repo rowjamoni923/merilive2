@@ -239,14 +239,15 @@ const Level5HelperDashboard = () => {
           loadAvailablePaymentMethods();
         }
       )
-      // CRITICAL: Subscribe to ALL agency_withdrawals changes without filter
-      // This ensures ALL Level 5 helpers see ALL pending withdrawals
+      // CRITICAL: Subscribe to all agency withdrawal changes.
+      // Server-side trigger creates helper notifications instantly,
+      // and this keeps the dashboard list in sync across all helpers.
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'agency_withdrawals' },
-        (payload) => {
-          console.log('[Level5Helper] Agency withdrawal updated:', payload.eventType, payload.new);
+        () => {
           loadAgencyWithdrawals();
+          loadNotifications();
         }
       )
       // ⚡ REALTIME: Admin messages - instant delivery, zero refresh

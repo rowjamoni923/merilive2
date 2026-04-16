@@ -2293,66 +2293,12 @@ const AgencyWithdrawal = () => {
         return;
       }
 
-       // Send notification to helpers based on payment method:
-       // - ePay: Goes directly to Admin Panel, NO helper notification
-       // - Local methods: Notify only helpers in the SAME COUNTRY
-       try {
-          // ePay withdrawals go directly to Admin - no helper notification
-          if (paymentMethod === 'epay') {
-            console.log('[Withdrawal] ePay method - skipping helper notification, goes to Admin Panel');
-          } else {
-            // Local payment methods - notify ONLY helpers in the same country
-            // @ts-ignore - Supabase type instantiation issue
-            const helpersResult = await supabase
-              .from('topup_helpers')
-              .select('id, country_code')
-              .eq('is_verified', true)
-              .eq('payroll_enabled', true)
-              .eq('country_code', selectedCountry);
-            
-            const helpers = helpersResult.data as { id: string; country_code: string }[] | null;
-
-           if (helpers && helpers.length > 0) {
-             const countryName = selectedCountry || profile?.country_code || 'Unknown';
-           const amountUsd = usdAmount.toFixed(2);
-           
-           // Insert notification for each helper
-           const helperIds = helpers.map(h => h.id);
-            const notificationInserts = helperIds.map(hId => ({
-              helper_id: hId,
-              type: 'new_withdrawal_request',
-              title: '💸 New Withdrawal Request!',
-               message: `Agency "${agency.name}" requested $${amountUsd} withdrawal (${paymentMethod.toUpperCase()})`,
-              data: {
-                agency_id: agency.id,
-                agency_name: agency.name,
-                amount_beans: withdrawAmountBeans,
-                amount_usd: parseFloat(amountUsd),
-                country_code: countryName,
-                payment_method: paymentMethod
-              },
-              is_read: false
-            }));
-
-           for (const notif of notificationInserts) {
-             await supabase.from('helper_notifications').insert({
-               helper_id: notif.helper_id,
-               type: notif.type,
-               title: notif.title,
-               message: notif.message,
-               data: notif.data,
-               is_read: notif.is_read
-             });
-           }
-           
-            console.log('[Withdrawal] Notified', helperIds.length, 'Level 5 helpers in', selectedCountry);
-          } else {
-            console.log('[Withdrawal] No local helpers found for', selectedCountry, '- this will only appear in Admin Panel');
-          }
-         }
-       } catch (notifError) {
-         console.error('Failed to notify helpers:', notifError);
-         // Don't fail the withdrawal if notification fails
+       // Helper notifications are now sent automatically by a database trigger
+       // when the agency_withdrawals row is created.
+       if (paymentMethod === 'epay') {
+         console.log('[Withdrawal] ePay method - helper notification skipped, goes to Admin Panel');
+       } else {
+         console.log('[Withdrawal] Helper notifications will be sent automatically to same-country active Level 5 payroll helpers');
        }
 
        // Send confirmation notification to the agency owner
