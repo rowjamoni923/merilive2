@@ -467,105 +467,52 @@ const AgencyCoinExchange = () => {
     try {
       if (confirmAction === "exchange") {
         const beans = parseInt(beansAmount) || 0;
-        const totalDeduct = beans; // Fee is already inside the beans amount (subtracted)
         
-        // Check if agency has enough beans_balance
-        if ((agency.beans_balance || 0) < totalDeduct) {
+        // Check personal My Beans (profiles.beans), NOT agency beans_balance
+        if (ownerBeans < beans) {
           toast({
-            title: "Insufficient Beans",
-            description: `You need ${totalDeduct.toLocaleString()} beans but only have ${(agency.beans_balance || 0).toLocaleString()}`,
+            title: "Insufficient My Beans",
+            description: `You need ${beans.toLocaleString()} beans but only have ${ownerBeans.toLocaleString()} My Beans`,
             variant: "destructive",
           });
           setIsProcessing(false);
           return;
         }
         
-        console.log('Starting exchange:', { agency_id: agency.id, totalDeduct, diamondsToGet, feeAmount });
+        console.log('Starting exchange via unified RPC:', { ownerId, beans, diamondsToGet, feeAmount });
         
-        // CRITICAL: Try RPC function first, fallback to direct update if it fails
-        let exchangeSuccess = false;
-        let finalNewBeans = 0;
-        let finalNewDiamonds = 0;
-        
-        try {
-          const { data: result, error: rpcError } = await supabase.rpc('exchange_agency_beans_to_diamonds', {
-            p_agency_id: agency.id,
-            p_beans_to_deduct: totalDeduct,
-            p_diamonds_to_add: diamondsToGet,
-            p_fee_amount: feeAmount
-          });
-
-          if (rpcError) {
-            console.error('RPC function error:', rpcError);
-            throw rpcError;
-          }
-
-          const exchangeResult = result as { success: boolean; error?: string; new_beans?: number; new_diamonds?: number };
-          
-          if (exchangeResult.success) {
-            exchangeSuccess = true;
-            finalNewBeans = exchangeResult.new_beans || 0;
-            finalNewDiamonds = exchangeResult.new_diamonds || 0;
-            console.log('RPC exchange successful:', exchangeResult);
-          } else {
-            console.error('RPC returned failure:', exchangeResult);
-            throw new Error(exchangeResult.error || 'Exchange failed');
-          }
-        } catch (rpcErr) {
-          // Fallback: Direct database update
-          console.log('RPC failed, trying direct update fallback...');
-          
-          const newBeansBalance = (agency.beans_balance || 0) - totalDeduct;
-          const newDiamondsBalance = (agency.diamond_balance || 0) + diamondsToGet;
-          
-          const { error: updateError } = await supabase
-            .from('agencies')
-            .update({
-              wallet_balance: newBeansBalance,
-              diamond_balance: newDiamondsBalance,
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', agency.id);
-          
-          if (updateError) {
-            console.error('Direct update also failed:', updateError);
-            throw updateError;
-          }
-          
-          // Record transaction manually
-          await supabase.from('agency_diamond_transactions').insert({
-            agency_id: agency.id,
-            transaction_type: 'exchange',
-            beans_amount: totalDeduct,
-            diamond_amount: diamondsToGet,
-            fee_amount: feeAmount
-          });
-          
-          exchangeSuccess = true;
-          finalNewBeans = newBeansBalance;
-          finalNewDiamonds = newDiamondsBalance;
-          console.log('Direct update successful:', { finalNewBeans, finalNewDiamonds });
-        }
-        
-        if (!exchangeSuccess) {
-          toast({
-            title: "Exchange Failed",
-            description: "Could not complete the exchange. Please try again.",
-            variant: "destructive",
-          });
-          setIsProcessing(false);
-          return;
-        }
-
-        // Update local state with verified values from the database
-        setAgency({ 
-          ...agency, 
-          diamond_balance: finalNewDiamonds,
-          beans_balance: finalNewBeans
+        // Use unified RPC - deducts from profiles.beans, credits agency diamond_balance
+        const { data: result, error: rpcError } = await supabase.rpc('exchange_user_beans_to_diamonds', {
+          _user_id: ownerId,
+          _beans_amount: beans,
+          _diamonds_reward: diamondsToGet,
+          _tier_id: null
         });
+
+        if (rpcError) {
+          console.error('RPC error:', rpcError);
+          toast({ title: "Exchange Failed", description: rpcError.message, variant: "destructive" });
+          setIsProcessing(false);
+          return;
+        }
+
+        const exchangeResult = result as any;
+        if (!exchangeResult?.success) {
+          toast({ title: "Exchange Failed", description: exchangeResult?.error || 'Unknown error', variant: "destructive" });
+          setIsProcessing(false);
+          return;
+        }
+
+        // Update local state - beans from personal bucket, diamonds to agency
+        const newPersonalBeans = exchangeResult.new_beans ?? (ownerBeans - beans);
+        setOwnerBeans(newPersonalBeans);
         
-        // Also update local beans display
-        setOwnerBeans(finalNewBeans);
+        if (agency && exchangeResult.destination === 'trader_wallet_agency') {
+          setAgency({ 
+            ...agency, 
+            diamond_balance: (agency.diamond_balance || 0) + diamondsToGet
+          });
+        }
         
         // Create notification for the exchange - ONLY after successful update
         await supabase.from('notifications').insert({
