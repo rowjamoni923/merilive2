@@ -28,21 +28,3 @@ export function setSessionCache<T>(key: string, data: T): void {
     // Storage full — ignore
   }
 }
-
-/**
- * Initialize state from session cache. Use as useState initializer.
- * Example: const [data, setData] = useState(() => getSessionCache('my-key') ?? defaultValue);
- */
-export function useCachedState<T>(key: string, defaultValue: T): [T, (v: T) => void, boolean] {
-  const { useState } = require('react');
-  const cached = getSessionCache<T>(key);
-  const hasCache = cached !== null;
-  const [state, setStateRaw] = useState<T>(hasCache ? cached! : defaultValue);
-  
-  const setState = (value: T) => {
-    setStateRaw(value);
-    setSessionCache(key, value);
-  };
-  
-  return [state, setState, hasCache];
-}
