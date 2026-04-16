@@ -11264,6 +11264,15 @@ export type Database = {
         Args: { _agency_id: string; _amount: number }
         Returns: Json
       }
+      helper_process_agency_withdrawal: {
+        Args: {
+          _helper_id: string
+          _screenshot_url: string
+          _transaction_note?: string
+          _withdrawal_id: string
+        }
+        Returns: Json
+      }
       helper_transfer_coins_to_user: {
         Args: {
           _amount: number
