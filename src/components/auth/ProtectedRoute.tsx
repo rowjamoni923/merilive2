@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import BannedScreen from './BannedScreen';
 import VpnWarningBanner from '@/components/VpnWarningBanner';
 import { useSessionSecurity } from '@/hooks/useSessionSecurity';
+import { triggerLegacyProfileSync } from '@/utils/legacyProfileSync';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -68,14 +69,15 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
             .eq('id', userId)
             .maybeSingle();
 
-          // Only treat as missing when query succeeded AND no row returned.
-          // Transient errors (network, RLS hiccup) must NOT trigger sign-out.
+          // Missing profile rows must recover in-place.
+          // Never force sign-out here because Profile page already has self-healing logic.
           if (!error && data === null) {
-            console.log('[ProtectedRoute] Profile confirmed missing, signing out');
-            localStorage.removeItem('meri_device_account');
-            localStorage.removeItem('meri_device_id');
-            await supabase.auth.signOut({ scope: 'local' });
-            setProfileMissing(true);
+            console.warn('[ProtectedRoute] Profile missing, attempting recovery without sign-out');
+            try {
+              await triggerLegacyProfileSync(userId, { force: true });
+            } catch (syncError) {
+              console.warn('[ProtectedRoute] Profile recovery attempt failed', syncError);
+            }
             return;
           }
 

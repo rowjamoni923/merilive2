@@ -48,25 +48,45 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
 
   // Load user profile for level checks
   useEffect(() => {
+    let isMounted = true;
+
     const loadProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setCurrentUserId(null);
-        setUserProfile(null);
-        return;
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const user = session?.user;
+
+        if (!isMounted || !user) {
+          if (isMounted) {
+            setCurrentUserId(null);
+            setUserProfile(null);
+          }
+          return;
+        }
+
+        setCurrentUserId(user.id);
+
+        const { data } = await supabase
+          .from('profiles')
+          .select('user_level, host_level, is_host, host_status, gender')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (isMounted) {
+          setUserProfile(data ?? null);
+        }
+      } catch (error) {
+        console.warn('[BottomNavigation] Failed to load profile state', error);
+        if (isMounted) {
+          setUserProfile(null);
+        }
       }
-
-      setCurrentUserId(user.id);
-      const { data } = await supabase
-        .from('profiles')
-        .select('user_level, host_level, is_host, host_status, gender')
-        .eq('id', user.id)
-        .single();
-
-      if (data) setUserProfile(data);
     };
 
     loadProfile();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
     
   const currentPath = location.pathname;
