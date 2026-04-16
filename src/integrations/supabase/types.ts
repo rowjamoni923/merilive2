@@ -10983,10 +10983,9 @@ export type Database = {
         Args: { p_competition_id: string }
         Returns: number
       }
-      end_private_call: {
-        Args: { _call_id: string; _end_reason?: string }
-        Returns: boolean
-      }
+      end_private_call:
+        | { Args: { _call_id: string; _end_reason?: string }; Returns: boolean }
+        | { Args: { _call_id: string; _end_reason?: string }; Returns: boolean }
       exchange_agency_beans_to_diamonds: {
         Args: {
           p_agency_id: string
@@ -11284,28 +11283,47 @@ export type Database = {
         }
         Returns: Json
       }
-      helper_transfer_coins_to_user: {
-        Args: {
-          _amount: number
-          _receiver_id: string
-          _sender_id: string
-          _sender_type?: string
-        }
-        Returns: Json
-      }
-      helper_transfer_diamonds_to_agency: {
-        Args: {
-          _amount: number
-          _sender_id: string
-          _sender_type?: string
-          _target_agency_id: string
-        }
-        Returns: Json
-      }
-      helper_transfer_diamonds_to_self: {
-        Args: { _amount: number; _user_id: string }
-        Returns: Json
-      }
+      helper_transfer_coins_to_user:
+        | {
+            Args: {
+              _amount: number
+              _receiver_id: string
+              _sender_id: string
+              _sender_type?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              _amount: number
+              _receiver_id: string
+              _sender_id: string
+              _sender_type?: string
+            }
+            Returns: Json
+          }
+      helper_transfer_diamonds_to_agency:
+        | {
+            Args: {
+              _amount: number
+              _sender_id: string
+              _sender_type?: string
+              _target_agency_id?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              _amount: number
+              _sender_id: string
+              _sender_type?: string
+              _target_agency_id: string
+            }
+            Returns: Json
+          }
+      helper_transfer_diamonds_to_self:
+        | { Args: { _amount: number; _user_id: string }; Returns: Json }
+        | { Args: { _amount: number; _user_id: string }; Returns: Json }
       increment_reel_view: { Args: { reel_uuid: string }; Returns: undefined }
       is_admin:
         | { Args: never; Returns: boolean }
@@ -11442,6 +11460,7 @@ export type Database = {
         }
         Returns: Json
       }
+      recalculate_all_agency_levels: { Args: never; Returns: Json }
       recalculate_all_user_levels: { Args: never; Returns: undefined }
       recalculate_single_user_level: {
         Args: { _user_id: string }
