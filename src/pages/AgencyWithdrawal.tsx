@@ -2158,11 +2158,12 @@ const AgencyWithdrawal = () => {
         return;
       }
 
-      // Available balance = wallet_balance (authoritative, maintained by withdrawal RPC and admin operations)
-      // No need for transfer-based recalculation — wallet_balance is the source of truth
-      const effectiveBalance = Math.max(agencyData.wallet_balance || 0, 0);
+      // Available balance = beans_balance (the actual accumulated earnings from commissions/transfers)
+      // wallet_balance may be stale or unused — beans_balance is the real source of truth
+      const effectiveBalance = Math.max(agencyData.beans_balance || 0, agencyData.wallet_balance || 0, 0);
 
-      console.log('[AgencyWithdrawal] Effective balance (wallet_balance):', effectiveBalance);
+      console.log('[AgencyWithdrawal] Effective balance (max of beans_balance/wallet_balance):', effectiveBalance, 
+        'beans_balance:', agencyData.beans_balance, 'wallet_balance:', agencyData.wallet_balance);
 
       setAgency({
         ...agencyData,
