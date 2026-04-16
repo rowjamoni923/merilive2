@@ -188,7 +188,7 @@ const getNotificationLink = (notification: Notification): string | null => {
     'diamond_sent': '/agency-coin-exchange',
     
     // Withdrawal
-    'withdrawal': '/withdrawal',
+    'withdrawal': '/agency-withdrawal',
     'withdrawal_approved': '/agency-withdrawal',
     'withdrawal_rejected': '/agency-withdrawal',
     'withdrawal_commission': '/helper-dashboard',
