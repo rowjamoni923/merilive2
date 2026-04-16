@@ -93,9 +93,31 @@ const Profile = () => {
    const { balance: cachedBalance, refetch: refetchBalance } = useUserBalance();
    
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(() => {
+    // Instant restore from session cache to avoid blank flash on tab switch
+    try {
+      const cacheKey = `meri_profile_cache_${userId || 'self'}`;
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached) {
+        const { data, ts } = JSON.parse(cached);
+        if (Date.now() - ts < 300_000) return data; // 5 min cache
+      }
+    } catch {}
+    return null;
+  });
   const [activeTab, setActiveTab] = useState("/profile");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => {
+    // If we have cached profile, skip loading state
+    try {
+      const cacheKey = `meri_profile_cache_${userId || 'self'}`;
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached) {
+        const { ts } = JSON.parse(cached);
+        if (Date.now() - ts < 300_000) return false;
+      }
+    } catch {}
+    return true;
+  });
   const [stats, setStats] = useState<ProfileStats>({
     followersCount: 0,
     followingCount: 0,
