@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="fab_margin">16dp</dimen>
+    <dimen name="text_size_small">12sp</dimen>
+    <dimen name="text_size_body">14sp</dimen>
+    <dimen name="text_size_title">18sp</dimen>
+    <dimen name="text_size_heading">24sp</dimen>
+    <dimen name="corner_radius">12dp</dimen>
+    <dimen name="corner_radius_large">16dp</dimen>
+    <dimen name="avatar_size_small">32dp</dimen>
+    <dimen name="avatar_size_medium">48dp</dimen>
+    <dimen name="avatar_size_large">72dp</dimen>
+    <dimen name="avatar_size_xlarge">120dp</dimen>
+    <dimen name="call_button_size">72dp</dimen>
+</resources>

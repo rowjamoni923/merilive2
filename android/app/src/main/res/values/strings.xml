@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MeriLive</string>
+    <string name="title_home">Home</string>
+    <string name="title_explore">Explore</string>
+    <string name="title_live">Go Live</string>
+    <string name="title_chat">Chat</string>
+    <string name="title_profile">Profile</string>
+    <string name="incoming_call">Incoming Call</string>
+    <string name="accept">Accept</string>
+    <string name="decline">Decline</string>
+    <string name="call_in_progress">Call in progress</string>
+    <string name="end_call">End Call</string>
+    <string name="permission_camera_rationale">Camera access is needed for video calls and live streaming</string>
+    <string name="permission_mic_rationale">Microphone is needed for audio and video calls</string>
+    <string name="permission_location_rationale">Location is used to show nearby users and detect your country</string>
+    <string name="permission_notification_rationale">Enable notifications to receive call alerts and messages</string>
+    <string name="default_web_client_id" translatable="false">YOUR_WEB_CLIENT_ID_HERE</string>
+</resources>
