@@ -409,6 +409,7 @@ const Level5HelperDashboard = () => {
       // Filter in-memory:
       // 1. Exclude ePay withdrawals (they go to Admin only)
       // 2. Only show withdrawals from helper's country
+      // 3. Hide 'processing' withdrawals from other helpers (only show to assigned helper)
       const filteredWithdrawals = (allWithdrawals || []).filter((w: any) => {
         // Exclude ePay - these go directly to Admin Panel
         if (w.payment_method === 'epay') {
@@ -419,7 +420,15 @@ const Level5HelperDashboard = () => {
         const withdrawalCountry = w.payment_details?.country_code || w.country_code;
         
         // Only show if country matches helper's country
-        return withdrawalCountry === helperCountry;
+        if (withdrawalCountry !== helperCountry) return false;
+        
+        // CRITICAL: If status is 'processing', only show to the assigned helper
+        // Other helpers should NOT see it anymore
+        if (w.status === 'processing' && w.assigned_helper_id !== id) {
+          return false;
+        }
+        
+        return true;
       });
       
       console.log('[Level5Helper] Loaded agency withdrawals:', filteredWithdrawals.length, 'for country:', helperCountry);
