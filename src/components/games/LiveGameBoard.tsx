@@ -224,6 +224,16 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts }: Li
       }));
       
       setGames(gamesWithPresets);
+
+      // ⚡ Auto-select first available game if current activeGame doesn't exist in DB
+      if (gamesWithPresets.length > 0) {
+        const currentExists = gamesWithPresets.some(g => g.game_id === activeGame);
+        if (!currentExists) {
+          const fallback = (selectedGame && gamesWithPresets.find(g => g.game_id === selectedGame))
+            || gamesWithPresets[0];
+          setActiveGame(fallback.game_id);
+        }
+      }
     } catch (error) {
       console.error('Error fetching games:', error);
     } finally {

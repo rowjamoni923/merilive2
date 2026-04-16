@@ -1526,7 +1526,7 @@ export function UnifiedPartyRoom({
               />
             </div>
             
-            {/* Close button */}
+            {/* Close button - top-right so it doesn't overlap bet controls */}
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={() => {
@@ -1538,7 +1538,7 @@ export function UnifiedPartyRoom({
                   setIsGameBoardMinimized(true);
                 }
               }}
-              className="absolute bottom-2 right-2 z-50 w-7 h-7 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80 border border-white/20 shadow-lg"
+              className="absolute top-2 right-2 z-50 w-7 h-7 rounded-full bg-black/70 flex items-center justify-center text-white hover:bg-black/90 border border-white/20 shadow-lg"
             >
               <X className="w-4 h-4" />
             </motion.button>
