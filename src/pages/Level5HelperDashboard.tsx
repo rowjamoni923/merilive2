@@ -3183,9 +3183,20 @@ const Level5HelperDashboard = () => {
                     {(selectedAgencyWithdrawal.payment_details as any)?.account_number && (
                       <div className="flex items-center justify-between bg-slate-900/50 rounded-lg p-2">
                         <span className="text-slate-400">Number:</span>
-                        <span className="text-green-400 font-mono font-semibold">
-                          {(selectedAgencyWithdrawal.payment_details as any).account_number}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-green-400 font-mono font-semibold">
+                            {(selectedAgencyWithdrawal.payment_details as any).account_number}
+                          </span>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText((selectedAgencyWithdrawal.payment_details as any).account_number);
+                              toast({ title: "✅ Copied!", description: "Number copied to clipboard" });
+                            }}
+                            className="p-1 bg-cyan-500/20 hover:bg-cyan-500/40 rounded-md transition-colors"
+                          >
+                            <Copy className="w-3.5 h-3.5 text-cyan-400" />
+                          </button>
+                        </div>
                       </div>
                     )}
                     
