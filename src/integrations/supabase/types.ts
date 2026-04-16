@@ -10957,7 +10957,7 @@ export type Database = {
       exchange_user_beans_to_diamonds: {
         Args: {
           _beans_amount: number
-          _diamonds_reward?: number
+          _diamonds_reward: number
           _tier_id?: string
           _user_id: string
         }
