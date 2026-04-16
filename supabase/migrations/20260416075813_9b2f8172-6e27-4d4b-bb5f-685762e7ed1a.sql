@@ -1,0 +1,1 @@
+ALTER TABLE public.agency_level_tiers REPLICA IDENTITY FULL;
