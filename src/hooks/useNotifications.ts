@@ -216,6 +216,7 @@ export const useNotifications = () => {
       .from('notifications')
       .select('*')
       .eq('user_id', currentUserId)
+      .eq('is_read', false)
       .not('type', 'in', `(${ADMIN_ONLY_TYPES.join(',')})`)
       .order('created_at', { ascending: false })
       .limit(50);
@@ -232,6 +233,7 @@ export const useNotifications = () => {
          .from('helper_notifications')
          .select('*')
          .eq('helper_id', helperId)
+          .eq('is_read', false)
          .order('created_at', { ascending: false })
          .limit(50);
 
@@ -259,8 +261,8 @@ export const useNotifications = () => {
        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
      });
 
-     setNotifications(allNotifications);
-     setUnreadCount(allNotifications.filter(n => !n.is_read).length);
+      setNotifications(allNotifications);
+      setUnreadCount(allNotifications.length);
     setLoading(false);
    }, [currentUserId, helperId]);
 
@@ -317,7 +319,7 @@ export const useNotifications = () => {
         (payload) => {
           const newNotification = { ...payload.new as Notification, source: 'regular' as const };
           // Skip admin-only notification types in the user app
-          if (ADMIN_ONLY_TYPES.includes(newNotification.type)) return;
+          if (ADMIN_ONLY_TYPES.includes(newNotification.type) || newNotification.is_read) return;
           console.log('New notification received:', payload);
           setNotifications(prev => [newNotification, ...prev]);
           setUnreadCount(prev => prev + 1);
@@ -378,6 +380,7 @@ export const useNotifications = () => {
           (payload) => {
             console.log('New helper notification received:', payload);
             const helperNotif = payload.new as any;
+            if (helperNotif.is_read) return;
             const newNotification: Notification = {
               id: helperNotif.id,
               user_id: currentUserId,
@@ -439,9 +442,7 @@ export const useNotifications = () => {
     const previousNotifications = notifications;
 
     // Optimistic UI update
-    setNotifications(prev =>
-      prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
-    );
+    setNotifications(prev => prev.filter(n => n.id !== notificationId));
     setUnreadCount(prev => Math.max(0, prev - 1));
     emitGlobalUnreadRefresh({ notificationsDecrement: 1 });
 
@@ -474,7 +475,7 @@ export const useNotifications = () => {
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
       setNotifications(previousNotifications);
-      setUnreadCount(previousNotifications.filter(n => !n.is_read).length);
+      setUnreadCount(previousNotifications.length);
       emitGlobalUnreadRefresh();
       fetchNotifications();
     }
@@ -487,7 +488,7 @@ export const useNotifications = () => {
     const previousNotifications = notifications;
 
     // Optimistic UI update
-    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+    setNotifications([]);
     setUnreadCount(0);
     emitGlobalUnreadRefresh({ notificationsSetZero: true });
 
@@ -514,7 +515,7 @@ export const useNotifications = () => {
     } catch (error) {
       console.error('Failed to mark all notifications as read:', error);
       setNotifications(previousNotifications);
-      setUnreadCount(previousNotifications.filter(n => !n.is_read).length);
+      setUnreadCount(previousNotifications.length);
       emitGlobalUnreadRefresh();
       fetchNotifications();
     }
