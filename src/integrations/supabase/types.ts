@@ -995,6 +995,7 @@ export type Database = {
           agency_id: string
           amount: number
           assigned_helper_id: string | null
+          claim_locked_until: string | null
           country_code: string | null
           exchange_rate: number | null
           helper_processed_at: string | null
@@ -1013,6 +1014,7 @@ export type Database = {
           agency_id: string
           amount: number
           assigned_helper_id?: string | null
+          claim_locked_until?: string | null
           country_code?: string | null
           exchange_rate?: number | null
           helper_processed_at?: string | null
@@ -1031,6 +1033,7 @@ export type Database = {
           agency_id?: string
           amount?: number
           assigned_helper_id?: string | null
+          claim_locked_until?: string | null
           country_code?: string | null
           exchange_rate?: number | null
           helper_processed_at?: string | null
@@ -10828,6 +10831,14 @@ export type Database = {
         Args: { p_permission: string; p_user_id: string }
         Returns: boolean
       }
+      claim_agency_withdrawal: {
+        Args: {
+          _helper_id: string
+          _lock_seconds?: number
+          _withdrawal_id: string
+        }
+        Returns: Json
+      }
       claim_daily_login_reward: {
         Args: { _claimed_date: string; _day_end: string; _day_start: string }
         Returns: Json
@@ -11479,6 +11490,10 @@ export type Database = {
       }
       reject_host_request: {
         Args: { _agency_id: string; _host_id: string; _rejector_id: string }
+        Returns: Json
+      }
+      release_agency_withdrawal_claim: {
+        Args: { _helper_id: string; _withdrawal_id: string }
         Returns: Json
       }
       request_account_deletion: {
