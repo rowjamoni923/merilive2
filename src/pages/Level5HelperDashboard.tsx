@@ -3092,7 +3092,7 @@ const Level5HelperDashboard = () => {
                 </div>
               </div>
 
-              {/* Amount Info - Net Amount (after fee) */}
+              {/* Amount Info */}
               <div className="bg-gradient-to-br from-emerald-500/20 to-green-500/20 rounded-xl p-4 border border-emerald-500/30">
                 <div className="text-center flex flex-col items-center">
                   <div className="flex items-center gap-2 justify-center">
@@ -3101,26 +3101,8 @@ const Level5HelperDashboard = () => {
                       {((selectedAgencyWithdrawal.payment_details as any)?.net_withdrawal_beans || selectedAgencyWithdrawal.amount).toLocaleString()}
                     </p>
                   </div>
-                  <p className="text-slate-400 text-xs mt-1">Net Beans (After Fee)</p>
+                  <p className="text-slate-400 text-xs mt-1">Beans</p>
                 </div>
-                
-                {/* Fee breakdown */}
-                {(selectedAgencyWithdrawal.payment_details as any)?.withdrawal_fee_beans && (
-                  <div className="mt-3 pt-3 border-t border-emerald-500/20 space-y-1 text-xs">
-                    <div className="flex justify-between text-slate-400">
-                      <span>Gross Amount:</span>
-                      <span>{selectedAgencyWithdrawal.amount.toLocaleString()} Beans</span>
-                    </div>
-                    <div className="flex justify-between text-amber-400">
-                      <span>Platform Fee:</span>
-                      <span>-{((selectedAgencyWithdrawal.payment_details as any).withdrawal_fee_beans).toLocaleString()} Beans</span>
-                    </div>
-                    <div className="flex justify-between text-emerald-400 font-semibold">
-                      <span>Helper Pays:</span>
-                      <span>{((selectedAgencyWithdrawal.payment_details as any).net_withdrawal_beans || selectedAgencyWithdrawal.amount).toLocaleString()} Beans</span>
-                    </div>
-                  </div>
-                )}
               </div>
 
               {/* Payment Details - Show Transaction ID and Account Info */}
