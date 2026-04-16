@@ -1008,33 +1008,33 @@ const Level5HelperDashboard = () => {
 
     setProcessing(true);
     try {
-      // Double-check this withdrawal is still assigned to us
+      // Double-check this withdrawal is still available for this helper
       const { data: currentWithdrawal, error: checkError } = await supabase
         .from('agency_withdrawals')
         .select('assigned_helper_id, status')
         .eq('id', selectedAgencyWithdrawal.id)
-        .single();
+        .maybeSingle();
       
       if (checkError || !currentWithdrawal) {
-        throw new Error("Withdrawal not found");
+        throw new Error('Withdrawal not found');
       }
       
       if (currentWithdrawal.status !== 'pending' || 
           (currentWithdrawal.assigned_helper_id && currentWithdrawal.assigned_helper_id !== helperData.id)) {
         toast({ 
-          title: "⚠️ Cannot Process", 
-          description: "This withdrawal has been claimed by another helper or already processed", 
-          variant: "destructive" 
+          title: '⚠️ Cannot Process', 
+          description: 'This withdrawal has been claimed by another helper or already processed', 
+          variant: 'destructive' 
         });
         handleCloseAgencyWithdrawalDialog();
         return;
       }
       
-      // Upload screenshot
-      const fileName = `agency-withdrawal-${selectedAgencyWithdrawal.id}-${Date.now()}.jpg`;
+      const fileExt = screenshotFile.name.split('.').pop() || 'jpg';
+      const fileName = `agency-withdrawal-${selectedAgencyWithdrawal.id}-${Date.now()}.${fileExt}`;
       const { error: uploadError } = await supabase.storage
         .from('payment-proofs')
-        .upload(fileName, screenshotFile);
+        .upload(fileName, screenshotFile, { upsert: false });
 
       if (uploadError) throw uploadError;
 
@@ -1042,26 +1042,21 @@ const Level5HelperDashboard = () => {
         .from('payment-proofs')
         .getPublicUrl(fileName);
 
-      // FIXED: Calculate diamond reward based on net_withdrawal_beans (1 bean = 1 diamond)
-      const paymentDetails = selectedAgencyWithdrawal.payment_details as any;
-      const netWithdrawalBeans = paymentDetails?.net_withdrawal_beans || selectedAgencyWithdrawal.amount;
-      const diamondReward = Math.round(netWithdrawalBeans);
+      const safeNote = helperNotes.trim().slice(0, 500) || null;
 
-      // Update withdrawal status to 'processing' (waiting for admin approval)
-      const { error: updateError } = await supabase
-        .from('agency_withdrawals')
-        .update({
-          status: 'processing',
-          assigned_helper_id: helperData.id,
-          helper_payment_screenshot: publicUrl,
-          helper_transaction_id: helperNotes,
-          helper_processed_at: new Date().toISOString(),
-          helper_notes: helperNotes,
-          diamond_reward: diamondReward
-        })
-        .eq('id', selectedAgencyWithdrawal.id);
-      
-      if (updateError) throw updateError;
+      const { data: processResult, error: processError } = await supabase.rpc('helper_process_agency_withdrawal' as any, {
+        _withdrawal_id: selectedAgencyWithdrawal.id,
+        _helper_id: helperData.id,
+        _screenshot_url: publicUrl,
+        _transaction_note: safeNote,
+      });
+
+      if (processError) throw processError;
+
+      const processResponse = processResult as { success?: boolean; error?: string } | null;
+      if (!processResponse?.success) {
+        throw new Error(processResponse?.error || 'Failed to process withdrawal');
+      }
 
       // Send notification to agency owner that payment has been processed
       if (selectedAgencyWithdrawal.agency?.owner_id) {
@@ -1073,12 +1068,12 @@ const Level5HelperDashboard = () => {
           p_data: { 
             withdrawal_id: selectedAgencyWithdrawal.id,
             amount: selectedAgencyWithdrawal.amount,
-            status: 'approved'
+            status: 'processing'
           }
         });
       }
 
-      toast({ title: "Success!", description: "Payment processed and notification sent to agency" });
+      toast({ title: 'Success!', description: 'Payment submitted and sent for admin approval' });
       setShowAgencyWithdrawalDialog(false);
       setScreenshotFile(null);
       setHelperNotes("");
