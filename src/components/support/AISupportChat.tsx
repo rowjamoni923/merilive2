@@ -678,18 +678,7 @@ const AISupportChat = ({
       setMessages(prev => [...prev, userMessage]);
       setInput("");
 
-      // Block live chat outside business hours
-      if (!isLiveChatOnline()) {
-        const { startStr, endStr } = getSupportHoursLocal();
-        setMessages(prev => [...prev, {
-          id: `offline-${Date.now()}`,
-          role: "assistant",
-          content: `🔴 **Live Chat is currently offline.**\n\nOur support team is available from **${startStr} – ${endStr}** (your local time).\n\nPlease try again during business hours, or continue chatting with AI for instant help! 🤖`,
-          timestamp: new Date(),
-        }]);
-        return;
-      }
-
+      // Always connect to admin panel — no business hours block
       activateLiveChat();
       return;
     }

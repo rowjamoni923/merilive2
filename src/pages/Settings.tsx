@@ -602,7 +602,7 @@ const Settings = () => {
       icon: Bell,
       label: t("settings.notifications"),
       value: permissions.notifications ? t("common.enabled") : t("settings.tapToEnable"),
-      onClick: () => navigate("/settings/notifications"),
+      onClick: () => setShowPermissionsDialog(true),
     },
     {
       icon: Globe,
