@@ -210,6 +210,8 @@ export default function AdminAgencies() {
   const actionGuardRef = useRef<Set<string>>(new Set());
   const guardStart = (key: string) => { if (actionGuardRef.current.has(key)) return false; actionGuardRef.current.add(key); return true; };
   const guardEnd = (key: string) => { actionGuardRef.current.delete(key); };
+  const isSavingRef = useRef(false);
+  const hasUnsavedTierChangesRef = useRef(false);
 
   const [commissionSettings, setCommissionSettings] = useState<AgencyCommissionSettings>({
     agency_commission_rate: 2,
@@ -225,14 +227,14 @@ export default function AdminAgencies() {
   
   const pageSize = 20;
 
-  const fetchLevelTiers = useCallback(async () => {
+  const fetchLevelTiers = useCallback(async (force = false) => {
     try {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("agency_level_tiers")
         .select("*")
         .order("display_order", { ascending: true });
 
-      if (data) {
+      if (data && (force || (!isSavingRef.current && !hasUnsavedTierChangesRef.current))) {
         setLevelTiers(data);
       }
     } catch (error) {
@@ -246,13 +248,9 @@ export default function AdminAgencies() {
     fetchLevelTiers();
   }, []);
 
-  // Track if we're currently saving to prevent realtime from overwriting edits
-  const isSavingRef = useRef(false);
-
   useAdminRealtime(['agencies', 'agency_level_tiers'], () => {
     fetchAgencies();
-    // Don't refetch level tiers while saving — prevents stale data overwriting edits
-    if (!isSavingRef.current) {
+    if (!isSavingRef.current && !hasUnsavedTierChangesRef.current) {
       fetchLevelTiers();
     }
   });
@@ -281,16 +279,18 @@ export default function AdminAgencies() {
         
         if (error) throw error;
       }
+
+      hasUnsavedTierChangesRef.current = false;
+      await fetchLevelTiers(true);
       toast.success("Level settings saved");
-      // Re-fetch after all saves complete to get confirmed DB state
-      await fetchLevelTiers();
     } catch (error) {
       console.error("Error saving level tiers:", error);
       toast.error("Failed to save");
     } finally {
       setSavingLevels(false);
-      // Small delay before allowing realtime refetch to avoid race condition
-      setTimeout(() => { isSavingRef.current = false; }, 2000);
+      setTimeout(() => {
+        isSavingRef.current = false;
+      }, 500);
     }
   };
 
@@ -307,6 +307,7 @@ export default function AdminAgencies() {
   };
 
   const updateTier = (id: string, field: keyof AgencyLevelTier, value: any) => {
+    hasUnsavedTierChangesRef.current = true;
     setLevelTiers(prev => prev.map(tier => 
       tier.id === id ? { ...tier, [field]: value } : tier
     ));
