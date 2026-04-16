@@ -473,7 +473,7 @@ export const useNotifications = () => {
         if (error) throw error;
       }
 
-      emitGlobalUnreadRefresh();
+      emitGlobalUnreadRefresh({ notificationsDecrement: 0 });
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
       setNotifications(previousNotifications);
