@@ -30,6 +30,10 @@ interface PaymentDetails {
   method_type?: string;
   account_name?: string;
   account_number?: string;
+  helper_transaction_id?: string;
+  helper_payment_screenshot?: string;
+  helper_notes?: string;
+  helper_processed_at?: string;
   // Fee details (admin only)
   withdrawal_fee_usd?: number;
   withdrawal_fee_beans?: number;
@@ -167,26 +171,33 @@ const AdminPayrollOrders = () => {
       }));
 
       // Transform agency withdrawals to match PayrollOrder interface
-      const agencyOrders: PayrollOrder[] = (agencyWithdrawalsData || []).map(aw => ({
-        id: aw.id,
-        helper_id: aw.assigned_helper_id || '',
-        user_id: aw.agency?.owner_id || '',
-        coin_amount: aw.amount,
-        amount_usd: aw.amount, // Beans amount as USD equivalent
-        amount_local: aw.local_currency_amount || aw.amount,
-        currency_code: aw.currency_code || 'USD',
-        payment_method: aw.payment_method || 'Agency Withdrawal',
-        payment_details: aw.payment_details as PaymentDetails | null,
-        user_country_code: aw.country_code || '',
-        user_payment_proof: aw.helper_payment_screenshot,
-        status: aw.status,
-        helper_notes: aw.helper_notes,
-        created_at: aw.requested_at,
-        processed_at: aw.processed_at,
-        order_type: 'agency_withdrawal' as const,
-        helper: aw.helper,
-        agency: aw.agency
-      }));
+      const agencyOrders: PayrollOrder[] = (agencyWithdrawalsData || []).map(aw => {
+        const paymentDetails = (aw.payment_details as PaymentDetails | null) || null;
+        const helperTransactionId = paymentDetails?.helper_transaction_id || null;
+        const helperPaymentScreenshot = paymentDetails?.helper_payment_screenshot || null;
+        const helperPaymentNotes = paymentDetails?.helper_notes || null;
+
+        return {
+          id: aw.id,
+          helper_id: aw.assigned_helper_id || '',
+          user_id: aw.agency?.owner_id || '',
+          coin_amount: aw.amount,
+          amount_usd: aw.amount,
+          amount_local: aw.local_currency_amount || aw.amount,
+          currency_code: aw.currency_code || 'USD',
+          payment_method: aw.payment_method || 'Agency Withdrawal',
+          payment_details: paymentDetails,
+          user_country_code: aw.country_code || paymentDetails?.country_code || '',
+          user_payment_proof: helperPaymentScreenshot,
+          status: aw.status,
+          helper_notes: helperPaymentNotes,
+          created_at: aw.requested_at,
+          processed_at: aw.processed_at,
+          order_type: 'agency_withdrawal' as const,
+          helper: aw.helper,
+          agency: aw.agency
+        };
+      });
 
       // Combine and sort by date
       const allOrders = [...helperOrders, ...agencyOrders].sort((a, b) => 
@@ -680,16 +691,18 @@ const AdminPayrollOrders = () => {
                   </div>
 
                   {/* Transaction ID */}
-                  {selectedOrder.payment_details?.transaction_id && (
+                  {(selectedOrder.payment_details?.transaction_id || selectedOrder.payment_details?.helper_transaction_id) && (
                     <div className="bg-slate-800 p-3 rounded-lg">
                       <p className="text-xs text-muted-foreground mb-1">Transaction ID</p>
                       <div className="flex items-center gap-2">
-                        <code className="text-sm font-mono flex-1 text-slate-200">{selectedOrder.payment_details.transaction_id}</code>
+                        <code className="text-sm font-mono flex-1 text-slate-200 break-all">
+                          {selectedOrder.payment_details?.helper_transaction_id || selectedOrder.payment_details?.transaction_id}
+                        </code>
                         <Button 
                           variant="ghost" 
                           size="icon" 
                           className="h-6 w-6"
-                          onClick={() => copyToClipboard(selectedOrder.payment_details?.transaction_id || '')}
+                          onClick={() => copyToClipboard(selectedOrder.payment_details?.helper_transaction_id || selectedOrder.payment_details?.transaction_id || '')}
                         >
                           <Copy className="w-3 h-3" />
                         </Button>
