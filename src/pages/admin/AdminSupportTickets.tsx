@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -283,6 +284,9 @@ const AdminSupportTickets = () => {
       setLoading(false);
     }
   }, [statusFilter, toast]);
+
+  // Realtime: auto-refresh on support_tickets or support_messages changes
+  useAdminRealtime(['support_tickets', 'support_messages'], () => loadTickets(), 'admin-support-tickets-rt');
 
   const isLegacyAiSummaryMessage = (content?: string) =>
     isAiSummarySupportMessage(content);

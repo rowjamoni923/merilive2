@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -69,6 +70,12 @@ export default function AdminHostSearch() {
   const [agencyHostInfo, setAgencyHostInfo] = useState<AgencyHostInfo | null>(null);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+
+  // Realtime: auto-refresh search results when profiles change
+  const refreshSearch = useCallback(() => {
+    if (searched && searchQuery.trim()) handleSearch();
+  }, [searched, searchQuery]);
+  useAdminRealtime(['profiles'], refreshSearch, 'admin-host-search-rt');
 
   useEffect(() => {
     if (searchParams.get("uid")) {
