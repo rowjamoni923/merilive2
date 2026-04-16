@@ -447,6 +447,14 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         if (!isMounted) return;
         setProfile(profileData);
 
+        // Cache profile for instant tab-switch restore
+        if (profileData) {
+          try {
+            const cacheKey = `meri_profile_cache_${userId || 'self'}`;
+            sessionStorage.setItem(cacheKey, JSON.stringify({ data: profileData, ts: Date.now() }));
+          } catch {}
+        }
+
         // PARALLEL FETCH - All independent queries at once for speed
         const isOwnProfileCheck = !userId || userId === user?.id;
         const today = getTaskDate();
