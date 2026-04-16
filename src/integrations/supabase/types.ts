@@ -11393,15 +11393,26 @@ export type Database = {
         Args: { user_id_param: string }
         Returns: undefined
       }
-      request_agency_withdrawal: {
-        Args: {
-          _agency_id: string
-          _amount: number
-          _payment_details?: Json
-          _payment_method?: string
-        }
-        Returns: Json
-      }
+      request_agency_withdrawal:
+        | {
+            Args: {
+              _agency_id: string
+              _amount: number
+              _payment_details?: Json
+              _payment_method?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_agency_id: string
+              p_amount: number
+              p_notes?: string
+              p_payment_details?: Json
+              p_payment_method?: string
+            }
+            Returns: Json
+          }
       reset_my_call_status: { Args: never; Returns: undefined }
       roulette_complete_session: {
         Args: { p_session_id: string }
