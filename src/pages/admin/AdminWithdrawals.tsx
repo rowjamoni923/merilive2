@@ -296,13 +296,13 @@ export default function AdminWithdrawals() {
         
         const notifType = actionType === 'approve' ? 'withdrawal_approved' : 
                          actionType === 'reject' ? 'withdrawal_rejected' : 'withdrawal_approved';
-        await supabase.from('notifications').insert({
-          user_id: (savedWithdrawal as any).agency.owner_id,
-          type: notifType,
-          title: notifTitle,
-          message: notifMessage,
-          data: { withdrawal_id: savedWithdrawal.id, amount: savedWithdrawal.amount }
-        });
+        await adminSendNotification(
+          (savedWithdrawal as any).agency.owner_id,
+          notifTitle,
+          notifMessage,
+          notifType,
+          { withdrawal_id: savedWithdrawal.id, amount: savedWithdrawal.amount }
+        );
       }
 
       toast.success(
