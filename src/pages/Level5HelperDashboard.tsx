@@ -3215,10 +3215,14 @@ const Level5HelperDashboard = () => {
                       <div className="flex items-center justify-between bg-slate-900/50 rounded-lg p-2">
                         <span className="text-slate-400">Local Amount:</span>
                         <span className="text-emerald-400 font-bold">
-                          {selectedAgencyWithdrawal.currency_code === 'BDT' ? '৳' : 
-                           selectedAgencyWithdrawal.currency_code === 'INR' ? '₹' :
-                           selectedAgencyWithdrawal.currency_code === 'PKR' ? '₨' : ''}
-                          {((selectedAgencyWithdrawal.payment_details as any).local_amount).toLocaleString()}
+                          {(() => {
+                            const pd = selectedAgencyWithdrawal.payment_details as any;
+                            const cc = pd?.currency_code || selectedAgencyWithdrawal.currency_code;
+                            const symbolMap: Record<string, string> = { BDT: '৳', INR: '₹', PKR: '₨', NPR: '₨', IDR: 'Rp', PHP: '₱', MYR: 'RM', THB: '฿', VND: '₫', LKR: 'Rs' };
+                            const symbol = symbolMap[cc] || '';
+                            const netLocal = pd?.net_withdrawal_local || pd?.local_amount || 0;
+                            return `${symbol}${Number(netLocal).toLocaleString()}`;
+                          })()}
                         </span>
                       </div>
                     )}
