@@ -239,7 +239,7 @@ export default function AdminRatingRewards() {
       // Find the claim to get user_id
       const rejectedClaim = claims.find(c => c.id === claimId);
       if (rejectedClaim) {
-        await adminSendNotification(rejectedClaim.user_id, '❌ Rating Reward Rejected', 'Your Play Store rating screenshot was not approved. Please make sure to submit a clear screenshot showing your 5-star rating. You can only submit once, 'system');
+        await adminSendNotification(rejectedClaim.user_id, '❌ Rating Reward Rejected', 'Your Play Store rating screenshot was not approved. Please make sure to submit a clear screenshot showing your 5-star rating. You can only submit once.', 'system');
       }
 
       toast.success('Claim rejected');

@@ -254,7 +254,7 @@ const AdminHelperRequests = () => {
         .eq('id', selectedRequest.id);
       
       // Send notification
-      await adminSendNotification(selectedRequest.user_id, 'Request Rejected', adminNotes || 'Your, requestType)
+      await adminSendNotification(selectedRequest.user_id, 'Request Rejected', adminNotes || 'Your request has been rejected.', requestType);
       
       toast({ title: "Rejected", description: "Request has been rejected." });
       
