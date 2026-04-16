@@ -2661,46 +2661,88 @@ export type Database = {
       }
       face_verification_submissions: {
         Row: {
+          admin_notes: string | null
+          age: number | null
           ai_analysis: Json | null
           confidence_score: number | null
           created_at: string | null
+          duplicate_face_avatar: string | null
+          duplicate_face_name: string | null
+          duplicate_face_uid: string | null
+          duplicate_face_user_id: string | null
+          face_image_url: string | null
+          full_name: string | null
+          host_photos: string[] | null
           id: string
+          is_duplicate_face: boolean | null
+          language: string | null
           notes: string | null
+          profile_photo_url: string | null
           reference_image_url: string | null
+          rejection_reason: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           selfie_url: string
           status: string | null
           user_id: string
           verification_type: string | null
+          video_url: string | null
         }
         Insert: {
+          admin_notes?: string | null
+          age?: number | null
           ai_analysis?: Json | null
           confidence_score?: number | null
           created_at?: string | null
+          duplicate_face_avatar?: string | null
+          duplicate_face_name?: string | null
+          duplicate_face_uid?: string | null
+          duplicate_face_user_id?: string | null
+          face_image_url?: string | null
+          full_name?: string | null
+          host_photos?: string[] | null
           id?: string
+          is_duplicate_face?: boolean | null
+          language?: string | null
           notes?: string | null
+          profile_photo_url?: string | null
           reference_image_url?: string | null
+          rejection_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           selfie_url: string
           status?: string | null
           user_id: string
           verification_type?: string | null
+          video_url?: string | null
         }
         Update: {
+          admin_notes?: string | null
+          age?: number | null
           ai_analysis?: Json | null
           confidence_score?: number | null
           created_at?: string | null
+          duplicate_face_avatar?: string | null
+          duplicate_face_name?: string | null
+          duplicate_face_uid?: string | null
+          duplicate_face_user_id?: string | null
+          face_image_url?: string | null
+          full_name?: string | null
+          host_photos?: string[] | null
           id?: string
+          is_duplicate_face?: boolean | null
+          language?: string | null
           notes?: string | null
+          profile_photo_url?: string | null
           reference_image_url?: string | null
+          rejection_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           selfie_url?: string
           status?: string | null
           user_id?: string
           verification_type?: string | null
+          video_url?: string | null
         }
         Relationships: [
           {
@@ -5074,7 +5116,11 @@ export type Database = {
       }
       live_bans: {
         Row: {
+          auto_banned: boolean | null
           ban_duration_hours: number | null
+          ban_end: string | null
+          ban_reason: string | null
+          ban_start: string | null
           ban_type: string | null
           banned_by: string
           created_at: string | null
@@ -5083,10 +5129,19 @@ export type Database = {
           is_active: boolean | null
           reason: string
           stream_id: string | null
+          unban_reason: string | null
+          unbanned_at: string | null
+          unbanned_by: string | null
           user_id: string
+          violation_type: string | null
+          warning_count: number | null
         }
         Insert: {
+          auto_banned?: boolean | null
           ban_duration_hours?: number | null
+          ban_end?: string | null
+          ban_reason?: string | null
+          ban_start?: string | null
           ban_type?: string | null
           banned_by: string
           created_at?: string | null
@@ -5095,10 +5150,19 @@ export type Database = {
           is_active?: boolean | null
           reason: string
           stream_id?: string | null
+          unban_reason?: string | null
+          unbanned_at?: string | null
+          unbanned_by?: string | null
           user_id: string
+          violation_type?: string | null
+          warning_count?: number | null
         }
         Update: {
+          auto_banned?: boolean | null
           ban_duration_hours?: number | null
+          ban_end?: string | null
+          ban_reason?: string | null
+          ban_start?: string | null
           ban_type?: string | null
           banned_by?: string
           created_at?: string | null
@@ -5107,7 +5171,12 @@ export type Database = {
           is_active?: boolean | null
           reason?: string
           stream_id?: string | null
+          unban_reason?: string | null
+          unbanned_at?: string | null
+          unbanned_by?: string | null
           user_id?: string
+          violation_type?: string | null
+          warning_count?: number | null
         }
         Relationships: []
       }
@@ -5864,36 +5933,48 @@ export type Database = {
           action_data: Json | null
           action_type: string | null
           body: string
+          category: string | null
           created_at: string | null
+          description: string | null
           icon_url: string | null
           id: string
           is_active: boolean | null
+          message_template: string | null
           template_key: string
           title: string
+          title_template: string | null
           updated_at: string | null
         }
         Insert: {
           action_data?: Json | null
           action_type?: string | null
           body: string
+          category?: string | null
           created_at?: string | null
+          description?: string | null
           icon_url?: string | null
           id?: string
           is_active?: boolean | null
+          message_template?: string | null
           template_key: string
           title: string
+          title_template?: string | null
           updated_at?: string | null
         }
         Update: {
           action_data?: Json | null
           action_type?: string | null
           body?: string
+          category?: string | null
           created_at?: string | null
+          description?: string | null
           icon_url?: string | null
           id?: string
           is_active?: boolean | null
+          message_template?: string | null
           template_key?: string
           title?: string
+          title_template?: string | null
           updated_at?: string | null
         }
         Relationships: []
