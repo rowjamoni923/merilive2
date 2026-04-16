@@ -11344,6 +11344,17 @@ export type Database = {
         Returns: Json
       }
       process_weekly_agency_transfers: { Args: never; Returns: Json }
+      purchase_vip_tier: {
+        Args: {
+          p_duration_days: number
+          p_equip_updates?: Json
+          p_price_diamonds: number
+          p_tier_id: string
+          p_tier_level: number
+          p_user_id: string
+        }
+        Returns: Json
+      }
       raise_security_alert: {
         Args: {
           p_alert_type: string

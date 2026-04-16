@@ -697,63 +697,44 @@ const VIP = () => {
         .eq("id", user.id)
         .maybeSingle();
 
-      // STEP 2: Build profile update with VIP tier info + auto-equip VIP assets
-      const expiresAt = new Date(Date.now() + tier.duration_days * 24 * 60 * 60 * 1000).toISOString();
-      
-      const profileUpdate: Record<string, any> = {
-        coins: userDiamonds - tier.price_diamonds,
-        current_vip_tier_id: tier.id,
-        vip_expires_at: expiresAt,
-        vip_tier: tier.tier_level, // Also update vip_tier column
-      };
-
-      // Auto-equip VIP tier's exclusive assets and save previous
-      // VIP Frame
+      // Build equip updates
+      const equipUpdates: Record<string, any> = {};
       if (tier.frame_animation_url) {
         if (currentProfile?.equipped_frame_id) {
-          profileUpdate.previous_frame_id = currentProfile.equipped_frame_id;
+          equipUpdates.previous_frame_id = currentProfile.equipped_frame_id;
         }
-        profileUpdate.equipped_frame_id = tier.id; // Use tier.id as reference
+        equipUpdates.equipped_frame_id = tier.id;
       }
-
-      // VIP Entry Animation
       if (tier.entry_animation_url) {
         if (currentProfile?.equipped_entrance_id) {
-          profileUpdate.previous_entrance_id = currentProfile.equipped_entrance_id;
+          equipUpdates.previous_entrance_id = currentProfile.equipped_entrance_id;
         }
-        profileUpdate.equipped_entrance_id = tier.id;
+        equipUpdates.equipped_entrance_id = tier.id;
       }
-
-      // VIP Chat Bubble
       if (tier.bubble_animation_url) {
         if (currentProfile?.equipped_bubble_id) {
-          profileUpdate.previous_bubble_id = currentProfile.equipped_bubble_id;
+          equipUpdates.previous_bubble_id = currentProfile.equipped_bubble_id;
         }
-        profileUpdate.equipped_bubble_id = tier.id;
+        equipUpdates.equipped_bubble_id = tier.id;
       }
 
-      console.log('[VIP] Auto-equipping VIP assets:', profileUpdate);
+      console.log('[VIP] Purchasing via RPC with equip updates:', equipUpdates);
 
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .update(profileUpdate)
-        .eq("id", user.id);
+      // STEP 2: Use secure RPC to deduct diamonds + activate VIP
+      const { data: result, error: rpcError } = await supabase.rpc("purchase_vip_tier", {
+        p_user_id: user.id,
+        p_tier_id: tier.id,
+        p_price_diamonds: tier.price_diamonds,
+        p_tier_level: tier.tier_level,
+        p_duration_days: tier.duration_days,
+        p_equip_updates: equipUpdates,
+      });
 
-      if (updateError) throw updateError;
-
-      // Create VIP subscription record
-      const { error: subError } = await supabase
-        .from("user_vip_subscriptions")
-        .upsert({
-          user_id: user.id,
-          tier_id: tier.id,
-          expires_at: expiresAt,
-          is_active: true,
-        }, {
-          onConflict: 'user_id,tier_id'
-        });
-
-      if (subError) throw subError;
+      if (rpcError) throw rpcError;
+      const rpcResult = result as any;
+      if (!rpcResult?.success) {
+        throw new Error(rpcResult?.error || "VIP purchase failed");
+      }
 
       // Clear frame cache for instant profile update
       if (tier.frame_animation_url) {
@@ -765,9 +746,9 @@ const VIP = () => {
         description: `You are now ${tier.tier_name}! All exclusive items are now equipped.`,
       });
 
-      setUserDiamonds(prev => prev - tier.price_diamonds);
+      setUserDiamonds(rpcResult.balance_after);
       setCurrentVIPTier(tier.tier_level);
-      setVIPExpiresAt(expiresAt);
+      setVIPExpiresAt(rpcResult.expires_at);
       setSelectedTier(null);
       
       // Refresh data to show new privileges
