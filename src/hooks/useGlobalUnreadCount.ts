@@ -43,6 +43,7 @@ let sharedCounts: UnreadCounts = EMPTY_COUNTS;
 let sharedFetchPromise: Promise<void> | null = null;
 let sharedRefreshTimer: number | null = null;
 let lastFetchAt = 0;
+let optimisticSuppressUntil = 0; // suppress realtime refetches after optimistic update
 let sharedChannel: ReturnType<typeof supabase.channel> | null = null;
 const listeners = new Set<CountsListener>();
 
@@ -61,15 +62,19 @@ const setSharedCounts = (next: UnreadCounts) => {
   emitCounts();
 };
 
-const scheduleSharedCountsRefresh = (delayMs = 500) => {
+const scheduleSharedCountsRefresh = (delayMs = 1000) => {
   if (typeof window === 'undefined') return;
 
   if (sharedRefreshTimer) {
     window.clearTimeout(sharedRefreshTimer);
   }
 
+  // Suppress realtime-triggered refetches during the delay window
+  optimisticSuppressUntil = Date.now() + delayMs;
+
   sharedRefreshTimer = window.setTimeout(() => {
     sharedRefreshTimer = null;
+    optimisticSuppressUntil = 0;
     void fetchSharedCounts(true);
   }, delayMs);
 };

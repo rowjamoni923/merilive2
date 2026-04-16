@@ -512,10 +512,11 @@ export const useNotifications = () => {
           .eq('helper_id', helperId)
           .eq('is_read', false);
 
-        if (helperError) throw helperError;
+      if (helperError) throw helperError;
       }
 
-      emitGlobalUnreadRefresh();
+      // Reinforce zero state after DB commit (scheduled refresh will verify)
+      emitGlobalUnreadRefresh({ notificationsSetZero: true });
     } catch (error) {
       console.error('Failed to mark all notifications as read:', error);
       setNotifications(previousNotifications);
