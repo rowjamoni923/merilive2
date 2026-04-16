@@ -240,7 +240,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     const agencyPromise = shouldLoadAgency
       ? supabase
           .from("agencies")
-          .select("id, name, diamond_balance, beans_balance")
+          .select("id, name, diamond_balance, wallet_balance")
           .eq("owner_id", currentUser.id)
           .eq("is_active", true)
           .order('updated_at', { ascending: false })
@@ -282,7 +282,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         id: latestAgencyResult.data.id,
         name: latestAgencyResult.data.name,
         diamond_balance: nextAgencyBalance,
-        beans_balance: Number(latestAgencyResult.data.beans_balance || 0),
+        beans_balance: Number(latestAgencyResult.data.wallet_balance || 0),
       });
     } else if (shouldLoadAgency) {
       setAgencyData(null);
@@ -557,7 +557,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             if (!profileData?.is_agency_owner) {
               const { data: helperAgency } = await supabase
                 .from('agencies')
-                .select('id, diamond_balance, beans_balance, name')
+                .select('id, diamond_balance, wallet_balance, name')
                 .eq('owner_id', user.id)
                 .eq('is_active', true)
                 .maybeSingle();
@@ -566,7 +566,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   id: helperAgency.id,
                   name: helperAgency.name || 'Agency',
                   diamond_balance: helperAgency.diamond_balance || 0,
-                  beans_balance: helperAgency.beans_balance || 0,
+                  beans_balance: helperAgency.wallet_balance || 0,
                 });
               }
             }
@@ -678,15 +678,15 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           
           // Agency updates
           if (table === 'agencies' && payload?.owner_id === activeProfileId) {
-            if (payload.beans_balance !== undefined) {
-              setBeans(payload.beans_balance || 0);
+            if (payload.wallet_balance !== undefined) {
+              setBeans(payload.wallet_balance || 0);
             }
             if (payload.diamond_balance !== undefined) {
               const agencyDiamonds = payload.diamond_balance || 0;
               setAgencyData(prev => prev ? {
                 ...prev,
                 diamond_balance: agencyDiamonds,
-                beans_balance: payload.beans_balance ?? prev.beans_balance,
+                beans_balance: payload.wallet_balance ?? prev.beans_balance,
               } : null);
             }
           }
@@ -1848,7 +1848,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     // Fetch agency data
                     const { data: agency } = await supabase
                       .from('agencies')
-                      .select('id, name, diamond_balance, beans_balance')
+                      .select('id, name, diamond_balance, wallet_balance')
                       .eq('owner_id', currentUser?.id)
                       .eq('is_active', true)
                       .single();
@@ -1858,7 +1858,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                         id: agency.id,
                         name: agency.name,
                         diamond_balance: agency.diamond_balance || 0,
-                        beans_balance: agency.beans_balance || 0
+                        beans_balance: agency.wallet_balance || 0
                       });
                       
                       // Fetch exchange settings from correct key 'coin_exchange'
