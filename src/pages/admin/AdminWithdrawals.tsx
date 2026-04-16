@@ -55,6 +55,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { bn } from "date-fns/locale";
+import { resolveNetWithdrawalBeans, resolveNetWithdrawalLocal, resolveNetWithdrawalUsd } from "@/utils/agencyWithdrawalAmounts";
 
 interface PaymentDetails {
   country_code?: string;
@@ -865,22 +866,22 @@ export default function AdminWithdrawals() {
                   <span className="font-medium">{selectedWithdrawal.agency?.name}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-white/60">Beans Amount:</span>
-                  <span className="font-bold text-yellow-400">{formatBeans(selectedWithdrawal.amount)} Beans</span>
+                  <span className="text-white/60">Payable Beans:</span>
+                  <span className="font-bold text-yellow-400">{formatBeans(resolveNetWithdrawalBeans(selectedWithdrawal))} Beans</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-white/60">USD Value:</span>
+                  <span className="text-white/60">Payable USD:</span>
                   <span className="font-bold text-green-400">
-                    ${(selectedWithdrawal.payment_details?.usd_amount || (selectedWithdrawal.amount / coinsToUsdRate)).toFixed(2)}
+                    ${resolveNetWithdrawalUsd(selectedWithdrawal, coinsToUsdRate).toFixed(2)}
                   </span>
                 </div>
                 {selectedWithdrawal.payment_details?.currency_code && (
                   <div className="flex justify-between">
-                    <span className="text-white/60">Local Currency:</span>
+                    <span className="text-white/60">Payable Local:</span>
                     <span className="font-bold text-cyan-400">
                       {getCurrencyInfo(selectedWithdrawal.payment_details.currency_code).flag}{" "}
                       {getCurrencyInfo(selectedWithdrawal.payment_details.currency_code).symbol}
-                      {selectedWithdrawal.payment_details.local_amount?.toLocaleString()}
+                      {resolveNetWithdrawalLocal(selectedWithdrawal).toLocaleString()}
                     </span>
                   </div>
                 )}
@@ -1044,9 +1045,9 @@ export default function AdminWithdrawals() {
               {actionType === 'complete' && 'Complete Withdrawal'}
             </DialogTitle>
             <DialogDescription className="text-white/60">
-              {selectedWithdrawal?.agency?.name} - {formatBeans(selectedWithdrawal?.amount || 0)} Beans
+              {selectedWithdrawal?.agency?.name} - {formatBeans(selectedWithdrawal ? resolveNetWithdrawalBeans(selectedWithdrawal) : 0)} Beans
               <span className="text-green-400 ml-2">
-                (${(selectedWithdrawal?.payment_details?.usd_amount || ((selectedWithdrawal?.amount || 0) / coinsToUsdRate)).toFixed(2)})
+                (${(selectedWithdrawal ? resolveNetWithdrawalUsd(selectedWithdrawal, coinsToUsdRate) : 0).toFixed(2)})
               </span>
             </DialogDescription>
           </DialogHeader>
@@ -1067,7 +1068,7 @@ export default function AdminWithdrawals() {
                     <span className="text-white/60">Amount to Pay:</span>
                     <span className="text-cyan-400 font-bold">
                       {getCurrencyInfo(selectedWithdrawal.payment_details.currency_code || "USD").symbol}
-                      {selectedWithdrawal.payment_details.local_amount.toLocaleString()}
+                      {resolveNetWithdrawalLocal(selectedWithdrawal).toLocaleString()}
                     </span>
                   </div>
                 )}
