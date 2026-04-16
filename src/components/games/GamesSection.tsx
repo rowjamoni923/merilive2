@@ -45,9 +45,8 @@ export function GamesSection() {
   };
 
   const handleGameClick = (game: GameSetting) => {
-    if (game.game_url) {
-      navigate(game.game_url);
-    }
+    // Always go to games hub - individual games open there via iframe
+    navigate("/games");
   };
 
   if (loading && games.length === 0) {
