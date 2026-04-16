@@ -3130,41 +3130,17 @@ const Level5HelperDashboard = () => {
                   <div className="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-lg p-3 mb-3 border border-cyan-500/30">
                     <div className="flex items-center justify-center gap-2 flex-wrap">
                       {/* Country with Full Name */}
-                      <div className="flex items-center gap-1.5 bg-slate-700/50 px-3 py-1.5 rounded-lg">
-                        <span className="text-lg">
-                          {selectedAgencyWithdrawal.country_code === 'BD' ? '🇧🇩' :
-                           selectedAgencyWithdrawal.country_code === 'IN' ? '🇮🇳' :
-                           selectedAgencyWithdrawal.country_code === 'PK' ? '🇵🇰' :
-                           selectedAgencyWithdrawal.country_code === 'NP' ? '🇳🇵' :
-                           selectedAgencyWithdrawal.country_code === 'ID' ? '🇮🇩' :
-                           selectedAgencyWithdrawal.country_code === 'PH' ? '🇵🇭' :
-                           selectedAgencyWithdrawal.country_code === 'MY' ? '🇲🇾' :
-                           selectedAgencyWithdrawal.country_code === 'TH' ? '🇹🇭' :
-                           selectedAgencyWithdrawal.country_code === 'VN' ? '🇻🇳' :
-                           selectedAgencyWithdrawal.country_code === 'LK' ? '🇱🇰' :
-                           selectedAgencyWithdrawal.country_code === 'AE' ? '🇦🇪' :
-                           selectedAgencyWithdrawal.country_code === 'SA' ? '🇸🇦' :
-                           selectedAgencyWithdrawal.country_code === 'US' ? '🇺🇸' :
-                           selectedAgencyWithdrawal.country_code === 'GB' ? '🇬🇧' : '🌍'}
-                        </span>
-                        <span className="text-white font-bold">
-                          {selectedAgencyWithdrawal.country_code === 'BD' ? 'Bangladesh' :
-                           selectedAgencyWithdrawal.country_code === 'IN' ? 'India' :
-                           selectedAgencyWithdrawal.country_code === 'PK' ? 'Pakistan' :
-                           selectedAgencyWithdrawal.country_code === 'NP' ? 'Nepal' :
-                           selectedAgencyWithdrawal.country_code === 'ID' ? 'Indonesia' :
-                           selectedAgencyWithdrawal.country_code === 'PH' ? 'Philippines' :
-                           selectedAgencyWithdrawal.country_code === 'MY' ? 'Malaysia' :
-                           selectedAgencyWithdrawal.country_code === 'TH' ? 'Thailand' :
-                           selectedAgencyWithdrawal.country_code === 'VN' ? 'Vietnam' :
-                           selectedAgencyWithdrawal.country_code === 'LK' ? 'Sri Lanka' :
-                           selectedAgencyWithdrawal.country_code === 'AE' ? 'UAE' :
-                           selectedAgencyWithdrawal.country_code === 'SA' ? 'Saudi Arabia' :
-                           selectedAgencyWithdrawal.country_code === 'US' ? 'USA' :
-                           selectedAgencyWithdrawal.country_code === 'GB' ? 'UK' :
-                           selectedAgencyWithdrawal.country_code || 'Unknown'}
-                        </span>
-                      </div>
+                      {(() => {
+                        const cc = selectedAgencyWithdrawal.country_code || (selectedAgencyWithdrawal.payment_details as any)?.country_code;
+                        const flagMap: Record<string, string> = { BD: '🇧🇩', IN: '🇮🇳', PK: '🇵🇰', NP: '🇳🇵', ID: '🇮🇩', PH: '🇵🇭', MY: '🇲🇾', TH: '🇹🇭', VN: '🇻🇳', LK: '🇱🇰', AE: '🇦🇪', SA: '🇸🇦', US: '🇺🇸', GB: '🇬🇧' };
+                        const nameMap: Record<string, string> = { BD: 'Bangladesh', IN: 'India', PK: 'Pakistan', NP: 'Nepal', ID: 'Indonesia', PH: 'Philippines', MY: 'Malaysia', TH: 'Thailand', VN: 'Vietnam', LK: 'Sri Lanka', AE: 'UAE', SA: 'Saudi Arabia', US: 'USA', GB: 'UK' };
+                        return (
+                          <div className="flex items-center gap-1.5 bg-slate-700/50 px-3 py-1.5 rounded-lg">
+                            <span className="text-lg">{flagMap[cc] || '🌍'}</span>
+                            <span className="text-white font-bold">{nameMap[cc] || cc || 'Unknown'}</span>
+                          </div>
+                        );
+                      })()}
                       
                       <span className="text-slate-400">•</span>
                       
