@@ -2735,7 +2735,7 @@ const LiveStream = () => {
       {/* New Host Bonus Card - Host Only, positioned above chat - HIDE when stream ended */}
       {isHost && currentUserId && !showLiveEndSummary && (
         <div className="absolute left-3 z-35" style={{ bottom: '280px' }}>
-          <NewHostBonusCard hostId={currentUserId} streamStartTime={streamStartTime} isStreamActive={!showLiveEndSummary} onBeansClaimed={(amount) => setTotalBeans(prev => prev + amount)} />
+          <NewHostBonusCard hostId={currentUserId} isStreamActive={!showLiveEndSummary} onBeansClaimed={(amount) => setTotalBeans(prev => prev + amount)} />
         </div>
       )}
 
