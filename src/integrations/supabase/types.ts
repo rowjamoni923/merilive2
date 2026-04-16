@@ -5665,43 +5665,68 @@ export type Database = {
         Row: {
           actual_minutes: number | null
           bonus_amount: number
+          bonus_claimed: boolean
+          claimed_at: string | null
+          claimed_beans: number | null
           completed_at: string | null
           created_at: string | null
           day_number: number
           host_id: string
+          hour_number: number | null
           id: string
           is_completed: boolean | null
+          minutes_accumulated: number
+          program_day: number | null
           target_minutes: number
+          task_date: string | null
         }
         Insert: {
           actual_minutes?: number | null
           bonus_amount: number
+          bonus_claimed?: boolean
+          claimed_at?: string | null
+          claimed_beans?: number | null
           completed_at?: string | null
           created_at?: string | null
           day_number: number
           host_id: string
+          hour_number?: number | null
           id?: string
           is_completed?: boolean | null
+          minutes_accumulated?: number
+          program_day?: number | null
           target_minutes: number
+          task_date?: string | null
         }
         Update: {
           actual_minutes?: number | null
           bonus_amount?: number
+          bonus_claimed?: boolean
+          claimed_at?: string | null
+          claimed_beans?: number | null
           completed_at?: string | null
           created_at?: string | null
           day_number?: number
           host_id?: string
+          hour_number?: number | null
           id?: string
           is_completed?: boolean | null
+          minutes_accumulated?: number
+          program_day?: number | null
           target_minutes?: number
+          task_date?: string | null
         }
         Relationships: []
       }
       new_host_live_bonus_settings: {
         Row: {
           bonus_amount: number
+          bonus_beans: number | null
           created_at: string | null
+          daily_reset_offset_minutes: number
           day_number: number
+          eligible_program_days: number
+          hour_number: number | null
           id: string
           is_active: boolean | null
           target_minutes: number
@@ -5709,8 +5734,12 @@ export type Database = {
         }
         Insert: {
           bonus_amount: number
+          bonus_beans?: number | null
           created_at?: string | null
+          daily_reset_offset_minutes?: number
           day_number: number
+          eligible_program_days?: number
+          hour_number?: number | null
           id?: string
           is_active?: boolean | null
           target_minutes: number
@@ -5718,8 +5747,12 @@ export type Database = {
         }
         Update: {
           bonus_amount?: number
+          bonus_beans?: number | null
           created_at?: string | null
+          daily_reset_offset_minutes?: number
           day_number?: number
+          eligible_program_days?: number
+          hour_number?: number | null
           id?: string
           is_active?: boolean | null
           target_minutes?: number
@@ -10937,6 +10970,10 @@ export type Database = {
         Args: { _reset_date?: string; _task_id: string; _user_id: string }
         Returns: Json
       }
+      claim_host_live_hour_bonus: {
+        Args: { _host_id: string; _hour_number: number }
+        Returns: Json
+      }
       claim_invitation_reward: {
         Args: {
           _beans?: number
@@ -11284,6 +11321,7 @@ export type Database = {
           user_level: number
         }[]
       }
+      get_host_live_bonus_state: { Args: { _host_id: string }; Returns: Json }
       get_leaderboard: {
         Args: { _period: string }
         Returns: {
@@ -11296,6 +11334,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_task_program_day: { Args: { _host_id: string }; Returns: number }
       get_task_reset_date: { Args: never; Returns: string }
       get_top_gifters_leaderboard: {
         Args: { p_period_type?: string }
@@ -11558,6 +11597,7 @@ export type Database = {
         Returns: undefined
       }
       recalculate_user_level: { Args: { _user_id: string }; Returns: undefined }
+      record_host_live_minute: { Args: { _host_id: string }; Returns: Json }
       record_live_violation: {
         Args: {
           p_auto_detected?: boolean
