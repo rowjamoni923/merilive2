@@ -160,8 +160,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       const personalBeans = Number(profileData.pending_earnings || 0) + Number(profileData.beans || 0);
       const userId = profileData.id;
       if (userId) {
-        supabase.from('agencies').select('beans_balance').eq('owner_id', userId).eq('is_active', true).maybeSingle().then(({ data }) => {
-          const agencyBeans = data?.beans_balance || 0;
+        supabase.from('agencies').select('wallet_balance').eq('owner_id', userId).eq('is_active', true).maybeSingle().then(({ data }) => {
+          const agencyBeans = data?.wallet_balance || 0;
           setBeans(agencyBeans + personalBeans);
         });
       }
@@ -240,7 +240,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     const agencyPromise = shouldLoadAgency
       ? supabase
           .from("agencies")
-          .select("id, name, diamond_balance, beans_balance")
+          .select("id, name, diamond_balance, wallet_balance")
           .eq("owner_id", currentUser.id)
           .eq("is_active", true)
           .order('updated_at', { ascending: false })
@@ -282,7 +282,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         id: latestAgencyResult.data.id,
         name: latestAgencyResult.data.name,
         diamond_balance: nextAgencyBalance,
-        beans_balance: Number(latestAgencyResult.data.beans_balance || 0),
+        beans_balance: Number(latestAgencyResult.data.wallet_balance || 0),
       });
     } else if (shouldLoadAgency) {
       setAgencyData(null);
@@ -490,8 +490,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           isOwnProfileCheck && user ? supabase.from("user_vip_subscriptions").select("tier_id, vip_tiers(tier_level)").eq("user_id", user.id).eq("is_active", true).gte("expires_at", new Date().toISOString()).order("created_at", { ascending: false }).limit(1).maybeSingle() : { data: null },
           // Conversations (for unread count)
           isOwnProfileCheck && user ? supabase.from("conversations").select("id").or(`participant1_id.eq.${user.id},participant2_id.eq.${user.id}`) : { data: null },
-          // Agency beans_balance (for agency owners)
-          isOwnProfileCheck && user && profileData?.is_agency_owner ? supabase.from("agencies").select("id, beans_balance, diamond_balance").eq("owner_id", user.id).eq("is_active", true).maybeSingle() : { data: null },
+          // Agency wallet_balance (for agency owners) - wallet_balance is the source of truth
+          isOwnProfileCheck && user && profileData?.is_agency_owner ? supabase.from("agencies").select("id, wallet_balance, diamond_balance").eq("owner_id", user.id).eq("is_active", true).maybeSingle() : { data: null },
           // Face verification pending check
           isOwnProfileCheck && user && !profileData?.is_face_verified ? supabase.from("face_verification_submissions").select("id", { count: 'exact', head: true }).eq("user_id", user.id).eq("status", "pending") : { count: 0 },
         ]);
@@ -509,9 +509,9 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           friendsCount
         });
 
-        // Set beans - PRIORITY: Agency owners use agency.beans_balance
+        // Set beans - PRIORITY: Agency owners use agency.wallet_balance (source of truth)
         if (profileData?.is_agency_owner && agencyBeansResult?.data) {
-          const rawAgencyBeans = agencyBeansResult.data.beans_balance || 0;
+          const rawAgencyBeans = agencyBeansResult.data.wallet_balance || 0;
           const personalBeans = (profileData?.pending_earnings || 0) + (profileData?.beans || 0);
           const agencyBeans = rawAgencyBeans + personalBeans;
           const agencyDiamonds = agencyBeansResult.data.diamond_balance || 0;
@@ -557,7 +557,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             if (!profileData?.is_agency_owner) {
               const { data: helperAgency } = await supabase
                 .from('agencies')
-                .select('id, diamond_balance, beans_balance, name')
+                .select('id, diamond_balance, wallet_balance, name')
                 .eq('owner_id', user.id)
                 .eq('is_active', true)
                 .maybeSingle();
@@ -566,7 +566,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   id: helperAgency.id,
                   name: helperAgency.name || 'Agency',
                   diamond_balance: helperAgency.diamond_balance || 0,
-                  beans_balance: helperAgency.beans_balance || 0,
+                  beans_balance: helperAgency.wallet_balance || 0,
                 });
               }
             }
@@ -678,15 +678,15 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           
           // Agency updates
           if (table === 'agencies' && payload?.owner_id === activeProfileId) {
-            if (payload.beans_balance !== undefined) {
-              setBeans(payload.beans_balance || 0);
+            if (payload.wallet_balance !== undefined) {
+              setBeans(payload.wallet_balance || 0);
             }
             if (payload.diamond_balance !== undefined) {
               const agencyDiamonds = payload.diamond_balance || 0;
               setAgencyData(prev => prev ? {
                 ...prev,
                 diamond_balance: agencyDiamonds,
-                beans_balance: payload.beans_balance ?? prev.beans_balance,
+                beans_balance: payload.wallet_balance ?? prev.beans_balance,
               } : null);
             }
           }
@@ -1848,7 +1848,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     // Fetch agency data
                     const { data: agency } = await supabase
                       .from('agencies')
-                      .select('id, name, diamond_balance, beans_balance')
+                      .select('id, name, diamond_balance, wallet_balance')
                       .eq('owner_id', currentUser?.id)
                       .eq('is_active', true)
                       .single();
@@ -1858,7 +1858,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                         id: agency.id,
                         name: agency.name,
                         diamond_balance: agency.diamond_balance || 0,
-                        beans_balance: agency.beans_balance || 0
+                        beans_balance: agency.wallet_balance || 0
                       });
                       
                       // Fetch exchange settings from correct key 'coin_exchange'
@@ -2732,7 +2732,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   return;
                 }
                 
-                // CRITICAL FIX: For agency owners, check AGENCY beans_balance, not profile beans
+                // CRITICAL FIX: For agency owners, check AGENCY wallet_balance (source of truth)
                 const currentAgencyBeans = agencyData.beans_balance || 0;
                 
                 if (beansNum > currentAgencyBeans) {
@@ -2743,7 +2743,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                 setExchangeProcessing(true);
                 
                 try {
-                  // CRITICAL FIX: Deduct beans from AGENCY.beans_balance (not profile)
+                  // CRITICAL FIX: Deduct beans from AGENCY.wallet_balance (source of truth)
                   // And add diamonds to AGENCY.diamond_balance (Trader Wallet)
                   const newAgencyBeans = currentAgencyBeans - beansNum;
                   const newAgencyDiamonds = (agencyData.diamond_balance || 0) + exchangeDiamondsToGet;
@@ -2751,7 +2751,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   const { error: agencyUpdateError } = await supabase
                     .from("agencies")
                     .update({ 
-                      beans_balance: newAgencyBeans,
+                      wallet_balance: newAgencyBeans,
                       diamond_balance: newAgencyDiamonds
                     })
                     .eq("id", agencyData.id);

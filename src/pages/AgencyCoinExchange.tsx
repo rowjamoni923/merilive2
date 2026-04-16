@@ -148,12 +148,12 @@ const AgencyCoinExchange = () => {
           const newData = payload.new as any;
           setAgency(prev => prev ? {
             ...prev,
-            beans_balance: newData.beans_balance || 0,
+            beans_balance: newData.wallet_balance || 0,
             diamond_balance: newData.diamond_balance || 0,
             wallet_balance: newData.wallet_balance || 0
           } : null);
-          // CRITICAL: Also update ownerBeans to match agency.beans_balance
-          setOwnerBeans(newData.beans_balance || 0);
+          // CRITICAL: Use wallet_balance as source of truth for agency beans
+          setOwnerBeans(newData.wallet_balance || 0);
         }
       )
       .subscribe();
@@ -215,14 +215,13 @@ const AgencyCoinExchange = () => {
 
       setAgency({
         ...agencyData,
-        beans_balance: agencyData.beans_balance || 0,
+        beans_balance: agencyData.wallet_balance || 0,
         wallet_balance: agencyData.wallet_balance || 0,
         diamond_balance: agencyData.diamond_balance || 0
       });
 
-      // CRITICAL: Use agency's beans_balance directly (NOT gift_transactions)
-      // This is what gets deducted during exchange and updated by gift-service
-      setOwnerBeans(agencyData.beans_balance || 0);
+      // CRITICAL: Use agency's wallet_balance (source of truth, NOT beans_balance which is always 0)
+      setOwnerBeans(agencyData.wallet_balance || 0);
 
       // Fetch exchange settings
       const { data: settingsData } = await supabase
@@ -522,7 +521,7 @@ const AgencyCoinExchange = () => {
           const { error: updateError } = await supabase
             .from('agencies')
             .update({
-              beans_balance: newBeansBalance,
+              wallet_balance: newBeansBalance,
               diamond_balance: newDiamondsBalance,
               updated_at: new Date().toISOString()
             })

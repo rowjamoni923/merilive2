@@ -75,7 +75,7 @@ const AgentWallet = () => {
   // Helper to refresh all tiered balances
   const refreshBalances = async (uid: string) => {
     const [agencyRes, helperRes, profileRes] = await Promise.all([
-      supabase.from("agencies").select("diamond_balance, beans_balance").eq("owner_id", uid).maybeSingle(),
+      supabase.from("agencies").select("diamond_balance, wallet_balance").eq("owner_id", uid).maybeSingle(),
       supabase.from("topup_helpers").select("wallet_balance").eq("user_id", uid).eq("is_verified", true).order("updated_at", { ascending: false }).limit(1).maybeSingle(),
       supabase.from("profiles").select("coins, beans").eq("id", uid).single(),
     ]);
