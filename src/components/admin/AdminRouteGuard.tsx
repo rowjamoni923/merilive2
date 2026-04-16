@@ -70,6 +70,7 @@ const ROUTE_HUB_MAP: Record<string, string> = {
   'vehicle-entrances': 'visual-hub',
   'chat-bubbles': 'visual-hub',
   'animation-store': 'visual-hub',
+  'verified-badges': 'visual-hub',
 
   // Finance
   'finance': 'finance-hub',
@@ -82,6 +83,7 @@ const ROUTE_HUB_MAP: Record<string, string> = {
   'balance-deduction': 'finance-hub',
   'transfer-history': 'finance-hub',
   'recharge-history': 'finance-hub',
+  'recharge-campaigns': 'finance-hub',
   'transfer-scheduler': 'finance-hub',
   'payroll-orders': 'finance-hub',
   'shop': 'finance-hub',

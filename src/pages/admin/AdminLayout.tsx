@@ -1229,7 +1229,7 @@ export default function AdminLayout() {
       agency_withdrawals: { toast: '💸 New Withdrawal Request', desc: 'A withdrawal request from agency received', path: '/admin/withdrawals' },
       agencies: { toast: '🏢 New Agency Created', desc: 'A new agency has signed up', path: '/admin/agencies' },
       host_conversion_requests: { toast: '🌟 New Host Application', desc: 'A user wants to become a host', path: '/admin/host-conversion' },
-      payroll_requests: { toast: '💳 Payroll Request', desc: 'New payroll request needs processing', path: '/admin/payroll' },
+      payroll_requests: { toast: '💳 Payroll Request', desc: 'New payroll request needs processing', path: '/admin/payroll-orders' },
       user_reports: { toast: '🚨 New User Report', desc: 'A user has been reported', path: '/admin/user-reports' },
       recharge_transactions: { 
         toast: '💎 New Recharge', desc: 'A new recharge transaction recorded', path: '/admin/recharge-history',
@@ -1239,7 +1239,7 @@ export default function AdminLayout() {
         toast: '📺 New Live Stream', desc: 'A streamer just went live', path: '/admin/streams',
         filter: (p: any) => p?.is_active === true,
       },
-      helper_withdrawal_requests: { toast: '🏦 Helper Withdrawal', desc: 'A helper withdrawal request is pending', path: '/admin/helper-withdrawals' },
+      helper_withdrawal_requests: { toast: '🏦 Helper Withdrawal', desc: 'A helper withdrawal request is pending', path: '/admin/level5-helpers' },
       helper_orders: { toast: '📦 New Helper Order', desc: 'A new helper order has been placed', path: '/admin/helper-management' },
       live_bans: { toast: '🚫 New Live Ban', desc: 'A user has been banned from live', path: '/admin/live-bans' },
       live_face_violations: { toast: '📸 Face Violation Detected', desc: 'A face violation was detected during live', path: '/admin/face-violations' },

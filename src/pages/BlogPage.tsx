@@ -571,7 +571,7 @@ export default function BlogPage() {
               © 2026 MeriLive. All rights reserved.
             </div>
             <div className="flex gap-6">
-              <button onClick={() => navigate("/privacy")} className="text-sm text-muted-foreground hover:text-white transition-colors">
+              <button onClick={() => navigate("/privacy-policy")} className="text-sm text-muted-foreground hover:text-white transition-colors">
                 Privacy
               </button>
               <button onClick={() => navigate("/terms")} className="text-sm text-muted-foreground hover:text-white transition-colors">

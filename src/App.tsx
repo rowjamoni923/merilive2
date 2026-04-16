@@ -165,6 +165,7 @@ const Shop = lazy(() => import("./pages/Shop"));
 const Reels = lazy(() => import("./pages/Reels"));
 const VIP = lazy(() => import("./pages/VIP"));
 const Parcels = lazy(() => import("./pages/Parcels"));
+const PlaceholderPage = lazy(() => import("./components/common/PlaceholderPage"));
 
 // Games
 const RoulettePage = lazy(() => import("./pages/games/RoulettePage"));
@@ -919,6 +920,7 @@ const App = () => {
                 <Route path="/link" element={<SmartLink />} />
                 <Route path="/policies" element={<PublicPolicies />} />
                 <Route path="/policies/:policyId" element={<PolicyDetail />} />
+                <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
                 <Route path="/privacy-policy" element={<PublicPrivacyPolicy />} />
                 <Route path="/terms" element={<PublicPrivacyPolicy />} />
                 <Route path="/google-library-order-rules" element={<GoogleLibraryOrderRules />} />
@@ -1000,6 +1002,7 @@ const App = () => {
                 <Route path="/profile-detail/:userId" element={<ProtectedRoute session={session}><ProfileDetail /></ProtectedRoute>} />
                 
                 {/* Games */}
+                <Route path="/games" element={<ProtectedRoute session={session}><PlaceholderPage title="Games" description="Choose a game from the home section to start playing." /></ProtectedRoute>} />
                 <Route path="/games/roulette" element={<ProtectedRoute session={session}><RoulettePage /></ProtectedRoute>} />
                 <Route path="/games/ferris-wheel" element={<ProtectedRoute session={session}><FerrisWheelPage /></ProtectedRoute>} />
                 <Route path="/games/teen-patti" element={<ProtectedRoute session={session}><TeenPattiPage /></ProtectedRoute>} />

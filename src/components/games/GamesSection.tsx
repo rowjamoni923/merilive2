@@ -83,7 +83,7 @@ export function GamesSection() {
           </div>
         </div>
         <button 
-          onClick={() => navigate("/games")}
+          onClick={() => navigate("/games/roulette")}
           className="flex items-center gap-1 text-purple-400 text-sm"
         >
           See All <ArrowRight className="w-4 h-4" />
