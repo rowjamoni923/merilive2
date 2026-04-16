@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.exchange_user_beans_to_diamonds(_user_id uuid, _beans_amount integer, _diamonds_reward integer, _tier_id text);
