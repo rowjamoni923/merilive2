@@ -2352,7 +2352,7 @@ const AgencyWithdrawal = () => {
       case 'processing':
         return <Badge className="bg-blue-500 text-white border-0 shadow-sm px-3 py-1 font-medium"><Loader2 className="w-3 h-3 mr-1.5 animate-spin" /> Processing</Badge>;
       case 'approved':
-        return <Badge className="bg-indigo-500 text-white border-0 shadow-sm px-3 py-1 font-medium"><CheckCircle className="w-3 h-3 mr-1.5" /> Approved</Badge>;
+        return <Badge className="bg-emerald-500 text-white border-0 shadow-sm px-3 py-1 font-medium"><CheckCircle className="w-3 h-3 mr-1.5" /> Completed</Badge>;
       case 'completed':
         return <Badge className="bg-emerald-500 text-white border-0 shadow-sm px-3 py-1 font-medium"><CheckCircle className="w-3 h-3 mr-1.5" /> Completed</Badge>;
       case 'rejected':
@@ -2815,8 +2815,8 @@ const AgencyWithdrawal = () => {
                   
                   // For agency view: if helper has processed payment (helper_processed_at exists), 
                   // show as "approved" even if actual status is "processing"
-                  const displayStatus = (withdrawal.status === 'processing' && withdrawal.helper_processed_at) 
-                    ? 'approved' 
+                  const displayStatus = ((withdrawal.status === 'processing' && withdrawal.helper_processed_at) || withdrawal.status === 'approved')
+                    ? 'completed'
                     : withdrawal.status;
                   
                   const statusConfig = {
@@ -2824,7 +2824,7 @@ const AgencyWithdrawal = () => {
                     pending: { bg: 'from-amber-500/20 to-orange-500/20', iconBg: 'bg-amber-500', text: 'text-amber-400', border: 'border-amber-500/30' },
                     processing: { bg: 'from-blue-500/20 to-cyan-500/20', iconBg: 'bg-blue-500', text: 'text-blue-400', border: 'border-blue-500/30' },
                     rejected: { bg: 'from-red-500/20 to-pink-500/20', iconBg: 'bg-red-500', text: 'text-red-400', border: 'border-red-500/30' },
-                    approved: { bg: 'from-indigo-500/20 to-purple-500/20', iconBg: 'bg-indigo-500', text: 'text-indigo-400', border: 'border-indigo-500/30' }
+                    approved: { bg: 'from-emerald-500/20 to-green-500/20', iconBg: 'bg-emerald-500', text: 'text-emerald-400', border: 'border-emerald-500/30' }
                   };
                   const config = statusConfig[displayStatus as keyof typeof statusConfig] || statusConfig.pending;
                   
@@ -2983,20 +2983,20 @@ const AgencyWithdrawal = () => {
               {(() => {
                 // For agency view: if helper has processed (helper_processed_at exists),
                 // show as "approved" even if actual status is "processing"
-                const detailDisplayStatus = (selectedWithdrawal?.status === 'processing' && selectedWithdrawal?.helper_processed_at) 
-                  ? 'approved' 
+                const detailDisplayStatus = ((selectedWithdrawal?.status === 'processing' && selectedWithdrawal?.helper_processed_at) || selectedWithdrawal?.status === 'approved')
+                  ? 'completed'
                   : selectedWithdrawal?.status;
                 
                 const statusColorMap: Record<string, string> = {
                   completed: 'bg-emerald-500',
-                  approved: 'bg-indigo-500',
+                  approved: 'bg-emerald-500',
                   pending: 'bg-amber-500',
                   processing: 'bg-blue-500',
                   rejected: 'bg-red-500'
                 };
                 const statusTextMap: Record<string, string> = {
                   completed: 'text-emerald-400',
-                  approved: 'text-indigo-400',
+                  approved: 'text-emerald-400',
                   pending: 'text-amber-400',
                   processing: 'text-blue-400',
                   rejected: 'text-red-400'

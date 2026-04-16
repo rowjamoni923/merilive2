@@ -1163,19 +1163,23 @@ const AgencyDashboard = () => {
                       >
                         <div className="flex items-center gap-2">
                           {(() => {
-                            const displayStatus = (w as any).helper_processed_at && w.status === 'processing' ? 'approved' : w.status;
+                            const displayStatus = ((w as any).helper_processed_at && w.status === 'processing') || w.status === 'approved'
+                              ? 'completed'
+                              : w.status;
                             return (
                               <>
                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                                  displayStatus === 'approved' ? 'bg-green-500/30' :
+                                  displayStatus === 'completed' ? 'bg-green-500/30' :
                                   displayStatus === 'pending' ? 'bg-yellow-500/30' :
                                   displayStatus === 'processing' ? 'bg-blue-500/30' :
                                   displayStatus === 'rejected' ? 'bg-red-500/30' : 'bg-gray-500/30'
                                 }`}>
-                                  {displayStatus === 'approved' ? (
+                                  {displayStatus === 'completed' ? (
                                     <CheckCircle2 className="w-4 h-4 text-green-400" />
                                   ) : displayStatus === 'pending' ? (
                                     <Clock className="w-4 h-4 text-yellow-400" />
+                                  ) : displayStatus === 'processing' ? (
+                                    <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />
                                   ) : (
                                     <XCircle className="w-4 h-4 text-red-400" />
                                   )}
@@ -1193,11 +1197,14 @@ const AgencyDashboard = () => {
                           })()}
                         </div>
                         {(() => {
-                          const displayStatus = (w as any).helper_processed_at && w.status === 'processing' ? 'approved' : w.status;
+                          const displayStatus = ((w as any).helper_processed_at && w.status === 'processing') || w.status === 'approved'
+                            ? 'completed'
+                            : w.status;
                           return (
                             <Badge className={`text-[10px] ${
-                              displayStatus === 'approved' ? 'bg-green-500/20 text-green-400' :
+                              displayStatus === 'completed' ? 'bg-green-500/20 text-green-400' :
                               displayStatus === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
+                              displayStatus === 'processing' ? 'bg-blue-500/20 text-blue-400' :
                               'bg-red-500/20 text-red-400'
                             } border-0`}>
                               {displayStatus}
@@ -1559,8 +1566,8 @@ const AgencyDashboard = () => {
                       const localAmt = withdrawal.payment_details?.local_amount || 0;
                       
                       // For agency view: if helper has processed payment, show as "approved"
-                      const displayStatus = (withdrawal.status === 'processing' && withdrawal.helper_processed_at) 
-                        ? 'approved' 
+                      const displayStatus = ((withdrawal.status === 'processing' && withdrawal.helper_processed_at) || withdrawal.status === 'approved')
+                        ? 'completed'
                         : withdrawal.status;
                       
                       const statusConfig: Record<string, { iconBg: string; text: string }> = {
@@ -1568,7 +1575,7 @@ const AgencyDashboard = () => {
                         pending: { iconBg: 'bg-amber-500', text: 'text-amber-400' },
                         processing: { iconBg: 'bg-blue-500', text: 'text-blue-400' },
                         rejected: { iconBg: 'bg-red-500', text: 'text-red-400' },
-                        approved: { iconBg: 'bg-indigo-500', text: 'text-indigo-400' }
+                        approved: { iconBg: 'bg-emerald-500', text: 'text-emerald-400' }
                       };
                       const config = statusConfig[displayStatus] || statusConfig.pending;
                       

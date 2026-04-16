@@ -72,6 +72,7 @@ interface AgencyWithdrawal {
   helper_notes?: string;
   helper_net_reward?: number;
   diamond_reward?: number;
+  helper_processed_at?: string | null;
   assigned_helper_id?: string | null;
   locked_at?: string | null;
   locked_by_helper_name?: string | null;
@@ -247,6 +248,7 @@ const Level5HelperDashboard = () => {
         { event: '*', schema: 'public', table: 'agency_withdrawals' },
         () => {
           loadAgencyWithdrawals();
+          loadCompletedHistory();
           loadNotifications();
         }
       )
@@ -542,7 +544,7 @@ const Level5HelperDashboard = () => {
     setPendingOrdersCount((data || []).filter((o: any) => o.status === 'pending' || o.status === 'gateway_pending').length);
   };
 
-  // Load completed orders and withdrawals for history
+  // Load helper order history and processed agency withdrawal history
   const loadCompletedHistory = async (helperId?: string) => {
     const id = helperId || helperData?.id;
     if (!id) return;
@@ -561,7 +563,7 @@ const Level5HelperDashboard = () => {
     
     setCompletedOrders(ordersData || []);
     
-    // Load completed agency withdrawals processed by this helper
+    // Load agency withdrawals handled by this helper for history/status tracking
     const { data: withdrawalsData } = await supabase
       .from('agency_withdrawals')
       .select(`
@@ -569,8 +571,8 @@ const Level5HelperDashboard = () => {
         agency:agencies(name, agency_code, logo_url, owner_id)
       `)
       .eq('assigned_helper_id', id)
-      .eq('status', 'completed')
-      .order('processed_at', { ascending: false })
+      .in('status', ['processing', 'approved', 'completed', 'rejected'])
+      .order('requested_at', { ascending: false })
       .limit(50);
     
     setCompletedWithdrawals((withdrawalsData || []) as AgencyWithdrawal[]);
@@ -1078,6 +1080,7 @@ const Level5HelperDashboard = () => {
       setScreenshotFile(null);
       setHelperNotes("");
       loadAgencyWithdrawals();
+      loadCompletedHistory();
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
@@ -1958,54 +1961,89 @@ const Level5HelperDashboard = () => {
               <Card className="bg-slate-800/50 border-slate-700">
                 <CardContent className="p-8 text-center">
                   <Clock className="w-12 h-12 mx-auto text-slate-500 mb-3" />
-                  <p className="text-slate-400">No completed transactions yet</p>
+                  <p className="text-slate-400">No transaction history yet</p>
                   <p className="text-xs text-slate-500 mt-1">
-                    Your completed orders and withdrawals will appear here
+                    Your processing, completed, and rejected records will appear here
                   </p>
                 </CardContent>
               </Card>
             ) : (
               <>
-                {/* Completed Agency Withdrawals */}
+                {/* Agency Withdrawal History */}
                 {completedWithdrawals.length > 0 && (
                   <div className="space-y-2">
-                    <p className="text-xs text-orange-400 font-medium">💰 Agency Withdrawals</p>
-                    {completedWithdrawals.map((withdrawal) => (
-                      <Card key={withdrawal.id} className="bg-slate-800/50 border-slate-700 border-l-4 border-l-green-500">
-                        <CardContent className="p-3">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="w-10 h-10 border-2 border-green-500">
-                              <AvatarImage src={withdrawal.agency?.logo_url} />
-                              <AvatarFallback className="bg-green-500/20 text-green-400">
-                                <Building2 className="w-4 h-4" />
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-white font-medium text-sm truncate">
-                                {withdrawal.agency?.name || 'Agency'}
-                              </p>
-                              <p className="text-slate-400 text-[10px]">
-                                Code: {withdrawal.agency?.agency_code}
-                              </p>
-                              <div className="flex items-center gap-2 mt-1">
-                                <Badge className="bg-green-500 text-[10px]">Completed</Badge>
-                                {withdrawal.helper_net_reward && (
-                                  <span className="text-cyan-400 text-[10px]">
-                                    +{withdrawal.helper_net_reward.toLocaleString()} 💎
-                                  </span>
+                    <p className="text-xs text-orange-400 font-medium">💰 Agency Withdrawal History</p>
+                    {completedWithdrawals.map((withdrawal) => {
+                      const displayStatus = withdrawal.status === 'approved' ? 'completed' : withdrawal.status;
+                      const processedBeans = Number(withdrawal.payment_details?.net_withdrawal_beans ?? withdrawal.amount ?? 0);
+                      const helperReward = Number(withdrawal.helper_net_reward ?? withdrawal.diamond_reward ?? 0);
+                      const transactionId = withdrawal.helper_transaction_id || withdrawal.payment_details?.helper_transaction_id;
+                      const statusConfig = {
+                        completed: {
+                          card: 'border-l-green-500',
+                          badge: 'bg-green-500',
+                          amount: 'text-emerald-400',
+                          label: 'Completed'
+                        },
+                        processing: {
+                          card: 'border-l-blue-500',
+                          badge: 'bg-blue-500',
+                          amount: 'text-blue-400',
+                          label: 'Processing'
+                        },
+                        rejected: {
+                          card: 'border-l-red-500',
+                          badge: 'bg-red-500',
+                          amount: 'text-red-400',
+                          label: 'Rejected'
+                        }
+                      } as const;
+                      const config = statusConfig[displayStatus as keyof typeof statusConfig] || statusConfig.processing;
+
+                      return (
+                        <Card key={withdrawal.id} className={cn("bg-slate-800/50 border-slate-700 border-l-4", config.card)}>
+                          <CardContent className="p-3">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="w-10 h-10 border-2 border-slate-600">
+                                <AvatarImage src={withdrawal.agency?.logo_url} />
+                                <AvatarFallback className="bg-slate-700 text-orange-400">
+                                  <Building2 className="w-4 h-4" />
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-white font-medium text-sm truncate">
+                                  {withdrawal.agency?.name || 'Agency'}
+                                </p>
+                                <p className="text-slate-400 text-[10px]">
+                                  Code: {withdrawal.agency?.agency_code}
+                                </p>
+                                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                  <Badge className={cn("text-[10px]", config.badge)}>{config.label}</Badge>
+                                  {transactionId && (
+                                    <span className="text-yellow-400 text-[10px] font-mono truncate max-w-[130px]">
+                                      TX: {transactionId}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <p className={cn("font-bold text-sm", config.amount)}>
+                                  {processedBeans.toLocaleString()} Beans
+                                </p>
+                                {helperReward > 0 && (
+                                  <p className="text-cyan-400 text-[10px]">
+                                    Wallet +{helperReward.toLocaleString()}
+                                  </p>
                                 )}
+                                <p className="text-slate-500 text-[10px]">
+                                  {format(new Date(withdrawal.processed_at || withdrawal.requested_at), 'dd MMM')}
+                                </p>
                               </div>
                             </div>
-                            <div className="text-right">
-                              <p className="text-emerald-400 font-bold text-sm">${withdrawal.amount}</p>
-                              <p className="text-slate-500 text-[10px]">
-                                {withdrawal.processed_at ? format(new Date(withdrawal.processed_at), 'dd MMM') : ''}
-                              </p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </div>
                 )}
                 
