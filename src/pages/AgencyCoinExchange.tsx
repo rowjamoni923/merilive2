@@ -133,7 +133,8 @@ const AgencyCoinExchange = () => {
   useEffect(() => {
     if (!agency?.id || !ownerId) return;
 
-    const channel = supabase
+    // Channel 1: Agency balance (diamonds, wallet) — does NOT update My Beans
+    const agencyChannel = supabase
       .channel(`agency-exchange-realtime-${agency.id}`)
       .on(
         'postgres_changes',
@@ -152,14 +153,34 @@ const AgencyCoinExchange = () => {
             diamond_balance: newData.diamond_balance || 0,
             wallet_balance: newData.wallet_balance || 0
           } : null);
-          // CRITICAL: Use wallet_balance as source of truth for agency beans
-          setOwnerBeans(newData.wallet_balance || 0);
+          // DO NOT update ownerBeans here — that's My Beans from profiles.beans
+        }
+      )
+      .subscribe();
+
+    // Channel 2: Personal profile beans (My Beans) — separate from agency
+    const profileChannel = supabase
+      .channel(`my-beans-realtime-${ownerId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${ownerId}`
+        },
+        (payload) => {
+          const newData = payload.new as any;
+          const newBeans = Math.max(0, Number(newData?.beans || 0));
+          console.log('My Beans updated (profiles.beans):', newBeans);
+          setOwnerBeans(newBeans);
         }
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(agencyChannel);
+      supabase.removeChannel(profileChannel);
     };
   }, [agency?.id, ownerId]);
 
@@ -201,12 +222,19 @@ const AgencyCoinExchange = () => {
 
       setOwnerId(user.id);
 
-      // Fetch agency with beans_balance and diamond_balance
-      const { data: agencyData, error: agencyError } = await supabase
-        .from("agencies")
-        .select("id, name, beans_balance, wallet_balance, diamond_balance")
-        .eq("owner_id", user.id)
-        .maybeSingle();
+      // Fetch agency data AND owner's personal beans in parallel
+      const [{ data: agencyData, error: agencyError }, { data: profileData }] = await Promise.all([
+        supabase
+          .from("agencies")
+          .select("id, name, beans_balance, wallet_balance, diamond_balance")
+          .eq("owner_id", user.id)
+          .maybeSingle(),
+        supabase
+          .from("profiles")
+          .select("beans")
+          .eq("id", user.id)
+          .maybeSingle()
+      ]);
 
       if (agencyError || !agencyData) {
         navigate("/create-agency");
@@ -220,8 +248,8 @@ const AgencyCoinExchange = () => {
         diamond_balance: agencyData.diamond_balance || 0
       });
 
-      // CRITICAL: Use agency's wallet_balance (source of truth, NOT beans_balance which is always 0)
-      setOwnerBeans(agencyData.wallet_balance || 0);
+      // CRITICAL FIX: My Beans = profiles.beans (personal), NOT agency wallet_balance (Total Beans)
+      setOwnerBeans(Math.max(0, Number(profileData?.beans || 0)));
 
       // Fetch exchange settings
       const { data: settingsData } = await supabase
