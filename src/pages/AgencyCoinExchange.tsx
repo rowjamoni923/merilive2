@@ -149,7 +149,7 @@ const AgencyCoinExchange = () => {
           const newData = payload.new as any;
           setAgency(prev => prev ? {
             ...prev,
-            beans_balance: newData.wallet_balance || 0,
+            beans_balance: newData.beans_balance || 0,
             diamond_balance: newData.diamond_balance || 0,
             wallet_balance: newData.wallet_balance || 0
           } : null);
@@ -243,7 +243,7 @@ const AgencyCoinExchange = () => {
 
       setAgency({
         ...agencyData,
-        beans_balance: agencyData.wallet_balance || 0,
+        beans_balance: agencyData.beans_balance || 0,
         wallet_balance: agencyData.wallet_balance || 0,
         diamond_balance: agencyData.diamond_balance || 0
       });
@@ -711,7 +711,7 @@ const AgencyCoinExchange = () => {
               <Coins className="w-5 h-5" />
             </div>
           </div>
-          <p className="text-white/70 text-xs">Agency Beans</p>
+          <p className="text-white/70 text-xs">Total Beans</p>
           <p className="text-2xl font-bold">{(agency.beans_balance || 0).toLocaleString()}</p>
           <p className="text-white/50 text-[10px] mt-1">Exchangeable to Diamonds</p>
         </div>
