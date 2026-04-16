@@ -10,6 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { User, UserCheck, MessageCircle, RefreshCw, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 
+import { adminSendNotification } from "@/utils/adminNotification";
+
 interface ConversionRequest {
   id: string;
   user_id: string;
@@ -125,13 +127,7 @@ const AdminHostConversion = () => {
         })
         .eq('id', req.id);
 
-      await supabase.from('notifications').insert({
-        user_id: req.user_id,
-        title: '❌ Conversion Request Rejected',
-        message: responseText[req.id] || 'Your host conversion request has been rejected.',
-        type: 'system',
-        is_read: false,
-      });
+      await adminSendNotification(req.user_id, '❌ Conversion Request Rejected', responseText[req.id] || 'Your host conversion request has been rejected.', 'system');
 
       toast({ title: "Rejected" });
       loadRequests();

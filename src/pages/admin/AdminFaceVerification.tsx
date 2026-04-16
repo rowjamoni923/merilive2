@@ -43,6 +43,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
+import { adminSendNotification } from "@/utils/adminNotification";
+
 interface Submission {
   id: string;
   user_id: string;
@@ -897,13 +899,7 @@ const AdminFaceVerification = () => {
                               const { error } = await supabase.rpc('admin_update_user_gender', { _user_id: selectedSubmission.user_id, _gender: 'female' });
                               if (error) throw error;
                               // Send notification to the user
-                              await supabase.from('notifications').insert({
-                                user_id: selectedSubmission.user_id,
-                                title: '🌟 Host Account Activated! 🎤✨',
-                                message: '🎉 Congratulations! Your account has been upgraded to Host status! 🔥 Complete your Face Verification now and start going live to earn rewards! 💎🫘 Welcome to the spotlight! 🌟',
-                                type: 'system',
-                                is_read: false,
-                              });
+                              await adminSendNotification(selectedSubmission.user_id, '🌟 Host Account Activated! 🎤✨', '🎉 Congratulations! Your account has been upgraded to Host status! 🔥 Complete your Face Verification now and start going live to earn rewards! 💎🫘 Welcome to the spotlight! 🌟', 'system');
                               toast({ title: "✅ Role Updated", description: "Set as Host (Female) + Notification sent" });
                               fetchSubmissions();
                               setSelectedSubmission(prev => prev ? { ...prev, profile: prev.profile ? { ...prev.profile, is_host: true, gender: 'female' } : prev.profile } : null);
@@ -929,13 +925,7 @@ const AdminFaceVerification = () => {
                               const { error } = await supabase.rpc('admin_update_user_gender', { _user_id: selectedSubmission.user_id, _gender: 'male' });
                               if (error) throw error;
                               // Send notification to the user
-                              await supabase.from('notifications').insert({
-                                user_id: selectedSubmission.user_id,
-                                title: '👤 User Account Updated! ✨',
-                                message: '✅ Your account has been switched to User mode! 🔄 Please complete your Face Verification to continue enjoying all features! 💫',
-                                type: 'system',
-                                is_read: false,
-                              });
+                              await adminSendNotification(selectedSubmission.user_id, '👤 User Account Updated! ✨', '✅ Your account has been switched to User mode! 🔄 Please complete your Face Verification to continue enjoying all features! 💫', 'system');
                               toast({ title: "✅ Role Updated", description: "Set as User (Male) + Notification sent" });
                               fetchSubmissions();
                               setSelectedSubmission(prev => prev ? { ...prev, profile: prev.profile ? { ...prev.profile, is_host: false, gender: 'male' } : prev.profile } : null);
