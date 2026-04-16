@@ -9241,6 +9241,7 @@ export type Database = {
         Row: {
           beans_amount: number
           created_at: string
+          destination_type: string | null
           diamonds_received: number
           exchange_rate: number
           id: string
@@ -9250,6 +9251,7 @@ export type Database = {
         Insert: {
           beans_amount: number
           created_at?: string
+          destination_type?: string | null
           diamonds_received: number
           exchange_rate: number
           id?: string
@@ -9259,6 +9261,7 @@ export type Database = {
         Update: {
           beans_amount?: number
           created_at?: string
+          destination_type?: string | null
           diamonds_received?: number
           exchange_rate?: number
           id?: string
@@ -10951,15 +10954,25 @@ export type Database = {
         }
         Returns: Json
       }
-      exchange_user_beans_to_diamonds: {
-        Args: {
-          _beans_amount: number
-          _diamonds_reward: number
-          _tier_id?: string
-          _user_id: string
-        }
-        Returns: Json
-      }
+      exchange_user_beans_to_diamonds:
+        | {
+            Args: {
+              _beans_amount: number
+              _diamonds_reward?: number
+              _tier_id?: string
+              _user_id: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              _beans_amount: number
+              _diamonds_reward: number
+              _tier_id?: string
+              _user_id: string
+            }
+            Returns: Json
+          }
       finalize_first_minute_earnings: {
         Args: { p_call_id: string }
         Returns: undefined
