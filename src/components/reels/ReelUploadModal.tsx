@@ -147,7 +147,8 @@ export const ReelUploadModal = ({
       setUploadProgress(20);
 
       // Upload video
-      const videoFileName = `${user.id}/${Date.now()}_${videoFile.name}`;
+      const sanitizedName = videoFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const videoFileName = `${user.id}/${Date.now()}_${sanitizedName}`;
       const { error: videoError } = await supabase.storage
         .from('reels')
         .upload(videoFileName, videoFile, {
@@ -196,7 +197,7 @@ export const ReelUploadModal = ({
           thumbnail_url: thumbnailUrl,
           caption: caption.trim() || null,
           category_id: categoryId || null,
-          duration: duration,
+          duration_seconds: duration,
           // Sound info (TikTok-style)
           sound_id: selectedSound?.id || null,
           sound_title: selectedSound?.title || 'Original Sound',
