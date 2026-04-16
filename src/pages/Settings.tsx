@@ -329,44 +329,59 @@ const Settings = () => {
 
   // Request notification permission
   const requestNotificationPermission = async () => {
-   console.log('[Settings] Requesting notification permission...');
+    console.log('[Settings] Requesting notification permission...');
+    // If already granted, instruct user how to disable
+    if (permissions.notifications) {
+      toast({
+        title: "Already Enabled",
+        description: "To disable, go to device Settings → Apps → MeriLive → Permissions.",
+      });
+      return;
+    }
     try {
       if (Capacitor.isNativePlatform()) {
         const result = await PushNotifications.requestPermissions();
-       console.log('[Settings] Native notification result:', result);
+        console.log('[Settings] Native notification result:', result);
         if (result.receive === 'granted') {
           await PushNotifications.register();
           setPermissions(prev => ({ ...prev, notifications: true }));
           toast({ title: "Notifications Enabled", description: "You will now receive push notifications." });
         } else {
-          toast({ title: "Permission Denied", description: "Please enable notifications in device settings.", variant: "destructive" });
+          toast({ title: "Permission Denied", description: "Please enable notifications from device Settings → Apps → MeriLive → Permissions.", variant: "destructive" });
         }
       } else {
-        // Web fallback
         if ('Notification' in window) {
           const permission = await Notification.requestPermission();
-         console.log('[Settings] Web notification result:', permission);
+          console.log('[Settings] Web notification result:', permission);
           setPermissions(prev => ({ ...prev, notifications: permission === 'granted' }));
           if (permission === 'granted') {
             toast({ title: "Notifications Enabled", description: "You will now receive notifications." });
-         } else {
-           toast({ title: "Permission Denied", description: "Please enable notifications in browser settings.", variant: "destructive" });
+          } else {
+            toast({ title: "Permission Denied", description: "Please enable notifications in browser settings.", variant: "destructive" });
           }
-       } else {
-         toast({ title: "Not Supported", description: "Notifications are not supported in this browser.", variant: "destructive" });
+        } else {
+          toast({ title: "Not Supported", description: "Notifications are not supported in this browser.", variant: "destructive" });
         }
       }
     } catch (error) {
       console.error('Notification permission error:', error);
       toast({ title: "Error", description: "Failed to request notification permission.", variant: "destructive" });
+    } finally {
+      void refreshPermissions();
     }
   };
 
   // Request camera permission
   const requestCameraPermission = async () => {
     console.log('[Settings] Requesting camera permission...');
+    if (permissions.camera) {
+      toast({
+        title: "Already Enabled",
+        description: "To disable, go to device Settings → Apps → MeriLive → Permissions → Camera.",
+      });
+      return;
+    }
     try {
-      // Try native Capacitor Camera plugin first (works in WebView with native bridge)
       if (Capacitor.isNativePlatform()) {
         try {
           const result = await CapCamera.requestPermissions({ permissions: ['camera'] });
@@ -381,7 +396,6 @@ const Settings = () => {
         }
       }
 
-      // Web / WebView fallback - request via getUserMedia
       console.log('[Settings] Requesting camera via getUserMedia...');
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       stream.getTracks().forEach(track => track.stop());
@@ -390,7 +404,6 @@ const Settings = () => {
     } catch (error: any) {
       console.error('Camera permission error:', error);
       if (error?.name === 'NotAllowedError' || error?.name === 'NotFoundError') {
-        // On Android WebView, permissions may need to be granted from Android Settings
         toast({ 
           title: "Camera Permission Needed", 
           description: "Please go to your device Settings > Apps > MeriLive > Permissions and enable Camera.", 
@@ -399,16 +412,23 @@ const Settings = () => {
       } else {
         toast({ title: "Error", description: "Failed to request camera permission.", variant: "destructive" });
       }
+    } finally {
+      void refreshPermissions();
     }
   };
 
   // Request microphone permission
   const requestMicrophonePermission = async () => {
     console.log('[Settings] Requesting microphone permission...');
+    if (permissions.microphone) {
+      toast({
+        title: "Already Enabled",
+        description: "To disable, go to device Settings → Apps → MeriLive → Permissions → Microphone.",
+      });
+      return;
+    }
     try {
       if (Capacitor.isNativePlatform()) {
-        // Native: First request RECORD_AUDIO runtime permission via Camera plugin
-        // then getUserMedia will work in WebView
         console.log('[Settings] Native: requesting RECORD_AUDIO via Camera plugin first...');
         try {
           const result = await CapCamera.requestPermissions({ permissions: ['camera'] });
@@ -424,8 +444,6 @@ const Settings = () => {
     } catch (error: any) {
       console.error('Microphone permission error:', error);
       if (Capacitor.isNativePlatform() && error?.name === 'NotAllowedError') {
-        // On native, if getUserMedia fails even after runtime permission,
-        // the user may need to grant it in app settings
         toast({ 
           title: "Microphone Blocked", 
           description: "Please go to your phone Settings → Apps → MeriLive → Permissions → Microphone → Allow.", 
@@ -437,16 +455,25 @@ const Settings = () => {
           : "Failed to request microphone permission.";
         toast({ title: "Error", description: message, variant: "destructive" });
       }
+    } finally {
+      void refreshPermissions();
     }
   };
 
   // Request location permission
   const requestLocationPermission = async () => {
-   console.log('[Settings] Requesting location permission...');
+    console.log('[Settings] Requesting location permission...');
+    if (permissions.location) {
+      toast({
+        title: "Already Enabled",
+        description: "To disable, go to device Settings → Apps → MeriLive → Permissions → Location.",
+      });
+      return;
+    }
     try {
       if (Capacitor.isNativePlatform()) {
         const result = await Geolocation.requestPermissions();
-       console.log('[Settings] Native location result:', result);
+        console.log('[Settings] Native location result:', result);
         if (result.location === 'granted') {
           setPermissions(prev => ({ ...prev, location: true }));
           toast({ title: "Location Enabled", description: "Location access has been granted." });
@@ -454,22 +481,23 @@ const Settings = () => {
           toast({ title: "Permission Denied", description: "Please enable location in device settings.", variant: "destructive" });
         }
       } else {
-        // Web fallback
-       console.log('[Settings] Web location via getCurrentPosition...');
+        console.log('[Settings] Web location via getCurrentPosition...');
         navigator.geolocation.getCurrentPosition(
           () => {
             setPermissions(prev => ({ ...prev, location: true }));
             toast({ title: "Location Enabled", description: "Location access has been granted." });
           },
-         (error) => {
-           console.error('[Settings] Location error:', error);
-           toast({ title: "Permission Denied", description: "Please enable location in browser settings.", variant: "destructive" });
+          (error) => {
+            console.error('[Settings] Location error:', error);
+            toast({ title: "Permission Denied", description: "Please enable location in browser settings.", variant: "destructive" });
           }
         );
       }
     } catch (error) {
       console.error('Location permission error:', error);
       toast({ title: "Error", description: "Failed to request location permission.", variant: "destructive" });
+    } finally {
+      void refreshPermissions();
     }
   };
 
