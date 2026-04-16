@@ -209,7 +209,7 @@ const Chat = () => {
   
   // Notifications
   const [showNotifications, setShowNotifications] = useState(false);
-  const { unreadCount: notificationUnreadCount, markAllAsRead: markAllNotificationsAsRead } = useNotifications();
+  const { markAllAsRead: markAllNotificationsAsRead } = useNotifications();
   const globalUnread = useGlobalUnreadCount();
 
   const emitGlobalUnreadRefresh = useCallback((detail?: { messagesDecrement?: number; messagesSetZero?: boolean }) => {
@@ -2914,9 +2914,9 @@ const Chat = () => {
               </TabsTrigger>
               <TabsTrigger value="notifications" className="relative text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600/80 data-[state=active]:to-purple-600/80 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg text-white/50">
                 Notifications
-                {notificationUnreadCount > 0 && (
+                {globalUnread.notifications > 0 && (
                   <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg">
-                    {formatBadgeCount(notificationUnreadCount)}
+                    {formatBadgeCount(globalUnread.notifications)}
                   </span>
                 )}
               </TabsTrigger>
