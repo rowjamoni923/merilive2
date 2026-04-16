@@ -3093,16 +3093,23 @@ const Level5HelperDashboard = () => {
                 </div>
               </div>
 
-              {/* Amount Info */}
+              {/* Amount Info - Local Amount (after fee) */}
               <div className="bg-gradient-to-br from-emerald-500/20 to-green-500/20 rounded-xl p-4 border border-emerald-500/30">
                 <div className="text-center flex flex-col items-center">
                   <div className="flex items-center gap-2 justify-center">
                     <span className="text-3xl">💰</span>
                     <p className="text-3xl font-bold text-emerald-400">
-                      {((selectedAgencyWithdrawal.payment_details as any)?.net_withdrawal_beans || selectedAgencyWithdrawal.amount).toLocaleString()}
+                      {(() => {
+                        const pd = selectedAgencyWithdrawal.payment_details as any;
+                        const cc = pd?.currency_code || selectedAgencyWithdrawal.currency_code;
+                        const symbolMap: Record<string, string> = { BDT: '৳', INR: '₹', PKR: '₨', NPR: '₨', IDR: 'Rp', PHP: '₱', MYR: 'RM', THB: '฿', VND: '₫', LKR: 'Rs', AED: 'د.إ', SAR: '﷼', USD: '$', GBP: '£' };
+                        const symbol = symbolMap[cc] || cc || '';
+                        const netLocal = pd?.net_withdrawal_local || pd?.local_amount || 0;
+                        return `${symbol}${Number(netLocal).toLocaleString()}`;
+                      })()}
                     </p>
                   </div>
-                  <p className="text-slate-400 text-xs mt-1">Beans</p>
+                  <p className="text-slate-400 text-xs mt-1">Local Amount</p>
                 </div>
               </div>
 
