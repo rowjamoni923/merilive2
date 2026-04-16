@@ -3799,6 +3799,7 @@ export type Database = {
           level_number: number | null
           min_total_diamonds: number
           perks: Json | null
+          updated_at: string | null
         }
         Insert: {
           badge_color?: string | null
@@ -3813,6 +3814,7 @@ export type Database = {
           level_number?: number | null
           min_total_diamonds?: number
           perks?: Json | null
+          updated_at?: string | null
         }
         Update: {
           badge_color?: string | null
@@ -3827,6 +3829,7 @@ export type Database = {
           level_number?: number | null
           min_total_diamonds?: number
           perks?: Json | null
+          updated_at?: string | null
         }
         Relationships: []
       }
