@@ -71,6 +71,12 @@ export default function AdminHostSearch() {
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
 
+  // Realtime: auto-refresh search results when profiles change
+  const refreshSearch = useCallback(() => {
+    if (searched && searchQuery.trim()) handleSearch();
+  }, [searched, searchQuery]);
+  useAdminRealtime(['profiles'], refreshSearch, 'admin-host-search-rt');
+
   useEffect(() => {
     if (searchParams.get("uid")) {
       handleSearch();
