@@ -1294,6 +1294,16 @@ const Level5HelperDashboard = () => {
             <p className="text-[9px] text-white/70">💎 Wallet</p>
           </div>
         </div>
+
+        <div className="mt-3">
+          <Button
+            onClick={() => navigate('/helper-dashboard')}
+            className="w-full bg-white/15 hover:bg-white/25 text-white border border-white/20"
+          >
+            <DollarSign className="w-4 h-4 mr-2" />
+            Open Manual Top-up
+          </Button>
+        </div>
       </div>
 
       {/* Main Tabs */}

@@ -53,6 +53,11 @@ interface PaymentMethod {
   max_amount: number;
 }
 
+const getHelperPackageLevel = (pkg: { display_order?: number | null; description?: string | null }, index: number) => {
+  const descriptionMatch = pkg.description?.match(/level\s*(\d+)/i);
+  return pkg.display_order || (descriptionMatch ? Number(descriptionMatch[1]) : index + 1);
+};
+
 const HelperDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -388,13 +393,14 @@ const HelperDashboard = () => {
       }
 
       // Load level-based diamond pricing for this helper's level
-      const { data: pricing } = await supabase
+      const { data: pricingRows } = await supabase
         .from('helper_diamond_packages')
-        .select('diamond_amount, price_usd')
-        .eq('level_number', helper.trader_level || 1)
+        .select('diamond_amount, price_usd, display_order, description')
         .eq('is_active', true)
-        .single();
+        .order('display_order', { ascending: true });
       
+      const pricing = (pricingRows || []).find((pkg, index) => getHelperPackageLevel(pkg, index) === (helper.trader_level || 1)) || pricingRows?.[0];
+
       if (pricing) {
         setLevelPricing(pricing);
         console.log('[HelperDashboard] Level pricing loaded:', pricing);
