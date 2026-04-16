@@ -1053,14 +1053,14 @@ const Level5HelperDashboard = () => {
       
       if (updateError) throw updateError;
 
-      // Send notification to agency owner that payment has been processed (they will see "Approved")
+      // Send notification to agency owner that payment has been processed
       if (selectedAgencyWithdrawal.agency?.owner_id) {
-        await supabase.from('notifications').insert({
-          user_id: selectedAgencyWithdrawal.agency.owner_id,
-          type: 'withdrawal_approved',
-          title: '✅ Withdrawal Approved!',
-          message: `Your withdrawal request has been approved and payment has been sent.`,
-          data: { 
+        await supabase.rpc('send_notification', {
+          p_user_id: selectedAgencyWithdrawal.agency.owner_id,
+          p_type: 'withdrawal_approved',
+          p_title: '✅ Withdrawal Approved!',
+          p_message: 'Your withdrawal request has been approved and payment has been sent.',
+          p_data: { 
             withdrawal_id: selectedAgencyWithdrawal.id,
             amount: selectedAgencyWithdrawal.amount,
             status: 'approved'
@@ -1628,12 +1628,12 @@ const Level5HelperDashboard = () => {
                               }
 
                                // Send notification
-                               await supabase.from('notifications').insert({
-                                 user_id: order.user_id,
-                                 type: 'coin_purchase_helper',
-                                 title: '💎 Diamonds Added!',
-                                 message: `${order.coin_amount.toLocaleString()} diamonds have been added to your account. Recharge of $${order.amount_usd || 0} completed successfully.`,
-                                 data: { amount: order.coin_amount, amount_usd: order.amount_usd, source: 'helper' }
+                               await supabase.rpc('send_notification', {
+                                 p_user_id: order.user_id,
+                                 p_type: 'coin_purchase_helper',
+                                 p_title: '💎 Diamonds Added!',
+                                 p_message: `${order.coin_amount.toLocaleString()} diamonds have been added to your account. Recharge of $${order.amount_usd || 0} completed successfully.`,
+                                 p_data: { amount: order.coin_amount, amount_usd: order.amount_usd, source: 'helper' }
                                });
 
                               toast({ title: "Success!", description: "Order completed and diamonds credited to user" });
@@ -1663,12 +1663,12 @@ const Level5HelperDashboard = () => {
                                 .eq('id', order.id);
 
                               // Send notification
-                              await supabase.from('notifications').insert({
-                                user_id: order.user_id,
-                                type: 'order_cancelled',
-                                title: '❌ Order Cancelled',
-                                message: `Your order for ${order.coin_amount.toLocaleString()} diamonds has been cancelled`,
-                                data: { order_id: order.id }
+                              await supabase.rpc('send_notification', {
+                                p_user_id: order.user_id,
+                                p_type: 'order_cancelled',
+                                p_title: '❌ Order Cancelled',
+                                p_message: `Your order for ${order.coin_amount.toLocaleString()} diamonds has been cancelled`,
+                                p_data: { order_id: order.id }
                               });
 
                               toast({ title: "Cancelled", description: "Order has been cancelled" });
