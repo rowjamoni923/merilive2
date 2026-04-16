@@ -7004,6 +7004,7 @@ export type Database = {
           username: string | null
           verification_type: string | null
           vip_expires_at: string | null
+          vip_tier: number | null
           weekly_earnings: number | null
           weekly_reset_at: string | null
         }
@@ -7101,6 +7102,7 @@ export type Database = {
           username?: string | null
           verification_type?: string | null
           vip_expires_at?: string | null
+          vip_tier?: number | null
           weekly_earnings?: number | null
           weekly_reset_at?: string | null
         }
@@ -7198,6 +7200,7 @@ export type Database = {
           username?: string | null
           verification_type?: string | null
           vip_expires_at?: string | null
+          vip_tier?: number | null
           weekly_earnings?: number | null
           weekly_reset_at?: string | null
         }
