@@ -691,16 +691,18 @@ const AdminPayrollOrders = () => {
                   </div>
 
                   {/* Transaction ID */}
-                  {selectedOrder.payment_details?.transaction_id && (
+                  {(selectedOrder.payment_details?.transaction_id || selectedOrder.payment_details?.helper_transaction_id) && (
                     <div className="bg-slate-800 p-3 rounded-lg">
                       <p className="text-xs text-muted-foreground mb-1">Transaction ID</p>
                       <div className="flex items-center gap-2">
-                        <code className="text-sm font-mono flex-1 text-slate-200">{selectedOrder.payment_details.transaction_id}</code>
+                        <code className="text-sm font-mono flex-1 text-slate-200 break-all">
+                          {selectedOrder.payment_details?.helper_transaction_id || selectedOrder.payment_details?.transaction_id}
+                        </code>
                         <Button 
                           variant="ghost" 
                           size="icon" 
                           className="h-6 w-6"
-                          onClick={() => copyToClipboard(selectedOrder.payment_details?.transaction_id || '')}
+                          onClick={() => copyToClipboard(selectedOrder.payment_details?.helper_transaction_id || selectedOrder.payment_details?.transaction_id || '')}
                         >
                           <Copy className="w-3 h-3" />
                         </Button>
