@@ -27,6 +27,6 @@ export { default as BecomeSubAgentPage } from '@/pages/BecomeSubAgent';
 
 // Helper System (Part of Agency)
 export { default as HelperDashboardPage } from '@/pages/HelperDashboard';
-
+export { default as Level5HelperDashboardPage } from '@/pages/Level5HelperDashboard';
 export { default as HelperApplicationForm } from '@/components/helper/HelperApplicationForm';
 export { default as HelperApplicationStatus } from '@/components/helper/HelperApplicationStatus';
