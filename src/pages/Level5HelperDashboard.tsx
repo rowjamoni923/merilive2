@@ -1364,9 +1364,13 @@ const Level5HelperDashboard = () => {
                                isProcessing ? "📤 Submitted" :
                                withdrawal.status}
                             </Badge>
-                            {withdrawal.country_code && (
+                            {(withdrawal.country_code || (withdrawal.payment_details as any)?.country_code) && (
                               <Badge variant="outline" className="text-xs text-slate-400">
-                                {withdrawal.country_code}
+                                {(() => {
+                                  const cc = withdrawal.country_code || (withdrawal.payment_details as any)?.country_code;
+                                  const nameMap: Record<string, string> = { BD: 'Bangladesh', IN: 'India', PK: 'Pakistan', NP: 'Nepal', ID: 'Indonesia', PH: 'Philippines', MY: 'Malaysia', TH: 'Thailand', VN: 'Vietnam', LK: 'Sri Lanka', AE: 'UAE', SA: 'Saudi Arabia', US: 'USA', GB: 'UK' };
+                                  return nameMap[cc] || cc;
+                                })()}
                               </Badge>
                             )}
                           </div>
@@ -1374,7 +1378,7 @@ const Level5HelperDashboard = () => {
                         <div className="text-right">
                           <p className="text-emerald-400 font-bold flex items-center justify-end gap-1">
                             <Beans3DIcon size={16} />
-                            {withdrawal.amount?.toLocaleString()}
+                            {((withdrawal.payment_details as any)?.net_withdrawal_beans || withdrawal.amount)?.toLocaleString()}
                           </p>
                           {withdrawal.local_currency_amount && withdrawal.currency_code && (
                             <p className="text-slate-400 text-xs">
@@ -3079,27 +3083,35 @@ const Level5HelperDashboard = () => {
                 </div>
               </div>
 
-              {/* Amount Info - Local Currency Amount Only */}
+              {/* Amount Info - Net Amount (after fee) */}
               <div className="bg-gradient-to-br from-emerald-500/20 to-green-500/20 rounded-xl p-4 border border-emerald-500/30">
                 <div className="text-center flex flex-col items-center">
                   <div className="flex items-center gap-2 justify-center">
                     <span className="text-3xl">💰</span>
                     <p className="text-3xl font-bold text-emerald-400">
-                      {selectedAgencyWithdrawal.currency_code === 'BDT' ? '৳' : 
-                       selectedAgencyWithdrawal.currency_code === 'INR' ? '₹' :
-                       selectedAgencyWithdrawal.currency_code === 'PKR' ? '₨' :
-                       selectedAgencyWithdrawal.currency_code === 'NPR' ? 'Rs' :
-                       selectedAgencyWithdrawal.currency_code === 'PHP' ? '₱' :
-                       selectedAgencyWithdrawal.currency_code === 'IDR' ? 'Rp' :
-                       selectedAgencyWithdrawal.currency_code === 'MYR' ? 'RM' :
-                       selectedAgencyWithdrawal.currency_code === 'THB' ? '฿' :
-                       ''}
-                      {(selectedAgencyWithdrawal.local_currency_amount || 
-                        (selectedAgencyWithdrawal.payment_details as any)?.local_amount || 
-                        0).toLocaleString()}
+                      {((selectedAgencyWithdrawal.payment_details as any)?.net_withdrawal_beans || selectedAgencyWithdrawal.amount).toLocaleString()}
                     </p>
                   </div>
+                  <p className="text-slate-400 text-xs mt-1">Net Beans (After Fee)</p>
                 </div>
+                
+                {/* Fee breakdown */}
+                {(selectedAgencyWithdrawal.payment_details as any)?.withdrawal_fee_beans && (
+                  <div className="mt-3 pt-3 border-t border-emerald-500/20 space-y-1 text-xs">
+                    <div className="flex justify-between text-slate-400">
+                      <span>Gross Amount:</span>
+                      <span>{selectedAgencyWithdrawal.amount.toLocaleString()} Beans</span>
+                    </div>
+                    <div className="flex justify-between text-amber-400">
+                      <span>Platform Fee:</span>
+                      <span>-{((selectedAgencyWithdrawal.payment_details as any).withdrawal_fee_beans).toLocaleString()} Beans</span>
+                    </div>
+                    <div className="flex justify-between text-emerald-400 font-semibold">
+                      <span>Helper Pays:</span>
+                      <span>{((selectedAgencyWithdrawal.payment_details as any).net_withdrawal_beans || selectedAgencyWithdrawal.amount).toLocaleString()} Beans</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Payment Details - Show Transaction ID and Account Info */}
@@ -3126,41 +3138,17 @@ const Level5HelperDashboard = () => {
                   <div className="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-lg p-3 mb-3 border border-cyan-500/30">
                     <div className="flex items-center justify-center gap-2 flex-wrap">
                       {/* Country with Full Name */}
-                      <div className="flex items-center gap-1.5 bg-slate-700/50 px-3 py-1.5 rounded-lg">
-                        <span className="text-lg">
-                          {selectedAgencyWithdrawal.country_code === 'BD' ? '🇧🇩' :
-                           selectedAgencyWithdrawal.country_code === 'IN' ? '🇮🇳' :
-                           selectedAgencyWithdrawal.country_code === 'PK' ? '🇵🇰' :
-                           selectedAgencyWithdrawal.country_code === 'NP' ? '🇳🇵' :
-                           selectedAgencyWithdrawal.country_code === 'ID' ? '🇮🇩' :
-                           selectedAgencyWithdrawal.country_code === 'PH' ? '🇵🇭' :
-                           selectedAgencyWithdrawal.country_code === 'MY' ? '🇲🇾' :
-                           selectedAgencyWithdrawal.country_code === 'TH' ? '🇹🇭' :
-                           selectedAgencyWithdrawal.country_code === 'VN' ? '🇻🇳' :
-                           selectedAgencyWithdrawal.country_code === 'LK' ? '🇱🇰' :
-                           selectedAgencyWithdrawal.country_code === 'AE' ? '🇦🇪' :
-                           selectedAgencyWithdrawal.country_code === 'SA' ? '🇸🇦' :
-                           selectedAgencyWithdrawal.country_code === 'US' ? '🇺🇸' :
-                           selectedAgencyWithdrawal.country_code === 'GB' ? '🇬🇧' : '🌍'}
-                        </span>
-                        <span className="text-white font-bold">
-                          {selectedAgencyWithdrawal.country_code === 'BD' ? 'Bangladesh' :
-                           selectedAgencyWithdrawal.country_code === 'IN' ? 'India' :
-                           selectedAgencyWithdrawal.country_code === 'PK' ? 'Pakistan' :
-                           selectedAgencyWithdrawal.country_code === 'NP' ? 'Nepal' :
-                           selectedAgencyWithdrawal.country_code === 'ID' ? 'Indonesia' :
-                           selectedAgencyWithdrawal.country_code === 'PH' ? 'Philippines' :
-                           selectedAgencyWithdrawal.country_code === 'MY' ? 'Malaysia' :
-                           selectedAgencyWithdrawal.country_code === 'TH' ? 'Thailand' :
-                           selectedAgencyWithdrawal.country_code === 'VN' ? 'Vietnam' :
-                           selectedAgencyWithdrawal.country_code === 'LK' ? 'Sri Lanka' :
-                           selectedAgencyWithdrawal.country_code === 'AE' ? 'UAE' :
-                           selectedAgencyWithdrawal.country_code === 'SA' ? 'Saudi Arabia' :
-                           selectedAgencyWithdrawal.country_code === 'US' ? 'USA' :
-                           selectedAgencyWithdrawal.country_code === 'GB' ? 'UK' :
-                           selectedAgencyWithdrawal.country_code || 'Unknown'}
-                        </span>
-                      </div>
+                      {(() => {
+                        const cc = selectedAgencyWithdrawal.country_code || (selectedAgencyWithdrawal.payment_details as any)?.country_code;
+                        const flagMap: Record<string, string> = { BD: '🇧🇩', IN: '🇮🇳', PK: '🇵🇰', NP: '🇳🇵', ID: '🇮🇩', PH: '🇵🇭', MY: '🇲🇾', TH: '🇹🇭', VN: '🇻🇳', LK: '🇱🇰', AE: '🇦🇪', SA: '🇸🇦', US: '🇺🇸', GB: '🇬🇧' };
+                        const nameMap: Record<string, string> = { BD: 'Bangladesh', IN: 'India', PK: 'Pakistan', NP: 'Nepal', ID: 'Indonesia', PH: 'Philippines', MY: 'Malaysia', TH: 'Thailand', VN: 'Vietnam', LK: 'Sri Lanka', AE: 'UAE', SA: 'Saudi Arabia', US: 'USA', GB: 'UK' };
+                        return (
+                          <div className="flex items-center gap-1.5 bg-slate-700/50 px-3 py-1.5 rounded-lg">
+                            <span className="text-lg">{flagMap[cc] || '🌍'}</span>
+                            <span className="text-white font-bold">{nameMap[cc] || cc || 'Unknown'}</span>
+                          </div>
+                        );
+                      })()}
                       
                       <span className="text-slate-400">•</span>
                       
