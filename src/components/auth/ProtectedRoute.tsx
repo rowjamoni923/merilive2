@@ -62,19 +62,26 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
 
       (async () => {
         try {
-          const { data } = await supabase
+          const { data, error } = await supabase
             .from('profiles')
             .select('is_blocked, device_id')
             .eq('id', userId)
-            .single();
+            .maybeSingle();
 
-          // Profile was deleted — sign out stale session
-          if (!data) {
-            console.log('[ProtectedRoute] Profile missing for session user, signing out');
+          // Only treat as missing when query succeeded AND no row returned.
+          // Transient errors (network, RLS hiccup) must NOT trigger sign-out.
+          if (!error && data === null) {
+            console.log('[ProtectedRoute] Profile confirmed missing, signing out');
             localStorage.removeItem('meri_device_account');
             localStorage.removeItem('meri_device_id');
             await supabase.auth.signOut({ scope: 'local' });
             setProfileMissing(true);
+            return;
+          }
+
+          // On error, leave user in place — don't redirect
+          if (error || !data) {
+            console.warn('[ProtectedRoute] Profile fetch error, skipping ban check', error);
             return;
           }
 
@@ -103,6 +110,7 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
           if (banned) setIsBanned(true);
         } catch (e) {
           // Don't block on error
+          console.warn('[ProtectedRoute] Ban check exception', e);
         } finally {
           checkingRef.current = false;
         }

@@ -229,16 +229,16 @@ export function GameSelectionModal({
   const fetchGames = async () => {
     setLoading(true);
     try {
-      // Fetch all active games including logo_url
+      // Fetch all active games including logo_url + row id (fallback for null game_id)
       const { data, error } = await supabase
         .from('game_settings')
-        .select('game_id, game_name, game_emoji, game_color, description, logo_url')
+        .select('id, game_id, game_name, game_emoji, game_color, description, logo_url')
         .eq('is_active', true)
         .order('display_order', { ascending: true });
 
       if (!error && data) {
         setGames(data.map(game => ({
-          id: game.game_id,
+          id: game.game_id || game.id,
           name: game.game_name,
           emoji: game.game_emoji,
           color: game.game_color,
