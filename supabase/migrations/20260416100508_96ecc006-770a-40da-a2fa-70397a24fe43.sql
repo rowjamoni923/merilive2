@@ -1,0 +1,1 @@
+UPDATE public.currency_rates SET rate_to_usd = 1 WHERE country_code = 'US';

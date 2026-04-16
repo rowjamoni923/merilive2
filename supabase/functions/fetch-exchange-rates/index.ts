@@ -109,9 +109,10 @@ serve(async (req) => {
           // Build the response with proper structure
           const result = countryCodes.map(country => {
             const rate = rates[country.currency];
-            if (rate && typeof rate === 'number') {
-              // Subtract 5 local currency units (not USD) from market rate
-              const adjustedRate = rate - 5;
+          if (rate && typeof rate === 'number') {
+              // USD is always 1:1, never adjust it
+              // For other currencies, subtract 5 but never go below 0.01
+              const adjustedRate = country.currency === 'USD' ? 1 : Math.max(0.01, rate - 5);
               
               return {
                 code: country.code,
@@ -156,8 +157,9 @@ serve(async (req) => {
       const result = countryCodes.map(country => {
         const rate = apiRates[country.currency];
         if (rate && typeof rate === 'number') {
-          // Subtract 5 local currency units (not USD) from market rate
-          const adjustedRate = rate - 5;
+          // USD is always 1:1, never adjust it
+          // For other currencies, subtract 5 but never go below 0.01
+          const adjustedRate = country.currency === 'USD' ? 1 : Math.max(0.01, rate - 5);
           
           return {
             code: country.code,
