@@ -2584,7 +2584,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
       {/* Agency Beans Exchange Modal */}
       <Dialog open={showAgencyExchangeModal} onOpenChange={setShowAgencyExchangeModal}>
-        <DialogContent className="max-w-md bg-gradient-to-b from-slate-900 to-slate-950 border-amber-500/30 text-white p-0 overflow-hidden">
+        <DialogContent className="max-w-md bg-gradient-to-b from-slate-900 to-slate-950 border-amber-500/30 text-white p-0 max-h-[90vh] overflow-y-auto">
           <div className="bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-yellow-500/20 p-6 border-b border-amber-500/20">
             <DialogHeader>
               <DialogTitle className="text-xl font-bold text-amber-400 flex items-center gap-2">
