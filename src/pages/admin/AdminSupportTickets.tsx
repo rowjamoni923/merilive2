@@ -1583,6 +1583,8 @@ const AdminSupportTickets = () => {
                 )}
               </ScrollArea>
 
+  // Realtime: auto-refresh on support_tickets or support_messages changes
+  useAdminRealtime(['support_tickets', 'support_messages'], () => loadTickets(), 'admin-support-tickets-rt');
 
               {/* Quick Links */}
               <div className="px-2 md:px-4 pt-2 border-t">
