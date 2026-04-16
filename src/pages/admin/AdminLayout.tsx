@@ -71,6 +71,7 @@ import useAdminAccess from "@/hooks/useAdminAccess";
 import { revokeAdminAccess, hasAdminAccessFlag, hasOwnerAccessFlag } from "@/utils/adminAccessStorage";
 import { ScreenSecuritySDK } from "@/sdk/ScreenSecuritySDK";
 import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 interface AdminNotification {
   id: string;
@@ -2197,7 +2198,9 @@ export default function AdminLayout() {
               </div>
             </div>
           }>
-            <Outlet />
+            <ErrorBoundary componentName="AdminPage">
+              <Outlet />
+            </ErrorBoundary>
           </Suspense>
         </main>
       </div>
