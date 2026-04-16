@@ -1364,9 +1364,13 @@ const Level5HelperDashboard = () => {
                                isProcessing ? "📤 Submitted" :
                                withdrawal.status}
                             </Badge>
-                            {withdrawal.country_code && (
+                            {(withdrawal.country_code || (withdrawal.payment_details as any)?.country_code) && (
                               <Badge variant="outline" className="text-xs text-slate-400">
-                                {withdrawal.country_code}
+                                {(() => {
+                                  const cc = withdrawal.country_code || (withdrawal.payment_details as any)?.country_code;
+                                  const nameMap: Record<string, string> = { BD: 'Bangladesh', IN: 'India', PK: 'Pakistan', NP: 'Nepal', ID: 'Indonesia', PH: 'Philippines', MY: 'Malaysia', TH: 'Thailand', VN: 'Vietnam', LK: 'Sri Lanka', AE: 'UAE', SA: 'Saudi Arabia', US: 'USA', GB: 'UK' };
+                                  return nameMap[cc] || cc;
+                                })()}
                               </Badge>
                             )}
                           </div>
@@ -1374,7 +1378,7 @@ const Level5HelperDashboard = () => {
                         <div className="text-right">
                           <p className="text-emerald-400 font-bold flex items-center justify-end gap-1">
                             <Beans3DIcon size={16} />
-                            {withdrawal.amount?.toLocaleString()}
+                            {((withdrawal.payment_details as any)?.net_withdrawal_beans || withdrawal.amount)?.toLocaleString()}
                           </p>
                           {withdrawal.local_currency_amount && withdrawal.currency_code && (
                             <p className="text-slate-400 text-xs">
