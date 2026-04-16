@@ -20,10 +20,26 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
   const [isBanned, setIsBanned] = useState(false);
   const [checked, setChecked] = useState(false);
   const [profileMissing, setProfileMissing] = useState(false);
+  const [waitedForRecovery, setWaitedForRecovery] = useState(!!session);
   const checkingRef = useRef(false);
 
   // Session hijacking protection
   useSessionSecurity();
+
+  // If no session, wait briefly for background recovery before redirecting
+  useEffect(() => {
+    if (session) {
+      setWaitedForRecovery(true);
+      return;
+    }
+
+    // Give background session recovery up to 1.5s to complete
+    const timer = setTimeout(() => {
+      setWaitedForRecovery(true);
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, [session]);
 
   useEffect(() => {
     const userId = session?.user?.id;
@@ -116,6 +132,11 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
 
   if (profileMissing) {
     return <Navigate to="/auth" replace />;
+  }
+
+  // Wait for background session recovery before redirecting to auth
+  if (!session && !waitedForRecovery) {
+    return <div className="min-h-screen bg-background" aria-hidden />;
   }
 
   if (!session) {
