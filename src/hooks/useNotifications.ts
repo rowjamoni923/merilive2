@@ -472,6 +472,8 @@ export const useNotifications = () => {
         const { error } = await query;
         if (error) throw error;
       }
+
+      emitGlobalUnreadRefresh();
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
       setNotifications(previousNotifications);
@@ -512,6 +514,8 @@ export const useNotifications = () => {
 
         if (helperError) throw helperError;
       }
+
+      emitGlobalUnreadRefresh();
     } catch (error) {
       console.error('Failed to mark all notifications as read:', error);
       setNotifications(previousNotifications);
