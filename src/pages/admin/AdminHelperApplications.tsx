@@ -28,6 +28,8 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
 
+import { adminSendNotification } from "@/utils/adminNotification";
+
 interface HelperApplication {
   id: string;
   user_id: string;
@@ -213,13 +215,7 @@ const AdminHelperApplications = () => {
         }, { onConflict: 'user_id' });
 
       // Send notification
-      await supabase.from('notifications').insert({
-        user_id: app.user_id,
-        type: 'helper_approved',
-        title: '🎉 Helper Application Approved!',
-        message: `Your application for Level ${app.requested_level} Helper has been approved!`,
-        data: { level: app.requested_level, payroll: app.payroll_requested }
-      });
+      await adminSendNotification(app.user_id, '🎉 Helper Application Approved!', `Your application for Level ${app.requested_level} Helper has been approved!`, 'helper_approved')
 
       toast({ title: "Approved! ✅", description: "Helper application approved successfully" });
       setShowDetailDialog(false);
@@ -252,13 +248,7 @@ const AdminHelperApplications = () => {
         .eq('id', app.id);
 
       // Send notification
-      await supabase.from('notifications').insert({
-        user_id: app.user_id,
-        type: 'helper_rejected',
-        title: '❌ Helper Application Rejected',
-        message: rejectionNotes,
-        data: {}
-      });
+      await adminSendNotification(app.user_id, '❌ Helper Application Rejected', rejectionNotes, 'helper_rejected')
 
       toast({ title: 'Rejected', description: 'Application has been rejected' });
       setShowDetailDialog(false);

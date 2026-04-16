@@ -28,6 +28,8 @@ import { toast } from "sonner";
 import AdminStreamViewer from "@/components/admin/AdminStreamViewer";
 import AdminRecordings from "@/components/admin/AdminRecordings";
 
+import { adminSendNotification } from "@/utils/adminNotification";
+
 interface LiveStream {
   id: string;
   title: string;
@@ -337,14 +339,7 @@ export default function AdminStreams() {
             : ` You have been banned from going live for ${BAN_DURATION_OPTIONS.find((o) => o.value === banDuration)?.label}.`
           : "";
 
-        await supabase.from("notifications").insert({
-          user_id: hostId,
-          type: "admin_warning",
-          title: applyBan ? "🚫 Live Stream Stopped & Banned" : "⚠️ Live Stream Stopped",
-          message: `Your live stream has been stopped by the admin team. Reason: "${reason}".${banLabel} Please ensure you follow community guidelines.`,
-          data: { stream_id: streamId, reason, banned: applyBan, ban_duration: applyBan ? banDuration : null, action_url: "/settings/customer-service" },
-          priority: "high",
-        } as any);
+        await adminSendNotification(hostId, '⚠️ Live Stream Stopped', `Your live stream has been stopped by the admin team. Reason: "${reason}".${banLabel} Please ensure you follow community guidelines.`, 'admin_warning');
       }
 
       // 3) Apply ban (optional)

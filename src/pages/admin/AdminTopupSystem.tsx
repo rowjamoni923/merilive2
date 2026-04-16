@@ -36,6 +36,8 @@ import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 
+import { adminSendNotification } from "@/utils/adminNotification";
+
 // Interfaces
 interface UserProfile {
   id: string;
@@ -559,13 +561,7 @@ const AdminTopupSystem = () => {
       });
 
       // Send notification to helper
-      await supabase.from('notifications').insert({
-        user_id: selectedHelper.user_id,
-        type: 'diamonds_credited',
-        title: '💎 Diamonds Added!',
-        message: `${amt.toLocaleString()} diamonds have been added to your Trader Wallet`,
-        data: { amount: amt, source: 'admin_transfer' }
-      });
+      await adminSendNotification(selectedHelper.user_id, '💎 Diamonds Added!', `${amt.toLocaleString()} diamonds have been added to your Trader Wallet`, 'diamonds_credited')
 
       toast({ title: "✅ Transfer Successful", description: `${amt.toLocaleString()} diamonds added to ${selectedHelper.user?.display_name}'s wallet` });
       setShowTransferModal(false);
@@ -672,13 +668,7 @@ const AdminTopupSystem = () => {
          }
          
          // Send notification to user
-         await supabase.from('notifications').insert({
-           user_id: order.user_id,
-           type: 'coin_purchase_helper',
-           title: '💎 Diamonds Added!',
-           message: `${order.coin_amount.toLocaleString()} diamonds added to your account!`,
-           data: { amount: order.coin_amount, source: 'payroll_helper' }
-         });
+         await adminSendNotification(order.user_id, '💎 Diamonds Added!', `${order.coin_amount.toLocaleString()} diamonds added to your account!`, 'coin_purchase_helper')
        }
        
       await supabase.from('helper_orders').update({

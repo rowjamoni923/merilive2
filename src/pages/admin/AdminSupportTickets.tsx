@@ -20,6 +20,8 @@ import {
 import { format } from "date-fns";
 import AdminQuickLinks from "@/components/admin/AdminQuickLinks";
 
+import { adminSendNotification } from "@/utils/adminNotification";
+
 interface SupportTicket {
   id: string;
   ticket_number: string;
@@ -485,14 +487,7 @@ const AdminSupportTickets = () => {
 
       // Send in-app notification to user about support reply
       const notifContent = (translatedContent || replyMessage.trim()).substring(0, 120);
-      Promise.resolve(supabase.from('notifications').insert({
-        user_id: selectedTicket.user_id,
-        type: 'support_reply',
-        title: '💬 Support Reply',
-        message: `Support team replied: "${notifContent}${notifContent.length >= 120 ? '...' : ''}"`,
-        data: { ticket_id: selectedTicket.id, action_url: selectedTicket.category === 'live_chat' ? `/settings/customer-service?mode=live_chat&ticket_id=${selectedTicket.id}` : '/settings/customer-service' },
-        priority: 'high',
-      } as any)).then(() => {
+      await adminSendNotification(selectedTicket.user_id, '💬 Support Reply', `Support team replied: "${notifContent}${notifContent.length >= 120 ? '...' : ''}"`, 'support_reply').then(() => {
         console.log("📨 Support reply notification sent");
       }).catch(e => console.warn("Notification insert failed:", e));
 
@@ -593,13 +588,7 @@ const AdminSupportTickets = () => {
       });
 
       // Send notification to user about compensation
-      await supabase.from('notifications').insert({
-        user_id: selectedTicket.user_id,
-        type: 'coins_added',
-        title: '🎁 Compensation Received!',
-        message: `You received ${rewardParts.join(' + ')} from Support`,
-        data: { source: 'support_compensation', beans: beansAmount, diamonds: diamondsAmount }
-      });
+      await adminSendNotification(selectedTicket.user_id, '🎁 Compensation Received!', `You received ${rewardParts.join(' + ')} from Support`, 'coins_added')
 
       toast({ title: "✅ Reward Sent", description: `${rewardParts.join(' + ')}` });
       setCompensationBeans("");
@@ -868,13 +857,7 @@ const AdminSupportTickets = () => {
 
       // Send notification to user about ticket resolution + reward
       if (rewardParts.length > 0) {
-        await supabase.from('notifications').insert({
-          user_id: selectedTicket.user_id,
-          type: 'coins_added',
-          title: '🎁 Support Reward!',
-          message: `Your ticket was resolved. Reward: ${rewardParts.join(' + ')}`,
-          data: { source: 'support_resolve', beans: beansAmount, diamonds: diamondsAmount }
-        });
+        await adminSendNotification(selectedTicket.user_id, '🎁 Support Reward!', `Your ticket was resolved. Reward: ${rewardParts.join(' + ')}`, 'coins_added')
       }
 
       toast({ 

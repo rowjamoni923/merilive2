@@ -10,6 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { User, UserCheck, MessageCircle, RefreshCw, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 
+import { adminSendNotification } from "@/utils/adminNotification";
+
 interface ConversionRequest {
   id: string;
   user_id: string;
@@ -91,15 +93,12 @@ const AdminHostConversion = () => {
         .eq('id', req.id);
 
       // Send notification
-      await supabase.from('notifications').insert({
-        user_id: req.user_id,
-        title: toHost ? '🌟 Host Account Activated! 🎤✨' : '👤 User Account Updated! ✨',
-        message: toHost
-          ? '🎉 Congratulations! Your account has been upgraded to Host status! 🔥 Complete your Face Verification now and start going live to earn rewards! 💎🫘 Welcome to the spotlight! 🌟'
-          : '✅ Your account has been switched to User mode! 🔄 Please complete your Face Verification to continue enjoying all features! 💫',
-        type: 'system',
-        is_read: false,
-      });
+      await adminSendNotification(
+        req.user_id,
+        toHost ? '🎤 Host Account Activated!' : '👤 Converted to User',
+        toHost ? 'Congratulations! You have been converted to a Host. Start going live now!' : 'Your account has been converted to User mode.',
+        'system'
+      );
 
       toast({ title: "✅ Converted!", description: `User ${toHost ? 'converted to Host' : 'converted to User'}` });
       loadRequests();
@@ -125,13 +124,7 @@ const AdminHostConversion = () => {
         })
         .eq('id', req.id);
 
-      await supabase.from('notifications').insert({
-        user_id: req.user_id,
-        title: '❌ Conversion Request Rejected',
-        message: responseText[req.id] || 'Your host conversion request has been rejected.',
-        type: 'system',
-        is_read: false,
-      });
+      await adminSendNotification(req.user_id, '❌ Conversion Request Rejected', responseText[req.id] || 'Your host conversion request has been rejected.', 'system');
 
       toast({ title: "Rejected" });
       loadRequests();

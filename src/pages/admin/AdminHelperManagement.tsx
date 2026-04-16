@@ -32,6 +32,8 @@ import { format } from "date-fns";
 import AdminHelperDiamondTopup from "@/components/admin/AdminHelperDiamondTopup";
 import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 
+import { adminSendNotification } from "@/utils/adminNotification";
+
 // Interfaces
 interface HelperApplication {
   id: string;
@@ -278,13 +280,7 @@ const AdminHelperManagement = () => {
       if (error) throw error;
 
       // Send notification
-      await supabase.from('notifications').insert({
-        user_id: helper.user_id,
-        type: 'payroll_approved',
-        title: '🎉 Payroll Access Approved!',
-        message: 'You can now access the Level 5 Dashboard and process withdrawals.',
-        data: {}
-      });
+      await adminSendNotification(helper.user_id, '🎉 Payroll Access Approved!', 'You can now access the Level 5 Dashboard and process withdrawals.', 'payroll_approved')
 
       toast({ title: "Approved! ✅", description: "Payroll access granted" });
       loadPayrollApplications();
@@ -316,13 +312,7 @@ const AdminHelperManagement = () => {
       if (error) throw error;
 
       // Send notification
-      await supabase.from('notifications').insert({
-        user_id: helper.user_id,
-        type: 'payroll_rejected',
-        title: '❌ Payroll Access Rejected',
-        message: 'Your payroll access request has been rejected. You can apply again.',
-        data: {}
-      });
+      await adminSendNotification(helper.user_id, '❌ Payroll Access Rejected', 'Your payroll access request has been rejected. You can apply again.', 'payroll_rejected')
 
       toast({ title: "Rejected", description: "Payroll application rejected" });
       loadPayrollApplications();
@@ -387,13 +377,7 @@ const AdminHelperManagement = () => {
 
       if (helperError) throw helperError;
 
-      await supabase.from('notifications').insert({
-        user_id: app.user_id,
-        type: 'helper_approved',
-        title: '🎉 Helper Application Approved!',
-        message: `Your application for Level ${app.requested_level} Helper has been approved!`,
-        data: { level: app.requested_level, payroll: app.payroll_requested }
-      });
+      await adminSendNotification(app.user_id, '🎉 Helper Application Approved!', `Your application for Level ${app.requested_level} Helper has been approved!`, 'helper_approved')
 
       toast({ title: "Approved! ✅", description: "Helper application approved" });
       setShowDetailDialog(false);
@@ -432,13 +416,7 @@ const AdminHelperManagement = () => {
         })
         .eq('id', app.id);
 
-      await supabase.from('notifications').insert({
-        user_id: app.user_id,
-        type: 'helper_rejected',
-        title: '❌ Helper Application Rejected',
-        message: adminNotes,
-        data: {}
-      });
+      await adminSendNotification(app.user_id, '❌ Helper Application Rejected', adminNotes, 'helper_rejected')
 
       toast({ title: "Rejected", description: "Application rejected" });
       setShowDetailDialog(false);

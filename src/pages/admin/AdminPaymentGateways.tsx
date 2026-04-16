@@ -21,6 +21,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
+import { adminSendNotification } from "@/utils/adminNotification";
+
 interface PaymentGateway {
   id: string;
   name: string;
@@ -366,17 +368,7 @@ const AdminPaymentGateways = () => {
             ? `${(coinAmount / 100000).toFixed(1)}L` 
             : coinAmount.toLocaleString();
           
-          await supabase.from('notifications').insert({
-            user_id: transaction.user_id,
-            type: 'coin_purchase_direct',
-            title: '💎 Recharge Complete!',
-            message: `${formattedAmount} diamonds successfully recharged!`,
-            data: {
-              amount: coinAmount,
-              source: 'direct',
-              gateway: transaction.gateway_id
-            }
-          });
+          await adminSendNotification(transaction.user_id, '💎 Recharge Complete!', `${formattedAmount} diamonds successfully recharged!`, 'coin_purchase_direct')
         }
       }
 

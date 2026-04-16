@@ -23,6 +23,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
+import { adminSendNotification } from "@/utils/adminNotification";
+
 interface PaymentDetails {
   transaction_id?: string;
   method_type?: string;
@@ -251,18 +253,7 @@ const AdminPayrollOrders = () => {
 
         // Send notification to agency owner (RPC only handles helper notifications)
         if (order.agency?.owner_id) {
-          await supabase.from('notifications').insert({
-            user_id: order.agency.owner_id,
-            type: action === 'complete' ? 'withdrawal_approved' : 'withdrawal_rejected',
-            title: action === 'complete' ? '✅ Withdrawal Completed!' : '❌ Withdrawal Canceled',
-            message: action === 'complete' 
-              ? `Your ${order.coin_amount.toLocaleString()} beans withdrawal has been approved by admin.`
-              : `Your withdrawal request has been canceled. Beans have been refunded.`,
-            data: { 
-              withdrawal_id: order.id,
-              amount: order.coin_amount 
-            }
-          });
+          await adminSendNotification(order.agency.owner_id, action, action, action)
         }
 
       } else {
@@ -298,13 +289,7 @@ const AdminPayrollOrders = () => {
             })
             .eq('id', order.helper_id);
 
-          await supabase.from('notifications').insert({
-            user_id: order.user_id,
-            type: 'coin_purchase_helper',
-            title: '💎 Diamonds Added!',
-            message: `Received ${order.coin_amount.toLocaleString()} diamonds from ${order.helper?.user?.display_name || 'Payroll Helper'}!`,
-            data: { amount: order.coin_amount, source: 'payroll_helper' }
-          });
+          await adminSendNotification(order.user_id, '💎 Diamonds Added!', `Received ${order.coin_amount.toLocaleString()} diamonds from ${order.helper?.user?.display_name || 'Payroll Helper'}!`, 'coin_purchase_helper')
         }
       }
 

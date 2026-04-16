@@ -11,6 +11,8 @@ import { toast } from 'sonner';
 import { useAdminRealtime } from '@/hooks/useAdminRealtime';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+import { adminSendNotification } from "@/utils/adminNotification";
+
 interface RatingClaim {
   id: string;
   user_id: string;
@@ -205,13 +207,7 @@ export default function AdminRatingRewards() {
       }
 
       // Send notification to user
-      await supabase.from('notifications').insert({
-        user_id: claim.user_id,
-        type: 'system',
-        title: '🎉 Rating Reward Approved!',
-        message: `Congratulations! Your Play Store rating has been verified. ${result.reward_type === 'beans' ? '🫘 10,000 Beans' : '💎 5,000 Diamonds'} have been credited to your account. Thank you for your support!`,
-        is_read: false,
-      });
+      await adminSendNotification(claim.user_id, '🎉 Rating Reward Approved!', `Congratulations! Your Play Store rating has been verified. ${result.reward_type === 'beans' ? '🫘 10,000 Beans' : '💎 5,000 Diamonds'} have been credited to your account. Thank you for your support!`, 'system')
 
       toast.success(`Approved! ${result.reward_type === 'beans' ? '🫘 10,000 Beans' : '💎 5,000 Diamonds'} sent to user`);
     } catch (err: any) {
@@ -243,13 +239,7 @@ export default function AdminRatingRewards() {
       // Find the claim to get user_id
       const rejectedClaim = claims.find(c => c.id === claimId);
       if (rejectedClaim) {
-        await supabase.from('notifications').insert({
-          user_id: rejectedClaim.user_id,
-          type: 'system',
-          title: '❌ Rating Reward Rejected',
-          message: 'Your Play Store rating screenshot was not approved. Please make sure to submit a clear screenshot showing your 5-star rating. You can only submit once, so this claim has been finalized.',
-          is_read: false,
-        });
+        await adminSendNotification(rejectedClaim.user_id, '❌ Rating Reward Rejected', 'Your Play Store rating screenshot was not approved. Please make sure to submit a clear screenshot showing your 5-star rating. You can only submit once.', 'system');
       }
 
       toast.success('Claim rejected');
