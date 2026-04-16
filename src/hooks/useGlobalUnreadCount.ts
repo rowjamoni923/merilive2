@@ -41,6 +41,7 @@ let sharedUserId: string | null = null;
 let sharedUserInitPromise: Promise<void> | null = null;
 let sharedCounts: UnreadCounts = EMPTY_COUNTS;
 let sharedFetchPromise: Promise<void> | null = null;
+let sharedRefreshTimer: ReturnType<typeof setTimeout> | null = null;
 let lastFetchAt = 0;
 let sharedChannel: ReturnType<typeof supabase.channel> | null = null;
 const listeners = new Set<CountsListener>();
@@ -58,6 +59,19 @@ const emitCounts = () => {
 const setSharedCounts = (next: UnreadCounts) => {
   sharedCounts = next;
   emitCounts();
+};
+
+const scheduleSharedCountsRefresh = (delayMs = 500) => {
+  if (typeof window === 'undefined') return;
+
+  if (sharedRefreshTimer) {
+    window.clearTimeout(sharedRefreshTimer);
+  }
+
+  sharedRefreshTimer = window.setTimeout(() => {
+    sharedRefreshTimer = null;
+    void fetchSharedCounts(true);
+  }, delayMs);
 };
 
 const ensureUserId = async () => {
@@ -219,6 +233,11 @@ const cleanupRealtimeSubscriptionIfUnused = () => {
   if (listeners.size > 0 || !sharedChannel) return;
   supabase.removeChannel(sharedChannel);
   sharedChannel = null;
+
+  if (sharedRefreshTimer && typeof window !== 'undefined') {
+    window.clearTimeout(sharedRefreshTimer);
+    sharedRefreshTimer = null;
+  }
 };
 
 export const useGlobalUnreadCount = () => {
@@ -245,14 +264,16 @@ export const useGlobalUnreadCount = () => {
     const handleRefresh = (event: Event) => {
       const detail = (event as CustomEvent<GlobalUnreadRefreshDetail>).detail;
 
-      if (
+      const hasOptimisticDetail = Boolean(
         detail?.messagesSetZero ||
         detail?.messagesDecrement ||
         detail?.officialSetZero ||
         detail?.officialDecrement ||
         detail?.notificationsSetZero ||
         detail?.notificationsDecrement
-      ) {
+      );
+
+      if (hasOptimisticDetail) {
         const next: UnreadCounts = { ...sharedCounts };
 
         if (detail.messagesSetZero) {
@@ -283,6 +304,11 @@ export const useGlobalUnreadCount = () => {
         }
 
         setSharedCounts(next);
+      }
+
+      if (hasOptimisticDetail) {
+        scheduleSharedCountsRefresh();
+        return;
       }
 
       void fetchSharedCounts(true);
