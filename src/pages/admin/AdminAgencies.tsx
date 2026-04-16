@@ -99,6 +99,42 @@ interface AgencyLevelTier {
   is_active: boolean;
 }
 
+const AGENCY_LEVEL_COLOR_OPTIONS = [
+  { label: 'Bronze', value: '#CD7F32' },
+  { label: 'Silver', value: '#C0C0C0' },
+  { label: 'Gold', value: '#FFD700' },
+  { label: 'Platinum', value: '#E5E4E2' },
+  { label: 'Diamond', value: '#B9F2FF' },
+] as const;
+
+const AGENCY_LEVEL_DEFAULT_COLORS: Record<string, string> = {
+  bronze: '#CD7F32',
+  silver: '#C0C0C0',
+  gold: '#FFD700',
+  platinum: '#E5E4E2',
+  diamond: '#B9F2FF',
+};
+
+const normalizeAgencyBadgeColor = (value?: string | null, levelCode?: string | null) => {
+  const raw = String(value ?? '').trim();
+  const normalized = raw.toLowerCase();
+
+  if (AGENCY_LEVEL_DEFAULT_COLORS[normalized]) {
+    return AGENCY_LEVEL_DEFAULT_COLORS[normalized];
+  }
+
+  const matched = AGENCY_LEVEL_COLOR_OPTIONS.find((option) => option.value.toLowerCase() === normalized);
+  if (matched) {
+    return matched.value;
+  }
+
+  if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(raw)) {
+    return raw.toUpperCase();
+  }
+
+  return AGENCY_LEVEL_DEFAULT_COLORS[String(levelCode ?? '').toLowerCase()] ?? AGENCY_LEVEL_DEFAULT_COLORS.bronze;
+};
+
 interface Agency {
   id: string;
   name: string;
@@ -235,7 +271,10 @@ export default function AdminAgencies() {
         .order("display_order", { ascending: true });
 
       if (data && (force || (!isSavingRef.current && !hasUnsavedTierChangesRef.current))) {
-        setLevelTiers(data);
+        setLevelTiers(data.map((tier) => ({
+          ...tier,
+          badge_color: normalizeAgencyBadgeColor(tier.badge_color, tier.level_code),
+        })));
       }
     } catch (error) {
       console.error('Error fetching level tiers:', error);
@@ -265,16 +304,23 @@ export default function AdminAgencies() {
     isSavingRef.current = true;
     try {
       for (const tier of levelTiers) {
+        const payload = {
+          level_name: tier.level_name?.trim() || tier.level_code,
+          min_weekly_income: Math.max(0, Number(tier.min_weekly_income) || 0),
+          max_weekly_income: Math.max(0, Number(tier.max_weekly_income) || 0),
+          commission_rate: Math.max(0, Number(tier.commission_rate) || 0),
+          badge_color: normalizeAgencyBadgeColor(tier.badge_color, tier.level_code),
+          is_active: Boolean(tier.is_active),
+          updated_at: new Date().toISOString(),
+        };
+
+        if (payload.max_weekly_income < payload.min_weekly_income) {
+          throw new Error(`${tier.level_code}: max income must be greater than or equal to min income`);
+        }
+
         const { error } = await supabase
           .from("agency_level_tiers")
-          .update({
-            level_name: tier.level_name,
-            min_weekly_income: tier.min_weekly_income,
-            max_weekly_income: tier.max_weekly_income,
-            commission_rate: tier.commission_rate,
-            badge_color: tier.badge_color,
-            is_active: tier.is_active
-          })
+          .update(payload)
           .eq("id", tier.id);
         
         if (error) throw error;
@@ -283,9 +329,9 @@ export default function AdminAgencies() {
       hasUnsavedTierChangesRef.current = false;
       await fetchLevelTiers(true);
       toast.success("Level settings saved");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving level tiers:", error);
-      toast.error("Failed to save");
+      toast.error(error?.message || "Failed to save");
     } finally {
       setSavingLevels(false);
       setTimeout(() => {
@@ -309,7 +355,9 @@ export default function AdminAgencies() {
   const updateTier = (id: string, field: keyof AgencyLevelTier, value: any) => {
     hasUnsavedTierChangesRef.current = true;
     setLevelTiers(prev => prev.map(tier => 
-      tier.id === id ? { ...tier, [field]: value } : tier
+      tier.id === id
+        ? { ...tier, [field]: field === 'badge_color' ? normalizeAgencyBadgeColor(value, tier.level_code) : value }
+        : tier
     ));
   };
 
@@ -1360,21 +1408,33 @@ export default function AdminAgencies() {
                     </div>
                     <div>
                       <Label className="text-white/70 text-xs">Badge Color</Label>
-                      <Select
-                        value={tier.badge_color}
-                        onValueChange={(val) => updateTier(tier.id, "badge_color", val)}
-                      >
-                        <SelectTrigger className="bg-white/5 border-white/10 text-white h-8">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="bronze">Bronze</SelectItem>
-                          <SelectItem value="silver">Silver</SelectItem>
-                          <SelectItem value="gold">Gold</SelectItem>
-                          <SelectItem value="platinum">Platinum</SelectItem>
-                          <SelectItem value="diamond">Diamond</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="h-8 w-8 rounded-md border border-white/10 shrink-0"
+                          style={{ backgroundColor: normalizeAgencyBadgeColor(tier.badge_color, tier.level_code) }}
+                        />
+                        <Select
+                          value={normalizeAgencyBadgeColor(tier.badge_color, tier.level_code)}
+                          onValueChange={(val) => updateTier(tier.id, "badge_color", val)}
+                        >
+                          <SelectTrigger className="bg-white/5 border-white/10 text-white h-8">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {AGENCY_LEVEL_COLOR_OPTIONS.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                <div className="flex items-center gap-2">
+                                  <span
+                                    className="inline-block h-3 w-3 rounded-full border border-border"
+                                    style={{ backgroundColor: option.value }}
+                                  />
+                                  <span>{option.label}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                   </div>
 
