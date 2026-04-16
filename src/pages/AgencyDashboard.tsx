@@ -1261,7 +1261,7 @@ const AgencyDashboard = () => {
           <button
             onClick={() => {
               if (hasHelperAccess) {
-                navigate("/helper-dashboard");
+                navigate(isLevel5Helper ? "/level5-helper-dashboard" : "/helper-dashboard");
               } else {
                 setShowHelperDialog(true);
               }

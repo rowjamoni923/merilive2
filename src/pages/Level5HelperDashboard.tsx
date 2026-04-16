@@ -1,0 +1,3382 @@
+import { useState, useEffect } from "react";
+import { ImageViewer, useImageViewer } from "@/components/ui/image-viewer";
+import { useNavigate } from "react-router-dom";
+import { 
+  ArrowLeft, Wallet, Bell, Clock, CheckCircle, XCircle, 
+  Upload, Image, DollarSign, Banknote, CreditCard, Plus,
+  ChevronRight, Phone, AlertCircle, Loader2, Gem, Crown,
+  Building2, User, Camera, Send, Eye, Trash2, FileText, Package, Copy,
+  Reply, MessageCircle, ImagePlus, X
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import Beans3DIcon from "@/components/common/Beans3DIcon";
+
+interface PaymentMethod {
+  id: string;
+  payment_type: string;
+  account_name: string;
+  account_number: string;
+  bank_name?: string;
+  country_code?: string;
+  is_default: boolean;
+  is_active: boolean;
+}
+
+interface WithdrawalRequest {
+  id: string;
+  beans_amount: number;
+  usd_amount: number;
+  local_amount: number;
+  currency_code: string;
+  status: string;
+  payment_method?: string;
+  payment_screenshot_url?: string;
+  diamond_reward: number;
+  helper_notes?: string;
+  created_at: string;
+  agency?: { name: string; agency_code: string; logo_url?: string };
+  host?: { display_name: string; avatar_url?: string };
+}
+
+interface AgencyWithdrawal {
+  id: string;
+  agency_id: string;
+  amount: number;
+  status: string;
+  payment_method?: string;
+  payment_details?: any;
+  requested_at: string;
+  processed_at?: string;
+  country_code?: string;
+  local_currency_amount?: number;
+  currency_code?: string;
+  helper_payment_screenshot?: string;
+  helper_transaction_id?: string;
+  helper_notes?: string;
+  helper_net_reward?: number;
+  diamond_reward?: number;
+  assigned_helper_id?: string | null;
+  locked_at?: string | null;
+  locked_by_helper_name?: string | null;
+  agency?: { name: string; agency_code: string; logo_url?: string; owner_id: string };
+  assigned_helper?: { user_id: string; profiles?: { display_name: string } } | null;
+}
+
+interface HelperNotification {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+  data?: any;
+}
+
+interface CountryPaymentMethod {
+  id: string;
+  country_code: string;
+  method_name: string;
+  method_type: string;
+  account_name: string;
+  account_number: string;
+  bank_name?: string;
+  instructions?: string;
+  logo_url?: string;
+  is_active: boolean;
+  merchant_number?: string;
+  is_merchant?: boolean;
+}
+
+// Payment types will be loaded from admin-managed topup_payment_methods
+interface TopupPaymentMethod {
+  id: string;
+  method_name: string;
+  method_type: string;
+  account_name: string;
+  account_number: string;
+  instructions: string | null;
+}
+
+interface CurrencyRate {
+  country_code: string;
+  currency_code: string;
+  currency_symbol: string;
+  rate_to_usd: number;
+}
+
+const Level5HelperDashboard = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const imageViewer = useImageViewer();
+  const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState(false);
+  const [helperData, setHelperData] = useState<any>(null);
+  const [agencyDiamondBalance, setAgencyDiamondBalance] = useState<number>(0);
+  const [agencyId, setAgencyId] = useState<string | null>(null);
+  
+  // Read tab from URL params for notification deep linking
+  const urlParams = new URLSearchParams(window.location.search);
+  const initialTab = urlParams.get('tab') || "agency-withdrawals";
+  const [activeTab, setActiveTab] = useState(initialTab);
+  
+  // Data states
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [withdrawalRequests, setWithdrawalRequests] = useState<WithdrawalRequest[]>([]);
+  const [agencyWithdrawals, setAgencyWithdrawals] = useState<AgencyWithdrawal[]>([]);
+  const [countryPaymentMethods, setCountryPaymentMethods] = useState<CountryPaymentMethod[]>([]);
+  const [assignedCountries, setAssignedCountries] = useState<string[]>([]);
+  const [notifications, setNotifications] = useState<HelperNotification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [helperOrders, setHelperOrders] = useState<any[]>([]);
+  const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
+  const [completedOrders, setCompletedOrders] = useState<any[]>([]);
+  const [completedWithdrawals, setCompletedWithdrawals] = useState<AgencyWithdrawal[]>([]);
+  const [adminMessages, setAdminMessages] = useState<any[]>([]);
+  const [unreadAdminMessages, setUnreadAdminMessages] = useState(0);
+  const [selectedMessage, setSelectedMessage] = useState<any>(null);
+  const [messageReplies, setMessageReplies] = useState<any[]>([]);
+  const [replyContent, setReplyContent] = useState("");
+  const [replyScreenshot, setReplyScreenshot] = useState<File | null>(null);
+  const [sendingReply, setSendingReply] = useState(false);
+  const [loadingReplies, setLoadingReplies] = useState(false);
+  
+  // Admin-managed payment methods & currency rates
+  const [availablePaymentMethods, setAvailablePaymentMethods] = useState<TopupPaymentMethod[]>([]);
+  const [currencyRates, setCurrencyRates] = useState<CurrencyRate[]>([]);
+  
+  // Dialog states
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [showWithdrawalDialog, setShowWithdrawalDialog] = useState(false);
+  const [showAgencyWithdrawalDialog, setShowAgencyWithdrawalDialog] = useState(false);
+  const [showCountryPaymentDialog, setShowCountryPaymentDialog] = useState(false);
+  const [selectedWithdrawal, setSelectedWithdrawal] = useState<WithdrawalRequest | null>(null);
+  const [selectedAgencyWithdrawal, setSelectedAgencyWithdrawal] = useState<AgencyWithdrawal | null>(null);
+  const [claimingWithdrawalId, setClaimingWithdrawalId] = useState<string | null>(null); // Track which withdrawal is being claimed
+  
+  // Form states
+  const [paymentType, setPaymentType] = useState("bkash");
+  const [accountName, setAccountName] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [bankName, setBankName] = useState("");
+  const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
+  const [helperNotes, setHelperNotes] = useState("");
+  const [selectedCountry, setSelectedCountry] = useState("");
+  const [selectedPaymentCountry, setSelectedPaymentCountry] = useState(""); // Country for legacy payment method
+  const [paymentLogoFile, setPaymentLogoFile] = useState<File | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [methodInstructions, setMethodInstructions] = useState("");
+  const [merchantNumber, setMerchantNumber] = useState("");
+  const [gatewayDisplayMethod, setGatewayDisplayMethod] = useState("");
+  const [gatewayDisplayNumber, setGatewayDisplayNumber] = useState("");
+  const [isMerchant, setIsMerchant] = useState(false);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  // Real-time subscription - ALL helpers receive ALL withdrawal updates
+  useEffect(() => {
+    if (!helperData?.id) return;
+
+    const channel = supabase
+      .channel(`level5-helper-${helperData.id}`)
+      // CRITICAL: Subscribe to topup_helpers for wallet_balance updates
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'topup_helpers', filter: `id=eq.${helperData.id}` },
+        (payload) => {
+          console.log('[Level5Helper] Helper data updated (wallet_balance etc):', payload.new);
+          const newData = payload.new as any;
+          if (newData && newData.is_active === false) {
+            toast({ title: "Account Deactivated", description: "Your helper account has been deactivated by admin", variant: "destructive" });
+            navigate('/profile');
+            return;
+          }
+          setHelperData(newData);
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'helper_withdrawal_requests', filter: `helper_id=eq.${helperData.id}` },
+        () => loadWithdrawals()
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'helper_notifications', filter: `helper_id=eq.${helperData.id}` },
+        () => loadNotifications()
+      )
+      // CRITICAL: Subscribe to helper_orders for this helper - so new orders appear instantly
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'helper_orders', filter: `helper_id=eq.${helperData.id}` },
+        (payload) => {
+          console.log('[Level5Helper] Helper order updated:', payload.eventType, payload.new);
+          loadHelperOrders();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'topup_payment_methods' },
+        () => {
+          console.log('[Level5Helper] Payment methods updated');
+          loadAvailablePaymentMethods();
+        }
+      )
+      // CRITICAL: Subscribe to ALL agency_withdrawals changes without filter
+      // This ensures ALL Level 5 helpers see ALL pending withdrawals
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'agency_withdrawals' },
+        (payload) => {
+          console.log('[Level5Helper] Agency withdrawal updated:', payload.eventType, payload.new);
+          loadAgencyWithdrawals();
+        }
+      )
+      // ⚡ REALTIME: Admin messages - instant delivery, zero refresh
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'helper_admin_messages', filter: `helper_id=eq.${helperData.id}` },
+        (payload) => {
+          console.log('[Level5Helper] Admin message update:', payload.eventType);
+          loadAdminMessages();
+        }
+      )
+      // ⚡ REALTIME: Message replies - instant delivery, zero refresh
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'helper_message_replies' },
+        (payload) => {
+          console.log('[Level5Helper] Message reply update:', payload.eventType);
+          // Refresh replies if viewing a message
+          if (selectedMessage) {
+            loadMessageReplies(selectedMessage.id);
+          }
+          loadAdminMessages();
+        }
+      )
+      .subscribe();
+
+    // Subscribe to agency diamond_balance updates for combined wallet display
+    let agencyChannel: any = null;
+    if (agencyId) {
+      agencyChannel = supabase
+        .channel(`level5-agency-${agencyId}`)
+        .on(
+          'postgres_changes',
+          { event: 'UPDATE', schema: 'public', table: 'agencies', filter: `id=eq.${agencyId}` },
+          (payload) => {
+            setAgencyDiamondBalance((payload.new as any).diamond_balance || 0);
+          }
+        )
+        .subscribe();
+    }
+
+    // ADDITIONAL: Auto-refresh every 10 seconds as a backup for realtime delays
+    const refreshInterval = setInterval(() => {
+      loadAgencyWithdrawals();
+    }, 10000);
+
+    return () => { 
+      supabase.removeChannel(channel); 
+      if (agencyChannel) supabase.removeChannel(agencyChannel);
+      clearInterval(refreshInterval);
+    };
+  }, [helperData?.id, agencyId]);
+
+  const loadData = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { navigate('/auth'); return; }
+
+      // Get helper data
+      const { data: helper } = await supabase
+        .from('topup_helpers')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!helper || helper.trader_level !== 5 || !helper.payroll_enabled || !helper.is_active) {
+        toast({ title: "Access Denied", description: !helper?.is_active ? "Your helper account has been deactivated by admin" : "Level 5 with Payroll access required", variant: "destructive" });
+        navigate('/helper-dashboard');
+        return;
+      }
+
+      setHelperData(helper);
+
+      // Load agency diamond_balance — combined with wallet_balance = total Trader Wallet
+      const { data: agencyData } = await supabase
+        .from('agencies')
+        .select('id, diamond_balance')
+        .eq('owner_id', user.id)
+        .maybeSingle();
+      
+      if (agencyData) {
+        setAgencyDiamondBalance(agencyData.diamond_balance || 0);
+        setAgencyId(agencyData.id);
+      }
+      
+      // Load assigned countries first
+      const { data: assignedData } = await supabase
+        .from('helper_assigned_countries')
+        .select('country_code')
+        .eq('helper_id', helper.id)
+        .eq('is_active', true);
+      
+      const countries = (assignedData || []).map(a => a.country_code);
+      setAssignedCountries(countries);
+      
+      await Promise.all([
+        loadPaymentMethods(helper.id),
+        loadWithdrawals(helper.id),
+        loadAgencyWithdrawals(helper.id, countries),
+        loadCountryPaymentMethods(helper.id),
+        loadNotifications(helper.id),
+        loadAvailablePaymentMethods(),
+        loadCurrencyRates(),
+        loadHelperOrders(helper.id),
+        loadCompletedHistory(helper.id),
+        loadAdminMessages(helper.id)
+      ]);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load agency withdrawals for Level 5 helpers
+  // IMPORTANT: Filter by helper's country_code and exclude ePay withdrawals
+  // ePay withdrawals go directly to Admin Panel, not to helpers
+  const loadAgencyWithdrawals = async (helperId?: string, countries?: string[]) => {
+    const id = helperId || helperData?.id;
+    if (!id) return;
+    
+    try {
+      // Get helper's country_code for filtering
+      const { data: helperInfo } = await supabase
+        .from('topup_helpers')
+        .select('country_code')
+        .eq('id', id)
+        .single();
+      
+      const helperCountry = helperInfo?.country_code;
+      
+      if (!helperCountry) {
+        console.log('[Level5Helper] No country_code set for helper, skipping withdrawal fetch');
+        setAgencyWithdrawals([]);
+        return;
+      }
+      
+      // Fetch withdrawals that:
+      // 1. Match helper's country (from payment_details)
+      // 2. Are NOT ePay (ePay goes to Admin only)
+      // 3. Are pending or processing
+      const { data: allWithdrawals, error } = await supabase
+        .from('agency_withdrawals')
+        .select(`
+          *,
+          agency:agencies(name, agency_code, logo_url, owner_id),
+          assigned_helper:topup_helpers!agency_withdrawals_assigned_helper_id_fkey(
+            user_id,
+            profiles:profiles!topup_helpers_user_id_fkey(display_name)
+          )
+        `)
+        .in('status', ['pending', 'processing'])
+        .order('requested_at', { ascending: true }); // Oldest first (FIFO)
+      
+      if (error) {
+        console.error('[Level5Helper] Error loading withdrawals:', error);
+        return;
+      }
+      
+      // Filter in-memory:
+      // 1. Exclude ePay withdrawals (they go to Admin only)
+      // 2. Only show withdrawals from helper's country
+      const filteredWithdrawals = (allWithdrawals || []).filter((w: any) => {
+        // Exclude ePay - these go directly to Admin Panel
+        if (w.payment_method === 'epay') {
+          return false;
+        }
+        
+        // Check country from payment_details
+        const withdrawalCountry = w.payment_details?.country_code || w.country_code;
+        
+        // Only show if country matches helper's country
+        return withdrawalCountry === helperCountry;
+      });
+      
+      console.log('[Level5Helper] Loaded agency withdrawals:', filteredWithdrawals.length, 'for country:', helperCountry);
+      setAgencyWithdrawals(filteredWithdrawals as AgencyWithdrawal[]);
+    } catch (err) {
+      console.error('[Level5Helper] Error in loadAgencyWithdrawals:', err);
+    }
+  };
+
+  const loadCountryPaymentMethods = async (helperId?: string) => {
+    const id = helperId || helperData?.id;
+    if (!id) return;
+    
+    const { data } = await supabase
+      .from('helper_country_payment_methods')
+      .select('*')
+      .eq('helper_id', id)
+      .eq('is_active', true)
+      .order('country_code', { ascending: true });
+    
+    setCountryPaymentMethods((data || []) as CountryPaymentMethod[]);
+  };
+
+  const loadPaymentMethods = async (helperId?: string) => {
+    const id = helperId || helperData?.id;
+    if (!id) return;
+    
+    const { data } = await supabase
+      .from('helper_payment_methods')
+      .select('*')
+      .eq('helper_id', id)
+      .eq('is_active', true)
+      .order('is_default', { ascending: false });
+    
+    setPaymentMethods(data || []);
+  };
+
+  const loadWithdrawals = async (helperId?: string) => {
+    const id = helperId || helperData?.id;
+    if (!id) return;
+    
+    const { data } = await supabase
+      .from('helper_withdrawal_requests')
+      .select(`
+        *,
+        agency:agencies(name, agency_code, logo_url),
+        host:profiles!helper_withdrawal_requests_host_id_fkey(display_name, avatar_url)
+      `)
+      .eq('helper_id', id)
+      .order('created_at', { ascending: false });
+    
+    setWithdrawalRequests((data || []) as WithdrawalRequest[]);
+  };
+
+  const loadNotifications = async (helperId?: string) => {
+    const id = helperId || helperData?.id;
+    if (!id) return;
+    
+    const { data } = await supabase
+      .from('helper_notifications')
+      .select('*')
+      .eq('helper_id', id)
+      .order('created_at', { ascending: false })
+      .limit(50);
+    
+    setNotifications((data || []) as HelperNotification[]);
+    setUnreadCount((data || []).filter(n => !n.is_read).length);
+  };
+
+  const loadAvailablePaymentMethods = async () => {
+    console.log('[Level5Helper] Loading payment methods...');
+    const { data, error } = await supabase
+      .from('topup_payment_methods')
+      .select('id, method_name, method_type, account_name, account_number, instructions')
+      .eq('is_active', true)
+      .order('display_order', { ascending: true });
+    
+    if (error) {
+      console.error('[Level5Helper] Error loading payment methods:', error);
+    }
+    
+    console.log('[Level5Helper] Payment methods loaded:', data?.length, data?.map((m: any) => m.method_name));
+    setAvailablePaymentMethods((data || []) as TopupPaymentMethod[]);
+  };
+
+  const loadCurrencyRates = async () => {
+    const { data } = await supabase
+      .from('currency_rates')
+      .select('country_code, currency_code, currency_symbol, rate_to_usd')
+      .eq('is_active', true);
+    
+    setCurrencyRates((data || []) as CurrencyRate[]);
+  };
+
+  const loadHelperOrders = async (helperId?: string) => {
+    const id = helperId || helperData?.id;
+    if (!id) return;
+    
+    const { data } = await supabase
+      .from('helper_orders')
+      .select(`
+        *,
+        user:profiles!helper_orders_user_id_fkey(display_name, avatar_url, app_uid)
+      `)
+      .eq('helper_id', id)
+      .order('created_at', { ascending: false })
+      .limit(100);
+    
+    setHelperOrders(data || []);
+    setPendingOrdersCount((data || []).filter((o: any) => o.status === 'pending' || o.status === 'gateway_pending').length);
+  };
+
+  // Load completed orders and withdrawals for history
+  const loadCompletedHistory = async (helperId?: string) => {
+    const id = helperId || helperData?.id;
+    if (!id) return;
+    
+    // Load completed orders for this helper
+    const { data: ordersData } = await supabase
+      .from('helper_orders')
+      .select(`
+        *,
+        user:profiles!helper_orders_user_id_fkey(display_name, avatar_url, app_uid)
+      `)
+      .eq('helper_id', id)
+      .eq('status', 'completed')
+      .order('processed_at', { ascending: false })
+      .limit(50);
+    
+    setCompletedOrders(ordersData || []);
+    
+    // Load completed agency withdrawals processed by this helper
+    const { data: withdrawalsData } = await supabase
+      .from('agency_withdrawals')
+      .select(`
+        *,
+        agency:agencies(name, agency_code, logo_url, owner_id)
+      `)
+      .eq('assigned_helper_id', id)
+      .eq('status', 'completed')
+      .order('processed_at', { ascending: false })
+      .limit(50);
+    
+    setCompletedWithdrawals((withdrawalsData || []) as AgencyWithdrawal[]);
+  };
+
+  // Load admin messages for inbox
+  const loadAdminMessages = async (helperId?: string) => {
+    const id = helperId || helperData?.id;
+    if (!id) return;
+    
+    const { data } = await supabase
+      .from('helper_admin_messages')
+      .select('*')
+      .eq('helper_id', id)
+      .order('created_at', { ascending: false })
+      .limit(50);
+    
+    setAdminMessages(data || []);
+    setUnreadAdminMessages((data || []).filter((m: any) => !m.is_read).length);
+  };
+
+  // Mark admin messages as read
+  const markAdminMessagesRead = async () => {
+    if (!helperData?.id) return;
+    
+    const unreadIds = adminMessages.filter(m => !m.is_read).map(m => m.id);
+    if (unreadIds.length === 0) return;
+    
+    await supabase
+      .from('helper_admin_messages')
+      .update({ is_read: true, read_at: new Date().toISOString() })
+      .in('id', unreadIds);
+    
+    setAdminMessages(prev => prev.map(m => ({ ...m, is_read: true })));
+    setUnreadAdminMessages(0);
+  };
+
+  // Load replies for a message
+  const loadMessageReplies = async (messageId: string) => {
+    setLoadingReplies(true);
+    try {
+      const { data, error } = await supabase
+        .from('helper_message_replies')
+        .select('*')
+        .eq('message_id', messageId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      setMessageReplies(data || []);
+    } catch (error: any) {
+      console.error('Error loading replies:', error);
+    } finally {
+      setLoadingReplies(false);
+    }
+  };
+
+  // Send reply to admin message
+  const handleSendReply = async () => {
+    if (!selectedMessage || !replyContent.trim()) {
+      toast({ title: "Error", description: "Please enter a reply message", variant: "destructive" });
+      return;
+    }
+
+    setSendingReply(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      let screenshotUrl = null;
+
+      // Upload screenshot if provided
+      if (replyScreenshot) {
+        const fileExt = replyScreenshot.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('helper-screenshots')
+          .upload(fileName, replyScreenshot);
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from('helper-screenshots')
+          .getPublicUrl(fileName);
+        
+        screenshotUrl = urlData.publicUrl;
+      }
+
+      // Insert reply
+      const { error } = await supabase
+        .from('helper_message_replies')
+        .insert({
+          message_id: selectedMessage.id,
+          sender_id: user.id,
+          sender_type: 'helper',
+          content: replyContent.trim(),
+          screenshot_url: screenshotUrl
+        });
+
+      if (error) throw error;
+
+      toast({ title: "✅ Reply Sent", description: "Your reply has been sent to admin" });
+      setReplyContent("");
+      setReplyScreenshot(null);
+      loadMessageReplies(selectedMessage.id);
+      
+      // Update the message in the list to show it has replies
+      setAdminMessages(prev => prev.map(m => 
+        m.id === selectedMessage.id ? { ...m, has_replies: true, last_reply_at: new Date().toISOString() } : m
+      ));
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setSendingReply(false);
+    }
+  };
+
+  // Open message detail
+  const openMessageDetail = (msg: any) => {
+    setSelectedMessage(msg);
+    loadMessageReplies(msg.id);
+    
+    // Mark as read if unread
+    if (!msg.is_read) {
+      supabase
+        .from('helper_admin_messages')
+        .update({ is_read: true, read_at: new Date().toISOString() })
+        .eq('id', msg.id)
+        .then(() => {
+          setAdminMessages(prev => prev.map(m => 
+            m.id === msg.id ? { ...m, is_read: true } : m
+          ));
+          setUnreadAdminMessages(prev => Math.max(0, prev - 1));
+        });
+    }
+  };
+
+  // Get payment type config for display
+  const getPaymentTypeConfig = (type: string) => {
+    const configs: Record<string, { icon: string; color: string; label: string }> = {
+      'bkash': { icon: '📱', color: 'from-pink-500 to-pink-600', label: 'bKash' },
+      'nagad': { icon: '💳', color: 'from-orange-500 to-orange-600', label: 'Nagad' },
+      'rocket': { icon: '🚀', color: 'from-purple-500 to-purple-600', label: 'Rocket' },
+      'bank': { icon: '🏦', color: 'from-blue-500 to-blue-600', label: 'Bank Transfer' },
+      'crypto': { icon: '₿', color: 'from-yellow-500 to-yellow-600', label: 'Crypto' },
+      'binance': { icon: '🔶', color: 'from-yellow-500 to-yellow-600', label: 'Binance Pay' },
+      'epay': { icon: '💰', color: 'from-green-500 to-green-600', label: 'ePay' },
+      'sslcommerz': { icon: '🔐', color: 'from-cyan-500 to-blue-600', label: 'SSLCommerz ⚡' },
+      'aamarpay': { icon: '💰', color: 'from-teal-500 to-emerald-600', label: 'AamarPay ⚡' },
+    };
+    return configs[type.toLowerCase()] || { icon: '💳', color: 'from-gray-500 to-gray-600', label: type };
+  };
+
+  // Get currency rate for a country
+  const getCurrencyForCountry = (countryCode: string) => {
+    return currencyRates.find(r => r.country_code === countryCode) || {
+      currency_code: 'USD',
+      currency_symbol: '$',
+      rate_to_usd: 1
+    };
+  };
+
+  const handleAddPaymentMethod = async () => {
+    if (!accountName || !accountNumber) {
+      toast({ title: "Error", description: "Fill all required fields", variant: "destructive" });
+      return;
+    }
+
+    setProcessing(true);
+    try {
+      const targetCountry = selectedPaymentCountry || helperData.country_code || '';
+      if (!targetCountry) {
+        toast({ title: "Error", description: "Please select a country", variant: "destructive" });
+        setProcessing(false);
+        return;
+      }
+      const { error } = await supabase
+        .from('helper_payment_methods')
+        .insert({
+          helper_id: helperData.id,
+          country_code: targetCountry,
+          payment_type: paymentType,
+          account_name: accountName,
+          account_number: accountNumber,
+          bank_name: bankName || null,
+          is_default: paymentMethods.length === 0,
+          merchant_number: merchantNumber || null,
+          is_merchant: isMerchant,
+        });
+
+      if (error) throw error;
+
+      toast({ title: "Success!", description: "Payment method added" });
+      setShowPaymentDialog(false);
+      resetPaymentForm();
+      loadPaymentMethods();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleDeletePaymentMethod = async (id: string) => {
+    try {
+      await supabase
+        .from('helper_payment_methods')
+        .update({ is_active: false })
+        .eq('id', id);
+      
+      toast({ title: "Deleted", description: "Payment method removed" });
+      loadPaymentMethods();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const handleDeleteCountryPaymentMethod = async (id: string) => {
+    try {
+      await supabase
+        .from('helper_country_payment_methods')
+        .update({ is_active: false })
+        .eq('id', id);
+      
+      toast({ title: "Deleted", description: "Payment method removed" });
+      loadCountryPaymentMethods();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const handleAddCountryPaymentMethod = async () => {
+    const isGatewayType = ['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType);
+    if (!selectedCountry) {
+      toast({ title: "Error", description: "Please select a country", variant: "destructive" });
+      return;
+    }
+    if (!isGatewayType && (!accountName || !accountNumber)) {
+      toast({ title: "Error", description: "Fill all required fields", variant: "destructive" });
+      return;
+    }
+
+    setProcessing(true);
+    try {
+      let logoUrl: string | null = null;
+      
+      // Upload logo if selected
+      if (paymentLogoFile) {
+        setUploadingLogo(true);
+        const fileName = `payment-logo-${helperData.id}-${Date.now()}.${paymentLogoFile.name.split('.').pop()}`;
+        const { error: uploadError } = await supabase.storage
+          .from('payment-proofs')
+          .upload(fileName, paymentLogoFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data } = supabase.storage
+          .from('payment-proofs')
+          .getPublicUrl(fileName);
+        
+        logoUrl = data.publicUrl;
+        setUploadingLogo(false);
+      }
+
+      const isGateway = paymentType === 'sslcommerz' || paymentType === 'aamarpay' || paymentType === 'zinipay';
+
+      if (isGateway && (!gatewayDisplayMethod || !gatewayDisplayNumber)) {
+        toast({ title: "Error", description: "Please select display method and enter display number", variant: "destructive" });
+        setProcessing(false);
+        return;
+      }
+
+      if ((paymentType === 'sslcommerz' || paymentType === 'aamarpay') && (!accountName || !accountNumber)) {
+        toast({ title: "Error", description: "Please enter gateway credentials", variant: "destructive" });
+        setProcessing(false);
+        return;
+      }
+      
+      const countryName = selectedCountry; // Country name resolved from code
+      const methodName = isGateway ? gatewayDisplayMethod : paymentType;
+      const { error } = await supabase
+        .from('helper_country_payment_methods')
+        .insert({
+          helper_id: helperData.id,
+          country_code: selectedCountry,
+          country_name: countryName,
+          payment_method_name: methodName,
+          method_name: methodName,
+          method_type: isGateway ? 'auto_gateway' : paymentType,
+          account_name: isGateway ? (paymentType === 'zinipay' ? gatewayDisplayMethod : accountName) : accountName,
+          account_number: isGateway ? gatewayDisplayNumber : accountNumber,
+          bank_name: bankName || null,
+          instructions: methodInstructions || null,
+          logo_url: logoUrl,
+          additional_info: isGateway ? {
+            gateway_type: paymentType,
+            ...(paymentType === 'sslcommerz' ? { store_id: accountName, store_password: accountNumber, is_sandbox: false } : {}),
+            ...(paymentType === 'aamarpay' ? { store_id: accountName, signature_key: accountNumber, is_sandbox: false } : {}),
+            ...(paymentType === 'zinipay' ? { zinipay_api_key: accountName } : {}),
+            display_method: gatewayDisplayMethod,
+            display_number: gatewayDisplayNumber,
+            merchant_number: merchantNumber || null,
+            is_merchant: true,
+          } : {
+            merchant_number: merchantNumber || null,
+            is_merchant: isMerchant,
+          },
+        });
+
+      if (error) throw error;
+
+      toast({ title: "Success!", description: "Payment method added for " + selectedCountry });
+      setShowCountryPaymentDialog(false);
+      resetPaymentForm();
+      setPaymentLogoFile(null);
+      loadCountryPaymentMethods();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setProcessing(false);
+      setUploadingLogo(false);
+    }
+  };
+
+  // Handle clicking on agency withdrawal - with LOCKING mechanism
+  const handleSelectAgencyWithdrawal = async (withdrawal: AgencyWithdrawal) => {
+    // Set claiming state immediately to disable button
+    setClaimingWithdrawalId(withdrawal.id);
+    
+    try {
+      // CRITICAL: First check current state from database (not local state)
+      const { data: currentState, error: checkError } = await supabase
+        .from('agency_withdrawals')
+        .select('status, assigned_helper_id')
+        .eq('id', withdrawal.id)
+        .single();
+      
+      if (checkError || !currentState) {
+        toast({ 
+          title: "Error", 
+          description: "Could not verify withdrawal status", 
+          variant: "destructive" 
+        });
+        loadAgencyWithdrawals();
+        return;
+      }
+      
+      // Check if already claimed by another helper
+      if (currentState.assigned_helper_id && currentState.assigned_helper_id !== helperData?.id) {
+        toast({ 
+          title: "⚠️ Already Claimed", 
+          description: "Another helper already claimed this withdrawal. Refreshing list...", 
+          variant: "destructive" 
+        });
+        loadAgencyWithdrawals(); // Refresh to show updated state
+        return;
+      }
+      
+      // Check if already being processed
+      if (currentState.status === 'processing' && currentState.assigned_helper_id !== helperData?.id) {
+        toast({ 
+          title: "⚠️ Already Processing", 
+          description: "Another helper is already processing this withdrawal", 
+          variant: "destructive" 
+        });
+        loadAgencyWithdrawals();
+        return;
+      }
+      
+      // If pending and not claimed, try to LOCK it for this helper
+      if (currentState.status === 'pending' && !currentState.assigned_helper_id) {
+        // Optimistic lock - set assigned_helper_id to claim this withdrawal
+        const { data, error } = await supabase
+          .from('agency_withdrawals')
+          .update({ 
+            assigned_helper_id: helperData.id,
+            // Keep status as pending until they actually submit payment proof
+          })
+          .eq('id', withdrawal.id)
+          .eq('status', 'pending') // Only if still pending (avoid race condition)
+          .is('assigned_helper_id', null) // Only if not already claimed
+          .select()
+          .single();
+        
+        if (error || !data) {
+          // Someone else claimed it first (race condition)
+          toast({ 
+            title: "⚠️ Already Claimed", 
+            description: "Another helper just claimed this withdrawal. Refreshing list...", 
+            variant: "destructive" 
+          });
+          loadAgencyWithdrawals(); // Refresh the list
+          return;
+        }
+        
+        // Successfully claimed - update local state and refresh list for all users
+        withdrawal.assigned_helper_id = helperData.id;
+        
+        // Immediately refresh to update UI for all helpers via realtime
+        loadAgencyWithdrawals();
+      }
+      
+      setSelectedAgencyWithdrawal(withdrawal);
+      setShowAgencyWithdrawalDialog(true);
+    } finally {
+      // Clear claiming state
+      setClaimingWithdrawalId(null);
+    }
+  };
+  
+  // Handle closing the dialog - release lock if not submitted
+  const handleCloseAgencyWithdrawalDialog = async () => {
+    if (selectedAgencyWithdrawal && selectedAgencyWithdrawal.status === 'pending' && 
+        selectedAgencyWithdrawal.assigned_helper_id === helperData?.id) {
+      // Release the lock if they close without submitting
+      await supabase
+        .from('agency_withdrawals')
+        .update({ assigned_helper_id: null })
+        .eq('id', selectedAgencyWithdrawal.id)
+        .eq('status', 'pending');
+    }
+    
+    setShowAgencyWithdrawalDialog(false);
+    setSelectedAgencyWithdrawal(null);
+    setScreenshotFile(null);
+    setHelperNotes("");
+    loadAgencyWithdrawals(); // Refresh list
+  };
+
+  const handleProcessAgencyWithdrawal = async () => {
+    if (!selectedAgencyWithdrawal || !screenshotFile) {
+      toast({ title: "Error", description: "Upload payment screenshot", variant: "destructive" });
+      return;
+    }
+
+    setProcessing(true);
+    try {
+      // Double-check this withdrawal is still assigned to us
+      const { data: currentWithdrawal, error: checkError } = await supabase
+        .from('agency_withdrawals')
+        .select('assigned_helper_id, status')
+        .eq('id', selectedAgencyWithdrawal.id)
+        .single();
+      
+      if (checkError || !currentWithdrawal) {
+        throw new Error("Withdrawal not found");
+      }
+      
+      if (currentWithdrawal.status !== 'pending' || 
+          (currentWithdrawal.assigned_helper_id && currentWithdrawal.assigned_helper_id !== helperData.id)) {
+        toast({ 
+          title: "⚠️ Cannot Process", 
+          description: "This withdrawal has been claimed by another helper or already processed", 
+          variant: "destructive" 
+        });
+        handleCloseAgencyWithdrawalDialog();
+        return;
+      }
+      
+      // Upload screenshot
+      const fileName = `agency-withdrawal-${selectedAgencyWithdrawal.id}-${Date.now()}.jpg`;
+      const { error: uploadError } = await supabase.storage
+        .from('payment-proofs')
+        .upload(fileName, screenshotFile);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('payment-proofs')
+        .getPublicUrl(fileName);
+
+      // FIXED: Calculate diamond reward based on net_withdrawal_beans (1 bean = 1 diamond)
+      const paymentDetails = selectedAgencyWithdrawal.payment_details as any;
+      const netWithdrawalBeans = paymentDetails?.net_withdrawal_beans || selectedAgencyWithdrawal.amount;
+      const diamondReward = Math.round(netWithdrawalBeans);
+
+      // Update withdrawal status to 'processing' (waiting for admin approval)
+      const { error: updateError } = await supabase
+        .from('agency_withdrawals')
+        .update({
+          status: 'processing',
+          assigned_helper_id: helperData.id,
+          helper_payment_screenshot: publicUrl,
+          helper_transaction_id: helperNotes,
+          helper_processed_at: new Date().toISOString(),
+          helper_notes: helperNotes,
+          diamond_reward: diamondReward
+        })
+        .eq('id', selectedAgencyWithdrawal.id);
+      
+      if (updateError) throw updateError;
+
+      // Send notification to agency owner that payment has been processed (they will see "Approved")
+      if (selectedAgencyWithdrawal.agency?.owner_id) {
+        await supabase.from('notifications').insert({
+          user_id: selectedAgencyWithdrawal.agency.owner_id,
+          type: 'withdrawal_approved',
+          title: '✅ Withdrawal Approved!',
+          message: `Your withdrawal request has been approved and payment has been sent.`,
+          data: { 
+            withdrawal_id: selectedAgencyWithdrawal.id,
+            amount: selectedAgencyWithdrawal.amount,
+            status: 'approved'
+          }
+        });
+      }
+
+      toast({ title: "Success!", description: "Payment processed and notification sent to agency" });
+      setShowAgencyWithdrawalDialog(false);
+      setScreenshotFile(null);
+      setHelperNotes("");
+      loadAgencyWithdrawals();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleProcessWithdrawal = async (action: 'mark_paid' | 'submit_screenshot') => {
+    if (!selectedWithdrawal) return;
+
+    setProcessing(true);
+    try {
+      if (action === 'mark_paid') {
+        // Mark as paid and wait for screenshot
+        await supabase
+          .from('helper_withdrawal_requests')
+          .update({ 
+            status: 'paid',
+            paid_at: new Date().toISOString(),
+            helper_notes: helperNotes || null
+          })
+          .eq('id', selectedWithdrawal.id);
+
+        toast({ title: "Marked as Paid", description: "Now upload the payment screenshot" });
+      } else if (action === 'submit_screenshot') {
+        if (!screenshotFile) {
+          toast({ title: "Error", description: "Please upload payment screenshot", variant: "destructive" });
+          return;
+        }
+
+        // Upload screenshot
+        const fileName = `withdrawal-${selectedWithdrawal.id}-${Date.now()}.jpg`;
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(`withdrawal-proofs/${fileName}`, screenshotFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(`withdrawal-proofs/${fileName}`);
+
+        // Update withdrawal with screenshot
+        await supabase
+          .from('helper_withdrawal_requests')
+          .update({ 
+            status: 'screenshot_submitted',
+            payment_screenshot_url: publicUrl,
+            submitted_at: new Date().toISOString(),
+            helper_notes: helperNotes || null
+          })
+          .eq('id', selectedWithdrawal.id);
+
+        toast({ title: "Screenshot Submitted!", description: "Waiting for admin approval" });
+      }
+
+      setShowWithdrawalDialog(false);
+      setSelectedWithdrawal(null);
+      setScreenshotFile(null);
+      setHelperNotes("");
+      loadWithdrawals();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const markNotificationsRead = async () => {
+    if (!helperData?.id) return;
+    
+    await supabase
+      .from('helper_notifications')
+      .update({ is_read: true })
+      .eq('helper_id', helperData.id)
+      .eq('is_read', false);
+    
+    setUnreadCount(0);
+  };
+
+  const resetPaymentForm = () => {
+    setPaymentType("bkash");
+    setAccountName("");
+    setAccountNumber("");
+    setBankName("");
+    setSelectedPaymentCountry("");
+    setMerchantNumber("");
+    setIsMerchant(false);
+    setGatewayDisplayMethod("");
+    setGatewayDisplayNumber("");
+  };
+
+  const getStatusBadge = (status: string) => {
+    const configs: Record<string, { color: string; icon: any; label: string }> = {
+      pending: { color: "bg-yellow-500", icon: Clock, label: "Pending" },
+      paid: { color: "bg-blue-500", icon: DollarSign, label: "Paid" },
+      screenshot_submitted: { color: "bg-purple-500", icon: Image, label: "Submitted" },
+      approved: { color: "bg-green-500", icon: CheckCircle, label: "Approved" },
+      rejected: { color: "bg-red-500", icon: XCircle, label: "Rejected" }
+    };
+    return configs[status] || configs.pending;
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-900 to-slate-800">
+        <Loader2 className="w-8 h-8 animate-spin text-cyan-500" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 bg-gradient-to-b from-slate-900 to-slate-800 flex flex-col overflow-hidden">
+      <div 
+        className="flex-1 overflow-y-auto overscroll-contain"
+        style={{ 
+          WebkitOverflowScrolling: 'touch',
+          paddingBottom: 'var(--content-bottom-padding)'
+        }}
+      >
+      {/* Header */}
+      <div className="bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 p-4 rounded-b-3xl">
+        <div className="flex items-center gap-3 mb-3">
+          <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => navigate(-1)}>
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div className="flex-1">
+            <h1 className="font-bold text-lg text-white">Diamond Helper</h1>
+            <p className="text-white/80 text-xs">Level 5 • Payroll System</p>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="text-white hover:bg-white/20 relative"
+            onClick={() => { setActiveTab("notifications"); markNotificationsRead(); }}
+          >
+            <Bell className="w-5 h-5" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] flex items-center justify-center">
+                {unreadCount}
+              </span>
+            )}
+          </Button>
+        </div>
+
+        {/* Stats - Mobile Optimized */}
+        <div className="grid grid-cols-4 gap-1.5">
+          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 text-center">
+            <p className="text-base font-bold text-white">{agencyWithdrawals.length}</p>
+            <p className="text-[9px] text-white/70">Agency</p>
+          </div>
+          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 text-center">
+            <p className="text-base font-bold text-white">{withdrawalRequests.filter(w => w.status === 'pending').length}</p>
+            <p className="text-[9px] text-white/70">Pending</p>
+          </div>
+          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 text-center">
+            <p className="text-base font-bold text-white">{countryPaymentMethods.length}</p>
+            <p className="text-[9px] text-white/70">Methods</p>
+          </div>
+          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 text-center overflow-hidden">
+            <p className="text-xs font-bold text-white truncate">
+              {(() => {
+                const totalWallet = (helperData?.wallet_balance || 0) + agencyDiamondBalance;
+                return totalWallet >= 1000000 
+                  ? `${(totalWallet / 1000000).toFixed(1)}M`
+                  : totalWallet >= 1000 
+                    ? `${(totalWallet / 1000).toFixed(0)}K`
+                    : totalWallet.toLocaleString();
+              })()}
+            </p>
+            <p className="text-[9px] text-white/70">💎 Wallet</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Tabs */}
+      <div className="px-4 mt-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="w-full bg-slate-800 rounded-xl p-1 grid grid-cols-5">
+            <TabsTrigger value="agency-withdrawals" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white rounded-lg text-[10px] px-1">
+              <Building2 className="w-3 h-3 mr-0.5" />
+              Agency
+              {agencyWithdrawals.length > 0 && (
+                <Badge className="ml-0.5 bg-red-500 text-white text-[8px] h-4 px-1">{agencyWithdrawals.length}</Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="orders" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white rounded-lg text-[10px] px-1">
+              <Package className="w-3 h-3 mr-0.5" />
+              Orders
+              {pendingOrdersCount > 0 && (
+                <Badge className="ml-0.5 bg-red-500 text-white text-[8px] h-4 px-1">{pendingOrdersCount}</Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="country-methods" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-white rounded-lg text-[10px] px-1">
+              <CreditCard className="w-3 h-3 mr-0.5" />
+              Methods
+            </TabsTrigger>
+            <TabsTrigger value="history" className="data-[state=active]:bg-cyan-500 data-[state=active]:text-white rounded-lg text-[10px] px-1">
+              <Clock className="w-3 h-3 mr-0.5" />
+              History
+            </TabsTrigger>
+            <TabsTrigger 
+              value="inbox" 
+              className="data-[state=active]:bg-purple-500 data-[state=active]:text-white rounded-lg text-[10px] px-1 relative"
+              onClick={() => markAdminMessagesRead()}
+            >
+              <Bell className="w-3 h-3 mr-0.5" />
+              Inbox
+              {unreadAdminMessages > 0 && (
+                <Badge className="ml-0.5 bg-red-500 text-white text-[8px] h-4 px-1">{unreadAdminMessages}</Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Agency Withdrawals Tab */}
+          <TabsContent value="agency-withdrawals" className="mt-4 space-y-3">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-white font-semibold text-sm flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-orange-400" />
+                All Agency Withdrawals
+              </h3>
+              <Badge className="bg-emerald-500/20 text-emerald-400 text-xs">
+                {agencyWithdrawals.filter(w => w.status === 'pending' && !w.assigned_helper_id).length} Available
+              </Badge>
+            </div>
+            
+            {/* Info Banner */}
+            <div className="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-xl p-3 border border-cyan-500/30">
+              <p className="text-cyan-400 text-xs text-center">
+                💡 All Level 5 Helpers can see all withdrawals • First-come-first-serve
+              </p>
+            </div>
+            
+            {agencyWithdrawals.length === 0 ? (
+              <Card className="bg-slate-800/50 border-slate-700">
+                <CardContent className="p-8 text-center">
+                  <Building2 className="w-12 h-12 mx-auto text-slate-500 mb-3" />
+                  <p className="text-slate-400">No pending agency withdrawals</p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    All withdrawals are cleared 🎉
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              agencyWithdrawals.map((withdrawal) => {
+                const isLockedByOther = withdrawal.assigned_helper_id && 
+                                        withdrawal.assigned_helper_id !== helperData?.id && 
+                                        withdrawal.status === 'pending';
+                const isLockedByMe = withdrawal.assigned_helper_id === helperData?.id;
+                const isProcessing = withdrawal.status === 'processing';
+                const isAvailable = withdrawal.status === 'pending' && !withdrawal.assigned_helper_id;
+                
+                // Get helper name who is processing
+                const processingHelperName = withdrawal.assigned_helper?.profiles?.display_name || 'Another Helper';
+                
+                return (
+                  <Card 
+                    key={withdrawal.id}
+                    className={cn(
+                      "bg-slate-800/50 border-slate-700 transition-all",
+                      isLockedByOther ? "border-orange-500/50" : "",
+                      isLockedByMe && "border-l-4 border-l-cyan-500",
+                      isProcessing && "border-l-4 border-l-blue-500"
+                    )}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="w-12 h-12 border-2 border-orange-500">
+                          <AvatarImage src={withdrawal.agency?.logo_url} />
+                          <AvatarFallback className="bg-orange-500/20">
+                            <Building2 className="w-5 h-5 text-orange-400" />
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white font-semibold truncate">{withdrawal.agency?.name || 'Unknown Agency'}</p>
+                          <p className="text-slate-400 text-xs">Code: {withdrawal.agency?.agency_code}</p>
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            <Badge className={cn(
+                              "text-xs",
+                              isAvailable ? "bg-yellow-500" : 
+                              isLockedByOther ? "bg-orange-500 animate-pulse" :
+                              isLockedByMe ? "bg-cyan-500" :
+                              isProcessing ? "bg-blue-500" :
+                              "bg-slate-500"
+                            )}>
+                              {isAvailable ? "🟡 Pending" :
+                               isLockedByOther ? "⏳ Processing" : 
+                               isLockedByMe ? "🔒 Your Claim" :
+                               isProcessing ? "📤 Submitted" :
+                               withdrawal.status}
+                            </Badge>
+                            {withdrawal.country_code && (
+                              <Badge variant="outline" className="text-xs text-slate-400">
+                                {withdrawal.country_code}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-emerald-400 font-bold flex items-center justify-end gap-1">
+                            <Beans3DIcon size={16} />
+                            {withdrawal.amount?.toLocaleString()}
+                          </p>
+                          {withdrawal.local_currency_amount && withdrawal.currency_code && (
+                            <p className="text-slate-400 text-xs">
+                              ≈ {withdrawal.currency_code} {withdrawal.local_currency_amount.toLocaleString()}
+                            </p>
+                          )}
+                          <p className="text-slate-500 text-[10px]">
+                            {format(new Date(withdrawal.requested_at), 'dd MMM')}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Claim & Process Button - Only show for available withdrawals */}
+                      {isAvailable && (
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSelectAgencyWithdrawal(withdrawal);
+                          }}
+                          disabled={claimingWithdrawalId === withdrawal.id}
+                          className="w-full mt-3 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white font-semibold disabled:opacity-50"
+                        >
+                          {claimingWithdrawalId === withdrawal.id ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Claiming...
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle className="w-4 h-4 mr-2" />
+                              Claim & Process
+                            </>
+                          )}
+                        </Button>
+                      )}
+                      
+                      {/* Your Claim - Show button to continue processing */}
+                      {isLockedByMe && withdrawal.status === 'pending' && (
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedAgencyWithdrawal(withdrawal);
+                            setShowAgencyWithdrawalDialog(true);
+                          }}
+                          className="w-full mt-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold"
+                        >
+                          <Send className="w-4 h-4 mr-2" />
+                          Continue Processing
+                        </Button>
+                      )}
+                      
+                      {/* Show processing indicator with helper name */}
+                      {isLockedByOther && (
+                        <div className="mt-3 p-2 bg-orange-500/20 rounded-lg border border-orange-500/30">
+                          <div className="flex items-center justify-center gap-2">
+                            <Loader2 className="w-4 h-4 animate-spin text-orange-400" />
+                            <div className="text-center">
+                              <p className="text-orange-400 text-xs font-medium">
+                                Being processed by:
+                              </p>
+                              <p className="text-orange-300 text-sm font-bold">
+                                {processingHelperName}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Show submitted status */}
+                      {isProcessing && (
+                        <div className="mt-3 p-2 bg-blue-500/20 rounded-lg border border-blue-500/30 text-center">
+                          <p className="text-blue-400 text-xs flex items-center justify-center gap-1">
+                            <CheckCircle className="w-3 h-3" />
+                            Submitted - Waiting for admin approval
+                          </p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })
+            )}
+          </TabsContent>
+
+          {/* Orders Tab */}
+          <TabsContent value="orders" className="mt-4 space-y-3">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-white font-semibold text-sm flex items-center gap-2">
+                <Package className="w-4 h-4 text-blue-400" />
+                Payroll Orders
+              </h3>
+              <Badge className="bg-blue-500/20 text-blue-400 text-xs">
+                {helperOrders.length} total
+              </Badge>
+            </div>
+            
+            {helperOrders.length === 0 ? (
+              <Card className="bg-slate-800/50 border-slate-700">
+                <CardContent className="p-8 text-center">
+                  <Package className="w-12 h-12 mx-auto text-slate-500 mb-3" />
+                  <p className="text-slate-400">No orders yet</p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Orders from users will appear here
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              helperOrders.map((order: any) => (
+                <Card 
+                  key={order.id}
+                  className={cn(
+                    "bg-slate-800/50 border-slate-700",
+                    order.status === 'pending' && "border-l-4 border-l-yellow-500",
+                    order.status === 'completed' && "border-l-4 border-l-green-500",
+                    order.status === 'cancelled' && "border-l-4 border-l-red-500"
+                  )}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="w-10 h-10 border-2 border-blue-500">
+                        <AvatarImage src={order.user?.avatar_url} />
+                        <AvatarFallback className="bg-blue-500/20 text-blue-400">
+                          {order.user?.display_name?.charAt(0) || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-white font-medium truncate text-sm">
+                            {order.user?.display_name || 'Unknown User'}
+                          </p>
+                          <Badge className={cn(
+                            "text-[10px]",
+                            order.status === 'pending' && "bg-yellow-500",
+                            order.status === 'completed' && "bg-green-500",
+                            order.status === 'cancelled' && "bg-red-500"
+                          )}>
+                            {order.status}
+                          </Badge>
+                        </div>
+                        <p className="text-slate-400 text-xs">ID: {order.user?.app_uid}</p>
+                        <p className="text-slate-500 text-[10px]">
+                          {format(new Date(order.created_at), 'dd MMM yyyy, hh:mm a')}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-emerald-400 font-bold">{order.coin_amount?.toLocaleString()} 💎</p>
+                        <p className="text-slate-400 text-xs">
+                          {order.currency_code === 'BDT' ? '৳' : '$'}{order.amount_local?.toFixed(0)}
+                        </p>
+                        <Badge variant="outline" className="text-[10px] text-slate-400 mt-1">
+                          {order.payment_method}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    {/* Transaction ID and Payment Details */}
+                    {order.payment_details && (
+                      <div className="mt-3 pt-3 border-t border-slate-700">
+                        <div className="bg-slate-900/50 rounded-lg p-3">
+                          <p className="text-slate-400 text-xs mb-2">📝 Payment Details</p>
+                          {order.payment_details.transaction_id && (
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-slate-500 text-xs">Transaction ID:</span>
+                              <span className="text-yellow-400 font-mono text-sm font-bold">
+                                {order.payment_details.transaction_id}
+                              </span>
+                            </div>
+                          )}
+                          {order.payment_details.account_name && (
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-slate-500 text-xs">Paid to:</span>
+                              <span className="text-white text-xs">{order.payment_details.account_name}</span>
+                            </div>
+                          )}
+                          {order.payment_details.account_number && (
+                            <div className="flex items-center justify-between">
+                              <span className="text-slate-500 text-xs">Number:</span>
+                              <span className="text-green-400 text-xs font-mono">{order.payment_details.account_number}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* View Payment Proof if available */}
+                    {order.user_payment_proof && (
+                      <div className="mt-3 pt-3 border-t border-slate-700">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="w-full text-xs text-blue-400 border-blue-500/50"
+                          onClick={() => imageViewer.openImage(order.user_payment_proof)}
+                        >
+                          <Eye className="w-3 h-3 mr-1" />
+                          View Payment Screenshot
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* Process Order Buttons for Pending */}
+                    {(order.status === 'pending' || order.status === 'gateway_pending') && (
+                      <div className="flex gap-2 mt-3 pt-3 border-t border-slate-700">
+                        <Button
+                          size="sm"
+                          className="flex-1 bg-green-500 hover:bg-green-600 text-white text-xs"
+                          onClick={async () => {
+                            setProcessing(true);
+                            try {
+                              // 1) Atomically deduct from helper wallet first
+                              const { data: deductResult, error: deductError } = await supabase
+                                .rpc('deduct_helper_wallet', {
+                                  _helper_id: order.helper_id,
+                                  _amount: order.coin_amount,
+                                  _update_total_sold: true,
+                                });
+
+                              if (deductError) {
+                                console.error('Deduct RPC Error:', deductError);
+                                throw new Error('Failed to deduct helper wallet');
+                              }
+
+                              const deductData = deductResult as any;
+                              if (deductData && deductData.success === false) {
+                                throw new Error(deductData.error || 'Insufficient helper wallet balance');
+                              }
+
+                              // 2) Add diamonds to user
+                              const { data: rpcResult, error: rpcError } = await supabase.rpc('helper_add_coins_to_user', {
+                                _user_id: order.user_id,
+                                _amount: order.coin_amount,
+                              });
+
+                              if (rpcError) {
+                                console.error('Add Coins RPC Error:', rpcError);
+                                throw new Error('Failed to add diamonds to user');
+                              }
+
+                              const rpcData = rpcResult as any;
+                              if (rpcData && rpcData.success === false) {
+                                throw new Error(rpcData.error || 'Failed to add diamonds');
+                              }
+
+                              // 3) Mark order completed only after successful transfer
+                              const { error: orderUpdateError } = await supabase
+                                .from('helper_orders')
+                                .update({ status: 'completed', processed_at: new Date().toISOString() })
+                                .eq('id', order.id);
+
+                              if (orderUpdateError) {
+                                throw orderUpdateError;
+                              }
+
+                               // Send notification
+                               await supabase.from('notifications').insert({
+                                 user_id: order.user_id,
+                                 type: 'coin_purchase_helper',
+                                 title: '💎 Diamonds Added!',
+                                 message: `${order.coin_amount.toLocaleString()} diamonds have been added to your account. Recharge of $${order.amount_usd || 0} completed successfully.`,
+                                 data: { amount: order.coin_amount, amount_usd: order.amount_usd, source: 'helper' }
+                               });
+
+                              toast({ title: "Success!", description: "Order completed and diamonds credited to user" });
+                              loadHelperOrders();
+                              loadData();
+                            } catch (error: any) {
+                              toast({ title: "Failed", description: error.message, variant: "destructive" });
+                            } finally {
+                              setProcessing(false);
+                            }
+                          }}
+                          disabled={processing}
+                        >
+                          {processing ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-3 h-3 mr-1" />}
+                          Approve
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1 text-red-400 border-red-500/50 hover:bg-red-500/20 text-xs"
+                          onClick={async () => {
+                            setProcessing(true);
+                            try {
+                              await supabase
+                                .from('helper_orders')
+                                .update({ status: 'cancelled', processed_at: new Date().toISOString() })
+                                .eq('id', order.id);
+
+                              // Send notification
+                              await supabase.from('notifications').insert({
+                                user_id: order.user_id,
+                                type: 'order_cancelled',
+                                title: '❌ Order Cancelled',
+                                message: `Your order for ${order.coin_amount.toLocaleString()} diamonds has been cancelled`,
+                                data: { order_id: order.id }
+                              });
+
+                              toast({ title: "Cancelled", description: "Order has been cancelled" });
+                              loadHelperOrders();
+                            } catch (error: any) {
+                              toast({ title: "Failed", description: error.message, variant: "destructive" });
+                            } finally {
+                              setProcessing(false);
+                            }
+                          }}
+                          disabled={processing}
+                        >
+                          <XCircle className="w-3 h-3 mr-1" />
+                          Reject
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </TabsContent>
+
+          {/* Country Payment Methods Tab */}
+          <TabsContent value="country-methods" className="mt-4 space-y-3">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-white font-semibold text-sm flex items-center gap-2">
+                <CreditCard className="w-4 h-4 text-emerald-400" />
+                Country Payment Methods
+              </h3>
+              <Button 
+                size="sm" 
+                onClick={() => setShowCountryPaymentDialog(true)}
+                className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs h-8"
+              >
+                <Plus className="w-3 h-3 mr-1" />
+                Add Method
+              </Button>
+            </div>
+            
+            {countryPaymentMethods.length === 0 ? (
+              <Card className="bg-slate-800/50 border-slate-700">
+                <CardContent className="p-8 text-center">
+                  <CreditCard className="w-12 h-12 mx-auto text-slate-500 mb-3" />
+                  <p className="text-slate-400">No payment methods added</p>
+                  <p className="text-xs text-slate-500 mt-1">Add payment methods for your assigned countries</p>
+                  <Button 
+                    onClick={() => setShowCountryPaymentDialog(true)}
+                    className="mt-4 bg-emerald-500 hover:bg-emerald-600"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Payment Method
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              // Group by country
+              Object.entries(
+                countryPaymentMethods.reduce((acc, method) => {
+                  if (!acc[method.country_code]) acc[method.country_code] = [];
+                  acc[method.country_code].push(method);
+                  return acc;
+                }, {} as Record<string, CountryPaymentMethod[]>)
+              ).map(([country, methods]) => (
+                <Card key={country} className="bg-slate-800/50 border-slate-700">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm text-white flex items-center gap-2">
+                      🌍 {country}
+                      <Badge className="bg-slate-600 text-xs">{methods.length} methods</Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {methods.map((method) => {
+                      const config = getPaymentTypeConfig(method.method_type);
+                      return (
+                        <div 
+                          key={method.id}
+                          className="flex items-center gap-3 p-3 bg-slate-700/50 rounded-xl"
+                        >
+                          <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-r", config.color)}>
+                            <span className="text-lg">{config.icon}</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="text-white font-medium text-sm">{method.method_name}</p>
+                              {method.is_merchant && (
+                                <Badge className="bg-amber-500/20 text-amber-300 text-[10px] px-1.5 py-0">⚡ Merchant</Badge>
+                              )}
+                            </div>
+                            <p className="text-slate-400 text-xs truncate">{method.account_name}</p>
+                            <p className="text-emerald-400 text-xs font-mono">{method.account_number}</p>
+                            {method.merchant_number && (
+                              <p className="text-amber-400 text-xs font-mono">Merchant: {method.merchant_number}</p>
+                            )}
+                          </div>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="text-red-400 hover:bg-red-500/20"
+                            onClick={() => handleDeleteCountryPaymentMethod(method.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      );
+                    })}
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </TabsContent>
+
+          {/* Withdrawals Tab */}
+          <TabsContent value="withdrawals" className="mt-4 space-y-3">
+            {withdrawalRequests.length === 0 ? (
+              <Card className="bg-slate-800/50 border-slate-700">
+                <CardContent className="p-8 text-center">
+                  <Banknote className="w-12 h-12 mx-auto text-slate-500 mb-3" />
+                  <p className="text-slate-400">No withdrawal requests yet</p>
+                  <p className="text-xs text-slate-500 mt-1">Requests will appear here when agencies submit withdrawals</p>
+                </CardContent>
+              </Card>
+            ) : (
+              withdrawalRequests.map((request) => {
+                const statusConfig = getStatusBadge(request.status);
+                const StatusIcon = statusConfig.icon;
+                
+                return (
+                  <Card 
+                    key={request.id}
+                    className="bg-slate-800/50 border-slate-700 cursor-pointer hover:bg-slate-800/70 transition-all"
+                    onClick={() => { setSelectedWithdrawal(request); setShowWithdrawalDialog(true); }}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="w-12 h-12 border-2 border-slate-600">
+                          <AvatarImage src={request.agency?.logo_url || request.host?.avatar_url} />
+                          <AvatarFallback className="bg-slate-700">
+                            {request.agency ? <Building2 className="w-5 h-5" /> : <User className="w-5 h-5" />}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold text-white truncate">
+                              {request.agency?.name || request.host?.display_name || 'Unknown'}
+                            </p>
+                            <Badge className={cn("text-white text-[10px] px-2", statusConfig.color)}>
+                              <StatusIcon className="w-3 h-3 mr-1" />
+                              {statusConfig.label}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-slate-400">
+                            {format(new Date(request.created_at), 'dd MMM yyyy, HH:mm')}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-green-400">${request.usd_amount}</p>
+                          <p className="text-xs text-slate-400">
+                            {request.currency_code} {request.local_amount?.toLocaleString()}
+                          </p>
+                        </div>
+                        <ChevronRight className="w-5 h-5 text-slate-500" />
+                      </div>
+                      
+                      {request.diamond_reward > 0 && (
+                        <div className="mt-2 pt-2 border-t border-slate-700 flex items-center gap-2">
+                          <Gem className="w-4 h-4 text-cyan-400" />
+                          <span className="text-xs text-cyan-400">+{request.diamond_reward.toLocaleString()} diamonds reward</span>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })
+            )}
+          </TabsContent>
+
+          {/* Payment Methods Tab */}
+          <TabsContent value="payments" className="mt-4 space-y-3">
+            <Button
+              onClick={() => setShowPaymentDialog(true)}
+              className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Payment Method
+            </Button>
+
+            {paymentMethods.length === 0 ? (
+              <Card className="bg-slate-800/50 border-slate-700">
+                <CardContent className="p-8 text-center">
+                  <CreditCard className="w-12 h-12 mx-auto text-slate-500 mb-3" />
+                  <p className="text-slate-400">No payment methods added</p>
+                  <p className="text-xs text-slate-500 mt-1">Add your payment methods to receive payments</p>
+                </CardContent>
+              </Card>
+            ) : (
+              paymentMethods.map((method) => {
+                const typeConfig = getPaymentTypeConfig(method.payment_type);
+                
+                return (
+                  <Card key={method.id} className="bg-slate-800/50 border-slate-700">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <div className={cn(
+                          "w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br text-xl flex-shrink-0",
+                          typeConfig.color
+                        )}>
+                          {typeConfig.icon}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2">
+                              <p className="font-semibold text-white">{typeConfig.label}</p>
+                              {method.country_code && (
+                                <Badge className="bg-blue-500/20 text-blue-400 text-[10px]">{method.country_code}</Badge>
+                              )}
+                              {method.is_default && (
+                                <Badge className="bg-green-500/20 text-green-400 text-[10px]">Default</Badge>
+                              )}
+                            </div>
+                          
+                          {/* Account Name with Copy */}
+                          <div className="flex items-center justify-between gap-2 mb-1">
+                            <p className="text-sm text-slate-400 truncate">{method.account_name}</p>
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(method.account_name);
+                                toast({ title: "Copied! ✅", description: "Account name copied" });
+                              }}
+                              className="p-1 rounded bg-slate-700 hover:bg-slate-600 transition-colors flex-shrink-0"
+                            >
+                              <Copy className="w-3 h-3 text-emerald-400" />
+                            </button>
+                          </div>
+                          
+                          {/* Account Number with Copy */}
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-xs text-slate-500 font-mono truncate">{method.account_number}</p>
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(method.account_number);
+                                toast({ title: "Copied! ✅", description: "Account number copied" });
+                              }}
+                              className="p-1 rounded bg-slate-700 hover:bg-slate-600 transition-colors flex-shrink-0"
+                            >
+                              <Copy className="w-3 h-3 text-emerald-400" />
+                            </button>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-red-400 hover:text-red-300 hover:bg-red-500/20 flex-shrink-0"
+                          onClick={() => handleDeletePaymentMethod(method.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })
+            )}
+          </TabsContent>
+
+          {/* History Tab - Completed Orders & Withdrawals */}
+          <TabsContent value="history" className="mt-4 space-y-3">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-white font-semibold text-sm flex items-center gap-2">
+                <Clock className="w-4 h-4 text-cyan-400" />
+                Transaction History
+              </h3>
+              <Badge className="bg-cyan-500/20 text-cyan-400 text-xs">
+                {completedOrders.length + completedWithdrawals.length} records
+              </Badge>
+            </div>
+            
+            {completedOrders.length === 0 && completedWithdrawals.length === 0 ? (
+              <Card className="bg-slate-800/50 border-slate-700">
+                <CardContent className="p-8 text-center">
+                  <Clock className="w-12 h-12 mx-auto text-slate-500 mb-3" />
+                  <p className="text-slate-400">No completed transactions yet</p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Your completed orders and withdrawals will appear here
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <>
+                {/* Completed Agency Withdrawals */}
+                {completedWithdrawals.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs text-orange-400 font-medium">💰 Agency Withdrawals</p>
+                    {completedWithdrawals.map((withdrawal) => (
+                      <Card key={withdrawal.id} className="bg-slate-800/50 border-slate-700 border-l-4 border-l-green-500">
+                        <CardContent className="p-3">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="w-10 h-10 border-2 border-green-500">
+                              <AvatarImage src={withdrawal.agency?.logo_url} />
+                              <AvatarFallback className="bg-green-500/20 text-green-400">
+                                <Building2 className="w-4 h-4" />
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-white font-medium text-sm truncate">
+                                {withdrawal.agency?.name || 'Agency'}
+                              </p>
+                              <p className="text-slate-400 text-[10px]">
+                                Code: {withdrawal.agency?.agency_code}
+                              </p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Badge className="bg-green-500 text-[10px]">Completed</Badge>
+                                {withdrawal.helper_net_reward && (
+                                  <span className="text-cyan-400 text-[10px]">
+                                    +{withdrawal.helper_net_reward.toLocaleString()} 💎
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-emerald-400 font-bold text-sm">${withdrawal.amount}</p>
+                              <p className="text-slate-500 text-[10px]">
+                                {withdrawal.processed_at ? format(new Date(withdrawal.processed_at), 'dd MMM') : ''}
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Completed Orders */}
+                {completedOrders.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs text-blue-400 font-medium mt-4">📦 Payroll Orders</p>
+                    {completedOrders.map((order) => (
+                      <Card key={order.id} className="bg-slate-800/50 border-slate-700 border-l-4 border-l-green-500">
+                        <CardContent className="p-3">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="w-10 h-10 border-2 border-blue-500">
+                              <AvatarImage src={order.user?.avatar_url} />
+                              <AvatarFallback className="bg-blue-500/20 text-blue-400">
+                                {order.user?.display_name?.charAt(0) || 'U'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-white font-medium text-sm truncate">
+                                {order.user?.display_name || 'User'}
+                              </p>
+                              <p className="text-slate-400 text-[10px]">ID: {order.user?.app_uid}</p>
+                              <Badge className="bg-green-500 text-[10px] mt-1">Completed</Badge>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-emerald-400 font-bold text-sm">
+                                {order.coin_amount?.toLocaleString()} 💎
+                              </p>
+                              <p className="text-slate-400 text-xs">
+                                {order.currency_code === 'BDT' ? '৳' : '$'}{order.amount_local?.toFixed(0)}
+                              </p>
+                              <p className="text-slate-500 text-[10px]">
+                                {order.processed_at ? format(new Date(order.processed_at), 'dd MMM') : ''}
+                              </p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </TabsContent>
+
+          {/* Inbox Tab - Admin Messages */}
+          <TabsContent value="inbox" className="mt-4 space-y-2">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-white font-semibold text-sm flex items-center gap-2">
+                <Bell className="w-4 h-4 text-purple-400" />
+                Admin Messages
+              </h3>
+              <Badge className="bg-purple-500/20 text-purple-400 text-xs">
+                {adminMessages.length} messages
+              </Badge>
+            </div>
+            
+            {adminMessages.length === 0 ? (
+              <Card className="bg-slate-800/50 border-slate-700">
+                <CardContent className="p-8 text-center">
+                  <Bell className="w-12 h-12 mx-auto text-slate-500 mb-3" />
+                  <p className="text-slate-400">No messages from admin</p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Important announcements will appear here
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              adminMessages.map((msg) => (
+                <Card 
+                  key={msg.id} 
+                  onClick={() => openMessageDetail(msg)}
+                  className={cn(
+                    "bg-slate-800/50 border-slate-700 cursor-pointer hover:bg-slate-800 transition-colors",
+                    !msg.is_read && "border-l-4 border-l-purple-500",
+                    msg.priority === 'urgent' && "border-l-4 border-l-red-500",
+                    msg.priority === 'high' && "border-l-4 border-l-orange-500"
+                  )}
+                >
+                  <CardContent className="p-3">
+                    <div className="flex items-start gap-3">
+                      <div className={cn(
+                        "w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0",
+                        msg.priority === 'urgent' ? "bg-red-500/20" :
+                        msg.priority === 'high' ? "bg-orange-500/20" : "bg-purple-500/20"
+                      )}>
+                        {msg.priority === 'urgent' ? (
+                          <AlertCircle className="w-5 h-5 text-red-500" />
+                        ) : msg.priority === 'high' ? (
+                          <AlertCircle className="w-5 h-5 text-orange-500" />
+                        ) : (
+                          <Crown className="w-5 h-5 text-purple-500" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-white text-sm">{msg.title}</p>
+                          {msg.priority === 'urgent' && (
+                            <Badge className="bg-red-500 text-[10px]">Urgent</Badge>
+                          )}
+                          {msg.priority === 'high' && (
+                            <Badge className="bg-orange-500 text-[10px]">Important</Badge>
+                          )}
+                          {msg.has_replies && (
+                            <Badge className="bg-green-500/20 text-green-400 text-[10px]">
+                              <MessageCircle className="w-2 h-2 mr-0.5" />
+                              Replied
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-slate-400 mt-1 line-clamp-2">{msg.message}</p>
+                        <div className="flex items-center justify-between mt-1">
+                          <p className="text-[10px] text-slate-500">
+                            {format(new Date(msg.created_at), 'dd MMM yyyy, HH:mm')}
+                          </p>
+                          <div className="flex items-center gap-1 text-purple-400">
+                            <Reply className="w-3 h-3" />
+                            <span className="text-[10px]">Tap to reply</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      {/* Message Detail & Reply Dialog */}
+      <Dialog open={!!selectedMessage} onOpenChange={(open) => !open && setSelectedMessage(null)}>
+        <DialogContent className="bg-slate-900 border-slate-700 w-[calc(100%-2rem)] max-w-md max-h-[90vh] flex flex-col p-0 rounded-2xl mx-auto">
+          {/* Compact Header */}
+          <DialogHeader className="px-4 pt-4 pb-3 border-b border-slate-700/50">
+            <div className="flex items-center gap-3">
+              <div className={cn(
+                "w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0",
+                selectedMessage?.priority === 'urgent' ? "bg-red-500/20" :
+                selectedMessage?.priority === 'high' ? "bg-orange-500/20" : "bg-purple-500/20"
+              )}>
+                <Crown className={cn(
+                  "w-4 h-4",
+                  selectedMessage?.priority === 'urgent' ? "text-red-500" :
+                  selectedMessage?.priority === 'high' ? "text-orange-500" : "text-purple-500"
+                )} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <DialogTitle className="text-white text-sm text-left truncate">
+                  {selectedMessage?.title}
+                </DialogTitle>
+                <div className="flex items-center gap-2 mt-0.5">
+                  {selectedMessage?.priority === 'urgent' && (
+                    <Badge className="bg-red-500 text-[9px] px-1.5 py-0">Urgent</Badge>
+                  )}
+                  {selectedMessage?.priority === 'high' && (
+                    <Badge className="bg-orange-500 text-[9px] px-1.5 py-0">Important</Badge>
+                  )}
+                  <span className="text-[10px] text-slate-500">
+                    {selectedMessage && format(new Date(selectedMessage.created_at), 'dd MMM yyyy, HH:mm')}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </DialogHeader>
+
+          {/* Scrollable Chat Area */}
+          <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0">
+            {/* Original Admin Message */}
+            <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-3 mr-8">
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <Crown className="w-3 h-3 text-purple-400" />
+                <span className="text-[10px] text-purple-400 font-medium">Admin</span>
+                <span className="text-[10px] text-slate-500">
+                  {selectedMessage && format(new Date(selectedMessage.created_at), 'dd MMM, HH:mm')}
+                </span>
+              </div>
+              <p className="text-white text-[13px] leading-relaxed whitespace-pre-wrap">{selectedMessage?.message}</p>
+            </div>
+
+            {/* Replies Thread */}
+            {loadingReplies ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="w-5 h-5 animate-spin text-purple-400" />
+              </div>
+            ) : messageReplies.length > 0 ? (
+              <div className="space-y-2">
+                {messageReplies.map((reply) => (
+                  <div 
+                    key={reply.id}
+                    className={cn(
+                      "rounded-xl p-3",
+                      reply.sender_type === 'helper' 
+                        ? "bg-cyan-500/10 border border-cyan-500/20 ml-8" 
+                        : "bg-purple-500/10 border border-purple-500/20 mr-8"
+                    )}
+                  >
+                    <div className="flex items-center gap-1.5 mb-1">
+                      {reply.sender_type === 'helper' ? (
+                        <User className="w-3 h-3 text-cyan-400" />
+                      ) : (
+                        <Crown className="w-3 h-3 text-purple-400" />
+                      )}
+                      <span className={cn(
+                        "text-[10px] font-medium",
+                        reply.sender_type === 'helper' ? "text-cyan-400" : "text-purple-400"
+                      )}>
+                        {reply.sender_type === 'helper' ? 'You' : 'Admin'}
+                      </span>
+                      <span className="text-[10px] text-slate-500">
+                        {format(new Date(reply.created_at), 'dd MMM, HH:mm')}
+                      </span>
+                    </div>
+                    <p className="text-white text-[13px] leading-relaxed whitespace-pre-wrap">{reply.content}</p>
+                    {reply.screenshot_url && (
+                      <div className="mt-2">
+                        <a 
+                          href={reply.screenshot_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="inline-block"
+                        >
+                          <img 
+                            src={reply.screenshot_url} 
+                            alt="Screenshot" 
+                            className="w-full max-w-[200px] h-auto max-h-32 rounded-lg border border-slate-600 hover:opacity-80 transition-opacity object-cover"
+                          />
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
+
+          {/* Reply Input - Fixed at Bottom */}
+          <div className="p-3 border-t border-slate-700 bg-slate-900/80">
+            {/* Screenshot Preview */}
+            {replyScreenshot && (
+              <div className="relative inline-block mb-2">
+                <img 
+                  src={URL.createObjectURL(replyScreenshot)} 
+                  alt="Screenshot preview" 
+                  className="h-16 rounded-lg border border-slate-600"
+                />
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setReplyScreenshot(null)}
+                  className="absolute -top-2 -right-2 h-5 w-5 p-0 bg-red-500 hover:bg-red-600 rounded-full"
+                >
+                  <X className="w-3 h-3" />
+                </Button>
+              </div>
+            )}
+            
+            <Textarea
+              value={replyContent}
+              onChange={(e) => setReplyContent(e.target.value)}
+              placeholder="Type your reply..."
+              className="bg-slate-800 border-slate-700 text-white text-sm resize-none min-h-[44px] max-h-[80px] mb-2"
+              rows={1}
+            />
+            
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <input
+                  type="file"
+                  id="reply-screenshot"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) setReplyScreenshot(file);
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => document.getElementById('reply-screenshot')?.click()}
+                  className="border-slate-600 text-slate-300 hover:bg-slate-800 h-9 text-xs"
+                >
+                  <ImagePlus className="w-3.5 h-3.5 mr-1" />
+                  Add Screenshot
+                </Button>
+              </div>
+              <Button
+                onClick={handleSendReply}
+                disabled={sendingReply || !replyContent.trim()}
+                size="sm"
+                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 h-9 px-4 text-xs"
+              >
+                {sendingReply ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <>
+                    <Send className="w-3.5 h-3.5 mr-1" />
+                    Send Reply
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Payment Method Dialog */}
+      <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+        <DialogContent className="bg-slate-900 border-slate-700 max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white">Add Payment Method</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <Label className="text-slate-300">Country *</Label>
+              <Select value={selectedPaymentCountry} onValueChange={setSelectedPaymentCountry}>
+                <SelectTrigger className="bg-slate-800 border-slate-700 text-white mt-1">
+                  <SelectValue placeholder="Select country" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700">
+                  {assignedCountries.length > 0 ? (
+                    assignedCountries.map((code) => {
+                      const rate = currencyRates.find(r => r.country_code === code);
+                      return (
+                        <SelectItem key={code} value={code} className="text-white">
+                          {code} {rate ? `(${rate.currency_code})` : ''}
+                        </SelectItem>
+                      );
+                    })
+                  ) : (
+                    <SelectItem value={helperData?.country_code || 'BD'} className="text-white">
+                      {helperData?.country_code || 'BD'}
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-slate-300">Payment Type</Label>
+              <Select value={paymentType} onValueChange={setPaymentType}>
+                <SelectTrigger className="bg-slate-800 border-slate-700 text-white mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700">
+                  {availablePaymentMethods.map((method) => {
+                    const config = getPaymentTypeConfig(method.method_type);
+                    return (
+                      <SelectItem key={method.id} value={method.method_type} className="text-white">
+                        <span className="flex items-center gap-2">
+                          <span>{config.icon}</span>
+                          <span>{method.method_name}</span>
+                        </span>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-slate-300">Account Name *</Label>
+              <Input
+                value={accountName}
+                onChange={(e) => setAccountName(e.target.value)}
+                placeholder="Enter account holder name"
+                className="bg-slate-800 border-slate-700 text-white mt-1"
+              />
+            </div>
+
+            <div>
+              <Label className="text-slate-300">Account Number *</Label>
+              <Input
+                value={accountNumber}
+                onChange={(e) => setAccountNumber(e.target.value)}
+                placeholder="Enter account number"
+                className="bg-slate-800 border-slate-700 text-white mt-1"
+              />
+            </div>
+
+            {paymentType === 'bank' && (
+              <div>
+                <Label className="text-slate-300">Bank Name</Label>
+                <Input
+                  value={bankName}
+                  onChange={(e) => setBankName(e.target.value)}
+                  placeholder="Enter bank name"
+                  className="bg-slate-800 border-slate-700 text-white mt-1"
+                />
+              </div>
+            )}
+
+            {/* Merchant Number Section - hide for auto gateways */}
+            {!['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType) && (
+            <div className="border border-amber-500/30 rounded-xl p-3 bg-amber-500/10">
+              <div className="flex items-center gap-2 mb-2">
+                <input
+                  type="checkbox"
+                  id="is-merchant-legacy"
+                  checked={isMerchant}
+                  onChange={(e) => setIsMerchant(e.target.checked)}
+                  className="w-4 h-4 rounded border-slate-600"
+                />
+                <Label htmlFor="is-merchant-legacy" className="text-amber-300 font-medium text-sm cursor-pointer">
+                  ⚡ This is a Merchant Account (Auto-Verify)
+                </Label>
+              </div>
+              {isMerchant && (
+                <div className="mt-2">
+                  <Label className="text-slate-300 text-xs">Merchant Number / API ID</Label>
+                  <Input
+                    value={merchantNumber}
+                    onChange={(e) => setMerchantNumber(e.target.value)}
+                    placeholder="Enter merchant number"
+                    className="bg-slate-800 border-amber-500/30 text-white mt-1"
+                  />
+                  <p className="text-xs text-amber-400/70 mt-1">
+                    Payments to this merchant will be auto-verified
+                  </p>
+                </div>
+              )}
+            </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPaymentDialog(false)} className="border-slate-700">
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleAddPaymentMethod}
+              disabled={processing}
+              className="bg-cyan-500 hover:bg-cyan-600"
+            >
+              {processing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Add Method
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Withdrawal Detail Dialog */}
+      <Dialog open={showWithdrawalDialog} onOpenChange={setShowWithdrawalDialog}>
+        <DialogContent className="bg-slate-900 border-slate-700 max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-white">Withdrawal Details</DialogTitle>
+          </DialogHeader>
+          
+          {selectedWithdrawal && (
+            <div className="space-y-4">
+              {/* Amount Info */}
+              <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl p-4 border border-green-500/30">
+                <div className="text-center">
+                  <p className="text-3xl font-bold text-green-400">${selectedWithdrawal.usd_amount}</p>
+                  <p className="text-sm text-slate-400 mt-1">
+                    ≈ {selectedWithdrawal.currency_code} {selectedWithdrawal.local_amount?.toLocaleString()}
+                  </p>
+                </div>
+                
+                {selectedWithdrawal.diamond_reward > 0 && (
+                  <div className="mt-3 pt-3 border-t border-green-500/30 flex items-center justify-center gap-2">
+                    <Gem className="w-5 h-5 text-cyan-400" />
+                    <span className="text-cyan-400 font-semibold">
+                      +{selectedWithdrawal.diamond_reward.toLocaleString()} diamonds after approval
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Agency/Host Info */}
+              <Card className="bg-slate-800/50 border-slate-700">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="w-12 h-12">
+                      <AvatarImage src={selectedWithdrawal.agency?.logo_url || selectedWithdrawal.host?.avatar_url} />
+                      <AvatarFallback className="bg-slate-700">
+                        {selectedWithdrawal.agency ? <Building2 className="w-5 h-5" /> : <User className="w-5 h-5" />}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-semibold text-white">
+                        {selectedWithdrawal.agency?.name || selectedWithdrawal.host?.display_name}
+                      </p>
+                      {selectedWithdrawal.agency?.agency_code && (
+                        <p className="text-xs text-slate-400">Code: {selectedWithdrawal.agency.agency_code}</p>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Status */}
+              <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-xl">
+                <span className="text-slate-400">Status</span>
+                <Badge className={cn("text-white", getStatusBadge(selectedWithdrawal.status).color)}>
+                  {getStatusBadge(selectedWithdrawal.status).label}
+                </Badge>
+              </div>
+
+              {/* Actions based on status */}
+              {selectedWithdrawal.status === 'pending' && (
+                <>
+                  <div>
+                    <Label className="text-slate-300">Notes (Optional)</Label>
+                    <Textarea
+                      value={helperNotes}
+                      onChange={(e) => setHelperNotes(e.target.value)}
+                      placeholder="Add any notes..."
+                      className="bg-slate-800 border-slate-700 text-white mt-1"
+                      rows={2}
+                    />
+                  </div>
+                  <Button 
+                    onClick={() => handleProcessWithdrawal('mark_paid')}
+                    disabled={processing}
+                    className="w-full bg-blue-500 hover:bg-blue-600"
+                  >
+                    {processing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                    <DollarSign className="w-4 h-4 mr-2" />
+                    Mark as Paid
+                  </Button>
+                </>
+              )}
+
+              {selectedWithdrawal.status === 'paid' && (
+                <>
+                  <div>
+                    <Label className="text-slate-300">Upload Payment Screenshot *</Label>
+                    <div className="mt-2">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setScreenshotFile(e.target.files?.[0] || null)}
+                        className="hidden"
+                        id="screenshot-upload"
+                      />
+                      <label 
+                        htmlFor="screenshot-upload"
+                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-600 rounded-xl cursor-pointer hover:border-cyan-500 transition-colors"
+                      >
+                        {screenshotFile ? (
+                          <div className="text-center">
+                            <CheckCircle className="w-8 h-8 text-green-500 mx-auto mb-2" />
+                            <p className="text-sm text-slate-400">{screenshotFile.name}</p>
+                          </div>
+                        ) : (
+                          <div className="text-center">
+                            <Camera className="w-8 h-8 text-slate-500 mx-auto mb-2" />
+                            <p className="text-sm text-slate-400">Click to upload screenshot</p>
+                          </div>
+                        )}
+                      </label>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-slate-300">Notes (Optional)</Label>
+                    <Textarea
+                      value={helperNotes}
+                      onChange={(e) => setHelperNotes(e.target.value)}
+                      placeholder="Add any notes..."
+                      className="bg-slate-800 border-slate-700 text-white mt-1"
+                      rows={2}
+                    />
+                  </div>
+
+                  <Button 
+                    onClick={() => handleProcessWithdrawal('submit_screenshot')}
+                    disabled={processing || !screenshotFile}
+                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                  >
+                    {processing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                    <Send className="w-4 h-4 mr-2" />
+                    Submit for Approval
+                  </Button>
+                </>
+              )}
+
+              {selectedWithdrawal.status === 'screenshot_submitted' && (
+                <div className="text-center p-4 bg-purple-500/20 rounded-xl border border-purple-500/30">
+                  <Clock className="w-8 h-8 text-purple-400 mx-auto mb-2" />
+                  <p className="text-purple-300 font-semibold">Waiting for Admin Approval</p>
+                  <p className="text-xs text-purple-400 mt-1">You'll receive diamonds once approved</p>
+                </div>
+              )}
+
+              {selectedWithdrawal.status === 'approved' && (
+                <div className="text-center p-4 bg-green-500/20 rounded-xl border border-green-500/30">
+                  <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-2" />
+                  <p className="text-green-300 font-semibold">Approved!</p>
+                  <p className="text-xs text-green-400 mt-1">
+                    +{selectedWithdrawal.diamond_reward.toLocaleString()} diamonds credited
+                  </p>
+                </div>
+              )}
+
+              {selectedWithdrawal.payment_screenshot_url && (
+                <div>
+                  <Label className="text-slate-300">Payment Screenshot</Label>
+                  <div className="mt-2 rounded-xl overflow-hidden">
+                    <img 
+                      src={selectedWithdrawal.payment_screenshot_url} 
+                      alt="Payment proof" 
+                      className="w-full object-cover"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Country Payment Method Dialog */}
+      <Dialog open={showCountryPaymentDialog} onOpenChange={setShowCountryPaymentDialog}>
+        <DialogContent className="bg-slate-900 border-slate-700 max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-white">Add Country Payment Method</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <Label className="text-slate-300">Select Country *</Label>
+              <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+                <SelectTrigger className="bg-slate-800 border-slate-700 text-white mt-1">
+                  <SelectValue placeholder="Choose a country..." />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700 max-h-60">
+                  {[
+                    { code: 'BD', name: '🇧🇩 Bangladesh', currency: 'BDT' },
+                    { code: 'IN', name: '🇮🇳 India', currency: 'INR' },
+                    { code: 'PK', name: '🇵🇰 Pakistan', currency: 'PKR' },
+                    { code: 'NP', name: '🇳🇵 Nepal', currency: 'NPR' },
+                    { code: 'LK', name: '🇱🇰 Sri Lanka', currency: 'LKR' },
+                    { code: 'MM', name: '🇲🇲 Myanmar', currency: 'MMK' },
+                    { code: 'TH', name: '🇹🇭 Thailand', currency: 'THB' },
+                    { code: 'VN', name: '🇻🇳 Vietnam', currency: 'VND' },
+                    { code: 'ID', name: '🇮🇩 Indonesia', currency: 'IDR' },
+                    { code: 'MY', name: '🇲🇾 Malaysia', currency: 'MYR' },
+                    { code: 'PH', name: '🇵🇭 Philippines', currency: 'PHP' },
+                    { code: 'SG', name: '🇸🇬 Singapore', currency: 'SGD' },
+                    { code: 'KH', name: '🇰🇭 Cambodia', currency: 'KHR' },
+                    { code: 'LA', name: '🇱🇦 Laos', currency: 'LAK' },
+                    { code: 'AE', name: '🇦🇪 UAE', currency: 'AED' },
+                    { code: 'SA', name: '🇸🇦 Saudi Arabia', currency: 'SAR' },
+                    { code: 'KW', name: '🇰🇼 Kuwait', currency: 'KWD' },
+                    { code: 'QA', name: '🇶🇦 Qatar', currency: 'QAR' },
+                    { code: 'BH', name: '🇧🇭 Bahrain', currency: 'BHD' },
+                    { code: 'OM', name: '🇴🇲 Oman', currency: 'OMR' },
+                    { code: 'JO', name: '🇯🇴 Jordan', currency: 'JOD' },
+                    { code: 'IQ', name: '🇮🇶 Iraq', currency: 'IQD' },
+                    { code: 'LB', name: '🇱🇧 Lebanon', currency: 'LBP' },
+                    { code: 'EG', name: '🇪🇬 Egypt', currency: 'EGP' },
+                    { code: 'NG', name: '🇳🇬 Nigeria', currency: 'NGN' },
+                    { code: 'KE', name: '🇰🇪 Kenya', currency: 'KES' },
+                    { code: 'GH', name: '🇬🇭 Ghana', currency: 'GHS' },
+                    { code: 'ZA', name: '🇿🇦 South Africa', currency: 'ZAR' },
+                    { code: 'TZ', name: '🇹🇿 Tanzania', currency: 'TZS' },
+                    { code: 'UG', name: '🇺🇬 Uganda', currency: 'UGX' },
+                    { code: 'ET', name: '🇪🇹 Ethiopia', currency: 'ETB' },
+                    { code: 'CM', name: '🇨🇲 Cameroon', currency: 'XAF' },
+                    { code: 'SN', name: '🇸🇳 Senegal', currency: 'XOF' },
+                    { code: 'CI', name: '🇨🇮 Ivory Coast', currency: 'XOF' },
+                    { code: 'MA', name: '🇲🇦 Morocco', currency: 'MAD' },
+                    { code: 'TN', name: '🇹🇳 Tunisia', currency: 'TND' },
+                    { code: 'DZ', name: '🇩🇿 Algeria', currency: 'DZD' },
+                    { code: 'TR', name: '🇹🇷 Turkey', currency: 'TRY' },
+                    { code: 'RU', name: '🇷🇺 Russia', currency: 'RUB' },
+                    { code: 'UA', name: '🇺🇦 Ukraine', currency: 'UAH' },
+                    { code: 'GE', name: '🇬🇪 Georgia', currency: 'GEL' },
+                    { code: 'AZ', name: '🇦🇿 Azerbaijan', currency: 'AZN' },
+                    { code: 'UZ', name: '🇺🇿 Uzbekistan', currency: 'UZS' },
+                    { code: 'KZ', name: '🇰🇿 Kazakhstan', currency: 'KZT' },
+                    { code: 'BR', name: '🇧🇷 Brazil', currency: 'BRL' },
+                    { code: 'MX', name: '🇲🇽 Mexico', currency: 'MXN' },
+                    { code: 'AR', name: '🇦🇷 Argentina', currency: 'ARS' },
+                    { code: 'CO', name: '🇨🇴 Colombia', currency: 'COP' },
+                    { code: 'PE', name: '🇵🇪 Peru', currency: 'PEN' },
+                    { code: 'CL', name: '🇨🇱 Chile', currency: 'CLP' },
+                    { code: 'EC', name: '🇪🇨 Ecuador', currency: 'USD' },
+                    { code: 'VE', name: '🇻🇪 Venezuela', currency: 'VES' },
+                    { code: 'DO', name: '🇩🇴 Dominican Republic', currency: 'DOP' },
+                    { code: 'US', name: '🇺🇸 United States', currency: 'USD' },
+                    { code: 'CA', name: '🇨🇦 Canada', currency: 'CAD' },
+                    { code: 'GB', name: '🇬🇧 United Kingdom', currency: 'GBP' },
+                    { code: 'DE', name: '🇩🇪 Germany', currency: 'EUR' },
+                    { code: 'FR', name: '🇫🇷 France', currency: 'EUR' },
+                    { code: 'IT', name: '🇮🇹 Italy', currency: 'EUR' },
+                    { code: 'ES', name: '🇪🇸 Spain', currency: 'EUR' },
+                    { code: 'NL', name: '🇳🇱 Netherlands', currency: 'EUR' },
+                    { code: 'PT', name: '🇵🇹 Portugal', currency: 'EUR' },
+                    { code: 'BE', name: '🇧🇪 Belgium', currency: 'EUR' },
+                    { code: 'AT', name: '🇦🇹 Austria', currency: 'EUR' },
+                    { code: 'SE', name: '🇸🇪 Sweden', currency: 'SEK' },
+                    { code: 'NO', name: '🇳🇴 Norway', currency: 'NOK' },
+                    { code: 'DK', name: '🇩🇰 Denmark', currency: 'DKK' },
+                    { code: 'FI', name: '🇫🇮 Finland', currency: 'EUR' },
+                    { code: 'PL', name: '🇵🇱 Poland', currency: 'PLN' },
+                    { code: 'CZ', name: '🇨🇿 Czech Republic', currency: 'CZK' },
+                    { code: 'RO', name: '🇷🇴 Romania', currency: 'RON' },
+                    { code: 'HU', name: '🇭🇺 Hungary', currency: 'HUF' },
+                    { code: 'AU', name: '🇦🇺 Australia', currency: 'AUD' },
+                    { code: 'NZ', name: '🇳🇿 New Zealand', currency: 'NZD' },
+                    { code: 'JP', name: '🇯🇵 Japan', currency: 'JPY' },
+                    { code: 'KR', name: '🇰🇷 South Korea', currency: 'KRW' },
+                    { code: 'CN', name: '🇨🇳 China', currency: 'CNY' },
+                    { code: 'HK', name: '🇭🇰 Hong Kong', currency: 'HKD' },
+                    { code: 'TW', name: '🇹🇼 Taiwan', currency: 'TWD' },
+                    { code: 'GLOBAL', name: '🌍 Global (ePay/Crypto)', currency: 'USD' },
+                  ].map((country) => (
+                    <SelectItem key={country.code} value={country.code} className="text-white">
+                      {country.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-slate-300">Payment Method Type *</Label>
+              <Select value={paymentType} onValueChange={setPaymentType}>
+                <SelectTrigger className="bg-slate-800 border-slate-700 text-white mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700">
+                  {/* ═══ AUTO PAYMENT GATEWAYS ═══ */}
+                  <SelectItem value="zinipay" className="text-white">⚡ ZiniPay (Auto Pay - Personal)</SelectItem>
+                  <SelectItem value="sslcommerz" className="text-white">🔐 SSLCommerz (Auto Pay)</SelectItem>
+                  <SelectItem value="aamarpay" className="text-white">💰 AamarPay (Auto Pay)</SelectItem>
+                  {/* ═══ MOBILE WALLETS ═══ */}
+                  <SelectItem value="bkash" className="text-white">📱 bKash</SelectItem>
+                  <SelectItem value="nagad" className="text-white">💳 Nagad</SelectItem>
+                  <SelectItem value="rocket" className="text-white">🚀 Rocket</SelectItem>
+                  <SelectItem value="upay" className="text-white">📲 Upay</SelectItem>
+                  <SelectItem value="bank" className="text-white">🏦 Bank Transfer</SelectItem>
+                  <SelectItem value="upi" className="text-white">📱 UPI (India)</SelectItem>
+                  <SelectItem value="paytm" className="text-white">💰 Paytm</SelectItem>
+                  <SelectItem value="phonepe" className="text-white">📱 PhonePe</SelectItem>
+                  <SelectItem value="gpay" className="text-white">💳 Google Pay</SelectItem>
+                  <SelectItem value="jazzcash" className="text-white">🎵 JazzCash</SelectItem>
+                  <SelectItem value="easypaisa" className="text-white">💚 EasyPaisa</SelectItem>
+                  <SelectItem value="gcash" className="text-white">💙 GCash</SelectItem>
+                  <SelectItem value="maya" className="text-white">💜 Maya</SelectItem>
+                  <SelectItem value="grab" className="text-white">🟢 GrabPay</SelectItem>
+                  <SelectItem value="momo" className="text-white">💗 MoMo</SelectItem>
+                  <SelectItem value="ovo" className="text-white">💜 OVO</SelectItem>
+                  <SelectItem value="dana" className="text-white">🔵 DANA</SelectItem>
+                  <SelectItem value="gopay" className="text-white">🟢 GoPay</SelectItem>
+                  <SelectItem value="mpesa" className="text-white">🟢 M-Pesa</SelectItem>
+                  <SelectItem value="binance" className="text-white">🔶 Binance Pay</SelectItem>
+                  <SelectItem value="crypto" className="text-white">₿ Crypto (USDT)</SelectItem>
+                  <SelectItem value="paypal" className="text-white">💙 PayPal</SelectItem>
+                  <SelectItem value="wise" className="text-white">💚 Wise</SelectItem>
+                  <SelectItem value="skrill" className="text-white">💜 Skrill</SelectItem>
+                  <SelectItem value="payoneer" className="text-white">🟠 Payoneer</SelectItem>
+                  <SelectItem value="epay" className="text-white">💰 ePay</SelectItem>
+                  <SelectItem value="taptap" className="text-white">📱 TapTap Send</SelectItem>
+                  <SelectItem value="wave" className="text-white">🌊 Wave</SelectItem>
+                  <SelectItem value="remitly" className="text-white">💸 Remitly</SelectItem>
+                  <SelectItem value="western_union" className="text-white">🟡 Western Union</SelectItem>
+                  <SelectItem value="moneygram" className="text-white">🔵 MoneyGram</SelectItem>
+                  <SelectItem value="alipay" className="text-white">🔵 Alipay</SelectItem>
+                  <SelectItem value="wechat" className="text-white">🟢 WeChat Pay</SelectItem>
+                  <SelectItem value="line_pay" className="text-white">🟢 LINE Pay</SelectItem>
+                  <SelectItem value="truemoney" className="text-white">🟠 TrueMoney</SelectItem>
+                  <SelectItem value="promptpay" className="text-white">💙 PromptPay</SelectItem>
+                  <SelectItem value="touch_n_go" className="text-white">🔵 Touch 'n Go</SelectItem>
+                  <SelectItem value="duitnow" className="text-white">💜 DuitNow</SelectItem>
+                  <SelectItem value="pix" className="text-white">💚 PIX (Brazil)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {!['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType) && (
+              <div>
+                <Label className="text-slate-300">Account Holder Name *</Label>
+                <Input
+                  value={accountName}
+                  onChange={(e) => setAccountName(e.target.value)}
+                  placeholder="Enter account holder name"
+                  className="bg-slate-800 border-slate-700 text-white mt-1"
+                />
+              </div>
+            )}
+
+            {!['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType) && (
+              <div>
+                <Label className="text-slate-300">Account Number / Wallet *</Label>
+                <Input
+                  value={accountNumber}
+                  onChange={(e) => setAccountNumber(e.target.value)}
+                  placeholder="Enter account number or wallet address"
+                  className="bg-slate-800 border-slate-700 text-white mt-1"
+                />
+              </div>
+            )}
+
+            {paymentType === 'bank' && (
+              <div>
+                <Label className="text-slate-300">Bank Name</Label>
+                <Input
+                  value={bankName}
+                  onChange={(e) => setBankName(e.target.value)}
+                  placeholder="Enter bank name"
+                  className="bg-slate-800 border-slate-700 text-white mt-1"
+                />
+              </div>
+            )}
+
+            {/* ═══ ZiniPay Gateway (Personal Account Auto Pay) ═══ */}
+            {paymentType === 'zinipay' && (
+              <div className="border border-emerald-500/30 rounded-xl p-3 bg-emerald-500/10 space-y-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">⚡</span>
+                  <p className="text-emerald-300 font-semibold text-sm">ZiniPay Auto Pay Setup</p>
+                </div>
+                <p className="text-xs text-emerald-400/70 mb-2">
+                  🎯 Auto payment using personal bKash/Nagad number. No merchant account needed!
+                </p>
+
+                {/* Display As */}
+                <div>
+                  <Label className="text-slate-300 text-xs">Display As (visible to users) *</Label>
+                  <Select value={gatewayDisplayMethod} onValueChange={setGatewayDisplayMethod}>
+                    <SelectTrigger className="bg-slate-800 border-emerald-500/30 text-white mt-1">
+                      <SelectValue placeholder="Select method..." />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-800 border-slate-700">
+                      <SelectItem value="bkash" className="text-white">📱 bKash</SelectItem>
+                      <SelectItem value="nagad" className="text-white">💳 Nagad</SelectItem>
+                      <SelectItem value="rocket" className="text-white">🚀 Rocket</SelectItem>
+                      <SelectItem value="upay" className="text-white">📲 Upay</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Personal Number */}
+                <div>
+                  <Label className="text-slate-300 text-xs">Personal Number (visible to users) *</Label>
+                  <Input
+                    value={gatewayDisplayNumber}
+                    onChange={(e) => setGatewayDisplayNumber(e.target.value)}
+                    placeholder="e.g., 01700000000"
+                    className="bg-slate-800 border-emerald-500/30 text-white mt-1"
+                  />
+                </div>
+
+                {/* ZiniPay API Key */}
+                <div className="border-t border-emerald-500/20 pt-2 mt-2">
+                  <p className="text-[10px] text-emerald-400/50 mb-2">🔒 ZiniPay Credentials (hidden from users)</p>
+                </div>
+                <div>
+                  <Label className="text-slate-300 text-xs">ZiniPay API Key *</Label>
+                  <Input
+                    value={accountName}
+                    onChange={(e) => setAccountName(e.target.value)}
+                    placeholder="zp_api_xxxxx"
+                    className="bg-slate-800 border-emerald-500/30 text-white mt-1"
+                    type="password"
+                  />
+                </div>
+                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-2">
+                  <p className="text-[10px] text-yellow-300">
+                    ⚠️ Create an account on zinipay.com, then go to Dashboard → Brand → copy API Key. Add this number to your ZiniPay dashboard too!
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* SSLCommerz / AamarPay Gateway Credentials */}
+            {(paymentType === 'sslcommerz' || paymentType === 'aamarpay') && (
+              <div className="border border-cyan-500/30 rounded-xl p-3 bg-cyan-500/10 space-y-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">{paymentType === 'sslcommerz' ? '🔐' : '💰'}</span>
+                  <p className="text-cyan-300 font-semibold text-sm">
+                    {paymentType === 'sslcommerz' ? 'SSLCommerz' : 'AamarPay'} Gateway Setup
+                  </p>
+                </div>
+                <p className="text-xs text-cyan-400/70 mb-2">
+                  ⚡ Auto Payment: Users pay via gateway. Diamonds credited instantly. Gateway name is hidden from users.
+                </p>
+
+                {/* Display As */}
+                <div>
+                  <Label className="text-slate-300 text-xs">Display As (User will see this) *</Label>
+                  <Select value={gatewayDisplayMethod} onValueChange={setGatewayDisplayMethod}>
+                    <SelectTrigger className="bg-slate-800 border-cyan-500/30 text-white mt-1">
+                      <SelectValue placeholder="Select display method..." />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-800 border-slate-700">
+                      <SelectItem value="bkash" className="text-white">📱 bKash</SelectItem>
+                      <SelectItem value="nagad" className="text-white">💳 Nagad</SelectItem>
+                      <SelectItem value="rocket" className="text-white">🚀 Rocket</SelectItem>
+                      <SelectItem value="upay" className="text-white">📲 Upay</SelectItem>
+                      <SelectItem value="bank" className="text-white">🏦 Bank Transfer</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label className="text-slate-300 text-xs">Display Number (shown to users) *</Label>
+                  <Input
+                    value={gatewayDisplayNumber}
+                    onChange={(e) => setGatewayDisplayNumber(e.target.value)}
+                    placeholder="e.g., 01700000000 (bKash/Nagad number)"
+                    className="bg-slate-800 border-cyan-500/30 text-white mt-1"
+                  />
+                </div>
+
+                <div className="border-t border-cyan-500/20 pt-2 mt-2">
+                  <p className="text-[10px] text-cyan-400/50 mb-2">🔒 Gateway Credentials (hidden from users)</p>
+                </div>
+                <div>
+                  <Label className="text-slate-300 text-xs">Store ID *</Label>
+                  <Input
+                    value={accountName}
+                    onChange={(e) => setAccountName(e.target.value)}
+                    placeholder={paymentType === 'sslcommerz' ? 'e.g., merilivestore' : 'e.g., aamarpaystore'}
+                    className="bg-slate-800 border-cyan-500/30 text-white mt-1"
+                  />
+                </div>
+                <div>
+                  <Label className="text-slate-300 text-xs">
+                    {paymentType === 'sslcommerz' ? 'Store Password *' : 'Signature Key *'}
+                  </Label>
+                  <Input
+                    value={accountNumber}
+                    onChange={(e) => setAccountNumber(e.target.value)}
+                    placeholder={paymentType === 'sslcommerz' ? 'Enter store password' : 'Enter signature key'}
+                    className="bg-slate-800 border-cyan-500/30 text-white mt-1"
+                    type="password"
+                  />
+                </div>
+                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-2">
+                  <p className="text-[10px] text-yellow-300">
+                    ⚠️ {paymentType === 'sslcommerz' 
+                      ? 'Get credentials from sslcommerz.com → Merchant Panel → API/Integration' 
+                      : 'Get credentials from aamarpay.com → Merchant Dashboard → API Keys'}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div>
+              <Label className="text-slate-300">Instructions (Optional)</Label>
+              <Textarea
+                value={methodInstructions}
+                onChange={(e) => setMethodInstructions(e.target.value)}
+                placeholder="Any special instructions for payment..."
+                className="bg-slate-800 border-slate-700 text-white mt-1"
+                rows={2}
+              />
+            </div>
+
+            {/* Logo Upload */}
+            <div>
+              <Label className="text-slate-300">Payment Method Logo (Optional)</Label>
+              <div className="mt-2 flex items-center gap-4">
+                {paymentLogoFile ? (
+                  <div className="relative">
+                    <img 
+                      src={URL.createObjectURL(paymentLogoFile)} 
+                      alt="Logo preview" 
+                      className="w-16 h-16 rounded-lg object-cover border border-slate-600"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setPaymentLogoFile(null)}
+                      className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-xs"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ) : (
+                  <label className="flex flex-col items-center justify-center w-16 h-16 border-2 border-dashed border-slate-600 rounded-lg cursor-pointer hover:border-pink-500 transition-colors">
+                    <Upload className="w-5 h-5 text-slate-400" />
+                    <span className="text-xs text-slate-400 mt-1">Logo</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) setPaymentLogoFile(file);
+                      }}
+                    />
+                  </label>
+                )}
+                <p className="text-xs text-slate-500">
+                  Upload a logo for this payment method (PNG, JPG)
+                </p>
+              </div>
+            </div>
+
+            {/* Merchant Number Section - hide for auto gateways */}
+            {!['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType) && (
+            <div className="border border-amber-500/30 rounded-xl p-3 bg-amber-500/10">
+              <div className="flex items-center gap-2 mb-2">
+                <input
+                  type="checkbox"
+                  id="is-merchant-country"
+                  checked={isMerchant}
+                  onChange={(e) => setIsMerchant(e.target.checked)}
+                  className="w-4 h-4 rounded border-slate-600"
+                />
+                <Label htmlFor="is-merchant-country" className="text-amber-300 font-medium text-sm cursor-pointer">
+                  ⚡ This is a Merchant Account (Auto-Verify)
+                </Label>
+              </div>
+              {isMerchant && (
+                <div className="mt-2">
+                  <Label className="text-slate-300 text-xs">Merchant Number / API ID</Label>
+                  <Input
+                    value={merchantNumber}
+                    onChange={(e) => setMerchantNumber(e.target.value)}
+                    placeholder="Enter merchant number"
+                    className="bg-slate-800 border-amber-500/30 text-white mt-1"
+                  />
+                  <p className="text-xs text-amber-400/70 mt-1">
+                    Payments to this merchant will be auto-verified
+                  </p>
+                </div>
+              )}
+            </div>
+            )}
+          </div>
+
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => { setShowCountryPaymentDialog(false); resetPaymentForm(); setSelectedCountry(""); setMethodInstructions(""); }} className="border-slate-700">
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleAddCountryPaymentMethod}
+              disabled={processing || !selectedCountry || (!['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType) && (!accountName || !accountNumber))}
+              className="bg-emerald-500 hover:bg-emerald-600"
+            >
+              {processing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Add Method
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Agency Withdrawal Dialog */}
+      <Dialog open={showAgencyWithdrawalDialog} onOpenChange={(open) => {
+        if (!open) {
+          handleCloseAgencyWithdrawalDialog();
+        }
+      }}>
+        <DialogContent className="bg-slate-900 border-slate-700 max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Building2 className="w-5 h-5 text-orange-400" />
+              Agency Withdrawal
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedAgencyWithdrawal && (
+            <div className="space-y-4">
+              {/* Agency Info */}
+              <div className="flex items-center gap-3 p-3 bg-slate-800/50 rounded-xl">
+                <Avatar className="w-14 h-14 border-2 border-orange-500">
+                  <AvatarImage src={selectedAgencyWithdrawal.agency?.logo_url} />
+                  <AvatarFallback className="bg-orange-500/20">
+                    <Building2 className="w-6 h-6 text-orange-400" />
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="text-white font-semibold">{selectedAgencyWithdrawal.agency?.name}</p>
+                  <p className="text-slate-400 text-sm">Code: {selectedAgencyWithdrawal.agency?.agency_code}</p>
+                  <Badge className={cn(
+                    "text-xs mt-1",
+                    selectedAgencyWithdrawal.status === 'pending' ? "bg-yellow-500" : "bg-blue-500"
+                  )}>
+                    {selectedAgencyWithdrawal.status}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Amount Info - Local Currency Amount Only */}
+              <div className="bg-gradient-to-br from-emerald-500/20 to-green-500/20 rounded-xl p-4 border border-emerald-500/30">
+                <div className="text-center flex flex-col items-center">
+                  <div className="flex items-center gap-2 justify-center">
+                    <span className="text-3xl">💰</span>
+                    <p className="text-3xl font-bold text-emerald-400">
+                      {selectedAgencyWithdrawal.currency_code === 'BDT' ? '৳' : 
+                       selectedAgencyWithdrawal.currency_code === 'INR' ? '₹' :
+                       selectedAgencyWithdrawal.currency_code === 'PKR' ? '₨' :
+                       selectedAgencyWithdrawal.currency_code === 'NPR' ? 'Rs' :
+                       selectedAgencyWithdrawal.currency_code === 'PHP' ? '₱' :
+                       selectedAgencyWithdrawal.currency_code === 'IDR' ? 'Rp' :
+                       selectedAgencyWithdrawal.currency_code === 'MYR' ? 'RM' :
+                       selectedAgencyWithdrawal.currency_code === 'THB' ? '฿' :
+                       ''}
+                      {(selectedAgencyWithdrawal.local_currency_amount || 
+                        (selectedAgencyWithdrawal.payment_details as any)?.local_amount || 
+                        0).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Payment Details - Show Transaction ID and Account Info */}
+              {selectedAgencyWithdrawal.payment_details && (
+                <div className="bg-slate-800/50 rounded-xl p-4">
+                  <p className="text-white font-semibold mb-3 flex items-center gap-2">
+                    <CreditCard className="w-4 h-4 text-cyan-400" />
+                    📝 Payment Details
+                  </p>
+                  
+                  {/* Transaction ID - Highlighted */}
+                  {(selectedAgencyWithdrawal.payment_details as any)?.transaction_id && (
+                    <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-lg p-3 mb-3 border border-yellow-500/30">
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-400 text-xs">Transaction ID:</span>
+                        <span className="text-yellow-400 font-mono text-lg font-bold">
+                          {(selectedAgencyWithdrawal.payment_details as any).transaction_id}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Highlighted Payment Method Info - Country Name + Method + Time */}
+                  <div className="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-lg p-3 mb-3 border border-cyan-500/30">
+                    <div className="flex items-center justify-center gap-2 flex-wrap">
+                      {/* Country with Full Name */}
+                      <div className="flex items-center gap-1.5 bg-slate-700/50 px-3 py-1.5 rounded-lg">
+                        <span className="text-lg">
+                          {selectedAgencyWithdrawal.country_code === 'BD' ? '🇧🇩' :
+                           selectedAgencyWithdrawal.country_code === 'IN' ? '🇮🇳' :
+                           selectedAgencyWithdrawal.country_code === 'PK' ? '🇵🇰' :
+                           selectedAgencyWithdrawal.country_code === 'NP' ? '🇳🇵' :
+                           selectedAgencyWithdrawal.country_code === 'ID' ? '🇮🇩' :
+                           selectedAgencyWithdrawal.country_code === 'PH' ? '🇵🇭' :
+                           selectedAgencyWithdrawal.country_code === 'MY' ? '🇲🇾' :
+                           selectedAgencyWithdrawal.country_code === 'TH' ? '🇹🇭' :
+                           selectedAgencyWithdrawal.country_code === 'VN' ? '🇻🇳' :
+                           selectedAgencyWithdrawal.country_code === 'LK' ? '🇱🇰' :
+                           selectedAgencyWithdrawal.country_code === 'AE' ? '🇦🇪' :
+                           selectedAgencyWithdrawal.country_code === 'SA' ? '🇸🇦' :
+                           selectedAgencyWithdrawal.country_code === 'US' ? '🇺🇸' :
+                           selectedAgencyWithdrawal.country_code === 'GB' ? '🇬🇧' : '🌍'}
+                        </span>
+                        <span className="text-white font-bold">
+                          {selectedAgencyWithdrawal.country_code === 'BD' ? 'Bangladesh' :
+                           selectedAgencyWithdrawal.country_code === 'IN' ? 'India' :
+                           selectedAgencyWithdrawal.country_code === 'PK' ? 'Pakistan' :
+                           selectedAgencyWithdrawal.country_code === 'NP' ? 'Nepal' :
+                           selectedAgencyWithdrawal.country_code === 'ID' ? 'Indonesia' :
+                           selectedAgencyWithdrawal.country_code === 'PH' ? 'Philippines' :
+                           selectedAgencyWithdrawal.country_code === 'MY' ? 'Malaysia' :
+                           selectedAgencyWithdrawal.country_code === 'TH' ? 'Thailand' :
+                           selectedAgencyWithdrawal.country_code === 'VN' ? 'Vietnam' :
+                           selectedAgencyWithdrawal.country_code === 'LK' ? 'Sri Lanka' :
+                           selectedAgencyWithdrawal.country_code === 'AE' ? 'UAE' :
+                           selectedAgencyWithdrawal.country_code === 'SA' ? 'Saudi Arabia' :
+                           selectedAgencyWithdrawal.country_code === 'US' ? 'USA' :
+                           selectedAgencyWithdrawal.country_code === 'GB' ? 'UK' :
+                           selectedAgencyWithdrawal.country_code || 'Unknown'}
+                        </span>
+                      </div>
+                      
+                      <span className="text-slate-400">•</span>
+                      
+                      {/* Payment Method Name */}
+                      <div className="bg-gradient-to-r from-pink-500/30 to-purple-500/30 px-3 py-1.5 rounded-lg border border-pink-500/40">
+                        <span className="text-pink-300 font-bold text-sm">
+                          {selectedAgencyWithdrawal.payment_method || 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {/* Request Time */}
+                    <div className="mt-2 text-center">
+                      <span className="text-slate-400 text-xs">
+                        🕐 {format(new Date(selectedAgencyWithdrawal.requested_at), 'dd MMM yyyy, hh:mm a')}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Account Details Grid */}
+                  <div className="space-y-2 text-sm">
+                    {/* Account Name */}
+                    {(selectedAgencyWithdrawal.payment_details as any)?.account_name && (
+                      <div className="flex items-center justify-between bg-slate-900/50 rounded-lg p-2">
+                        <span className="text-slate-400">Paid to:</span>
+                        <span className="text-green-400 font-semibold">
+                          {(selectedAgencyWithdrawal.payment_details as any).account_name}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {/* Account Number */}
+                    {(selectedAgencyWithdrawal.payment_details as any)?.account_number && (
+                      <div className="flex items-center justify-between bg-slate-900/50 rounded-lg p-2">
+                        <span className="text-slate-400">Number:</span>
+                        <span className="text-green-400 font-mono font-semibold">
+                          {(selectedAgencyWithdrawal.payment_details as any).account_number}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {/* Bank Name if exists */}
+                    {(selectedAgencyWithdrawal.payment_details as any)?.bank_name && (
+                      <div className="flex items-center justify-between bg-slate-900/50 rounded-lg p-2">
+                        <span className="text-slate-400">Bank:</span>
+                        <span className="text-white font-medium">
+                          {(selectedAgencyWithdrawal.payment_details as any).bank_name}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {/* Local Amount */}
+                    {(selectedAgencyWithdrawal.payment_details as any)?.local_amount && (
+                      <div className="flex items-center justify-between bg-slate-900/50 rounded-lg p-2">
+                        <span className="text-slate-400">Local Amount:</span>
+                        <span className="text-emerald-400 font-bold">
+                          {selectedAgencyWithdrawal.currency_code === 'BDT' ? '৳' : 
+                           selectedAgencyWithdrawal.currency_code === 'INR' ? '₹' :
+                           selectedAgencyWithdrawal.currency_code === 'PKR' ? '₨' : ''}
+                          {((selectedAgencyWithdrawal.payment_details as any).local_amount).toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {/* USD Amount */}
+                    {(selectedAgencyWithdrawal.payment_details as any)?.usd_amount && (
+                      <div className="flex items-center justify-between bg-slate-900/50 rounded-lg p-2">
+                        <span className="text-slate-400">USD Amount:</span>
+                        <span className="text-cyan-400 font-bold">
+                          ${((selectedAgencyWithdrawal.payment_details as any).usd_amount).toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {/* Additional Info */}
+                    {(selectedAgencyWithdrawal.payment_details as any)?.additional_info && (
+                      <div className="bg-slate-900/50 rounded-lg p-2">
+                        <span className="text-slate-400 text-xs block mb-1">Additional Info:</span>
+                        <span className="text-white text-sm">
+                          {(selectedAgencyWithdrawal.payment_details as any).additional_info}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {/* Agency's Payment Screenshot (if they uploaded one) */}
+              {(selectedAgencyWithdrawal.payment_details as any)?.payment_screenshot_url && (
+                <div className="bg-slate-800/50 rounded-xl p-4">
+                  <p className="text-white font-semibold mb-3 flex items-center gap-2">
+                    <Eye className="w-4 h-4 text-blue-400" />
+                    📸 Agency Payment Screenshot
+                  </p>
+                  <div className="rounded-xl overflow-hidden border-2 border-blue-500/30">
+                    <img 
+                      src={(selectedAgencyWithdrawal.payment_details as any).payment_screenshot_url} 
+                      alt="Agency payment proof" 
+                      className="w-full object-cover cursor-pointer"
+                      onClick={() => imageViewer.openImage((selectedAgencyWithdrawal.payment_details as any).payment_screenshot_url)}
+                    />
+                  </div>
+                  <p className="text-xs text-slate-500 text-center mt-2">Click to view full size</p>
+                </div>
+              )}
+
+              {/* Request Time */}
+              <div className="text-center text-sm text-slate-400">
+                Requested: {format(new Date(selectedAgencyWithdrawal.requested_at), 'dd MMM yyyy, hh:mm a')}
+              </div>
+
+              {/* Action Section for Pending */}
+              {selectedAgencyWithdrawal.status === 'pending' && (
+                <>
+                  {/* Upload Screenshot */}
+                  <div>
+                    <Label className="text-slate-300">Upload Payment Screenshot *</Label>
+                    <div className="mt-2">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setScreenshotFile(e.target.files?.[0] || null)}
+                        className="hidden"
+                        id="agency-screenshot-upload"
+                      />
+                      <label
+                        htmlFor="agency-screenshot-upload"
+                        className={cn(
+                          "flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-all",
+                          screenshotFile 
+                            ? "border-green-500 bg-green-500/10" 
+                            : "border-slate-600 hover:border-cyan-500 bg-slate-800/50"
+                        )}
+                      >
+                        {screenshotFile ? (
+                          <div className="text-center">
+                            <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-2" />
+                            <p className="text-green-400 text-sm">{screenshotFile.name}</p>
+                            <p className="text-xs text-slate-500">Click to change</p>
+                          </div>
+                        ) : (
+                          <div className="text-center">
+                            <Camera className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+                            <p className="text-slate-400 text-sm">Select Screenshot</p>
+                          </div>
+                        )}
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Transaction ID / Notes */}
+                  <div>
+                    <Label className="text-slate-300">Transaction ID / Notes</Label>
+                    <Textarea
+                      value={helperNotes}
+                      onChange={(e) => setHelperNotes(e.target.value)}
+                      placeholder="Enter transaction ID or additional info..."
+                      className="bg-slate-800 border-slate-700 text-white mt-1"
+                      rows={2}
+                    />
+                  </div>
+
+                  <Button 
+                    onClick={handleProcessAgencyWithdrawal}
+                    disabled={processing || !screenshotFile}
+                    className="w-full bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600"
+                  >
+                    {processing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                    <Send className="w-4 h-4 mr-2" />
+                    Submit Payment - Send for Approval
+                  </Button>
+
+                  <p className="text-xs text-slate-500 text-center">
+                    * Agency will receive automatic notification after payment submission
+                  </p>
+                </>
+              )}
+
+              {/* Processing Status */}
+              {selectedAgencyWithdrawal.status === 'processing' && (
+                <div className="text-center p-4 bg-blue-500/20 rounded-xl border border-blue-500/30">
+                  <Clock className="w-8 h-8 text-blue-400 mx-auto mb-2" />
+                  <p className="text-blue-300 font-semibold">Waiting for Admin Approval</p>
+                  <p className="text-xs text-blue-400 mt-1">Agency has been notified</p>
+                </div>
+              )}
+
+              {/* Payment Screenshot if exists */}
+              {selectedAgencyWithdrawal.helper_payment_screenshot && (
+                <div>
+                  <Label className="text-slate-300">Payment Screenshot</Label>
+                  <div className="mt-2 rounded-xl overflow-hidden border border-slate-700">
+                    <img 
+                      src={selectedAgencyWithdrawal.helper_payment_screenshot} 
+                      alt="Payment proof" 
+                      className="w-full object-cover"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+      </div>
+
+      {/* In-app Image Viewer */}
+      <ImageViewer
+        src={imageViewer.viewerImage}
+        open={imageViewer.isOpen}
+        onClose={imageViewer.closeImage}
+        alt="Payment Screenshot"
+      />
+    </div>
+  );
+};
+
+export default Level5HelperDashboard;
+
