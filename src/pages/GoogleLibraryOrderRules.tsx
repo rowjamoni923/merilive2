@@ -20,6 +20,10 @@ const TICKET_CATEGORIES = [
   { key: "other", label: "Other", icon: "💬", color: "from-gray-500/20 to-slate-500/10", border: "border-gray-500/25", selectedBorder: "border-gray-400/60" },
 ];
 
+const HOURLY_LIVE_BONUS_BEANS = 10000;
+const MAX_LIVE_BONUS_HOURS = 5;
+const TOTAL_LIVE_BONUS_BEANS = HOURLY_LIVE_BONUS_BEANS * MAX_LIVE_BONUS_HOURS;
+
 const GoogleLibraryOrderRules = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -99,13 +103,10 @@ const GoogleLibraryOrderRules = () => {
     }
   };
 
-  const bonusRows = [
-    { hour: "1 Hour", beans: "18,000" },
-    { hour: "2 Hours", beans: "18,000" },
-    { hour: "3 Hours", beans: "18,000" },
-    { hour: "4 Hours", beans: "18,000" },
-    { hour: "5 Hours", beans: "18,000" },
-  ];
+  const bonusRows = Array.from({ length: MAX_LIVE_BONUS_HOURS }, (_, index) => ({
+    hour: `${index + 1} Hour${index === 0 ? "" : "s"}`,
+    beans: HOURLY_LIVE_BONUS_BEANS.toLocaleString(),
+  }));
 
   const dailyTasks = [
     { icon: <Radio className="w-4 h-4 text-red-400" />, task: "First Live", req: "Go live for the first time", beans: "50", diamonds: "10", color: "from-red-500/20 to-orange-500/10" },
@@ -158,7 +159,7 @@ const GoogleLibraryOrderRules = () => {
                 </div>
                 <div>
                   <h2 className="text-sm font-bold text-amber-200">New Host Live Bonus</h2>
-                  <p className="text-[10px] text-amber-300/60">Stream & earn up to 90,000 Beans/day</p>
+                  <p className="text-[10px] text-amber-300/60">Stream & earn up to {TOTAL_LIVE_BONUS_BEANS.toLocaleString()} Beans/day</p>
                 </div>
               </div>
               <div className="p-4 space-y-3">
@@ -187,7 +188,7 @@ const GoogleLibraryOrderRules = () => {
                     </span>
                     <span className="text-sm font-bold text-right flex items-center justify-end gap-1">
                       <BeansIcon size={13} />
-                      <span className="text-amber-300">90,000</span>
+                       <span className="text-amber-300">{TOTAL_LIVE_BONUS_BEANS.toLocaleString()}</span>
                       <span className="text-white/50 text-xs">/day</span>
                     </span>
                   </div>
