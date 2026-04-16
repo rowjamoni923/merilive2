@@ -7100,6 +7100,7 @@ export type Database = {
           previous_vehicle_id: string | null
           profile_photo_url: string | null
           region: string | null
+          registration_country_code: string | null
           registration_device_info: Json | null
           registration_ip: string | null
           registration_user_agent: string | null
@@ -7198,6 +7199,7 @@ export type Database = {
           previous_vehicle_id?: string | null
           profile_photo_url?: string | null
           region?: string | null
+          registration_country_code?: string | null
           registration_device_info?: Json | null
           registration_ip?: string | null
           registration_user_agent?: string | null
@@ -7296,6 +7298,7 @@ export type Database = {
           previous_vehicle_id?: string | null
           profile_photo_url?: string | null
           region?: string | null
+          registration_country_code?: string | null
           registration_device_info?: Json | null
           registration_ip?: string | null
           registration_user_agent?: string | null

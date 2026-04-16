@@ -2069,17 +2069,19 @@ const AgencyWithdrawal = () => {
         return;
       }
 
-      // Fetch user profile for country
+      // Fetch user profile — use registration_country_code (immutable, locked at signup)
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('country_code, country_name')
+        .select('country_code, country_name, registration_country_code')
         .eq('id', user.id)
         .maybeSingle();
 
       if (profileData) {
         setProfile(profileData);
-        if (profileData.country_code && COUNTRY_CONFIGS[profileData.country_code]) {
-          setSelectedCountry(profileData.country_code);
+        // Priority: registration_country_code (permanently locked) > country_code
+        const lockedCountry = (profileData as any).registration_country_code || profileData.country_code;
+        if (lockedCountry && COUNTRY_CONFIGS[lockedCountry]) {
+          setSelectedCountry(lockedCountry);
         }
       }
 
