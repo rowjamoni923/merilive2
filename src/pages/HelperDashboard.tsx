@@ -1008,7 +1008,7 @@ const HelperDashboard = () => {
             <div>
               <p className="text-white/80 text-xs">Wallet Balance</p>
               <p className="text-2xl font-bold text-white">
-                {((helperData?.wallet_balance || 0) + agencyDiamondBalance).toLocaleString()} 💎
+                {(helperData?.wallet_balance || 0).toLocaleString()} 💎
               </p>
               <p className="text-emerald-200 text-xs mt-1 flex items-center gap-1">
                 <Send className="w-3 h-3" />
@@ -2059,7 +2059,7 @@ const HelperDashboard = () => {
               <div className="flex items-center justify-between">
                 <span className="text-white/80 text-sm">Your Balance</span>
                 <span className="text-emerald-400 font-bold text-lg">
-                  {((helperData?.wallet_balance || 0) + agencyDiamondBalance).toLocaleString()} 💎
+                  {(helperData?.wallet_balance || 0).toLocaleString()} 💎
                 </span>
               </div>
             </div>
