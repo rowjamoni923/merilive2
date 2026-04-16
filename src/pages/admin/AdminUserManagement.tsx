@@ -85,6 +85,8 @@ import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { saveAppSetting } from "@/utils/adminSettingsStorage";
 
+import { adminSendNotification } from "@/utils/adminNotification";
+
 // Helper to parse verification details from admin_notes
 function parseVerificationDetails(adminNotes: string | null) {
   if (!adminNotes) return null;
@@ -493,13 +495,7 @@ export default function AdminUserManagement() {
       if (error) throw error;
       // Send notification to user when converted to Host
       if (!isHost) {
-        await supabase.from('notifications').insert({
-          user_id: userId,
-          type: 'system',
-          title: '🌟 Host Account Activated! 🎤✨',
-          message: '🎉 Congratulations! Your account has been upgraded to Host status! 🔥 Complete your Face Verification now and start going live to earn rewards! 💎🫘 Welcome to the spotlight! 🌟',
-          data: { action: 'converted_to_host' },
-        });
+        await adminSendNotification(userId, '🌟 Host Account Activated! 🎤✨', '🎉 Congratulations! Your account has been upgraded to Host status! 🔥 Complete your Face Verification now and start going live to earn rewards! 💎🫘 Welcome to the spotlight! 🌟', 'system')
       }
       toast.success(isHost ? "Converted to User (Male)" : "Converted to Host (Female)");
       fetchUsers();
@@ -536,13 +532,7 @@ export default function AdminUserManagement() {
       if (verifyFaceError) throw verifyFaceError;
       // Send notification when converted to Host from rejected
       if (toHost) {
-        await supabase.from('notifications').insert({
-          user_id: userId,
-          type: 'system',
-          title: '🌟 Host Account Activated! 🎤✨',
-          message: '🎉 Congratulations! Your account has been upgraded to Host status! 🔥 Complete your Face Verification now and start going live to earn rewards! 💎🫘 Welcome to the spotlight! 🌟',
-          data: { action: 'converted_to_host_from_rejected' },
-        });
+        await adminSendNotification(userId, '🌟 Host Account Activated! 🎤✨', '🎉 Congratulations! Your account has been upgraded to Host status! 🔥 Complete your Face Verification now and start going live to earn rewards! 💎🫘 Welcome to the spotlight! 🌟', 'system')
       }
       toast.success(toHost ? '🎤 Converted to Host!' : '👤 Converted to User!');
       fetchFaceSubmissions();

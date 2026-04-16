@@ -93,15 +93,7 @@ const AdminHostConversion = () => {
         .eq('id', req.id);
 
       // Send notification
-      await supabase.from('notifications').insert({
-        user_id: req.user_id,
-        title: toHost ? '🌟 Host Account Activated! 🎤✨' : '👤 User Account Updated! ✨',
-        message: toHost
-          ? '🎉 Congratulations! Your account has been upgraded to Host status! 🔥 Complete your Face Verification now and start going live to earn rewards! 💎🫘 Welcome to the spotlight! 🌟'
-          : '✅ Your account has been switched to User mode! 🔄 Please complete your Face Verification to continue enjoying all features! 💫',
-        type: 'system',
-        is_read: false,
-      });
+      await adminSendNotification(req.user_id, toHost, toHost, 'system')
 
       toast({ title: "✅ Converted!", description: `User ${toHost ? 'converted to Host' : 'converted to User'}` });
       loadRequests();

@@ -207,13 +207,7 @@ export default function AdminRatingRewards() {
       }
 
       // Send notification to user
-      await supabase.from('notifications').insert({
-        user_id: claim.user_id,
-        type: 'system',
-        title: '🎉 Rating Reward Approved!',
-        message: `Congratulations! Your Play Store rating has been verified. ${result.reward_type === 'beans' ? '🫘 10,000 Beans' : '💎 5,000 Diamonds'} have been credited to your account. Thank you for your support!`,
-        is_read: false,
-      });
+      await adminSendNotification(claim.user_id, '🎉 Rating Reward Approved!', `Congratulations! Your Play Store rating has been verified. ${result.reward_type === 'beans' ? '🫘 10,000 Beans' : '💎 5,000 Diamonds'} have been credited to your account. Thank you for your support!`, 'system')
 
       toast.success(`Approved! ${result.reward_type === 'beans' ? '🫘 10,000 Beans' : '💎 5,000 Diamonds'} sent to user`);
     } catch (err: any) {

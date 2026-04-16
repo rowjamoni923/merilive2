@@ -24,6 +24,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
+import { adminSendNotification } from "@/utils/adminNotification";
+
 interface HelperOrder {
   id: string;
   helper_id: string;
@@ -161,18 +163,7 @@ const AdminTraderOrders = () => {
         : coinAmount.toLocaleString();
         
         const helperUser = helperData?.user as any;
-        await supabase.from('notifications').insert({
-          user_id: order.user_id,
-          type: 'coin_purchase_helper',
-          title: '💎 Diamonds Added!',
-          message: `Received ${formattedAmount} diamonds from ${helperUser?.display_name || 'Diamond Trader'}!`,
-          data: {
-            amount: coinAmount,
-            helper_name: helperUser?.display_name || 'Diamond Trader',
-            helper_avatar: helperUser?.avatar_url,
-            source: 'helper'
-          }
-        });
+        await adminSendNotification(order.user_id, '💎 Diamonds Added!', `Received ${formattedAmount} diamonds from ${helperUser?.display_name || 'Diamond Trader'}!`, 'coin_purchase_helper')
       }
 
       toast({ 

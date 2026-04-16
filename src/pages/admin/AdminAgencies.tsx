@@ -75,6 +75,8 @@ import { format, formatDistanceToNow } from "date-fns";
 import { bn } from "date-fns/locale";
 import HelpersTabContent from "@/components/admin/agency/HelpersTabContent";
 
+import { adminSendNotification } from "@/utils/adminNotification";
+
 interface AgencyCommissionSettings {
   agency_commission_rate: number; // % of host earnings agency gets
   sub_agent_commission_rate: number; // % of host earnings sub-agent gets
@@ -510,19 +512,7 @@ export default function AdminAgencies() {
       
       // Send notification to agency owner
       if (selectedAgency.owner_id) {
-        await supabase.from('notifications').insert({
-          user_id: selectedAgency.owner_id,
-          type: isCancelling ? 'security' : 'agency_verification',
-          title: isCancelling ? '🚫 Agency Cancelled' : '✅ Agency Activated',
-          message: isCancelling 
-            ? `Your agency "${selectedAgency.name}" has been cancelled. Reason: ${cancelReason || 'Policy violation'}`
-            : `Your agency "${selectedAgency.name}" has been activated successfully.`,
-          data: { 
-            agency_id: selectedAgency.id, 
-            agency_name: selectedAgency.name,
-            reason: cancelReason 
-          }
-        });
+        await adminSendNotification(selectedAgency.owner_id, isCancelling, isCancelling, isCancelling)
       }
       
       toast.success(isCancelling ? "Agency cancelled successfully" : "Agency activated successfully");
@@ -864,13 +854,7 @@ export default function AdminAgencies() {
         .update({ is_verified: true })
         .eq("id", selectedAgency.owner_id);
 
-      await supabase.from("notifications").insert({
-        user_id: selectedAgency.owner_id,
-        type: "agency_verification",
-        title: "🎉 Payroll Helper Activated",
-        message: `You have been promoted to Level 5 Payroll Helper for agency "${selectedAgency.name}".`,
-        data: { agency_id: selectedAgency.id },
-      });
+      await adminSendNotification(selectedAgency.owner_id, "🎉 Payroll Helper Activated", `You have been promoted to Level 5 Payroll Helper for agency "${selectedAgency.name}".`, "agency_verification")
 
       toast.success(`${ownerProfile?.display_name || "Owner"} is now a Payroll Helper`);
       setShowPayrollDialog(false);

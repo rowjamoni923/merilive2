@@ -29,6 +29,8 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
+import { adminSendNotification } from "@/utils/adminNotification";
+
 const AdminCoinTraders = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -235,13 +237,7 @@ const AdminCoinTraders = () => {
       if (txError) throw txError;
 
       // Send notification to helper
-      await supabase.from('notifications').insert({
-        user_id: selectedHelper.user_id,
-        type: 'diamonds_credited',
-        title: '💎 Diamonds Added!',
-        message: `${amount.toLocaleString()} diamonds have been added to your Trader Wallet`,
-        data: { amount, source: 'admin_transfer' }
-      });
+      await adminSendNotification(selectedHelper.user_id, '💎 Diamonds Added!', `${amount.toLocaleString()} diamonds have been added to your Trader Wallet`, 'diamonds_credited')
 
       toast({
         title: "✅ Transfer Successful",

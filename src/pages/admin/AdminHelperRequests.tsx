@@ -27,6 +27,8 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
+import { adminSendNotification } from "@/utils/adminNotification";
+
 interface UpgradeRequest {
   id: string;
   user_id: string;
@@ -187,13 +189,7 @@ const AdminHelperRequests = () => {
           .eq('id', req.helper_id);
         
         // Send notification
-        await supabase.from('notifications').insert({
-          user_id: req.user_id,
-          type: 'level_upgrade',
-          title: 'Level Upgrade Approved! 🎉',
-          message: `Your upgrade to Level ${req.requested_level} has been approved.`,
-          data: { level: req.requested_level }
-        });
+        await adminSendNotification(req.user_id, 'Level Upgrade Approved! 🎉', `Your upgrade to Level ${req.requested_level} has been approved.`, 'level_upgrade')
         
         toast({ title: "Approved!", description: `Level ${req.requested_level} upgrade approved.` });
         
@@ -219,13 +215,7 @@ const AdminHelperRequests = () => {
         });
         
         // Send notification
-        await supabase.from('notifications').insert({
-          user_id: req.user_id,
-          type: 'topup_approved',
-          title: 'Top-up Approved! 💎',
-          message: `Your top-up of ${req.coin_amount.toLocaleString()} coins has been approved.`,
-          data: { coins: req.coin_amount }
-        });
+        await adminSendNotification(req.user_id, 'Top-up Approved! 💎', `Your top-up of ${req.coin_amount.toLocaleString()} coins has been approved.`, 'topup_approved')
         
         toast({ title: "Approved!", description: `Top-up of ${req.coin_amount} coins approved.` });
       }
@@ -264,13 +254,7 @@ const AdminHelperRequests = () => {
         .eq('id', selectedRequest.id);
       
       // Send notification
-      await supabase.from('notifications').insert({
-        user_id: selectedRequest.user_id,
-        type: requestType === 'upgrade' ? 'level_upgrade_rejected' : 'topup_rejected',
-        title: 'Request Rejected',
-        message: adminNotes || 'Your request has been rejected. Please contact support for more information.',
-        data: {}
-      });
+      await adminSendNotification(selectedRequest.user_id, 'Request Rejected', adminNotes || 'Your, requestType)
       
       toast({ title: "Rejected", description: "Request has been rejected." });
       

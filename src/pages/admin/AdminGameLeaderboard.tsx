@@ -12,6 +12,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
+import { adminSendNotification } from "@/utils/adminNotification";
+
 type PeriodType = 'daily' | 'weekly' | 'monthly';
 type CategoryType = 'host_earnings' | 'game_winners' | 'agency_performance' | 'pk_reward';
 
@@ -298,13 +300,7 @@ export default function AdminGameLeaderboard() {
           const rewardParts = [];
           if (reward.reward_coins > 0) rewardParts.push(`${reward.reward_coins.toLocaleString()} Diamonds`);
           if (reward.reward_beans > 0) rewardParts.push(`${reward.reward_beans.toLocaleString()} Beans`);
-          await supabase.from('notifications').insert({
-            user_id: entry.id,
-            type: 'reward',
-            title: `🏆 Leaderboard Reward - Rank #${rank}!`,
-            message: `Congratulations! You earned ${rewardParts.join(' + ')} from ${category} leaderboard`,
-            data: { category, period, rank, reward_coins: reward.reward_coins, reward_diamonds: reward.reward_diamonds, reward_beans: reward.reward_beans }
-          });
+          await adminSendNotification(entry.id, `🏆 Leaderboard Reward - Rank #${rank}!`, `Congratulations! You earned ${rewardParts.join(' + ')} from ${category} leaderboard`, 'reward')
         }
 
         sent++;
