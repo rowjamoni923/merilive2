@@ -499,7 +499,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           // Agency host status (own profile)
           isOwnProfileCheck && user ? supabase.from("agency_hosts").select("id, status").eq("host_id", user.id).eq("status", "active").maybeSingle() : { data: null },
           // VIP subscription (own profile)
-          isOwnProfileCheck && user ? supabase.from("user_vip_subscriptions").select("tier_id, vip_tiers(tier_level)").eq("user_id", user.id).eq("is_active", true).gte("expires_at", new Date().toISOString()).order("created_at", { ascending: false }).limit(1).maybeSingle() : { data: null },
+          isOwnProfileCheck && user ? supabase.from("user_vip_subscriptions").select("vip_tier_id, vip_tiers(tier_level)").eq("user_id", user.id).eq("is_active", true).gte("expires_at", new Date().toISOString()).order("created_at", { ascending: false }).limit(1).maybeSingle() : { data: null },
           // Conversations (for unread count)
           isOwnProfileCheck && user ? supabase.from("conversations").select("id").or(`participant1_id.eq.${user.id},participant2_id.eq.${user.id}`) : { data: null },
           // Agency wallet_balance (for agency owners) - wallet_balance is the source of truth

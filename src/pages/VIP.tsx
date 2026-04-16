@@ -277,7 +277,7 @@ const VIP = () => {
       // Fetch current VIP subscription
       const { data: vipData } = await supabase
         .from("user_vip_subscriptions")
-        .select("tier_id, vip_tiers(tier_level), expires_at")
+        .select("vip_tier_id, vip_tiers(tier_level), expires_at")
         .eq("user_id", user.id)
         .eq("is_active", true)
         .gte("expires_at", new Date().toISOString())
