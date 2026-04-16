@@ -33,8 +33,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { CallProvider } from "./components/call/CallProvider";
 import { PresenceProvider } from "./components/common/PresenceProvider";
 import { RealtimeProvider } from "./components/common/RealtimeProvider";
-
-
+const Level5HelperDashboard = lazy(() => import("./pages/Level5HelperDashboard"));
 // =============================================
 // ALL PAGES - Lazy loaded for fast initial paint
 // =============================================
@@ -134,7 +133,7 @@ const PartyRoom = lazy(lazyRetry(() => import("./pages/PartyRoom")));
 const GoLive = lazy(() => import("./pages/GoLive"));
 const CreateParty = lazy(() => import("./pages/CreateParty"));
 const ProfileDetail = lazy(() => import("./pages/ProfileDetail"));
-const Withdrawal = lazy(() => import("./pages/Withdrawal"));
+
 const Tags = lazy(() => import("./pages/Tags"));
 const MyPoster = lazy(() => import("./pages/MyPoster"));
 const HostDashboard = lazy(() => import("./pages/HostDashboard"));
@@ -983,14 +982,14 @@ const App = () => {
                 <Route path="/following-list" element={<ProtectedRoute session={session}><FollowingList /></ProtectedRoute>} />
                 <Route path="/search" element={<ProtectedRoute session={session}><SearchUsers /></ProtectedRoute>} />
                 <Route path="/recharge-history" element={<ProtectedRoute session={session}><RechargeHistory /></ProtectedRoute>} />
-                <Route path="/withdrawal" element={<ProtectedRoute session={session}><Withdrawal /></ProtectedRoute>} />
+                
                 <Route path="/tags" element={<ProtectedRoute session={session}><Tags /></ProtectedRoute>} />
                 <Route path="/my-poster" element={<ProtectedRoute session={session}><MyPoster /></ProtectedRoute>} />
                 <Route path="/host-dashboard" element={<ProtectedRoute session={session}><HostDashboard /></ProtectedRoute>} />
                 <Route path="/host-verification" element={<ProtectedRoute session={session}><HostVerification /></ProtectedRoute>} />
                 <Route path="/face-verification" element={<ProtectedRoute session={session}><FaceVerification /></ProtectedRoute>} />
                 <Route path="/helper-dashboard" element={<ProtectedRoute session={session}><HelperDashboard /></ProtectedRoute>} />
-                
+                <Route path="/level5-helper-dashboard" element={<ProtectedRoute session={session}><Level5HelperDashboard /></ProtectedRoute>} />
                 <Route path="/payroll-helper-guide" element={<PayrollHelperGuide />} />
                 <Route path="/party-rooms" element={<ProtectedRoute session={session}><PartyRooms /></ProtectedRoute>} />
                 <Route path="/party/:roomId" element={<ProtectedRoute session={session}><PartyRoom /></ProtectedRoute>} />
