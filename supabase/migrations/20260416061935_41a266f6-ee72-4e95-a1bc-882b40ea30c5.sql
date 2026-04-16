@@ -1,0 +1,27 @@
+
+INSERT INTO public.leaderboard_reward_config (leaderboard_type, category, period_type, rank_position, rank_from, rank_to, reward_beans, reward_diamonds, reward_coins, is_active)
+VALUES
+  ('host_earnings', 'host_earnings', 'weekly', 1, 1, 1, 50000, 5000, 0, true),
+  ('host_earnings', 'host_earnings', 'weekly', 2, 2, 2, 30000, 3000, 0, true),
+  ('host_earnings', 'host_earnings', 'weekly', 3, 3, 3, 20000, 2000, 0, true),
+  ('host_earnings', 'host_earnings', 'weekly', 4, 4, 10, 10000, 1000, 0, true),
+  ('host_earnings', 'host_earnings', 'monthly', 1, 1, 1, 200000, 20000, 0, true),
+  ('host_earnings', 'host_earnings', 'monthly', 2, 2, 2, 120000, 12000, 0, true),
+  ('host_earnings', 'host_earnings', 'monthly', 3, 3, 3, 80000, 8000, 0, true),
+  ('host_earnings', 'host_earnings', 'monthly', 4, 4, 10, 40000, 4000, 0, true),
+  ('top_gifters', 'top_gifters', 'weekly', 1, 1, 1, 0, 10000, 0, true),
+  ('top_gifters', 'top_gifters', 'weekly', 2, 2, 2, 0, 6000, 0, true),
+  ('top_gifters', 'top_gifters', 'weekly', 3, 3, 3, 0, 4000, 0, true),
+  ('top_gifters', 'top_gifters', 'weekly', 4, 4, 10, 0, 2000, 0, true),
+  ('top_gifters', 'top_gifters', 'monthly', 1, 1, 1, 0, 40000, 0, true),
+  ('top_gifters', 'top_gifters', 'monthly', 2, 2, 2, 0, 24000, 0, true),
+  ('top_gifters', 'top_gifters', 'monthly', 3, 3, 3, 0, 16000, 0, true),
+  ('top_gifters', 'top_gifters', 'monthly', 4, 4, 10, 0, 8000, 0, true),
+  ('game_winners', 'game_winners', 'weekly', 1, 1, 1, 0, 8000, 0, true),
+  ('game_winners', 'game_winners', 'weekly', 2, 2, 2, 0, 5000, 0, true),
+  ('game_winners', 'game_winners', 'weekly', 3, 3, 3, 0, 3000, 0, true),
+  ('game_winners', 'game_winners', 'weekly', 4, 4, 10, 0, 1500, 0, true),
+  ('game_winners', 'game_winners', 'monthly', 1, 1, 1, 0, 30000, 0, true),
+  ('game_winners', 'game_winners', 'monthly', 2, 2, 2, 0, 18000, 0, true),
+  ('game_winners', 'game_winners', 'monthly', 3, 3, 3, 0, 12000, 0, true),
+  ('game_winners', 'game_winners', 'monthly', 4, 4, 10, 0, 6000, 0, true);

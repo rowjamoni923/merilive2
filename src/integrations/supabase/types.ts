@@ -4720,8 +4720,14 @@ export type Database = {
           id: string
           is_active: boolean | null
           leaderboard_type: string
-          rank_position: number
+          period_type: string | null
+          rank_from: number | null
+          rank_position: number | null
+          rank_to: number | null
           reward_amount: number
+          reward_beans: number | null
+          reward_coins: number | null
+          reward_diamonds: number | null
           reward_type: string
           title: string | null
           updated_at: string | null
@@ -4733,8 +4739,14 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           leaderboard_type: string
-          rank_position: number
+          period_type?: string | null
+          rank_from?: number | null
+          rank_position?: number | null
+          rank_to?: number | null
           reward_amount?: number
+          reward_beans?: number | null
+          reward_coins?: number | null
+          reward_diamonds?: number | null
           reward_type?: string
           title?: string | null
           updated_at?: string | null
@@ -4746,8 +4758,14 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           leaderboard_type?: string
-          rank_position?: number
+          period_type?: string | null
+          rank_from?: number | null
+          rank_position?: number | null
+          rank_to?: number | null
           reward_amount?: number
+          reward_beans?: number | null
+          reward_coins?: number | null
+          reward_diamonds?: number | null
           reward_type?: string
           title?: string | null
           updated_at?: string | null
@@ -7262,6 +7280,7 @@ export type Database = {
           created_at: string | null
           id: string
           is_active: boolean | null
+          period_type: string | null
           rank_position: number
           ranking_type: string
           reward_badge_url: string | null
@@ -7273,6 +7292,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_active?: boolean | null
+          period_type?: string | null
           rank_position: number
           ranking_type: string
           reward_badge_url?: string | null
@@ -7284,6 +7304,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_active?: boolean | null
+          period_type?: string | null
           rank_position?: number
           ranking_type?: string
           reward_badge_url?: string | null
@@ -11112,12 +11133,14 @@ export type Database = {
       get_game_rankings_leaderboard: {
         Args: { p_period_type?: string }
         Returns: {
+          app_uid: string
           avatar_url: string
           country_flag: string
           display_name: string
-          rank: number
-          score: number
-          user_id: string
+          frame_id: string
+          host_level: number
+          id: string
+          stat_value: number
           user_level: number
         }[]
       }
@@ -11137,24 +11160,28 @@ export type Database = {
       get_host_earnings_leaderboard: {
         Args: { p_period_type?: string }
         Returns: {
+          app_uid: string
           avatar_url: string
           country_flag: string
           display_name: string
-          rank: number
-          score: number
-          user_id: string
+          frame_id: string
+          host_level: number
+          id: string
+          stat_value: number
           user_level: number
         }[]
       }
       get_top_gifters_leaderboard: {
         Args: { p_period_type?: string }
         Returns: {
+          app_uid: string
           avatar_url: string
           country_flag: string
           display_name: string
-          rank: number
-          score: number
-          user_id: string
+          frame_id: string
+          host_level: number
+          id: string
+          stat_value: number
           user_level: number
         }[]
       }
