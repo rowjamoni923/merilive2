@@ -10832,6 +10832,10 @@ export type Database = {
         Args: { _claimed_date: string; _day_end: string; _day_start: string }
         Returns: Json
       }
+      claim_daily_task_reward: {
+        Args: { _reset_date?: string; _task_id: string; _user_id: string }
+        Returns: Json
+      }
       claim_invitation_reward: {
         Args: {
           _beans?: number
@@ -11129,6 +11133,15 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: Json
       }
+      get_daily_task_progress: {
+        Args: { _reset_date: string; _user_id: string }
+        Returns: {
+          current_progress: number
+          is_claimed: boolean
+          is_completed: boolean
+          task_id: string
+        }[]
+      }
       get_effective_host_percent: { Args: never; Returns: number }
       get_game_rankings_leaderboard: {
         Args: { p_period_type?: string }
@@ -11171,6 +11184,19 @@ export type Database = {
           user_level: number
         }[]
       }
+      get_leaderboard: {
+        Args: { _period: string }
+        Returns: {
+          avatar_url: string
+          country_flag: string
+          display_name: string
+          level: number
+          rank: number
+          stat_value: number
+          user_id: string
+        }[]
+      }
+      get_task_reset_date: { Args: never; Returns: string }
       get_top_gifters_leaderboard: {
         Args: { p_period_type?: string }
         Returns: {
