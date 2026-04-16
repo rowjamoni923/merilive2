@@ -521,7 +521,7 @@ const AgencyCoinExchange = () => {
           const { error: updateError } = await supabase
             .from('agencies')
             .update({
-              beans_balance: newBeansBalance,
+              wallet_balance: newBeansBalance,
               diamond_balance: newDiamondsBalance,
               updated_at: new Date().toISOString()
             })
