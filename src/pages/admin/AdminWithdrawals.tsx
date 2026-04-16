@@ -66,6 +66,10 @@ interface PaymentDetails {
   account_number?: string;
   bank_name?: string;
   additional_info?: string;
+  helper_payment_screenshot?: string;
+  helper_transaction_id?: string;
+  helper_notes?: string;
+  helper_processed_at?: string;
 }
 
 interface Withdrawal {

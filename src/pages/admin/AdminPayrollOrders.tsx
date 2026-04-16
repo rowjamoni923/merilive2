@@ -30,6 +30,10 @@ interface PaymentDetails {
   method_type?: string;
   account_name?: string;
   account_number?: string;
+  helper_transaction_id?: string;
+  helper_payment_screenshot?: string;
+  helper_notes?: string;
+  helper_processed_at?: string;
   // Fee details (admin only)
   withdrawal_fee_usd?: number;
   withdrawal_fee_beans?: number;
