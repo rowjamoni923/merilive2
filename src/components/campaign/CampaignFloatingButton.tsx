@@ -11,6 +11,7 @@ import { CAMPAIGN_TEMPLATES, type CampaignTemplate } from '@/components/admin/Ca
 import { useToast } from '@/hooks/use-toast';
 import { Capacitor } from '@capacitor/core';
 import playStoreBilling, { PLAY_STORE_PRODUCTS } from '@/sdk/PlayStoreBillingSDK';
+import { useAppState } from '@/hooks/useAppState';
 
 interface Campaign {
   id: string;
@@ -62,6 +63,8 @@ function formatCountdown(seconds: number): string {
 const SESSION_KEY = 'campaign_session_start';
 const PURCHASED_KEY = 'campaign_purchased_';
 
+const getCampaignSessionKey = (campaignId: string) => `${SESSION_KEY}_${campaignId}`;
+
 type PaymentTab = 'google' | 'recommend' | 'skrill';
 type PopupView = 'main' | 'payment_select' | 'payment_number';
 type PaymentStep = 'form' | 'processing' | 'pending';
@@ -89,7 +92,9 @@ export function CampaignFloatingButton() {
   const [helperPaymentProof, setHelperPaymentProof] = useState<string | null>(null);
   const [uploadingHelperProof, setUploadingHelperProof] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
+  const activeCampaignIdRef = useRef<string | null>(null);
   const { toast } = useToast();
+  const appState = useAppState();
 
   useEffect(() => {
     (async () => {
@@ -108,7 +113,7 @@ export function CampaignFloatingButton() {
     })();
   }, []);
 
-  const fetchCampaign = useCallback(async () => {
+  const fetchCampaign = useCallback(async (resetSession = false) => {
     const { data } = await supabase
       .from('recharge_campaigns')
       .select('*')
@@ -119,16 +124,24 @@ export function CampaignFloatingButton() {
     if (data && data.length > 0) {
       const c = data[0] as Campaign;
       const now = new Date();
-      if (c.schedule_start && new Date(c.schedule_start) > now) { setCampaign(null); return; }
-      if (c.schedule_end && new Date(c.schedule_end) < now) { setCampaign(null); return; }
+      if (c.schedule_start && new Date(c.schedule_start) > now) { setCampaign(null); setRemainingSeconds(0); return; }
+      if (c.schedule_end && new Date(c.schedule_end) < now) { setCampaign(null); setRemainingSeconds(0); return; }
+
+      activeCampaignIdRef.current = c.id;
 
       if (localStorage.getItem(PURCHASED_KEY + c.id)) {
         setPurchased(true);
         setCampaign(null);
+        setRemainingSeconds(0);
         return;
       }
 
-      const sessionKey = SESSION_KEY + '_' + c.id;
+      setPurchased(false);
+      const sessionKey = getCampaignSessionKey(c.id);
+      if (resetSession) {
+        sessionStorage.removeItem(sessionKey);
+      }
+
       let sessionStart = sessionStorage.getItem(sessionKey);
       if (!sessionStart) {
         sessionStart = String(Date.now());
@@ -139,15 +152,28 @@ export function CampaignFloatingButton() {
       const endMs = startMs + (c.duration_minutes * 60 * 1000);
       const remaining = Math.max(0, Math.floor((endMs - Date.now()) / 1000));
 
-      if (remaining <= 0) { setCampaign(null); return; }
+      if (remaining <= 0) {
+        setCampaign(null);
+        setRemainingSeconds(0);
+        return;
+      }
+
       setCampaign(c);
       setRemainingSeconds(remaining);
     } else {
+      activeCampaignIdRef.current = null;
+      setPurchased(false);
       setCampaign(null);
+      setRemainingSeconds(0);
     }
   }, []);
 
   useEffect(() => { fetchCampaign(); }, [fetchCampaign]);
+
+  useEffect(() => {
+    if (!appState.isActive || !appState.backgroundDuration || !activeCampaignIdRef.current) return;
+    void fetchCampaign(true);
+  }, [appState.isActive, appState.backgroundDuration, fetchCampaign]);
 
   useEffect(() => {
     if (!campaign || remainingSeconds <= 0) return;
@@ -328,7 +354,10 @@ export function CampaignFloatingButton() {
           const result = await playStoreBilling.purchase(productId, user.id);
           if (result.success) {
             localStorage.setItem(PURCHASED_KEY + campaign.id, 'true');
+            sessionStorage.removeItem(getCampaignSessionKey(campaign.id));
             setPurchased(true);
+            setCampaign(null);
+            setRemainingSeconds(0);
             setShowPopup(false);
             toast({ title: 'Purchase successful!', description: 'Diamonds added to your account' });
           } else {
@@ -428,6 +457,12 @@ export function CampaignFloatingButton() {
         }
 
         setHelperPaymentStep('pending');
+        localStorage.setItem(PURCHASED_KEY + campaign.id, 'true');
+        sessionStorage.removeItem(getCampaignSessionKey(campaign.id));
+        setPurchased(true);
+        setCampaign(null);
+        setRemainingSeconds(0);
+        setShowPopup(false);
         toast({ title: '⚡ Order Created!', description: 'Verifying transaction... Please wait.' });
         return;
       }
@@ -462,6 +497,12 @@ export function CampaignFloatingButton() {
 
       if (orderError) throw orderError;
 
+      localStorage.setItem(PURCHASED_KEY + campaign.id, 'true');
+      sessionStorage.removeItem(getCampaignSessionKey(campaign.id));
+      setPurchased(true);
+      setCampaign(null);
+      setRemainingSeconds(0);
+      setShowPopup(false);
       setHelperPaymentStep('pending');
       toast({ title: 'Order Submitted!', description: 'Helper will process your order shortly' });
     } catch (error: any) {
