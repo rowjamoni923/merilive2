@@ -215,9 +215,10 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts }: Li
 
       if (error) throw error;
       
-      // Parse preset_bets from JSON
+      // Parse preset_bets from JSON & ensure game_id falls back to row id (third_party games may have null game_id)
       const gamesWithPresets = (data || []).map(game => ({
         ...game,
+        game_id: game.game_id || game.id,
         preset_bets: game.preset_bets ? 
           (typeof game.preset_bets === 'string' ? JSON.parse(game.preset_bets) : game.preset_bets) 
           : DEFAULT_PRESET_BETS
