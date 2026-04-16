@@ -3174,12 +3174,44 @@ const Level5HelperDashboard = () => {
                       <div className="flex items-center justify-between bg-slate-900/50 rounded-lg p-2">
                         <span className="text-slate-400">Paid to:</span>
                         <span className="text-green-400 font-semibold">
+                    {/* Local Amount - FIRST */}
+                    {(selectedAgencyWithdrawal.payment_details as any)?.local_amount && (
+                      <div className="flex items-center justify-between bg-emerald-500/10 rounded-lg p-2 border border-emerald-500/20">
+                        <span className="text-slate-400">Local Amount:</span>
+                        <span className="text-emerald-400 font-bold text-lg">
+                          {(() => {
+                            const pd = selectedAgencyWithdrawal.payment_details as any;
+                            const cc = pd?.currency_code || selectedAgencyWithdrawal.currency_code;
+                            const symbolMap: Record<string, string> = { BDT: '৳', INR: '₹', PKR: '₨', NPR: '₨', IDR: 'Rp', PHP: '₱', MYR: 'RM', THB: '฿', VND: '₫', LKR: 'Rs' };
+                            const symbol = symbolMap[cc] || '';
+                            const netLocal = pd?.net_withdrawal_local || pd?.local_amount || 0;
+                            return `${symbol}${Number(netLocal).toLocaleString()}`;
+                          })()}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {/* USD Amount */}
+                    {(selectedAgencyWithdrawal.payment_details as any)?.usd_amount && (
+                      <div className="flex items-center justify-between bg-slate-900/50 rounded-lg p-2">
+                        <span className="text-slate-400">USD Amount:</span>
+                        <span className="text-cyan-400 font-bold">
+                          ${((selectedAgencyWithdrawal.payment_details as any).net_withdrawal_usd || (selectedAgencyWithdrawal.payment_details as any).usd_amount).toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Account Name */}
+                    {(selectedAgencyWithdrawal.payment_details as any)?.account_name && (
+                      <div className="flex items-center justify-between bg-slate-900/50 rounded-lg p-2">
+                        <span className="text-slate-400">Paid to:</span>
+                        <span className="text-green-400 font-semibold">
                           {(selectedAgencyWithdrawal.payment_details as any).account_name}
                         </span>
                       </div>
                     )}
                     
-                    {/* Account Number */}
+                    {/* Account Number with Copy */}
                     {(selectedAgencyWithdrawal.payment_details as any)?.account_number && (
                       <div className="flex items-center justify-between bg-slate-900/50 rounded-lg p-2">
                         <span className="text-slate-400">Number:</span>
@@ -3206,33 +3238,6 @@ const Level5HelperDashboard = () => {
                         <span className="text-slate-400">Bank:</span>
                         <span className="text-white font-medium">
                           {(selectedAgencyWithdrawal.payment_details as any).bank_name}
-                        </span>
-                      </div>
-                    )}
-                    
-                    {/* Local Amount */}
-                    {(selectedAgencyWithdrawal.payment_details as any)?.local_amount && (
-                      <div className="flex items-center justify-between bg-slate-900/50 rounded-lg p-2">
-                        <span className="text-slate-400">Local Amount:</span>
-                        <span className="text-emerald-400 font-bold">
-                          {(() => {
-                            const pd = selectedAgencyWithdrawal.payment_details as any;
-                            const cc = pd?.currency_code || selectedAgencyWithdrawal.currency_code;
-                            const symbolMap: Record<string, string> = { BDT: '৳', INR: '₹', PKR: '₨', NPR: '₨', IDR: 'Rp', PHP: '₱', MYR: 'RM', THB: '฿', VND: '₫', LKR: 'Rs' };
-                            const symbol = symbolMap[cc] || '';
-                            const netLocal = pd?.net_withdrawal_local || pd?.local_amount || 0;
-                            return `${symbol}${Number(netLocal).toLocaleString()}`;
-                          })()}
-                        </span>
-                      </div>
-                    )}
-                    
-                    {/* USD Amount */}
-                    {(selectedAgencyWithdrawal.payment_details as any)?.usd_amount && (
-                      <div className="flex items-center justify-between bg-slate-900/50 rounded-lg p-2">
-                        <span className="text-slate-400">USD Amount:</span>
-                        <span className="text-cyan-400 font-bold">
-                          ${((selectedAgencyWithdrawal.payment_details as any).net_withdrawal_usd || (selectedAgencyWithdrawal.payment_details as any).usd_amount).toFixed(2)}
                         </span>
                       </div>
                     )}
