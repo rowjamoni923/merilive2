@@ -544,6 +544,30 @@ const ProfileDetail = () => {
           }
         }
       )
+      // ⚡ LIVE STATUS: Instant update when stream ends or starts for this user
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "live_streams",
+          filter: `host_id=eq.${targetId}`,
+        },
+        (payload) => {
+          const stream = payload.new as any;
+          if (payload.eventType === "INSERT" && stream?.is_active) {
+            setActiveLiveStream({ id: stream.id, title: stream.title || "", viewer_count: stream.viewer_count || 0 });
+          } else if (payload.eventType === "UPDATE") {
+            if (stream?.is_active) {
+              setActiveLiveStream({ id: stream.id, title: stream.title || "", viewer_count: stream.viewer_count || 0 });
+            } else {
+              setActiveLiveStream(null);
+            }
+          } else if (payload.eventType === "DELETE") {
+            setActiveLiveStream(null);
+          }
+        }
+      )
       .subscribe();
 
     return () => {
