@@ -271,11 +271,11 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
     if (helperResult.error) throw helperResult.error;
     if (latestAgencyResult.error) throw latestAgencyResult.error;
-    if (profileResult.error) throw profileResult.error;
+      if (profileResult.error && profileResult.error.code !== 'PGRST116') throw profileResult.error;
 
     const nextTraderWallet = Number(helperResult.data?.wallet_balance || 0);
     const nextAgencyBalance = Number(latestAgencyResult.data?.diamond_balance || 0);
-    const personalCoins = Number(profileResult.data?.coins || 0);
+      const personalCoins = Number(profileResult.data?.coins || 0);
 
     setIsCoinTrader(Boolean(helperResult.data));
     setTraderWallet(nextTraderWallet);
@@ -1221,7 +1221,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         .from('app_settings')
         .select('setting_value')
         .eq('setting_key', 'call_rates')
-        .single();
+        .maybeSingle();
       
       if (settings?.setting_value) {
         const settingsValue = parseCallRateSettings(settings.setting_value);
@@ -1856,7 +1856,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                       .select('id, name, diamond_balance, wallet_balance')
                       .eq('owner_id', currentUser?.id)
                       .eq('is_active', true)
-                      .single();
+                      .maybeSingle();
                     
                     if (agency) {
                       setAgencyData({
