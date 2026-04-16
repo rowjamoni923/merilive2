@@ -208,29 +208,23 @@ const fetchSharedCounts = async (force = false) => {
   await sharedFetchPromise;
 };
 
+const realtimeRefresh = () => {
+  // Skip if we're in an optimistic suppress window (e.g. after mark-all-read)
+  if (optimisticSuppressUntil > Date.now()) return;
+  void fetchSharedCounts(true);
+};
+
 const ensureRealtimeSubscription = () => {
   if (!sharedUserId || sharedChannel) return;
 
   sharedChannel = supabase
     .channel(`global-unread-shared-${sharedUserId}`)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations', filter: `participant1_id=eq.${sharedUserId}` }, () => {
-      void fetchSharedCounts(true);
-    })
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations', filter: `participant2_id=eq.${sharedUserId}` }, () => {
-      void fetchSharedCounts(true);
-    })
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${sharedUserId}` }, () => {
-      void fetchSharedCounts(true);
-    })
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => {
-      void fetchSharedCounts(true);
-    })
-    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, () => {
-      void fetchSharedCounts(true);
-    })
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'admin_notices' }, () => {
-      void fetchSharedCounts(true);
-    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations', filter: `participant1_id=eq.${sharedUserId}` }, realtimeRefresh)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations', filter: `participant2_id=eq.${sharedUserId}` }, realtimeRefresh)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${sharedUserId}` }, realtimeRefresh)
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, realtimeRefresh)
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, realtimeRefresh)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'admin_notices' }, realtimeRefresh)
     .subscribe();
 };
 
