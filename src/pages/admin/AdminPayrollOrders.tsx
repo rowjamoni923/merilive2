@@ -171,26 +171,33 @@ const AdminPayrollOrders = () => {
       }));
 
       // Transform agency withdrawals to match PayrollOrder interface
-      const agencyOrders: PayrollOrder[] = (agencyWithdrawalsData || []).map(aw => ({
-        id: aw.id,
-        helper_id: aw.assigned_helper_id || '',
-        user_id: aw.agency?.owner_id || '',
-        coin_amount: aw.amount,
-        amount_usd: aw.amount, // Beans amount as USD equivalent
-        amount_local: aw.local_currency_amount || aw.amount,
-        currency_code: aw.currency_code || 'USD',
-        payment_method: aw.payment_method || 'Agency Withdrawal',
-        payment_details: aw.payment_details as PaymentDetails | null,
-        user_country_code: aw.country_code || '',
-        user_payment_proof: aw.helper_payment_screenshot,
-        status: aw.status,
-        helper_notes: aw.helper_notes,
-        created_at: aw.requested_at,
-        processed_at: aw.processed_at,
-        order_type: 'agency_withdrawal' as const,
-        helper: aw.helper,
-        agency: aw.agency
-      }));
+      const agencyOrders: PayrollOrder[] = (agencyWithdrawalsData || []).map(aw => {
+        const paymentDetails = (aw.payment_details as PaymentDetails | null) || null;
+        const helperTransactionId = paymentDetails?.helper_transaction_id || null;
+        const helperPaymentScreenshot = paymentDetails?.helper_payment_screenshot || null;
+        const helperPaymentNotes = paymentDetails?.helper_notes || null;
+
+        return {
+          id: aw.id,
+          helper_id: aw.assigned_helper_id || '',
+          user_id: aw.agency?.owner_id || '',
+          coin_amount: aw.amount,
+          amount_usd: aw.amount,
+          amount_local: aw.local_currency_amount || aw.amount,
+          currency_code: aw.currency_code || 'USD',
+          payment_method: aw.payment_method || 'Agency Withdrawal',
+          payment_details: paymentDetails,
+          user_country_code: aw.country_code || paymentDetails?.country_code || '',
+          user_payment_proof: helperPaymentScreenshot,
+          status: aw.status,
+          helper_notes: helperPaymentNotes,
+          created_at: aw.requested_at,
+          processed_at: aw.processed_at,
+          order_type: 'agency_withdrawal' as const,
+          helper: aw.helper,
+          agency: aw.agency
+        };
+      });
 
       // Combine and sort by date
       const allOrders = [...helperOrders, ...agencyOrders].sort((a, b) => 
