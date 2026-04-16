@@ -93,7 +93,12 @@ const AdminHostConversion = () => {
         .eq('id', req.id);
 
       // Send notification
-      await adminSendNotification(req.user_id, toHost, toHost, 'system')
+      await adminSendNotification(
+        req.user_id,
+        toHost ? '🎤 Host Account Activated!' : '👤 Converted to User',
+        toHost ? 'Congratulations! You have been converted to a Host. Start going live now!' : 'Your account has been converted to User mode.',
+        'system'
+      );
 
       toast({ title: "✅ Converted!", description: `User ${toHost ? 'converted to Host' : 'converted to User'}` });
       loadRequests();

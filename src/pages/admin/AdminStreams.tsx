@@ -339,7 +339,7 @@ export default function AdminStreams() {
             : ` You have been banned from going live for ${BAN_DURATION_OPTIONS.find((o) => o.value === banDuration)?.label}.`
           : "";
 
-        await adminSendNotification(hostId, applyBan, `Your live stream has been stopped by the admin team. Reason: "${reason}".${banLabel} Please ensure you follow community guidelines.`, "admin_warning")
+        await adminSendNotification(hostId, '⚠️ Live Stream Stopped', `Your live stream has been stopped by the admin team. Reason: "${reason}".${banLabel} Please ensure you follow community guidelines.`, 'admin_warning');
       }
 
       // 3) Apply ban (optional)

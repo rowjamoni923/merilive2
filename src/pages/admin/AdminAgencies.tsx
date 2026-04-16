@@ -512,7 +512,12 @@ export default function AdminAgencies() {
       
       // Send notification to agency owner
       if (selectedAgency.owner_id) {
-        await adminSendNotification(selectedAgency.owner_id, isCancelling, isCancelling, isCancelling)
+        await adminSendNotification(
+          selectedAgency.owner_id,
+          isCancelling ? '🚫 Agency Cancelled' : '✅ Agency Activated',
+          isCancelling ? `Your agency has been cancelled. Reason: ${cancelReason || 'Cancelled by admin'}` : 'Your agency has been activated successfully!',
+          isCancelling ? 'agency_cancelled' : 'agency_activated'
+        );
       }
       
       toast.success(isCancelling ? "Agency cancelled successfully" : "Agency activated successfully");
