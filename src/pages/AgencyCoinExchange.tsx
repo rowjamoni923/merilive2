@@ -787,7 +787,7 @@ const AgencyCoinExchange = () => {
                   />
                 </div>
                 <p className="text-xs text-white/40 mt-1">
-                  Minimum: {minimumExchangeAmount.toLocaleString()} | Agency beans: {ownerBeans.toLocaleString()}
+                  Minimum: {minimumExchangeAmount.toLocaleString()} | My Beans: {ownerBeans.toLocaleString()}
                 </p>
               </div>
 
@@ -841,11 +841,11 @@ const AgencyCoinExchange = () => {
               </div>
 
               {/* Insufficient Balance Warning */}
-              {totalBeansNeeded > (agency?.beans_balance || 0) && beansAmount && parseInt(beansAmount) > 0 && (
+              {totalBeansNeeded > ownerBeans && beansAmount && parseInt(beansAmount) > 0 && (
                 <div className="flex items-center gap-2 p-3 bg-red-500/20 rounded-lg border border-red-500/30">
                   <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
                   <p className="text-sm text-red-300">
-                    Insufficient beans. Required: {totalBeansNeeded.toLocaleString()} | Available: {(agency?.beans_balance || 0).toLocaleString()}
+                    Insufficient My Beans. Required: {totalBeansNeeded.toLocaleString()} | Available: {ownerBeans.toLocaleString()}
                   </p>
                 </div>
               )}
@@ -853,9 +853,9 @@ const AgencyCoinExchange = () => {
               {/* Convert Button */}
               <Button
                 onClick={handleExchange}
-                disabled={!beansAmount || (parseInt(beansAmount) || 0) < minimumExchangeAmount || totalBeansNeeded > (agency?.beans_balance || 0)}
+                disabled={!beansAmount || (parseInt(beansAmount) || 0) < minimumExchangeAmount || totalBeansNeeded > ownerBeans}
                 className={`w-full h-12 text-white font-semibold text-sm ${
-                  totalBeansNeeded > (agency?.beans_balance || 0) || !beansAmount || (parseInt(beansAmount) || 0) < minimumExchangeAmount
+                  totalBeansNeeded > ownerBeans || !beansAmount || (parseInt(beansAmount) || 0) < minimumExchangeAmount
                     ? 'bg-gray-500/50 cursor-not-allowed opacity-50'
                     : 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700'
                 }`}
