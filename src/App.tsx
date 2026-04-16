@@ -147,7 +147,7 @@ const AgencyHostManagement = lazy(() => import("./pages/AgencyHostManagement"));
 const JoinAgency = lazy(() => import("./pages/JoinAgency"));
 const BecomeSubAgent = lazy(() => import("./pages/BecomeSubAgent"));
 const HelperDashboard = lazy(() => import("./pages/HelperDashboard"));
-const Level5HelperDashboard = lazy(() => import("./pages/Level5HelperDashboard"));
+
 const PayrollHelperGuide = lazy(() => import("./pages/PayrollHelperGuide"));
 const AgencyDetails = lazy(() => import("./pages/AgencyDetails"));
 const AgencyPolicy = lazy(() => import("./pages/AgencyPolicy"));
@@ -990,7 +990,7 @@ const App = () => {
                 <Route path="/host-verification" element={<ProtectedRoute session={session}><HostVerification /></ProtectedRoute>} />
                 <Route path="/face-verification" element={<ProtectedRoute session={session}><FaceVerification /></ProtectedRoute>} />
                 <Route path="/helper-dashboard" element={<ProtectedRoute session={session}><HelperDashboard /></ProtectedRoute>} />
-                <Route path="/level5-helper-dashboard" element={<ProtectedRoute session={session}><Level5HelperDashboard /></ProtectedRoute>} />
+                
                 <Route path="/payroll-helper-guide" element={<PayrollHelperGuide />} />
                 <Route path="/party-rooms" element={<ProtectedRoute session={session}><PartyRooms /></ProtectedRoute>} />
                 <Route path="/party/:roomId" element={<ProtectedRoute session={session}><PartyRoom /></ProtectedRoute>} />

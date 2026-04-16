@@ -1097,21 +1097,6 @@ const HelperDashboard = () => {
           </div>
         </div>
 
-        {helperData?.trader_level === 5 && helperData?.payroll_enabled && (
-          <div 
-            onClick={() => navigate('/level5-helper-dashboard')}
-            className="mt-3 bg-gradient-to-r from-purple-500/30 to-pink-500/30 backdrop-blur-sm rounded-xl p-3 border border-purple-400/30 cursor-pointer hover:bg-purple-500/40 transition-all"
-          >
-            <div className="flex items-center gap-2">
-              <Banknote className="w-5 h-5 text-purple-300" />
-              <div>
-                <p className="text-white font-semibold text-sm">💎 Level 5 Dashboard</p>
-                <p className="text-purple-200 text-xs">Access payroll & withdrawal processing</p>
-              </div>
-              <ArrowLeft className="w-4 h-4 text-white/70 rotate-180 ml-auto" />
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Scrollable Content */}
@@ -1751,15 +1736,6 @@ const HelperDashboard = () => {
                       )}
                       
                       {/* Approved - Show dashboard access */}
-                      {helperData?.payroll_enabled && (
-                        <Button 
-                          onClick={() => navigate('/level5-helper-dashboard')}
-                          className="w-full mt-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white h-9 text-xs"
-                        >
-                          <CheckCircle className="w-3 h-3 mr-1" />
-                          Open Level 5 Dashboard
-                        </Button>
-                      )}
                     </div>
                   )}
                 </div>
