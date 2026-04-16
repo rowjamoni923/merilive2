@@ -2158,12 +2158,10 @@ const AgencyWithdrawal = () => {
         return;
       }
 
-      // Available balance = beans_balance (the actual accumulated earnings from commissions/transfers)
-      // wallet_balance may be stale or unused — beans_balance is the real source of truth
-      const effectiveBalance = Math.max(agencyData.beans_balance || 0, agencyData.wallet_balance || 0, 0);
+      // Match Agency Dashboard exactly: Total Beans uses agency.wallet_balance
+      const effectiveBalance = Math.max(agencyData.wallet_balance || 0, 0);
 
-      console.log('[AgencyWithdrawal] Effective balance (max of beans_balance/wallet_balance):', effectiveBalance, 
-        'beans_balance:', agencyData.beans_balance, 'wallet_balance:', agencyData.wallet_balance);
+      console.log('[AgencyWithdrawal] Effective balance (Agency Dashboard Total Beans source = wallet_balance):', effectiveBalance);
 
       setAgency({
         ...agencyData,
@@ -2218,10 +2216,10 @@ const AgencyWithdrawal = () => {
     const withdrawAmountBeans = localToBeans(localAmount);
     const usdAmount = localToUsd(localAmount);
     const totalDeduction = withdrawAmountBeans;
-    const availableBalance = agency.wallet_balance || 0;
+    const totalBeansBalance = agency.wallet_balance || 0;
 
-    if (totalDeduction > availableBalance) {
-      toast.error(`Insufficient balance. You need ${formatNumber(Math.round(totalDeduction))} beans. You have ${formatNumber(Math.round(availableBalance))} beans.`);
+    if (totalDeduction > totalBeansBalance) {
+      toast.error(`Insufficient balance. You need ${formatNumber(Math.round(totalDeduction))} beans. You have ${formatNumber(Math.round(totalBeansBalance))} beans.`);
       return;
     }
 
@@ -2480,11 +2478,11 @@ const AgencyWithdrawal = () => {
                 <Wallet className="w-7 h-7" />
               </div>
               <div className="flex-1">
-                <p className="text-white/80 text-sm font-medium">Available Balance</p>
+                <p className="text-white/80 text-sm font-medium">Total Beans</p>
                 <p className="text-4xl font-bold tracking-tight">
                   {formatNumber(agency?.wallet_balance || 0)}
                 </p>
-                <p className="text-white/60 text-xs mt-0.5">Beans</p>
+                <p className="text-white/60 text-xs mt-0.5">Withdrawable balance</p>
               </div>
             </div>
             
@@ -2649,10 +2647,9 @@ const AgencyWithdrawal = () => {
                       type="button"
                       variant="outline"
                       onClick={() => {
-                        const availableLocal = beansToLocal(agency?.wallet_balance || 0);
+                        const totalBeansLocal = beansToLocal(agency?.wallet_balance || 0);
                         const maxLimit = PAYMENT_MAX_LIMITS[selectedCountry]?.[paymentMethod] || 25000;
-                        // Use the smaller of available balance or max limit
-                        const fillAmount = Math.min(availableLocal, maxLimit);
+                        const fillAmount = Math.min(totalBeansLocal, maxLimit);
                         setAmount(Math.floor(fillAmount).toString());
                       }}
                       className="h-12 px-4 bg-purple-100 border-2 border-purple-300 text-purple-700 font-bold hover:bg-purple-200 hover:border-purple-400"
@@ -2663,7 +2660,7 @@ const AgencyWithdrawal = () => {
                   <div className="flex flex-col gap-1 text-xs">
                     <div className="flex justify-between">
                       <span className="text-gray-500">
-                        Available: {formatLocalCurrency(beansToLocal(agency?.wallet_balance || 0))}
+                        Total Beans: {formatLocalCurrency(beansToLocal(agency?.wallet_balance || 0))}
                       </span>
                       {amount && (
                         <span className="text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full">
