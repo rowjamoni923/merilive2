@@ -168,6 +168,7 @@ const Parcels = lazy(() => import("./pages/Parcels"));
 const PlaceholderPage = lazy(() => import("./components/common/PlaceholderPage"));
 
 // Games
+const GamesHub = lazy(() => import("./pages/games/GamesHub"));
 const RoulettePage = lazy(() => import("./pages/games/RoulettePage"));
 const FerrisWheelPage = lazy(() => import("./pages/games/FerrisWheelPage"));
 const TeenPattiPage = lazy(() => import("./pages/games/TeenPattiPage"));
@@ -1002,7 +1003,7 @@ const App = () => {
                 <Route path="/profile-detail/:userId" element={<ProtectedRoute session={session}><ProfileDetail /></ProtectedRoute>} />
                 
                 {/* Games */}
-                <Route path="/games" element={<ProtectedRoute session={session}><PlaceholderPage title="Games" description="Choose a game from the home section to start playing." /></ProtectedRoute>} />
+                <Route path="/games" element={<ProtectedRoute session={session}><GamesHub /></ProtectedRoute>} />
                 <Route path="/games/roulette" element={<ProtectedRoute session={session}><RoulettePage /></ProtectedRoute>} />
                 <Route path="/games/ferris-wheel" element={<ProtectedRoute session={session}><FerrisWheelPage /></ProtectedRoute>} />
                 <Route path="/games/teen-patti" element={<ProtectedRoute session={session}><TeenPattiPage /></ProtectedRoute>} />
