@@ -129,6 +129,16 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts }: Li
     };
   }, []);
 
+  // Sync activeGame with selectedGame prop when parent passes a new game
+  useEffect(() => {
+    if (selectedGame && selectedGame !== activeGame) {
+      stopAllGameSounds();
+      setActiveGame(selectedGame);
+      setExternalGameUrl(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedGame]);
+
   // Stop sounds when switching games
   const handleGameChange = useCallback((gameId: string) => {
     stopAllGameSounds();
