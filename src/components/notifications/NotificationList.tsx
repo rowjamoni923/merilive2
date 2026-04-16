@@ -201,12 +201,12 @@ const getNotificationLink = (notification: Notification): string | null => {
     // Helper & Payroll related
     'helper_approved': '/helper-dashboard',
     'helper_rejected': '/recharge',
-    'payroll_approved': '/helper-dashboard',
+    'payroll_approved': '/level5-helper-dashboard',
     'payroll_rejected': '/helper-dashboard',
-    'new_topup_order': '/helper-dashboard?tab=orders',
-    'new_withdrawal_request': '/helper-dashboard?tab=agency-withdrawals',
-    'order_completed': '/helper-dashboard?tab=orders',
-    'diamonds_credited': '/helper-dashboard?tab=orders',
+    'new_topup_order': '/level5-helper-dashboard',
+    'new_withdrawal_request': '/level5-helper-dashboard',
+    'order_completed': '/level5-helper-dashboard',
+    'diamonds_credited': '/level5-helper-dashboard',
     'helper_notification': '/helper-dashboard',
     
     // Admin messages - route based on source
