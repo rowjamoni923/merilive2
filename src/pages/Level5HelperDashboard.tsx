@@ -3232,7 +3232,7 @@ const Level5HelperDashboard = () => {
                       <div className="flex items-center justify-between bg-slate-900/50 rounded-lg p-2">
                         <span className="text-slate-400">USD Amount:</span>
                         <span className="text-cyan-400 font-bold">
-                          ${((selectedAgencyWithdrawal.payment_details as any).usd_amount).toFixed(2)}
+                          ${((selectedAgencyWithdrawal.payment_details as any).net_withdrawal_usd || (selectedAgencyWithdrawal.payment_details as any).usd_amount).toFixed(2)}
                         </span>
                       </div>
                     )}
