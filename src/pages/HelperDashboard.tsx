@@ -1751,6 +1751,15 @@ const HelperDashboard = () => {
                       )}
                       
                       {/* Approved - Show dashboard access */}
+                      {helperData?.payroll_enabled && (
+                        <Button 
+                          onClick={() => navigate('/level5-helper-dashboard')}
+                          className="w-full mt-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white h-9 text-xs"
+                        >
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          Open Level 5 Dashboard
+                        </Button>
+                      )}
                     </div>
                   )}
                 </div>
