@@ -69,7 +69,12 @@ export default function AdminDeviceManagement() {
 
   useAdminRealtime(['admin_allowed_devices'], () => checkOwnerAndFetchDevices());
 
+  useEffect(() => {
+    void checkOwnerAndFetchDevices();
+  }, []);
+
   const checkOwnerAndFetchDevices = async () => {
+    setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -77,11 +82,13 @@ export default function AdminDeviceManagement() {
         return;
       }
 
-      const { data: adminUser } = await supabase
+      const { data: adminUser, error: adminUserError } = await supabase
         .from('admin_users')
         .select('role')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
+
+      if (adminUserError) throw adminUserError;
 
       if (adminUser?.role !== 'owner') {
         toast.error('Only owner can access device management');
@@ -103,18 +110,35 @@ export default function AdminDeviceManagement() {
     try {
       const { data, error } = await supabase
         .from('admin_allowed_devices')
-        .select(`
-          *,
-          admin_user:admin_users!admin_allowed_devices_admin_user_id_fkey (
-            display_name,
-            email,
-            role
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setDevices(data || []);
+
+      const adminUserIds = [...new Set((data || []).map((device) => device.admin_user_id).filter(Boolean))];
+      let adminUserMap = new Map<string, { display_name: string | null; email: string; role: string }>();
+
+      if (adminUserIds.length > 0) {
+        const { data: adminUsers, error: adminUsersError } = await supabase
+          .from('admin_users')
+          .select('user_id, display_name, email, role')
+          .in('user_id', adminUserIds);
+
+        if (adminUsersError) throw adminUsersError;
+
+        (adminUsers || []).forEach((adminUser) => {
+          adminUserMap.set(adminUser.user_id, {
+            display_name: adminUser.display_name,
+            email: adminUser.email,
+            role: adminUser.role,
+          });
+        });
+      }
+
+      setDevices((data || []).map((device) => ({
+        ...device,
+        admin_user: adminUserMap.get(device.admin_user_id),
+      })) as DeviceRecord[]);
     } catch (error) {
       console.error('Error fetching devices:', error);
       toast.error('Failed to load devices');

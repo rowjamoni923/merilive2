@@ -91,31 +91,68 @@ const AdminHelperOrders = () => {
 
   useAdminRealtime(['helper_orders'], () => fetchOrders());
 
+  useEffect(() => {
+    void fetchOrders();
+  }, []);
+
   const fetchOrders = async () => {
+    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('helper_orders')
-        .select(`
-          *,
-          helper:topup_helpers(
-            user_id,
-            wallet_balance,
-            user:profiles!topup_helpers_user_id_fkey(
-              display_name,
-              avatar_url,
-              app_uid
-            )
-          ),
-          user:profiles!helper_orders_user_id_fkey(
-            display_name,
-            avatar_url,
-            app_uid
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setOrders((data || []) as unknown as HelperOrder[]);
+
+      const helperIds = [...new Set((data || []).map((order: any) => order.helper_id).filter(Boolean))];
+      const customerIds = [...new Set((data || []).map((order: any) => order.user_id || order.customer_id).filter(Boolean))];
+
+      let helperMap = new Map<string, any>();
+      let profileMap = new Map<string, any>();
+
+      if (helperIds.length > 0) {
+        const { data: helpers, error: helpersError } = await supabase
+          .from('topup_helpers')
+          .select('id, user_id, wallet_balance')
+          .in('id', helperIds);
+
+        if (helpersError) throw helpersError;
+        (helpers || []).forEach((helper) => helperMap.set(helper.id, helper));
+      }
+
+      const profileIds = [...new Set([
+        ...customerIds,
+        ...Array.from(helperMap.values()).map((helper: any) => helper.user_id).filter(Boolean),
+      ])];
+
+      if (profileIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, display_name, avatar_url, app_uid')
+          .in('id', profileIds);
+
+        if (profilesError) throw profilesError;
+        (profiles || []).forEach((profile) => profileMap.set(profile.id, profile));
+      }
+
+      const normalizedOrders = (data || []).map((order: any) => {
+        const helper = helperMap.get(order.helper_id);
+        const customerId = order.user_id || order.customer_id;
+
+        return {
+          ...order,
+          user: customerId ? profileMap.get(customerId) || null : null,
+          helper: helper
+            ? {
+                ...helper,
+                user: helper.user_id ? profileMap.get(helper.user_id) || null : null,
+              }
+            : null,
+        };
+      });
+
+      setOrders(normalizedOrders as HelperOrder[]);
     } catch (error) {
       console.error('Error fetching orders:', error);
       toast({
