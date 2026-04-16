@@ -473,7 +473,7 @@ export const useNotifications = () => {
         if (error) throw error;
       }
 
-      emitGlobalUnreadRefresh({ notificationsDecrement: 0 });
+      // Scheduled refresh from optimistic update will verify DB state
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
       setNotifications(previousNotifications);
