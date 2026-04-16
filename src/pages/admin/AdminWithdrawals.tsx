@@ -928,45 +928,53 @@ export default function AdminWithdrawals() {
               </div>
 
               {/* Helper Payment Info - Transaction ID & Screenshot */}
-              {(selectedWithdrawal.helper_transaction_id || selectedWithdrawal.helper_payment_screenshot) && (
-                <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg p-4 space-y-3 border border-purple-500/30">
-                  <p className="text-purple-300 text-sm font-medium flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4" />
-                    📤 Helper Payment Info (Processing)
-                  </p>
-                  
-                  {selectedWithdrawal.helper_transaction_id && (
-                    <div className="bg-slate-800/50 rounded-lg p-3">
-                      <span className="text-white/60 text-xs block mb-1">Transaction ID:</span>
-                      <span className="text-yellow-400 font-mono text-lg font-bold">
-                        {selectedWithdrawal.helper_transaction_id}
-                      </span>
-                    </div>
-                  )}
-                  
-                  {selectedWithdrawal.helper_notes && (
-                    <div className="bg-slate-800/50 rounded-lg p-3">
-                      <span className="text-white/60 text-xs block mb-1">Helper Notes:</span>
-                      <span className="text-white/80">{selectedWithdrawal.helper_notes}</span>
-                    </div>
-                  )}
-                  
-                  {selectedWithdrawal.helper_payment_screenshot && (
-                    <div>
-                      <span className="text-white/60 text-xs block mb-2">📸 Payment Screenshot:</span>
-                      <div className="rounded-xl overflow-hidden border-2 border-purple-500/30 cursor-pointer"
-                           onClick={() => imageViewer.openImage(selectedWithdrawal.helper_payment_screenshot!)}>
-                        <img 
-                          src={selectedWithdrawal.helper_payment_screenshot} 
-                          alt="Helper payment proof" 
-                          className="w-full max-h-64 object-contain bg-slate-800"
-                        />
+              {(() => {
+                const helperTransactionId = selectedWithdrawal.helper_transaction_id || selectedWithdrawal.payment_details?.helper_transaction_id;
+                const helperPaymentScreenshot = selectedWithdrawal.helper_payment_screenshot || selectedWithdrawal.payment_details?.helper_payment_screenshot;
+                const helperPaymentNotes = selectedWithdrawal.helper_notes || selectedWithdrawal.payment_details?.helper_notes;
+
+                if (!helperTransactionId && !helperPaymentScreenshot && !helperPaymentNotes) return null;
+
+                return (
+                  <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg p-4 space-y-3 border border-purple-500/30">
+                    <p className="text-purple-300 text-sm font-medium flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4" />
+                      📤 Helper Payment Info (Processing)
+                    </p>
+                    
+                    {helperTransactionId && (
+                      <div className="bg-slate-800/50 rounded-lg p-3">
+                        <span className="text-white/60 text-xs block mb-1">Transaction ID:</span>
+                        <span className="text-yellow-400 font-mono text-lg font-bold break-all">
+                          {helperTransactionId}
+                        </span>
                       </div>
-                      <p className="text-xs text-purple-300 text-center mt-1">Click to view full size</p>
-                    </div>
-                  )}
-                </div>
-              )}
+                    )}
+                    
+                    {helperPaymentNotes && (
+                      <div className="bg-slate-800/50 rounded-lg p-3">
+                        <span className="text-white/60 text-xs block mb-1">Helper Notes:</span>
+                        <span className="text-white/80 whitespace-pre-wrap break-words">{helperPaymentNotes}</span>
+                      </div>
+                    )}
+                    
+                    {helperPaymentScreenshot && (
+                      <div>
+                        <span className="text-white/60 text-xs block mb-2">📸 Payment Screenshot:</span>
+                        <div className="rounded-xl overflow-hidden border-2 border-purple-500/30 cursor-pointer"
+                             onClick={() => imageViewer.openImage(helperPaymentScreenshot)}>
+                          <img 
+                            src={helperPaymentScreenshot} 
+                            alt="Helper payment proof" 
+                            className="w-full max-h-64 object-contain bg-slate-800"
+                          />
+                        </div>
+                        <p className="text-xs text-purple-300 text-center mt-1">Click to view full size</p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
 
               {selectedWithdrawal.notes && (
                 <div className="bg-white/5 rounded-lg p-4">
