@@ -277,7 +277,7 @@ const VIP = () => {
       // Fetch current VIP subscription
       const { data: vipData } = await supabase
         .from("user_vip_subscriptions")
-        .select("tier_id, vip_tiers(tier_level), expires_at")
+        .select("vip_tier_id, vip_tiers(tier_level), expires_at")
         .eq("user_id", user.id)
         .eq("is_active", true)
         .gte("expires_at", new Date().toISOString())
@@ -588,7 +588,7 @@ const VIP = () => {
       const localVIPLevel = vipData?.vip_tiers ? (vipData.vip_tiers as any).tier_level || 0 : 0;
       if (localVIPLevel > 0 && tiersData && tiersData.length > 0) {
         const activeTier = tiersData.find(t => t.tier_level === localVIPLevel) || 
-                          (vipData?.tier_id ? tiersData.find(t => t.id === vipData.tier_id) : null);
+                          (vipData?.vip_tier_id ? tiersData.find(t => t.id === vipData.vip_tier_id) : null);
         if (activeTier) {
           // VIP Frame
           if (isValidAssetUrl(activeTier.frame_animation_url)) {
