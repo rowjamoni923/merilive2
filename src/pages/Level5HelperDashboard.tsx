@@ -27,6 +27,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import Beans3DIcon from "@/components/common/Beans3DIcon";
+import { resolveNetWithdrawalBeans, resolveNetWithdrawalLocal, resolveNetWithdrawalUsd } from "@/utils/agencyWithdrawalAmounts";
 
 interface PaymentMethod {
   id: string;
@@ -1386,7 +1387,7 @@ const Level5HelperDashboard = () => {
                         <div className="text-right">
                           <p className="text-emerald-400 font-bold flex items-center justify-end gap-1">
                             <Beans3DIcon size={16} />
-                            {((withdrawal.payment_details as any)?.net_withdrawal_beans || withdrawal.amount)?.toLocaleString()}
+                            {resolveNetWithdrawalBeans(withdrawal).toLocaleString()}
                           </p>
                           {withdrawal.local_currency_amount && withdrawal.currency_code && (
                             <p className="text-slate-400 text-xs">
@@ -1975,7 +1976,7 @@ const Level5HelperDashboard = () => {
                     <p className="text-xs text-orange-400 font-medium">💰 Agency Withdrawal History</p>
                     {completedWithdrawals.map((withdrawal) => {
                       const displayStatus = withdrawal.status === 'approved' ? 'completed' : withdrawal.status;
-                      const processedBeans = Number(withdrawal.payment_details?.net_withdrawal_beans ?? withdrawal.amount ?? 0);
+                      const processedBeans = resolveNetWithdrawalBeans(withdrawal);
                       const helperReward = Number(withdrawal.helper_net_reward ?? withdrawal.diamond_reward ?? 0);
                       const transactionId = withdrawal.helper_transaction_id || withdrawal.payment_details?.helper_transaction_id;
                       const statusConfig = {
@@ -3137,12 +3138,12 @@ const Level5HelperDashboard = () => {
                         const cc = pd?.currency_code || selectedAgencyWithdrawal.currency_code;
                         const symbolMap: Record<string, string> = { BDT: '৳', INR: '₹', PKR: '₨', NPR: '₨', IDR: 'Rp', PHP: '₱', MYR: 'RM', THB: '฿', VND: '₫', LKR: 'Rs', AED: 'د.إ', SAR: '﷼', USD: '$', GBP: '£' };
                         const symbol = symbolMap[cc] || cc || '';
-                        const netLocal = pd?.net_withdrawal_local || pd?.local_amount || 0;
+                        const netLocal = resolveNetWithdrawalLocal(selectedAgencyWithdrawal);
                         return `${symbol}${Number(netLocal).toLocaleString()}`;
                       })()}
                     </p>
                   </div>
-                  <p className="text-slate-400 text-xs mt-1">Local Amount</p>
+                  <p className="text-slate-400 text-xs mt-1">Payable Amount After Fee</p>
                 </div>
               </div>
 
@@ -3205,14 +3206,14 @@ const Level5HelperDashboard = () => {
                     {/* Local Amount - FIRST */}
                     {(selectedAgencyWithdrawal.payment_details as any)?.local_amount && (
                       <div className="flex items-center justify-between bg-emerald-500/10 rounded-lg p-2 border border-emerald-500/20">
-                        <span className="text-slate-400">Local Amount:</span>
+                        <span className="text-slate-400">Payable Local Amount:</span>
                         <span className="text-emerald-400 font-bold text-lg">
                           {(() => {
                             const pd = selectedAgencyWithdrawal.payment_details as any;
                             const cc = pd?.currency_code || selectedAgencyWithdrawal.currency_code;
                             const symbolMap: Record<string, string> = { BDT: '৳', INR: '₹', PKR: '₨', NPR: '₨', IDR: 'Rp', PHP: '₱', MYR: 'RM', THB: '฿', VND: '₫', LKR: 'Rs' };
                             const symbol = symbolMap[cc] || '';
-                            const netLocal = pd?.net_withdrawal_local || pd?.local_amount || 0;
+                            const netLocal = resolveNetWithdrawalLocal(selectedAgencyWithdrawal);
                             return `${symbol}${Number(netLocal).toLocaleString()}`;
                           })()}
                         </span>
@@ -3222,9 +3223,9 @@ const Level5HelperDashboard = () => {
                     {/* USD Amount */}
                     {(selectedAgencyWithdrawal.payment_details as any)?.usd_amount && (
                       <div className="flex items-center justify-between bg-slate-900/50 rounded-lg p-2">
-                        <span className="text-slate-400">USD Amount:</span>
+                        <span className="text-slate-400">Payable USD Amount:</span>
                         <span className="text-cyan-400 font-bold">
-                          ${((selectedAgencyWithdrawal.payment_details as any).net_withdrawal_usd || (selectedAgencyWithdrawal.payment_details as any).usd_amount).toFixed(2)}
+                          ${resolveNetWithdrawalUsd(selectedAgencyWithdrawal).toFixed(2)}
                         </span>
                       </div>
                     )}
