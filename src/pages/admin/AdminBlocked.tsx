@@ -60,7 +60,6 @@ export default function AdminBlocked() {
   const fetchBlockedItems = async () => {
     if (blockedUsers.length === 0) setLoading(true);
     try {
-      // Fetch blocked users
       const { data: users, error: usersError } = await supabase
         .from("profiles")
         .select("id, display_name, avatar_url, blocked_at, blocked_reason, is_host")
@@ -70,23 +69,43 @@ export default function AdminBlocked() {
       if (usersError) throw usersError;
       setBlockedUsers(users || []);
 
-      // Fetch blocked agencies
       const { data: agencies, error: agenciesError } = await supabase
         .from("agencies")
-        .select(`
-          id, name, agency_code, blocked_at, blocked_reason, total_hosts,
-          owner:profiles!agencies_owner_id_fkey(display_name, avatar_url)
-        `)
+        .select("id, owner_id, name, agency_code, blocked_at, blocked_reason, total_hosts")
         .eq("is_blocked", true)
         .order("blocked_at", { ascending: false });
 
       if (agenciesError) throw agenciesError;
-      
-      const formattedAgencies = (agencies || []).map(agency => ({
-        ...agency,
-        owner: Array.isArray(agency.owner) ? agency.owner[0] : agency.owner
+
+      const ownerIds = [...new Set((agencies || []).map((agency: any) => agency.owner_id).filter(Boolean))];
+      let ownerMap = new Map<string, { display_name: string; avatar_url: string | null }>();
+
+      if (ownerIds.length > 0) {
+        const { data: owners, error: ownersError } = await supabase
+          .from('profiles')
+          .select('id, display_name, avatar_url')
+          .in('id', ownerIds);
+
+        if (ownersError) throw ownersError;
+
+        (owners || []).forEach((owner) => {
+          ownerMap.set(owner.id, {
+            display_name: owner.display_name || 'Unknown Owner',
+            avatar_url: owner.avatar_url,
+          });
+        });
+      }
+
+      const formattedAgencies = (agencies || []).map((agency: any) => ({
+        id: agency.id,
+        name: agency.name,
+        agency_code: agency.agency_code,
+        blocked_at: agency.blocked_at,
+        blocked_reason: agency.blocked_reason,
+        total_hosts: agency.total_hosts,
+        owner: agency.owner_id ? ownerMap.get(agency.owner_id) || null : null,
       })) as BlockedAgency[];
-      
+
       setBlockedAgencies(formattedAgencies);
     } catch (error) {
       console.error("Error fetching blocked items:", error);
@@ -95,6 +114,10 @@ export default function AdminBlocked() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    void fetchBlockedItems();
+  }, []);
 
   useAdminRealtime(['profiles', 'agencies', 'banned_devices'], fetchBlockedItems, 'admin-blocked-rt');
 
