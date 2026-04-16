@@ -995,6 +995,7 @@ export type Database = {
           agency_id: string
           amount: number
           assigned_helper_id: string | null
+          country_code: string | null
           exchange_rate: number | null
           helper_processed_at: string | null
           id: string
@@ -1012,6 +1013,7 @@ export type Database = {
           agency_id: string
           amount: number
           assigned_helper_id?: string | null
+          country_code?: string | null
           exchange_rate?: number | null
           helper_processed_at?: string | null
           id?: string
@@ -1029,6 +1031,7 @@ export type Database = {
           agency_id?: string
           amount?: number
           assigned_helper_id?: string | null
+          country_code?: string | null
           exchange_rate?: number | null
           helper_processed_at?: string | null
           id?: string
