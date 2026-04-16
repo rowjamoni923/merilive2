@@ -73,35 +73,9 @@ export const saveAppSetting = async (
     updated_at: new Date().toISOString(),
   };
 
-  const { data: existing, error: checkError } = await supabase
-    .from("app_settings")
-    .select("id")
-    .eq("setting_key", key)
-    .maybeSingle();
-
-  if (checkError) throw checkError;
-
-  if (existing) {
-    const { error } = await supabase
-      .from("app_settings")
-      .update({
-        setting_value: payload.setting_value,
-        description: payload.description,
-        updated_at: payload.updated_at,
-      })
-      .eq("setting_key", key);
-
-    if (error) throw error;
-    return;
-  }
-
   const { error } = await supabase
     .from("app_settings")
-    .insert({
-      setting_key: payload.setting_key,
-      setting_value: payload.setting_value,
-      description: payload.description,
-    });
+    .upsert(payload, { onConflict: "setting_key" });
 
   if (error) throw error;
 };

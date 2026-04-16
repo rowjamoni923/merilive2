@@ -1,5 +1,6 @@
-import { useEffect, useRef, useCallback, useState } from "react";
+import { useEffect, useRef, useCallback, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getAdminRealtimeLockRemaining } from "@/utils/adminRealtimeMutationGuard";
 
 /**
  * 🔄 Unified Admin Realtime System (Single Source of Truth)
@@ -114,6 +115,7 @@ export const useAdminRealtime = (
 ) => {
   const onUpdateRef = useRef(onUpdate);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const trackedTables = useMemo(() => Array.from(new Set(tables)), [tables.join('|')]);
 
   const debounceMs = options.debounceMs ?? DEFAULT_DEBOUNCE_MS;
   const enableVisibilityRefresh = options.enableVisibilityRefresh ?? false;
@@ -127,10 +129,20 @@ export const useAdminRealtime = (
 
   const debouncedRefresh = useCallback(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
+
+    const runRefresh = () => {
+      const lockRemaining = getAdminRealtimeLockRemaining(trackedTables);
+
+      if (lockRemaining > 0) {
+        debounceRef.current = setTimeout(runRefresh, Math.min(lockRemaining + 60, 2000));
+        return;
+      }
+
       onUpdateRef.current();
-    }, debounceMs);
-  }, [debounceMs]);
+    };
+
+    debounceRef.current = setTimeout(runRefresh, debounceMs);
+  }, [debounceMs, trackedTables]);
 
   // ⚡ Auth-aware: Only fetch data AFTER auth session is confirmed
   // This prevents "Failed to load data" toasts from premature RLS-blocked queries
@@ -176,9 +188,8 @@ export const useAdminRealtime = (
         window.location.hash.startsWith('#/admin') ||
         window.location.hash.includes('/admin'));
 
-    const normalizedTables = Array.from(new Set(tables));
-    const eventTables = normalizedTables.filter((t) => GLOBALLY_MONITORED_TABLES.has(t));
-    const directTables = normalizedTables.filter((t) => !GLOBALLY_MONITORED_TABLES.has(t));
+    const eventTables = trackedTables.filter((t) => GLOBALLY_MONITORED_TABLES.has(t));
+    const directTables = trackedTables.filter((t) => !GLOBALLY_MONITORED_TABLES.has(t));
 
     let lastRealtimeTouch = Date.now();
 
@@ -247,7 +258,7 @@ export const useAdminRealtime = (
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [
-    tables.join('|'),
+      trackedTables.join('|'),
     debouncedRefresh,
     channelName,
     enableVisibilityRefresh,
