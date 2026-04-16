@@ -74,6 +74,12 @@ export default function AdminSettings() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  const helperPlatformFeePercent = settings?.helper_fee_settings.platform_fee_percent ?? 10;
+  const helperReceivesPercent = settings?.helper_fee_settings.helper_receives_percent ?? (100 - helperPlatformFeePercent);
+  const helperRewardExample = 10000;
+  const platformFeeExampleAmount = Math.round((helperRewardExample * helperPlatformFeePercent) / 100);
+  const helperNetExampleAmount = Math.round((helperRewardExample * helperReceivesPercent) / 100);
+
   useAdminRealtime(['app_settings'], () => fetchSettings());
 
   const fetchSettings = async () => {
@@ -606,18 +612,18 @@ export default function AdminSettings() {
                     <div className="text-center space-y-2">
                       <div>
                         <p className="text-slate-500 text-xs">Platform Gets</p>
-                        <p className="font-bold text-red-500 text-lg">{settings?.helper_fee_settings.platform_fee_percent || 10}%</p>
+                        <p className="font-bold text-red-500 text-lg">{helperPlatformFeePercent}%</p>
                       </div>
                       <div className="border-t border-slate-200 pt-2">
                         <p className="text-slate-500 text-xs">Helper Gets</p>
-                        <p className="font-bold text-green-600 text-lg">{settings?.helper_fee_settings.helper_receives_percent || 90}%</p>
+                        <p className="font-bold text-green-600 text-lg">{helperReceivesPercent}%</p>
                       </div>
                       <div className="border-t border-slate-200 pt-2">
                         <p className="text-slate-500 text-xs">Example: 10,000 💎 Reward</p>
                         <p className="text-sm">
-                          <span className="text-red-500 font-semibold">{((settings?.helper_fee_settings.platform_fee_percent || 10) * 100).toLocaleString()}</span>
+                          <span className="text-red-500 font-semibold">{platformFeeExampleAmount.toLocaleString()} 💎</span>
                           <span className="text-slate-400 mx-1">→</span>
-                          <span className="text-green-600 font-semibold">{((settings?.helper_fee_settings.helper_receives_percent || 90) * 100).toLocaleString()} 💎</span>
+                          <span className="text-green-600 font-semibold">{helperNetExampleAmount.toLocaleString()} 💎</span>
                         </p>
                       </div>
                     </div>

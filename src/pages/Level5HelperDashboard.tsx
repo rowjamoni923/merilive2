@@ -73,6 +73,7 @@ interface AgencyWithdrawal {
   helper_notes?: string;
   helper_net_reward?: number;
   diamond_reward?: number;
+  platform_fee_amount?: number;
   helper_processed_at?: string | null;
   assigned_helper_id?: string | null;
   claim_locked_until?: string | null;
@@ -2024,8 +2025,12 @@ const Level5HelperDashboard = () => {
                     <p className="text-xs text-orange-400 font-medium">💰 Agency Withdrawal History</p>
                     {completedWithdrawals.map((withdrawal) => {
                       const displayStatus = withdrawal.status === 'approved' ? 'completed' : withdrawal.status;
-                      const processedBeans = resolveNetWithdrawalBeans(withdrawal);
-                      const helperReward = Number(withdrawal.helper_net_reward ?? withdrawal.diamond_reward ?? 0);
+                      const grossReward = Number(withdrawal.diamond_reward ?? 0);
+                      const platformFeeAmount = Number(withdrawal.platform_fee_amount ?? 0);
+                      const helperReward = Math.max(
+                        0,
+                        Number(withdrawal.helper_net_reward ?? (grossReward > 0 ? grossReward - platformFeeAmount : 0))
+                      );
                       const transactionId = withdrawal.helper_transaction_id || withdrawal.payment_details?.helper_transaction_id;
                       const statusConfig = {
                         completed: {
@@ -2077,13 +2082,9 @@ const Level5HelperDashboard = () => {
                               </div>
                               <div className="text-right">
                                 <p className={cn("font-bold text-sm", config.amount)}>
-                                  {processedBeans.toLocaleString()} Beans
+                                  {helperReward.toLocaleString()} 💎
                                 </p>
-                                {helperReward > 0 && (
-                                  <p className="text-cyan-400 text-[10px]">
-                                    Wallet +{helperReward.toLocaleString()}
-                                  </p>
-                                )}
+                                <p className="text-cyan-400 text-[10px]">Net diamonds after admin fee</p>
                                 <p className="text-slate-500 text-[10px]">
                                   {format(new Date(withdrawal.processed_at || withdrawal.requested_at), 'dd MMM')}
                                 </p>
