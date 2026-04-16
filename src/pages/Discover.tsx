@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { getSessionCache, setSessionCache } from "@/hooks/useSessionCache";
 import { NativePullToRefresh } from "@/components/common/NativePullToRefresh";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { useNavigate } from "react-router-dom";
@@ -62,10 +63,10 @@ const partyCountries = [
 
 const Discover = () => {
   const navigate = useNavigate();
-  const [rooms, setRooms] = useState<PartyRoom[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [rooms, setRooms] = useState<PartyRoom[]>(() => getSessionCache<PartyRoom[]>('discover-rooms') ?? []);
+  const [loading, setLoading] = useState(() => !getSessionCache('discover-rooms'));
   const [refreshing, setRefreshing] = useState(false);
-  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(() => !!getSessionCache('discover-rooms'));
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("all");
   const [selectedCountry, setSelectedCountry] = useState("all");
@@ -200,6 +201,7 @@ const Discover = () => {
         .sort((a, b) => b.current_participants - a.current_participants);
 
       setRooms(visibleRooms);
+      setSessionCache('discover-rooms', visibleRooms);
       setLastUpdate(new Date());
     } catch (error) {
       console.error('Error fetching rooms:', error);

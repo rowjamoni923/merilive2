@@ -879,7 +879,7 @@ const App = () => {
   }
 
   // Domain-based routing: merilive.top shows landing page (except specific routes)
-  const isMeriliveTop = window.location.hostname === 'merilive.top' || window.location.hostname === 'www.merilive.top';
+  const isMeriliveTop = window.location.hostname === 'merilive.top' || window.location.hostname === 'www.merilive.top' || window.location.hostname === 'merilive.com' || window.location.hostname === 'www.merilive.com';
   const meriliveTopAllowedPaths = ['/agency-policy', '/helper-policy', '/policies', '/about', '/policies-benefits', '/agency-signup', '/become-sub-agent', '/payroll-helper-guide', '/create-agency', '/join-agency', '/auth', '/google-library-order-rules', '/privacy-policy', '/terms', '/contact'];
   const isMeriliveTopSubRoute = isMeriliveTop && meriliveTopAllowedPaths.some(p => currentPath.startsWith(p));
   
