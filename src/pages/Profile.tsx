@@ -152,32 +152,14 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     return cachedBalance > 0 ? cachedBalance : profileBalance;
   }, [cachedBalance, profile?.coins, (profile as any)?.diamonds]);
 
+  const getPersonalBeans = (profileData: any) => Math.max(0, Number(profileData?.beans || 0));
+
   const syncBeansFromProfile = (profileData: any) => {
-    if (!profileData) return;
+    if (!profileData || profileData.beans === undefined) return;
 
-    // Agency owner: refetch agency beans + add personal beans
-    if (profileData.is_agency_owner) {
-      const personalBeans = Number(profileData.pending_earnings || 0) + Number(profileData.beans || 0);
-      const userId = profileData.id;
-      if (userId) {
-        supabase.from('agencies').select('wallet_balance').eq('owner_id', userId).eq('is_active', true).maybeSingle().then(({ data }) => {
-          const agencyBeans = data?.wallet_balance || 0;
-          setBeans(agencyBeans + personalBeans);
-        });
-      }
-      return;
-    }
-
-    if (profileData.is_host) {
-      // beans column already contains the correct amount after commission
-      // pending_earnings tracks the same value for weekly transfer - DO NOT add both
-      setBeans(Math.max(0, Number(profileData.beans || 0)));
-      return;
-    }
-
-    if (profileData.beans !== undefined) {
-      setBeans(Math.max(0, Number(profileData.beans || 0)));
-    }
+    // My Beans must always reflect only the user's personal earning bucket.
+    // Agency wallet_balance belongs to Agency Dashboard Total Beans and must stay separate.
+    setBeans(getPersonalBeans(profileData));
   };
 
   // Transfer modal state
@@ -509,22 +491,21 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           friendsCount
         });
 
-        // Set beans - PRIORITY: Agency owners use agency.wallet_balance (source of truth)
+        // Set balances - keep personal My Beans separate from agency withdrawable Total Beans
         if (profileData?.is_agency_owner && agencyBeansResult?.data) {
-          const rawAgencyBeans = agencyBeansResult.data.wallet_balance || 0;
-          const personalBeans = (profileData?.pending_earnings || 0) + (profileData?.beans || 0);
-          const agencyBeans = rawAgencyBeans + personalBeans;
+          const rawAgencyBeans = Number(agencyBeansResult.data.wallet_balance || 0);
+          const personalBeans = getPersonalBeans(profileData);
           const agencyDiamonds = agencyBeansResult.data.diamond_balance || 0;
           const helperWalletBalance = helperResult?.data?.wallet_balance ?? 0;
 
-          setBeans(agencyBeans);
+          setBeans(personalBeans);
           setAgencyData({
             id: agencyBeansResult.data.id,
             name: (profileData.display_name || profileData.username || 'My') + "'s Agency",
-            beans_balance: agencyBeans,
+            beans_balance: rawAgencyBeans,
             diamond_balance: agencyDiamonds,
           });
-          console.log('[Profile] Agency owner beans:', agencyBeans, 'Agency diamonds:', agencyDiamonds, 'Helper wallet:', helperWalletBalance, 'Total Trader Wallet:', agencyDiamonds + helperWalletBalance);
+          console.log('[Profile] Agency owner personal beans:', personalBeans, 'Agency total beans:', rawAgencyBeans, 'Agency diamonds:', agencyDiamonds, 'Helper wallet:', helperWalletBalance, 'Total Trader Wallet:', agencyDiamonds + helperWalletBalance);
         } else {
           syncBeansFromProfile(profileData);
         }
@@ -678,17 +659,11 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           
           // Agency updates
           if (table === 'agencies' && payload?.owner_id === activeProfileId) {
-            if (payload.wallet_balance !== undefined) {
-              setBeans(payload.wallet_balance || 0);
-            }
-            if (payload.diamond_balance !== undefined) {
-              const agencyDiamonds = payload.diamond_balance || 0;
-              setAgencyData(prev => prev ? {
-                ...prev,
-                diamond_balance: agencyDiamonds,
-                beans_balance: payload.wallet_balance ?? prev.beans_balance,
-              } : null);
-            }
+            setAgencyData(prev => prev ? {
+              ...prev,
+              diamond_balance: payload.diamond_balance ?? prev.diamond_balance,
+              beans_balance: payload.wallet_balance ?? prev.beans_balance,
+            } : prev);
           }
 
           if (table === 'topup_helpers' && payload?.user_id === activeProfileId) {
