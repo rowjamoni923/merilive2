@@ -1,4 +1,5 @@
 import { getAdaptiveNetworkProfile } from './connectionProfile';
+import { lockAdminRealtimeTables } from './adminRealtimeMutationGuard';
 
 const BASE_BACKOFF_MS = 300;
 const MAX_CACHE_ENTRIES = 300;
@@ -323,6 +324,11 @@ export const createSupabaseFetchGuard = (baseFetch: typeof fetch = fetch): typeo
     const routeKey = getRouteKey(url);
     const requestKey = getRequestKey(url, method, headers);
     const isReadRequest = READ_METHODS.has(method);
+    const mutationTable = !isReadRequest && url.includes('/rest/v1/') ? extractSupabaseMutationTable(url) : null;
+
+    if (mutationTable) {
+      lockAdminRealtimeTables([mutationTable]);
+    }
 
     if (isReadRequest) {
       const cached = getFreshCachedResponse(requestKey);
@@ -370,6 +376,9 @@ export const createSupabaseFetchGuard = (baseFetch: typeof fetch = fetch): typeo
 
             if (!isReadRequest && response.ok && url.includes('/rest/v1/')) {
               clearReadCaches();
+              if (mutationTable) {
+                lockAdminRealtimeTables([mutationTable]);
+              }
               broadcastAdminMutation(url, method);
             }
           }

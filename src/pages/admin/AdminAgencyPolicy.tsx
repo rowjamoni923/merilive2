@@ -30,6 +30,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import { saveAppSetting } from "@/utils/adminSettingsStorage";
 
+const POLICY_SECTION_META: Record<string, { title: string; display_order: number }> = {
+  exchange_rate: { title: 'Exchange Rate', display_order: 1 },
+  host_requirements: { title: 'Host Requirements', display_order: 2 },
+  violations: { title: 'Violations', display_order: 3 },
+  prohibited_content: { title: 'Prohibited Content', display_order: 4 },
+  call_rules: { title: 'Call Rules', display_order: 5 },
+  withdrawal: { title: 'Withdrawal', display_order: 6 },
+};
+
 interface PolicySection {
   id: string;
   section_key: string;
@@ -146,39 +155,44 @@ const AdminAgencyPolicy = () => {
 
       if (data) {
         setPolicies(data);
-        
-        // Parse each section (EXCEPT commission_tiers - that comes from agency_level_tiers)
-        data.forEach((section: PolicySection) => {
-          const content = section.content;
-          
-          switch (section.section_key) {
-            case 'exchange_rate':
-              setExchangeRate(content.rate || 125);
-              setExchangeCurrency(content.currency || 'BDT');
-              break;
-            // commission_tiers is now loaded from agency_level_tiers table
-            case 'host_requirements':
-              setHostRequirements(content.requirements || []);
-              break;
-            case 'violations':
-              setViolations(content.violations || []);
-              break;
-            case 'prohibited_content':
-              setProhibitedContent(content.items || []);
-              break;
-            case 'call_rules':
-              setCallRules(content.rules || []);
-              break;
-            case 'withdrawal':
-              setWithdrawalMinUsd(content.minimum_usd || 10);
-              setSettlementDay(content.settlement_day || 'Monday');
-              setSettlementTimeIst(content.settlement_time_ist || '09:30');
-              setSettlementTimeBd(content.settlement_time_bd || '10:00');
-              setPaymentMethods(content.payment_methods || []);
-              setTimezones(content.timezones || []);
-              break;
-          }
-        });
+
+        const sectionMap = new Map(data.map((section: PolicySection) => [section.section_key, section.content]));
+
+        const exchangeRateContent = sectionMap.get('exchange_rate');
+        if (exchangeRateContent) {
+          setExchangeRate(exchangeRateContent.rate || 125);
+          setExchangeCurrency(exchangeRateContent.currency || 'BDT');
+        }
+
+        const hostRequirementsContent = sectionMap.get('host_requirements') ?? sectionMap.get('host_management');
+        if (hostRequirementsContent) {
+          setHostRequirements(hostRequirementsContent.requirements || []);
+        }
+
+        const violationsContent = sectionMap.get('violations') ?? sectionMap.get('penalties');
+        if (violationsContent) {
+          setViolations(violationsContent.violations || []);
+        }
+
+        const prohibitedContentSection = sectionMap.get('prohibited_content');
+        if (prohibitedContentSection) {
+          setProhibitedContent(prohibitedContentSection.items || []);
+        }
+
+        const callRulesContent = sectionMap.get('call_rules') ?? sectionMap.get('rules');
+        if (callRulesContent) {
+          setCallRules(callRulesContent.rules || []);
+        }
+
+        const withdrawalContent = sectionMap.get('withdrawal');
+        if (withdrawalContent) {
+          setWithdrawalMinUsd(withdrawalContent.minimum_usd || 10);
+          setSettlementDay(withdrawalContent.settlement_day || 'Monday');
+          setSettlementTimeIst(withdrawalContent.settlement_time_ist || '09:30');
+          setSettlementTimeBd(withdrawalContent.settlement_time_bd || '10:00');
+          setPaymentMethods(withdrawalContent.payment_methods || []);
+          setTimezones(withdrawalContent.timezones || []);
+        }
       }
     } catch (error: any) {
       console.error('Error fetching policies:', error);
@@ -195,10 +209,45 @@ const AdminAgencyPolicy = () => {
 
   const savePolicySection = async (sectionKey: string, content: any) => {
     try {
+      const meta = POLICY_SECTION_META[sectionKey] ?? {
+        title: sectionKey.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase()),
+        display_order: 999,
+      };
+
+      const timestamp = new Date().toISOString();
+      const payload = {
+        section_key: sectionKey,
+        section_title: meta.title,
+        content,
+        display_order: meta.display_order,
+        is_active: true,
+        updated_at: timestamp,
+      };
+
+      const { data: existing, error: lookupError } = await supabase
+        .from('agency_policy_settings')
+        .select('id')
+        .eq('section_key', sectionKey)
+        .maybeSingle();
+
+      if (lookupError) throw lookupError;
+
+      if (existing?.id) {
+        const { error } = await supabase
+          .from('agency_policy_settings')
+          .update(payload)
+          .eq('id', existing.id);
+
+        if (error) throw error;
+        return true;
+      }
+
       const { error } = await supabase
         .from('agency_policy_settings')
-        .update({ content, updated_at: new Date().toISOString() })
-        .eq('section_key', sectionKey);
+        .insert({
+          ...payload,
+          created_at: timestamp,
+        });
 
       if (error) throw error;
       return true;
