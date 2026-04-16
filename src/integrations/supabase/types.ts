@@ -10686,6 +10686,16 @@ export type Database = {
         Args: { _host_id: string; _reason?: string }
         Returns: boolean
       }
+      admin_send_notification: {
+        Args: {
+          _data?: Json
+          _message: string
+          _title: string
+          _type?: string
+          _user_id: string
+        }
+        Returns: string
+      }
       admin_toggle_face_verification: {
         Args: { _user_id: string; _verified: boolean }
         Returns: boolean
