@@ -746,9 +746,9 @@ const VIP = () => {
         description: `You are now ${tier.tier_name}! All exclusive items are now equipped.`,
       });
 
-      setUserDiamonds(prev => prev - tier.price_diamonds);
+      setUserDiamonds(rpcResult.balance_after);
       setCurrentVIPTier(tier.tier_level);
-      setVIPExpiresAt(expiresAt);
+      setVIPExpiresAt(rpcResult.expires_at);
       setSelectedTier(null);
       
       // Refresh data to show new privileges
