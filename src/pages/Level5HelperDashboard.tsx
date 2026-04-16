@@ -1053,14 +1053,14 @@ const Level5HelperDashboard = () => {
       
       if (updateError) throw updateError;
 
-      // Send notification to agency owner that payment has been processed (they will see "Approved")
+      // Send notification to agency owner that payment has been processed
       if (selectedAgencyWithdrawal.agency?.owner_id) {
-        await supabase.from('notifications').insert({
-          user_id: selectedAgencyWithdrawal.agency.owner_id,
-          type: 'withdrawal_approved',
-          title: '✅ Withdrawal Approved!',
-          message: `Your withdrawal request has been approved and payment has been sent.`,
-          data: { 
+        await supabase.rpc('send_notification', {
+          p_user_id: selectedAgencyWithdrawal.agency.owner_id,
+          p_type: 'withdrawal_approved',
+          p_title: '✅ Withdrawal Approved!',
+          p_message: 'Your withdrawal request has been approved and payment has been sent.',
+          p_data: { 
             withdrawal_id: selectedAgencyWithdrawal.id,
             amount: selectedAgencyWithdrawal.amount,
             status: 'approved'
