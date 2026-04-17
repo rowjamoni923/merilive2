@@ -789,25 +789,42 @@ const App = () => {
           setTimeout(async () => {
             if (!mounted || window.location.pathname.startsWith('/admin')) return;
             
-            const genderAlreadySelected = localStorage.getItem(`gender_selected_${session.user.id}`);
-            if (genderAlreadySelected === 'true') return;
-            
             try {
               await runLegacyProfileSync(session.user.id);
 
-              const { data: profile } = await supabase
+              let { data: profile } = await supabase
                 .from('profiles')
-                .select('gender')
+                .select('id, gender')
                 .eq('id', session.user.id)
-                .single();
+                .maybeSingle();
 
-              // If gender exists in database, mark it as selected and don't show modal
+              // If profile row is still missing for any old account, repair it immediately
+              if (!profile) {
+                const { data: authUserData } = await supabase.auth.getUser();
+                const authUser = authUserData.user;
+                if (authUser?.id === session.user.id) {
+                  await supabase.rpc('ensure_profile_row_from_auth' as any, {
+                    _user_id: authUser.id,
+                    _email: authUser.email ?? null,
+                    _raw_user_meta_data: authUser.user_metadata ?? {},
+                  });
+
+                  const repaired = await supabase
+                    .from('profiles')
+                    .select('id, gender')
+                    .eq('id', session.user.id)
+                    .maybeSingle();
+                  profile = repaired.data ?? null;
+                }
+              }
+
+              // Trust database state over localStorage
               if (profile?.gender && profile.gender !== 'other') {
                 localStorage.setItem(`gender_selected_${session.user.id}`, 'true');
                 return;
               }
-              
-              // Only show modal if no gender is set
+
+              localStorage.removeItem(`gender_selected_${session.user.id}`);
               setPendingUserId(session.user.id);
               setShowGenderModal(true);
             } catch (error) {
