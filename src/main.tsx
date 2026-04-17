@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { installRealtimeGuard } from "./utils/realtimeGuard";
 import { installAuthRequestGuard } from "./utils/authRequestGuard";
 import { startNetworkResilienceEngine } from "./utils/networkResilienceEngine";
+import { installAudioUnlock } from "./utils/audioUnlock";
 import App from "./App.tsx";
 import "./index.css";
 import "./i18n";
@@ -15,6 +16,8 @@ import { initializeNativeApp, isNativeApp } from "./utils/nativeUtils";
 installRealtimeGuard();
 installAuthRequestGuard();
 startNetworkResilienceEngine();
+// 🔊 Install global audio unlock — first user tap unlocks SVGA gift sounds
+installAudioUnlock();
 
 // =============================================
 // MOBILE VIEWPORT HEIGHT FIX
