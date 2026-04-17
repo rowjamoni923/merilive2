@@ -643,6 +643,18 @@ const Reels = () => {
                   <div className="w-[38px] h-[38px] rounded-full border-[2px] border-gray-600/50 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center animate-spin shadow-[0_0_10px_rgba(0,0,0,0.5)]" style={{ animationDuration: '4s' }}>
                     <div className="w-[16px] h-[16px] rounded-full bg-gradient-to-br from-gray-700 to-gray-600 border border-gray-500/30" />
                   </div>
+
+                  {/* More / Settings - 3 dot menu */}
+                  <motion.button
+                    onClick={() => setShowSettings(true)}
+                    className="flex flex-col items-center"
+                    whileTap={{ scale: 0.85 }}
+                    aria-label="More options"
+                  >
+                    <div className="w-[34px] h-[34px] rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/15 shadow-[0_4px_12px_rgba(0,0,0,0.3)]">
+                      <MoreVertical className="w-[18px] h-[18px] text-white/90" />
+                    </div>
+                  </motion.button>
                 </div>
 
                 {/* Beans Earned Badge - Premium Gold */}
@@ -822,6 +834,155 @@ const Reels = () => {
           />
         ))}
       </AnimatePresence>
+
+      {/* Settings / More Options Sheet */}
+      <Sheet open={showSettings} onOpenChange={setShowSettings}>
+        <SheetContent side="bottom" className="rounded-t-3xl border-t border-white/10 bg-gradient-to-b from-zinc-900 to-black p-0 max-h-[80vh]">
+          <SheetHeader className="px-5 pt-4 pb-2">
+            <SheetTitle className="text-white text-base font-bold text-center">Reel Options</SheetTitle>
+          </SheetHeader>
+          <div className="px-3 pb-6">
+            {currentReel && (
+              <div className="space-y-1">
+                {/* Save / Bookmark */}
+                <button
+                  onClick={async () => {
+                    if (!currentUserId) { toast.error("Please login"); return; }
+                    try {
+                      const { error } = await supabase.from("saved_reels" as any).insert({ user_id: currentUserId, reel_id: currentReel.id });
+                      if (error && !String(error.message).includes("duplicate")) throw error;
+                      toast.success("Saved to your collection");
+                    } catch (e: any) {
+                      toast.error(e?.message || "Could not save");
+                    }
+                    setShowSettings(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-white/5 active:bg-white/10 transition-colors text-left"
+                >
+                  <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center">
+                    <Bookmark className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <div className="text-white text-sm font-semibold">Save</div>
+                    <div className="text-white/50 text-xs">Add to your collection</div>
+                  </div>
+                </button>
+
+                {/* Copy Link */}
+                <button
+                  onClick={async () => {
+                    try {
+                      const url = `${window.location.origin}/reels?id=${currentReel.id}`;
+                      await navigator.clipboard.writeText(url);
+                      toast.success("Link copied to clipboard");
+                    } catch {
+                      toast.error("Could not copy link");
+                    }
+                    setShowSettings(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-white/5 active:bg-white/10 transition-colors text-left"
+                >
+                  <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center">
+                    <Share2 className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <div className="text-white text-sm font-semibold">Copy Link</div>
+                    <div className="text-white/50 text-xs">Share this reel anywhere</div>
+                  </div>
+                </button>
+
+                {/* Not Interested */}
+                {currentReel.user_id !== currentUserId && (
+                  <button
+                    onClick={() => {
+                      setReels(prev => prev.filter(r => r.id !== currentReel.id));
+                      toast.success("We'll show fewer reels like this");
+                      setShowSettings(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-white/5 active:bg-white/10 transition-colors text-left"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center">
+                      <X className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <div className="text-white text-sm font-semibold">Not Interested</div>
+                      <div className="text-white/50 text-xs">Hide and improve recommendations</div>
+                    </div>
+                  </button>
+                )}
+
+                {/* Block User */}
+                {currentReel.user_id !== currentUserId && (
+                  <button
+                    onClick={async () => {
+                      if (!currentUserId) { toast.error("Please login"); return; }
+                      try {
+                        const { error } = await supabase.from("blocked_users").insert({ blocker_id: currentUserId, blocked_id: currentReel.user_id });
+                        if (error && !String(error.message).includes("duplicate")) throw error;
+                        setReels(prev => prev.filter(r => r.user_id !== currentReel.user_id));
+                        toast.success("User blocked");
+                      } catch (e: any) {
+                        toast.error(e?.message || "Could not block user");
+                      }
+                      setShowSettings(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-white/5 active:bg-white/10 transition-colors text-left"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-rose-500/15 flex items-center justify-center">
+                      <User className="w-5 h-5 text-rose-400" />
+                    </div>
+                    <div>
+                      <div className="text-rose-300 text-sm font-semibold">Block User</div>
+                      <div className="text-white/50 text-xs">You won't see their content</div>
+                    </div>
+                  </button>
+                )}
+
+                {/* Report */}
+                {currentReel.user_id !== currentUserId && (
+                  <div className="px-1 pt-2">
+                    <div className="px-3 mb-2 text-[11px] uppercase tracking-wider text-white/40 font-semibold">Report</div>
+                    <div className="grid grid-cols-2 gap-2 px-1">
+                      {["Spam", "Nudity", "Violence", "Hate", "Harassment", "Other"].map((reason) => (
+                        <button
+                          key={reason}
+                          disabled={submittingReport}
+                          onClick={async () => {
+                            if (!currentUserId) { toast.error("Please login"); return; }
+                            setSubmittingReport(true);
+                            setReportReason(reason);
+                            try {
+                              const { error } = await supabase.from("reports" as any).insert({
+                                reporter_id: currentUserId,
+                                reported_user_id: currentReel.user_id,
+                                content_type: "reel",
+                                content_id: currentReel.id,
+                                reason,
+                              });
+                              if (error) throw error;
+                              toast.success("Report submitted. Thank you.");
+                              setShowSettings(false);
+                            } catch (e: any) {
+                              toast.error(e?.message || "Could not submit report");
+                            } finally {
+                              setSubmittingReport(false);
+                              setReportReason("");
+                            }
+                          }}
+                          className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 active:bg-white/15 border border-white/10 text-white/90 text-xs font-semibold transition-colors disabled:opacity-50"
+                        >
+                          <Flag className="w-3.5 h-3.5" />
+                          {submittingReport && reportReason === reason ? "..." : reason}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* Bottom Navigation */}
       <BottomNavigation activeTab={activeTab} onTabChange={(path) => navigate(path)} />
