@@ -19,31 +19,92 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    // Optimize chunk splitting for faster initial load
+    // Optimize chunk splitting for ULTRA-FAST initial load
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Vendor chunks - load separately
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-ui': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-tabs'],
-          'vendor-query': ['@tanstack/react-query'],
-          'vendor-supabase': ['@supabase/supabase-js'],
-          // Admin panel as separate chunk
-          'admin': [
-            './src/pages/admin/AdminLayout',
-            './src/pages/admin/AdminDashboard',
-          ],
+        // Function-based chunking — automatically groups by directory
+        manualChunks(id) {
+          // Node modules — split vendor libs by category
+          if (id.includes('node_modules')) {
+            if (id.includes('react-dom') || id.includes('react-router') || id.includes('/react/')) {
+              return 'vendor-react';
+            }
+            if (id.includes('@radix-ui') || id.includes('cmdk') || id.includes('vaul') || id.includes('sonner')) {
+              return 'vendor-ui';
+            }
+            if (id.includes('@tanstack')) {
+              return 'vendor-query';
+            }
+            if (id.includes('@supabase')) {
+              return 'vendor-supabase';
+            }
+            if (id.includes('@capacitor')) {
+              return 'vendor-capacitor';
+            }
+            if (id.includes('agora') || id.includes('livekit')) {
+              return 'vendor-rtc';
+            }
+            if (id.includes('svga') || id.includes('lottie') || id.includes('howler')) {
+              return 'vendor-media';
+            }
+            if (id.includes('lucide-react')) {
+              return 'vendor-icons';
+            }
+            if (id.includes('date-fns') || id.includes('zod') || id.includes('clsx') || id.includes('class-variance')) {
+              return 'vendor-utils';
+            }
+            // All other deps
+            return 'vendor-misc';
+          }
+
+          // App code — split by feature area to enable parallel loading
+          if (id.includes('/pages/admin/')) {
+            return 'app-admin';
+          }
+          if (id.includes('/pages/games/') || id.includes('/components/games/')) {
+            return 'app-games';
+          }
+          if (id.includes('/pages/Agency') || id.includes('/components/agency/')) {
+            return 'app-agency';
+          }
+          if (id.includes('LiveStream') || id.includes('/components/live/') || id.includes('/components/party/') || id.includes('PartyRoom')) {
+            return 'app-live';
+          }
         },
       },
     },
-    // Faster builds
+    // Faster builds + smaller bundles
     target: 'esnext',
     minify: 'esbuild',
-    // Reduce chunk size warnings
-    chunkSizeWarningLimit: 1000,
+    cssCodeSplit: true,
+    sourcemap: false,
+    // Larger chunk threshold so we get fewer HTTP requests
+    chunkSizeWarningLimit: 1500,
+    // Inline tiny assets
+    assetsInlineLimit: 4096,
+    // Modern output
+    modulePreload: {
+      polyfill: false,
+    },
   },
-  // Optimize dependencies
+  // Pre-bundle deps so dev server is also fast
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom', '@supabase/supabase-js'],
+    include: [
+      'react',
+      'react-dom',
+      'react-router-dom',
+      '@supabase/supabase-js',
+      '@tanstack/react-query',
+      'lucide-react',
+      'date-fns',
+      'clsx',
+    ],
+    esbuildOptions: {
+      target: 'esnext',
+    },
+  },
+  esbuild: {
+    // Drop console.log in production for smaller bundles + faster execution
+    drop: mode === 'production' ? ['console', 'debugger'] : [],
   },
 }));
