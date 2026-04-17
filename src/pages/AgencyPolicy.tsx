@@ -747,6 +747,97 @@ const AgencyPolicy = () => {
                 </CardContent>
               </Card>
             </TabsContent>
+
+            {/* More Tab — Admin-managed dynamic policy sections */}
+            <TabsContent value="more" className="mt-4 space-y-4">
+              {dynamicSections.length === 0 ? (
+                <Card className="border-0 shadow-md">
+                  <CardContent className="p-8 text-center">
+                    <FileText className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
+                    <p className="text-sm text-muted-foreground">
+                      No additional policies published yet.
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                dynamicSections.map((section) => {
+                  const visual = sectionVisuals[section.section_key] || {
+                    icon: <FileText className="w-5 h-5" />,
+                    gradient: "from-gray-500 to-gray-700",
+                    iconBg: "bg-gray-100 dark:bg-gray-800",
+                    iconColor: "text-gray-600 dark:text-gray-400",
+                  };
+
+                  // Normalize content into a list of items
+                  let items: string[] = [];
+                  if (Array.isArray(section.content?.items)) {
+                    items = section.content.items.map((it: any) =>
+                      typeof it === "string" ? it : (it?.text || it?.title || JSON.stringify(it))
+                    );
+                  } else if (Array.isArray(section.content)) {
+                    items = section.content.map((it: any) =>
+                      typeof it === "string" ? it : (it?.text || it?.title || JSON.stringify(it))
+                    );
+                  } else if (typeof section.content === "string") {
+                    items = [section.content];
+                  } else if (section.content && typeof section.content === "object") {
+                    // Best-effort flatten
+                    items = Object.values(section.content)
+                      .filter((v) => typeof v === "string") as string[];
+                  }
+
+                  return (
+                    <Card key={section.section_key} className="border-0 shadow-md overflow-hidden">
+                      {/* Gradient Header */}
+                      <div className={`bg-gradient-to-r ${visual.gradient} p-4 text-white`}>
+                        <div className="flex items-center gap-3">
+                          <div className="w-11 h-11 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                            {visual.icon}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-base truncate">{section.section_title}</h3>
+                            <p className="text-[11px] text-white/80 capitalize">
+                              {section.section_key.replace(/_/g, " ")}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <CardContent className="p-4">
+                        {items.length > 0 ? (
+                          <ul className="space-y-2.5">
+                            {items.map((item, idx) => (
+                              <li key={idx} className="flex items-start gap-3">
+                                <div className={`w-6 h-6 rounded-full ${visual.iconBg} ${visual.iconColor} flex items-center justify-center shrink-0 mt-0.5 text-[11px] font-bold`}>
+                                  {idx + 1}
+                                </div>
+                                <p className="text-sm text-foreground leading-relaxed flex-1">
+                                  {item}
+                                </p>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-sm text-muted-foreground italic">
+                            No content available.
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })
+              )}
+
+              {/* Last Updated Notice */}
+              <Card className="border-0 shadow-md bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20">
+                <CardContent className="p-4 text-center">
+                  <Sparkles className="w-6 h-6 text-indigo-600 dark:text-indigo-400 mx-auto mb-2" />
+                  <p className="text-xs text-indigo-700 dark:text-indigo-300">
+                    Policies are updated by the platform administration. Always check this section for the latest rules.
+                  </p>
+                </CardContent>
+              </Card>
+            </TabsContent>
           </Tabs>
         </div>
 
