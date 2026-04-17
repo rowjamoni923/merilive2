@@ -54,15 +54,18 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   const isPremium = gift.coins >= 10000;
   const isLuxury = gift.coins >= 1000;
 
-  // Play sound on mount
+  // Note: gift.soundUrl is now passed to SVGAPlayerWithAudio as a fallback,
+  // and is also played here for non-SVGA gifts (e.g. image/video).
   useEffect(() => {
-    if (!soundPlayedRef.current && gift.soundUrl) {
-      soundPlayedRef.current = true;
-      const audio = new Audio(gift.soundUrl);
-      audio.volume = 0.6;
-      audio.play().catch(() => {});
-    }
-  }, []);
+    if (soundPlayedRef.current) return;
+    if (!gift.soundUrl) return;
+    // Skip — SVGAPlayerWithAudio will handle sound for SVGA gifts (embedded + fallback)
+    if (isSVGA) return;
+    soundPlayedRef.current = true;
+    const audio = new Audio(gift.soundUrl);
+    audio.volume = 0.6;
+    audio.play().catch(() => {});
+  }, [isSVGA, gift.soundUrl]);
 
   const handleAnimationComplete = useCallback(() => {
     if (completedRef.current || !mountedRef.current) return;
@@ -173,6 +176,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
                 loop={false}
                 autoPlay={true}
                 volume={0.8}
+                soundUrl={gift.soundUrl}
                 onComplete={handleAnimationComplete}
                 onError={handleSvgaError}
                 className="w-full h-full"
