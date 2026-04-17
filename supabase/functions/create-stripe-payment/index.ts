@@ -262,6 +262,12 @@ serve(async (req) => {
     if (baseCoins <= 0) {
       throw new Error("Invalid package: coins_amount is missing or zero");
     }
+
+    // Build checkout session config with COUNTRY-SPECIFIC payment methods
+    const sessionConfig: any = {
+      customer: customerId,
+      customer_email: customerId ? undefined : user.email!,
+      payment_method_types: countryConfig.payment_method_types,
       line_items: [
         {
           price_data: {
