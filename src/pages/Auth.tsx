@@ -359,17 +359,19 @@ const Auth = () => {
         const pending = JSON.parse(pendingData);
         localStorage.removeItem("meri_pending_registration");
 
-        // Update profile - trigger already created it with id, we just set the fields
+        // Wait for profile row and gender/host mapping to be fully ready before redirecting
         const isHost = pending.gender === "female";
-        // Small delay to ensure trigger has created the profile
-        await new Promise(r => setTimeout(r, 300));
-        await supabase
-          .from("profiles")
-          .update({ 
+        await ensureProfileReady(
+          user.id,
+          {
             gender: pending.gender,
             display_name: pending.displayName,
-          })
-          .eq("id", user.id);
+          },
+          { requireHost: isHost }
+        );
+        if (pending.gender) {
+          localStorage.setItem(`gender_selected_${user.id}`, 'true');
+        }
 
         // Join agency if referral code exists
         if (pending.referralCode && isHost) {
@@ -640,6 +642,96 @@ const Auth = () => {
     }
   };
 
+  const ensureProfileReady = async (
+    userId: string,
+    patch: Record<string, unknown>,
+    options: { requireHost?: boolean; maxAttempts?: number } = {}
+  ) => {
+    const cleanPatch = Object.fromEntries(
+      Object.entries(patch).filter(([, value]) => value !== undefined)
+    );
+    const maxAttempts = options.maxAttempts ?? 8;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("id, gender, display_name, is_host")
+          .eq("id", userId)
+          .maybeSingle();
+
+        if (profile) {
+          const { error: updateError } = await supabase
+            .from("profiles")
+            .update(cleanPatch)
+            .eq("id", userId);
+
+          if (updateError) {
+            console.warn(`[Auth] ensureProfileReady update attempt ${attempt + 1} failed:`, updateError);
+          }
+
+          const { data: refreshedProfile } = await supabase
+            .from("profiles")
+            .select("id, gender, display_name, is_host")
+            .eq("id", userId)
+            .maybeSingle();
+
+          const genderReady = !("gender" in cleanPatch) || refreshedProfile?.gender === cleanPatch.gender;
+          const nameReady = !("display_name" in cleanPatch) || refreshedProfile?.display_name === cleanPatch.display_name;
+          const hostReady = !options.requireHost || refreshedProfile?.is_host === true;
+
+          if (refreshedProfile && genderReady && nameReady && hostReady) {
+            return refreshedProfile;
+          }
+        } else if (attempt >= 2) {
+          try {
+            await triggerLegacyProfileSync(userId, { force: true });
+          } catch (syncError) {
+            console.warn('[Auth] ensureProfileReady sync failed:', syncError);
+          }
+        }
+
+        if (!profile && attempt === 4) {
+          try {
+            const { data: authData } = await supabase.auth.getUser();
+            const authUser = authData.user;
+            if (authUser?.id === userId) {
+              const patchDisplayName = typeof cleanPatch.display_name === 'string' ? cleanPatch.display_name : null;
+              const patchEmail = typeof cleanPatch.email === 'string' ? cleanPatch.email : authUser.email ?? null;
+              const fallbackDisplayName = patchDisplayName || authUser.user_metadata?.full_name || authUser.user_metadata?.name || (patchEmail && !patchEmail.includes('@meri.local') ? patchEmail.split('@')[0] : null) || `User${Math.random().toString(36).slice(2, 8)}`;
+              const avatarUrl = authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || null;
+              const username = patchEmail && !patchEmail.includes('@meri.local') ? patchEmail.split('@')[0] : null;
+              const appUid = String(Math.floor(1000000000 + Math.random() * 9000000000));
+
+              const { error: insertError } = await supabase
+                .from("profiles")
+                .insert({
+                  id: userId,
+                  display_name: fallbackDisplayName,
+                  username,
+                  avatar_url: avatarUrl,
+                  app_uid: appUid,
+                  last_seen: new Date().toISOString(),
+                  ...cleanPatch,
+                });
+
+              if (insertError) {
+                console.warn('[Auth] ensureProfileReady fallback insert failed:', insertError);
+              }
+            }
+          } catch (fallbackError) {
+            console.warn('[Auth] ensureProfileReady fallback creation failed:', fallbackError);
+          }
+        }
+      } catch (profileError) {
+        console.warn(`[Auth] ensureProfileReady attempt ${attempt + 1} exception:`, profileError);
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 250 + attempt * 150));
+    }
+
+    return null;
+  };
 
   const joinAgencyAfterSignup = async (userId: string, code: string) => {
     try {
@@ -689,6 +781,15 @@ const Auth = () => {
         
         const { error } = await supabase.auth.signInWithPassword({ email: guestEmail, password: guestPassword });
         if (!error) {
+          await ensureProfileReady(
+            existingForDevice.userId,
+            {
+              display_name: existingForDevice.displayName,
+              device_id: deviceId,
+              gender: existingForDevice.gender || selectedGender || undefined,
+            },
+            { requireHost: (existingForDevice.gender || selectedGender) === 'female' }
+          );
           localStorage.setItem("meri_device_account", JSON.stringify({
             deviceId,
             email: guestEmail,
@@ -759,21 +860,20 @@ const Auth = () => {
         userId = data.user?.id || null;
       }
 
-      // Ensure profile has correct display_name - retry if trigger hasn't created it yet
+      // Ensure profile row, gender, and female→host conversion are fully ready before redirect
       if (userId) {
-        for (let attempt = 0; attempt < 3; attempt++) {
-          await new Promise(r => setTimeout(r, 300 + attempt * 200));
-          const { error: profileError, count } = await supabase
-            .from("profiles")
-            .update({ 
-              display_name: displayName,
-              device_id: deviceId,
-              gender: selectedGender || undefined,
-            })
-            .eq("id", userId);
-          
-          if (!profileError) break;
-          console.warn(`[Auth] Profile update attempt ${attempt + 1} failed:`, profileError);
+        const readyProfile = await ensureProfileReady(
+          userId,
+          {
+            display_name: displayName,
+            device_id: deviceId,
+            gender: selectedGender || undefined,
+          },
+          { requireHost: selectedGender === 'female' }
+        );
+
+        if (!readyProfile) {
+          throw new Error('Profile setup is still processing. Please try again.');
         }
 
         // Save device account with credentials for future recovery
@@ -1116,19 +1216,24 @@ const Auth = () => {
       }
 
       if (data.user) {
-        // Ensure profile has correct display_name with retry
-        for (let attempt = 0; attempt < 3; attempt++) {
-          await new Promise(r => setTimeout(r, 300 + attempt * 200));
-          const { error: pErr } = await supabase
-            .from("profiles")
-            .update({ 
-              display_name: displayName,
-              is_verified: true,
-              email: email,
-              device_id: deviceId,
-            })
-            .eq("id", data.user.id);
-          if (!pErr) break;
+        const readyProfile = await ensureProfileReady(
+          data.user.id,
+          {
+            display_name: displayName,
+            is_verified: true,
+            email: email,
+            device_id: deviceId,
+            gender: selectedGender || undefined,
+          },
+          { requireHost: selectedGender === 'female' }
+        );
+
+        if (!readyProfile) {
+          throw new Error('Profile setup is still processing. Please try again.');
+        }
+
+        if (selectedGender) {
+          localStorage.setItem(`gender_selected_${data.user.id}`, 'true');
         }
 
         // Instant country detection (non-blocking)
@@ -1372,19 +1477,25 @@ const Auth = () => {
       }
 
       if (data.user) {
-        for (let attempt = 0; attempt < 3; attempt++) {
-          await new Promise(r => setTimeout(r, 300 + attempt * 200));
-          const { error: pErr } = await supabase
-            .from("profiles")
-            .update({
-              display_name: displayName,
-              phone_number: fullPhone,
-              phone_verified: true,
-              device_id: deviceId,
-              is_verified: true,
-            })
-            .eq("id", data.user.id);
-          if (!pErr) break;
+        const readyProfile = await ensureProfileReady(
+          data.user.id,
+          {
+            display_name: displayName,
+            phone_number: fullPhone,
+            phone_verified: true,
+            device_id: deviceId,
+            is_verified: true,
+            gender: selectedGender || undefined,
+          },
+          { requireHost: selectedGender === 'female' }
+        );
+
+        if (!readyProfile) {
+          throw new Error('Profile setup is still processing. Please try again.');
+        }
+
+        if (selectedGender) {
+          localStorage.setItem(`gender_selected_${data.user.id}`, 'true');
         }
 
         detectAndSaveLocation(data.user.id);
@@ -1588,19 +1699,23 @@ const Auth = () => {
         }
 
         if (data.user) {
-          // Ensure profile has correct display_name with retry
           const isHost = selectedGender === "female";
-          for (let attempt = 0; attempt < 3; attempt++) {
-            await new Promise(r => setTimeout(r, 300 + attempt * 200));
-            const { error: pErr } = await supabase
-              .from("profiles")
-              .update({ 
-                gender: selectedGender,
-                display_name: displayName,
-                email: email,
-              })
-              .eq("id", data.user.id);
-            if (!pErr) break;
+          const readyProfile = await ensureProfileReady(
+            data.user.id,
+            {
+              gender: selectedGender,
+              display_name: displayName,
+              email: email,
+            },
+            { requireHost: isHost }
+          );
+
+          if (!readyProfile) {
+            throw new Error('Profile setup is still processing. Please try again.');
+          }
+
+          if (selectedGender) {
+            localStorage.setItem(`gender_selected_${data.user.id}`, 'true');
           }
 
           // Join agency if referral code exists
