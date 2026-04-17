@@ -117,27 +117,26 @@ const Invitation = () => {
         return;
       }
 
-      const beansReward = tier.reward_beans ?? 0;
-      const coinsReward = tier.reward_coins ?? 0;
-
+      // Server-driven secure claim — only tier_id is sent, all amounts/eligibility verified server-side
       const { data, error } = await supabase.rpc('claim_invitation_reward', {
-        _user_id: user.id,
-        _beans: beansReward,
-        _coins: coinsReward,
-        _diamonds: coinsReward,
-      });
-      
-      if (error) throw error;
-      
-      // Record the claim
-      await supabase.from('invitation_reward_claims').insert({
-        claimed_by: user.id,
-        invitation_id: tier.id,
-        reward_amount: coinsReward,
-        reward_type: 'tier_reward',
-      });
+        _tier_id: tier.id,
+      } as any);
 
-      toast.success(`🎉 ${tier.tier_name} Reward Claimed! +${coinsReward.toLocaleString()} 💎 Diamonds`);
+      if (error) throw error;
+
+      const result = data as any;
+      if (!result?.success) {
+        toast.error(result?.error || 'Failed to claim reward');
+        return;
+      }
+
+      const coinsAwarded = Number(result?.coins ?? 0);
+      const beansAwarded = Number(result?.beans ?? 0);
+      const parts: string[] = [];
+      if (coinsAwarded > 0) parts.push(`+${coinsAwarded.toLocaleString()} 🪙 Coins`);
+      if (beansAwarded > 0) parts.push(`+${beansAwarded.toLocaleString()} 🌱 Beans`);
+
+      toast.success(`🎉 ${tier.tier_name} Reward Claimed! ${parts.join(' & ')}`);
       setClaimedTierIds(prev => new Set([...prev, tier.id]));
     } catch (error: any) {
       console.error('Error claiming reward:', error);
