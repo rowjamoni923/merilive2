@@ -407,9 +407,31 @@ const NativeSystemUIBridge = lazy(() => import("./hooks/useNativeSystemUI").then
   return { default: Bridge };
 }));
 
+// ⚡ INSTANT-BOOT helper: synchronously detect a stored Supabase session in
+// localStorage so we can skip the full-screen "Checking your session..." loader
+// on the very first paint. The actual session object is still loaded
+// asynchronously by initSession(), but we can render the UI immediately.
+const hasStoredSupabaseSession = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key) continue;
+      // supabase-js v2 stores under keys like "sb-<ref>-auth-token"
+      if (key.startsWith('sb-') && key.endsWith('-auth-token')) {
+        const raw = localStorage.getItem(key);
+        if (raw && raw.length > 20) return true;
+      }
+    }
+  } catch {}
+  return false;
+};
+
 const App = () => {
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  // ⚡ Skip the splash loader entirely if we already have a stored session.
+  // initSession() runs in the background and hydrates the real Session object.
+  const [loading, setLoading] = useState(() => !hasStoredSupabaseSession());
   const [showGenderModal, setShowGenderModal] = useState(false);
   const [pendingUserId, setPendingUserId] = useState<string | null>(null);
   const [maintenanceMode, setMaintenanceMode] = useState<{ enabled: boolean; message: string } | null>(null);
@@ -935,7 +957,9 @@ const App = () => {
               {/* Deferred hooks - loads after first paint */}
               <Suspense fallback={null}><DeferredAppHooks userId={session?.user?.id || null} /></Suspense>
               <CallProvider>
-                  <Suspense fallback={<PageLoader />}>
+                  {/* ⚡ fallback={null} prevents a full-screen loader flash on
+                      every navigation — each page renders its own skeleton */}
+                  <Suspense fallback={null}>
                   <Routes>
                 {/* ============================================= */}
                 {/* PUBLIC ROUTES - No authentication required */}
