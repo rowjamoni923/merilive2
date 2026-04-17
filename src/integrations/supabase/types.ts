@@ -6081,42 +6081,75 @@ export type Database = {
           created_at: string | null
           description: string | null
           display_order: number | null
+          expiry_hours: number
+          glow_color: string | null
           icon_url: string | null
           id: string
           is_active: boolean | null
           is_premium: boolean | null
+          max_level: number
           max_reward: number
+          min_level: number
           min_reward: number
           name: string
+          parcel_type: string
+          reward_amount: number
+          reward_label: string | null
           reward_type: string
+          target_segment: string
+          unlock_condition: string
+          unlock_threshold: number
+          unlock_wait_hours: number
         }
         Insert: {
           coin_cost?: number | null
           created_at?: string | null
           description?: string | null
           display_order?: number | null
+          expiry_hours?: number
+          glow_color?: string | null
           icon_url?: string | null
           id?: string
           is_active?: boolean | null
           is_premium?: boolean | null
+          max_level?: number
           max_reward: number
+          min_level?: number
           min_reward: number
           name: string
+          parcel_type?: string
+          reward_amount?: number
+          reward_label?: string | null
           reward_type: string
+          target_segment?: string
+          unlock_condition?: string
+          unlock_threshold?: number
+          unlock_wait_hours?: number
         }
         Update: {
           coin_cost?: number | null
           created_at?: string | null
           description?: string | null
           display_order?: number | null
+          expiry_hours?: number
+          glow_color?: string | null
           icon_url?: string | null
           id?: string
           is_active?: boolean | null
           is_premium?: boolean | null
+          max_level?: number
           max_reward?: number
+          min_level?: number
           min_reward?: number
           name?: string
+          parcel_type?: string
+          reward_amount?: number
+          reward_label?: string | null
           reward_type?: string
+          target_segment?: string
+          unlock_condition?: string
+          unlock_threshold?: number
+          unlock_wait_hours?: number
         }
         Relationships: []
       }
@@ -9841,42 +9874,74 @@ export type Database = {
       }
       user_parcels: {
         Row: {
+          actual_reward_amount: number | null
+          actual_reward_type: string | null
+          assigned_at: string
           claimed_at: string | null
           coins_amount: number
           created_at: string
+          current_progress: number
           expires_at: string | null
           id: string
+          opened_at: string | null
           parcel_template_id: string | null
           parcel_type: string
+          required_progress: number
           source: string | null
           status: string
+          template_id: string | null
+          unlocks_at: string | null
           user_id: string
         }
         Insert: {
+          actual_reward_amount?: number | null
+          actual_reward_type?: string | null
+          assigned_at?: string
           claimed_at?: string | null
           coins_amount?: number
           created_at?: string
+          current_progress?: number
           expires_at?: string | null
           id?: string
+          opened_at?: string | null
           parcel_template_id?: string | null
           parcel_type?: string
+          required_progress?: number
           source?: string | null
           status?: string
+          template_id?: string | null
+          unlocks_at?: string | null
           user_id: string
         }
         Update: {
+          actual_reward_amount?: number | null
+          actual_reward_type?: string | null
+          assigned_at?: string
           claimed_at?: string | null
           coins_amount?: number
           created_at?: string
+          current_progress?: number
           expires_at?: string | null
           id?: string
+          opened_at?: string | null
           parcel_template_id?: string | null
           parcel_type?: string
+          required_progress?: number
           source?: string | null
           status?: string
+          template_id?: string | null
+          unlocks_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_parcels_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "parcel_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_purchased_backgrounds: {
         Row: {
@@ -11068,7 +11133,7 @@ export type Database = {
         Args: { _bonus_coins?: number; _host_id: string }
         Returns: Json
       }
-      claim_parcel_reward: { Args: { _parcel_id: string }; Returns: Json }
+      claim_parcel_reward: { Args: { p_parcel_id: string }; Returns: Json }
       claim_task_reward: {
         Args: { _task_id: string; _user_id: string }
         Returns: Json
