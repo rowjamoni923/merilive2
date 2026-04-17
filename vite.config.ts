@@ -22,59 +22,19 @@ export default defineConfig(({ mode }) => ({
     // Optimize chunk splitting for ULTRA-FAST initial load
     rollupOptions: {
       output: {
-        // Function-based chunking — automatically groups by directory
-        manualChunks(id) {
-          // Node modules — split vendor libs by category
-          if (id.includes('node_modules')) {
-            if (id.includes('react-dom') || id.includes('react-router') || id.includes('/react/')) {
-              return 'vendor-react';
-            }
-            if (id.includes('@radix-ui') || id.includes('cmdk') || id.includes('vaul') || id.includes('sonner')) {
-              return 'vendor-ui';
-            }
-            if (id.includes('@tanstack')) {
-              return 'vendor-query';
-            }
-            if (id.includes('@supabase')) {
-              return 'vendor-supabase';
-            }
-            if (id.includes('@capacitor')) {
-              return 'vendor-capacitor';
-            }
-            if (id.includes('agora') || id.includes('livekit')) {
-              return 'vendor-rtc';
-            }
-            if (id.includes('svga') || id.includes('lottie') || id.includes('howler')) {
-              return 'vendor-media';
-            }
-            if (id.includes('lucide-react')) {
-              return 'vendor-icons';
-            }
-            if (id.includes('date-fns') || id.includes('zod') || id.includes('clsx') || id.includes('class-variance')) {
-              return 'vendor-utils';
-            }
-            // All other deps
-            return 'vendor-misc';
-          }
-
-          // App code — let pages chunk PER-ROUTE for parallel lazy loading
-          // Only group small SHARED component subtrees (not pages themselves)
-          if (id.includes('/components/admin/') &&
-              !id.includes('AdminLayout') &&
-              !id.includes('AdminAccessGuard') &&
-              !id.includes('AdminRouteGuard')) {
-            return 'admin-shared';
-          }
-          if (id.includes('/components/agency/')) {
-            return 'agency-shared';
-          }
-          if (id.includes('/components/live/') || id.includes('/components/party/')) {
-            return 'live-shared';
-          }
-          if (id.includes('/components/games/')) {
-            return 'games-shared';
-          }
-        },
+        // 🚨 CRITICAL: Manual chunking removed.
+        //
+        // Previous splitting (vendor-react / vendor-ui / vendor-misc, etc.)
+        // was breaking the React singleton at runtime — packages that
+        // depend on React (e.g. @radix-ui, sonner, vaul) ended up in
+        // `vendor-misc`, which executed BEFORE `vendor-react`. That made
+        // `React` undefined at module init time and threw:
+        //   "Cannot read properties of undefined (reading 'createContext')"
+        //   → blank/black screen on production.
+        //
+        // Letting Rollup auto-split keeps React + every React-dependent
+        // package in the correct dependency order. Lazy-loaded routes
+        // (React.lazy in App.tsx) still produce per-route chunks.
       },
     },
     // Faster builds + smaller bundles
