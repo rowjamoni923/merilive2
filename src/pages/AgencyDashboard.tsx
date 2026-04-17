@@ -1314,6 +1314,38 @@ const AgencyDashboard = () => {
             <span className="text-xs font-medium mt-1">History</span>
           </button>
         </div>
+
+        {/* Third Row - Coin Trader, Commission, Agent Wallet, Sub-Agent */}
+        <div className="grid grid-cols-4 gap-3 mt-3">
+          <button
+            onClick={() => navigate("/agency-coin-trader")}
+            className="bg-gradient-to-br from-pink-500 to-rose-600 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+          >
+            <ArrowRightLeft className="w-7 h-7 drop-shadow-md" />
+            <span className="text-xs font-medium mt-1">Coin Trader</span>
+          </button>
+          <button
+            onClick={() => navigate("/agency-commission-history")}
+            className="bg-gradient-to-br from-teal-500 to-emerald-600 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+          >
+            <Percent className="w-7 h-7 drop-shadow-md" />
+            <span className="text-xs font-medium mt-1">Commission</span>
+          </button>
+          <button
+            onClick={() => navigate("/agent-wallet")}
+            className="bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+          >
+            <Wallet className="w-7 h-7 drop-shadow-md" />
+            <span className="text-xs font-medium mt-1">Agent Wallet</span>
+          </button>
+          <button
+            onClick={() => navigate("/become-sub-agent")}
+            className="bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+          >
+            <UserPlus className="w-7 h-7 drop-shadow-md" />
+            <span className="text-xs font-medium mt-1">Sub-Agent</span>
+          </button>
+        </div>
       </div>
 
       {/* Agency Information Card */}
