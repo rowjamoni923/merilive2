@@ -11194,6 +11194,114 @@ export type Database = {
       end_private_call:
         | { Args: { _call_id: string; _end_reason?: string }; Returns: boolean }
         | { Args: { _call_id: string; _end_reason?: string }; Returns: boolean }
+      ensure_profile_row_from_auth: {
+        Args: { _email?: string; _raw_user_meta_data?: Json; _user_id: string }
+        Returns: {
+          active_session_id: string | null
+          age: number | null
+          agency_id: string | null
+          app_uid: string | null
+          avatar_url: string | null
+          beans: number | null
+          beans_balance: number | null
+          bio: string | null
+          blocked_at: string | null
+          blocked_reason: string | null
+          call_rate_per_minute: number | null
+          city: string | null
+          coins: number | null
+          country_code: string | null
+          country_flag: string | null
+          country_name: string | null
+          cover_url: string | null
+          created_at: string | null
+          current_call_id: string | null
+          current_vip_tier_id: string | null
+          deletion_requested_at: string | null
+          deletion_scheduled_at: string | null
+          device_id: string | null
+          diamonds: number | null
+          display_name: string | null
+          email: string | null
+          equipped_bubble_id: string | null
+          equipped_entrance_id: string | null
+          equipped_entry_banner_id: string | null
+          equipped_entry_name_bar_id: string | null
+          equipped_frame_id: string | null
+          equipped_medal_id: string | null
+          equipped_noble_card_id: string | null
+          equipped_vehicle_id: string | null
+          face_hash: string | null
+          face_verification_image: string | null
+          face_verified_at: string | null
+          frame_id: string | null
+          gender: string | null
+          hide_location: boolean
+          host_availability: string | null
+          host_level: number | null
+          host_photos: string[]
+          host_status: string | null
+          host_verified_at: string | null
+          id: string
+          is_agency_owner: boolean | null
+          is_banned: boolean
+          is_blocked: boolean | null
+          is_deleted: boolean | null
+          is_face_verified: boolean | null
+          is_host: boolean | null
+          is_in_call: boolean | null
+          is_online: boolean | null
+          is_verified: boolean | null
+          last_active_at: string | null
+          last_login_at: string | null
+          last_login_device: string | null
+          last_login_device_info: Json | null
+          last_login_ip: string | null
+          last_seen: string
+          last_seen_at: string | null
+          max_user_level: number | null
+          pending_earnings: number | null
+          phone_number: string | null
+          phone_verified: boolean | null
+          phone_violation_count: number | null
+          previous_bubble_id: string | null
+          previous_entrance_id: string | null
+          previous_entry_banner_id: string | null
+          previous_entry_name_bar_id: string | null
+          previous_frame_id: string | null
+          previous_host_level: number | null
+          previous_medal_id: string | null
+          previous_noble_card_id: string | null
+          previous_vehicle_id: string | null
+          profile_photo_url: string | null
+          region: string | null
+          registration_country_code: string | null
+          registration_device_info: Json | null
+          registration_ip: string | null
+          registration_user_agent: string | null
+          tags: string[] | null
+          total_call_minutes: number | null
+          total_calls_made: number | null
+          total_calls_received: number | null
+          total_consumption: number | null
+          total_earnings: number | null
+          total_recharged: number | null
+          updated_at: string | null
+          user_level: number | null
+          username: string | null
+          verification_type: string | null
+          vip_expires_at: string | null
+          vip_tier: number | null
+          weekly_earnings: number | null
+          weekly_reset_at: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       exchange_agency_beans_to_diamonds: {
         Args: {
           p_agency_id: string
