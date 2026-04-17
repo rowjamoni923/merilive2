@@ -243,7 +243,11 @@ serve(async (req) => {
       ? Math.round(localAmount) 
       : Math.round(localAmount * 100);
 
-    // Check first recharge bonus
+    // Normalize package fields (DB uses coins_amount + bonus_coins)
+    const baseCoins = Number(pkg.coins_amount ?? pkg.coins ?? 0);
+    const pkgBonusCoins = Number(pkg.bonus_coins ?? 0);
+
+    // Check first recharge bonus (extra bonus only on first purchase)
     const { data: firstRechargeData } = await supabaseClient
       .from("first_recharge_claims")
       .select("id")
@@ -251,34 +255,19 @@ serve(async (req) => {
       .maybeSingle();
 
     const isFirstRecharge = !firstRechargeData;
-    const bonusCoins = isFirstRecharge && pkg.bonus_percentage > 0
-      ? Math.floor(pkg.coins * pkg.bonus_percentage / 100)
-      : 0;
-    const totalCoins = pkg.coins + bonusCoins;
+    // First-recharge gets the package's bonus_coins; otherwise also include bonus_coins as standard package contents
+    const bonusCoins = pkgBonusCoins;
+    const totalCoins = baseCoins + bonusCoins;
 
-    // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-      apiVersion: "2025-08-27.basil",
-    });
-
-    // Check for existing Stripe customer
-    const customers = await stripe.customers.list({ email: user.email!, limit: 1 });
-    let customerId: string | undefined;
-    if (customers.data.length > 0) {
-      customerId = customers.data[0].id;
+    if (baseCoins <= 0) {
+      throw new Error("Invalid package: coins_amount is missing or zero");
     }
-
-    // Build checkout session config with COUNTRY-SPECIFIC payment methods
-    const sessionConfig: any = {
-      customer: customerId,
-      customer_email: customerId ? undefined : user.email!,
-      payment_method_types: countryConfig.payment_method_types,
       line_items: [
         {
           price_data: {
             currency: currency,
             product_data: {
-              name: `${pkg.coins.toLocaleString()} Diamonds${bonusCoins > 0 ? ` (+${bonusCoins.toLocaleString()} Bonus!)` : ""}`,
+              name: `${baseCoins.toLocaleString()} Diamonds${bonusCoins > 0 ? ` (+${bonusCoins.toLocaleString()} Bonus!)` : ""}`,
               description: `MeriLive Diamond Package - ${totalCoins.toLocaleString()} total diamonds`,
             },
             unit_amount: unitAmount,
@@ -291,7 +280,7 @@ serve(async (req) => {
       metadata: {
         user_id: user.id,
         package_id: pkg.id,
-        coins: pkg.coins.toString(),
+        coins: baseCoins.toString(),
         bonus_coins: bonusCoins.toString(),
         total_coins: totalCoins.toString(),
         is_first_recharge: isFirstRecharge.toString(),
