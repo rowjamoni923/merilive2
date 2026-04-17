@@ -301,6 +301,7 @@ const FullScreenGiftAnimation = ({
               loop={false}
               autoPlay={true}
               volume={0.8}
+              soundUrl={gift.sound_url}
               onAudioExtracted={handleSvgaAudioExtracted}
               onComplete={handleAnimationEnd}
             />

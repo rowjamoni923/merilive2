@@ -40,6 +40,7 @@ interface UnifiedEntryEffectsProps {
     avatarUrl?: string;
     level: number;
     vehicleAnimationUrl: string; // Required - SVGA animation
+    vehicleSoundUrl?: string | null; // Optional - admin-uploaded fallback sound
   } | null;
   onVehicleComplete?: () => void;
 }
@@ -256,6 +257,7 @@ const VehicleEntranceOverlay: React.FC<VehicleEntranceOverlayProps> = ({
             loop={false}
             autoPlay={true}
             volume={0.8}
+            soundUrl={vehicleUserInfo?.vehicleSoundUrl ?? null}
             onComplete={handleAnimationComplete}
             onError={(err) => {
               console.error('[VehicleEntrance] ❌ SVGA error:', err);
