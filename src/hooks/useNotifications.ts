@@ -289,12 +289,18 @@ export const useNotifications = () => {
     initUser();
   }, []);
 
+  // Keep latest fetchNotifications in a ref so realtime effects don't re-subscribe
+  const fetchNotificationsRef = useRef(fetchNotifications);
+  useEffect(() => {
+    fetchNotificationsRef.current = fetchNotifications;
+  }, [fetchNotifications]);
+
   // Fetch on user change or when helperId becomes available
   useEffect(() => {
     if (currentUserId) {
-      fetchNotifications();
+      fetchNotificationsRef.current();
     }
-  }, [currentUserId, helperId, fetchNotifications]);
+  }, [currentUserId, helperId]);
 
   // Subscribe to realtime notifications
   useEffect(() => {
@@ -356,7 +362,7 @@ export const useNotifications = () => {
           filter: `user_id=eq.${currentUserId}`
         },
         () => {
-          fetchNotifications();
+          fetchNotificationsRef.current();
         }
       )
       .subscribe((status) => {
@@ -416,7 +422,7 @@ export const useNotifications = () => {
             filter: `helper_id=eq.${helperId}`
           },
           () => {
-            fetchNotifications();
+            fetchNotificationsRef.current();
           }
         )
         .subscribe((status) => {
@@ -432,7 +438,7 @@ export const useNotifications = () => {
       console.log('Unsubscribing from notifications');
       channels.forEach(ch => supabase.removeChannel(ch));
     };
-  }, [currentUserId, helperId, fetchNotifications]);
+  }, [currentUserId, helperId]);
 
   // Mark as read
   const markAsRead = async (notificationId: string) => {
