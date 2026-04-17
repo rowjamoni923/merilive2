@@ -2,7 +2,7 @@ import { ReactNode, useEffect, useState, useRef } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import BannedScreen from './BannedScreen';
+import BanPopupDialog from './BanPopupDialog';
 import VpnWarningBanner from '@/components/VpnWarningBanner';
 import { useSessionSecurity } from '@/hooks/useSessionSecurity';
 import { triggerLegacyProfileSync } from '@/utils/legacyProfileSync';
@@ -19,6 +19,7 @@ const BAN_CACHE_TTL = 60_000; // Re-check every 60s
 const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
   const location = useLocation();
   const [isBanned, setIsBanned] = useState(false);
+  const [banReason, setBanReason] = useState<string | null>(null);
   const [checked, setChecked] = useState(false);
   const [profileMissing, setProfileMissing] = useState(false);
   const [waitedForRecovery, setWaitedForRecovery] = useState(!!session);
@@ -65,7 +66,7 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
         try {
           const { data, error } = await supabase
             .from('profiles')
-            .select('is_blocked, device_id')
+            .select('is_blocked, blocked_reason, device_id')
             .eq('id', userId)
             .maybeSingle();
 
@@ -100,7 +101,10 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
           // not for automatic profile blocking on the client.
 
           banCheckCache.set(userId, { isBanned: banned, checkedAt: Date.now() });
-          if (banned) setIsBanned(true);
+          if (banned) {
+            setIsBanned(true);
+            setBanReason(data?.blocked_reason ?? null);
+          }
         } catch (e) {
           // Don't block on error
           console.warn('[ProtectedRoute] Ban check exception', e);
@@ -121,6 +125,7 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
             console.log('[ProtectedRoute] 🚨 INSTANT ban detected via realtime!');
             banCheckCache.set(userId, { isBanned: true, checkedAt: Date.now() });
             setIsBanned(true);
+            setBanReason(payload.new?.blocked_reason ?? null);
           }
         }
       )
@@ -180,14 +185,11 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
     );
   }
 
-  if (isBanned) {
-    return <BannedScreen />;
-  }
-
   return (
     <>
       <VpnWarningBanner />
       {children}
+      <BanPopupDialog open={isBanned} reason={banReason} bannedUntil={null} />
     </>
   );
 };
