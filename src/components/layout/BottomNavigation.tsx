@@ -10,7 +10,8 @@ import { useFeatureLevelCheck } from "@/hooks/useFeatureLevelCheck";
 import { useRealtimeLevelProgress } from "@/hooks/useRealtimeLevel";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-const CampaignFloatingButton = lazy(() => import("@/components/campaign/CampaignFloatingButton"));
+import { lazyRetry } from "@/utils/lazyRetry";
+const CampaignFloatingButton = lazy(lazyRetry(() => import("@/components/campaign/CampaignFloatingButton")));
 interface NavItem {
   icon: React.ElementType;
   label: string;
