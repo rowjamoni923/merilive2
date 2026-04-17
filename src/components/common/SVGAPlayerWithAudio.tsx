@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils';
 import { loadSVGA, stripAudio } from '@/utils/svgaLoader';
 import { getSVGAModule } from '@/utils/svgaPrewarm';
 import { extractAudioFromSVGA } from '@/utils/svgaAudioExtractor';
+import { ensureAudioUnlocked } from '@/utils/audioUnlock';
 import { Howl } from 'howler';
 
 interface SVGAPlayerWithAudioProps {
@@ -15,6 +16,8 @@ interface SVGAPlayerWithAudioProps {
   onComplete?: () => void;
   onAudioExtracted?: (audioUrl: string | null) => void;
   volume?: number;
+  /** Optional admin-uploaded sound URL — used as fallback when SVGA has no embedded audio */
+  soundUrl?: string | null;
 }
 
 const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
@@ -27,6 +30,7 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
   onComplete,
   onAudioExtracted,
   volume = 0.8,
+  soundUrl = null,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
