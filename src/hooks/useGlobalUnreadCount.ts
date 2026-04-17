@@ -217,13 +217,14 @@ const realtimeRefresh = () => {
 const ensureRealtimeSubscription = () => {
   if (!sharedUserId || sharedChannel) return;
 
+  // Use a single broad binding per table to minimize realtime bindings (was 6, now 4)
+  // Filter participant1/participant2 unified into one binding via OR isn't supported,
+  // so we rely on a single conversations binding without filter and dedupe in handler.
   sharedChannel = supabase
     .channel(`global-unread-shared-${sharedUserId}`)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations', filter: `participant1_id=eq.${sharedUserId}` }, realtimeRefresh)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations', filter: `participant2_id=eq.${sharedUserId}` }, realtimeRefresh)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${sharedUserId}` }, realtimeRefresh)
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, realtimeRefresh)
-    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, realtimeRefresh)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, realtimeRefresh)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, realtimeRefresh)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'admin_notices' }, realtimeRefresh)
     .subscribe();
 };
