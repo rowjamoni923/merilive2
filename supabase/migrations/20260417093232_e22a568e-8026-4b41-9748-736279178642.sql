@@ -1,0 +1,1 @@
+ALTER FUNCTION public.get_task_reset_date() SET search_path = public;
