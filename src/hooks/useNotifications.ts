@@ -364,6 +364,7 @@ export const useNotifications = () => {
         () => {
           fetchNotificationsRef.current();
         }
+      )
       .subscribe((status) => {
         console.log('Notification subscription status:', status);
       });
