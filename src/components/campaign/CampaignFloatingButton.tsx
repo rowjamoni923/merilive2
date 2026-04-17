@@ -3,7 +3,7 @@
  * Uses admin-selected template for popup styling.
  * Payment methods shown inline (no navigation to /recharge).
  */
-import { useState, useEffect, useCallback, useRef, forwardRef, type ChangeEvent } from 'react';
+import { useState, useEffect, useCallback, useRef, type ChangeEvent } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { X, CreditCard, Wallet, Globe, Copy, Check, Upload } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -69,7 +69,7 @@ type PaymentTab = 'google' | 'recommend' | 'skrill';
 type PopupView = 'main' | 'payment_select' | 'payment_number';
 type PaymentStep = 'form' | 'processing' | 'pending';
 
-const CampaignFloatingButton = forwardRef<HTMLDivElement>(function CampaignFloatingButton(_props, _ref) {
+function CampaignFloatingButton() {
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [remainingSeconds, setRemainingSeconds] = useState(0);
   const [showPopup, setShowPopup] = useState(false);
@@ -1087,6 +1087,6 @@ const CampaignFloatingButton = forwardRef<HTMLDivElement>(function CampaignFloat
       </AnimatePresence>
     </>
   );
-});
+}
 
 export default CampaignFloatingButton;
