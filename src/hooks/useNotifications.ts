@@ -422,7 +422,7 @@ export const useNotifications = () => {
             filter: `helper_id=eq.${helperId}`
           },
           () => {
-            fetchNotifications();
+            fetchNotificationsRef.current();
           }
         )
         .subscribe((status) => {
