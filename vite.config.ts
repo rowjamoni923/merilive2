@@ -57,18 +57,22 @@ export default defineConfig(({ mode }) => ({
             return 'vendor-misc';
           }
 
-          // App code — split by feature area to enable parallel loading
-          if (id.includes('/pages/admin/')) {
-            return 'app-admin';
+          // App code — let pages chunk PER-ROUTE for parallel lazy loading
+          // Only group small SHARED component subtrees (not pages themselves)
+          if (id.includes('/components/admin/') &&
+              !id.includes('AdminLayout') &&
+              !id.includes('AdminAccessGuard') &&
+              !id.includes('AdminRouteGuard')) {
+            return 'admin-shared';
           }
-          if (id.includes('/pages/games/') || id.includes('/components/games/')) {
-            return 'app-games';
+          if (id.includes('/components/agency/')) {
+            return 'agency-shared';
           }
-          if (id.includes('/pages/Agency') || id.includes('/components/agency/')) {
-            return 'app-agency';
+          if (id.includes('/components/live/') || id.includes('/components/party/')) {
+            return 'live-shared';
           }
-          if (id.includes('LiveStream') || id.includes('/components/live/') || id.includes('/components/party/') || id.includes('PartyRoom')) {
-            return 'app-live';
+          if (id.includes('/components/games/')) {
+            return 'games-shared';
           }
         },
       },
