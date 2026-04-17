@@ -356,14 +356,16 @@ const LiveStream = () => {
   }, [isHost, isHostVerified, id]);
 
   // ========== PERIODIC LIVE MINUTES TRACKER (every 60 seconds) ==========
+  // ⚠️ CRITICAL: Do NOT add `streamData` to deps — it re-fetches on viewer/gift/music
+  // changes and would reset the interval + lastTrackedMinuteRef, breaking task progress.
   const lastTrackedMinuteRef = useRef(0);
   useEffect(() => {
     // Only track when stream is ACTIVELY live (not after ending)
-    if (!isHost || !isHostVerified || !id || !streamData || showLiveEndSummary) return;
+    if (!isHost || !isHostVerified || !id || showLiveEndSummary) return;
     
-    // Reset tracking state for this stream session
+    // Reset tracking state for this stream session (per stream id)
     lastTrackedMinuteRef.current = 0;
-    streamEndedRef.current = false; // Reset on new stream
+    streamEndedRef.current = false;
 
     const trackNow = async () => {
       // ⛔ BULLETPROOF: Use ref to check if stream ended (avoids stale closure)
@@ -375,7 +377,6 @@ const LiveStream = () => {
       const elapsedMinutes = Math.floor((Date.now() - streamStartTime) / 60000);
       const minutesSinceLastTrack = elapsedMinutes - lastTrackedMinuteRef.current;
       if (minutesSinceLastTrack > 0) {
-        // Final safety check before actually tracking
         if (streamEndedRef.current) return;
         
         trackTaskProgress('live_minutes', { increment: minutesSinceLastTrack });
@@ -392,7 +393,8 @@ const LiveStream = () => {
       clearInterval(interval);
       console.log('[LiveStream] 🛑 Live minutes tracker stopped');
     };
-  }, [isHost, isHostVerified, id, streamData, showLiveEndSummary]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isHost, isHostVerified, id, showLiveEndSummary, streamStartTime]);
 
   // Room protection - blocks back button, auto-closes on network loss
   useRoomProtection({
