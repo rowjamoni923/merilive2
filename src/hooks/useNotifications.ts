@@ -362,9 +362,8 @@ export const useNotifications = () => {
           filter: `user_id=eq.${currentUserId}`
         },
         () => {
-          fetchNotifications();
+          fetchNotificationsRef.current();
         }
-      )
       .subscribe((status) => {
         console.log('Notification subscription status:', status);
       });
