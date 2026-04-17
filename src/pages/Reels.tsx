@@ -99,6 +99,9 @@ const Reels = () => {
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
   const [preSelectedSound, setPreSelectedSound] = useState<Sound | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
+  const [reportReason, setReportReason] = useState<string>("");
+  const [submittingReport, setSubmittingReport] = useState(false);
   const videoRefs = useRef<{ [key: string]: HTMLVideoElement | null }>({});
   const containerRef = useRef<HTMLDivElement>(null);
   
