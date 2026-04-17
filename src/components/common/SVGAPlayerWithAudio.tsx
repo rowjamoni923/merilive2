@@ -83,6 +83,11 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
 
     const loadAndPlay = async () => {
       try {
+        // Make sure audio is unlocked (no-op after first user gesture)
+        if (shouldPlayAudio) {
+          await ensureAudioUnlocked();
+        }
+
         // Start both animation loading and audio extraction in parallel
         const [SVGA, audioSegments] = await Promise.all([
           getSVGAModule(),
@@ -112,6 +117,26 @@ const SVGAPlayerWithAudio: React.FC<SVGAPlayerWithAudioProps> = ({
         
         if (!audioFound && shouldPlayAudio) {
           audioFound = extractAndPlayFromVideoItem(videoItem, volume, loop, activeHowlsRef, activeAudiosRef);
+        }
+
+        // Final fallback: admin-uploaded sound URL (when SVGA itself has no audio)
+        if (!audioFound && shouldPlayAudio && soundUrl) {
+          try {
+            const fallbackHowl = new Howl({
+              src: [soundUrl],
+              volume: Math.min(Math.max(volume, 0), 1),
+              loop,
+              html5: true,
+              onplayerror: () => {
+                fallbackHowl.once('unlock', () => fallbackHowl.play());
+              },
+            });
+            activeHowlsRef.current.push(fallbackHowl);
+            fallbackHowl.play();
+            audioFound = true;
+          } catch (e) {
+            console.warn('[SVGAPlayerWithAudio] Fallback soundUrl failed:', e);
+          }
         }
         
         onAudioExtracted?.(audioFound ? 'embedded' : null);
