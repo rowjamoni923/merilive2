@@ -1,0 +1,1 @@
+UPDATE storage.buckets SET public = true WHERE name IN ('chat-media', 'gifts', 'animations', 'sounds', 'frames', 'vehicle-entrances', 'stickers', 'level-assets');
