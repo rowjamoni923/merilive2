@@ -887,14 +887,15 @@ const App = () => {
     );
   }
 
-  // Domain-based routing: only merilive.top shows landing page (except specific routes)
-  const isMeriliveTop = window.location.hostname === 'merilive.top' || window.location.hostname === 'www.merilive.top';
-  const meriliveTopAllowedPaths = ['/agency-policy', '/helper-policy', '/policies', '/about', '/policies-benefits', '/agency-signup', '/become-sub-agent', '/payroll-helper-guide', '/create-agency', '/join-agency', '/auth', '/google-library-order-rules', '/privacy-policy', '/terms', '/contact'];
-  const isMeriliveTopSubRoute = isMeriliveTop && meriliveTopAllowedPaths.some(p => currentPath.startsWith(p));
+  // Domain-based routing: public website domains should show the landing page at root
+  const publicLandingHosts = ['merilive.top', 'www.merilive.top', 'merilive.com', 'www.merilive.com'];
+  const isPublicLandingHost = publicLandingHosts.includes(window.location.hostname);
+  const publicLandingAllowedPaths = ['/agency-policy', '/helper-policy', '/policies', '/about', '/policies-benefits', '/agency-signup', '/become-sub-agent', '/payroll-helper-guide', '/create-agency', '/join-agency', '/auth', '/google-library-order-rules', '/privacy-policy', '/terms', '/contact'];
+  const isPublicLandingSubRoute = isPublicLandingHost && publicLandingAllowedPaths.some(p => currentPath.startsWith(p));
   
-  if (isMeriliveTop && !isMeriliveTopSubRoute) {
+  if (isPublicLandingHost && !isPublicLandingSubRoute) {
     return (
-      <Suspense fallback={null}>
+      <Suspense fallback={<PageLoader message="Loading website..." />}>
         <LandingPage />
       </Suspense>
     );
