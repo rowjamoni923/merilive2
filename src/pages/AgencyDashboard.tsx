@@ -1315,15 +1315,8 @@ const AgencyDashboard = () => {
           </button>
         </div>
 
-        {/* Third Row - Coin Trader, Commission, Agent Wallet, Sub-Agent */}
-        <div className="grid grid-cols-4 gap-3 mt-3">
-          <button
-            onClick={() => navigate("/agency-coin-trader")}
-            className="bg-gradient-to-br from-pink-500 to-rose-600 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
-          >
-            <ArrowRightLeft className="w-7 h-7 drop-shadow-md" />
-            <span className="text-xs font-medium mt-1">Coin Trader</span>
-          </button>
+        {/* Third Row - Commission, Agent Wallet, Sub-Agent */}
+        <div className="grid grid-cols-3 gap-3 mt-3">
           <button
             onClick={() => navigate("/agency-commission-history")}
             className="bg-gradient-to-br from-teal-500 to-emerald-600 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"

@@ -186,7 +186,20 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
   // Transfer modal state
   const [showTransferModal, setShowTransferModal] = useState(false);
-  const [transferTab, setTransferTab] = useState<"user" | "agency" | "self">("user");
+  const [transferTab, setTransferTab] = useState<"user" | "agency" | "self" | "history">("user");
+  const [transferHistory, setTransferHistory] = useState<Array<{
+    id: string;
+    sender_id: string;
+    receiver_id: string;
+    amount: number;
+    transfer_type: string;
+    status: string;
+    notes: string | null;
+    created_at: string;
+    direction: 'sent' | 'received';
+    counterparty_name?: string;
+  }>>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const [selfRechargeAmount, setSelfRechargeAmount] = useState("");
   const [selfRechargeProcessing, setSelfRechargeProcessing] = useState(false);
   const [transferSearchQuery, setTransferSearchQuery] = useState("");
@@ -2115,25 +2128,66 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
             {/* Tabs */}
             <Tabs value={transferTab} onValueChange={(v) => {
-              setTransferTab(v as "user" | "agency" | "self");
+              setTransferTab(v as "user" | "agency" | "self" | "history");
               setTransferSearchQuery("");
               setSearchedUser(null);
               setSearchedAgency(null);
               setTransferAmount("");
               setSelfRechargeAmount("");
+              if (v === "history") {
+                (async () => {
+                  try {
+                    setHistoryLoading(true);
+                    const { data: { user: authUser } } = await supabase.auth.getUser();
+                    if (!authUser) return;
+                    const { data: rows } = await supabase
+                      .from('coin_transfers')
+                      .select('id, sender_id, receiver_id, amount, transfer_type, status, notes, created_at')
+                      .or(`sender_id.eq.${authUser.id},receiver_id.eq.${authUser.id}`)
+                      .order('created_at', { ascending: false })
+                      .limit(50);
+                    const list = (rows || []).map((r: any) => ({
+                      ...r,
+                      direction: (r.sender_id === authUser.id ? 'sent' : 'received') as 'sent' | 'received',
+                    }));
+                    // Resolve counterparty names
+                    const otherIds = Array.from(new Set(list.map(r => r.direction === 'sent' ? r.receiver_id : r.sender_id).filter(Boolean)));
+                    if (otherIds.length > 0) {
+                      const { data: profiles } = await supabase
+                        .from('profiles_public')
+                        .select('id, display_name, app_uid')
+                        .in('id', otherIds);
+                      const nameMap = new Map((profiles || []).map((p: any) => [p.id, p.display_name || p.app_uid || 'User']));
+                      list.forEach((r: any) => {
+                        const otherId = r.direction === 'sent' ? r.receiver_id : r.sender_id;
+                        r.counterparty_name = nameMap.get(otherId) || 'User';
+                      });
+                    }
+                    setTransferHistory(list);
+                  } catch (err) {
+                    console.error('[Profile] Failed to load transfer history:', err);
+                  } finally {
+                    setHistoryLoading(false);
+                  }
+                })();
+              }
             }}>
-              <TabsList className="w-full bg-slate-800/80 p-1 rounded-2xl">
-                <TabsTrigger value="user" className="flex-1 gap-1.5 rounded-xl text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-500 data-[state=active]:text-white">
+              <TabsList className="w-full bg-slate-800/80 p-1 rounded-2xl grid grid-cols-4">
+                <TabsTrigger value="user" className="gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-500 data-[state=active]:text-white">
                   <User className="w-3.5 h-3.5" />
                   User
                 </TabsTrigger>
-                <TabsTrigger value="agency" className="flex-1 gap-1.5 rounded-xl text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white">
+                <TabsTrigger value="agency" className="gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white">
                   <Building2 className="w-3.5 h-3.5" />
                   Agency
                 </TabsTrigger>
-                <TabsTrigger value="self" className="flex-1 gap-1.5 rounded-xl text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
+                <TabsTrigger value="self" className="gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
                   <Gem className="w-3.5 h-3.5" />
                   Self
+                </TabsTrigger>
+                <TabsTrigger value="history" className="gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-violet-500 data-[state=active]:text-white">
+                  <History className="w-3.5 h-3.5" />
+                  History
                 </TabsTrigger>
               </TabsList>
 
@@ -2376,6 +2430,63 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     )}
                   </Button>
                 </div>
+              </TabsContent>
+
+              <TabsContent value="history" className="mt-4 space-y-3 max-h-[420px] overflow-y-auto">
+                {historyLoading ? (
+                  <div className="flex items-center justify-center py-10">
+                    <div className="w-6 h-6 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                ) : transferHistory.length === 0 ? (
+                  <div className="text-center py-10">
+                    <History className="w-10 h-10 text-slate-600 mx-auto mb-2" />
+                    <p className="text-slate-400 text-sm">No transfer history yet</p>
+                    <p className="text-slate-500 text-xs mt-1">Your coin trade transfers will appear here</p>
+                  </div>
+                ) : (
+                  transferHistory.map((tx) => {
+                    const isSent = tx.direction === 'sent';
+                    const statusColor =
+                      tx.status === 'completed' ? 'text-emerald-400' :
+                      tx.status === 'pending' ? 'text-amber-400' :
+                      tx.status === 'failed' || tx.status === 'cancelled' ? 'text-rose-400' :
+                      'text-slate-400';
+                    return (
+                      <div key={tx.id} className="bg-slate-800/60 rounded-2xl p-3 border border-slate-700">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                              isSent ? 'bg-gradient-to-br from-rose-500/30 to-pink-500/30' : 'bg-gradient-to-br from-emerald-500/30 to-teal-500/30'
+                            }`}>
+                              {isSent ? (
+                                <Send className="w-5 h-5 text-rose-400" />
+                              ) : (
+                                <ArrowRight className="w-5 h-5 text-emerald-400 -rotate-45" />
+                              )}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-white text-sm font-semibold truncate">
+                                {isSent ? 'Sent to' : 'Received from'} {tx.counterparty_name || 'User'}
+                              </p>
+                              <p className="text-slate-400 text-[10px]">
+                                {new Date(tx.created_at).toLocaleString('en-US', {
+                                  month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                                })}
+                                {tx.transfer_type ? ` • ${tx.transfer_type}` : ''}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <p className={`text-base font-bold ${isSent ? 'text-rose-400' : 'text-emerald-400'}`}>
+                              {isSent ? '-' : '+'}{tx.amount.toLocaleString()} 💎
+                            </p>
+                            <p className={`text-[10px] capitalize ${statusColor}`}>{tx.status}</p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
               </TabsContent>
             </Tabs>
           </div>
