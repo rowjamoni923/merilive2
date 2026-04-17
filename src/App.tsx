@@ -887,8 +887,9 @@ const App = () => {
     );
   }
 
-  // Domain-based routing: public website domains should show the landing page at root
-  const publicLandingHosts = ['merilive.top', 'www.merilive.top', 'merilive.com', 'www.merilive.com'];
+  // Domain-based routing: ONLY .top domain shows the public landing page.
+  // merilive.com is the MAIN APP domain — must load the full app, NOT landing.
+  const publicLandingHosts = ['merilive.top', 'www.merilive.top'];
   const isPublicLandingHost = publicLandingHosts.includes(window.location.hostname);
   const publicLandingAllowedPaths = ['/agency-policy', '/helper-policy', '/policies', '/about', '/policies-benefits', '/agency-signup', '/become-sub-agent', '/payroll-helper-guide', '/create-agency', '/join-agency', '/auth', '/google-library-order-rules', '/privacy-policy', '/terms', '/contact'];
   const isPublicLandingSubRoute = isPublicLandingHost && publicLandingAllowedPaths.some(p => currentPath.startsWith(p));
