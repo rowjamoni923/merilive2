@@ -197,7 +197,8 @@ const EntranceAnimationInner = memo(({
                 src={displayAnimationUrl}
                 loop={false}
                 autoPlay={true}
-                volume={0.7}
+                volume={soundPlayedRef.current ? 0 : 0.7}
+                soundUrl={soundPlayedRef.current ? null : soundUrl}
                 onComplete={handleAnimationComplete}
                 onError={(err) => {
                   console.error('[EntranceAnimation] ❌ SVGA ERROR:', err?.message || err);
