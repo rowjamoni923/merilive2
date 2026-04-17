@@ -2128,25 +2128,66 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
             {/* Tabs */}
             <Tabs value={transferTab} onValueChange={(v) => {
-              setTransferTab(v as "user" | "agency" | "self");
+              setTransferTab(v as "user" | "agency" | "self" | "history");
               setTransferSearchQuery("");
               setSearchedUser(null);
               setSearchedAgency(null);
               setTransferAmount("");
               setSelfRechargeAmount("");
+              if (v === "history") {
+                (async () => {
+                  try {
+                    setHistoryLoading(true);
+                    const { data: { user: authUser } } = await supabase.auth.getUser();
+                    if (!authUser) return;
+                    const { data: rows } = await supabase
+                      .from('coin_transfers')
+                      .select('id, sender_id, receiver_id, amount, transfer_type, status, notes, created_at')
+                      .or(`sender_id.eq.${authUser.id},receiver_id.eq.${authUser.id}`)
+                      .order('created_at', { ascending: false })
+                      .limit(50);
+                    const list = (rows || []).map((r: any) => ({
+                      ...r,
+                      direction: (r.sender_id === authUser.id ? 'sent' : 'received') as 'sent' | 'received',
+                    }));
+                    // Resolve counterparty names
+                    const otherIds = Array.from(new Set(list.map(r => r.direction === 'sent' ? r.receiver_id : r.sender_id).filter(Boolean)));
+                    if (otherIds.length > 0) {
+                      const { data: profiles } = await supabase
+                        .from('profiles_public')
+                        .select('id, display_name, app_uid')
+                        .in('id', otherIds);
+                      const nameMap = new Map((profiles || []).map((p: any) => [p.id, p.display_name || p.app_uid || 'User']));
+                      list.forEach((r: any) => {
+                        const otherId = r.direction === 'sent' ? r.receiver_id : r.sender_id;
+                        r.counterparty_name = nameMap.get(otherId) || 'User';
+                      });
+                    }
+                    setTransferHistory(list);
+                  } catch (err) {
+                    console.error('[Profile] Failed to load transfer history:', err);
+                  } finally {
+                    setHistoryLoading(false);
+                  }
+                })();
+              }
             }}>
-              <TabsList className="w-full bg-slate-800/80 p-1 rounded-2xl">
-                <TabsTrigger value="user" className="flex-1 gap-1.5 rounded-xl text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-500 data-[state=active]:text-white">
+              <TabsList className="w-full bg-slate-800/80 p-1 rounded-2xl grid grid-cols-4">
+                <TabsTrigger value="user" className="gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-500 data-[state=active]:text-white">
                   <User className="w-3.5 h-3.5" />
                   User
                 </TabsTrigger>
-                <TabsTrigger value="agency" className="flex-1 gap-1.5 rounded-xl text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white">
+                <TabsTrigger value="agency" className="gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white">
                   <Building2 className="w-3.5 h-3.5" />
                   Agency
                 </TabsTrigger>
-                <TabsTrigger value="self" className="flex-1 gap-1.5 rounded-xl text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
+                <TabsTrigger value="self" className="gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
                   <Gem className="w-3.5 h-3.5" />
                   Self
+                </TabsTrigger>
+                <TabsTrigger value="history" className="gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-violet-500 data-[state=active]:text-white">
+                  <Clock className="w-3.5 h-3.5" />
+                  History
                 </TabsTrigger>
               </TabsList>
 
