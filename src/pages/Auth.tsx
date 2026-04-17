@@ -304,7 +304,7 @@ const Auth = () => {
         // Only check if user already has an active Supabase session
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
-          // Verify user still exists in profiles (accounts were wiped)
+          // Verify user still exists in profiles
           const { data: profile } = await supabase
             .from('profiles')
             .select('id')
@@ -316,9 +316,18 @@ const Auth = () => {
             navigateAfterAuth();
             return;
           } else {
-            // Session exists but profile was deleted — sign out
-            console.log('[Auth] ⚠️ Session found but profile missing, signing out');
-            await supabase.auth.signOut();
+            // 🛡️ CRITICAL FIX: Profile missing → DO NOT sign out!
+            // New signups may not have profile row yet (trigger lag).
+            // Trigger sync/recovery instead, then redirect.
+            console.log('[Auth] ⚠️ Session found but profile missing, attempting recovery (NOT signing out)');
+            try {
+              await triggerLegacyProfileSync(session.user.id, { force: true });
+            } catch (syncErr) {
+              console.warn('[Auth] Profile recovery sync failed:', syncErr);
+            }
+            // Redirect anyway — Profile.tsx has its own self-heal that creates the row
+            navigateAfterAuth();
+            return;
           }
         }
 
