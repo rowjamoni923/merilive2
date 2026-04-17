@@ -380,8 +380,16 @@ export { queryClient };
 // =============================================
 // ROUTE LOADER - visible fallback to prevent blank/black screen during lazy chunk loads
 // =============================================
-const PageLoader = memo(() => (
-  <div className="min-h-screen w-full bg-background" />
+const PageLoader = memo(({ message = "Loading MeriLive..." }: { message?: string }) => (
+  <div className="min-h-screen w-full bg-background flex items-center justify-center px-6">
+    <div className="w-full max-w-sm rounded-2xl border border-border bg-card/80 p-6 text-center shadow-sm backdrop-blur-sm">
+      <div className="mb-4 flex justify-center">
+        <div className="h-3 w-3 animate-pulse rounded-full bg-primary" />
+      </div>
+      <h1 className="text-base font-semibold text-foreground">MeriLive</h1>
+      <p className="mt-2 text-sm text-muted-foreground">{message}</p>
+    </div>
+  </div>
 ));
 
 // =============================================
@@ -845,8 +853,7 @@ const App = () => {
   const isBrowserAllowedRoute = BROWSER_ALLOWED_ROUTES.some(route => currentPath.startsWith(route));
 
   if (loading) {
-    // INSTANT: Show empty background only — no spinners, no loading text
-    return <div className="min-h-screen bg-background" />;
+    return <PageLoader message="Checking your session..." />;
   }
 
   // 🔒 BROWSER GUARD: Block public browser access to protected app routes
@@ -856,7 +863,7 @@ const App = () => {
     // Redirect unauthenticated browser users to auth page
     if (currentPath !== '/auth' && !currentPath.startsWith('/auth')) {
       window.location.replace('/auth');
-      return <div className="min-h-screen bg-background" />;
+      return <PageLoader message="Redirecting to sign in..." />;
     }
   }
 
