@@ -155,3 +155,73 @@ self.addEventListener('notificationclick', function(event) {
     })
   );
 });
+
+// =============================================
+// 🚀 ASSET CACHE — Stale-while-revalidate for JS/CSS/images
+// Makes repeat page loads near-instant (<100ms)
+// =============================================
+var ASSET_CACHE = 'meri-assets-v1';
+var ASSET_REGEX = /\.(?:js|css|woff2?|png|jpg|jpeg|webp|svg|gif|ico)(?:\?.*)?$/i;
+
+self.addEventListener('install', function(event) {
+  // Activate new SW immediately
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', function(event) {
+  // Take control of all clients & clean old caches
+  event.waitUntil(
+    Promise.all([
+      self.clients.claim(),
+      caches.keys().then(function(keys) {
+        return Promise.all(keys.filter(function(k) {
+          return k.indexOf('meri-assets-') === 0 && k !== ASSET_CACHE;
+        }).map(function(k) { return caches.delete(k); }));
+      }),
+    ])
+  );
+});
+
+self.addEventListener('fetch', function(event) {
+  var req = event.request;
+
+  // Only handle GET
+  if (req.method !== 'GET') return;
+
+  var url;
+  try { url = new URL(req.url); } catch (e) { return; }
+
+  // Don't cache cross-origin (except for same-origin assets we own)
+  if (url.origin !== self.location.origin) return;
+
+  // Don't cache HTML — always fresh
+  if (req.mode === 'navigate') return;
+  if (req.destination === 'document') return;
+
+  // Don't cache API/auth/realtime
+  if (url.pathname.indexOf('/rest/') !== -1) return;
+  if (url.pathname.indexOf('/auth/') !== -1) return;
+  if (url.pathname.indexOf('/realtime/') !== -1) return;
+  if (url.pathname.indexOf('/functions/') !== -1) return;
+
+  // Only cache static assets (JS, CSS, fonts, images)
+  if (!ASSET_REGEX.test(url.pathname)) return;
+
+  event.respondWith(
+    caches.open(ASSET_CACHE).then(function(cache) {
+      return cache.match(req).then(function(cached) {
+        // Background revalidation — fetch new copy & update cache
+        var networkPromise = fetch(req).then(function(resp) {
+          if (resp && resp.status === 200 && resp.type === 'basic') {
+            cache.put(req, resp.clone()).catch(function() {});
+          }
+          return resp;
+        }).catch(function() { return cached; });
+
+        // Return cached immediately if available, otherwise wait for network
+        return cached || networkPromise;
+      });
+    })
+  );
+});
+
