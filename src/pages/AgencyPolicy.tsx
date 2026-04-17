@@ -32,12 +32,12 @@ import policyHeroBanner from "@/assets/banners/policy-hero-banner.jpg";
 import meriliveLogo from "@/assets/merilive-logo.png";
 
 interface PolicyData {
-  exchange_rate: {
+  exchange_rate?: {
     rate: number;
     currency: string;
     display: string;
   };
-  commission_tiers: {
+  commission_tiers?: {
     tiers: Array<{
       level: string;
       name: string;
@@ -46,30 +46,30 @@ interface PolicyData {
       rate: number;
     }>;
   };
-  host_requirements: {
+  host_requirements?: {
     requirements: Array<{
       key: string;
       title: string;
       description: string;
     }>;
   };
-  violations: {
+  violations?: {
     violations: Array<{
       title: string;
       severity: string;
       penalties: string[];
     }>;
   };
-  prohibited_content: {
+  prohibited_content?: {
     items: Array<{
       title: string;
       description: string;
     }>;
   };
-  call_rules: {
+  call_rules?: {
     rules: string[];
   };
-  withdrawal: {
+  withdrawal?: {
     minimum_usd: number;
     settlement_day: string;
     settlement_time_ist: string;
@@ -86,11 +86,29 @@ interface PolicyData {
   };
 }
 
+interface DynamicPolicySection {
+  section_key: string;
+  section_title: string;
+  content: any;
+  display_order: number;
+}
+
 const iconMap: Record<string, React.ReactNode> = {
   age: <Users className="w-5 h-5" />,
   camera: <Video className="w-5 h-5" />,
   communication: <MessageCircle className="w-5 h-5" />,
   avatar: <Star className="w-5 h-5" />
+};
+
+// Visual identity for each admin section_key
+const sectionVisuals: Record<string, { icon: React.ReactNode; gradient: string; iconBg: string; iconColor: string }> = {
+  rules:           { icon: <Shield className="w-5 h-5" />,        gradient: "from-blue-500 to-indigo-600",        iconBg: "bg-blue-100 dark:bg-blue-900/30",        iconColor: "text-blue-600 dark:text-blue-400" },
+  commission:      { icon: <TrendingUp className="w-5 h-5" />,    gradient: "from-emerald-500 to-teal-600",       iconBg: "bg-emerald-100 dark:bg-emerald-900/30",  iconColor: "text-emerald-600 dark:text-emerald-400" },
+  penalties:       { icon: <AlertTriangle className="w-5 h-5" />, gradient: "from-red-500 to-rose-600",           iconBg: "bg-red-100 dark:bg-red-900/30",          iconColor: "text-red-600 dark:text-red-400" },
+  benefits:        { icon: <Award className="w-5 h-5" />,         gradient: "from-purple-500 to-pink-600",        iconBg: "bg-purple-100 dark:bg-purple-900/30",    iconColor: "text-purple-600 dark:text-purple-400" },
+  withdrawal:      { icon: <Wallet className="w-5 h-5" />,        gradient: "from-green-500 to-emerald-600",      iconBg: "bg-green-100 dark:bg-green-900/30",      iconColor: "text-green-600 dark:text-green-400" },
+  host_management: { icon: <Users className="w-5 h-5" />,         gradient: "from-cyan-500 to-blue-600",          iconBg: "bg-cyan-100 dark:bg-cyan-900/30",        iconColor: "text-cyan-600 dark:text-cyan-400" },
+  privacy:         { icon: <Shield className="w-5 h-5" />,        gradient: "from-slate-500 to-slate-700",        iconBg: "bg-slate-100 dark:bg-slate-800",         iconColor: "text-slate-600 dark:text-slate-400" },
 };
 
 const tierColors: Record<string, string> = {
@@ -101,10 +119,17 @@ const tierColors: Record<string, string> = {
   "A5": "from-purple-500 to-pink-500"
 };
 
+// STRUCTURED keys handled by their own dedicated cards/tabs
+const STRUCTURED_KEYS = new Set([
+  "exchange_rate", "commission_tiers", "host_requirements",
+  "violations", "prohibited_content", "call_rules", "withdrawal"
+]);
+
 const AgencyPolicy = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [policyData, setPolicyData] = useState<PolicyData | null>(null);
+  const [dynamicSections, setDynamicSections] = useState<DynamicPolicySection[]>([]);
   const [levelTiers, setLevelTiers] = useState<Array<{
     level_code: string;
     level_name: string;
@@ -125,8 +150,9 @@ const AgencyPolicy = () => {
       const [policiesResult, tiersResult] = await Promise.all([
         supabase
           .from('agency_policy_settings')
-          .select('section_key, content')
-          .eq('is_active', true),
+          .select('section_key, section_title, content, display_order')
+          .eq('is_active', true)
+          .order('display_order', { ascending: true }),
         supabase
           .from('agency_level_tiers')
           .select('level_code, level_name, min_weekly_income, max_weekly_income, commission_rate')
@@ -138,11 +164,24 @@ const AgencyPolicy = () => {
       if (tiersResult.error) throw tiersResult.error;
 
       if (policiesResult.data) {
+        // Structured policies (typed cards)
         const policies: any = {};
+        // Dynamic admin-managed sections (anything not in STRUCTURED_KEYS)
+        const dynamic: DynamicPolicySection[] = [];
+
         policiesResult.data.forEach((item: any) => {
           policies[item.section_key] = item.content;
+          if (!STRUCTURED_KEYS.has(item.section_key)) {
+            dynamic.push({
+              section_key: item.section_key,
+              section_title: item.section_title,
+              content: item.content,
+              display_order: item.display_order ?? 99,
+            });
+          }
         });
         setPolicyData(policies as PolicyData);
+        setDynamicSections(dynamic);
       }
 
       if (tiersResult.data) {
@@ -154,6 +193,7 @@ const AgencyPolicy = () => {
       setLoading(false);
     }
   };
+
 
   const formatIncome = (min: number, max: number | null) => {
     const formatNumber = (num: number) => {
