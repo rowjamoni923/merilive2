@@ -336,22 +336,31 @@ const AgencyPolicy = () => {
         {/* Tabs */}
         <div className="mx-4 mt-4">
           <Tabs defaultValue="commission" className="w-full">
-            <TabsList className="w-full grid grid-cols-4 bg-muted/50 p-1 rounded-xl h-11">
-              <TabsTrigger value="commission" className="text-xs rounded-lg data-[state=active]:bg-background">
-                <TrendingUp className="w-3.5 h-3.5 mr-1" />
+            <TabsList className="w-full grid grid-cols-5 bg-muted/50 p-1 rounded-xl h-11">
+              <TabsTrigger value="commission" className="text-[11px] rounded-lg data-[state=active]:bg-background px-1">
+                <TrendingUp className="w-3.5 h-3.5 mr-0.5" />
                 Commission
               </TabsTrigger>
-              <TabsTrigger value="host" className="text-xs rounded-lg data-[state=active]:bg-background">
-                <Users className="w-3.5 h-3.5 mr-1" />
+              <TabsTrigger value="host" className="text-[11px] rounded-lg data-[state=active]:bg-background px-1">
+                <Users className="w-3.5 h-3.5 mr-0.5" />
                 Host
               </TabsTrigger>
-              <TabsTrigger value="rules" className="text-xs rounded-lg data-[state=active]:bg-background">
-                <Shield className="w-3.5 h-3.5 mr-1" />
+              <TabsTrigger value="rules" className="text-[11px] rounded-lg data-[state=active]:bg-background px-1">
+                <Shield className="w-3.5 h-3.5 mr-0.5" />
                 Rules
               </TabsTrigger>
-              <TabsTrigger value="withdraw" className="text-xs rounded-lg data-[state=active]:bg-background">
-                <Wallet className="w-3.5 h-3.5 mr-1" />
-                Withdrawal
+              <TabsTrigger value="withdraw" className="text-[11px] rounded-lg data-[state=active]:bg-background px-1">
+                <Wallet className="w-3.5 h-3.5 mr-0.5" />
+                Withdraw
+              </TabsTrigger>
+              <TabsTrigger value="more" className="text-[11px] rounded-lg data-[state=active]:bg-background px-1 relative">
+                <FileText className="w-3.5 h-3.5 mr-0.5" />
+                More
+                {dynamicSections.length > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-4 min-w-4 px-1 text-[9px] bg-purple-600 text-white border-0">
+                    {dynamicSections.length}
+                  </Badge>
+                )}
               </TabsTrigger>
             </TabsList>
 
