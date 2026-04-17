@@ -35,23 +35,42 @@ export function useLeaderboardRealtime(
   periodRef.current = periodType;
 
   useEffect(() => {
-    // All leaderboard data derives from gift_transactions and private_calls
-    // which are already in the universal realtime channel
     const subscriberId = `leaderboard-${Date.now()}`;
 
+    // Listen to ALL leaderboard data sources:
+    //   - gift_transactions → top_gifter, host_earning
+    //   - private_calls → host_earning
+    //   - game_transactions, live_game_bets, live_game_rounds → game_ranking
+    //   - pk_participants, pk_battle_gifts, pk_battles → pk_competition
     const unsubscribe = subscribeToTables(
       subscriberId,
-      ['gift_transactions', 'private_calls'],
-      (table, event, _payload) => {
-        const keys = CATEGORY_QUERY_KEYS[categoryRef.current];
+      [
+        'gift_transactions',
+        'private_calls',
+        'game_transactions',
+        'live_game_bets',
+        'live_game_rounds',
+        'pk_participants',
+        'pk_battle_gifts',
+        'pk_battles',
+      ],
+      (table, _event, _payload) => {
+        const cat = categoryRef.current;
+        const keys = CATEGORY_QUERY_KEYS[cat];
         if (!keys) return;
 
-        // For host_earning: both gift_transactions and private_calls matter
-        // For others: only gift_transactions matter
-        if (categoryRef.current !== 'host_earning' && table === 'private_calls') return;
+        // Per-category routing — only invalidate when the changed table
+        // actually affects the current leaderboard category.
+        const isGiftOrCall = table === 'gift_transactions' || table === 'private_calls';
+        const isGameTable = table === 'game_transactions' || table === 'live_game_bets' || table === 'live_game_rounds';
+        const isPkTable = table === 'pk_participants' || table === 'pk_battle_gifts' || table === 'pk_battles';
+
+        if (cat === 'host_earning' && !isGiftOrCall) return;
+        if (cat === 'top_gifter' && table !== 'gift_transactions') return;
+        if (cat === 'game_ranking' && !isGameTable) return;
+        if (cat === 'pk_competition' && !isPkTable) return;
 
         keys.forEach((key) => {
-          // Append periodType for period-specific queries
           const fullKey = key[0]?.includes('rankings') ? [...key, periodRef.current] : key;
           queryClientRef.current.invalidateQueries({
             queryKey: fullKey,
