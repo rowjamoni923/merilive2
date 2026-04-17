@@ -186,7 +186,20 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
   // Transfer modal state
   const [showTransferModal, setShowTransferModal] = useState(false);
-  const [transferTab, setTransferTab] = useState<"user" | "agency" | "self">("user");
+  const [transferTab, setTransferTab] = useState<"user" | "agency" | "self" | "history">("user");
+  const [transferHistory, setTransferHistory] = useState<Array<{
+    id: string;
+    sender_id: string;
+    receiver_id: string;
+    amount: number;
+    transfer_type: string;
+    status: string;
+    notes: string | null;
+    created_at: string;
+    direction: 'sent' | 'received';
+    counterparty_name?: string;
+  }>>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const [selfRechargeAmount, setSelfRechargeAmount] = useState("");
   const [selfRechargeProcessing, setSelfRechargeProcessing] = useState(false);
   const [transferSearchQuery, setTransferSearchQuery] = useState("");
