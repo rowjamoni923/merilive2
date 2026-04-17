@@ -289,12 +289,18 @@ export const useNotifications = () => {
     initUser();
   }, []);
 
+  // Keep latest fetchNotifications in a ref so realtime effects don't re-subscribe
+  const fetchNotificationsRef = useRef(fetchNotifications);
+  useEffect(() => {
+    fetchNotificationsRef.current = fetchNotifications;
+  }, [fetchNotifications]);
+
   // Fetch on user change or when helperId becomes available
   useEffect(() => {
     if (currentUserId) {
-      fetchNotifications();
+      fetchNotificationsRef.current();
     }
-  }, [currentUserId, helperId, fetchNotifications]);
+  }, [currentUserId, helperId]);
 
   // Subscribe to realtime notifications
   useEffect(() => {
