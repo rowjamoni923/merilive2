@@ -11120,15 +11120,7 @@ export type Database = {
         Args: { _host_id: string; _hour_number: number }
         Returns: Json
       }
-      claim_invitation_reward: {
-        Args: {
-          _beans?: number
-          _coins?: number
-          _diamonds?: number
-          _user_id: string
-        }
-        Returns: boolean
-      }
+      claim_invitation_reward: { Args: { _tier_id: string }; Returns: Json }
       claim_new_host_live_bonus: {
         Args: { _bonus_coins?: number; _host_id: string }
         Returns: Json
