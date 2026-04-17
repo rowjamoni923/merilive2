@@ -91,22 +91,13 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
 
           if (data?.is_blocked) {
             banned = true;
-          } else if (data?.device_id) {
-            const { data: bannedDevice } = await supabase
-              .from('banned_devices')
-              .select('id')
-              .eq('device_id', data.device_id)
-              .eq('is_permanent', true)
-              .maybeSingle();
-
-            if (bannedDevice) {
-              await supabase
-                .from('profiles')
-                .update({ is_blocked: true, blocked_reason: 'Device permanently banned' })
-                .eq('id', userId);
-              banned = true;
-            }
           }
+          // NOTE: Device-ban auto-propagation removed.
+          // Reason: it caused FALSE-POSITIVE bans for new signups.
+          // Device bans are now enforced ONLY by admin manually setting
+          // profiles.is_blocked = true via the Admin Panel.
+          // The banned_devices table is used for analytics / admin lookup,
+          // not for automatic profile blocking on the client.
 
           banCheckCache.set(userId, { isBanned: banned, checkedAt: Date.now() });
           if (banned) setIsBanned(true);
