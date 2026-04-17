@@ -31,7 +31,11 @@ export function DynamicBanner({ position = 'top' }: DynamicBannerProps) {
   const handleBannerClick = async (banner: Banner) => {
     if (!banner.link_url) return;
 
-    const linkType = banner.link_type || 'external';
+    // Auto-detect internal routes: any URL starting with "/" (but not "//") is an in-app route.
+    // This prevents the popup-iframe from trying to embed the same-origin app (which fails
+    // due to X-Frame-Options/CSP and shows a blank modal).
+    const isRelativePath = banner.link_url.startsWith('/') && !banner.link_url.startsWith('//');
+    const linkType = isRelativePath ? 'internal' : (banner.link_type || 'external');
     switch (linkType) {
       case "popup":
         setPopupUrl(banner.link_url);
