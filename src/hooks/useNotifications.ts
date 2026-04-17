@@ -438,7 +438,7 @@ export const useNotifications = () => {
       console.log('Unsubscribing from notifications');
       channels.forEach(ch => supabase.removeChannel(ch));
     };
-  }, [currentUserId, helperId, fetchNotifications]);
+  }, [currentUserId, helperId]);
 
   // Mark as read
   const markAsRead = async (notificationId: string) => {
