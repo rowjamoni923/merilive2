@@ -1073,18 +1073,24 @@ const AgencyDashboard = () => {
           <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
           
           <CardContent className="p-3 relative z-10">
-            {/* Total Beans (Host Earnings + Commission combined) */}
+            {/* Total Beans (Host Earnings + Commission combined) — Tap to view Commission History */}
             <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
+              <button
+                onClick={() => navigate("/agency-commission-history")}
+                className="flex items-center gap-2 text-left hover:opacity-90 transition-opacity"
+                aria-label="View commission history"
+              >
                 <div className="w-9 h-9 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
                   <Coins className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="text-white/80 text-[10px] uppercase tracking-wide">Total Beans</p>
+                  <p className="text-white/80 text-[10px] uppercase tracking-wide flex items-center gap-1">
+                    Total Beans <ChevronRight className="w-3 h-3" />
+                  </p>
                   <p className="text-xl font-bold">{fmtNum(agencyBeansBalance)}</p>
-                  <p className="text-[9px] text-white/60">Withdrawable balance</p>
+                  <p className="text-[9px] text-white/60">Tap to view commission history</p>
                 </div>
-              </div>
+              </button>
               <div className="text-right bg-white/20 backdrop-blur-sm rounded-lg p-2">
                 <p className="text-white/80 text-[10px] flex items-center gap-0.5 justify-end">
                   <DollarSign className="w-2.5 h-2.5" />
@@ -1315,30 +1321,6 @@ const AgencyDashboard = () => {
           </button>
         </div>
 
-        {/* Third Row - Commission, Agent Wallet, Sub-Agent */}
-        <div className="grid grid-cols-3 gap-3 mt-3">
-          <button
-            onClick={() => navigate("/agency-commission-history")}
-            className="bg-gradient-to-br from-teal-500 to-emerald-600 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
-          >
-            <Percent className="w-7 h-7 drop-shadow-md" />
-            <span className="text-xs font-medium mt-1">Commission</span>
-          </button>
-          <button
-            onClick={() => navigate("/agent-wallet")}
-            className="bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
-          >
-            <Wallet className="w-7 h-7 drop-shadow-md" />
-            <span className="text-xs font-medium mt-1">Agent Wallet</span>
-          </button>
-          <button
-            onClick={() => navigate("/become-sub-agent")}
-            className="bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
-          >
-            <UserPlus className="w-7 h-7 drop-shadow-md" />
-            <span className="text-xs font-medium mt-1">Sub-Agent</span>
-          </button>
-        </div>
       </div>
 
       {/* Agency Information Card */}
