@@ -39,15 +39,15 @@ const Level5HelperDashboard = lazy(() => import("./pages/Level5HelperDashboard")
 // =============================================
 const Index = lazy(lazyRetry(() => import("./pages/Index")));
 const Auth = lazy(lazyRetry(() => import("./pages/Auth")));
-const DeepLinkHandler = lazy(() => import("./components/common/DeepLinkHandler"));
+const DeepLinkHandler = lazy(lazyRetry(() => import("./components/common/DeepLinkHandler")));
 import ErrorBoundary from "./components/ErrorBoundary";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
-const DeferredAppHooks = lazy(() => import("./components/common/DeferredAppHooks"));
-const EventPopupBanner = lazy(() => import("./components/common/EventPopupBanner"));
-const DailyLoginPopup = lazy(() => import("./components/rewards/DailyLoginPopup"));
-const WelcomeOnboarding = lazy(() => import("./components/onboarding/WelcomeOnboarding"));
-const RatingRewardPopup = lazy(() => import("./components/rewards/RatingRewardPopup"));
-const LandingPage = lazy(() => import("./pages/LandingPage"));
+const DeferredAppHooks = lazy(lazyRetry(() => import("./components/common/DeferredAppHooks")));
+const EventPopupBanner = lazy(lazyRetry(() => import("./components/common/EventPopupBanner")));
+const DailyLoginPopup = lazy(lazyRetry(() => import("./components/rewards/DailyLoginPopup")));
+const WelcomeOnboarding = lazy(lazyRetry(() => import("./components/onboarding/WelcomeOnboarding")));
+const RatingRewardPopup = lazy(lazyRetry(() => import("./components/rewards/RatingRewardPopup")));
+const LandingPage = lazy(lazyRetry(() => import("./pages/LandingPage")));
 // =============================================
 // LAZY LOADED PAGES - Load on demand
 // =============================================
