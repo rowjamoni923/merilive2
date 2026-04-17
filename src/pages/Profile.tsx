@@ -2186,7 +2186,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   Self
                 </TabsTrigger>
                 <TabsTrigger value="history" className="gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-violet-500 data-[state=active]:text-white">
-                  <Clock className="w-3.5 h-3.5" />
+                  <History className="w-3.5 h-3.5" />
                   History
                 </TabsTrigger>
               </TabsList>
