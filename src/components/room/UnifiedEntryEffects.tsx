@@ -148,6 +148,7 @@ export const UnifiedEntryEffects: React.FC<UnifiedEntryEffectsProps> = ({
             avatarUrl={vehicleUserInfo.avatarUrl}
             level={vehicleUserInfo.level}
             vehicleAnimationUrl={vehicleUserInfo.vehicleAnimationUrl}
+            vehicleSoundUrl={vehicleUserInfo.vehicleSoundUrl ?? null}
             onComplete={onVehicleComplete || (() => {})}
           />
         )}
@@ -165,6 +166,7 @@ interface VehicleEntranceOverlayProps {
   avatarUrl?: string;
   level: number;
   vehicleAnimationUrl: string;
+  vehicleSoundUrl?: string | null;
   onComplete: () => void;
 }
 
@@ -174,6 +176,7 @@ const VehicleEntranceOverlay: React.FC<VehicleEntranceOverlayProps> = ({
   avatarUrl,
   level,
   vehicleAnimationUrl,
+  vehicleSoundUrl,
   onComplete,
 }) => {
   const [animationComplete, setAnimationComplete] = React.useState(false);
@@ -257,7 +260,7 @@ const VehicleEntranceOverlay: React.FC<VehicleEntranceOverlayProps> = ({
             loop={false}
             autoPlay={true}
             volume={0.8}
-            soundUrl={vehicleUserInfo?.vehicleSoundUrl ?? null}
+            soundUrl={vehicleSoundUrl ?? null}
             onComplete={handleAnimationComplete}
             onError={(err) => {
               console.error('[VehicleEntrance] ❌ SVGA error:', err);
