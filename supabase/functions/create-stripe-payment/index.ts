@@ -263,6 +263,20 @@ serve(async (req) => {
       throw new Error("Invalid package: coins_amount is missing or zero");
     }
 
+    // Initialize Stripe
+    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+      apiVersion: "2025-08-27.basil",
+    });
+
+    // Reuse existing Stripe customer when possible
+    let customerId: string | undefined;
+    if (user.email) {
+      const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+      if (customers.data.length > 0) {
+        customerId = customers.data[0].id;
+      }
+    }
+
     // Build checkout session config with COUNTRY-SPECIFIC payment methods
     const sessionConfig: any = {
       customer: customerId,
