@@ -23,124 +23,104 @@ const COUNTRY_PAYMENT_CONFIG: Record<string, {
   // India
   IN: {
     currency: "inr",
-    payment_method_types: ["card", "upi"],
+    payment_method_types: ["card"],
     locale: "auto",
   },
-  // Pakistan
   PK: {
     currency: "pkr",
     payment_method_types: ["card"],
     locale: "auto",
   },
-  // Saudi Arabia
   SA: {
     currency: "sar",
     payment_method_types: ["card"],
     locale: "ar",
   },
-  // UAE
   AE: {
     currency: "aed",
     payment_method_types: ["card"],
     locale: "ar",
   },
-  // Philippines
   PH: {
     currency: "php",
-    payment_method_types: ["card", "gcash", "grab_pay"],
+    payment_method_types: ["card"],
     locale: "auto",
   },
-  // Indonesia
   ID: {
     currency: "idr",
     payment_method_types: ["card"],
     locale: "auto",
   },
-  // Malaysia
   MY: {
     currency: "myr",
-    payment_method_types: ["card", "fpx", "grab_pay"],
+    payment_method_types: ["card"],
     locale: "auto",
   },
-  // Thailand
   TH: {
     currency: "thb",
-    payment_method_types: ["card", "promptpay"],
+    payment_method_types: ["card"],
     locale: "th",
   },
-  // Turkey
   TR: {
     currency: "try",
     payment_method_types: ["card"],
     locale: "tr",
   },
-  // Egypt
   EG: {
     currency: "egp",
     payment_method_types: ["card"],
     locale: "ar",
   },
-  // Nigeria
   NG: {
     currency: "ngn",
     payment_method_types: ["card"],
     locale: "auto",
   },
-  // United States
   US: {
     currency: "usd",
-    payment_method_types: ["card", "us_bank_account", "cashapp", "amazon_pay"],
+    payment_method_types: ["card"],
     locale: "en",
   },
-  // United Kingdom
   GB: {
     currency: "gbp",
-    payment_method_types: ["card", "bacs_debit"],
+    payment_method_types: ["card"],
     locale: "en",
   },
-  // Germany
   DE: {
     currency: "eur",
-    payment_method_types: ["card", "giropay", "sofort", "klarna"],
+    payment_method_types: ["card"],
     locale: "de",
   },
-  // Japan
   JP: {
     currency: "jpy",
-    payment_method_types: ["card", "konbini"],
+    payment_method_types: ["card"],
     locale: "ja",
   },
-  // South Korea
   KR: {
     currency: "krw",
     payment_method_types: ["card"],
     locale: "ko",
   },
-  // Brazil
   BR: {
     currency: "brl",
-    payment_method_types: ["card", "boleto", "pix"],
+    payment_method_types: ["card"],
     locale: "pt-BR",
   },
-  // Mexico
   MX: {
     currency: "mxn",
-    payment_method_types: ["card", "oxxo"],
+    payment_method_types: ["card"],
     locale: "es",
   },
-  // Nepal
   NP: {
-    currency: "usd", // NPR not supported by Stripe, fall back to USD
+    currency: "usd",
     payment_method_types: ["card"],
     locale: "auto",
   },
-  // Sri Lanka
   LK: {
     currency: "lkr",
     payment_method_types: ["card"],
     locale: "auto",
   },
-  // Vietnam
   VN: {
     currency: "vnd",
     payment_method_types: ["card"],
