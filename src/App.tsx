@@ -902,7 +902,7 @@ const App = () => {
     // Redirect unauthenticated browser users to auth page
     if (currentPath !== '/auth' && !currentPath.startsWith('/auth')) {
       window.location.replace('/auth');
-      return <PageLoader message="Redirecting to sign in..." />;
+      return null; // ⚡ no full-screen spinner — instant redirect
     }
   }
 
@@ -935,7 +935,7 @@ const App = () => {
   
   if (isPublicLandingHost && !isPublicLandingSubRoute) {
     return (
-      <Suspense fallback={<PageLoader message="Loading website..." />}>
+      <Suspense fallback={null}>
         <LandingPage />
       </Suspense>
     );
