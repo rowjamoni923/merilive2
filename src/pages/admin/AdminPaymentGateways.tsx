@@ -745,15 +745,35 @@ const AdminPaymentGateways = () => {
                         </label>
 
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
                             <h3 className="font-bold text-white">{gateway.name}</h3>
                             <Badge variant={gateway.is_active ? "default" : "secondary"} className={gateway.is_active ? "bg-green-500" : "bg-slate-600"}>
                               {gateway.is_active ? "Active" : "Inactive"}
                             </Badge>
+                            {gateway.is_integrated ? (
+                              <Badge className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                ⚡ Auto Integrated
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                                📝 Manual
+                              </Badge>
+                            )}
                           </div>
                           <p className="text-sm text-white/60 mb-2">{gateway.description}</p>
                           
                           <div className="flex flex-wrap gap-2 text-xs">
+                            {(gateway.country_codes || []).length > 0 ? (
+                              (gateway.country_codes || []).map((cc) => (
+                                <span key={cc} className="bg-purple-500/20 text-purple-200 px-2 py-1 rounded-full border border-purple-500/30">
+                                  {cc === 'GLOBAL' ? '🌍 Global' : cc}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="bg-slate-700 text-white/40 px-2 py-1 rounded-full border border-slate-600">
+                                No country
+                              </span>
+                            )}
                             <span className="bg-blue-500/20 text-blue-300 px-2 py-1 rounded-full flex items-center gap-1 border border-blue-500/30">
                               <Globe className="w-3 h-3" />
                               {gateway.supported_currencies.join(", ")}
