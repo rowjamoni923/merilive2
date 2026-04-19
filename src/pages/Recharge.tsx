@@ -1137,6 +1137,14 @@ const Recharge = () => {
           fetchTopUpHelpers();
         }
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'helper_accepted_payment_methods' },
+        () => {
+          console.log('[Recharge] Helper accepted methods changed - refreshing');
+          fetchTopUpHelpers();
+        }
+      )
       .subscribe();
 
     return () => {
