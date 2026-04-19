@@ -901,7 +901,8 @@ const Level5HelperDashboard = () => {
         setUploadingLogo(false);
       }
 
-      const isGateway = paymentType === 'sslcommerz' || paymentType === 'aamarpay' || paymentType === 'zinipay';
+      const isGateway = isGatewayType;
+      const isLegacyGateway = ['sslcommerz', 'aamarpay', 'zinipay'].includes(paymentType);
 
       if (isGateway && (!gatewayDisplayMethod || !gatewayDisplayNumber)) {
         toast({ title: "Error", description: "Please select display method and enter display number", variant: "destructive" });
@@ -909,13 +910,13 @@ const Level5HelperDashboard = () => {
         return;
       }
 
-      if ((paymentType === 'sslcommerz' || paymentType === 'aamarpay') && (!accountName || !accountNumber)) {
-        toast({ title: "Error", description: "Please enter gateway credentials", variant: "destructive" });
+      if (isGateway && (!accountName || !accountNumber)) {
+        toast({ title: "Error", description: "Please enter gateway credentials (API key / Store ID + secret)", variant: "destructive" });
         setProcessing(false);
         return;
       }
-      
-      const countryName = selectedCountry; // Country name resolved from code
+
+      const countryName = selectedCountry;
       const methodName = isGateway ? gatewayDisplayMethod : paymentType;
       const { error } = await supabase
         .from('helper_country_payment_methods')
@@ -930,12 +931,20 @@ const Level5HelperDashboard = () => {
           account_number: isGateway ? gatewayDisplayNumber : accountNumber,
           bank_name: bankName || null,
           instructions: methodInstructions || null,
-          logo_url: logoUrl,
+          logo_url: logoUrl || matchedIntegratedGateway?.logo_url || null,
           additional_info: isGateway ? {
             gateway_type: paymentType,
+            gateway_name: matchedIntegratedGateway?.name || paymentType,
+            // Legacy specific shapes (kept for backward compatibility with existing edge functions)
             ...(paymentType === 'sslcommerz' ? { store_id: accountName, store_password: accountNumber, is_sandbox: false } : {}),
             ...(paymentType === 'aamarpay' ? { store_id: accountName, signature_key: accountNumber, is_sandbox: false } : {}),
             ...(paymentType === 'zinipay' ? { zinipay_api_key: accountName } : {}),
+            // Generic credential shape for ALL other integrated gateways (PhonePe, GCash, MoMo, etc.)
+            ...(!isLegacyGateway ? {
+              api_key: accountName,
+              api_secret: accountNumber,
+              is_sandbox: false,
+            } : {}),
             display_method: gatewayDisplayMethod,
             display_number: gatewayDisplayNumber,
             merchant_number: merchantNumber || null,
