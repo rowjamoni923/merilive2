@@ -42,6 +42,13 @@ interface PaymentGateway {
 
 type SafeNumberInput = number | string | null | undefined;
 
+interface AcceptedMethodLogo {
+  gateway_id: string;
+  name: string;
+  logo_url: string | null;
+  is_integrated: boolean;
+}
+
 interface TopUpHelper {
   id: string;
   helperId: string;
@@ -57,6 +64,7 @@ interface TopUpHelper {
   countryName: string;
   totalSold: number;
   whatsappNumber: string | null;
+  acceptedMethods: AcceptedMethodLogo[];
 }
 
 interface Level5HelperPaymentMethod {
