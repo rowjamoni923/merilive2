@@ -2998,6 +2998,68 @@ const Level5HelperDashboard = () => {
               </div>
             )}
 
+            {/* ✨ Generic Gateway Form — for ALL country-specific integrated gateways
+                (PhonePe IN, GCash PH, MoMo VN, eSewa NP, JazzCash PK, M-Pesa KE, etc.)
+                Excludes the 3 legacy BD gateways which have their own dedicated forms above */}
+            {(() => {
+              const matched = countryGateways.find(g => g.is_integrated && g.gateway_type === paymentType);
+              const isLegacy = ['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType);
+              if (!matched || isLegacy) return null;
+              return (
+                <div className="border border-purple-500/30 rounded-xl p-3 bg-purple-500/10 space-y-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-lg">⚡</span>
+                    <p className="text-purple-300 font-semibold text-sm">{matched.name} Auto Pay Setup</p>
+                  </div>
+                  <p className="text-xs text-purple-400/70 mb-2">
+                    🌍 Country: <strong>{selectedCountry}</strong> · Auto verification will credit diamonds instantly when payment confirms.
+                  </p>
+
+                  <div>
+                    <Label className="text-slate-300 text-xs">Display As (visible to users) *</Label>
+                    <Input
+                      value={gatewayDisplayMethod}
+                      onChange={(e) => setGatewayDisplayMethod(e.target.value)}
+                      placeholder={`e.g., ${matched.name}`}
+                      className="bg-slate-800 border-purple-500/30 text-white mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-slate-300 text-xs">Display Number / Account (visible to users) *</Label>
+                    <Input
+                      value={gatewayDisplayNumber}
+                      onChange={(e) => setGatewayDisplayNumber(e.target.value)}
+                      placeholder="e.g., merchant phone, UPI ID, etc."
+                      className="bg-slate-800 border-purple-500/30 text-white mt-1"
+                    />
+                  </div>
+
+                  <div className="border-t border-purple-500/20 pt-2 mt-2">
+                    <p className="text-[10px] text-purple-400/50 mb-2">🔒 {matched.name} Credentials (hidden from users)</p>
+                  </div>
+                  <div>
+                    <Label className="text-slate-300 text-xs">API Key / Merchant ID *</Label>
+                    <Input
+                      value={accountName}
+                      onChange={(e) => setAccountName(e.target.value)}
+                      placeholder="Enter API key or merchant ID"
+                      className="bg-slate-800 border-purple-500/30 text-white mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-slate-300 text-xs">API Secret / Salt Key *</Label>
+                    <Input
+                      value={accountNumber}
+                      onChange={(e) => setAccountNumber(e.target.value)}
+                      placeholder="Enter API secret or salt key"
+                      className="bg-slate-800 border-purple-500/30 text-white mt-1"
+                      type="password"
+                    />
+                  </div>
+                </div>
+              );
+            })()}
+
             {/* SSLCommerz / AamarPay Gateway Credentials */}
             {(paymentType === 'sslcommerz' || paymentType === 'aamarpay') && (
               <div className="border border-cyan-500/30 rounded-xl p-3 bg-cyan-500/10 space-y-3">
