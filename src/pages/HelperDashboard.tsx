@@ -1188,6 +1188,14 @@ const HelperDashboard = () => {
           </Card>
         )}
 
+        {/* Accepted Payment Methods (tick-mark for users to see logos in Recharge) */}
+        {helperId && (helperData?.trader_level || 1) < 5 && (
+          <HelperAcceptedMethodsCard
+            helperId={helperId}
+            helperCountryCode={helperData?.country_code || null}
+          />
+        )}
+
         {/* Manual Top-up Section */}
         <Card className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border-emerald-500/50">
           <CardHeader className="pb-2">
