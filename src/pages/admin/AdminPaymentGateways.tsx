@@ -27,6 +27,7 @@ interface PaymentGateway {
   id: string;
   name: string;
   gateway_code: string;
+  gateway_type?: string | null;
   description: string | null;
   logo_url: string | null;
   api_endpoint: string | null;
@@ -34,6 +35,8 @@ interface PaymentGateway {
   secret_key_encrypted: string | null;
   webhook_url: string | null;
   supported_currencies: string[];
+  country_codes: string[] | null;
+  is_integrated: boolean;
   min_amount: number;
   max_amount: number;
   fee_percentage: number;
@@ -43,6 +46,56 @@ interface PaymentGateway {
   settings: any;
   created_at: string;
 }
+
+// Common country options for the picker
+const ADMIN_COUNTRY_OPTIONS: { code: string; name: string }[] = [
+  { code: "GLOBAL", name: "🌍 Global (All countries)" },
+  { code: "BD", name: "🇧🇩 Bangladesh" },
+  { code: "IN", name: "🇮🇳 India" },
+  { code: "PK", name: "🇵🇰 Pakistan" },
+  { code: "NP", name: "🇳🇵 Nepal" },
+  { code: "LK", name: "🇱🇰 Sri Lanka" },
+  { code: "PH", name: "🇵🇭 Philippines" },
+  { code: "ID", name: "🇮🇩 Indonesia" },
+  { code: "MY", name: "🇲🇾 Malaysia" },
+  { code: "TH", name: "🇹🇭 Thailand" },
+  { code: "VN", name: "🇻🇳 Vietnam" },
+  { code: "MM", name: "🇲🇲 Myanmar" },
+  { code: "KH", name: "🇰🇭 Cambodia" },
+  { code: "SG", name: "🇸🇬 Singapore" },
+  { code: "HK", name: "🇭🇰 Hong Kong" },
+  { code: "CN", name: "🇨🇳 China" },
+  { code: "JP", name: "🇯🇵 Japan" },
+  { code: "KR", name: "🇰🇷 South Korea" },
+  { code: "TW", name: "🇹🇼 Taiwan" },
+  { code: "AE", name: "🇦🇪 UAE" },
+  { code: "SA", name: "🇸🇦 Saudi Arabia" },
+  { code: "EG", name: "🇪🇬 Egypt" },
+  { code: "NG", name: "🇳🇬 Nigeria" },
+  { code: "KE", name: "🇰🇪 Kenya" },
+  { code: "ZA", name: "🇿🇦 South Africa" },
+  { code: "GH", name: "🇬🇭 Ghana" },
+  { code: "TR", name: "🇹🇷 Turkey" },
+  { code: "RU", name: "🇷🇺 Russia" },
+  { code: "UA", name: "🇺🇦 Ukraine" },
+  { code: "PL", name: "🇵🇱 Poland" },
+  { code: "DE", name: "🇩🇪 Germany" },
+  { code: "FR", name: "🇫🇷 France" },
+  { code: "IT", name: "🇮🇹 Italy" },
+  { code: "ES", name: "🇪🇸 Spain" },
+  { code: "PT", name: "🇵🇹 Portugal" },
+  { code: "GB", name: "🇬🇧 United Kingdom" },
+  { code: "US", name: "🇺🇸 United States" },
+  { code: "CA", name: "🇨🇦 Canada" },
+  { code: "MX", name: "🇲🇽 Mexico" },
+  { code: "BR", name: "🇧🇷 Brazil" },
+  { code: "AR", name: "🇦🇷 Argentina" },
+  { code: "CO", name: "🇨🇴 Colombia" },
+  { code: "PE", name: "🇵🇪 Peru" },
+  { code: "CL", name: "🇨🇱 Chile" },
+  { code: "AU", name: "🇦🇺 Australia" },
+  { code: "NZ", name: "🇳🇿 New Zealand" },
+];
 
 interface Transaction {
   id: string;
@@ -85,6 +138,9 @@ const AdminPaymentGateways = () => {
   const [uploadingLogoForGateway, setUploadingLogoForGateway] = useState<string | null>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
   
+  // Country filter for the gateway list
+  const [countryFilter, setCountryFilter] = useState<string>("all");
+
   // Form state
   const [formData, setFormData] = useState({
     name: "",
@@ -96,6 +152,8 @@ const AdminPaymentGateways = () => {
     secret_key: "",
     webhook_url: "",
     supported_currencies: "",
+    country_codes: [] as string[],
+    is_integrated: true,
     min_amount: 1,
     max_amount: 10000,
     fee_percentage: 0,
@@ -132,7 +190,30 @@ const AdminPaymentGateways = () => {
         .order('display_order', { ascending: true });
 
       if (error) throw error;
-      setGateways(data || []);
+
+      // The DB stores extra fields inside the JSONB `config` column.
+      // Flatten them onto the gateway shape used by this admin UI.
+      const mapped = (data || []).map((g: any) => {
+        const cfg = (g.config || {}) as Record<string, any>;
+        return {
+          ...g,
+          gateway_code: g.gateway_type || cfg.gateway_code || '',
+          description: cfg.description ?? null,
+          api_endpoint: cfg.api_endpoint ?? null,
+          api_key_encrypted: cfg.api_key_encrypted ?? null,
+          secret_key_encrypted: cfg.secret_key_encrypted ?? null,
+          webhook_url: cfg.webhook_url ?? null,
+          min_amount: Number(cfg.min_amount ?? 1),
+          max_amount: Number(cfg.max_amount ?? 10000),
+          fee_percentage: Number(cfg.fee_percentage ?? 0),
+          fee_fixed: Number(cfg.fee_fixed ?? 0),
+          settings: cfg.settings ?? null,
+          country_codes: g.country_codes ?? null,
+          is_integrated: g.is_integrated ?? false,
+        } as PaymentGateway;
+      });
+
+      setGateways(mapped);
     } catch (error) {
       console.error('Error fetching gateways:', error);
       toast({
@@ -198,6 +279,8 @@ const AdminPaymentGateways = () => {
       secret_key: "",
       webhook_url: "",
       supported_currencies: "USD",
+      country_codes: [],
+      is_integrated: true,
       min_amount: 1,
       max_amount: 10000,
       fee_percentage: 0,
@@ -220,6 +303,8 @@ const AdminPaymentGateways = () => {
       secret_key: "",
       webhook_url: gateway.webhook_url || "",
       supported_currencies: gateway.supported_currencies.join(", "),
+      country_codes: gateway.country_codes || [],
+      is_integrated: gateway.is_integrated ?? true,
       min_amount: gateway.min_amount,
       max_amount: gateway.max_amount,
       fee_percentage: gateway.fee_percentage,
@@ -238,28 +323,36 @@ const AdminPaymentGateways = () => {
         .map(c => c.trim().toUpperCase())
         .filter(c => c);
 
-      const gatewayData: any = {
-        name: formData.name,
-        gateway_code: formData.gateway_code.toLowerCase().replace(/\s+/g, '_'),
+      // Top-level columns that exist on the table
+      const gatewayCode = formData.gateway_code.toLowerCase().replace(/\s+/g, '_');
+
+      // Everything else lives inside `config` JSONB
+      const existingConfig = (editingGateway as any)?.config || {};
+      const newConfig: Record<string, any> = {
+        ...existingConfig,
+        gateway_code: gatewayCode,
         description: formData.description || null,
-        logo_url: formData.logo_url || null,
         api_endpoint: formData.api_endpoint || null,
         webhook_url: formData.webhook_url || null,
-        supported_currencies: currencies,
         min_amount: formData.min_amount,
         max_amount: formData.max_amount,
         fee_percentage: formData.fee_percentage,
         fee_fixed: formData.fee_fixed,
+      };
+      if (formData.api_key) newConfig.api_key_encrypted = formData.api_key;
+      if (formData.secret_key) newConfig.secret_key_encrypted = formData.secret_key;
+
+      const gatewayData: any = {
+        name: formData.name,
+        gateway_type: gatewayCode,
+        logo_url: formData.logo_url || null,
+        supported_currencies: currencies,
+        country_codes: formData.country_codes && formData.country_codes.length > 0 ? formData.country_codes : null,
+        is_integrated: formData.is_integrated,
         display_order: formData.display_order,
         is_active: formData.is_active,
+        config: newConfig,
       };
-
-      if (formData.api_key) {
-        gatewayData.api_key_encrypted = formData.api_key;
-      }
-      if (formData.secret_key) {
-        gatewayData.secret_key_encrypted = formData.secret_key;
-      }
 
       if (editingGateway) {
         const { error } = await supabase
@@ -566,7 +659,28 @@ const AdminPaymentGateways = () => {
 
           {/* Gateways Tab */}
           <TabsContent value="gateways" className="mt-4">
-            <div className="flex justify-end mb-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+              <div className="flex items-center gap-2">
+                <Globe className="w-4 h-4 text-white/70" />
+                <select
+                  value={countryFilter}
+                  onChange={(e) => setCountryFilter(e.target.value)}
+                  className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white"
+                >
+                  <option value="all">All countries</option>
+                  {ADMIN_COUNTRY_OPTIONS.map(c => (
+                    <option key={c.code} value={c.code}>{c.name}</option>
+                  ))}
+                </select>
+                <span className="text-xs text-white/50">
+                  {(() => {
+                    const visible = countryFilter === 'all'
+                      ? gateways.length
+                      : gateways.filter(g => (g.country_codes || []).includes(countryFilter)).length;
+                    return `${visible} gateway${visible === 1 ? '' : 's'}`;
+                  })()}
+                </span>
+              </div>
               <Button onClick={handleAdd} className="gap-2 bg-pink-500 hover:bg-pink-600">
                 <Plus className="w-4 h-4" />
                 New Gateway
@@ -585,7 +699,9 @@ const AdminPaymentGateways = () => {
               </div>
             ) : (
               <div className="space-y-3">
-                {gateways.map((gateway) => (
+                {gateways
+                  .filter(g => countryFilter === 'all' || (g.country_codes || []).includes(countryFilter))
+                  .map((gateway) => (
                   <Card key={gateway.id} className={cn(
                     "transition-all border shadow-sm",
                     gateway.is_active 
@@ -629,15 +745,35 @@ const AdminPaymentGateways = () => {
                         </label>
 
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
                             <h3 className="font-bold text-white">{gateway.name}</h3>
                             <Badge variant={gateway.is_active ? "default" : "secondary"} className={gateway.is_active ? "bg-green-500" : "bg-slate-600"}>
                               {gateway.is_active ? "Active" : "Inactive"}
                             </Badge>
+                            {gateway.is_integrated ? (
+                              <Badge className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                ⚡ Auto Integrated
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                                📝 Manual
+                              </Badge>
+                            )}
                           </div>
                           <p className="text-sm text-white/60 mb-2">{gateway.description}</p>
                           
                           <div className="flex flex-wrap gap-2 text-xs">
+                            {(gateway.country_codes || []).length > 0 ? (
+                              (gateway.country_codes || []).map((cc) => (
+                                <span key={cc} className="bg-purple-500/20 text-purple-200 px-2 py-1 rounded-full border border-purple-500/30">
+                                  {cc === 'GLOBAL' ? '🌍 Global' : cc}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="bg-slate-700 text-white/40 px-2 py-1 rounded-full border border-slate-600">
+                                No country
+                              </span>
+                            )}
                             <span className="bg-blue-500/20 text-blue-300 px-2 py-1 rounded-full flex items-center gap-1 border border-blue-500/30">
                               <Globe className="w-3 h-3" />
                               {gateway.supported_currencies.join(", ")}
@@ -841,6 +977,60 @@ const AdminPaymentGateways = () => {
                 onChange={(e) => setFormData({ ...formData, supported_currencies: e.target.value })}
                 placeholder="BDT, USD"
                 className="bg-slate-50 border-slate-200"
+              />
+            </div>
+
+            {/* Country Codes Multi-Picker */}
+            <div>
+              <Label className="text-slate-700">
+                Available Countries
+                <span className="text-xs text-slate-500 ml-2">
+                  (Helpers from these countries will see this gateway)
+                </span>
+              </Label>
+              <div className="mt-2 flex flex-wrap gap-2 p-3 bg-slate-50 border border-slate-200 rounded-lg max-h-44 overflow-y-auto">
+                {ADMIN_COUNTRY_OPTIONS.map((c) => {
+                  const checked = formData.country_codes.includes(c.code);
+                  return (
+                    <button
+                      type="button"
+                      key={c.code}
+                      onClick={() =>
+                        setFormData({
+                          ...formData,
+                          country_codes: checked
+                            ? formData.country_codes.filter((x) => x !== c.code)
+                            : [...formData.country_codes, c.code],
+                        })
+                      }
+                      className={cn(
+                        "px-2.5 py-1 rounded-full text-xs font-medium border transition",
+                        checked
+                          ? "bg-pink-500 text-white border-pink-500"
+                          : "bg-white text-slate-700 border-slate-300 hover:border-pink-400"
+                      )}
+                    >
+                      {c.name}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                Selected: {formData.country_codes.length === 0 ? 'None — gateway will be hidden' : formData.country_codes.join(', ')}
+              </p>
+            </div>
+
+            {/* Auto-Integrated Toggle */}
+            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
+              <div>
+                <Label className="text-slate-700">Auto Integration</Label>
+                <p className="text-sm text-slate-500">
+                  ON = Helpers can use this gateway with API key/secret. OFF = manual screenshot only.
+                </p>
+              </div>
+              <Switch
+                checked={formData.is_integrated}
+                onCheckedChange={(checked) => setFormData({ ...formData, is_integrated: checked })}
               />
             </div>
 
