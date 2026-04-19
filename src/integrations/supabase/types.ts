@@ -3691,6 +3691,41 @@ export type Database = {
         }
         Relationships: []
       }
+      helper_accepted_payment_methods: {
+        Row: {
+          created_at: string
+          gateway_id: string
+          helper_id: string
+          id: string
+          is_enabled: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          gateway_id: string
+          helper_id: string
+          id?: string
+          is_enabled?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          gateway_id?: string
+          helper_id?: string
+          id?: string
+          is_enabled?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "helper_accepted_payment_methods_helper_id_fkey"
+            columns: ["helper_id"]
+            isOneToOne: false
+            referencedRelation: "topup_helpers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       helper_admin_messages: {
         Row: {
           created_at: string | null

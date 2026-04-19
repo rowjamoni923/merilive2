@@ -42,6 +42,13 @@ interface PaymentGateway {
 
 type SafeNumberInput = number | string | null | undefined;
 
+interface AcceptedMethodLogo {
+  gateway_id: string;
+  name: string;
+  logo_url: string | null;
+  is_integrated: boolean;
+}
+
 interface TopUpHelper {
   id: string;
   helperId: string;
@@ -57,6 +64,7 @@ interface TopUpHelper {
   countryName: string;
   totalSold: number;
   whatsappNumber: string | null;
+  acceptedMethods: AcceptedMethodLogo[];
 }
 
 interface Level5HelperPaymentMethod {
@@ -911,10 +919,49 @@ const Recharge = () => {
             countryName: user?.country_name || h.country_code || 'Unknown',
             totalSold: h.total_sold || 0,
             whatsappNumber: whatsapp,
+            acceptedMethods: [] as AcceptedMethodLogo[],
           };
         });
         // Sort by total_sold desc (highest sellers first)
         mapped.sort((a, b) => b.totalSold - a.totalSold);
+
+        // Fetch accepted payment methods for all helpers in one query
+        const helperIds = mapped.map(m => m.helperId);
+        if (helperIds.length > 0) {
+          const { data: acceptedRows } = await supabase
+            .from('helper_accepted_payment_methods' as any)
+            .select('helper_id, gateway_id')
+            .in('helper_id', helperIds)
+            .eq('is_enabled', true);
+
+          const gatewayIds = [...new Set(((acceptedRows as any[]) || []).map((r: any) => r.gateway_id))];
+          let gatewayMap = new Map<string, AcceptedMethodLogo>();
+          if (gatewayIds.length > 0) {
+            const { data: gws } = await supabase
+              .from('payment_gateways')
+              .select('id, name, logo_url, is_integrated')
+              .in('id', gatewayIds);
+            gatewayMap = new Map(
+              ((gws as any[]) || []).map((g: any) => [
+                g.id,
+                { gateway_id: g.id, name: g.name, logo_url: g.logo_url, is_integrated: !!g.is_integrated },
+              ])
+            );
+          }
+
+          const byHelper = new Map<string, AcceptedMethodLogo[]>();
+          ((acceptedRows as any[]) || []).forEach((r: any) => {
+            const gw = gatewayMap.get(r.gateway_id);
+            if (!gw) return;
+            const arr = byHelper.get(r.helper_id) || [];
+            arr.push(gw);
+            byHelper.set(r.helper_id, arr);
+          });
+          mapped.forEach(m => {
+            m.acceptedMethods = byHelper.get(m.helperId) || [];
+          });
+        }
+
         setTopUpHelpers(mapped);
       }
     } catch (error) {
@@ -1087,6 +1134,14 @@ const Recharge = () => {
         { event: '*', schema: 'public', table: 'coin_transfers' },
         () => {
           console.log('[Recharge] Coin transfer in helper tab - refreshing');
+          fetchTopUpHelpers();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'helper_accepted_payment_methods' },
+        () => {
+          console.log('[Recharge] Helper accepted methods changed - refreshing');
           fetchTopUpHelpers();
         }
       )
@@ -2159,6 +2214,28 @@ const Recharge = () => {
                                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                                   </svg>
                                   <span className="text-[10px] text-green-600 font-medium">{helper.whatsappNumber}</span>
+                                </div>
+                              )}
+                              {/* Accepted payment method logos (tick-marked by helper) */}
+                              {helper.acceptedMethods && helper.acceptedMethods.length > 0 && (
+                                <div className="flex items-center gap-1 mt-1.5 flex-wrap">
+                                  <span className="text-[9px] text-gray-500 font-medium">Accepts:</span>
+                                  {helper.acceptedMethods.slice(0, 6).map((m) => (
+                                    <div
+                                      key={m.gateway_id}
+                                      title={`${m.name}${m.is_integrated ? ' (Auto)' : ' (Manual)'}`}
+                                      className="w-5 h-5 rounded bg-gray-50 border border-gray-200 flex items-center justify-center overflow-hidden"
+                                    >
+                                      {m.logo_url ? (
+                                        <img src={m.logo_url} alt={m.name} className="w-full h-full object-contain" loading="lazy" />
+                                      ) : (
+                                        <span className="text-[8px] font-bold text-gray-600">{m.name.charAt(0)}</span>
+                                      )}
+                                    </div>
+                                  ))}
+                                  {helper.acceptedMethods.length > 6 && (
+                                    <span className="text-[9px] text-gray-500 font-bold">+{helper.acceptedMethods.length - 6}</span>
+                                  )}
                                 </div>
                               )}
                             </div>

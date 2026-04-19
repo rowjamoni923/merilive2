@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useRealtimeHelperLevelProgress } from "@/hooks/useRealtimeHelperLevel";
+import { HelperAcceptedMethodsCard } from "@/components/helper/HelperAcceptedMethodsCard";
 
 interface TraderLevel {
   level_number: number;
@@ -1185,6 +1186,14 @@ const HelperDashboard = () => {
               ))}
             </CardContent>
           </Card>
+        )}
+
+        {/* Accepted Payment Methods (tick-mark for users to see logos in Recharge) */}
+        {helperId && (helperData?.trader_level || 1) < 5 && (
+          <HelperAcceptedMethodsCard
+            helperId={helperId}
+            helperCountryCode={helperData?.country_code || null}
+          />
         )}
 
         {/* Manual Top-up Section */}
