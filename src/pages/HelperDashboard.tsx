@@ -53,6 +53,19 @@ interface PaymentMethod {
   max_amount: number;
 }
 
+// Normalize topup_payment_methods row → legacy PaymentMethod shape used by the UI
+const normalizePaymentMethod = (row: any): PaymentMethod => ({
+  id: row.id,
+  method_name: row.name ?? row.method_name ?? '',
+  method_type: row.method_type ?? '',
+  account_name: row.account_name ?? '',
+  account_number: row.payment_number ?? row.account_number ?? '',
+  bank_name: row.bank_name ?? null,
+  instructions: row.payment_instructions ?? row.instructions ?? null,
+  min_amount: row.min_amount ?? 0,
+  max_amount: row.max_amount ?? 0,
+});
+
 const getHelperPackageLevel = (pkg: { display_order?: number | null; description?: string | null }, index: number) => {
   const descriptionMatch = pkg.description?.match(/level\s*(\d+)/i);
   return pkg.display_order || (descriptionMatch ? Number(descriptionMatch[1]) : index + 1);
@@ -297,8 +310,9 @@ const HelperDashboard = () => {
             .order('display_order', { ascending: true });
           
           if (methods) {
-            setPaymentMethods(methods as unknown as PaymentMethod[]);
-            console.log('[HelperDashboard] Payment methods refreshed:', methods.length);
+            const normalized = (methods as any[]).map(normalizePaymentMethod);
+            setPaymentMethods(normalized);
+            console.log('[HelperDashboard] Payment methods refreshed:', normalized.length);
           }
         }
       )
@@ -382,11 +396,12 @@ const HelperDashboard = () => {
       }
       
       if (methods) {
-        console.log('[HelperDashboard] Payment methods loaded:', methods.length, methods.map((m: any) => m.method_name));
-        setPaymentMethods(methods as unknown as PaymentMethod[]);
-        if (methods.length > 0) {
-          setTopupPaymentMethod((methods[0] as any).method_name);
-          setSelectedPaymentMethod(methods[0] as unknown as PaymentMethod);
+        const normalized = (methods as any[]).map(normalizePaymentMethod);
+        console.log('[HelperDashboard] Payment methods loaded:', normalized.length, normalized.map((m) => m.method_name));
+        setPaymentMethods(normalized);
+        if (normalized.length > 0) {
+          setTopupPaymentMethod(normalized[0].method_name);
+          setSelectedPaymentMethod(normalized[0]);
         }
       } else {
         console.log('[HelperDashboard] No payment methods found');
