@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useRealtimeHelperLevelProgress } from "@/hooks/useRealtimeHelperLevel";
+import { HelperAcceptedMethodsCard } from "@/components/helper/HelperAcceptedMethodsCard";
 
 interface TraderLevel {
   level_number: number;
