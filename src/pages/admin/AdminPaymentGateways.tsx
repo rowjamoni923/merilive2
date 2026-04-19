@@ -323,31 +323,36 @@ const AdminPaymentGateways = () => {
         .map(c => c.trim().toUpperCase())
         .filter(c => c);
 
-      const gatewayData: any = {
-        name: formData.name,
-        gateway_code: formData.gateway_code.toLowerCase().replace(/\s+/g, '_'),
-        gateway_type: formData.gateway_code.toLowerCase().replace(/\s+/g, '_'),
+      // Top-level columns that exist on the table
+      const gatewayCode = formData.gateway_code.toLowerCase().replace(/\s+/g, '_');
+
+      // Everything else lives inside `config` JSONB
+      const existingConfig = (editingGateway as any)?.config || {};
+      const newConfig: Record<string, any> = {
+        ...existingConfig,
+        gateway_code: gatewayCode,
         description: formData.description || null,
-        logo_url: formData.logo_url || null,
         api_endpoint: formData.api_endpoint || null,
         webhook_url: formData.webhook_url || null,
-        supported_currencies: currencies,
-        country_codes: formData.country_codes && formData.country_codes.length > 0 ? formData.country_codes : null,
-        is_integrated: formData.is_integrated,
         min_amount: formData.min_amount,
         max_amount: formData.max_amount,
         fee_percentage: formData.fee_percentage,
         fee_fixed: formData.fee_fixed,
+      };
+      if (formData.api_key) newConfig.api_key_encrypted = formData.api_key;
+      if (formData.secret_key) newConfig.secret_key_encrypted = formData.secret_key;
+
+      const gatewayData: any = {
+        name: formData.name,
+        gateway_type: gatewayCode,
+        logo_url: formData.logo_url || null,
+        supported_currencies: currencies,
+        country_codes: formData.country_codes && formData.country_codes.length > 0 ? formData.country_codes : null,
+        is_integrated: formData.is_integrated,
         display_order: formData.display_order,
         is_active: formData.is_active,
+        config: newConfig,
       };
-
-      if (formData.api_key) {
-        gatewayData.api_key_encrypted = formData.api_key;
-      }
-      if (formData.secret_key) {
-        gatewayData.secret_key_encrypted = formData.secret_key;
-      }
 
       if (editingGateway) {
         const { error } = await supabase
