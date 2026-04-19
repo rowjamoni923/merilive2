@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import {
   Plus, Edit, Trash2, CreditCard, Smartphone, Bitcoin, Wallet,
-  ArrowUp, ArrowDown, ToggleLeft, ToggleRight, RefreshCw
+  ArrowUp, ArrowDown, ToggleLeft, ToggleRight, RefreshCw, Upload, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,6 +45,7 @@ const AdminTopupPaymentMethods = () => {
   const [saving, setSaving] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
   const [editingMethod, setEditingMethod] = useState<PaymentMethod | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -100,6 +101,8 @@ const AdminTopupPaymentMethods = () => {
 
     setSaving(true);
     try {
+      // Persist logo into BOTH icon_url (admin) and additional_info.logo_url
+      // so the Recharge / HelperDashboard / Local-Pay logo readers all find it.
       const payload = {
         name: formData.name,
         method_type: formData.method_type,
@@ -108,6 +111,7 @@ const AdminTopupPaymentMethods = () => {
         payment_number: formData.payment_number || formData.account_number || null,
         payment_instructions: formData.payment_instructions || null,
         icon_url: formData.icon_url || null,
+        additional_info: formData.icon_url ? { logo_url: formData.icon_url } : null,
         updated_at: new Date().toISOString(),
       };
 
@@ -192,6 +196,36 @@ const AdminTopupPaymentMethods = () => {
     loadMethods();
   };
 
+  const handleLogoUpload = async (file: File) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast({ title: "Invalid file", description: "Please upload an image file (PNG / JPG / SVG / WebP)", variant: "destructive" });
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Logo must be under 2 MB", variant: "destructive" });
+      return;
+    }
+    setUploadingLogo(true);
+    try {
+      const ext = file.name.split('.').pop() || 'png';
+      const fileName = `topup-method-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const filePath = `topup-payment-methods/${fileName}`;
+      const { error: upErr } = await supabase.storage
+        .from('payment-logos')
+        .upload(filePath, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from('payment-logos').getPublicUrl(filePath);
+      setFormData(prev => ({ ...prev, icon_url: pub.publicUrl }));
+      toast({ title: "Logo uploaded ✅" });
+    } catch (err: any) {
+      console.error('[AdminPaymentMethods] Logo upload error:', err);
+      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
   const getMethodIcon = (type: string) => {
     switch (type) {
       case 'mobile_banking': return Smartphone;
@@ -259,8 +293,17 @@ const AdminTopupPaymentMethods = () => {
                       </Button>
                     </div>
 
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getMethodColor(method.method_type)}`}>
-                      <Icon className="w-6 h-6" />
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden ${getMethodColor(method.method_type)}`}>
+                      {method.icon_url ? (
+                        <img
+                          src={method.icon_url}
+                          alt={method.name}
+                          className="w-12 h-12 object-cover"
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                        />
+                      ) : (
+                        <Icon className="w-6 h-6" />
+                      )}
                     </div>
 
                     <div className="flex-1 min-w-0">
@@ -384,12 +427,48 @@ const AdminTopupPaymentMethods = () => {
             </div>
 
             <div>
-              <Label className="text-white">Icon URL (optional)</Label>
+              <Label className="text-white">Logo Image</Label>
+              <p className="text-xs text-slate-400 mb-2">Upload PNG / JPG / SVG / WebP (under 2 MB). Shown in user Recharge page & Helper Dashboard.</p>
+              <div className="flex items-center gap-3">
+                <div className="w-16 h-16 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center overflow-hidden shrink-0">
+                  {formData.icon_url ? (
+                    <img src={formData.icon_url} alt="logo" className="w-16 h-16 object-cover" />
+                  ) : (
+                    <CreditCard className="w-7 h-7 text-slate-500" />
+                  )}
+                </div>
+                <div className="flex-1 space-y-2">
+                  <label className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-sm font-medium cursor-pointer transition-colors w-fit">
+                    <Upload className="w-4 h-4" />
+                    {uploadingLogo ? 'Uploading...' : (formData.icon_url ? 'Replace Logo' : 'Upload Logo')}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={uploadingLogo}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleLogoUpload(file);
+                        e.currentTarget.value = '';
+                      }}
+                    />
+                  </label>
+                  {formData.icon_url && (
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, icon_url: '' })}
+                      className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300"
+                    >
+                      <X className="w-3 h-3" /> Remove logo
+                    </button>
+                  )}
+                </div>
+              </div>
               <Input
                 value={formData.icon_url}
                 onChange={(e) => setFormData({ ...formData, icon_url: e.target.value })}
-                placeholder="https://..."
-                className="bg-slate-800 border-slate-700 text-white mt-1"
+                placeholder="Or paste an image URL: https://..."
+                className="bg-slate-800 border-slate-700 text-white mt-3 text-xs"
               />
             </div>
 
