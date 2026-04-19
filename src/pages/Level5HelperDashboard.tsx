@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import Beans3DIcon from "@/components/common/Beans3DIcon";
 import { resolveNetWithdrawalBeans, resolveNetWithdrawalLocal, resolveNetWithdrawalUsd } from "@/utils/agencyWithdrawalAmounts";
+import { useCountryPaymentGateways } from "@/hooks/useCountryPaymentGateways";
 
 interface PaymentMethod {
   id: string;
@@ -216,6 +217,9 @@ const Level5HelperDashboard = () => {
   const [gatewayDisplayMethod, setGatewayDisplayMethod] = useState("");
   const [gatewayDisplayNumber, setGatewayDisplayNumber] = useState("");
   const [isMerchant, setIsMerchant] = useState(false);
+
+  // 🆕 Dynamic country-aware payment gateways (loads from `payment_gateways` table)
+  const { gateways: countryGateways } = useCountryPaymentGateways(selectedCountry || null);
 
   useEffect(() => {
     const intervalId = window.setInterval(() => setLockClock(Date.now()), 1000);
@@ -859,7 +863,13 @@ const Level5HelperDashboard = () => {
   };
 
   const handleAddCountryPaymentMethod = async () => {
-    const isGatewayType = ['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType);
+    // ✅ Generalized gateway detection: ANY integrated gateway from payment_gateways table
+    const matchedIntegratedGateway = countryGateways.find(
+      g => g.is_integrated && g.gateway_type === paymentType
+    );
+    const isGatewayType = !!matchedIntegratedGateway
+      || ['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType);
+
     if (!selectedCountry) {
       toast({ title: "Error", description: "Please select a country", variant: "destructive" });
       return;
@@ -891,7 +901,8 @@ const Level5HelperDashboard = () => {
         setUploadingLogo(false);
       }
 
-      const isGateway = paymentType === 'sslcommerz' || paymentType === 'aamarpay' || paymentType === 'zinipay';
+      const isGateway = isGatewayType;
+      const isLegacyGateway = ['sslcommerz', 'aamarpay', 'zinipay'].includes(paymentType);
 
       if (isGateway && (!gatewayDisplayMethod || !gatewayDisplayNumber)) {
         toast({ title: "Error", description: "Please select display method and enter display number", variant: "destructive" });
@@ -899,13 +910,13 @@ const Level5HelperDashboard = () => {
         return;
       }
 
-      if ((paymentType === 'sslcommerz' || paymentType === 'aamarpay') && (!accountName || !accountNumber)) {
-        toast({ title: "Error", description: "Please enter gateway credentials", variant: "destructive" });
+      if (isGateway && (!accountName || !accountNumber)) {
+        toast({ title: "Error", description: "Please enter gateway credentials (API key / Store ID + secret)", variant: "destructive" });
         setProcessing(false);
         return;
       }
-      
-      const countryName = selectedCountry; // Country name resolved from code
+
+      const countryName = selectedCountry;
       const methodName = isGateway ? gatewayDisplayMethod : paymentType;
       const { error } = await supabase
         .from('helper_country_payment_methods')
@@ -920,12 +931,20 @@ const Level5HelperDashboard = () => {
           account_number: isGateway ? gatewayDisplayNumber : accountNumber,
           bank_name: bankName || null,
           instructions: methodInstructions || null,
-          logo_url: logoUrl,
+          logo_url: logoUrl || matchedIntegratedGateway?.logo_url || null,
           additional_info: isGateway ? {
             gateway_type: paymentType,
+            gateway_name: matchedIntegratedGateway?.name || paymentType,
+            // Legacy specific shapes (kept for backward compatibility with existing edge functions)
             ...(paymentType === 'sslcommerz' ? { store_id: accountName, store_password: accountNumber, is_sandbox: false } : {}),
             ...(paymentType === 'aamarpay' ? { store_id: accountName, signature_key: accountNumber, is_sandbox: false } : {}),
             ...(paymentType === 'zinipay' ? { zinipay_api_key: accountName } : {}),
+            // Generic credential shape for ALL other integrated gateways (PhonePe, GCash, MoMo, etc.)
+            ...(!isLegacyGateway ? {
+              api_key: accountName,
+              api_secret: accountNumber,
+              is_sandbox: false,
+            } : {}),
             display_method: gatewayDisplayMethod,
             display_number: gatewayDisplayNumber,
             merchant_number: merchantNumber || null,
@@ -2819,14 +2838,27 @@ const Level5HelperDashboard = () => {
               <Label className="text-slate-300">Payment Method Type *</Label>
               <Select value={paymentType} onValueChange={setPaymentType}>
                 <SelectTrigger className="bg-slate-800 border-slate-700 text-white mt-1">
-                  <SelectValue />
+                  <SelectValue placeholder={selectedCountry ? "Select payment method..." : "Select a country first"} />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700">
-                  {/* ═══ AUTO PAYMENT GATEWAYS ═══ */}
-                  <SelectItem value="zinipay" className="text-white">⚡ ZiniPay (Auto Pay - Personal)</SelectItem>
-                  <SelectItem value="sslcommerz" className="text-white">🔐 SSLCommerz (Auto Pay)</SelectItem>
-                  <SelectItem value="aamarpay" className="text-white">💰 AamarPay (Auto Pay)</SelectItem>
-                  {/* ═══ MOBILE WALLETS ═══ */}
+                <SelectContent className="bg-slate-800 border-slate-700 max-h-72">
+                  {/* ═══ AUTO PAYMENT GATEWAYS — country specific (from payment_gateways table) ═══ */}
+                  {countryGateways.filter(g => g.is_integrated).length > 0 && (
+                    <div className="px-2 py-1 text-[10px] text-amber-400 font-bold uppercase tracking-wider">
+                      ⚡ Auto Gateways — {selectedCountry || 'Global'}
+                    </div>
+                  )}
+                  {countryGateways
+                    .filter(g => g.is_integrated)
+                    .map(g => (
+                      <SelectItem key={g.id} value={g.gateway_type} className="text-white">
+                        ⚡ {g.name} <span className="text-[10px] text-amber-300/70 ml-1">(Auto Pay)</span>
+                      </SelectItem>
+                    ))}
+
+                  {/* ═══ MANUAL METHODS — universal fallbacks (always visible) ═══ */}
+                  <div className="px-2 py-1 text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">
+                    📝 Manual Methods
+                  </div>
                   <SelectItem value="bkash" className="text-white">📱 bKash</SelectItem>
                   <SelectItem value="nagad" className="text-white">💳 Nagad</SelectItem>
                   <SelectItem value="rocket" className="text-white">🚀 Rocket</SelectItem>
@@ -2853,11 +2885,6 @@ const Level5HelperDashboard = () => {
                   <SelectItem value="skrill" className="text-white">💜 Skrill</SelectItem>
                   <SelectItem value="payoneer" className="text-white">🟠 Payoneer</SelectItem>
                   <SelectItem value="epay" className="text-white">💰 ePay</SelectItem>
-                  <SelectItem value="taptap" className="text-white">📱 TapTap Send</SelectItem>
-                  <SelectItem value="wave" className="text-white">🌊 Wave</SelectItem>
-                  <SelectItem value="remitly" className="text-white">💸 Remitly</SelectItem>
-                  <SelectItem value="western_union" className="text-white">🟡 Western Union</SelectItem>
-                  <SelectItem value="moneygram" className="text-white">🔵 MoneyGram</SelectItem>
                   <SelectItem value="alipay" className="text-white">🔵 Alipay</SelectItem>
                   <SelectItem value="wechat" className="text-white">🟢 WeChat Pay</SelectItem>
                   <SelectItem value="line_pay" className="text-white">🟢 LINE Pay</SelectItem>
@@ -2868,6 +2895,11 @@ const Level5HelperDashboard = () => {
                   <SelectItem value="pix" className="text-white">💚 PIX (Brazil)</SelectItem>
                 </SelectContent>
               </Select>
+              {!selectedCountry && (
+                <p className="text-[10px] text-amber-400/80 mt-1">
+                  💡 Select a country above to see available auto gateways for that region
+                </p>
+              )}
             </div>
 
             {!['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType) && (
@@ -2965,6 +2997,68 @@ const Level5HelperDashboard = () => {
                 </div>
               </div>
             )}
+
+            {/* ✨ Generic Gateway Form — for ALL country-specific integrated gateways
+                (PhonePe IN, GCash PH, MoMo VN, eSewa NP, JazzCash PK, M-Pesa KE, etc.)
+                Excludes the 3 legacy BD gateways which have their own dedicated forms above */}
+            {(() => {
+              const matched = countryGateways.find(g => g.is_integrated && g.gateway_type === paymentType);
+              const isLegacy = ['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType);
+              if (!matched || isLegacy) return null;
+              return (
+                <div className="border border-purple-500/30 rounded-xl p-3 bg-purple-500/10 space-y-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-lg">⚡</span>
+                    <p className="text-purple-300 font-semibold text-sm">{matched.name} Auto Pay Setup</p>
+                  </div>
+                  <p className="text-xs text-purple-400/70 mb-2">
+                    🌍 Country: <strong>{selectedCountry}</strong> · Auto verification will credit diamonds instantly when payment confirms.
+                  </p>
+
+                  <div>
+                    <Label className="text-slate-300 text-xs">Display As (visible to users) *</Label>
+                    <Input
+                      value={gatewayDisplayMethod}
+                      onChange={(e) => setGatewayDisplayMethod(e.target.value)}
+                      placeholder={`e.g., ${matched.name}`}
+                      className="bg-slate-800 border-purple-500/30 text-white mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-slate-300 text-xs">Display Number / Account (visible to users) *</Label>
+                    <Input
+                      value={gatewayDisplayNumber}
+                      onChange={(e) => setGatewayDisplayNumber(e.target.value)}
+                      placeholder="e.g., merchant phone, UPI ID, etc."
+                      className="bg-slate-800 border-purple-500/30 text-white mt-1"
+                    />
+                  </div>
+
+                  <div className="border-t border-purple-500/20 pt-2 mt-2">
+                    <p className="text-[10px] text-purple-400/50 mb-2">🔒 {matched.name} Credentials (hidden from users)</p>
+                  </div>
+                  <div>
+                    <Label className="text-slate-300 text-xs">API Key / Merchant ID *</Label>
+                    <Input
+                      value={accountName}
+                      onChange={(e) => setAccountName(e.target.value)}
+                      placeholder="Enter API key or merchant ID"
+                      className="bg-slate-800 border-purple-500/30 text-white mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-slate-300 text-xs">API Secret / Salt Key *</Label>
+                    <Input
+                      value={accountNumber}
+                      onChange={(e) => setAccountNumber(e.target.value)}
+                      placeholder="Enter API secret or salt key"
+                      className="bg-slate-800 border-purple-500/30 text-white mt-1"
+                      type="password"
+                    />
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* SSLCommerz / AamarPay Gateway Credentials */}
             {(paymentType === 'sslcommerz' || paymentType === 'aamarpay') && (
