@@ -2208,6 +2208,28 @@ const Recharge = () => {
                                   <span className="text-[10px] text-green-600 font-medium">{helper.whatsappNumber}</span>
                                 </div>
                               )}
+                              {/* Accepted payment method logos (tick-marked by helper) */}
+                              {helper.acceptedMethods && helper.acceptedMethods.length > 0 && (
+                                <div className="flex items-center gap-1 mt-1.5 flex-wrap">
+                                  <span className="text-[9px] text-gray-500 font-medium">Accepts:</span>
+                                  {helper.acceptedMethods.slice(0, 6).map((m) => (
+                                    <div
+                                      key={m.gateway_id}
+                                      title={`${m.name}${m.is_integrated ? ' (Auto)' : ' (Manual)'}`}
+                                      className="w-5 h-5 rounded bg-gray-50 border border-gray-200 flex items-center justify-center overflow-hidden"
+                                    >
+                                      {m.logo_url ? (
+                                        <img src={m.logo_url} alt={m.name} className="w-full h-full object-contain" loading="lazy" />
+                                      ) : (
+                                        <span className="text-[8px] font-bold text-gray-600">{m.name.charAt(0)}</span>
+                                      )}
+                                    </div>
+                                  ))}
+                                  {helper.acceptedMethods.length > 6 && (
+                                    <span className="text-[9px] text-gray-500 font-bold">+{helper.acceptedMethods.length - 6}</span>
+                                  )}
+                                </div>
+                              )}
                             </div>
                             <div className="flex flex-col gap-1.5 shrink-0">
                               {helper.whatsappNumber && (
