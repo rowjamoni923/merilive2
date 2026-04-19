@@ -218,6 +218,9 @@ const Level5HelperDashboard = () => {
   const [gatewayDisplayNumber, setGatewayDisplayNumber] = useState("");
   const [isMerchant, setIsMerchant] = useState(false);
 
+  // 🆕 Dynamic country-aware payment gateways (loads from `payment_gateways` table)
+  const { gateways: countryGateways } = useCountryPaymentGateways(selectedCountry || null);
+
   useEffect(() => {
     const intervalId = window.setInterval(() => setLockClock(Date.now()), 1000);
     return () => window.clearInterval(intervalId);
