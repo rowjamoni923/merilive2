@@ -310,8 +310,9 @@ const HelperDashboard = () => {
             .order('display_order', { ascending: true });
           
           if (methods) {
-            setPaymentMethods(methods as unknown as PaymentMethod[]);
-            console.log('[HelperDashboard] Payment methods refreshed:', methods.length);
+            const normalized = (methods as any[]).map(normalizePaymentMethod);
+            setPaymentMethods(normalized);
+            console.log('[HelperDashboard] Payment methods refreshed:', normalized.length);
           }
         }
       )
@@ -395,11 +396,12 @@ const HelperDashboard = () => {
       }
       
       if (methods) {
-        console.log('[HelperDashboard] Payment methods loaded:', methods.length, methods.map((m: any) => m.method_name));
-        setPaymentMethods(methods as unknown as PaymentMethod[]);
-        if (methods.length > 0) {
-          setTopupPaymentMethod((methods[0] as any).method_name);
-          setSelectedPaymentMethod(methods[0] as unknown as PaymentMethod);
+        const normalized = (methods as any[]).map(normalizePaymentMethod);
+        console.log('[HelperDashboard] Payment methods loaded:', normalized.length, normalized.map((m) => m.method_name));
+        setPaymentMethods(normalized);
+        if (normalized.length > 0) {
+          setTopupPaymentMethod(normalized[0].method_name);
+          setSelectedPaymentMethod(normalized[0]);
         }
       } else {
         console.log('[HelperDashboard] No payment methods found');
