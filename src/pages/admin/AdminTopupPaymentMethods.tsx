@@ -196,6 +196,36 @@ const AdminTopupPaymentMethods = () => {
     loadMethods();
   };
 
+  const handleLogoUpload = async (file: File) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast({ title: "Invalid file", description: "Please upload an image file (PNG / JPG / SVG / WebP)", variant: "destructive" });
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Logo must be under 2 MB", variant: "destructive" });
+      return;
+    }
+    setUploadingLogo(true);
+    try {
+      const ext = file.name.split('.').pop() || 'png';
+      const fileName = `topup-method-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const filePath = `topup-payment-methods/${fileName}`;
+      const { error: upErr } = await supabase.storage
+        .from('payment-logos')
+        .upload(filePath, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from('payment-logos').getPublicUrl(filePath);
+      setFormData(prev => ({ ...prev, icon_url: pub.publicUrl }));
+      toast({ title: "Logo uploaded ✅" });
+    } catch (err: any) {
+      console.error('[AdminPaymentMethods] Logo upload error:', err);
+      toast({ title: "Upload failed", description: err.message, variant: "destructive" });
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
   const getMethodIcon = (type: string) => {
     switch (type) {
       case 'mobile_banking': return Smartphone;
