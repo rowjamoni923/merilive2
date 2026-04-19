@@ -2359,9 +2359,16 @@ const Recharge = () => {
                     <div className="flex flex-wrap gap-1.5">
                       {Array.from(new Set(helperPaymentMethods.map(m => m.method_name.toLowerCase()))).map((methodType) => {
                         const isSelected = selectedPaymentType === methodType;
-                        // Find the first method with this type to get the logo
+                        // 1) Try helper's own uploaded logo
                         const methodData = helperPaymentMethods.find(m => m.method_name.toLowerCase() === methodType);
-                        const logoUrl = methodData?.logo_url;
+                        // 2) Fallback to admin-configured brand logo from topup_payment_methods
+                        const adminMatch = adminPaymentMethods.find((a: any) => {
+                          const an = String(a.name || '').toLowerCase();
+                          const at = String(a.method_type || '').toLowerCase();
+                          return an === methodType || at === methodType || an.includes(methodType) || methodType.includes(an);
+                        });
+                        const adminLogo = adminMatch?.icon_url || (adminMatch?.additional_info as any)?.logo_url || null;
+                        const logoUrl = methodData?.logo_url || adminLogo;
                         
                         // Fallback colors based on payment type
                         const getPaymentColors = (type: string) => {
