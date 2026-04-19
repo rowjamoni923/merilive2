@@ -919,10 +919,49 @@ const Recharge = () => {
             countryName: user?.country_name || h.country_code || 'Unknown',
             totalSold: h.total_sold || 0,
             whatsappNumber: whatsapp,
+            acceptedMethods: [] as AcceptedMethodLogo[],
           };
         });
         // Sort by total_sold desc (highest sellers first)
         mapped.sort((a, b) => b.totalSold - a.totalSold);
+
+        // Fetch accepted payment methods for all helpers in one query
+        const helperIds = mapped.map(m => m.helperId);
+        if (helperIds.length > 0) {
+          const { data: acceptedRows } = await supabase
+            .from('helper_accepted_payment_methods' as any)
+            .select('helper_id, gateway_id')
+            .in('helper_id', helperIds)
+            .eq('is_enabled', true);
+
+          const gatewayIds = [...new Set(((acceptedRows as any[]) || []).map((r: any) => r.gateway_id))];
+          let gatewayMap = new Map<string, AcceptedMethodLogo>();
+          if (gatewayIds.length > 0) {
+            const { data: gws } = await supabase
+              .from('payment_gateways')
+              .select('id, name, logo_url, is_integrated')
+              .in('id', gatewayIds);
+            gatewayMap = new Map(
+              ((gws as any[]) || []).map((g: any) => [
+                g.id,
+                { gateway_id: g.id, name: g.name, logo_url: g.logo_url, is_integrated: !!g.is_integrated },
+              ])
+            );
+          }
+
+          const byHelper = new Map<string, AcceptedMethodLogo[]>();
+          ((acceptedRows as any[]) || []).forEach((r: any) => {
+            const gw = gatewayMap.get(r.gateway_id);
+            if (!gw) return;
+            const arr = byHelper.get(r.helper_id) || [];
+            arr.push(gw);
+            byHelper.set(r.helper_id, arr);
+          });
+          mapped.forEach(m => {
+            m.acceptedMethods = byHelper.get(m.helperId) || [];
+          });
+        }
+
         setTopUpHelpers(mapped);
       }
     } catch (error) {
