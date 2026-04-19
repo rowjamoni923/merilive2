@@ -2823,14 +2823,27 @@ const Level5HelperDashboard = () => {
               <Label className="text-slate-300">Payment Method Type *</Label>
               <Select value={paymentType} onValueChange={setPaymentType}>
                 <SelectTrigger className="bg-slate-800 border-slate-700 text-white mt-1">
-                  <SelectValue />
+                  <SelectValue placeholder={selectedCountry ? "Select payment method..." : "Select a country first"} />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700">
-                  {/* ═══ AUTO PAYMENT GATEWAYS ═══ */}
-                  <SelectItem value="zinipay" className="text-white">⚡ ZiniPay (Auto Pay - Personal)</SelectItem>
-                  <SelectItem value="sslcommerz" className="text-white">🔐 SSLCommerz (Auto Pay)</SelectItem>
-                  <SelectItem value="aamarpay" className="text-white">💰 AamarPay (Auto Pay)</SelectItem>
-                  {/* ═══ MOBILE WALLETS ═══ */}
+                <SelectContent className="bg-slate-800 border-slate-700 max-h-72">
+                  {/* ═══ AUTO PAYMENT GATEWAYS — country specific (from payment_gateways table) ═══ */}
+                  {countryGateways.filter(g => g.is_integrated).length > 0 && (
+                    <div className="px-2 py-1 text-[10px] text-amber-400 font-bold uppercase tracking-wider">
+                      ⚡ Auto Gateways — {selectedCountry || 'Global'}
+                    </div>
+                  )}
+                  {countryGateways
+                    .filter(g => g.is_integrated)
+                    .map(g => (
+                      <SelectItem key={g.id} value={g.gateway_type} className="text-white">
+                        ⚡ {g.name} <span className="text-[10px] text-amber-300/70 ml-1">(Auto Pay)</span>
+                      </SelectItem>
+                    ))}
+
+                  {/* ═══ MANUAL METHODS — universal fallbacks (always visible) ═══ */}
+                  <div className="px-2 py-1 text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">
+                    📝 Manual Methods
+                  </div>
                   <SelectItem value="bkash" className="text-white">📱 bKash</SelectItem>
                   <SelectItem value="nagad" className="text-white">💳 Nagad</SelectItem>
                   <SelectItem value="rocket" className="text-white">🚀 Rocket</SelectItem>
@@ -2857,11 +2870,6 @@ const Level5HelperDashboard = () => {
                   <SelectItem value="skrill" className="text-white">💜 Skrill</SelectItem>
                   <SelectItem value="payoneer" className="text-white">🟠 Payoneer</SelectItem>
                   <SelectItem value="epay" className="text-white">💰 ePay</SelectItem>
-                  <SelectItem value="taptap" className="text-white">📱 TapTap Send</SelectItem>
-                  <SelectItem value="wave" className="text-white">🌊 Wave</SelectItem>
-                  <SelectItem value="remitly" className="text-white">💸 Remitly</SelectItem>
-                  <SelectItem value="western_union" className="text-white">🟡 Western Union</SelectItem>
-                  <SelectItem value="moneygram" className="text-white">🔵 MoneyGram</SelectItem>
                   <SelectItem value="alipay" className="text-white">🔵 Alipay</SelectItem>
                   <SelectItem value="wechat" className="text-white">🟢 WeChat Pay</SelectItem>
                   <SelectItem value="line_pay" className="text-white">🟢 LINE Pay</SelectItem>
@@ -2872,6 +2880,11 @@ const Level5HelperDashboard = () => {
                   <SelectItem value="pix" className="text-white">💚 PIX (Brazil)</SelectItem>
                 </SelectContent>
               </Select>
+              {!selectedCountry && (
+                <p className="text-[10px] text-amber-400/80 mt-1">
+                  💡 Select a country above to see available auto gateways for that region
+                </p>
+              )}
             </div>
 
             {!['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType) && (
