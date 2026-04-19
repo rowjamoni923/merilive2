@@ -27,6 +27,7 @@ interface PaymentGateway {
   id: string;
   name: string;
   gateway_code: string;
+  gateway_type?: string | null;
   description: string | null;
   logo_url: string | null;
   api_endpoint: string | null;
@@ -34,6 +35,8 @@ interface PaymentGateway {
   secret_key_encrypted: string | null;
   webhook_url: string | null;
   supported_currencies: string[];
+  country_codes: string[] | null;
+  is_integrated: boolean;
   min_amount: number;
   max_amount: number;
   fee_percentage: number;
@@ -43,6 +46,56 @@ interface PaymentGateway {
   settings: any;
   created_at: string;
 }
+
+// Common country options for the picker
+const ADMIN_COUNTRY_OPTIONS: { code: string; name: string }[] = [
+  { code: "GLOBAL", name: "🌍 Global (All countries)" },
+  { code: "BD", name: "🇧🇩 Bangladesh" },
+  { code: "IN", name: "🇮🇳 India" },
+  { code: "PK", name: "🇵🇰 Pakistan" },
+  { code: "NP", name: "🇳🇵 Nepal" },
+  { code: "LK", name: "🇱🇰 Sri Lanka" },
+  { code: "PH", name: "🇵🇭 Philippines" },
+  { code: "ID", name: "🇮🇩 Indonesia" },
+  { code: "MY", name: "🇲🇾 Malaysia" },
+  { code: "TH", name: "🇹🇭 Thailand" },
+  { code: "VN", name: "🇻🇳 Vietnam" },
+  { code: "MM", name: "🇲🇲 Myanmar" },
+  { code: "KH", name: "🇰🇭 Cambodia" },
+  { code: "SG", name: "🇸🇬 Singapore" },
+  { code: "HK", name: "🇭🇰 Hong Kong" },
+  { code: "CN", name: "🇨🇳 China" },
+  { code: "JP", name: "🇯🇵 Japan" },
+  { code: "KR", name: "🇰🇷 South Korea" },
+  { code: "TW", name: "🇹🇼 Taiwan" },
+  { code: "AE", name: "🇦🇪 UAE" },
+  { code: "SA", name: "🇸🇦 Saudi Arabia" },
+  { code: "EG", name: "🇪🇬 Egypt" },
+  { code: "NG", name: "🇳🇬 Nigeria" },
+  { code: "KE", name: "🇰🇪 Kenya" },
+  { code: "ZA", name: "🇿🇦 South Africa" },
+  { code: "GH", name: "🇬🇭 Ghana" },
+  { code: "TR", name: "🇹🇷 Turkey" },
+  { code: "RU", name: "🇷🇺 Russia" },
+  { code: "UA", name: "🇺🇦 Ukraine" },
+  { code: "PL", name: "🇵🇱 Poland" },
+  { code: "DE", name: "🇩🇪 Germany" },
+  { code: "FR", name: "🇫🇷 France" },
+  { code: "IT", name: "🇮🇹 Italy" },
+  { code: "ES", name: "🇪🇸 Spain" },
+  { code: "PT", name: "🇵🇹 Portugal" },
+  { code: "GB", name: "🇬🇧 United Kingdom" },
+  { code: "US", name: "🇺🇸 United States" },
+  { code: "CA", name: "🇨🇦 Canada" },
+  { code: "MX", name: "🇲🇽 Mexico" },
+  { code: "BR", name: "🇧🇷 Brazil" },
+  { code: "AR", name: "🇦🇷 Argentina" },
+  { code: "CO", name: "🇨🇴 Colombia" },
+  { code: "PE", name: "🇵🇪 Peru" },
+  { code: "CL", name: "🇨🇱 Chile" },
+  { code: "AU", name: "🇦🇺 Australia" },
+  { code: "NZ", name: "🇳🇿 New Zealand" },
+];
 
 interface Transaction {
   id: string;
@@ -85,6 +138,9 @@ const AdminPaymentGateways = () => {
   const [uploadingLogoForGateway, setUploadingLogoForGateway] = useState<string | null>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
   
+  // Country filter for the gateway list
+  const [countryFilter, setCountryFilter] = useState<string>("all");
+
   // Form state
   const [formData, setFormData] = useState({
     name: "",
@@ -96,6 +152,8 @@ const AdminPaymentGateways = () => {
     secret_key: "",
     webhook_url: "",
     supported_currencies: "",
+    country_codes: [] as string[],
+    is_integrated: true,
     min_amount: 1,
     max_amount: 10000,
     fee_percentage: 0,
