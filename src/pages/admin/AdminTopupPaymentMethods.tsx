@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import {
   Plus, Edit, Trash2, CreditCard, Smartphone, Bitcoin, Wallet,
-  ArrowUp, ArrowDown, ToggleLeft, ToggleRight, RefreshCw
+  ArrowUp, ArrowDown, ToggleLeft, ToggleRight, RefreshCw, Upload, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,6 +45,7 @@ const AdminTopupPaymentMethods = () => {
   const [saving, setSaving] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
   const [editingMethod, setEditingMethod] = useState<PaymentMethod | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -100,6 +101,8 @@ const AdminTopupPaymentMethods = () => {
 
     setSaving(true);
     try {
+      // Persist logo into BOTH icon_url (admin) and additional_info.logo_url
+      // so the Recharge / HelperDashboard / Local-Pay logo readers all find it.
       const payload = {
         name: formData.name,
         method_type: formData.method_type,
@@ -108,6 +111,7 @@ const AdminTopupPaymentMethods = () => {
         payment_number: formData.payment_number || formData.account_number || null,
         payment_instructions: formData.payment_instructions || null,
         icon_url: formData.icon_url || null,
+        additional_info: formData.icon_url ? { logo_url: formData.icon_url } : null,
         updated_at: new Date().toISOString(),
       };
 
