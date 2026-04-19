@@ -190,7 +190,30 @@ const AdminPaymentGateways = () => {
         .order('display_order', { ascending: true });
 
       if (error) throw error;
-      setGateways(data || []);
+
+      // The DB stores extra fields inside the JSONB `config` column.
+      // Flatten them onto the gateway shape used by this admin UI.
+      const mapped = (data || []).map((g: any) => {
+        const cfg = (g.config || {}) as Record<string, any>;
+        return {
+          ...g,
+          gateway_code: g.gateway_type || cfg.gateway_code || '',
+          description: cfg.description ?? null,
+          api_endpoint: cfg.api_endpoint ?? null,
+          api_key_encrypted: cfg.api_key_encrypted ?? null,
+          secret_key_encrypted: cfg.secret_key_encrypted ?? null,
+          webhook_url: cfg.webhook_url ?? null,
+          min_amount: Number(cfg.min_amount ?? 1),
+          max_amount: Number(cfg.max_amount ?? 10000),
+          fee_percentage: Number(cfg.fee_percentage ?? 0),
+          fee_fixed: Number(cfg.fee_fixed ?? 0),
+          settings: cfg.settings ?? null,
+          country_codes: g.country_codes ?? null,
+          is_integrated: g.is_integrated ?? false,
+        } as PaymentGateway;
+      });
+
+      setGateways(mapped);
     } catch (error) {
       console.error('Error fetching gateways:', error);
       toast({
