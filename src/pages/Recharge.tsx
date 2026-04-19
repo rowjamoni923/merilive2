@@ -767,16 +767,18 @@ const Recharge = () => {
     }
   }, [userCountryCode]);
 
-  // Fetch Admin-configured Payment Methods from topup_payment_methods
+  // Fetch Admin-configured Payment Methods from topup_payment_methods.
+  // NOTE: This table has NO country_code column — admin methods are GLOBAL
+  // and act as the canonical brand-logo source for Local Pay (bKash, Nagad,
+  // ePay, Binance Pay, etc.). Country-specific helper accounts come from
+  // helper_country_payment_methods. We just need the LOGOS here.
   const fetchAdminPaymentMethods = useCallback(async () => {
-    if (!userCountryCode) return;
-    
     try {
-      console.log('[Recharge] Fetching admin payment methods for country:', userCountryCode);
-      
+      console.log('[Recharge] Fetching admin payment methods (logo source)');
+
       const { data, error } = await supabase
         .from('topup_payment_methods')
-        .select('*')
+        .select('id, name, method_type, icon_url, additional_info, payment_number, payment_instructions, is_active, display_order')
         .eq('is_active', true)
         .order('display_order', { ascending: true });
 
@@ -785,17 +787,12 @@ const Recharge = () => {
         return;
       }
 
-      // Filter by user's country code
-      const filteredMethods = (data || []).filter((m: any) => 
-        m.country_codes?.includes(userCountryCode)
-      );
-      
-      console.log('[Recharge] Admin payment methods loaded:', filteredMethods.length, 'for country:', userCountryCode);
-      setAdminPaymentMethods(filteredMethods);
+      console.log('[Recharge] Admin payment methods loaded:', (data || []).length);
+      setAdminPaymentMethods(data || []);
     } catch (error) {
       console.error('[Recharge] Error fetching admin payment methods:', error);
     }
-  }, [userCountryCode]);
+  }, []);
 
   useEffect(() => {
     fetchUserData();
