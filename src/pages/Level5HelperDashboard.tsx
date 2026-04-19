@@ -863,7 +863,13 @@ const Level5HelperDashboard = () => {
   };
 
   const handleAddCountryPaymentMethod = async () => {
-    const isGatewayType = ['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType);
+    // ✅ Generalized gateway detection: ANY integrated gateway from payment_gateways table
+    const matchedIntegratedGateway = countryGateways.find(
+      g => g.is_integrated && g.gateway_type === paymentType
+    );
+    const isGatewayType = !!matchedIntegratedGateway
+      || ['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType);
+
     if (!selectedCountry) {
       toast({ title: "Error", description: "Please select a country", variant: "destructive" });
       return;
