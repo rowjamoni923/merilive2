@@ -980,6 +980,60 @@ const AdminPaymentGateways = () => {
               />
             </div>
 
+            {/* Country Codes Multi-Picker */}
+            <div>
+              <Label className="text-slate-700">
+                Available Countries
+                <span className="text-xs text-slate-500 ml-2">
+                  (Helpers from these countries will see this gateway)
+                </span>
+              </Label>
+              <div className="mt-2 flex flex-wrap gap-2 p-3 bg-slate-50 border border-slate-200 rounded-lg max-h-44 overflow-y-auto">
+                {ADMIN_COUNTRY_OPTIONS.map((c) => {
+                  const checked = formData.country_codes.includes(c.code);
+                  return (
+                    <button
+                      type="button"
+                      key={c.code}
+                      onClick={() =>
+                        setFormData({
+                          ...formData,
+                          country_codes: checked
+                            ? formData.country_codes.filter((x) => x !== c.code)
+                            : [...formData.country_codes, c.code],
+                        })
+                      }
+                      className={cn(
+                        "px-2.5 py-1 rounded-full text-xs font-medium border transition",
+                        checked
+                          ? "bg-pink-500 text-white border-pink-500"
+                          : "bg-white text-slate-700 border-slate-300 hover:border-pink-400"
+                      )}
+                    >
+                      {c.name}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                Selected: {formData.country_codes.length === 0 ? 'None — gateway will be hidden' : formData.country_codes.join(', ')}
+              </p>
+            </div>
+
+            {/* Auto-Integrated Toggle */}
+            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
+              <div>
+                <Label className="text-slate-700">Auto Integration</Label>
+                <p className="text-sm text-slate-500">
+                  ON = Helpers can use this gateway with API key/secret. OFF = manual screenshot only.
+                </p>
+              </div>
+              <Switch
+                checked={formData.is_integrated}
+                onCheckedChange={(checked) => setFormData({ ...formData, is_integrated: checked })}
+              />
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label className="text-slate-700">API Endpoint</Label>
