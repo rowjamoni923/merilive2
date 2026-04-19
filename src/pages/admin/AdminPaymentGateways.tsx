@@ -659,7 +659,28 @@ const AdminPaymentGateways = () => {
 
           {/* Gateways Tab */}
           <TabsContent value="gateways" className="mt-4">
-            <div className="flex justify-end mb-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+              <div className="flex items-center gap-2">
+                <Globe className="w-4 h-4 text-white/70" />
+                <select
+                  value={countryFilter}
+                  onChange={(e) => setCountryFilter(e.target.value)}
+                  className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white"
+                >
+                  <option value="all">All countries</option>
+                  {ADMIN_COUNTRY_OPTIONS.map(c => (
+                    <option key={c.code} value={c.code}>{c.name}</option>
+                  ))}
+                </select>
+                <span className="text-xs text-white/50">
+                  {(() => {
+                    const visible = countryFilter === 'all'
+                      ? gateways.length
+                      : gateways.filter(g => (g.country_codes || []).includes(countryFilter)).length;
+                    return `${visible} gateway${visible === 1 ? '' : 's'}`;
+                  })()}
+                </span>
+              </div>
               <Button onClick={handleAdd} className="gap-2 bg-pink-500 hover:bg-pink-600">
                 <Plus className="w-4 h-4" />
                 New Gateway
@@ -678,7 +699,9 @@ const AdminPaymentGateways = () => {
               </div>
             ) : (
               <div className="space-y-3">
-                {gateways.map((gateway) => (
+                {gateways
+                  .filter(g => countryFilter === 'all' || (g.country_codes || []).includes(countryFilter))
+                  .map((gateway) => (
                   <Card key={gateway.id} className={cn(
                     "transition-all border shadow-sm",
                     gateway.is_active 
