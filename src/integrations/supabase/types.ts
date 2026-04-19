@@ -6436,11 +6436,14 @@ export type Database = {
         Row: {
           api_key_ref: string | null
           config: Json | null
+          country_codes: string[] | null
           created_at: string | null
           display_order: number | null
           gateway_type: string
           id: string
           is_active: boolean | null
+          is_integrated: boolean | null
+          logo_url: string | null
           name: string
           supported_currencies: string[] | null
           updated_at: string | null
@@ -6448,11 +6451,14 @@ export type Database = {
         Insert: {
           api_key_ref?: string | null
           config?: Json | null
+          country_codes?: string[] | null
           created_at?: string | null
           display_order?: number | null
           gateway_type: string
           id?: string
           is_active?: boolean | null
+          is_integrated?: boolean | null
+          logo_url?: string | null
           name: string
           supported_currencies?: string[] | null
           updated_at?: string | null
@@ -6460,11 +6466,14 @@ export type Database = {
         Update: {
           api_key_ref?: string | null
           config?: Json | null
+          country_codes?: string[] | null
           created_at?: string | null
           display_order?: number | null
           gateway_type?: string
           id?: string
           is_active?: boolean | null
+          is_integrated?: boolean | null
+          logo_url?: string | null
           name?: string
           supported_currencies?: string[] | null
           updated_at?: string | null
