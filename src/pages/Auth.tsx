@@ -1516,20 +1516,18 @@ const Auth = () => {
     }
   };
 
-  // Resend OTP for new email flow using Supabase Auth
+  // Resend OTP for new email flow using custom edge function
   const handleResendEmailOtp = async () => {
     setOtpLoading(true);
     try {
       const normalizedEmail = email.trim().toLowerCase();
-      const { error } = await supabase.auth.signInWithOtp({
-        email: normalizedEmail,
-        options: {
-          shouldCreateUser: true,
-        },
+      const { data, error } = await supabase.functions.invoke("send-email-otp", {
+        body: { email: normalizedEmail, purpose: "login" },
       });
 
-      if (error) {
-        throw error;
+      if (error) throw error;
+      if (data && data.success === false) {
+        throw new Error(data.error || "Failed to resend code");
       }
 
       toast({
