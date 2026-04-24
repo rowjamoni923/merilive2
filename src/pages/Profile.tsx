@@ -373,8 +373,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         // Use getSession (local) instead of getUser (network call) for faster load
         const cachedUser = await getCachedUser();
         const { data: { session } } = await supabase.auth.getSession();
-        const sessionUser = session?.user ?? null;
-        const user = sessionUser ?? (cachedUser ? { id: cachedUser.id, email: cachedUser.email } : null);
+        const authUser = session?.user ?? null;
+        const user = authUser ?? (cachedUser ? { id: cachedUser.id, email: cachedUser.email } : null);
 
         if (!isMounted) return;
         setCurrentUser(user);
@@ -423,25 +423,25 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         }
 
         // Last-resort self-heal: if the row is still missing, try one direct client upsert
-        if (!profileData && user && targetUserId === user.id) {
-          const displayName = user.user_metadata?.full_name ||
-            user.user_metadata?.name ||
-            (user.email?.includes('@meri.local') ? null : user.email?.split('@')[0]) ||
+        if (!profileData && authUser && targetUserId === authUser.id) {
+          const displayName = authUser.user_metadata?.full_name ||
+            authUser.user_metadata?.name ||
+            (authUser.email?.includes('@meri.local') ? null : authUser.email?.split('@')[0]) ||
             `User${Math.random().toString(36).substring(2, 8)}`;
 
-          const avatarUrl = user.user_metadata?.avatar_url ||
-            user.user_metadata?.picture || null;
+          const avatarUrl = authUser.user_metadata?.avatar_url ||
+            authUser.user_metadata?.picture || null;
 
           const appUid = String(Math.floor(1000000000 + Math.random() * 9000000000));
 
           const { error: createProfileError } = await supabase
             .from("profiles")
             .insert({
-              id: user.id,
+              id: authUser.id,
               display_name: displayName,
-              username: user.email?.includes('@meri.local') ? null : user.email?.split('@')[0] || null,
+              username: authUser.email?.includes('@meri.local') ? null : authUser.email?.split('@')[0] || null,
               avatar_url: avatarUrl,
-              gender: user.user_metadata?.gender || 'male',
+              gender: authUser.user_metadata?.gender || 'male',
               app_uid: appUid,
               last_seen: new Date().toISOString(),
             });
@@ -452,7 +452,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             const { data: healedProfile } = await supabase
               .from("profiles")
               .select("*")
-              .eq("id", user.id)
+              .eq("id", authUser.id)
               .maybeSingle();
 
             if (healedProfile) {
