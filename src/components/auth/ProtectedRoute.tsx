@@ -19,12 +19,14 @@ const BAN_CACHE_TTL = 60_000; // Re-check every 60s
 
 const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
   const location = useLocation();
+  const [localSession, setLocalSession] = useState<Session | null>(session);
   const [isBanned, setIsBanned] = useState(false);
   const [banReason, setBanReason] = useState<string | null>(null);
   const [checked, setChecked] = useState(false);
   const [profileMissing, setProfileMissing] = useState(false);
   const [waitedForRecovery, setWaitedForRecovery] = useState(!!session);
   const checkingRef = useRef(false);
+  const effectiveSession = session ?? localSession;
 
   // Session hijacking protection
   useSessionSecurity();
@@ -32,20 +34,40 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
   // If no session, wait briefly for background recovery before redirecting
   useEffect(() => {
     if (session) {
+      setLocalSession(session);
       setWaitedForRecovery(true);
       return;
     }
 
     // Give background session recovery up to 1.5s to complete
+    setWaitedForRecovery(false);
+    let cancelled = false;
+
     const timer = setTimeout(() => {
-      setWaitedForRecovery(true);
+      void supabase.auth.getSession()
+        .then(({ data }) => {
+          if (cancelled) return;
+          setLocalSession(data.session ?? null);
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setLocalSession(null);
+        })
+        .finally(() => {
+          if (!cancelled) {
+            setWaitedForRecovery(true);
+          }
+        });
     }, 1500);
 
-    return () => clearTimeout(timer);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [session]);
 
   useEffect(() => {
-    const userId = session?.user?.id;
+    const userId = effectiveSession?.user?.id;
     if (!userId) {
       setChecked(true);
       return;
@@ -138,14 +160,14 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
     return () => {
       supabase.removeChannel(banChannel);
     };
-  }, [session?.user?.id]);
+  }, [effectiveSession?.user?.id]);
 
   if (profileMissing) {
     return <Navigate to="/auth" replace />;
   }
 
   // Wait briefly for background session recovery before redirecting to auth
-  if (!session && !waitedForRecovery) {
+  if (!effectiveSession && !waitedForRecovery) {
     return (
       <MeriLiveLoader
         message="Restoring session"
@@ -154,7 +176,7 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
     );
   }
 
-  if (!session) {
+  if (!effectiveSession) {
     const returnTo = location.pathname + location.search;
     const shouldStoreReturn = 
       returnTo !== '/' && 
