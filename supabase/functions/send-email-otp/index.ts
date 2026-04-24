@@ -18,6 +18,145 @@ function generateOTP(): string {
   return otp;
 }
 
+function normalizeSecret(value?: string | null): string {
+  return (value ?? "")
+    .trim()
+    .replace(/\r?\n/g, "")
+    .replace(/^['\"]|['\"]$/g, "");
+}
+
+async function getGmailOAuthAccessToken() {
+  const clientId = normalizeSecret(Deno.env.get("GMAIL_CLIENT_ID"));
+  const clientSecret = normalizeSecret(Deno.env.get("GMAIL_CLIENT_SECRET"));
+  const refreshToken = normalizeSecret(Deno.env.get("GMAIL_REFRESH_TOKEN"));
+
+  if (!clientId || !clientSecret || !refreshToken) {
+    throw new Error("Gmail OAuth credentials not configured");
+  }
+
+  const response = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      refresh_token: refreshToken,
+      grant_type: "refresh_token",
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    console.error("[send-email-otp] OAuth token refresh failed:", errText);
+    throw new Error(errText || `OAuth token refresh failed (${response.status})`);
+  }
+
+  const data = await response.json();
+  if (!data?.access_token) {
+    throw new Error("OAuth token refresh did not return an access token");
+  }
+
+  return {
+    accessToken: data.access_token as string,
+    clientId,
+    clientSecret,
+    refreshToken,
+  };
+}
+
+async function sendMailWithFallback(options: {
+  gmailUser: string;
+  gmailAppPassword: string;
+  to: string;
+  subject: string;
+  text: string;
+  html: string;
+}) {
+  const { gmailUser, gmailAppPassword, to, subject, text, html } = options;
+  const authErrors: string[] = [];
+  const messageId = `<${crypto.randomUUID()}@merilive.app>`;
+  const dateHeader = new Date().toUTCString();
+
+  const baseMailOptions = {
+    from: `MeriLive <${gmailUser}>`,
+    to,
+    replyTo: gmailUser,
+    sender: gmailUser,
+    subject,
+    text,
+    html,
+    messageId,
+    date: dateHeader,
+    headers: {
+      "List-Unsubscribe": `<mailto:${gmailUser}?subject=unsubscribe>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+      "X-Entity-Ref-ID": crypto.randomUUID(),
+      "X-Mailer": "MeriLive Transactional",
+      "Auto-Submitted": "auto-generated",
+      "Precedence": "transactional",
+    },
+  };
+
+  if (gmailUser && gmailAppPassword) {
+    try {
+      const appPasswordTransport = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 465,
+        secure: true,
+        auth: { user: gmailUser, pass: gmailAppPassword },
+        tls: { rejectUnauthorized: true },
+      });
+
+      const info = await appPasswordTransport.sendMail(baseMailOptions);
+      return { success: true, authMethod: "app_password", info };
+    } catch (error: any) {
+      const message = error?.message || String(error);
+      authErrors.push(`App password auth failed: ${message}`);
+      console.error("[send-email-otp] App password send failed:", message);
+    }
+  }
+
+  if (gmailUser) {
+    try {
+      const oauth = await getGmailOAuthAccessToken();
+      const oauthTransport = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          type: "OAuth2",
+          user: gmailUser,
+          clientId: oauth.clientId,
+          clientSecret: oauth.clientSecret,
+          refreshToken: oauth.refreshToken,
+          accessToken: oauth.accessToken,
+        },
+      });
+
+      const info = await oauthTransport.sendMail(baseMailOptions);
+      return { success: true, authMethod: "oauth2", info };
+    } catch (error: any) {
+      const message = error?.message || String(error);
+      authErrors.push(`OAuth2 auth failed: ${message}`);
+      console.error("[send-email-otp] OAuth2 send failed:", message);
+    }
+  }
+
+  if (!gmailUser) {
+    authErrors.push("GMAIL_USER is not configured");
+  }
+
+  if (!gmailAppPassword) {
+    authErrors.push("GMAIL_APP_PASSWORD is empty or invalid");
+  }
+
+  return {
+    success: false,
+    error:
+      authErrors[0] ||
+      "Email service is not configured correctly. Gmail authentication failed.",
+    detail: authErrors.join(" | "),
+  };
+}
+
 /**
  * INBOX-OPTIMIZED email template (Gmail Primary tab friendly)
  * Spam-prevention rules applied:
@@ -42,7 +181,6 @@ function buildOTPEmailHTML(otp: string, purpose: string): string {
     purpose === "reset" ? "Password Reset" :
     "Identity Verification";
 
-  // Split OTP into individual digits for premium boxed display
   const digits = otp.split("");
 
   return `<!DOCTYPE html>
@@ -58,22 +196,16 @@ function buildOTPEmailHTML(otp: string, purpose: string): string {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f1ec;padding:40px 16px;">
   <tr><td align="center">
     <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background:#ffffff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.06);overflow:hidden;">
-
-      <!-- Premium Header with Gradient -->
       <tr><td style="background:linear-gradient(135deg,#1a0b2e 0%,#3d1f5c 50%,#1a0b2e 100%);padding:40px 32px;text-align:center;">
         <div style="font-size:13px;font-weight:600;letter-spacing:4px;color:#d4af37;text-transform:uppercase;margin-bottom:12px;">✦ MeriLive ✦</div>
         <div style="font-size:28px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;margin:0;">${headline}</div>
         <div style="width:60px;height:3px;background:linear-gradient(90deg,transparent,#d4af37,transparent);margin:16px auto 0;"></div>
       </td></tr>
-
-      <!-- Main Body -->
       <tr><td style="padding:40px 40px 24px 40px;">
         <p style="margin:0 0 12px 0;font-size:17px;font-weight:600;color:#1a1a1a;">Hello,</p>
         <p style="margin:0 0 32px 0;font-size:15px;line-height:1.6;color:#555555;">
           Use the verification code below to ${purposeText}. For your security, this code will expire in <strong style="color:#1a0b2e;">5 minutes</strong>.
         </p>
-
-        <!-- Premium OTP Display - Boxed Digits -->
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 28px 0;">
           <tr><td align="center" style="background:linear-gradient(135deg,#faf8f3 0%,#ffffff 100%);border:1px solid #e8e3d8;border-radius:12px;padding:32px 16px;">
             <div style="font-size:11px;font-weight:600;color:#8b7355;letter-spacing:3px;text-transform:uppercase;margin-bottom:20px;">Verification Code</div>
@@ -83,8 +215,6 @@ function buildOTPEmailHTML(otp: string, purpose: string): string {
             <div style="margin-top:18px;font-size:12px;color:#8b7355;">⏱ Expires in 5 minutes</div>
           </td></tr>
         </table>
-
-        <!-- Security Note -->
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px 0;">
           <tr><td style="background:#fdf6e3;border-left:3px solid #d4af37;padding:14px 18px;border-radius:6px;">
             <p style="margin:0;font-size:13px;line-height:1.5;color:#6b5b3a;">
@@ -92,17 +222,13 @@ function buildOTPEmailHTML(otp: string, purpose: string): string {
             </p>
           </td></tr>
         </table>
-
         <p style="margin:0;font-size:13px;line-height:1.6;color:#888888;">
           If you did not request this code, you can safely ignore this email — someone may have entered your address by mistake.
         </p>
-
         <p style="margin:32px 0 0 0;font-size:14px;color:#555555;">
           Warm regards,<br><strong style="color:#1a0b2e;">The MeriLive Team</strong>
         </p>
       </td></tr>
-
-      <!-- Premium Footer -->
       <tr><td style="background:#1a0b2e;padding:24px 32px;text-align:center;">
         <div style="font-size:14px;font-weight:600;color:#d4af37;letter-spacing:2px;margin-bottom:8px;">MERILIVE</div>
         <p style="margin:0 0 8px 0;font-size:11px;color:#9b88b5;line-height:1.5;">
@@ -113,7 +239,6 @@ function buildOTPEmailHTML(otp: string, purpose: string): string {
           &copy; ${new Date().getFullYear()} MeriLive. All rights reserved.
         </p>
       </td></tr>
-
     </table>
   </td></tr>
 </table>
@@ -177,15 +302,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    const gmailUser = Deno.env.get("GMAIL_USER")?.trim().toLowerCase();
-    const gmailAppPassword = Deno.env.get("GMAIL_APP_PASSWORD")?.replace(/\s+/g, "").trim();
-    if (!gmailUser || !gmailAppPassword) {
-      console.error("[send-email-otp] Gmail SMTP credentials not configured");
-      return new Response(
-        JSON.stringify({ success: false, error: "Email service not configured" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    const gmailUser = normalizeSecret(Deno.env.get("GMAIL_USER")).toLowerCase();
+    const gmailAppPassword = normalizeSecret(Deno.env.get("GMAIL_APP_PASSWORD")).replace(/\s+/g, "");
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -228,86 +346,47 @@ Deno.serve(async (req) => {
     const emailHTML = buildOTPEmailHTML(otp, purpose);
     const textContent = buildOTPEmailText(otp, purpose);
 
-    // INBOX-FRIENDLY subject (no OTP digits, no brackets, no spam-trigger words)
     const subject =
       purpose === "login" ? "Your MeriLive sign-in code" :
       purpose === "register" ? "Confirm your MeriLive account" :
       purpose === "reset" ? "Reset your MeriLive password" :
       "Your MeriLive verification code";
 
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
-      auth: { user: gmailUser, pass: gmailAppPassword },
-      tls: { rejectUnauthorized: true },
+    const mailResult = await sendMailWithFallback({
+      gmailUser,
+      gmailAppPassword,
+      to: email,
+      subject,
+      text: textContent,
+      html: emailHTML,
     });
 
-    try {
-      await transporter.verify();
-      console.log(`[send-email-otp] SMTP verified for ${gmailUser}`);
-    } catch (verifyErr: any) {
-      console.error("[send-email-otp] SMTP verify FAILED:", verifyErr?.message || verifyErr);
+    if (!mailResult.success) {
       return new Response(
         JSON.stringify({
           success: false,
-          error: "Gmail SMTP authentication failed. Check GMAIL_USER and GMAIL_APP_PASSWORD secrets.",
-          detail: verifyErr?.message || String(verifyErr),
+          error: mailResult.error,
+          detail: mailResult.detail,
         }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    try {
-      // Generate a deterministic Message-ID with our domain to improve deliverability
-      const messageId = `<${crypto.randomUUID()}@merilive.app>`;
-      const dateHeader = new Date().toUTCString();
+    console.log(
+      `[send-email-otp] OTP sent to ${email} via ${mailResult.authMethod} | messageId=${mailResult.info?.messageId} | accepted=${JSON.stringify(mailResult.info?.accepted)} | rejected=${JSON.stringify(mailResult.info?.rejected)}`
+    );
 
-      const info = await transporter.sendMail({
-        from: `MeriLive <${gmailUser}>`,
-        to: email,
-        replyTo: gmailUser,
-        sender: gmailUser,
-        subject,
-        text: textContent,
-        html: emailHTML,
-        messageId,
-        date: dateHeader,
-        // Inbox-friendly headers — REMOVED X-Priority/Importance:High
-        // (those flags actually HURT deliverability for transactional mail)
-        headers: {
-          "List-Unsubscribe": `<mailto:${gmailUser}?subject=unsubscribe>`,
-          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-          "X-Entity-Ref-ID": crypto.randomUUID(),
-          "X-Mailer": "MeriLive Transactional",
-          "Auto-Submitted": "auto-generated",
-          "Precedence": "transactional",
-        },
-      });
-
-      console.log(`[send-email-otp] OTP sent to ${email} | messageId=${info.messageId} | accepted=${JSON.stringify(info.accepted)} | rejected=${JSON.stringify(info.rejected)}`);
-
-      return new Response(
-        JSON.stringify({
-          success: true,
-          message: "OTP sent successfully",
-          messageId: info.messageId,
-          accepted: info.accepted,
-          rejected: info.rejected,
-        }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    } catch (sendErr: any) {
-      console.error("[send-email-otp] Gmail SMTP sendMail FAILED:", sendErr?.message || sendErr);
-      return new Response(
-        JSON.stringify({
-          success: false,
-          error: "Gmail rejected the message",
-          detail: sendErr?.message || String(sendErr),
-        }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: "OTP sent successfully",
+        authMethod: mailResult.authMethod,
+        messageId: mailResult.info?.messageId,
+        accepted: mailResult.info?.accepted,
+        rejected: mailResult.info?.rejected,
+      }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   } catch (error) {
     console.error("[send-email-otp] Error:", error);
     return new Response(
