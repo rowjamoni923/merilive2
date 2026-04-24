@@ -1714,40 +1714,52 @@ export type Database = {
       }
       ar_stickers: {
         Row: {
+          asset_url: string | null
           category: string | null
           coin_price: number | null
           created_at: string | null
+          diamond_cost: number
           display_order: number | null
           file_url: string
           id: string
           is_active: boolean | null
           is_free: boolean | null
+          is_premium: boolean
           name: string
           preview_url: string | null
+          slug: string | null
         }
         Insert: {
+          asset_url?: string | null
           category?: string | null
           coin_price?: number | null
           created_at?: string | null
+          diamond_cost?: number
           display_order?: number | null
           file_url: string
           id?: string
           is_active?: boolean | null
           is_free?: boolean | null
+          is_premium?: boolean
           name: string
           preview_url?: string | null
+          slug?: string | null
         }
         Update: {
+          asset_url?: string | null
           category?: string | null
           coin_price?: number | null
           created_at?: string | null
+          diamond_cost?: number
           display_order?: number | null
           file_url?: string
           id?: string
           is_active?: boolean | null
           is_free?: boolean | null
+          is_premium?: boolean
           name?: string
           preview_url?: string | null
+          slug?: string | null
         }
         Relationships: []
       }
@@ -2067,12 +2079,15 @@ export type Database = {
           file_url: string
           filter_key: string | null
           filter_type: string | null
+          icon_name: string | null
           id: string
           intensity_default: number | null
           is_active: boolean | null
           is_free: boolean | null
+          matrix: Json | null
           name: string
           preview_url: string | null
+          slug: string | null
         }
         Insert: {
           category?: string | null
@@ -2083,12 +2098,15 @@ export type Database = {
           file_url: string
           filter_key?: string | null
           filter_type?: string | null
+          icon_name?: string | null
           id?: string
           intensity_default?: number | null
           is_active?: boolean | null
           is_free?: boolean | null
+          matrix?: Json | null
           name: string
           preview_url?: string | null
+          slug?: string | null
         }
         Update: {
           category?: string | null
@@ -2099,12 +2117,15 @@ export type Database = {
           file_url?: string
           filter_key?: string | null
           filter_type?: string | null
+          icon_name?: string | null
           id?: string
           intensity_default?: number | null
           is_active?: boolean | null
           is_free?: boolean | null
+          matrix?: Json | null
           name?: string
           preview_url?: string | null
+          slug?: string | null
         }
         Relationships: []
       }
@@ -7731,6 +7752,7 @@ export type Database = {
           avatar_url: string | null
           beans: number | null
           beans_balance: number | null
+          beauty_presets: Json | null
           bio: string | null
           blocked_at: string | null
           blocked_reason: string | null
@@ -7837,6 +7859,7 @@ export type Database = {
           avatar_url?: string | null
           beans?: number | null
           beans_balance?: number | null
+          beauty_presets?: Json | null
           bio?: string | null
           blocked_at?: string | null
           blocked_reason?: string | null
@@ -7943,6 +7966,7 @@ export type Database = {
           avatar_url?: string | null
           beans?: number | null
           beans_balance?: number | null
+          beauty_presets?: Json | null
           bio?: string | null
           blocked_at?: string | null
           blocked_reason?: string | null
@@ -12752,6 +12776,7 @@ export type Database = {
           avatar_url: string | null
           beans: number | null
           beans_balance: number | null
+          beauty_presets: Json | null
           bio: string | null
           blocked_at: string | null
           blocked_reason: string | null
@@ -12959,6 +12984,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_active_beauty_assets: { Args: never; Returns: Json }
       get_admin_analytics_chart_data: {
         Args: { p_days?: number }
         Returns: Json
@@ -13583,6 +13609,7 @@ export type Database = {
             Args: { _increment?: number; _task_type: string; _value?: number }
             Returns: Json
           }
+      update_user_beauty_presets: { Args: { _presets: Json }; Returns: boolean }
       validate_admin_access_token: { Args: { _token: string }; Returns: Json }
       validate_session_integrity: {
         Args: {
