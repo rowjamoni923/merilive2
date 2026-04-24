@@ -459,6 +459,25 @@ const AdminBeautyFilters = () => {
               />
             </div>
 
+            {/* Slug — Flutter parity */}
+            <div>
+              <Label className="flex items-center gap-2">
+                Slug
+                <span className="text-[10px] text-muted-foreground font-normal">
+                  (Flutter app key — auto-generated if empty)
+                </span>
+              </Label>
+              <Input
+                placeholder="e.g. natural, cat_ears, crown"
+                value={formData.slug}
+                onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "_") })}
+                className="font-mono text-sm"
+              />
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Must match the slug used in <code className="text-fuchsia-400">BeautyEffectService</code> for zero-breakage sync.
+              </p>
+            </div>
+
             {/* Description */}
             <div>
               <Label>Description</Label>
@@ -468,6 +487,18 @@ const AdminBeautyFilters = () => {
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               />
             </div>
+
+            {/* Icon name (for beauty filters only) */}
+            {activeTab === "beauty" && (
+              <div>
+                <Label>Lucide Icon Name (optional)</Label>
+                <Input
+                  placeholder="e.g. Sparkles, Sun, Heart"
+                  value={formData.icon_name}
+                  onChange={(e) => setFormData({ ...formData, icon_name: e.target.value })}
+                />
+              </div>
+            )}
 
             {/* Category */}
             <div>
