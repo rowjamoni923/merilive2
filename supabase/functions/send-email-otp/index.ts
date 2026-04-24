@@ -290,7 +290,7 @@ Deno.serve(async (req) => {
       "[MeriLive] Your Verification Code";
 
     const html = buildOTPEmailHTML(otp, purpose);
-    const result = await sendWithGmail(email, subject, html);
+    const result = await sendEmail(email, subject, html);
 
     if (!result.success) {
       console.error("[send-email-otp] Email delivery failed:", result.error);
@@ -300,7 +300,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log(`[send-email-otp] OTP sent to ${email} (${purpose})`);
+    console.log(`[send-email-otp] OTP sent to ${email} (${purpose}) via ${result.provider}`);
 
     return new Response(
       JSON.stringify({ success: true, message: "OTP sent successfully" }),
