@@ -986,7 +986,7 @@ const Auth = () => {
     navigateAfterAuth();
   };
 
-  // NEW Email Flow - Step 1: Send OTP to email (server-side via send-email-otp)
+  // NEW Email Flow - Step 1: Send OTP using Supabase Auth email OTP
   const handleSendEmailOtp = async () => {
     const normalizedEmail = email.trim().toLowerCase();
 
@@ -1003,34 +1003,25 @@ const Auth = () => {
     setEmail(normalizedEmail);
     setLoading(true);
     try {
-      // Send OTP via server-side edge function (OTP generated & stored on server)
-      const { data, error: fnError } = await supabase.functions.invoke('send-email-otp', {
-        body: {
-          email: normalizedEmail,
-          purpose: "login",
-        }
+      const { error } = await supabase.auth.signInWithOtp({
+        email: normalizedEmail,
+        options: {
+          shouldCreateUser: true,
+        },
       });
-      
-      if (fnError || !data?.success) {
-        const errorMsg = data?.error || fnError?.message || "Failed to send verification code";
-        console.error("Email OTP error:", errorMsg);
-        toast({
-          title: "Error",
-          description: errorMsg,
-          variant: "destructive",
-        });
-        setLoading(false);
-        return;
+
+      if (error) {
+        throw error;
       }
 
       toast({
         title: "📧 Verification Code Sent",
         description: `Check your email at ${normalizedEmail} for the 6-digit verification code.`,
       });
-      
-      // Show OTP verification step
+
       setAuthStep("email_otp");
     } catch (error: any) {
+      console.error("Email OTP error:", error);
       toast({
         title: "Error",
         description: error.message || "Failed to send verification code",
@@ -1041,7 +1032,7 @@ const Auth = () => {
     }
   };
 
-  // NEW Email Flow - Step 2: Verify OTP via server-side verify-email-otp, then login/register
+  // NEW Email Flow - Step 2: Verify OTP via Supabase Auth and continue directly
   const handleVerifyEmailOtp = async () => {
     if (!otpCode || otpCode.length !== 6) {
       toast({
@@ -1057,82 +1048,52 @@ const Auth = () => {
 
     setOtpLoading(true);
     try {
-      // Verify OTP on server side
-      const { data: verifyData, error: verifyError } = await supabase.functions.invoke('verify-email-otp', {
-        body: {
+      const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+        email: normalizedEmail,
+        token: otpCode,
+        type: "email",
+      });
+
+      if (verifyError || !verifyData?.user) {
+        throw verifyError || new Error("Invalid verification code");
+      }
+
+      const verifiedUser = verifyData.user;
+      const fallbackDisplayName =
+        verifiedUser.user_metadata?.full_name ||
+        verifiedUser.user_metadata?.name ||
+        normalizedEmail.split("@")[0] ||
+        "User";
+
+      const readyProfile = await ensureProfileReady(
+        verifiedUser.id,
+        {
           email: normalizedEmail,
-          otp: otpCode,
-          purpose: "login",
-        }
-      });
+          display_name: fallbackDisplayName,
+          is_verified: true,
+        },
+        { requireHost: false }
+      );
 
-      if (verifyError || !verifyData?.success) {
-        const errorMsg = verifyData?.error || verifyError?.message || "Invalid verification code";
-        toast({
-          title: "Invalid Code",
-          description: errorMsg,
-          variant: "destructive",
-        });
-        return;
-      }
+      localStorage.setItem("meri_last_user", JSON.stringify({
+        email: normalizedEmail,
+        displayName: readyProfile?.display_name || fallbackDisplayName,
+        avatarUrl: null,
+      }));
 
-      // OTP verified on server - try to sign in directly via edge function
-      const { data: otpSignInResponse, error: otpFetchError } = await supabase.functions.invoke('otp-direct-signin', {
-        body: { email: normalizedEmail, otp_verified: true },
-      });
-
-      if (otpSignInResponse?.success && otpSignInResponse?.access_token) {
-        const { error: sessionError } = await supabase.auth.setSession({
-          access_token: otpSignInResponse.access_token,
-          refresh_token: otpSignInResponse.refresh_token,
-        });
-
-        if (!sessionError) {
-          localStorage.removeItem('meri_manual_logout');
-          toast({
-            title: "✅ Welcome Back!",
-            description: "Logged in successfully via OTP.",
-          });
-          resetAuthState();
-          navigateAfterAuth();
-          return;
-        }
-
-        console.error("Session set error:", sessionError);
-        toast({
-          title: "Login Failed",
-          description: "OTP login could not be completed. Please try again.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (otpSignInResponse?.exists === false) {
-        setEmailVerified(true);
-        setAuthStep("email_password");
-        toast({
-          title: "✅ Email Verified!",
-          description: "Now set your name and password to create your account.",
-        });
-        return;
-      }
-
-      if (otpFetchError) {
-        console.error("OTP direct sign-in invoke error:", otpFetchError);
-        toast({
-          title: "Login Failed",
-          description: "OTP login service failed. Please try again.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Last fallback - ask for password
-      setEmailVerified(true);
-      setAuthStep("login");
+      localStorage.removeItem("meri_manual_logout");
       toast({
-        title: "✅ Email Verified!",
-        description: "Please enter your password to login.",
+        title: "✅ Welcome!",
+        description: "Email verified and login completed successfully.",
+      });
+      resetAuthState();
+      navigateAfterAuth();
+    } catch (error: any) {
+      console.error("Email OTP verify error:", error);
+      toast({
+        title: "Invalid Code",
+        description: error.message || "Invalid verification code",
+        variant: "destructive",
       });
     } finally {
       setOtpLoading(false);
@@ -1536,24 +1497,25 @@ const Auth = () => {
     }
   };
 
-  // Resend OTP for new email flow (server-side)
+  // Resend OTP for new email flow using Supabase Auth
   const handleResendEmailOtp = async () => {
     setOtpLoading(true);
     try {
-      const { data, error: fnError } = await supabase.functions.invoke('send-email-otp', {
-        body: {
-          email: email.trim().toLowerCase(),
-          purpose: "login",
-        }
+      const normalizedEmail = email.trim().toLowerCase();
+      const { error } = await supabase.auth.signInWithOtp({
+        email: normalizedEmail,
+        options: {
+          shouldCreateUser: true,
+        },
       });
-      
-      if (fnError || !data?.success) {
-        throw new Error(data?.error || fnError?.message || "Failed to resend code");
+
+      if (error) {
+        throw error;
       }
-      
+
       toast({
         title: "Code Resent",
-        description: `A new verification code has been sent to ${email}`,
+        description: `A new verification code has been sent to ${normalizedEmail}`,
       });
     } catch (error: any) {
       toast({
