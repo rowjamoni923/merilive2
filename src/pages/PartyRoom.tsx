@@ -1152,7 +1152,10 @@ const PartyRoom = () => {
           soundUrl: giftData.soundUrl || undefined,
           giftColor: 'from-pink-500 to-purple-500',
           count: giftData.count || 1,
-          coins: giftData.coins || 0
+          coins: giftData.coins || 0,
+          isReceiverGift: giftData.receiverId
+            ? giftData.receiverId === currentUserId
+            : false,
         });
         
         // Play gift sound for all participants
