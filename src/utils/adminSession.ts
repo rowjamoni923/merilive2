@@ -13,8 +13,11 @@
  */
 
 const ADMIN_SESSION_KEY = 'merilive-admin-session';
-const ADMIN_SESSION_VERSION = 'v1';
+const ADMIN_SESSION_VERSION = 'v2';
 const APPROVED_DEVICES_KEY = 'merilive-admin-approved-devices';
+const ADMIN_TOKEN_KEY = 'merilive-admin-token';
+
+const hasWindow = () => typeof window !== 'undefined';
 
 export interface AdminSession {
   version: string;
@@ -26,9 +29,32 @@ export interface AdminSession {
   must_change_password: boolean;
   device_fingerprint: string;
   signed_in_at: number; // unix ms
+  session_token?: string; // server-side admin session token (used as x-admin-token header)
 }
 
-const hasWindow = () => typeof window !== 'undefined';
+/**
+ * Read the current admin session token (used by adminClient as x-admin-token header).
+ * Returns empty string when no session — header will be omitted by the fetch wrapper.
+ */
+export const getAdminSessionToken = (): string => {
+  if (!hasWindow()) return '';
+  try {
+    return window.localStorage.getItem(ADMIN_TOKEN_KEY) || '';
+  } catch {
+    return '';
+  }
+};
+
+export const setAdminSessionToken = (token: string | null | undefined): void => {
+  if (!hasWindow()) return;
+  try {
+    if (token && token.length >= 16) {
+      window.localStorage.setItem(ADMIN_TOKEN_KEY, token);
+    } else {
+      window.localStorage.removeItem(ADMIN_TOKEN_KEY);
+    }
+  } catch {}
+};
 
 /**
  * Save admin session to localStorage (and sessionStorage for cross-tab).
@@ -88,6 +114,7 @@ export const clearAdminSession = (): void => {
   try {
     window.localStorage.removeItem(ADMIN_SESSION_KEY);
     window.sessionStorage.removeItem(ADMIN_SESSION_KEY);
+    window.localStorage.removeItem(ADMIN_TOKEN_KEY);
   } catch {}
 };
 

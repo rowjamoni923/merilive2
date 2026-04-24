@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
-import { saveAdminSession, clearAdminSession, getAdminSession } from "@/utils/adminSession";
+import { saveAdminSession, clearAdminSession, getAdminSession, setAdminSessionToken } from "@/utils/adminSession";
 import { grantAdminAccess, revokeAdminAccess } from "@/utils/adminAccessStorage";
 import { getDeviceFingerprint } from "@/utils/deviceFingerprint";
 import { toast } from "sonner";
@@ -130,7 +130,9 @@ export default function AdminAuth() {
       is_owner: !!result.is_owner,
       must_change_password: !!result.must_change_password,
       device_fingerprint: fp.fingerprint,
+      session_token: result.session_token,
     });
+    setAdminSessionToken(result.session_token);
     grantAdminAccess(!!result.is_owner);
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('admin-session-change'));
@@ -186,7 +188,9 @@ export default function AdminAuth() {
           is_owner: !!auth.is_owner,
           must_change_password: !!auth.must_change_password,
           device_fingerprint: fp.fingerprint,
+          session_token: auth.session_token,
         });
+        setAdminSessionToken(auth.session_token);
         grantAdminAccess(!!auth.is_owner);
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new Event('admin-session-change'));
