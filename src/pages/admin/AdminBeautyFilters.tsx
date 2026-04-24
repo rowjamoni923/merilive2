@@ -125,6 +125,7 @@ const AdminBeautyFilters = () => {
 
   const [formData, setFormData] = useState({
     name: "",
+    slug: "",
     description: "",
     category: "",
     is_premium: false,
@@ -133,6 +134,8 @@ const AdminBeautyFilters = () => {
     min_level: 0,
     display_order: 0,
     tags: "",
+    matrix: IDENTITY_MATRIX as number[],
+    icon_name: "",
   });
 
   useAdminRealtime(["beauty_filters", "ar_stickers"], () => fetchAll());
