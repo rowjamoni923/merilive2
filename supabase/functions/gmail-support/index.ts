@@ -1,6 +1,6 @@
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-admin-token, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 interface GmailMessage {
@@ -591,42 +591,43 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Verify admin authorization
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
+    // Verify admin authorization via custom admin session token (x-admin-token)
+    const adminToken = req.headers.get('x-admin-token');
+    if (!adminToken) {
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
+        JSON.stringify({ error: 'Unauthorized: missing admin session' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: authHeader } } }
-    );
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Verify admin status
     const adminClient = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
+    // Look up active admin session by token
+    const { data: sessionRow, error: sessionErr } = await adminClient
+      .from('admin_sessions')
+      .select('admin_user_id, expires_at')
+      .eq('session_token', adminToken)
+      .gt('expires_at', new Date().toISOString())
+      .maybeSingle();
+
+    if (sessionErr || !sessionRow) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized: invalid or expired admin session' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Verify admin status is active
     const { data: adminUser } = await adminClient
       .from('admin_users')
-      .select('role')
-      .eq('user_id', user.id)
+      .select('id, role, is_active')
+      .eq('id', sessionRow.admin_user_id)
       .eq('is_active', true)
-      .single();
+      .maybeSingle();
 
     if (!adminUser) {
       return new Response(

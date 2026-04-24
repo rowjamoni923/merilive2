@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
+import { getAdminSessionToken } from "@/utils/adminSession";
 import { toast } from "sonner";
 import { 
   Mail, Search, Loader2, Send, RefreshCw, Inbox, 
@@ -57,8 +58,8 @@ const AdminGmailSupport = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const callGmailApi = async (action: string, params: any = {}) => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) throw new Error('Not authenticated');
+    const adminToken = getAdminSessionToken();
+    if (!adminToken) throw new Error('Admin session expired. Please re-login.');
 
     const response = await fetch(
       `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gmail-support`,
@@ -66,8 +67,9 @@ const AdminGmailSupport = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          'x-admin-token': adminToken,
         },
         body: JSON.stringify({ action, ...params }),
       }
@@ -278,8 +280,8 @@ const AdminGmailSupport = () => {
 
     setTranslatingId(msgId);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Not authenticated');
+      const adminToken = getAdminSessionToken();
+      if (!adminToken) throw new Error('Admin session expired. Please re-login.');
 
       // Our message (Bengali) → English, User message (any language) → Bengali
       const targetLang = isOurMessage ? 'en' : 'bn';
@@ -291,8 +293,9 @@ const AdminGmailSupport = () => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`,
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
             'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            'x-admin-token': adminToken,
           },
           body: JSON.stringify({
             text: plainText.slice(0, 2000),
