@@ -7,7 +7,7 @@
  import { Switch } from "@/components/ui/switch";
  import { Badge } from "@/components/ui/badge";
  import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
- import { supabase } from "@/integrations/supabase/client";
+ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
  import { useToast } from "@/hooks/use-toast";
  import { Coins, Gem, Plus, Trash2, Edit2, ArrowRight, Save, RefreshCw } from "lucide-react";
  
