@@ -855,9 +855,9 @@ const AdminPayrollOrders = () => {
                     <Gem className="w-5 h-5 text-blue-400" />
                     <div className="text-sm text-blue-300">
                       <p className="font-medium">Upon approval, helper will receive</p>
-                      <p>{Math.max(0, selectedOrder.coin_amount - 50000).toLocaleString()} 💎 Diamonds</p>
+                      <p>{Math.max(0, (selectedOrder.coin_amount ?? 0) - 50000).toLocaleString()} 💎 Diamonds</p>
                       <p className="text-xs text-blue-400 mt-1">
-                        (Total {selectedOrder.coin_amount.toLocaleString()} - 50,000 system fee)
+                        (Total {(selectedOrder.coin_amount ?? 0).toLocaleString()} - 50,000 system fee)
                       </p>
                     </div>
                   </div>
