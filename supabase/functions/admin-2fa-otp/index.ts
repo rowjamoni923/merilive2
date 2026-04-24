@@ -22,59 +22,77 @@ const generateOTP = (): string => {
   return otp;
 };
 
+/**
+ * INBOX-OPTIMIZED admin 2FA email (Gmail Primary tab friendly)
+ * Same spam-prevention rules as user OTP — white bg, no heavy gradients,
+ * no OTP in subject, proper plain-text alternative, transactional headers.
+ */
 function buildAdminOTPEmailHTML(otp: string): string {
-  const otpDigits = otp
-    .split("")
-    .map(
-      (d) =>
-        `<td style="width:46px;height:56px;background:linear-gradient(145deg,#1a1033,#2a1454);border-radius:12px;text-align:center;vertical-align:middle;border:1px solid rgba(168,85,247,0.45);box-shadow:0 6px 18px rgba(124,58,237,0.25),inset 0 1px 0 rgba(255,255,255,0.08);"><span style="font-size:28px;font-weight:800;color:#e9d5ff;font-family:'Courier New',monospace;letter-spacing:1px;">${d}</span></td>`
-    )
-    .join('<td style="width:8px;"></td>');
-
   return `<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#07060f;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#07060f;padding:44px 0;">
-<tr><td align="center">
-<table width="480" cellpadding="0" cellspacing="0" style="border-radius:22px;overflow:hidden;box-shadow:0 0 80px rgba(168,85,247,0.18),0 24px 60px rgba(0,0,0,0.55);">
-  <tr><td style="background:linear-gradient(135deg,#1a0b3d 0%,#3b0764 50%,#1a0b3d 100%);padding:42px 40px 30px;text-align:center;border-bottom:1px solid rgba(168,85,247,0.22);">
-    <!-- Premium MeriLive wordmark (no logo image) -->
-    <div style="display:inline-block;padding:6px 22px;background:linear-gradient(135deg,rgba(168,85,247,0.12),rgba(236,72,153,0.10));border:1px solid rgba(168,85,247,0.28);border-radius:999px;margin-bottom:18px;">
-      <span style="color:#c4b5fd;font-size:10px;font-weight:700;letter-spacing:4px;text-transform:uppercase;">Admin Control Center</span>
-    </div>
-    <h1 style="margin:0;font-size:38px;font-weight:800;letter-spacing:3px;line-height:1;background:linear-gradient(90deg,#a855f7 0%,#ec4899 50%,#f59e0b 100%);-webkit-background-clip:text;background-clip:text;color:transparent;">
-      MERI<span style="font-weight:300;">LIVE</span>
-    </h1>
-    <div style="margin:14px auto 0;width:80px;height:3px;background:linear-gradient(90deg,transparent,#a855f7,#ec4899,#a855f7,transparent);border-radius:2px;"></div>
-    <p style="margin:14px 0 0;color:rgba(196,181,253,0.85);font-size:12px;font-weight:600;letter-spacing:3px;text-transform:uppercase;">🛡️ 2FA Verification</p>
-  </td></tr>
-  <tr><td style="background:linear-gradient(180deg,#13101f 0%,#0a0814 100%);padding:38px 40px;">
-    <p style="margin:0 0 8px;color:#f1f5f9;font-size:17px;font-weight:600;">Owner Login Verification</p>
-    <p style="margin:0 0 28px;color:#94a3b8;font-size:13px;line-height:1.6;">Use the secure code below to complete your admin panel login. This code is sensitive — keep it private.</p>
-    <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 28px;">
-      <tr><td style="background:linear-gradient(145deg,#1e1b4b,#0f0a1e);border-radius:18px;padding:28px 20px;text-align:center;border:1px solid rgba(168,85,247,0.3);">
-        <p style="margin:0 0 14px;color:#a855f7;font-size:11px;font-weight:700;letter-spacing:5px;text-transform:uppercase;">Your 6-Digit Code</p>
-        <table cellpadding="0" cellspacing="0" style="margin:0 auto;"><tr>${otpDigits}</tr></table>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Your admin verification code</title>
+</head>
+<body style="margin:0;padding:0;background:#ffffff;font-family:Arial,Helvetica,sans-serif;color:#1f2937;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;padding:32px 16px;">
+  <tr><td align="center">
+    <table role="presentation" width="520" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;background:#ffffff;border:1px solid #e5e7eb;border-radius:8px;">
+      <tr><td style="padding:28px 32px 8px 32px;text-align:center;border-bottom:1px solid #f3f4f6;">
+        <div style="font-size:24px;font-weight:700;letter-spacing:1px;color:#7c3aed;">MeriLive</div>
+        <div style="font-size:11px;color:#9ca3af;letter-spacing:2px;text-transform:uppercase;margin-top:4px;">Admin Console</div>
+      </td></tr>
+      <tr><td style="padding:32px;">
+        <p style="margin:0 0 16px 0;font-size:16px;color:#111827;">Hello,</p>
+        <p style="margin:0 0 24px 0;font-size:14px;line-height:1.6;color:#4b5563;">
+          Please use the verification code below to complete your admin sign-in. This code is valid for 5 minutes.
+        </p>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px 0;">
+          <tr><td align="center" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:24px;">
+            <div style="font-size:12px;color:#6b7280;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Admin Verification Code</div>
+            <div style="font-size:32px;font-weight:700;letter-spacing:8px;color:#111827;font-family:'Courier New',Courier,monospace;">${otp}</div>
+          </td></tr>
+        </table>
+        <p style="margin:0 0 16px 0;font-size:13px;line-height:1.6;color:#6b7280;">
+          If you did not attempt to sign in to the admin console, please secure your account immediately.
+        </p>
+        <p style="margin:24px 0 0 0;font-size:13px;color:#6b7280;">
+          Thanks,<br>The MeriLive Security Team
+        </p>
+      </td></tr>
+      <tr><td style="padding:20px 32px;border-top:1px solid #f3f4f6;background:#fafafa;border-radius:0 0 8px 8px;">
+        <p style="margin:0 0 4px 0;font-size:11px;color:#9ca3af;text-align:center;">
+          This is an automated message. Please do not reply to this email.
+        </p>
+        <p style="margin:0;font-size:11px;color:#9ca3af;text-align:center;">
+          &copy; ${new Date().getFullYear()} MeriLive. All rights reserved.
+        </p>
       </td></tr>
     </table>
-    <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">
-      <tr><td style="background:linear-gradient(135deg,rgba(245,158,11,0.10),rgba(236,72,153,0.06));border-radius:12px;padding:14px 18px;border-left:3px solid #f59e0b;">
-        <p style="margin:0;color:#fcd34d;font-size:13px;font-weight:600;">⏱️ Expires in 5 minutes</p>
-      </td></tr>
-    </table>
-    <table width="100%" cellpadding="0" cellspacing="0">
-      <tr><td style="background:rgba(239,68,68,0.07);border-radius:10px;padding:14px 18px;border:1px solid rgba(239,68,68,0.15);">
-        <p style="margin:0;color:#fca5a5;font-size:12px;line-height:1.5;">🚨 If you did not attempt to login, your password may be compromised. Change it immediately.</p>
-      </td></tr>
-    </table>
-  </td></tr>
-  <tr><td style="background:#07060f;padding:22px 40px;text-align:center;border-top:1px solid rgba(168,85,247,0.12);">
-    <p style="margin:0;color:#475569;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;">© ${new Date().getFullYear()} MeriLive · Admin Console</p>
   </td></tr>
 </table>
-</td></tr></table>
-</body></html>`;
+</body>
+</html>`;
+}
+
+function buildAdminOTPEmailText(otp: string): string {
+  return `Hello,
+
+Please use the verification code below to complete your admin sign-in.
+
+Admin Verification Code: ${otp}
+
+This code is valid for 5 minutes.
+
+If you did not attempt to sign in, please secure your account immediately.
+
+Thanks,
+The MeriLive Security Team
+
+---
+This is an automated message. Please do not reply.
+© ${new Date().getFullYear()} MeriLive. All rights reserved.`;
 }
 
 Deno.serve(async (req: Request): Promise<Response> => {
@@ -161,17 +179,24 @@ Deno.serve(async (req: Request): Promise<Response> => {
           await transporter.verify();
           console.log(`[admin-2fa-otp] ✅ SMTP verified for ${gmailUser}`);
 
+          const messageId = `<${crypto.randomUUID()}@merilive.app>`;
           const info = await transporter.sendMail({
             from: `MeriLive Admin <${gmailUser}>`,
             to: normalizedEmail,
             replyTo: gmailUser,
-            subject: `[MeriLive Admin] 2FA Code: ${otpCode}`,
-            text: `Your MeriLive Admin 2FA code is: ${otpCode}. Valid for 5 minutes. Do not share.`,
+            sender: gmailUser,
+            subject: "Your MeriLive admin sign-in code",
+            text: buildAdminOTPEmailText(otpCode),
             html: buildAdminOTPEmailHTML(otpCode),
+            messageId,
+            date: new Date().toUTCString(),
             headers: {
-              "X-Priority": "1",
-              "X-MSMail-Priority": "High",
-              "Importance": "High",
+              "List-Unsubscribe": `<mailto:${gmailUser}?subject=unsubscribe>`,
+              "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+              "X-Entity-Ref-ID": crypto.randomUUID(),
+              "X-Mailer": "MeriLive Transactional",
+              "Auto-Submitted": "auto-generated",
+              "Precedence": "transactional",
             },
           });
           emailSent = (info.accepted?.length ?? 0) > 0;
