@@ -1,5 +1,5 @@
 // Profile Page - Main user profile view
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { useNavigate, useParams } from "react-router-dom";
@@ -68,6 +68,7 @@ import useExpiredItemsRestorer from "@/hooks/useExpiredItemsRestorer";
 import { useRealtimeLevelProgress } from "@/hooks/useRealtimeLevel";
 import { triggerLegacyProfileSync } from "@/utils/legacyProfileSync";
 import { parseCallRateSettings, resolveEffectiveCallRate, getEffectiveHostLevel } from "@/utils/callRateSettings";
+import { getCachedUser } from "@/utils/cachedAuth";
 
 interface ProfileStats {
   followersCount: number;
@@ -93,6 +94,7 @@ const Profile = () => {
    const { balance: cachedBalance, refetch: refetchBalance } = useUserBalance();
    
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const profileCreationAttemptedRef = useRef(false);
   const [profile, setProfile] = useState<any>(() => {
     // Instant restore from session cache to avoid blank flash on tab switch
     try {
@@ -369,8 +371,10 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
       try {
         // Use getSession (local) instead of getUser (network call) for faster load
+        const cachedUser = await getCachedUser();
         const { data: { session } } = await supabase.auth.getSession();
-        const user = session?.user ?? null;
+        const authUser = session?.user ?? null;
+        const user = authUser ?? (cachedUser ? { id: cachedUser.id, email: cachedUser.email } : null);
 
         if (!isMounted) return;
         setCurrentUser(user);
@@ -419,25 +423,25 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         }
 
         // Last-resort self-heal: if the row is still missing, try one direct client upsert
-        if (!profileData && user && targetUserId === user.id) {
-          const displayName = user.user_metadata?.full_name ||
-            user.user_metadata?.name ||
-            (user.email?.includes('@meri.local') ? null : user.email?.split('@')[0]) ||
+        if (!profileData && authUser && targetUserId === authUser.id) {
+          const displayName = authUser.user_metadata?.full_name ||
+            authUser.user_metadata?.name ||
+            (authUser.email?.includes('@meri.local') ? null : authUser.email?.split('@')[0]) ||
             `User${Math.random().toString(36).substring(2, 8)}`;
 
-          const avatarUrl = user.user_metadata?.avatar_url ||
-            user.user_metadata?.picture || null;
+          const avatarUrl = authUser.user_metadata?.avatar_url ||
+            authUser.user_metadata?.picture || null;
 
           const appUid = String(Math.floor(1000000000 + Math.random() * 9000000000));
 
           const { error: createProfileError } = await supabase
             .from("profiles")
             .insert({
-              id: user.id,
+              id: authUser.id,
               display_name: displayName,
-              username: user.email?.includes('@meri.local') ? null : user.email?.split('@')[0] || null,
+              username: authUser.email?.includes('@meri.local') ? null : authUser.email?.split('@')[0] || null,
               avatar_url: avatarUrl,
-              gender: user.user_metadata?.gender || 'male',
+              gender: authUser.user_metadata?.gender || 'male',
               app_uid: appUid,
               last_seen: new Date().toISOString(),
             });
@@ -448,7 +452,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             const { data: healedProfile } = await supabase
               .from("profiles")
               .select("*")
-              .eq("id", user.id)
+              .eq("id", authUser.id)
               .maybeSingle();
 
             if (healedProfile) {
@@ -1519,10 +1523,83 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
   // Redirect to auth if not logged in and viewing own profile
   useEffect(() => {
-    if (!loading && !currentUser && isOwnProfile) {
+    if (!loading || currentUser || !isOwnProfile) return;
+
+    let cancelled = false;
+
+    void getCachedUser().then((cachedUser) => {
+      if (cancelled || cachedUser) return;
       navigate("/auth");
-    }
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [loading, currentUser, isOwnProfile, navigate]);
+
+  useEffect(() => {
+    if (loading || profile || !isOwnProfile || !currentUser || profileCreationAttemptedRef.current) return;
+
+    profileCreationAttemptedRef.current = true;
+    let cancelled = false;
+
+    const handleRetryProfileCreation = async () => {
+      setLoading(true);
+      try {
+        const displayName = currentUser.user_metadata?.full_name ||
+          currentUser.user_metadata?.name ||
+          (currentUser.email?.includes('@meri.local') ? null : currentUser.email?.split('@')[0]) ||
+          `User${Math.random().toString(36).substring(2, 8)}`;
+
+        const avatarUrl = currentUser.user_metadata?.avatar_url ||
+          currentUser.user_metadata?.picture || null;
+
+        const appUid = String(Math.floor(1000000000 + Math.random() * 9000000000));
+
+        const { error } = await supabase
+          .from("profiles")
+          .insert({
+            id: currentUser.id,
+            display_name: displayName,
+            username: currentUser.email?.includes('@meri.local') ? null : currentUser.email?.split('@')[0] || null,
+            avatar_url: avatarUrl,
+            app_uid: appUid,
+            gender: currentUser.user_metadata?.gender || 'male',
+            last_seen: new Date().toISOString(),
+          });
+
+        if (!error) {
+          const { data: newProfile } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", currentUser.id)
+            .maybeSingle();
+
+          if (!cancelled && newProfile) {
+            setProfile(newProfile);
+            toast({ title: "Profile created successfully!" });
+          }
+        } else if (!cancelled) {
+          console.error("[Profile] Retry profile creation failed:", error);
+          toast({ title: "Failed to create profile", description: error.message, variant: "destructive" });
+        }
+      } catch (e) {
+        if (!cancelled) {
+          console.error("[Profile] Retry error:", e);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void handleRetryProfileCreation();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [loading, profile, isOwnProfile, currentUser, toast]);
 
   if (loading && !profile) {
     return (
@@ -1542,58 +1619,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   }
 
   if (!profile && isOwnProfile && currentUser) {
-    // Auto-retry self-healing once more before showing error
-    const handleRetryProfileCreation = async () => {
-      setLoading(true);
-      try {
-        const displayName = currentUser.user_metadata?.full_name ||
-          currentUser.user_metadata?.name ||
-          (currentUser.email?.includes('@meri.local') ? null : currentUser.email?.split('@')[0]) ||
-          `User${Math.random().toString(36).substring(2, 8)}`;
-
-        const avatarUrl = currentUser.user_metadata?.avatar_url ||
-          currentUser.user_metadata?.picture || null;
-
-        // Generate a unique 10-digit app_uid
-        const appUid = String(Math.floor(1000000000 + Math.random() * 9000000000));
-
-        const { error } = await supabase
-          .from("profiles")
-          .insert({
-            id: currentUser.id,
-            display_name: displayName,
-            username: currentUser.email?.includes('@meri.local') ? null : currentUser.email?.split('@')[0] || null,
-            avatar_url: avatarUrl,
-            app_uid: appUid,
-            gender: currentUser.user_metadata?.gender || 'male',
-            last_seen: new Date().toISOString(),
-          });
-
-        if (!error) {
-          // Re-fetch profile
-          const { data: newProfile } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", currentUser.id)
-            .maybeSingle();
-          if (newProfile) {
-            setProfile(newProfile);
-            toast({ title: "Profile created successfully!" });
-          }
-        } else {
-          console.error("[Profile] Retry profile creation failed:", error);
-          toast({ title: "Failed to create profile", description: error.message, variant: "destructive" });
-        }
-      } catch (e) {
-        console.error("[Profile] Retry error:", e);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    // Auto-trigger retry on mount
-    handleRetryProfileCreation();
-
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-purple-100 to-background p-6">
         <LoadingSpinner />
