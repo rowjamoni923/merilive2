@@ -25,6 +25,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase } from "@/integrations/supabase/adminClient";
+import { getAdminSession } from "@/utils/adminSession";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 
@@ -107,16 +109,28 @@ export default function AdminBlocked() {
 
   const handleUnblockUser = async (userId: string) => {
     try {
-      const { error } = await supabase.rpc("admin_block_user", {
-        _user_id: userId,
-        _block: false
-      });
-
-      if (error) throw error;
+      const session = getAdminSession();
+      if (session?.admin_id) {
+        const { data, error } = await adminSupabase.rpc('admin_session_block_user' as any, {
+          _admin_id: session.admin_id,
+          _user_id: userId,
+          _block: false,
+          _reason: null,
+        });
+        if (error) throw error;
+        if (!(data as any)?.success) throw new Error('Unblock failed');
+      } else {
+        const { error } = await supabase.rpc("admin_block_user", {
+          _user_id: userId,
+          _block: false,
+        });
+        if (error) throw error;
+      }
       toast.success("User unblocked successfully");
       fetchBlockedItems();
-    } catch (error) {
-      toast.error("Failed to unblock user");
+    } catch (error: any) {
+      console.error('Unblock error:', error);
+      toast.error(error?.message || "Failed to unblock user");
     }
   };
 

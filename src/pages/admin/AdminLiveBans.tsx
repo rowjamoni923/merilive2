@@ -12,6 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase } from "@/integrations/supabase/adminClient";
+import { getAdminSession } from "@/utils/adminSession";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { 
@@ -238,28 +240,37 @@ export default function AdminLiveBans() {
     if (!selectedBan) return;
 
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      
-      const { error } = await supabase
-        .from('live_bans')
-        .update({
-          is_active: false,
-          unbanned_by: userData.user?.id,
-          unbanned_at: new Date().toISOString(),
-          unban_reason: unbanReason || 'Unbanned by admin',
-        })
-        .eq('id', selectedBan.id);
-
-      if (error) throw error;
+      const session = getAdminSession();
+      if (session?.admin_id) {
+        const { data, error } = await adminSupabase.rpc('admin_session_unban_live' as any, {
+          _admin_id: session.admin_id,
+          _ban_id: selectedBan.id,
+          _reason: unbanReason || 'Unbanned by admin',
+        });
+        if (error) throw error;
+        if (!(data as any)?.success) throw new Error('Unban failed');
+      } else {
+        const { data: userData } = await supabase.auth.getUser();
+        const { error } = await supabase
+          .from('live_bans')
+          .update({
+            is_active: false,
+            unbanned_by: userData.user?.id,
+            unbanned_at: new Date().toISOString(),
+            unban_reason: unbanReason || 'Unbanned by admin',
+          } as any)
+          .eq('id', selectedBan.id);
+        if (error) throw error;
+      }
 
       toast.success('User unbanned successfully');
       setShowUnbanDialog(false);
       setSelectedBan(null);
       setUnbanReason('');
       fetchBans();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error unbanning user:', error);
-      toast.error('Failed to unban user');
+      toast.error(error?.message || 'Failed to unban user');
     }
   };
 
