@@ -309,8 +309,10 @@ export function ActiveCallScreen({
               animationUrl: gift.animation_url || gift.icon_url || undefined,
               soundUrl: gift.sound_url || undefined,
               giftColor: "bg-pink-500/50",
-              count: 1,
+              count: payload.new?.quantity || 1,
               coins: gift.coin_value,
+              isReceiverGift: true,
+              beansEarned: payload.new?.receiver_beans ?? undefined,
             });
           }
         }
@@ -376,7 +378,8 @@ export function ActiveCallScreen({
         soundUrl: gift.sound_url || undefined,
         giftColor: "bg-pink-500/50",
         count,
-        coins: result.transaction?.coins_spent || totalCost,
+        coins: gift.coins,
+        isOwnGift: true,
       });
 
       setShowGiftPanel(false);

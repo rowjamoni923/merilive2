@@ -421,7 +421,8 @@ const Reels = () => {
       senderName: 'You',
       giftColor: 'from-pink-500 to-purple-500',
       count,
-      coins: totalCost,
+      coins: gift.coins,
+      isOwnGift: true,
     });
 
     try {

@@ -990,6 +990,7 @@ const LiveStream = () => {
           giftColor: "bg-pink-500/50",
           count: data.count || 1,
           coins: data.giftCoins || 0,
+          isReceiverGift: isHost,
         });
         
         // 2. INSTANT beans counter update for host
@@ -3313,6 +3314,7 @@ const LiveStream = () => {
             giftColor: "bg-pink-500/50",
             count: count,
             coins: gift.coins,
+            isOwnGift: true,
           });
           
           // Add gift message to chat IMMEDIATELY (optimistic)

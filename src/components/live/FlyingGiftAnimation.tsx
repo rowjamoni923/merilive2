@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback, memo, forwardRef, Suspense, lazy, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useHostGiftPercent } from "@/hooks/useHostGiftPercent";
 
 const SVGAPlayerWithAudio = lazy(() => import("@/components/common/SVGAPlayerWithAudio"));
 
@@ -17,6 +18,12 @@ export interface FlyingGift {
   coins: number;
   animationUrl?: string;
   soundUrl?: string;
+  /** True if the current viewer SENT this gift — shows diamonds spent badge */
+  isOwnGift?: boolean;
+  /** True if the current viewer is the RECEIVER (host) — shows beans earned badge */
+  isReceiverGift?: boolean;
+  /** Optional explicit beans amount (overrides client-side calculation) */
+  beansEarned?: number;
 }
 
 interface FlyingGiftAnimationProps {
@@ -47,12 +54,20 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   const mountedRef = useRef(true);
   const completedRef = useRef(false);
   const animationStartedRef = useRef(false);
+  const hostPercent = useHostGiftPercent();
 
   const displayAnimationUrl = useMemo(() => gift.animationUrl || gift.giftImageUrl, [gift.animationUrl, gift.giftImageUrl]);
   const animationType = useMemo(() => getAnimationType(displayAnimationUrl), [displayAnimationUrl]);
   const isSVGA = animationType === 'svga' && !svgaError;
   const isPremium = gift.coins >= 10000;
   const isLuxury = gift.coins >= 1000;
+
+  // Diamonds spent (sender view) and beans earned (receiver view)
+  const totalDiamonds = gift.coins * gift.count;
+  const totalBeans = useMemo(() => {
+    if (typeof gift.beansEarned === 'number') return gift.beansEarned;
+    return Math.floor(totalDiamonds * hostPercent / 100);
+  }, [gift.beansEarned, totalDiamonds, hostPercent]);
 
   // Note: gift.soundUrl is now passed to SVGAPlayerWithAudio as a fallback,
   // and is also played here for non-SVGA gifts (e.g. image/video).
@@ -334,6 +349,35 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
             </motion.div>
           </div>
         </div>
+
+        {/* Personal value badge: sender sees diamonds spent, receiver sees beans earned.
+            Hidden for everyone else so spectators don't see private settlement values. */}
+        {(gift.isOwnGift || gift.isReceiverGift) && (
+          <motion.div
+            initial={{ opacity: 0, y: -6, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ delay: 0.25, type: 'spring', damping: 14, stiffness: 280 }}
+            className="mt-1.5 ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full backdrop-blur-md border border-white/20 bg-black/55 shadow-lg"
+          >
+            {gift.isOwnGift ? (
+              <>
+                <span className="text-[13px] leading-none">💎</span>
+                <span className="text-cyan-200 font-bold text-[11px] leading-none">
+                  -{totalDiamonds.toLocaleString()}
+                </span>
+                <span className="text-white/60 text-[9px] leading-none ml-0.5">spent</span>
+              </>
+            ) : (
+              <>
+                <span className="text-[13px] leading-none">🫘</span>
+                <span className="text-emerald-200 font-bold text-[11px] leading-none">
+                  +{totalBeans.toLocaleString()}
+                </span>
+                <span className="text-white/60 text-[9px] leading-none ml-0.5">earned</span>
+              </>
+            )}
+          </motion.div>
+        )}
 
         {/* Sparkle trail for premium */}
         {isPremium && (
