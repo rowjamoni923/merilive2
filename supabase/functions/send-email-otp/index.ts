@@ -172,26 +172,67 @@ Deno.serve(async (req) => {
       port: 465,
       secure: true,
       auth: { user: gmailUser, pass: gmailAppPassword },
+      tls: { rejectUnauthorized: true },
     });
 
-    await transporter.sendMail({
-      from: `MeriLive <${gmailUser}>`,
-      to: email,
-      subject,
-      text: textContent,
-      html: emailHTML,
-    });
+    // Verify SMTP connection BEFORE sending — surfaces auth errors immediately
+    try {
+      await transporter.verify();
+      console.log(`[send-email-otp] ✅ Gmail SMTP connection verified for ${gmailUser}`);
+    } catch (verifyErr: any) {
+      console.error("[send-email-otp] ❌ Gmail SMTP verify FAILED:", verifyErr?.message || verifyErr);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "Gmail SMTP authentication failed. Check GMAIL_USER and GMAIL_APP_PASSWORD secrets.",
+          detail: verifyErr?.message || String(verifyErr),
+        }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
-    console.log(`[send-email-otp] ✅ OTP sent to ${email} via Gmail SMTP`);
+    try {
+      const info = await transporter.sendMail({
+        from: `MeriLive <${gmailUser}>`,
+        to: email,
+        replyTo: gmailUser,
+        subject,
+        text: textContent,
+        html: emailHTML,
+        headers: {
+          "X-Priority": "1",
+          "X-MSMail-Priority": "High",
+          "Importance": "High",
+        },
+      });
 
-    return new Response(
-      JSON.stringify({ success: true, message: "OTP sent successfully" }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+      console.log(`[send-email-otp] ✅ OTP sent to ${email} | messageId=${info.messageId} | response=${info.response} | accepted=${JSON.stringify(info.accepted)} | rejected=${JSON.stringify(info.rejected)}`);
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: "OTP sent successfully",
+          messageId: info.messageId,
+          accepted: info.accepted,
+          rejected: info.rejected,
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    } catch (sendErr: any) {
+      console.error("[send-email-otp] ❌ Gmail SMTP sendMail FAILED:", sendErr?.message || sendErr);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "Gmail rejected the message",
+          detail: sendErr?.message || String(sendErr),
+        }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
   } catch (error) {
     console.error("[send-email-otp] Error:", error);
     return new Response(
-      JSON.stringify({ success: false, error: "Failed to send email" }),
+      JSON.stringify({ success: false, error: "Failed to send email", detail: String(error) }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
