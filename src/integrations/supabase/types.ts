@@ -90,6 +90,10 @@ export type Database = {
           ip_address: string | null
           last_used_at: string | null
           notes: string | null
+          rejected_at: string | null
+          rejected_by: string | null
+          rejection_reason: string | null
+          requested_at: string | null
           status: Database["public"]["Enums"]["admin_device_status"] | null
           user_agent: string | null
         }
@@ -105,6 +109,10 @@ export type Database = {
           ip_address?: string | null
           last_used_at?: string | null
           notes?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          requested_at?: string | null
           status?: Database["public"]["Enums"]["admin_device_status"] | null
           user_agent?: string | null
         }
@@ -120,6 +128,10 @@ export type Database = {
           ip_address?: string | null
           last_used_at?: string | null
           notes?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          requested_at?: string | null
           status?: Database["public"]["Enums"]["admin_device_status"] | null
           user_agent?: string | null
         }
@@ -11500,7 +11512,15 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_approve_device: {
+        Args: { _device_id: string; _owner_admin_id: string }
+        Returns: Json
+      }
       admin_approve_helper: { Args: { _helper_id: string }; Returns: boolean }
+      admin_authenticate: {
+        Args: { _email: string; _password: string }
+        Returns: Json
+      }
       admin_block_agency: {
         Args: { _agency_id: string; _block: boolean; _reason?: string }
         Returns: boolean
@@ -11517,6 +11537,10 @@ export type Database = {
       admin_change_user_role: {
         Args: { _new_role: string; _user_id: string }
         Returns: boolean
+      }
+      admin_check_device_status: {
+        Args: { _admin_id: string; _device_fingerprint: string }
+        Returns: Json
       }
       admin_clear_frame_references: {
         Args: { frame_id_to_clear: string }
@@ -11640,6 +11664,26 @@ export type Database = {
           warning_count: number
         }[]
       }
+      admin_list_pending_devices: {
+        Args: { _owner_admin_id: string }
+        Returns: {
+          admin_display_name: string
+          admin_email: string
+          admin_role: string
+          admin_user_id: string
+          approved_at: string
+          device_fingerprint: string
+          device_info: Json
+          device_name: string
+          id: string
+          ip_address: string
+          last_used_at: string
+          rejected_at: string
+          requested_at: string
+          status: string
+          user_agent: string
+        }[]
+      }
       admin_permanent_ban_step_one: {
         Args: {
           _evidence?: Json
@@ -11692,6 +11736,17 @@ export type Database = {
         Args: { _host_id: string; _reason?: string }
         Returns: boolean
       }
+      admin_request_device_access: {
+        Args: {
+          _admin_id: string
+          _device_fingerprint: string
+          _device_info?: Json
+          _device_name?: string
+          _ip_address?: string
+          _user_agent?: string
+        }
+        Returns: Json
+      }
       admin_resolve_permanent_ban_targets: {
         Args: { _lookback_days?: number; _target_user_id: string }
         Returns: {
@@ -11699,6 +11754,10 @@ export type Database = {
           source: string
           user_id: string
         }[]
+      }
+      admin_revoke_device: {
+        Args: { _device_id: string; _owner_admin_id: string; _reason?: string }
+        Returns: Json
       }
       admin_send_notification: {
         Args: {
@@ -12480,6 +12539,7 @@ export type Database = {
       }
       is_own_profile: { Args: { _profile_id: string }; Returns: boolean }
       is_owner: { Args: { _user_id: string }; Returns: boolean }
+      is_owner_email: { Args: { _email: string }; Returns: boolean }
       is_real_user: { Args: never; Returns: boolean }
       is_user_live_banned: { Args: { p_user_id: string }; Returns: boolean }
       join_agency: {
@@ -12854,7 +12914,12 @@ export type Database = {
       }
     }
     Enums: {
-      admin_device_status: "pending" | "approved" | "blocked"
+      admin_device_status:
+        | "pending"
+        | "approved"
+        | "blocked"
+        | "rejected"
+        | "revoked"
       admin_role: "owner" | "sub_admin"
       app_role: "admin" | "moderator" | "user"
     }
@@ -12984,7 +13049,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      admin_device_status: ["pending", "approved", "blocked"],
+      admin_device_status: [
+        "pending",
+        "approved",
+        "blocked",
+        "rejected",
+        "revoked",
+      ],
       admin_role: ["owner", "sub_admin"],
       app_role: ["admin", "moderator", "user"],
     },

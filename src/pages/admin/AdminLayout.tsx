@@ -408,6 +408,7 @@ const navGroups: NavGroup[] = [
       { label: "Device Management", icon: Smartphone, path: "/admin/device-management", hubKey: "settings-hub" },
       { label: "🎨 Event Themes", icon: Sparkles, path: "/admin/theme-manager", hubKey: "settings-hub" },
       { label: "Sub-Admin Management", icon: Shield, path: "/admin/sub-admins", ownerOnly: true },
+      { label: "🔐 Device Approvals", icon: Smartphone, path: "/admin/device-approvals", ownerOnly: true },
     ]
   },
 ];
@@ -1634,22 +1635,19 @@ export default function AdminLayout() {
   };
 
   const handleLogout = async () => {
-    // Clear admin-specific access flags FIRST
+    // Clear admin session (independent from user app)
+    const { clearAdminSession } = await import('@/utils/adminSession');
+    clearAdminSession();
     revokeAdminAccess();
-    
-    // Also clear any cached admin queries
+
     setIsAdmin(false);
     setCurrentUser(null);
 
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        localStorage.setItem('meri_manual_logout', 'true');
-        await supabase.auth.signOut({ scope: 'local' });
-      }
-    } catch {}
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('admin-session-change'));
+    }
 
-    // Force navigate - use window.location to ensure full page reload and clear all state
+    // Force navigate - full page reload to clear React state
     window.location.href = '/admin/login';
   };
 
