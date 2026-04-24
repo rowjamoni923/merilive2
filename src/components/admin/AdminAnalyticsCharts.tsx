@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, memo } from "react";
+import { useState, useEffect, useCallback, memo, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -7,10 +7,29 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, Users, Gift, Phone, DollarSign, Loader2, Zap } from "lucide-react";
+import { TrendingUp, Users, Gift, Phone, DollarSign, Loader2, Zap, Inbox } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
+
+// Stale-while-revalidate cache so charts paint instantly on revisit
+const ANALYTICS_CACHE_KEY = "meri_admin_analytics_chart_v1";
+const loadCachedAnalytics = (range: string): any | null => {
+  try {
+    const raw = localStorage.getItem(`${ANALYTICS_CACHE_KEY}:${range}`);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+};
+const saveCachedAnalytics = (range: string, data: any) => {
+  try { localStorage.setItem(`${ANALYTICS_CACHE_KEY}:${range}`, JSON.stringify(data)); } catch {}
+};
+
+const ChartEmpty = ({ label }: { label: string }) => (
+  <div className="flex flex-col items-center justify-center h-[220px] text-slate-500">
+    <Inbox className="w-8 h-8 mb-2 opacity-50" />
+    <p className="text-xs font-semibold">No {label} in this period</p>
+  </div>
+);
 
 type TimeRange = "7d" | "30d" | "90d";
 
