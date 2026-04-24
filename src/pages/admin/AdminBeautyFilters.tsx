@@ -18,6 +18,7 @@ import {
   Sparkles, Upload, Trash2, Plus, Edit, Eye, EyeOff,
   RefreshCw, Wand2, Smile, Search, Crown, Star, Diamond
 } from "lucide-react";
+import { ColorMatrixEditor, IDENTITY_MATRIX } from "@/components/admin/beauty/ColorMatrixEditor";
 
 // Preview image imports for built-in MediaPipe filters
 import skinSmoothingImg from '@/assets/beauty-filters/skin-smoothing.png';
