@@ -11689,6 +11689,10 @@ export type Database = {
         Args: { _log_id: string; _notes?: string }
         Returns: Json
       }
+      admin_delete_party_background: {
+        Args: { _admin_id: string; _id: string }
+        Returns: Json
+      }
       admin_delete_user: { Args: { _user_id: string }; Returns: boolean }
       admin_force_verify_and_approve_host: {
         Args: {
@@ -11797,6 +11801,31 @@ export type Database = {
           email: string
           is_active: boolean
         }[]
+      }
+      admin_list_party_backgrounds: {
+        Args: { _admin_id: string }
+        Returns: {
+          category: string | null
+          created_at: string | null
+          display_order: number | null
+          gradient_css: string | null
+          id: string
+          image_url: string
+          is_active: boolean | null
+          is_free: boolean | null
+          is_premium: boolean | null
+          name: string
+          price_coins: number | null
+          price_diamonds: number | null
+          thumbnail_url: string | null
+          updated_at: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "party_room_backgrounds"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       admin_list_pending_devices: {
         Args: { _owner_admin_id: string }
@@ -11925,6 +11954,19 @@ export type Database = {
         }
         Returns: string
       }
+      admin_session_block_user: {
+        Args: {
+          _admin_id: string
+          _block: boolean
+          _reason?: string
+          _user_id: string
+        }
+        Returns: Json
+      }
+      admin_session_unban_live: {
+        Args: { _admin_id: string; _ban_id: string; _reason?: string }
+        Returns: Json
+      }
       admin_set_host_status: {
         Args: { _make_host: boolean; _user_id: string }
         Returns: undefined
@@ -11940,6 +11982,42 @@ export type Database = {
       admin_update_user_gender: {
         Args: { _gender: string; _user_id: string }
         Returns: boolean
+      }
+      admin_upsert_party_background: {
+        Args: {
+          _admin_id: string
+          _category: string
+          _display_order: number
+          _gradient_css: string
+          _id: string
+          _image_url: string
+          _is_active: boolean
+          _is_premium: boolean
+          _name: string
+          _price_diamonds: number
+        }
+        Returns: {
+          category: string | null
+          created_at: string | null
+          display_order: number | null
+          gradient_css: string | null
+          id: string
+          image_url: string
+          is_active: boolean | null
+          is_free: boolean | null
+          is_premium: boolean | null
+          name: string
+          price_coins: number | null
+          price_diamonds: number | null
+          thumbnail_url: string | null
+          updated_at: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "party_room_backgrounds"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       agency_send_diamonds_to_agency: {
         Args: {
@@ -12688,6 +12766,7 @@ export type Database = {
         Args: { _device_fingerprint: string; _user_id: string }
         Returns: boolean
       }
+      is_admin_session: { Args: { _admin_id: string }; Returns: boolean }
       is_admin_v2: { Args: { _user_id: string }; Returns: boolean }
       is_agency_owner: {
         Args: { _agency_id: string; _user_id: string }

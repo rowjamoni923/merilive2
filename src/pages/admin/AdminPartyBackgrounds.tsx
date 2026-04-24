@@ -41,6 +41,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase } from "@/integrations/supabase/adminClient";
+import { getAdminSession } from "@/utils/adminSession";
 import { cn } from "@/lib/utils";
 
 interface PartyBackground {
@@ -109,16 +111,26 @@ const AdminPartyBackgrounds = () => {
 
   const fetchBackgrounds = useCallback(async () => {
     setIsLoading(true);
+    const session = getAdminSession();
 
     try {
-      const { data, error } = await supabase
-        .from('party_room_backgrounds')
-        .select('*')
-        .order('display_order', { ascending: true });
+      let rows: any[] = [];
+      if (session?.admin_id) {
+        const { data, error } = await adminSupabase.rpc('admin_list_party_backgrounds' as any, {
+          _admin_id: session.admin_id,
+        });
+        if (error) throw error;
+        rows = (data as any[]) || [];
+      } else {
+        const { data, error } = await supabase
+          .from('party_room_backgrounds')
+          .select('*')
+          .order('display_order', { ascending: true });
+        if (error) throw error;
+        rows = data || [];
+      }
 
-      if (error) throw error;
-
-      setBackgrounds((data || []).map(bg => ({
+      setBackgrounds(rows.map((bg: any) => ({
         id: bg.id,
         name: bg.name,
         image_url: bg.image_url,
@@ -188,36 +200,36 @@ const AdminPartyBackgrounds = () => {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('party_room_backgrounds')
-        .insert({
-          name: formData.name,
-          image_url: formData.image_url || null,
-          gradient_css: formData.gradient_css || null,
-          category: formData.category,
-          is_premium: formData.is_premium,
-          is_active: formData.is_active,
-          price_diamonds: formData.price_diamonds,
-          display_order: formData.display_order
-        })
-        .select()
-        .single();
-      
+      const session = getAdminSession();
+      if (!session?.admin_id) {
+        toast.error("Admin session expired. Please re-login.");
+        return;
+      }
+      const { data, error } = await adminSupabase.rpc('admin_upsert_party_background' as any, {
+        _admin_id: session.admin_id,
+        _id: null,
+        _name: formData.name,
+        _image_url: formData.image_url || null,
+        _gradient_css: formData.gradient_css || null,
+        _category: formData.category,
+        _is_premium: formData.is_premium,
+        _is_active: formData.is_active,
+        _price_diamonds: formData.price_diamonds,
+        _display_order: formData.display_order,
+      });
       if (error) throw error;
-      
       if (data) {
         setBackgrounds(prev => [...prev, {
-          ...data,
-          category: data.category || 'nature',
-          price_diamonds: data.price_diamonds || 0
+          ...(data as any),
+          category: (data as any).category || 'nature',
+          price_diamonds: (data as any).price_diamonds || 0,
         }]);
       }
-      
       setShowAddDialog(false);
       toast.success("Background added successfully!");
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error adding background:', err);
-      toast.error("Failed to add background");
+      toast.error(err?.message || "Failed to add background");
     }
   };
 
@@ -228,20 +240,23 @@ const AdminPartyBackgrounds = () => {
     }
 
     try {
-      const { error } = await supabase
-        .from('party_room_backgrounds')
-        .update({
-          name: formData.name,
-          image_url: formData.image_url || null,
-          gradient_css: formData.gradient_css || null,
-          category: formData.category,
-          is_premium: formData.is_premium,
-          is_active: formData.is_active,
-          price_diamonds: formData.price_diamonds,
-          display_order: formData.display_order
-        })
-        .eq('id', selectedBackground.id);
-      
+      const session = getAdminSession();
+      if (!session?.admin_id) {
+        toast.error("Admin session expired. Please re-login.");
+        return;
+      }
+      const { error } = await adminSupabase.rpc('admin_upsert_party_background' as any, {
+        _admin_id: session.admin_id,
+        _id: selectedBackground.id,
+        _name: formData.name,
+        _image_url: formData.image_url || null,
+        _gradient_css: formData.gradient_css || null,
+        _category: formData.category,
+        _is_premium: formData.is_premium,
+        _is_active: formData.is_active,
+        _price_diamonds: formData.price_diamonds,
+        _display_order: formData.display_order,
+      });
       if (error) throw error;
 
       setBackgrounds(prev => prev.map(bg => 
@@ -259,45 +274,62 @@ const AdminPartyBackgrounds = () => {
 
   const handleDelete = async (id: string) => {
     try {
-      // First, clear any party rooms referencing this background (foreign key constraint)
+      const session = getAdminSession();
+      if (!session?.admin_id) {
+        toast.error("Admin session expired. Please re-login.");
+        return;
+      }
+
+      // Clear referencing party rooms first (best-effort, ignored if RLS denies)
       await supabase
         .from('party_rooms')
         .update({ background_id: null } as any)
         .eq('background_id', id);
 
-      const { error } = await supabase
-        .from('party_room_backgrounds')
-        .delete()
-        .eq('id', id);
-      
+      const { data, error } = await adminSupabase.rpc('admin_delete_party_background' as any, {
+        _admin_id: session.admin_id,
+        _id: id,
+      });
       if (error) throw error;
-      
+      if (!(data as any)?.success) throw new Error('Delete failed');
+
       setBackgrounds(prev => prev.filter(bg => bg.id !== id));
       toast.success("Background deleted");
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error deleting background:', err);
-      toast.error("Failed to delete background");
+      toast.error(err?.message || "Failed to delete background");
     }
   };
 
   const handleToggleActive = async (id: string) => {
     const bg = backgrounds.find(b => b.id === id);
     if (!bg) return;
-    
+
     try {
-      const { error } = await supabase
-        .from('party_room_backgrounds')
-        .update({ is_active: !bg.is_active })
-        .eq('id', id);
-      
+      const session = getAdminSession();
+      if (!session?.admin_id) {
+        toast.error("Admin session expired. Please re-login.");
+        return;
+      }
+      const { error } = await adminSupabase.rpc('admin_upsert_party_background' as any, {
+        _admin_id: session.admin_id,
+        _id: id,
+        _name: bg.name,
+        _image_url: bg.image_url,
+        _gradient_css: bg.gradient_css,
+        _category: bg.category,
+        _is_premium: bg.is_premium,
+        _is_active: !bg.is_active,
+        _price_diamonds: bg.price_diamonds,
+        _display_order: bg.display_order,
+      });
       if (error) throw error;
-      
-      setBackgrounds(prev => prev.map(b => 
+      setBackgrounds(prev => prev.map(b =>
         b.id === id ? { ...b, is_active: !b.is_active } : b
       ));
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error toggling background:', err);
-      toast.error("Failed to update background");
+      toast.error(err?.message || "Failed to update background");
     }
   };
 
