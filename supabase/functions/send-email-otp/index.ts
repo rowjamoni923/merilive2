@@ -197,8 +197,11 @@ async function sendWithBrevo(to: string, subject: string, html: string): Promise
 
 // Try Gmail → Resend → Brevo (returns on first success)
 async function sendEmail(to: string, subject: string, html: string): Promise<{ success: boolean; provider?: string; error?: string }> {
+  const gmailOAuth = await sendWithGmailOAuth(to, subject, html);
+  if (gmailOAuth.success) return { success: true, provider: "gmail-oauth" };
+
   const gmail = await sendWithGmail(to, subject, html);
-  if (gmail.success) return { success: true, provider: "gmail" };
+  if (gmail.success) return { success: true, provider: "gmail-smtp" };
 
   const resend = await sendWithResend(to, subject, html);
   if (resend.success) return { success: true, provider: "resend" };
@@ -208,7 +211,7 @@ async function sendEmail(to: string, subject: string, html: string): Promise<{ s
 
   return {
     success: false,
-    error: `All providers failed. Gmail: ${gmail.error}; Resend: ${resend.error}; Brevo: ${brevo.error}`,
+    error: `All providers failed. Gmail OAuth: ${gmailOAuth.error}; Gmail SMTP: ${gmail.error}; Resend: ${resend.error}; Brevo: ${brevo.error}`,
   };
 }
 
