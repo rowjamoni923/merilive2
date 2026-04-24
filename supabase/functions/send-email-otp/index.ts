@@ -328,12 +328,12 @@ Deno.serve(async (req) => {
       .eq("is_used", false);
 
     const otp = generateOTP();
-    const { error: insertError } = await supabase.from("email_otps").insert({
+    const { data: otpRecord, error: insertError } = await supabase.from("email_otps").insert({
       email: email.toLowerCase(),
       otp_code: otp,
       purpose: purpose,
       expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
-    });
+    }).select("id").single();
 
     if (insertError) {
       console.error("[send-email-otp] DB insert error:", insertError);
@@ -362,13 +362,22 @@ Deno.serve(async (req) => {
     });
 
     if (!mailResult.success) {
+      console.error("[send-email-otp] Email delivery failed:", mailResult.detail || mailResult.error);
+
+      if (otpRecord?.id) {
+        await supabase
+          .from("email_otps")
+          .update({ is_used: true })
+          .eq("id", otpRecord.id);
+      }
+
       return new Response(
         JSON.stringify({
           success: false,
-          error: mailResult.error,
-          detail: mailResult.detail,
+          error: "Unable to send the verification code right now. Please try again in a moment.",
+          code: "EMAIL_DELIVERY_FAILED",
         }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 

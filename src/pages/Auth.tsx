@@ -158,6 +158,10 @@ const Auth = () => {
       const response = error?.context;
       if (response && typeof response.json === "function") {
         const payload = await response.json();
+        if (payload?.code === "EMAIL_DELIVERY_FAILED") {
+          return "Unable to send the verification code right now. Please try again in a moment.";
+        }
+
         return payload?.error || payload?.detail || payload?.message || fallback;
       }
     } catch (parseError) {
