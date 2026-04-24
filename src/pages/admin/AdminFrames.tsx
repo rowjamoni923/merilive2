@@ -672,6 +672,15 @@ const AdminFrames = () => {
                     size="icon"
                     variant="ghost"
                     className="h-7 w-7 bg-white/80 dark:bg-black/50 backdrop-blur-sm"
+                    onClick={() => setGiftFrame(frame)}
+                    title="Gift to a user"
+                  >
+                    <Gift className="w-4 h-4 text-pink-500" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 bg-white/80 dark:bg-black/50 backdrop-blur-sm"
                     onClick={() => toggleActive(frame)}
                     title={frame.is_active ? "Deactivate" : "Activate"}
                   >
