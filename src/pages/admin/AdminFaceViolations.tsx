@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
+import { getCurrentAdminId } from "@/utils/adminSession";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
