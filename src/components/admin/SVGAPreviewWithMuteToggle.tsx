@@ -48,7 +48,7 @@ const SVGAPreviewWithMuteToggle: React.FC<SVGAPreviewWithMuteToggleProps> = ({
   if (!src || src.trim() === '') {
     return (
       <div className={cn(
-        "relative flex flex-col items-center justify-center bg-slate-800/40 border border-dashed border-slate-600/40 rounded-lg text-slate-400 gap-1",
+        "relative flex flex-col items-center justify-center bg-muted/40 border border-dashed border-muted-foreground/30 rounded-lg text-muted-foreground gap-1",
         containerClassName
       )}>
         <Music className="w-5 h-5 opacity-50" />
@@ -74,7 +74,7 @@ const SVGAPreviewWithMuteToggle: React.FC<SVGAPreviewWithMuteToggleProps> = ({
     if (imgError) {
       return (
         <div className={cn(
-          "relative flex flex-col items-center justify-center bg-slate-800/40 border border-dashed border-slate-600/40 rounded-lg text-slate-400 gap-1",
+          "relative flex flex-col items-center justify-center bg-muted/40 border border-dashed border-muted-foreground/30 rounded-lg text-muted-foreground gap-1",
           containerClassName
         )}>
           <Music className="w-5 h-5 opacity-50" />
