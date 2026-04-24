@@ -188,7 +188,9 @@ export default function AdminAuth() {
           is_owner: !!auth.is_owner,
           must_change_password: !!auth.must_change_password,
           device_fingerprint: fp.fingerprint,
+          session_token: auth.session_token,
         });
+        setAdminSessionToken(auth.session_token);
         grantAdminAccess(!!auth.is_owner);
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new Event('admin-session-change'));
