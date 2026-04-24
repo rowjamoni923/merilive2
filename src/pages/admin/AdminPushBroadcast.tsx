@@ -11,7 +11,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Bell, Send, Users, Globe, Target, Clock, CheckCircle2, Loader2, Link2, ImagePlus, X, ExternalLink, Zap, ChevronDown, ChevronUp, Edit3, Save, Trash2, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { motion } from "framer-motion";
 import { useBroadcastTemplates, type BroadcastTemplate } from "@/hooks/useBroadcastTemplates";
 
@@ -83,6 +84,7 @@ export default function AdminPushBroadcast() {
   const [isSending, setIsSending] = useState(false);
   const [sentHistory, setSentHistory] = useState<any[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
 
   const { data: tokenStats } = useQuery({
     queryKey: ['device-token-stats'],
@@ -94,6 +96,11 @@ export default function AdminPushBroadcast() {
       ]);
       return { total: totalRes.count || 0, android: androidRes.count || 0, ios: iosRes.count || 0 };
     }
+  });
+
+  // ⚡ Zero-refresh: invalidate device-token stats whenever device_tokens changes
+  useAdminRealtime(['device_tokens'], () => {
+    queryClient.invalidateQueries({ queryKey: ['device-token-stats'] });
   });
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {

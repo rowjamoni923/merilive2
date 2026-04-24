@@ -12,6 +12,7 @@ import { toast } from "@/hooks/use-toast";
 import { Plus, Trash2, Save, Eye, EyeOff, Globe, Sparkles, Megaphone, HelpCircle, Image, BarChart3, Mic, Building2, Settings } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { loadAppSettingsByPrefix, saveAppSetting } from "@/utils/adminSettingsStorage";
+import useAdminRealtime from "@/hooks/useAdminRealtime";
 
 // Define interfaces for LandingSection and LandingSetting
 interface SelectOption {
@@ -182,6 +183,11 @@ const AdminLandingPageManager = () => {
   useEffect(() => {
     fetchAll();
   }, []);
+
+  // ⚡ Zero-refresh: instantly refetch when sections or settings change in DB
+  useAdminRealtime(['landing_page_sections', 'app_settings'], () => {
+    fetchAll();
+  });
 
   const fetchAll = async () => {
     setLoading(true);

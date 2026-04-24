@@ -129,6 +129,8 @@ export const GLOBALLY_MONITORED_TABLES = new Set<string>([
   'helper_notifications',
   'helper_country_payment_methods',
   'trader_level_tiers',
+  'landing_page_sections',
+  'device_tokens',
 ]);
 
 // ============= HOOK =============
