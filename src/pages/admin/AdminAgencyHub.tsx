@@ -7,12 +7,10 @@ import { Building2, FileText, Clock, History, Users, Crown, Star, DollarSign } f
 import { supabase } from "@/integrations/supabase/client";
 
 // Import existing components as tab content
+// NOTE: AdminTransferHistory, AdminTransferScheduler, AdminHelperManagement, AdminLevel5Helpers
+// are owned by their primary hubs (Finance Hub / Trader Hub) — not duplicated here.
 import AdminAgencies from "./AdminAgencies";
 import AdminAgencyPolicy from "./AdminAgencyPolicy";
-import AdminTransferScheduler from "./AdminTransferScheduler";
-import AdminTransferHistory from "./AdminTransferHistory";
-import AdminHelperManagement from "./AdminHelperManagement";
-import AdminLevel5Helpers from "./AdminLevel5Helpers";
 
 const AdminAgencyHub = () => {
   const [activeTab, setActiveTab] = useState("agencies");
