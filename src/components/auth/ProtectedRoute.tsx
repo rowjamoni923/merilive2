@@ -4,6 +4,7 @@ import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import BanPopupDialog from './BanPopupDialog';
 import VpnWarningBanner from '@/components/VpnWarningBanner';
+import MeriLiveLoader from '@/components/MeriLiveLoader';
 import { useSessionSecurity } from '@/hooks/useSessionSecurity';
 import { triggerLegacyProfileSync } from '@/utils/legacyProfileSync';
 
