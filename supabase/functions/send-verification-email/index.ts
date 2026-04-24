@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "https://esm.sh/resend@2.0.0";
+import nodemailer from "npm:nodemailer@6.9.12";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -14,144 +14,44 @@ interface VerificationEmailRequest {
   type: 'email' | 'app';
 }
 
-// Email provider functions
-async function sendWithResend(to: string, subject: string, html: string): Promise<{ success: boolean; error?: string }> {
-  const apiKey = Deno.env.get("RESEND_API_KEY");
-  if (!apiKey) return { success: false, error: "RESEND_API_KEY not configured" };
-  
+// ===== Gmail SMTP only =====
+async function sendWithGmail(to: string, subject: string, html: string): Promise<{ success: boolean; error?: string }> {
+  const gmailUser = (Deno.env.get("GMAIL_USER") ?? "").trim();
+  const gmailPass = (Deno.env.get("GMAIL_APP_PASSWORD") ?? "").replace(/\s+/g, "");
+
+  if (!gmailUser || !gmailPass) {
+    return { success: false, error: "GMAIL_USER or GMAIL_APP_PASSWORD not configured" };
+  }
+
   try {
-    const resend = new Resend(apiKey);
-    const response = await resend.emails.send({
-      from: "MeriLive <noreply@merilive.com>",
-      to: [to],
+    const transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: { user: gmailUser, pass: gmailPass },
+    });
+
+    await transporter.sendMail({
+      from: `"MeriLive" <${gmailUser}>`,
+      to,
       subject,
       html,
     });
-    
-    if (response.error) {
-      return { success: false, error: response.error.message };
-    }
+
     return { success: true };
   } catch (e: any) {
-    return { success: false, error: e.message };
+    console.error("Gmail SMTP error:", e?.message || e);
+    return { success: false, error: e?.message || String(e) };
   }
 }
 
-async function sendWithBrevo(to: string, subject: string, html: string): Promise<{ success: boolean; error?: string }> {
-  const apiKey = Deno.env.get("BREVO_API_KEY");
-  if (!apiKey) return { success: false, error: "BREVO_API_KEY not configured" };
-  
-  try {
-    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
-      method: "POST",
-      headers: {
-        "accept": "application/json",
-        "content-type": "application/json",
-        "api-key": apiKey,
-      },
-      body: JSON.stringify({
-        sender: { name: "MeriLive", email: "noreply@merilive.com" },
-        to: [{ email: to }],
-        subject,
-        htmlContent: html,
-      }),
-    });
-    
-    if (!response.ok) {
-      const err = await response.text();
-      return { success: false, error: `Brevo HTTP ${response.status}: ${err}` };
-    }
-    return { success: true };
-  } catch (e: any) {
-    return { success: false, error: e.message };
-  }
-}
-
-async function sendWithSendGrid(to: string, subject: string, html: string): Promise<{ success: boolean; error?: string }> {
-  const apiKey = Deno.env.get("SENDGRID_API_KEY");
-  if (!apiKey) return { success: false, error: "SENDGRID_API_KEY not configured" };
-  
-  try {
-    const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        personalizations: [{ to: [{ email: to }] }],
-        from: { email: "noreply@merilive.com", name: "MeriLive" },
-        subject,
-        content: [{ type: "text/html", value: html }],
-      }),
-    });
-    
-    if (!response.ok) {
-      const err = await response.text();
-      return { success: false, error: `SendGrid HTTP ${response.status}: ${err}` };
-    }
-    return { success: true };
-  } catch (e: any) {
-    return { success: false, error: e.message };
-  }
-}
-
-async function sendWithMailgun(to: string, subject: string, html: string): Promise<{ success: boolean; error?: string }> {
-  const apiKey = Deno.env.get("MAILGUN_API_KEY");
-  const domain = Deno.env.get("MAILGUN_DOMAIN");
-  if (!apiKey || !domain) return { success: false, error: "MAILGUN credentials not configured" };
-  
-  try {
-    const form = new FormData();
-    form.append("from", `MeriLive <noreply@${domain}>`);
-    form.append("to", to);
-    form.append("subject", subject);
-    form.append("html", html);
-    
-    const response = await fetch(`https://api.mailgun.net/v3/${domain}/messages`, {
-      method: "POST",
-      headers: {
-        "Authorization": `Basic ${btoa(`api:${apiKey}`)}`,
-      },
-      body: form,
-    });
-    
-    if (!response.ok) {
-      const err = await response.text();
-      return { success: false, error: `Mailgun HTTP ${response.status}: ${err}` };
-    }
-    return { success: true };
-  } catch (e: any) {
-    return { success: false, error: e.message };
-  }
-}
-
-// Fallback chain: Resend → Brevo → SendGrid → Mailgun
 async function sendEmailWithFallback(to: string, subject: string, html: string): Promise<{ success: boolean; provider: string; errors: string[] }> {
-  const providers = [
-    { name: "Resend", fn: sendWithResend },
-    { name: "Brevo", fn: sendWithBrevo },
-    { name: "SendGrid", fn: sendWithSendGrid },
-    { name: "Mailgun", fn: sendWithMailgun },
-  ];
-  
-  const errors: string[] = [];
-  
-  for (const provider of providers) {
-    console.log(`Trying ${provider.name}...`);
-    const result = await provider.fn(to, subject, html);
-    
-    if (result.success) {
-      console.log(`✅ Email sent successfully via ${provider.name}`);
-      return { success: true, provider: provider.name, errors };
-    }
-    
-    const errorMsg = `${provider.name}: ${result.error}`;
-    console.warn(`❌ ${errorMsg}`);
-    errors.push(errorMsg);
+  console.log("Sending via Gmail SMTP...");
+  const result = await sendWithGmail(to, subject, html);
+  if (result.success) {
+    return { success: true, provider: "Gmail", errors: [] };
   }
-  
-  return { success: false, provider: "none", errors };
+  return { success: false, provider: "none", errors: [`Gmail: ${result.error}`] };
 }
 
 const handler = async (req: Request): Promise<Response> => {
