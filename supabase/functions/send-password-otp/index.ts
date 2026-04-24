@@ -133,71 +133,49 @@ serve(async (req: Request): Promise<Response> => {
         );
       }
 
-      // Send OTP via Resend email
-      let emailSent = false;
-      if (resendApiKey) {
-        try {
-          const resend = new Resend(resendApiKey);
-          const emailResponse = await resend.emails.send({
-            from: "MeriLive <noreply@merilive.com>",
-            to: [email.toLowerCase()],
-            subject: "🔐 MeriLive - Password Reset OTP",
-            html: `
-              <!DOCTYPE html>
-              <html>
-              <head>
-                <meta charset="utf-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              </head>
-              <body style="margin:0;padding:0;background:#0f0a1e;font-family:'Segoe UI',Arial,sans-serif;">
-                <div style="max-width:480px;margin:0 auto;padding:32px 20px;">
-                  <!-- Header -->
-                  <div style="text-align:center;margin-bottom:28px;">
-                    <h1 style="color:#a855f7;font-size:28px;margin:0;letter-spacing:1px;">MERI<span style="color:#ec4899;">LIVE</span></h1>
-                    <p style="color:#9ca3af;font-size:13px;margin:4px 0 0;">Admin Panel Security</p>
-                  </div>
-                  
-                  <!-- Card -->
-                  <div style="background:linear-gradient(135deg,#1e1b3a,#1a1033);border:1px solid #7c3aed33;border-radius:16px;padding:28px;text-align:center;">
-                    <div style="width:56px;height:56px;margin:0 auto 16px;background:linear-gradient(135deg,#a855f7,#ec4899);border-radius:14px;display:flex;align-items:center;justify-content:center;">
-                      <span style="font-size:28px;">🔐</span>
-                    </div>
-                    
-                    <h2 style="color:#ffffff;font-size:20px;margin:0 0 8px;">Password Reset OTP</h2>
-                    <p style="color:#9ca3af;font-size:13px;margin:0 0 24px;">Use the code below to reset your admin panel password</p>
-                    
-                    <!-- OTP Code -->
-                    <div style="background:#0f0a1e;border:2px dashed #7c3aed;border-radius:12px;padding:20px;margin:0 0 20px;">
-                      <div style="font-size:36px;font-weight:bold;letter-spacing:12px;color:#a855f7;font-family:'Courier New',monospace;">
-                        ${otpCode}
-                      </div>
-                    </div>
-                    
-                    <p style="color:#f87171;font-size:12px;margin:0 0 6px;">⏰ This code expires in 10 minutes</p>
-                    <p style="color:#6b7280;font-size:11px;margin:0;">If you didn't request this, please ignore this email.</p>
-                  </div>
-                  
-                  <!-- Footer -->
-                  <div style="text-align:center;margin-top:24px;">
-                    <p style="color:#4b5563;font-size:11px;margin:0;">© ${new Date().getFullYear()} MeriLive. All rights reserved.</p>
-                  </div>
+      // Send OTP via Gmail SMTP
+      const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="margin:0;padding:0;background:#0f0a1e;font-family:'Segoe UI',Arial,sans-serif;">
+          <div style="max-width:480px;margin:0 auto;padding:32px 20px;">
+            <div style="text-align:center;margin-bottom:28px;">
+              <h1 style="color:#a855f7;font-size:28px;margin:0;letter-spacing:1px;">MERI<span style="color:#ec4899;">LIVE</span></h1>
+              <p style="color:#9ca3af;font-size:13px;margin:4px 0 0;">Admin Panel Security</p>
+            </div>
+            <div style="background:linear-gradient(135deg,#1e1b3a,#1a1033);border:1px solid #7c3aed33;border-radius:16px;padding:28px;text-align:center;">
+              <h2 style="color:#ffffff;font-size:20px;margin:0 0 8px;">Password Reset OTP</h2>
+              <p style="color:#9ca3af;font-size:13px;margin:0 0 24px;">Use the code below to reset your admin panel password</p>
+              <div style="background:#0f0a1e;border:2px dashed #7c3aed;border-radius:12px;padding:20px;margin:0 0 20px;">
+                <div style="font-size:36px;font-weight:bold;letter-spacing:12px;color:#a855f7;font-family:'Courier New',monospace;">
+                  ${otpCode}
                 </div>
-              </body>
-              </html>
-            `,
-          });
+              </div>
+              <p style="color:#f87171;font-size:12px;margin:0 0 6px;">This code expires in 10 minutes</p>
+              <p style="color:#6b7280;font-size:11px;margin:0;">If you didn't request this, please ignore this email.</p>
+            </div>
+            <div style="text-align:center;margin-top:24px;">
+              <p style="color:#4b5563;font-size:11px;margin:0;">© ${new Date().getFullYear()} MeriLive. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `;
 
-          if (emailResponse.error) {
-            console.error("Resend API error:", emailResponse.error);
-          } else {
-            emailSent = true;
-            console.log(`OTP email sent successfully to ${email}`);
-          }
-        } catch (emailErr: any) {
-          console.error("Failed to send email via Resend:", emailErr.message);
-        }
+      const sendResult = await sendOtpEmail(
+        email.toLowerCase(),
+        "MeriLive - Password Reset OTP",
+        html
+      );
+      const emailSent = sendResult.success;
+      if (!emailSent) {
+        console.error("Gmail SMTP failed:", sendResult.error);
       } else {
-        console.warn("RESEND_API_KEY not configured, skipping email");
+        console.log(`OTP email sent successfully to ${email}`);
       }
 
       // Also store in-app notification (without OTP in message for security)
