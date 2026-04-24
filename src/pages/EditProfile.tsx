@@ -75,7 +75,7 @@ const EditProfile = () => {
   const [bio, setBio] = useState("");
   const [age, setAge] = useState<number | null>(null);
   const [gender, setGender] = useState("");
-  const [language, setLanguage] = useState("Bengali");
+  const [language, setLanguage] = useState("English");
   const [secondLanguage, setSecondLanguage] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [phone, setPhone] = useState("");
