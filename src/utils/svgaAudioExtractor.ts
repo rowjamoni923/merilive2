@@ -33,12 +33,47 @@ export async function extractAudioFromSVGA(url: string): Promise<ExtractedAudio[
     const buffer = await response.arrayBuffer();
     const bytes = new Uint8Array(buffer);
     
+    // SVGA 1.x is a ZIP archive (PK\x03\x04). The audio inside is a separate
+    // entry (e.g. audio.mp3) and may be deflate-compressed, so the raw bytes
+    // never contain a valid audio header. We must parse the ZIP and decompress
+    // each entry, then scan the decompressed payload for audio data.
+    if (bytes.length > 4 && bytes[0] === 0x50 && bytes[1] === 0x4B && bytes[2] === 0x03 && bytes[3] === 0x04) {
+      const zipResults: ExtractedAudio[] = [];
+      try {
+        const entries = parseZipEntries(bytes);
+        for (const entry of entries) {
+          const lowerName = entry.name.toLowerCase();
+          // Heuristic: only inspect probable audio entries (or unnamed entries)
+          // SVGA 1.x typically packs audio as audio.mp3 / *.mp3 / *.aac / *.ogg / *.wav / *.m4a
+          const looksAudio =
+            lowerName.endsWith('.mp3') ||
+            lowerName.endsWith('.aac') ||
+            lowerName.endsWith('.ogg') ||
+            lowerName.endsWith('.wav') ||
+            lowerName.endsWith('.m4a') ||
+            lowerName.endsWith('.mp4') ||
+            lowerName.includes('audio');
+          // Also scan generic entries (movie.binary may embed audio in some SVGAs)
+          const shouldScan = looksAudio || lowerName.endsWith('.binary');
+          if (!shouldScan) continue;
+          const payload = extractZipEntry(bytes, entry);
+          if (!payload || payload.length < 200) continue;
+          const found = scanForAudioSegments(payload);
+          if (found.length > 0) zipResults.push(...found);
+        }
+      } catch (e) {
+        console.warn('[SVGAAudioExtractor] ZIP parse failed:', e);
+      }
+      if (zipResults.length > 0) return zipResults;
+      // Fall through to raw scan as last resort
+    }
+
     // Decompress if zlib-compressed (SVGA 2.x format)
     let decompressed: Uint8Array;
     try {
       decompressed = pako.inflate(bytes);
     } catch {
-      // Not zlib compressed - might be ZIP (SVGA 1.x) or raw protobuf
+      // Not zlib compressed - might be raw protobuf
       decompressed = bytes;
     }
     
@@ -48,6 +83,91 @@ export async function extractAudioFromSVGA(url: string): Promise<ExtractedAudio[
     console.warn('[SVGAAudioExtractor] Failed to extract audio:', e);
     return [];
   }
+}
+
+interface ZipEntry {
+  name: string;
+  localHeaderOffset: number;
+  compressionMethod: number;
+  compressedSize: number;
+  uncompressedSize: number;
+}
+
+/**
+ * Parse ZIP local file headers to enumerate entries.
+ * We use local headers (not the central directory) because they appear
+ * sequentially at the start of the file, which is faster and avoids edge cases
+ * with truncated/concatenated archives produced by SVGA exporters.
+ */
+function parseZipEntries(data: Uint8Array): ZipEntry[] {
+  const entries: ZipEntry[] = [];
+  let offset = 0;
+  const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+
+  while (offset + 30 <= data.length) {
+    // Local file header signature: 0x04034b50
+    if (view.getUint32(offset, true) !== 0x04034b50) break;
+
+    const compressionMethod = view.getUint16(offset + 8, true);
+    const compressedSize = view.getUint32(offset + 18, true);
+    const uncompressedSize = view.getUint32(offset + 22, true);
+    const nameLen = view.getUint16(offset + 26, true);
+    const extraLen = view.getUint16(offset + 28, true);
+
+    const nameStart = offset + 30;
+    const dataStart = nameStart + nameLen + extraLen;
+    if (dataStart > data.length) break;
+
+    const nameBytes = data.subarray(nameStart, nameStart + nameLen);
+    let name = '';
+    try {
+      name = new TextDecoder('utf-8').decode(nameBytes);
+    } catch {
+      name = String.fromCharCode(...Array.from(nameBytes));
+    }
+
+    entries.push({
+      name,
+      localHeaderOffset: offset,
+      compressionMethod,
+      compressedSize,
+      uncompressedSize,
+    });
+
+    if (compressedSize === 0) break; // streamed entry — bail out
+    offset = dataStart + compressedSize;
+  }
+
+  return entries;
+}
+
+/** Extract (and decompress if needed) the payload of a single ZIP entry. */
+function extractZipEntry(data: Uint8Array, entry: ZipEntry): Uint8Array | null {
+  const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+  const headerOffset = entry.localHeaderOffset;
+  const nameLen = view.getUint16(headerOffset + 26, true);
+  const extraLen = view.getUint16(headerOffset + 28, true);
+  const dataStart = headerOffset + 30 + nameLen + extraLen;
+  const dataEnd = dataStart + entry.compressedSize;
+  if (dataEnd > data.length) return null;
+
+  const compressed = data.subarray(dataStart, dataEnd);
+
+  if (entry.compressionMethod === 0) {
+    // Stored — already raw bytes
+    return compressed;
+  }
+
+  if (entry.compressionMethod === 8) {
+    // Deflate
+    try {
+      return pako.inflateRaw(compressed);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  return null; // Unsupported compression
 }
 
 /**
