@@ -227,6 +227,7 @@ const AdminPopupBanners = lazy(lazyRetry(() => import("./pages/admin/AdminPopupB
 const AdminOnboardingSlides = lazy(lazyRetry(() => import("./pages/admin/AdminOnboardingSlides")));
 const AdminContent = lazy(lazyRetry(() => import("./pages/admin/AdminContent")));
 const AdminDeviceManagement = lazy(lazyRetry(() => import("./pages/admin/AdminDeviceManagement")));
+const AdminDeviceApprovals = lazy(lazyRetry(() => import("./pages/admin/AdminDeviceApprovals")));
 const AdminCommissions = lazy(lazyRetry(() => import("./pages/admin/AdminCommissions")));
 const AdminWithdrawals = lazy(lazyRetry(() => import("./pages/admin/AdminWithdrawals")));
 const AdminBranding = lazy(lazyRetry(() => import("./pages/admin/AdminBranding")));
@@ -1082,6 +1083,7 @@ const App = () => {
                   <Route path="game-settings" element={<AdminRouteGuard routeSegment="game-settings"><AdminGameSettings /></AdminRouteGuard>} />
                   <Route path="settings" element={<AdminRouteGuard routeSegment="settings"><AdminSettings /></AdminRouteGuard>} />
                   <Route path="device-management" element={<AdminRouteGuard routeSegment="device-management"><AdminDeviceManagement /></AdminRouteGuard>} />
+                  <Route path="device-approvals" element={<AdminRouteGuard routeSegment="device-approvals"><AdminDeviceApprovals /></AdminRouteGuard>} />
                   <Route path="level-tiers" element={<AdminRouteGuard routeSegment="level-tiers"><AdminLevelTiers /></AdminRouteGuard>} />
                   <Route path="level-privileges" element={<AdminRouteGuard routeSegment="level-privileges"><AdminLevelPrivileges /></AdminRouteGuard>} />
                   <Route path="vip-privileges" element={<AdminRouteGuard routeSegment="vip-privileges"><AdminVIPPrivileges /></AdminRouteGuard>} />

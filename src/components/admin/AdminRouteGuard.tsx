@@ -169,7 +169,7 @@ const ROUTE_HUB_MAP: Record<string, string> = {
 };
 
 // Owner-only routes - sub-admins can NEVER access these
-const OWNER_ONLY_ROUTES = ['sub-admins', 'agora-settings', 'blueprint'];
+const OWNER_ONLY_ROUTES = ['sub-admins', 'agora-settings', 'blueprint', 'device-approvals'];
 
 interface AdminRouteGuardProps {
   children: ReactNode;
