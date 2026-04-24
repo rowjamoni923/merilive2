@@ -562,12 +562,37 @@ const AdminPartyBackgrounds = () => {
                 !bg.is_active && "opacity-60"
               )}
             >
-              <div className="relative aspect-video">
-                <img
-                  src={bg.image_url || ''}
-                  alt={bg.name}
-                  className="w-full h-full object-cover"
-                />
+              <div
+                className="relative aspect-video bg-muted"
+                style={bg.gradient_css && !bg.image_url ? { background: bg.gradient_css } : undefined}
+              >
+                {bg.image_url ? (
+                  <img
+                    src={bg.image_url}
+                    alt={bg.name}
+                    loading="lazy"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const img = e.currentTarget;
+                      img.style.display = 'none';
+                      const parent = img.parentElement;
+                      if (parent) {
+                        parent.style.background = bg.gradient_css || 'linear-gradient(135deg, hsl(var(--muted)), hsl(var(--muted-foreground) / 0.2))';
+                        if (!parent.querySelector('[data-fallback]')) {
+                          const ph = document.createElement('div');
+                          ph.dataset.fallback = '1';
+                          ph.className = 'absolute inset-0 flex items-center justify-center text-xs text-white/70';
+                          ph.textContent = 'Image unavailable';
+                          parent.appendChild(ph);
+                        }
+                      }
+                    }}
+                  />
+                ) : !bg.gradient_css ? (
+                  <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground">
+                    No preview
+                  </div>
+                ) : null}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                 
                 {/* Badges */}
