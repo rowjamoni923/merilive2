@@ -88,15 +88,35 @@ interface AdminNotification {
   data?: any;
 }
 
+/**
+ * NavItem — represents a single section/page in the Admin Panel sidebar.
+ *
+ * Each NavItem is a 1-to-1 mapping to ONE admin page component (no duplicates).
+ * The `description` field documents the section's exact purpose so AI tools
+ * (Anti Gravity, Lovable, etc.) and human developers can instantly understand
+ * what the page does without opening its source file.
+ */
 interface NavItem {
+  /** Display label shown in the sidebar (English, concise). */
   label: string;
-  
+  /** Lucide icon component rendered next to the label. */
   icon: React.ElementType;
+  /** Absolute admin route, e.g. "/admin/users". Must match a Route in App.tsx. */
   path: string;
+  /** Optional unread/pending count badge (set by realtime notification listener). */
   badge?: number;
-  notificationTypes?: string[]; // Types of notifications that count for this menu item
-  hubKey?: string; // Hub key for permission checking
-  ownerOnly?: boolean; // Only visible to owners
+  /** Notification `type` values that increment this item's badge. */
+  notificationTypes?: string[];
+  /** Hub key for sub-admin section-permission checks (see useAdminAccess). */
+  hubKey?: string;
+  /** When true, only the platform Owner sees this item (sub-admins are blocked). */
+  ownerOnly?: boolean;
+  /**
+   * Plain-English explanation of what this section does and which user-app
+   * feature it controls. Read by AI tools to understand admin↔app wiring.
+   * Keep under ~140 chars, no implementation details.
+   */
+  description?: string;
 }
 
 interface NavGroup {
@@ -214,209 +234,905 @@ const getAdminNotificationPath = (notification: AdminNotification): string => {
   return '/admin';
 };
 
+// =====================================================================
+// ADMIN PANEL NAVIGATION — Single Source of Truth
+// =====================================================================
+// Every section listed here is a 1-to-1 mapping to ONE admin page in
+// `src/pages/admin/Admin*.tsx` and ONE Route in `src/App.tsx`.
+//
+// Architecture rules (enforced by mem://architecture/admin-hub-single-source-of-truth):
+//   • No duplicate sections — each admin page appears exactly once.
+//   • Each section's `description` documents its exact purpose so AI tools
+//     (Anti Gravity, Lovable, etc.) can understand admin↔user-app wiring
+//     without opening the source file.
+//   • `hubKey` controls sub-admin section-level permissions.
+//   • `ownerOnly: true` hides the item from every sub-admin (Owner only).
+// =====================================================================
 const navGroups: NavGroup[] = [
   {
     title: "Overview",
     items: [
-      { label: "Dashboard", icon: LayoutDashboard, path: "/admin" },
-      { label: "Reports & Analytics", icon: TrendingUp, path: "/admin/reports" },
-    ]
+      {
+        label: "Dashboard",
+        icon: LayoutDashboard,
+        path: "/admin",
+        description: "Real-time platform health: active users, revenue, hosts, streams, parties — top-level KPIs only.",
+      },
+      {
+        label: "Reports & Analytics",
+        icon: TrendingUp,
+        path: "/admin/reports",
+        description: "Aggregated charts and time-series reports for revenue, gifting, calls, agency performance.",
+      },
+    ],
   },
   {
     title: "👥 User System",
     hubKey: "user-hub",
     items: [
-      { label: "User Hub", icon: Users, path: "/admin/user-hub", hubKey: "user-hub" },
-      { label: "User Management", icon: UserCog, path: "/admin/user-management", hubKey: "user-hub" },
-      { label: "All Users", icon: Users, path: "/admin/users", hubKey: "user-hub" },
-      { label: "Host Applications", icon: UserPlus, path: "/admin/host-applications", hubKey: "user-hub" },
-      { label: "Host Search", icon: Search, path: "/admin/host-search", hubKey: "user-hub" },
-      { label: "All Hosts", icon: UserCheck, path: "/admin/hosts", hubKey: "user-hub" },
-      { label: "Face Verification", icon: ScanFace, path: "/admin/face-verification", hubKey: "user-hub" },
-      { label: "Blocked Users", icon: Ban, path: "/admin/blocked", hubKey: "user-hub" },
-      { label: "Live Bans", icon: ShieldAlert, path: "/admin/live-bans", hubKey: "user-hub" },
-      { label: "Permanent Ban (3-Step)", icon: Ban, path: "/admin/permanent-ban", hubKey: "user-hub" },
-      { label: "Country Distribution", icon: Users, path: "/admin/country-distribution", hubKey: "user-hub" },
-      { label: "Face Violations", icon: ScanFace, path: "/admin/face-violations", hubKey: "user-hub" },
-      { label: "Moderation", icon: Shield, path: "/admin/moderation", hubKey: "user-hub" },
-      { label: "User Reports", icon: ShieldAlert, path: "/admin/user-reports", hubKey: "user-hub" },
-    ]
+      {
+        label: "User Hub",
+        icon: Users,
+        path: "/admin/user-hub",
+        hubKey: "user-hub",
+        description: "Landing page for the User System — quick links and aggregate user counts by role/country.",
+      },
+      {
+        label: "User Management",
+        icon: UserCog,
+        path: "/admin/user-management",
+        hubKey: "user-hub",
+        description: "Full user CRUD: edit profile, change role, ban, send notifications, adjust diamonds/beans.",
+      },
+      {
+        label: "All Users",
+        icon: Users,
+        path: "/admin/users",
+        hubKey: "user-hub",
+        description: "Read-only paginated list of every registered user — search, filter, view details.",
+      },
+      {
+        label: "Host Applications",
+        icon: UserPlus,
+        path: "/admin/host-applications",
+        hubKey: "user-hub",
+        description: "Pending host application queue — approve/reject users who applied to become hosts.",
+      },
+      {
+        label: "Host Search",
+        icon: Search,
+        path: "/admin/host-search",
+        hubKey: "user-hub",
+        description: "Quick lookup tool to find any host by UID, name, agency, or country.",
+      },
+      {
+        label: "All Hosts",
+        icon: UserCheck,
+        path: "/admin/hosts",
+        hubKey: "user-hub",
+        description: "List of approved hosts — manage status, agency assignment, and visibility on home feeds.",
+      },
+      {
+        label: "Face Verification",
+        icon: ScanFace,
+        path: "/admin/face-verification",
+        hubKey: "user-hub",
+        description: "Manual approval queue for host face-verification submissions (selfie + ID match).",
+      },
+      {
+        label: "Blocked Users",
+        icon: Ban,
+        path: "/admin/blocked",
+        hubKey: "user-hub",
+        description: "List of users blocked from login — review reason, unblock, or escalate to permanent ban.",
+      },
+      {
+        label: "Live Bans",
+        icon: ShieldAlert,
+        path: "/admin/live-bans",
+        hubKey: "user-hub",
+        description: "Bans applied to live-streaming privileges only — user can still chat/recharge but not go live.",
+      },
+      {
+        label: "Permanent Ban (3-Step)",
+        icon: Ban,
+        path: "/admin/permanent-ban",
+        hubKey: "user-hub",
+        description: "Owner-reviewed 3-step workflow: initiate → review evidence → execute permanent ban with linked accounts.",
+      },
+      {
+        label: "Country Distribution",
+        icon: Users,
+        path: "/admin/country-distribution",
+        hubKey: "user-hub",
+        description: "Geographic breakdown of users and hosts by country with realtime counts.",
+      },
+      {
+        label: "Face Violations",
+        icon: ScanFace,
+        path: "/admin/face-violations",
+        hubKey: "user-hub",
+        description: "Hosts flagged for face-mismatch or banned face-hash matches during stream/verification.",
+      },
+      {
+        label: "Moderation",
+        icon: Shield,
+        path: "/admin/moderation",
+        hubKey: "user-hub",
+        description: "Chat moderation logs — contact-sharing detections, abusive content, and auto-block actions.",
+      },
+      {
+        label: "User Reports",
+        icon: ShieldAlert,
+        path: "/admin/user-reports",
+        hubKey: "user-hub",
+        description: "User-submitted reports against other users (harassment, spam, inappropriate behavior).",
+      },
+    ],
   },
   {
     title: "🏢 Agency System",
     hubKey: "agency-hub",
     items: [
-      { label: "Agency Hub", icon: Building2, path: "/admin/agency-hub", hubKey: "agency-hub" },
-      { label: "All Agencies", icon: Building2, path: "/admin/agencies", hubKey: "agency-hub" },
-      { label: "Agency Policy", icon: FileText, path: "/admin/agency-policy", hubKey: "agency-hub" },
-      { label: "Commissions", icon: Percent, path: "/admin/commissions", hubKey: "agency-hub" },
-      { label: "Commission Calculator", icon: Percent, path: "/admin/commission-calculator", hubKey: "agency-hub" },
-    ]
+      {
+        label: "Agency Hub",
+        icon: Building2,
+        path: "/admin/agency-hub",
+        hubKey: "agency-hub",
+        description: "Landing page for Agency System — top-level metrics and quick links to agency tools.",
+      },
+      {
+        label: "All Agencies",
+        icon: Building2,
+        path: "/admin/agencies",
+        hubKey: "agency-hub",
+        description: "Master list of every agency — beans/diamond balance, hosts count, level, block/unblock actions.",
+      },
+      {
+        label: "Agency Policy",
+        icon: FileText,
+        path: "/admin/agency-policy",
+        hubKey: "agency-hub",
+        description: "Edit the public Agency Policy page (terms shown to agency owners in the user app).",
+      },
+      {
+        label: "Commissions",
+        icon: Percent,
+        path: "/admin/commissions",
+        hubKey: "agency-hub",
+        description: "Set and audit per-agency commission rates applied to host gift earnings.",
+      },
+      {
+        label: "Commission Calculator",
+        icon: Percent,
+        path: "/admin/commission-calculator",
+        hubKey: "agency-hub",
+        description: "Calculator tool to preview agency cuts vs. host payouts before changing commission tiers.",
+      },
+    ],
   },
   {
     title: "👑 Level & VIP",
     items: [
-      { label: "Level Management", icon: Crown, path: "/admin/level-management", hubKey: "level-hub" },
-      { label: "Level Tiers", icon: TrendingUp, path: "/admin/level-tiers", hubKey: "level-hub" },
-      { label: "Level Privileges", icon: Star, path: "/admin/level-privileges", hubKey: "level-hub" },
-      { label: "Feature Levels", icon: ArrowUpCircle, path: "/admin/feature-levels", hubKey: "level-hub" },
-      { label: "VIP & Noble System", icon: Star, path: "/admin/vip-management", hubKey: "vip-hub" },
-      { label: "VIP Medals", icon: Crown, path: "/admin/vip-medals", hubKey: "vip-hub" },
-      { label: "VIP Privileges", icon: Star, path: "/admin/vip-privileges", hubKey: "vip-hub" },
-      { label: "Noble Cards", icon: CreditCard, path: "/admin/noble-cards", hubKey: "vip-hub" },
-      { label: "Ranking Rewards", icon: TrendingUp, path: "/admin/ranking-rewards", hubKey: "vip-hub" },
-    ]
+      {
+        label: "Level Management",
+        icon: Crown,
+        path: "/admin/level-management",
+        hubKey: "level-hub",
+        description: "Configure user-level thresholds (XP needed per level) shown on the Level page in the user app.",
+      },
+      {
+        label: "Level Tiers",
+        icon: TrendingUp,
+        path: "/admin/level-tiers",
+        hubKey: "level-hub",
+        description: "Define tier groupings (Bronze→Diamond) that bundle multiple consecutive levels for badges.",
+      },
+      {
+        label: "Level Privileges",
+        icon: Star,
+        path: "/admin/level-privileges",
+        hubKey: "level-hub",
+        description: "Map perks (entry effects, frames, chat colors) to each level shown in app's Level Privileges screen.",
+      },
+      {
+        label: "Feature Levels",
+        icon: ArrowUpCircle,
+        path: "/admin/feature-levels",
+        hubKey: "level-hub",
+        description: "Set minimum level required to unlock features (private call, party host, gift sending, etc.).",
+      },
+      {
+        label: "VIP & Noble System",
+        icon: Star,
+        path: "/admin/vip-management",
+        hubKey: "vip-hub",
+        description: "Manage VIP plans, prices, durations, and Noble subscription tiers sold on the VIP page.",
+      },
+      {
+        label: "VIP Medals",
+        icon: Crown,
+        path: "/admin/vip-medals",
+        hubKey: "vip-hub",
+        description: "Upload VIP medal images displayed on profile cards and chat next to VIP usernames.",
+      },
+      {
+        label: "VIP Privileges",
+        icon: Star,
+        path: "/admin/vip-privileges",
+        hubKey: "vip-hub",
+        description: "Define which features VIP plans unlock (invisibility, exclusive frames, message highlights).",
+      },
+      {
+        label: "Noble Cards",
+        icon: CreditCard,
+        path: "/admin/noble-cards",
+        hubKey: "vip-hub",
+        description: "Design and manage Noble subscription cards (Knight, Baron, Viscount, Earl, Marquis, Duke, King).",
+      },
+      {
+        label: "Ranking Rewards",
+        icon: TrendingUp,
+        path: "/admin/ranking-rewards",
+        hubKey: "vip-hub",
+        description: "Set daily/weekly leaderboard prize pools and auto-distribute rewards to top hosts/users.",
+      },
+    ],
   },
   {
     title: "🎨 Visual Assets",
     hubKey: "visual-hub",
     items: [
-      { label: "Visual Assets Hub", icon: Sparkles, path: "/admin/visual-assets", hubKey: "visual-hub" },
-      { label: "Avatar Frames", icon: Image, path: "/admin/frames", hubKey: "visual-hub" },
-      { label: "Role Frames", icon: Image, path: "/admin/role-frames", hubKey: "visual-hub" },
-      { label: "Entry Effects", icon: Sparkles, path: "/admin/entry-effects", hubKey: "visual-hub" },
-      { label: "Entry Banners", icon: Image, path: "/admin/entry-banners", hubKey: "visual-hub" },
-      { label: "Entry Bars", icon: Activity, path: "/admin/entry-bars", hubKey: "visual-hub" },
-      { label: "Entry Name Bars", icon: Activity, path: "/admin/entry-name-bars", hubKey: "visual-hub" },
-      { label: "Vehicle Entrances", icon: Sparkles, path: "/admin/vehicle-entrances", hubKey: "visual-hub" },
-      { label: "Chat Bubbles", icon: MessageSquare, path: "/admin/chat-bubbles", hubKey: "visual-hub" },
-      { label: "Animation Store", icon: Play, path: "/admin/animation-store", hubKey: "visual-hub" },
-      { label: "Icon Registry", icon: Package, path: "/admin/icon-registry", hubKey: "visual-hub" },
-      { label: "Beauty Filters", icon: Sparkles, path: "/admin/beauty-filters", hubKey: "visual-hub" },
-      { label: "Verified Badges", icon: Check, path: "/admin/verified-badges", hubKey: "visual-hub" },
-    ]
+      {
+        label: "Visual Assets Hub",
+        icon: Sparkles,
+        path: "/admin/visual-assets",
+        hubKey: "visual-hub",
+        description: "Landing page for the Visual Assets system — quick links to every asset manager below.",
+      },
+      {
+        label: "Avatar Frames",
+        icon: Image,
+        path: "/admin/frames",
+        hubKey: "visual-hub",
+        description: "Upload/manage decorative frames that wrap user avatars on profile and home cards.",
+      },
+      {
+        label: "Role Frames",
+        icon: Image,
+        path: "/admin/role-frames",
+        hubKey: "visual-hub",
+        description: "Special frames automatically assigned by role (Owner, Admin, Helper, Agency Owner).",
+      },
+      {
+        label: "Entry Effects",
+        icon: Sparkles,
+        path: "/admin/entry-effects",
+        hubKey: "visual-hub",
+        description: "SVGA/Lottie animations played in live rooms when a high-level or VIP user enters.",
+      },
+      {
+        label: "Entry Banners",
+        icon: Image,
+        path: "/admin/entry-banners",
+        hubKey: "visual-hub",
+        description: "Static banner graphics shown around the user's name on room entry.",
+      },
+      {
+        label: "Entry Bars",
+        icon: Activity,
+        path: "/admin/entry-bars",
+        hubKey: "visual-hub",
+        description: "Horizontal scrolling marquee bar that announces VIP/Noble user arrivals across rooms.",
+      },
+      {
+        label: "Entry Name Bars",
+        icon: Activity,
+        path: "/admin/entry-name-bars",
+        hubKey: "visual-hub",
+        description: "Customizable name-tag designs displayed during room entry animations.",
+      },
+      {
+        label: "Vehicle Entrances",
+        icon: Sparkles,
+        path: "/admin/vehicle-entrances",
+        hubKey: "visual-hub",
+        description: "3D vehicle entry animations (cars, dragons, etc.) that drive across the live-room screen.",
+      },
+      {
+        label: "Chat Bubbles",
+        icon: MessageSquare,
+        path: "/admin/chat-bubbles",
+        hubKey: "visual-hub",
+        description: "Custom chat-bubble skins/colors users can equip from the shop or unlock by level.",
+      },
+      {
+        label: "Animation Store",
+        icon: Play,
+        path: "/admin/animation-store",
+        hubKey: "visual-hub",
+        description: "Central library of all SVGA/Lottie/MP4 animations available across gifts, frames, and effects.",
+      },
+      {
+        label: "Icon Registry",
+        icon: Package,
+        path: "/admin/icon-registry",
+        hubKey: "visual-hub",
+        description: "Map icon keys (used app-wide) to images so brand icons can be swapped without redeploying.",
+      },
+      {
+        label: "Beauty Filters",
+        icon: Sparkles,
+        path: "/admin/beauty-filters",
+        hubKey: "visual-hub",
+        description: "Manage MediaPipe/DeepAR beauty presets and AR stickers shown in the streaming filter panel.",
+      },
+      {
+        label: "Verified Badges",
+        icon: Check,
+        path: "/admin/verified-badges",
+        hubKey: "visual-hub",
+        description: "Manually grant/revoke verified blue-tick badges shown next to usernames.",
+      },
+    ],
   },
   {
     title: "💰 Coin & Finance",
     hubKey: "finance-hub",
     items: [
-      { label: "Finance Management", icon: DollarSign, path: "/admin/finance", hubKey: "finance-hub" },
-      { label: "Diamond Trader Hub", icon: Coins, path: "/admin/coin-trader-hub", hubKey: "trader-hub" },
-      { label: "Diamond Traders", icon: Coins, path: "/admin/coin-traders", hubKey: "trader-hub" },
-      { label: "Trader Orders", icon: ShoppingBag, path: "/admin/coin-traders/orders", hubKey: "trader-hub" },
-      { label: "Trader Transactions", icon: Activity, path: "/admin/coin-traders/transactions", hubKey: "trader-hub" },
-      { label: "Diamonds Management", icon: Coins, path: "/admin/coins", hubKey: "finance-hub" },
-      { label: "Topup System", icon: ArrowUpCircle, path: "/admin/topup-system", hubKey: "finance-hub" },
-      { label: "Manual Topup", icon: ArrowUpCircle, path: "/admin/manual-topup", hubKey: "finance-hub" },
-      { label: "Payment Gateways", icon: CreditCard, path: "/admin/payment-gateways", hubKey: "finance-hub" },
-      { label: "Topup Methods", icon: CreditCard, path: "/admin/topup-payment-methods", hubKey: "finance-hub" },
-      { label: "Withdrawals", icon: TrendingDown, path: "/admin/withdrawals", hubKey: "finance-hub" },
-      { label: "Balance Deduction", icon: TrendingDown, path: "/admin/balance-deduction", hubKey: "finance-hub" },
-      { label: "Transfer History", icon: Activity, path: "/admin/transfer-history", hubKey: "finance-hub" },
-      { label: "Recharge History", icon: CreditCard, path: "/admin/recharge-history", hubKey: "finance-hub" },
-      { label: "💎 Recharge Campaigns", icon: Sparkles, path: "/admin/recharge-campaigns", hubKey: "finance-hub" },
-      { label: "Transfer Scheduler", icon: Clock, path: "/admin/transfer-scheduler", hubKey: "finance-hub" },
-      { label: "Payroll Orders", icon: Wallet, path: "/admin/payroll-orders", hubKey: "finance-hub" },
-      { label: "Shop", icon: ShoppingBag, path: "/admin/shop", hubKey: "finance-hub" },
-      { label: "Gifts", icon: Gift, path: "/admin/gifts", hubKey: "finance-hub" },
-      { label: "User Beans Exchange", icon: Coins, path: "/admin/user-beans-exchange", hubKey: "finance-hub" },
-    ]
+      {
+        label: "Finance Management",
+        icon: DollarSign,
+        path: "/admin/finance",
+        hubKey: "finance-hub",
+        description: "Top-level finance dashboard — total revenue, withdrawals, agency payouts, platform earnings.",
+      },
+      {
+        label: "Diamond Trader Hub",
+        icon: Coins,
+        path: "/admin/coin-trader-hub",
+        hubKey: "trader-hub",
+        description: "Landing page for Diamond Trader system — bundles Topup, Payment Gateways, and Helpers.",
+      },
+      {
+        label: "Diamond Traders",
+        icon: Coins,
+        path: "/admin/coin-traders",
+        hubKey: "trader-hub",
+        description: "List of approved Diamond Traders (helpers who sell diamonds) with their balances and stats.",
+      },
+      {
+        label: "Trader Orders",
+        icon: ShoppingBag,
+        path: "/admin/coin-traders/orders",
+        hubKey: "trader-hub",
+        description: "Diamond purchase orders placed with traders — status, payment proof, dispute resolution.",
+      },
+      {
+        label: "Trader Transactions",
+        icon: Activity,
+        path: "/admin/coin-traders/transactions",
+        hubKey: "trader-hub",
+        description: "Audit log of every diamond movement to/from traders for accounting reconciliation.",
+      },
+      {
+        label: "Diamonds Management",
+        icon: Coins,
+        path: "/admin/coins",
+        hubKey: "finance-hub",
+        description: "Manually adjust any user's diamond balance with full audit trail (refunds, corrections, gifts).",
+      },
+      {
+        label: "Topup System",
+        icon: ArrowUpCircle,
+        path: "/admin/topup-system",
+        hubKey: "finance-hub",
+        description: "Configure recharge packages ($1.29–$89.99), bonuses, and country-specific pricing rules.",
+      },
+      {
+        label: "Manual Topup",
+        icon: ArrowUpCircle,
+        path: "/admin/manual-topup",
+        hubKey: "finance-hub",
+        description: "Owner tool to manually credit diamonds to any user (for refunds or marketing campaigns).",
+      },
+      {
+        label: "Payment Gateways",
+        icon: CreditCard,
+        path: "/admin/payment-gateways",
+        hubKey: "finance-hub",
+        description: "Enable/disable payment providers (Stripe, ZiniPay, Google Play) and edit their credentials.",
+      },
+      {
+        label: "Topup Methods",
+        icon: CreditCard,
+        path: "/admin/topup-payment-methods",
+        hubKey: "finance-hub",
+        description: "Manage country-specific payment method visibility shown on the user Recharge page.",
+      },
+      {
+        label: "Withdrawals",
+        icon: TrendingDown,
+        path: "/admin/withdrawals",
+        hubKey: "finance-hub",
+        description: "Approve/reject agency and helper withdrawal requests, attach payment proof, set helper assignments.",
+      },
+      {
+        label: "Balance Deduction",
+        icon: TrendingDown,
+        path: "/admin/balance-deduction",
+        hubKey: "finance-hub",
+        description: "Owner tool to deduct beans/diamonds from any user/agency for chargebacks or violations.",
+      },
+      {
+        label: "Transfer History",
+        icon: Activity,
+        path: "/admin/transfer-history",
+        hubKey: "finance-hub",
+        description: "History of weekly automated agency-to-host beans→diamonds settlement transfers.",
+      },
+      {
+        label: "Recharge History",
+        icon: CreditCard,
+        path: "/admin/recharge-history",
+        hubKey: "finance-hub",
+        description: "Every successful diamond purchase across all gateways — searchable by user, date, gateway.",
+      },
+      {
+        label: "💎 Recharge Campaigns",
+        icon: Sparkles,
+        path: "/admin/recharge-campaigns",
+        hubKey: "finance-hub",
+        description: "Time-limited bonus campaigns (e.g. \"+30% diamonds this weekend\") shown on the Recharge page.",
+      },
+      {
+        label: "Transfer Scheduler",
+        icon: Clock,
+        path: "/admin/transfer-scheduler",
+        hubKey: "finance-hub",
+        description: "Configure the cron schedule that triggers the weekly agency settlement edge function.",
+      },
+      {
+        label: "Payroll Orders",
+        icon: Wallet,
+        path: "/admin/payroll-orders",
+        hubKey: "finance-hub",
+        description: "Bulk payout orders for Level-5 helpers and payroll-enabled accounts with status tracking.",
+      },
+      {
+        label: "Shop",
+        icon: ShoppingBag,
+        path: "/admin/shop",
+        hubKey: "finance-hub",
+        description: "Manage shop items (frames, vehicles, badges) — pricing, preview images, availability dates.",
+      },
+      {
+        label: "Gifts",
+        icon: Gift,
+        path: "/admin/gifts",
+        hubKey: "finance-hub",
+        description: "Manage gift catalog (5 categories: Wall, Lucky, Luxurious, VIP, Pro) with price and animation.",
+      },
+      {
+        label: "User Beans Exchange",
+        icon: Coins,
+        path: "/admin/user-beans-exchange",
+        hubKey: "finance-hub",
+        description: "Configure the user Beans→Diamonds exchange rate and minimum exchange amounts.",
+      },
+    ],
   },
   {
     title: "🤝 Helpers",
     hubKey: "trader-hub",
     items: [
-      { label: "Helper Management", icon: UserCheck, path: "/admin/helper-management", hubKey: "trader-hub" },
-      { label: "Helper Applications", icon: UserPlus, path: "/admin/helper-applications", hubKey: "trader-hub" },
-      { label: "Helper Requests", icon: MessageSquare, path: "/admin/helper-requests", hubKey: "trader-hub" },
-      { label: "Helper Orders", icon: ShoppingBag, path: "/admin/helper-orders", hubKey: "trader-hub" },
-      { label: "Level 5 Helpers", icon: Crown, path: "/admin/level5-helpers", hubKey: "trader-hub" },
-      { label: "Helper Diamond Pricing", icon: Coins, path: "/admin/helper-diamond-pricing", hubKey: "trader-hub" },
-    ]
+      {
+        label: "Helper Management",
+        icon: UserCheck,
+        path: "/admin/helper-management",
+        hubKey: "trader-hub",
+        description: "Manage approved helpers — wallet balance, payment numbers, level, payroll-enabled flag.",
+      },
+      {
+        label: "Helper Applications",
+        icon: UserPlus,
+        path: "/admin/helper-applications",
+        hubKey: "trader-hub",
+        description: "Approval queue for users who applied to become a helper/diamond trader.",
+      },
+      {
+        label: "Helper Requests",
+        icon: MessageSquare,
+        path: "/admin/helper-requests",
+        hubKey: "trader-hub",
+        description: "Helpers' requests to upgrade level, top-up wallet, or modify payment methods.",
+      },
+      {
+        label: "Helper Orders",
+        icon: ShoppingBag,
+        path: "/admin/helper-orders",
+        hubKey: "trader-hub",
+        description: "All diamond-purchase orders flowing through helpers — status, proof, refund actions.",
+      },
+      {
+        label: "Level 5 Helpers",
+        icon: Crown,
+        path: "/admin/level5-helpers",
+        hubKey: "trader-hub",
+        description: "Elite Level-5 helper roster with payroll settings and elevated trade limits.",
+      },
+      {
+        label: "Helper Diamond Pricing",
+        icon: Coins,
+        path: "/admin/helper-diamond-pricing",
+        hubKey: "trader-hub",
+        description: "Set per-country diamond pricing tables that helpers use when fulfilling user orders.",
+      },
+    ],
   },
   {
     title: "🎮 Game System",
     hubKey: "game-hub",
     items: [
-      { label: "Game Management", icon: Gamepad2, path: "/admin/game-management", hubKey: "game-hub" },
-      { label: "Game Settings", icon: Settings, path: "/admin/game-settings", hubKey: "game-hub" },
-      { label: "Game Providers", icon: Gamepad2, path: "/admin/game-providers", hubKey: "game-hub" },
-      { label: "Game Server", icon: Activity, path: "/admin/game-server", hubKey: "game-hub" },
-      { label: "Game Leaderboard", icon: Crown, path: "/admin/game-leaderboard", hubKey: "game-hub" },
-    ]
+      {
+        label: "Game Management",
+        icon: Gamepad2,
+        path: "/admin/game-management",
+        hubKey: "game-hub",
+        description: "Enable/disable in-house games (Lucky Number, Rocket Race, Teen Patti) and edit their rules.",
+      },
+      {
+        label: "Game Settings",
+        icon: Settings,
+        path: "/admin/game-settings",
+        hubKey: "game-hub",
+        description: "Global game settings: min/max bet, house edge, rate-limit, game-room visibility.",
+      },
+      {
+        label: "Game Providers",
+        icon: Gamepad2,
+        path: "/admin/game-providers",
+        hubKey: "game-hub",
+        description: "Manage third-party game-provider integrations (gamesp.ccdn.ink seamless wallet config).",
+      },
+      {
+        label: "Game Server",
+        icon: Activity,
+        path: "/admin/game-server",
+        hubKey: "game-hub",
+        description: "Live status of game-server connections, websocket sessions, and active rounds.",
+      },
+      {
+        label: "Game Leaderboard",
+        icon: Crown,
+        path: "/admin/game-leaderboard",
+        hubKey: "game-hub",
+        description: "Top winners across all games with daily/weekly reset and prize-distribution audit.",
+      },
+    ],
   },
   {
     title: "📺 Content",
     hubKey: "content-hub",
     items: [
-      { label: "Content Management", icon: Video, path: "/admin/content-management", hubKey: "content-hub" },
-      { label: "Banners", icon: Image, path: "/admin/banners", hubKey: "content-hub" },
-      { label: "Content Pages", icon: FileText, path: "/admin/content", hubKey: "content-hub" },
-      { label: "Streams", icon: Video, path: "/admin/streams", hubKey: "content-hub" },
-      { label: "Recordings", icon: Play, path: "/admin/recordings", hubKey: "content-hub" },
-      { label: "Reels", icon: Video, path: "/admin/reels", hubKey: "content-hub" },
-      { label: "Leaderboard", icon: Crown, path: "/admin/leaderboard-management", hubKey: "content-hub" },
-      { label: "Task Center", icon: CheckCheck, path: "/admin/tasks-settings", hubKey: "content-hub" },
-      { label: "Rewards Management", icon: Gift, path: "/admin/rewards-management", hubKey: "content-hub" },
-      { label: "Rating Rewards", icon: Star, path: "/admin/rating-rewards", hubKey: "content-hub" },
-    ]
+      {
+        label: "Content Management",
+        icon: Video,
+        path: "/admin/content-management",
+        hubKey: "content-hub",
+        description: "Landing page for content moderation — quick links to streams, recordings, reels review.",
+      },
+      {
+        label: "Banners",
+        icon: Image,
+        path: "/admin/banners",
+        hubKey: "content-hub",
+        description: "Home-page promo banner carousel — upload images, schedule, link to in-app destinations.",
+      },
+      {
+        label: "Content Pages",
+        icon: FileText,
+        path: "/admin/content",
+        hubKey: "content-hub",
+        description: "Edit static pages (Privacy Policy, Terms, About, Helper Policy) shown in user-app Settings.",
+      },
+      {
+        label: "Streams",
+        icon: Video,
+        path: "/admin/streams",
+        hubKey: "content-hub",
+        description: "Live and ended live-stream sessions — viewers, gifts received, force-end action.",
+      },
+      {
+        label: "Recordings",
+        icon: Play,
+        path: "/admin/recordings",
+        hubKey: "content-hub",
+        description: "Recorded stream replays storage — review for compliance, delete or feature.",
+      },
+      {
+        label: "Reels",
+        icon: Video,
+        path: "/admin/reels",
+        hubKey: "content-hub",
+        description: "Short-video reels feed moderation — approve, hide, or remove user-posted clips.",
+      },
+      {
+        label: "Leaderboard",
+        icon: Crown,
+        path: "/admin/leaderboard-management",
+        hubKey: "content-hub",
+        description: "Configure leaderboard categories (top sender, top receiver, PK competition) and reward rules.",
+      },
+      {
+        label: "Task Center",
+        icon: CheckCheck,
+        path: "/admin/tasks-settings",
+        hubKey: "content-hub",
+        description: "Daily/weekly missions shown on the user-app Tasks page — define goals and diamond rewards.",
+      },
+      {
+        label: "Rewards Management",
+        icon: Gift,
+        path: "/admin/rewards-management",
+        hubKey: "content-hub",
+        description: "Daily-login rewards calendar — what users get on day 1, 2, 3… of consecutive logins.",
+      },
+      {
+        label: "Rating Rewards",
+        icon: Star,
+        path: "/admin/rating-rewards",
+        hubKey: "content-hub",
+        description: "Diamonds awarded when users rate the app on Play Store; manage claim window and amount.",
+      },
+    ],
   },
   {
     title: "🎉 Party",
     hubKey: "party-hub",
     items: [
-      { label: "Party Management", icon: PartyPopper, path: "/admin/party-management", hubKey: "party-hub" },
-      { label: "Party Rooms", icon: PartyPopper, path: "/admin/party-rooms", hubKey: "party-hub" },
-      { label: "Party Backgrounds", icon: Image, path: "/admin/party-backgrounds", hubKey: "party-hub" },
-      { label: "Party Banners", icon: Image, path: "/admin/party-banners", hubKey: "party-hub" },
-      { label: "Room Welcome Messages", icon: MessageSquare, path: "/admin/room-welcome-messages", hubKey: "party-hub" },
-    ]
+      {
+        label: "Party Management",
+        icon: PartyPopper,
+        path: "/admin/party-management",
+        hubKey: "party-hub",
+        description: "Top-level dashboard for the Party (multi-seat audio room) system with quick links.",
+      },
+      {
+        label: "Party Rooms",
+        icon: PartyPopper,
+        path: "/admin/party-rooms",
+        hubKey: "party-hub",
+        description: "Active and historical party rooms — participants, gifts, force-close action.",
+      },
+      {
+        label: "Party Backgrounds",
+        icon: Image,
+        path: "/admin/party-backgrounds",
+        hubKey: "party-hub",
+        description: "Upload background skins party hosts can choose for their room ambiance.",
+      },
+      {
+        label: "Party Banners",
+        icon: Image,
+        path: "/admin/party-banners",
+        hubKey: "party-hub",
+        description: "Promo banners shown inside the Party tab of the user app.",
+      },
+      {
+        label: "Room Welcome Messages",
+        icon: MessageSquare,
+        path: "/admin/room-welcome-messages",
+        hubKey: "party-hub",
+        description: "Default welcome message templates auto-posted when a user enters a party room.",
+      },
+    ],
   },
   {
     title: "📞 Calling",
     hubKey: "settings-hub",
     items: [
-      { label: "Call Settings", icon: Phone, path: "/admin/call-settings", hubKey: "settings-hub" },
-    ]
+      {
+        label: "Call Settings",
+        icon: Phone,
+        path: "/admin/call-settings",
+        hubKey: "settings-hub",
+        description: "Per-minute private-call rates, host earning percentage, and call-cut rules used by useCallSettings.",
+      },
+    ],
   },
   {
     title: "🎧 Support",
     hubKey: "moderation-hub",
     items: [
-      { label: "Support Tickets", icon: MessageSquare, path: "/admin/support-tickets", hubKey: "moderation-hub" },
-      { label: "Gmail Support", icon: Mail, path: "/admin/gmail-support", hubKey: "moderation-hub" },
-      { label: "Chat Inspector", icon: Search, path: "/admin/chat-inspector", hubKey: "moderation-hub" },
-      { label: "Number Sharing", icon: Phone, path: "/admin/number-sharing", hubKey: "moderation-hub" },
-      { label: "Contact Violations", icon: ShieldAlert, path: "/admin/contact-violations", hubKey: "moderation-hub" },
-    ]
+      {
+        label: "Support Tickets",
+        icon: MessageSquare,
+        path: "/admin/support-tickets",
+        hubKey: "moderation-hub",
+        description: "In-app support ticket queue — reply to user issues; powers the Customer Service screen.",
+      },
+      {
+        label: "Gmail Support",
+        icon: Mail,
+        path: "/admin/gmail-support",
+        hubKey: "moderation-hub",
+        description: "Inbox for emails sent to support@ — reply directly via Gmail SMTP edge function.",
+      },
+      {
+        label: "Chat Inspector",
+        icon: Search,
+        path: "/admin/chat-inspector",
+        hubKey: "moderation-hub",
+        description: "Read any 1-to-1 conversation with full audit trail (Owner-only privacy-sensitive tool).",
+      },
+      {
+        label: "Number Sharing",
+        icon: Phone,
+        path: "/admin/number-sharing",
+        hubKey: "moderation-hub",
+        description: "Detected phone-number sharing in chat — review violations and apply bans.",
+      },
+      {
+        label: "Contact Violations",
+        icon: ShieldAlert,
+        path: "/admin/contact-violations",
+        hubKey: "moderation-hub",
+        description: "Google Vision OCR flagged contact-info sharing (Bengali, Hindi, Arabic) in chat & screenshots.",
+      },
+    ],
   },
   {
     title: "📢 Notifications",
     hubKey: "settings-hub",
     items: [
-      { label: "Push Broadcast", icon: Bell, path: "/admin/push-broadcast", hubKey: "settings-hub" },
-      { label: "Notice Broadcast", icon: Megaphone, path: "/admin/notice-broadcast", hubKey: "settings-hub" },
-      { label: "Email Broadcast", icon: Mail, path: "/admin/email-broadcast", hubKey: "settings-hub" },
-      { label: "Notification Templates", icon: Bell, path: "/admin/notification-templates", hubKey: "settings-hub" },
-    ]
+      {
+        label: "Push Broadcast",
+        icon: Bell,
+        path: "/admin/push-broadcast",
+        hubKey: "settings-hub",
+        description: "Send FCM push notifications to all users or filtered segments (country, role, level).",
+      },
+      {
+        label: "Notice Broadcast",
+        icon: Megaphone,
+        path: "/admin/notice-broadcast",
+        hubKey: "settings-hub",
+        description: "In-app banner notices shown at app launch (maintenance announcements, events).",
+      },
+      {
+        label: "Email Broadcast",
+        icon: Mail,
+        path: "/admin/email-broadcast",
+        hubKey: "settings-hub",
+        description: "Bulk email campaigns sent via Gmail SMTP to users with verified emails.",
+      },
+      {
+        label: "Notification Templates",
+        icon: Bell,
+        path: "/admin/notification-templates",
+        hubKey: "settings-hub",
+        description: "Reusable notification templates referenced by server-side triggers (gift received, follow, etc.).",
+      },
+    ],
   },
   {
     title: "🐛 Debug & Logs",
     items: [
-      { label: "Activity Logs", icon: FileText, path: "/admin/logs" },
-      { label: "Error Logs", icon: AlertCircle, path: "/admin/error-logs" },
-      { label: "App Blueprint", icon: Map, path: "/admin/blueprint", ownerOnly: true },
-    ]
+      {
+        label: "Activity Logs",
+        icon: FileText,
+        path: "/admin/logs",
+        description: "Audit trail of every admin action (who changed what, when) for compliance and security review.",
+      },
+      {
+        label: "Error Logs",
+        icon: AlertCircle,
+        path: "/admin/error-logs",
+        description: "Client and edge-function error reports captured by the global error boundary.",
+      },
+      {
+        label: "App Blueprint",
+        icon: Map,
+        path: "/admin/blueprint",
+        ownerOnly: true,
+        description: "Owner-only architectural map of every page, RPC, table, and edge function in the system.",
+      },
+    ],
   },
   {
     title: "⚙️ Settings",
     hubKey: "settings-hub",
     items: [
-      { label: "App Settings Hub", icon: Settings, path: "/admin/app-settings-hub", hubKey: "settings-hub" },
-      { label: "General Settings", icon: Settings, path: "/admin/settings", hubKey: "settings-hub" },
-      { label: "Agora RTC", icon: Video, path: "/admin/agora-settings", hubKey: "settings-hub", ownerOnly: true },
-      { label: "Branding", icon: Image, path: "/admin/branding", hubKey: "settings-hub" },
-      { label: "Invitation Settings", icon: UserPlus, path: "/admin/invitation-settings", hubKey: "settings-hub" },
-      { label: "Popup Event Banners", icon: Image, path: "/admin/popup-banners", hubKey: "settings-hub" },
-      { label: "Onboarding Slides", icon: Image, path: "/admin/onboarding-slides", hubKey: "settings-hub" },
-      { label: "App Version", icon: Smartphone, path: "/admin/app-version", hubKey: "settings-hub" },
-      { label: "Device Management", icon: Smartphone, path: "/admin/device-management", hubKey: "settings-hub" },
-      { label: "🎨 Event Themes", icon: Sparkles, path: "/admin/theme-manager", hubKey: "settings-hub" },
-      { label: "Sub-Admin Management", icon: Shield, path: "/admin/sub-admins", ownerOnly: true },
-      { label: "🔐 Device Approvals", icon: Smartphone, path: "/admin/device-approvals", ownerOnly: true },
-    ]
+      {
+        label: "App Settings Hub",
+        icon: Settings,
+        path: "/admin/app-settings-hub",
+        hubKey: "settings-hub",
+        description: "Landing page for the Settings hub — quick links to every settings page below.",
+      },
+      {
+        label: "General Settings",
+        icon: Settings,
+        path: "/admin/settings",
+        hubKey: "settings-hub",
+        description: "Global app key/value settings (app_settings table) — feature flags, defaults, exchange rates.",
+      },
+      {
+        label: "Agora RTC",
+        icon: Video,
+        path: "/admin/agora-settings",
+        hubKey: "settings-hub",
+        ownerOnly: true,
+        description: "Agora app credentials and RTC configuration powering live streams and private calls.",
+      },
+      {
+        label: "Branding",
+        icon: Image,
+        path: "/admin/branding",
+        hubKey: "settings-hub",
+        description: "App name, logo, splash image, and Play-Store icon — replace without redeploying the app.",
+      },
+      {
+        label: "Invitation Settings",
+        icon: UserPlus,
+        path: "/admin/invitation-settings",
+        hubKey: "settings-hub",
+        description: "Configure referral / invitation rewards and tier thresholds shown on the Invitation page.",
+      },
+      {
+        label: "Popup Event Banners",
+        icon: Image,
+        path: "/admin/popup-banners",
+        hubKey: "settings-hub",
+        description: "Modal popups shown on app launch (event teaser, recharge promo) with sequential rotation.",
+      },
+      {
+        label: "Onboarding Slides",
+        icon: Image,
+        path: "/admin/onboarding-slides",
+        hubKey: "settings-hub",
+        description: "First-launch onboarding carousel slides shown to brand-new users before sign-up.",
+      },
+      {
+        label: "App Version",
+        icon: Smartphone,
+        path: "/admin/app-version",
+        hubKey: "settings-hub",
+        description: "Force-update threshold, latest version, changelog, and maintenance-mode toggle for native apps.",
+      },
+      {
+        label: "Device Management",
+        icon: Smartphone,
+        path: "/admin/device-management",
+        hubKey: "settings-hub",
+        description: "Banned device IDs and IPs to enforce single-device-session and multi-account prevention.",
+      },
+      {
+        label: "🎨 Event Themes",
+        icon: Sparkles,
+        path: "/admin/theme-manager",
+        hubKey: "settings-hub",
+        description: "Schedule seasonal app themes (Eid, New Year, Valentine) with auto-activate windows.",
+      },
+      {
+        label: "Sub-Admin Management",
+        icon: Shield,
+        path: "/admin/sub-admins",
+        ownerOnly: true,
+        description: "Owner-only — invite sub-admins, set their hub-level section permissions, revoke access.",
+      },
+      {
+        label: "🔐 Device Approvals",
+        icon: Smartphone,
+        path: "/admin/device-approvals",
+        ownerOnly: true,
+        description: "Owner-only — approve new devices that admins/sub-admins try to log in from.",
+      },
+    ],
   },
 ];
+
 
 const allAdminNavPaths = Array.from(
   new Set(navGroups.flatMap(group => group.items.map(item => normalizeAdminPath(item.path))))
