@@ -1910,6 +1910,39 @@ export type Database = {
         }
         Relationships: []
       }
+      banned_face_hashes: {
+        Row: {
+          banned_at: string
+          banned_by: string | null
+          face_hash: string
+          id: string
+          is_active: boolean
+          reason: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          banned_at?: string
+          banned_by?: string | null
+          face_hash: string
+          id?: string
+          is_active?: boolean
+          reason?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          banned_at?: string
+          banned_by?: string | null
+          face_hash?: string
+          id?: string
+          is_active?: boolean
+          reason?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       banned_ips: {
         Row: {
           banned_by: string | null
@@ -5601,10 +5634,14 @@ export type Database = {
           ban_type: string | null
           banned_by: string | null
           created_at: string | null
+          device_banned: boolean | null
           expires_at: string | null
+          face_hash_banned: boolean | null
           id: string
+          ip_banned: boolean | null
           is_active: boolean | null
           reason: string | null
+          severity: string | null
           stream_id: string | null
           unban_reason: string | null
           unbanned_at: string | null
@@ -5622,10 +5659,14 @@ export type Database = {
           ban_type?: string | null
           banned_by?: string | null
           created_at?: string | null
+          device_banned?: boolean | null
           expires_at?: string | null
+          face_hash_banned?: boolean | null
           id?: string
+          ip_banned?: boolean | null
           is_active?: boolean | null
           reason?: string | null
+          severity?: string | null
           stream_id?: string | null
           unban_reason?: string | null
           unbanned_at?: string | null
@@ -5643,10 +5684,14 @@ export type Database = {
           ban_type?: string | null
           banned_by?: string | null
           created_at?: string | null
+          device_banned?: boolean | null
           expires_at?: string | null
+          face_hash_banned?: boolean | null
           id?: string
+          ip_banned?: boolean | null
           is_active?: boolean | null
           reason?: string | null
+          severity?: string | null
           stream_id?: string | null
           unban_reason?: string | null
           unbanned_at?: string | null
@@ -11546,6 +11591,16 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_apply_severity_ban: {
+        Args: {
+          _duration_value: number
+          _evidence?: Json
+          _reason: string
+          _severity: string
+          _target_user_id: string
+        }
+        Returns: Json
+      }
       admin_approve_device: {
         Args: { _device_id: string; _owner_admin_id: string }
         Returns: Json
@@ -11725,6 +11780,24 @@ export type Database = {
           requested_at: string
           status: string
           user_agent: string
+        }[]
+      }
+      admin_list_severity_bans: {
+        Args: { _limit?: number; _severity?: string }
+        Returns: {
+          app_uid: string
+          avatar_url: string
+          ban_end: string
+          ban_reason: string
+          ban_start: string
+          device_banned: boolean
+          display_name: string
+          face_hash_banned: boolean
+          id: string
+          ip_banned: boolean
+          is_active: boolean
+          severity: string
+          user_id: string
         }[]
       }
       admin_permanent_ban_step_one: {
@@ -11940,6 +12013,10 @@ export type Database = {
       check_session_valid: {
         Args: { p_session_id: string; p_user_id: string }
         Returns: boolean
+      }
+      check_signup_eligibility: {
+        Args: { _device_id?: string; _face_hash?: string; _ip_address?: string }
+        Returns: Json
       }
       check_user_permission: {
         Args: { p_permission: string; p_user_id: string }
