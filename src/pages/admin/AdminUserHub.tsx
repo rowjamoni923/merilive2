@@ -108,8 +108,7 @@ const AdminUserHub = () => {
 
   useAdminRealtime(['profiles'], () => {
     fetchStats();
-    // Debounce country stats refresh
-    setTimeout(fetchCountryStats, 3000);
+    fetchCountryStats();
   });
 
   const totalCountryUsers = countryStats.reduce((s, c) => s + c.count, 0);
