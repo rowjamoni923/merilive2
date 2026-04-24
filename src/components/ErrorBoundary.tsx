@@ -74,11 +74,16 @@ class ErrorBoundary extends Component<Props, State> {
                 An error occurred on this page. We're working to fix it.
               </p>
               
-              {process.env.NODE_ENV === 'development' && this.state.error && (
-                <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-3 text-xs">
-                  <p className="font-mono text-destructive break-all">
-                    {this.state.error.message}
+              {this.state.error && (
+                <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-3 text-xs space-y-2 max-h-64 overflow-auto">
+                  <p className="font-mono text-destructive break-all font-semibold">
+                    {this.state.error.name}: {this.state.error.message}
                   </p>
+                  {this.state.errorInfo?.componentStack && (
+                    <pre className="font-mono text-[10px] text-muted-foreground whitespace-pre-wrap break-all">
+                      {this.state.errorInfo.componentStack.split('\n').slice(0, 8).join('\n')}
+                    </pre>
+                  )}
                 </div>
               )}
 
