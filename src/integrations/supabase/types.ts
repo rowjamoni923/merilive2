@@ -13163,6 +13163,7 @@ export type Database = {
         Args: { _device_fingerprint: string; _user_id: string }
         Returns: boolean
       }
+      is_admin_request: { Args: never; Returns: boolean }
       is_admin_session: { Args: { _admin_id: string }; Returns: boolean }
       is_admin_v2: { Args: { _user_id: string }; Returns: boolean }
       is_agency_owner: {
