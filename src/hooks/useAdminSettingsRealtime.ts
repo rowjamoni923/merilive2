@@ -221,7 +221,7 @@ const initializeRealtimeSubscription = () => {
       try { supabase.removeChannel(realtimeChannel as RealtimeChannel); } catch {}
     }
 
-    let channel = supabase.channel(`public-settings-rt-${Date.now()}`);
+    let channel = supabase.channel(`public-settings-rt-${crypto.randomUUID()}`);
     channel = subscribeTableChange(channel, 'app_settings', refreshAppSettings);
 
     realtimeChannel = channel.subscribe((status) => {

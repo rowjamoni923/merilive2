@@ -71,7 +71,7 @@ export default function HelpersTabContent() {
   useEffect(() => {
     fetchHelpers();
     const channel = supabase
-      .channel("agency-helpers-tab")
+      .channel(`agency-helpers-tab-${crypto.randomUUID()}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "topup_helpers" }, () => {
         fetchHelpers();
       })

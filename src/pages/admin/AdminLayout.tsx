@@ -1180,7 +1180,7 @@ export default function AdminLayout() {
         globalChannels.splice(existingIdx, 1);
       }
 
-      let ch = supabase.channel(`admin-unified-${chIdx}-${Date.now()}`);
+      let ch = supabase.channel(`admin-unified-${chIdx}-${crypto.randomUUID()}`);
       for (const table of chunk) {
         ch = ch.on('postgres_changes', { event: '*', schema: 'public', table }, (payload) => {
           dispatchAdminTableUpdate({

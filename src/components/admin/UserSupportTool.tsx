@@ -204,7 +204,7 @@ export default function UserSupportTool() {
     };
 
     let channel = supabase
-      .channel(`uid-support-live-${userId}`)
+      .channel(`uid-support-live-${userId}-${crypto.randomUUID()}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `id=eq.${userId}` }, sync)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'face_verification_submissions', filter: `user_id=eq.${userId}` }, sync);
 
