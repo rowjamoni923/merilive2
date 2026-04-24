@@ -75,6 +75,8 @@ import { ScreenSecuritySDK } from "@/sdk/ScreenSecuritySDK";
 import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
+import { PremiumSpinner } from "@/components/ui/premium-spinner";
+
 interface AdminNotification {
   id: string;
   title: string;
@@ -1680,40 +1682,11 @@ export default function AdminLayout() {
     };
   }).filter(group => group.items.length > 0);
 
-  // Show a minimal skeleton while loading instead of blank/black screen
+  // Premium centered loader instead of fake skeleton — feels alive, not janky
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#06060a] flex">
-        <div className="w-72 h-screen bg-[#08080e] border-r border-white/[0.04] p-4 hidden lg:block">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-violet-500/20 to-fuchsia-600/20 animate-pulse" />
-            <div className="space-y-1.5 flex-1">
-              <div className="h-4 w-24 bg-white/[0.06] rounded animate-pulse" />
-              <div className="h-2.5 w-16 bg-white/[0.03] rounded animate-pulse" />
-            </div>
-          </div>
-          {[...Array(8)].map((_, i) => (
-            <div key={i} className="flex items-center gap-2.5 p-2 mb-1 rounded-xl">
-              <div className="w-7 h-7 rounded-lg bg-white/[0.04] animate-pulse" />
-              <div className="h-3 bg-white/[0.04] rounded animate-pulse" style={{ width: `${60 + Math.random() * 40}%` }} />
-            </div>
-          ))}
-        </div>
-        <div className="flex-1 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="h-7 w-48 bg-white/[0.04] rounded-lg animate-pulse" />
-            <div className="flex gap-2.5">
-              <div className="w-10 h-10 rounded-xl bg-white/[0.04] animate-pulse" />
-              <div className="w-10 h-10 rounded-xl bg-white/[0.04] animate-pulse" />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-28 rounded-2xl bg-white/[0.02] border border-white/[0.04] animate-pulse" />
-            ))}
-          </div>
-          <div className="h-64 rounded-2xl bg-white/[0.02] border border-white/[0.04] animate-pulse" />
-        </div>
+      <div className="min-h-screen w-full flex items-center justify-center bg-[#06060a]">
+        <PremiumSpinner size="xl" label="Preparing admin console…" labelClassName="text-slate-400" />
       </div>
     );
   }
