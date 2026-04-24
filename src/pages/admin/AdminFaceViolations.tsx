@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
+import { getCurrentAdminId } from "@/utils/adminSession";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -41,33 +42,20 @@ const AdminFaceViolations = () => {
   const fetchViolations = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('live_face_violations')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(200);
-
+      const adminId = getCurrentAdminId();
+      if (!adminId) { setViolations([]); return; }
+      const { data, error } = await supabase.rpc("admin_list_face_violations", {
+        _admin_id: adminId,
+        _limit: 200,
+      });
       if (error) throw error;
-
-      if (data && data.length > 0) {
-        const hostIds = [...new Set(data.map(v => v.host_id))];
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('id, display_name, avatar_url, app_uid')
-          .in('id', hostIds);
-
-        const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
-        
-        const enriched = data.map(v => ({
-          ...v,
-          host_name: profileMap.get(v.host_id)?.display_name || 'Unknown',
-          host_avatar: profileMap.get(v.host_id)?.avatar_url || null,
-          host_uid: profileMap.get(v.host_id)?.app_uid || null,
-        }));
-        setViolations(enriched);
-      } else {
-        setViolations([]);
-      }
+      const enriched = (data || []).map((v: any) => ({
+        ...v,
+        host_name: v.display_name || 'Unknown',
+        host_avatar: null,
+        host_uid: v.app_uid || null,
+      }));
+      setViolations(enriched as FaceViolation[]);
     } catch (err) {
       console.error('Error fetching violations:', err);
       toast.error('Failed to load data');
@@ -78,38 +66,16 @@ const AdminFaceViolations = () => {
   useAdminRealtime(['live_face_violations'], fetchViolations);
 
   const handleBanHost = async (violation: FaceViolation) => {
+    const adminId = getCurrentAdminId();
+    if (!adminId) { toast.error("Not signed in"); return; }
     try {
-      await supabase
-        .from('live_face_violations')
-        .update({
-          admin_reviewed: true,
-          reviewed_at: new Date().toISOString(),
-          action_taken: 'live_ban',
-        })
-        .eq('id', violation.id);
-
-      await supabase.from('live_violations').insert({
-        user_id: violation.host_id,
-        violation_type: 'face_not_detected',
-        action_taken: 'live_ban',
-        ban_duration_hours: 24,
-        notes: 'Auto-banned for 24 hours due to face not detected',
-        created_at: new Date().toISOString(),
+      await supabase.rpc("admin_update_face_violation", {
+        _admin_id: adminId,
+        _violation_id: violation.id,
+        _status: 'live_ban',
       });
-
-      await supabase.from('admin_logs').insert({
-        action_type: 'live_ban',
-        target_type: 'user',
-        target_id: violation.host_id,
-        details: {
-          reason: 'Face not detected during live stream',
-          violation_id: violation.id,
-          stream_id: violation.stream_id,
-          ban_duration: '24h',
-        },
-      });
-
-      toast.success('Host banned from live for 24 hours');
+      // Optional: also call admin_session_block_user / admin RPC to enforce 24h live ban
+      toast.success('Host marked for live ban');
       fetchViolations();
     } catch (err) {
       console.error('Ban error:', err);
@@ -118,16 +84,14 @@ const AdminFaceViolations = () => {
   };
 
   const handleMarkReviewed = async (violation: FaceViolation) => {
+    const adminId = getCurrentAdminId();
+    if (!adminId) { toast.error("Not signed in"); return; }
     try {
-      await supabase
-        .from('live_face_violations')
-        .update({
-          admin_reviewed: true,
-          reviewed_at: new Date().toISOString(),
-          action_taken: 'warning',
-        })
-        .eq('id', violation.id);
-
+      await supabase.rpc("admin_update_face_violation", {
+        _admin_id: adminId,
+        _violation_id: violation.id,
+        _status: 'warning',
+      });
       toast.success('Review completed');
       fetchViolations();
     } catch (err) {

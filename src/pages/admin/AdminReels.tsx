@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
+import { getCurrentAdminId } from "@/utils/adminSession";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -86,16 +87,20 @@ const AdminReels = () => {
   };
 
   const fetchReels = async () => {
-    const { data, error } = await supabase
-      .from('reels')
-      .select(`
-        *,
-        category:reel_categories(name, icon),
-        user:profiles!reels_user_id_fkey(id, display_name, avatar_url)
-      `)
-      .order('created_at', { ascending: false });
-    
-    if (!error && data) setReels(data);
+    const adminId = getCurrentAdminId();
+    if (!adminId) { setReels([]); return; }
+    const { data, error } = await supabase.rpc("admin_list_reels", { _admin_id: adminId, _limit: 200 });
+    if (error || !data) return;
+    const rows: any[] = data;
+    const userIds = Array.from(new Set(rows.map((r) => r.user_id).filter(Boolean)));
+    const catIds = Array.from(new Set(rows.map((r) => r.category_id).filter(Boolean)));
+    const [usersRes, catsRes] = await Promise.all([
+      userIds.length ? supabase.from("profiles").select("id, display_name, avatar_url").in("id", userIds) : Promise.resolve({ data: [] as any[] }),
+      catIds.length ? supabase.from("reel_categories").select("id, name, icon").in("id", catIds) : Promise.resolve({ data: [] as any[] }),
+    ]);
+    const userMap = Object.fromEntries(((usersRes as any).data || []).map((u: any) => [u.id, u]));
+    const catMap = Object.fromEntries(((catsRes as any).data || []).map((c: any) => [c.id, c]));
+    setReels(rows.map((r) => ({ ...r, user: userMap[r.user_id] || null, category: catMap[r.category_id] || null })) as any);
   };
 
   const fetchCategories = async () => {

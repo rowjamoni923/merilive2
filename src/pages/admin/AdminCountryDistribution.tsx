@@ -3,6 +3,7 @@ import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { motion } from "framer-motion";
 import { Globe, Users } from "lucide-react";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
+import { getCurrentAdminId } from "@/utils/adminSession";
 import { cn } from "@/lib/utils";
 
 interface CountryData {
@@ -19,30 +20,17 @@ const AdminCountryDistribution = () => {
   const fetchCountryStats = useCallback(async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("country_name, country_code, country_flag")
-        .not("country_name", "is", null);
-
+      const adminId = getCurrentAdminId();
+      if (!adminId) { setCountryStats([]); return; }
+      const { data, error } = await supabase.rpc("admin_country_distribution", { _admin_id: adminId });
       if (error) throw error;
-
-      const countryMap = new Map<string, CountryData>();
-      (data || []).forEach((profile: any) => {
-        const key = profile.country_code || profile.country_name || "Unknown";
-        if (countryMap.has(key)) {
-          countryMap.get(key)!.count++;
-        } else {
-          countryMap.set(key, {
-            country_name: profile.country_name,
-            country_code: profile.country_code,
-            country_flag: profile.country_flag,
-            count: 1,
-          });
-        }
-      });
-
-      const sorted = Array.from(countryMap.values()).sort((a, b) => b.count - a.count);
-      setCountryStats(sorted);
+      const rows = (data || []).map((r: any) => ({
+        country_name: r.country_name,
+        country_code: r.country_code,
+        country_flag: r.country_flag,
+        count: Number(r.total ?? 0),
+      })) as CountryData[];
+      setCountryStats(rows);
     } catch (error) {
       console.error("Error fetching country stats:", error);
     } finally {

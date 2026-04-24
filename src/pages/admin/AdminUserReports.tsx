@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
+import { getCurrentAdminId } from "@/utils/adminSession";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 
@@ -66,23 +67,33 @@ export default function AdminUserReports() {
   useAdminRealtime(['user_reports'], () => fetchReports());
 
   const fetchReports = async () => {
+    const adminId = getCurrentAdminId();
+    if (!adminId) { setReports([]); return; }
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("user_reports")
-        .select(`
-          *,
-          reporter:profiles!user_reports_reporter_id_fkey(display_name, avatar_url),
-          reported_user:profiles!user_reports_reported_user_id_fkey(display_name, avatar_url, is_host)
-        `)
-        .order("created_at", { ascending: false })
-        .limit(200);
-
+      const { data, error } = await supabase.rpc("admin_list_user_reports", {
+        _admin_id: adminId,
+        _status: null,
+        _limit: 200,
+      });
       if (error) throw error;
-      const formatted = (data || []).map((r: any) => ({
+
+      const rows: any[] = data || [];
+      const userIds = Array.from(new Set(
+        rows.flatMap((r) => [r.reporter_id, r.reported_user_id]).filter(Boolean)
+      ));
+      let profileMap: Record<string, any> = {};
+      if (userIds.length) {
+        const { data: profs } = await supabase
+          .from("profiles")
+          .select("id, display_name, avatar_url, is_host")
+          .in("id", userIds);
+        profileMap = Object.fromEntries((profs || []).map((p: any) => [p.id, p]));
+      }
+      const formatted = rows.map((r: any) => ({
         ...r,
-        reporter: Array.isArray(r.reporter) ? r.reporter[0] : r.reporter,
-        reported_user: Array.isArray(r.reported_user) ? r.reported_user[0] : r.reported_user,
+        reporter: profileMap[r.reporter_id] || null,
+        reported_user: profileMap[r.reported_user_id] || null,
       }));
       setReports(formatted as Report[]);
     } catch (error) {
@@ -94,16 +105,15 @@ export default function AdminUserReports() {
   };
 
   const handleUpdateStatus = async (reportId: string, newStatus: string) => {
+    const adminId = getCurrentAdminId();
+    if (!adminId) { toast.error("Not signed in as admin"); return; }
     try {
-      const { error } = await supabase
-        .from("user_reports")
-        .update({
-          status: newStatus,
-          admin_notes: adminNotes || null,
-          action_taken: actionTaken || null,
-          reviewed_at: new Date().toISOString(),
-        })
-        .eq("id", reportId);
+      const { error } = await supabase.rpc("admin_update_user_report", {
+        _admin_id: adminId,
+        _report_id: reportId,
+        _status: newStatus,
+        _admin_note: adminNotes || null,
+      });
       if (error) throw error;
       toast.success(`Report ${newStatus}`);
       setSelectedReport(null);
