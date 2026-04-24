@@ -41,6 +41,42 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_access_tokens: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          label: string | null
+          last_used_at: string | null
+          role: Database["public"]["Enums"]["admin_role"]
+          token: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          label?: string | null
+          last_used_at?: string | null
+          role?: Database["public"]["Enums"]["admin_role"]
+          token: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          label?: string | null
+          last_used_at?: string | null
+          role?: Database["public"]["Enums"]["admin_role"]
+          token?: string
+        }
+        Relationships: []
+      }
       admin_allowed_devices: {
         Row: {
           admin_user_id: string
@@ -87,7 +123,15 @@ export type Database = {
           status?: Database["public"]["Enums"]["admin_device_status"] | null
           user_agent?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "admin_allowed_devices_admin_user_id_fkey"
+            columns: ["admin_user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       admin_invitations: {
         Row: {
@@ -383,6 +427,50 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_sessions: {
+        Row: {
+          admin_user_id: string
+          created_at: string
+          device_fingerprint: string | null
+          expires_at: string
+          id: string
+          ip_address: string | null
+          last_active_at: string
+          session_token: string
+          user_agent: string | null
+        }
+        Insert: {
+          admin_user_id: string
+          created_at?: string
+          device_fingerprint?: string | null
+          expires_at: string
+          id?: string
+          ip_address?: string | null
+          last_active_at?: string
+          session_token: string
+          user_agent?: string | null
+        }
+        Update: {
+          admin_user_id?: string
+          created_at?: string
+          device_fingerprint?: string | null
+          expires_at?: string
+          id?: string
+          ip_address?: string | null
+          last_active_at?: string
+          session_token?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_sessions_admin_user_id_fkey"
+            columns: ["admin_user_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_stats: {
         Row: {
           created_at: string | null
@@ -433,12 +521,18 @@ export type Database = {
           accepted_at: string | null
           created_at: string | null
           display_name: string | null
-          email: string
+          email: string | null
           id: string
           invited_at: string | null
           invited_by: string | null
           is_active: boolean | null
+          is_decoupled: boolean | null
           last_login_at: string | null
+          must_change_password: boolean | null
+          password_hash: string | null
+          password_reset_at: string | null
+          password_reset_by: string | null
+          password_set_at: string | null
           role: Database["public"]["Enums"]["admin_role"]
           updated_at: string | null
           user_id: string | null
@@ -448,12 +542,18 @@ export type Database = {
           accepted_at?: string | null
           created_at?: string | null
           display_name?: string | null
-          email: string
+          email?: string | null
           id?: string
           invited_at?: string | null
           invited_by?: string | null
           is_active?: boolean | null
+          is_decoupled?: boolean | null
           last_login_at?: string | null
+          must_change_password?: boolean | null
+          password_hash?: string | null
+          password_reset_at?: string | null
+          password_reset_by?: string | null
+          password_set_at?: string | null
           role?: Database["public"]["Enums"]["admin_role"]
           updated_at?: string | null
           user_id?: string | null
@@ -463,12 +563,18 @@ export type Database = {
           accepted_at?: string | null
           created_at?: string | null
           display_name?: string | null
-          email?: string
+          email?: string | null
           id?: string
           invited_at?: string | null
           invited_by?: string | null
           is_active?: boolean | null
+          is_decoupled?: boolean | null
           last_login_at?: string | null
+          must_change_password?: boolean | null
+          password_hash?: string | null
+          password_reset_at?: string | null
+          password_reset_by?: string | null
+          password_set_at?: string | null
           role?: Database["public"]["Enums"]["admin_role"]
           updated_at?: string | null
           user_id?: string | null
@@ -990,16 +1096,62 @@ export type Database = {
           },
         ]
       }
+      agency_withdrawal_locks: {
+        Row: {
+          helper_id: string
+          locked_at: string | null
+          withdrawal_id: string
+        }
+        Insert: {
+          helper_id: string
+          locked_at?: string | null
+          withdrawal_id: string
+        }
+        Update: {
+          helper_id?: string
+          locked_at?: string | null
+          withdrawal_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agency_withdrawal_locks_helper_id_fkey"
+            columns: ["helper_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_withdrawal_locks_helper_id_fkey"
+            columns: ["helper_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_withdrawal_locks_withdrawal_id_fkey"
+            columns: ["withdrawal_id"]
+            isOneToOne: true
+            referencedRelation: "agency_withdrawals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agency_withdrawals: {
         Row: {
+          admin_note: string | null
           agency_id: string
           amount: number
           assigned_helper_id: string | null
           claim_locked_until: string | null
           country_code: string | null
+          currency: string | null
           exchange_rate: number | null
+          fee_percentage: number | null
           helper_processed_at: string | null
+          helper_proof: Json | null
           id: string
+          net_amount_money: number | null
+          net_diamonds_to_helper: number | null
           notes: string | null
           payment_details: Json | null
           payment_method: string | null
@@ -1011,14 +1163,20 @@ export type Database = {
           usd_amount: number | null
         }
         Insert: {
+          admin_note?: string | null
           agency_id: string
           amount: number
           assigned_helper_id?: string | null
           claim_locked_until?: string | null
           country_code?: string | null
+          currency?: string | null
           exchange_rate?: number | null
+          fee_percentage?: number | null
           helper_processed_at?: string | null
+          helper_proof?: Json | null
           id?: string
+          net_amount_money?: number | null
+          net_diamonds_to_helper?: number | null
           notes?: string | null
           payment_details?: Json | null
           payment_method?: string | null
@@ -1030,14 +1188,20 @@ export type Database = {
           usd_amount?: number | null
         }
         Update: {
+          admin_note?: string | null
           agency_id?: string
           amount?: number
           assigned_helper_id?: string | null
           claim_locked_until?: string | null
           country_code?: string | null
+          currency?: string | null
           exchange_rate?: number | null
+          fee_percentage?: number | null
           helper_processed_at?: string | null
+          helper_proof?: Json | null
           id?: string
+          net_amount_money?: number | null
+          net_diamonds_to_helper?: number | null
           notes?: string | null
           payment_details?: Json | null
           payment_method?: string | null
@@ -1120,8 +1284,10 @@ export type Database = {
           created_at: string | null
           display_order: number | null
           id: string
+          is_active: boolean | null
           is_published: boolean | null
           language: string | null
+          page_key: string | null
           title: string
           type: string
           updated_at: string | null
@@ -1131,8 +1297,10 @@ export type Database = {
           created_at?: string | null
           display_order?: number | null
           id?: string
+          is_active?: boolean | null
           is_published?: boolean | null
           language?: string | null
+          page_key?: string | null
           title: string
           type: string
           updated_at?: string | null
@@ -1142,8 +1310,10 @@ export type Database = {
           created_at?: string | null
           display_order?: number | null
           id?: string
+          is_active?: boolean | null
           is_published?: boolean | null
           language?: string | null
+          page_key?: string | null
           title?: string
           type?: string
           updated_at?: string | null
@@ -1551,6 +1721,54 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      banned_ips: {
+        Row: {
+          banned_by: string | null
+          created_at: string | null
+          id: string
+          ip_address: string
+          is_active: boolean | null
+          reason: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          banned_by?: string | null
+          created_at?: string | null
+          id?: string
+          ip_address: string
+          is_active?: boolean | null
+          reason?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          banned_by?: string | null
+          created_at?: string | null
+          id?: string
+          ip_address?: string
+          is_active?: boolean | null
+          reason?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "banned_ips_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "banned_ips_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       banners: {
         Row: {
@@ -2955,31 +3173,52 @@ export type Database = {
       }
       game_configs: {
         Row: {
+          config_data: Json | null
           config_key: string
           config_value: Json
           created_at: string | null
+          game_id: string | null
           game_type: string
           id: string
           is_active: boolean | null
+          max_bet: number | null
+          min_bet: number | null
+          name: string | null
           updated_at: string | null
+          win_multiplier: number | null
+          win_probability: number | null
         }
         Insert: {
+          config_data?: Json | null
           config_key: string
           config_value?: Json
           created_at?: string | null
+          game_id?: string | null
           game_type: string
           id?: string
           is_active?: boolean | null
+          max_bet?: number | null
+          min_bet?: number | null
+          name?: string | null
           updated_at?: string | null
+          win_multiplier?: number | null
+          win_probability?: number | null
         }
         Update: {
+          config_data?: Json | null
           config_key?: string
           config_value?: Json
           created_at?: string | null
+          game_id?: string | null
           game_type?: string
           id?: string
           is_active?: boolean | null
+          max_bet?: number | null
+          min_bet?: number | null
+          name?: string | null
           updated_at?: string | null
+          win_multiplier?: number | null
+          win_probability?: number | null
         }
         Relationships: []
       }
@@ -3351,34 +3590,49 @@ export type Database = {
           amount: number
           balance_after: number | null
           balance_before: number | null
+          bet_amount: number | null
           created_at: string | null
+          game_id: string | null
           game_session_id: string | null
           game_type: string
           id: string
+          is_win: boolean | null
+          result_data: Json | null
           transaction_type: string
           user_id: string
+          win_amount: number | null
         }
         Insert: {
           amount: number
           balance_after?: number | null
           balance_before?: number | null
+          bet_amount?: number | null
           created_at?: string | null
+          game_id?: string | null
           game_session_id?: string | null
           game_type: string
           id?: string
+          is_win?: boolean | null
+          result_data?: Json | null
           transaction_type: string
           user_id: string
+          win_amount?: number | null
         }
         Update: {
           amount?: number
           balance_after?: number | null
           balance_before?: number | null
+          bet_amount?: number | null
           created_at?: string | null
+          game_id?: string | null
           game_session_id?: string | null
           game_type?: string
           id?: string
+          is_win?: boolean | null
+          result_data?: Json | null
           transaction_type?: string
           user_id?: string
+          win_amount?: number | null
         }
         Relationships: []
       }
@@ -5157,12 +5411,12 @@ export type Database = {
           ban_reason: string | null
           ban_start: string | null
           ban_type: string | null
-          banned_by: string
+          banned_by: string | null
           created_at: string | null
           expires_at: string | null
           id: string
           is_active: boolean | null
-          reason: string
+          reason: string | null
           stream_id: string | null
           unban_reason: string | null
           unbanned_at: string | null
@@ -5178,12 +5432,12 @@ export type Database = {
           ban_reason?: string | null
           ban_start?: string | null
           ban_type?: string | null
-          banned_by: string
+          banned_by?: string | null
           created_at?: string | null
           expires_at?: string | null
           id?: string
           is_active?: boolean | null
-          reason: string
+          reason?: string | null
           stream_id?: string | null
           unban_reason?: string | null
           unbanned_at?: string | null
@@ -5199,12 +5453,12 @@ export type Database = {
           ban_reason?: string | null
           ban_start?: string | null
           ban_type?: string | null
-          banned_by?: string
+          banned_by?: string | null
           created_at?: string | null
           expires_at?: string | null
           id?: string
           is_active?: boolean | null
-          reason?: string
+          reason?: string | null
           stream_id?: string | null
           unban_reason?: string | null
           unbanned_at?: string | null
@@ -5824,41 +6078,50 @@ export type Database = {
       }
       new_host_live_bonus_settings: {
         Row: {
+          beans_per_hour: number | null
           bonus_amount: number
           bonus_beans: number | null
           created_at: string | null
           daily_reset_offset_minutes: number
           day_number: number
+          eligible_days: number | null
           eligible_program_days: number
           hour_number: number | null
           id: string
           is_active: boolean | null
+          max_hours_per_day: number | null
           target_minutes: number
           updated_at: string | null
         }
         Insert: {
+          beans_per_hour?: number | null
           bonus_amount: number
           bonus_beans?: number | null
           created_at?: string | null
           daily_reset_offset_minutes?: number
           day_number: number
+          eligible_days?: number | null
           eligible_program_days?: number
           hour_number?: number | null
           id?: string
           is_active?: boolean | null
+          max_hours_per_day?: number | null
           target_minutes: number
           updated_at?: string | null
         }
         Update: {
+          beans_per_hour?: number | null
           bonus_amount?: number
           bonus_beans?: number | null
           created_at?: string | null
           daily_reset_offset_minutes?: number
           day_number?: number
+          eligible_days?: number | null
           eligible_program_days?: number
           hour_number?: number | null
           id?: string
           is_active?: boolean | null
+          max_hours_per_day?: number | null
           target_minutes?: number
           updated_at?: string | null
         }
@@ -7228,6 +7491,8 @@ export type Database = {
           coins: number | null
           country_code: string | null
           country_flag: string | null
+          country_locked: boolean
+          country_locked_at: string | null
           country_name: string | null
           cover_url: string | null
           created_at: string | null
@@ -7269,6 +7534,7 @@ export type Database = {
           is_online: boolean | null
           is_verified: boolean | null
           last_active_at: string | null
+          last_device_id: string | null
           last_login_at: string | null
           last_login_device: string | null
           last_login_device_info: Json | null
@@ -7295,6 +7561,10 @@ export type Database = {
           registration_device_info: Json | null
           registration_ip: string | null
           registration_user_agent: string | null
+          signup_country_code: string | null
+          signup_country_flag: string | null
+          signup_country_name: string | null
+          signup_ip: string | null
           tags: string[] | null
           total_call_minutes: number | null
           total_calls_made: number | null
@@ -7327,6 +7597,8 @@ export type Database = {
           coins?: number | null
           country_code?: string | null
           country_flag?: string | null
+          country_locked?: boolean
+          country_locked_at?: string | null
           country_name?: string | null
           cover_url?: string | null
           created_at?: string | null
@@ -7368,6 +7640,7 @@ export type Database = {
           is_online?: boolean | null
           is_verified?: boolean | null
           last_active_at?: string | null
+          last_device_id?: string | null
           last_login_at?: string | null
           last_login_device?: string | null
           last_login_device_info?: Json | null
@@ -7394,6 +7667,10 @@ export type Database = {
           registration_device_info?: Json | null
           registration_ip?: string | null
           registration_user_agent?: string | null
+          signup_country_code?: string | null
+          signup_country_flag?: string | null
+          signup_country_name?: string | null
+          signup_ip?: string | null
           tags?: string[] | null
           total_call_minutes?: number | null
           total_calls_made?: number | null
@@ -7426,6 +7703,8 @@ export type Database = {
           coins?: number | null
           country_code?: string | null
           country_flag?: string | null
+          country_locked?: boolean
+          country_locked_at?: string | null
           country_name?: string | null
           cover_url?: string | null
           created_at?: string | null
@@ -7467,6 +7746,7 @@ export type Database = {
           is_online?: boolean | null
           is_verified?: boolean | null
           last_active_at?: string | null
+          last_device_id?: string | null
           last_login_at?: string | null
           last_login_device?: string | null
           last_login_device_info?: Json | null
@@ -7493,6 +7773,10 @@ export type Database = {
           registration_device_info?: Json | null
           registration_ip?: string | null
           registration_user_agent?: string | null
+          signup_country_code?: string | null
+          signup_country_flag?: string | null
+          signup_country_name?: string | null
+          signup_ip?: string | null
           tags?: string[] | null
           total_call_minutes?: number | null
           total_calls_made?: number | null
@@ -7509,7 +7793,22 @@ export type Database = {
           weekly_earnings?: number | null
           weekly_reset_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       provider_games: {
         Row: {
@@ -10775,6 +11074,19 @@ export type Database = {
         }
         Relationships: []
       }
+      game_winner_ticker: {
+        Row: {
+          amount: number | null
+          avatar_url: string | null
+          created_at: string | null
+          game_type: string | null
+          id: string | null
+          name: string | null
+          result_data: Json | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
       profiles_public: {
         Row: {
           age: number | null
@@ -10979,8 +11291,13 @@ export type Database = {
         Returns: boolean
       }
       admin_block_user: {
-        Args: { _block: boolean; _reason?: string; _user_id: string }
-        Returns: boolean
+        Args: {
+          _ban_device?: boolean
+          _block: boolean
+          _reason?: string
+          _user_id: string
+        }
+        Returns: undefined
       }
       admin_change_user_role: {
         Args: { _new_role: string; _user_id: string }
@@ -10989,6 +11306,10 @@ export type Database = {
       admin_clear_frame_references: {
         Args: { frame_id_to_clear: string }
         Returns: undefined
+      }
+      admin_convert_user_role: {
+        Args: { _to_host: boolean; _user_id: string }
+        Returns: boolean
       }
       admin_create_agency: {
         Args: {
@@ -11005,6 +11326,15 @@ export type Database = {
         Returns: Json
       }
       admin_delete_user: { Args: { _user_id: string }; Returns: boolean }
+      admin_force_verify_and_approve_host: {
+        Args: {
+          _approve_as?: string
+          _reason?: string
+          _set_gender?: string
+          _user_id: string
+        }
+        Returns: Json
+      }
       admin_get_user_full_details: { Args: { _user_id: string }; Returns: Json }
       admin_process_face_verification: {
         Args: {
@@ -11019,6 +11349,14 @@ export type Database = {
       admin_process_helper_transaction: {
         Args: { _action: string; _transaction_id: string }
         Returns: boolean
+      }
+      admin_process_host_application: {
+        Args: {
+          _application_id: string
+          _processed_by: string
+          _status: string
+        }
+        Returns: Json
       }
       admin_process_withdrawal: {
         Args: { _notes?: string; _status: string; _withdrawal_id: string }
@@ -11041,6 +11379,10 @@ export type Database = {
           _user_id: string
         }
         Returns: string
+      }
+      admin_set_host_status: {
+        Args: { _make_host: boolean; _user_id: string }
+        Returns: undefined
       }
       admin_toggle_face_verification: {
         Args: { _user_id: string; _verified: boolean }
@@ -11067,6 +11409,19 @@ export type Database = {
         Returns: boolean
       }
       apply_as_topup_helper: { Args: { _data: Json }; Returns: Json }
+      apply_multi_level_ban: {
+        Args: {
+          _ban_level: string
+          _banned_by: string
+          _reason: string
+          _target_user_id: string
+        }
+        Returns: undefined
+      }
+      approve_agency_withdrawal: {
+        Args: { _withdrawal_id: string }
+        Returns: Json
+      }
       approve_host_request: {
         Args: { _admin_id: string; _agency_id: string; _request_id: string }
         Returns: boolean
@@ -11118,7 +11473,17 @@ export type Database = {
       }
       cancel_account_deletion: { Args: { _user_id: string }; Returns: boolean }
       cancel_agency_request: { Args: { _host_id: string }; Returns: boolean }
-      check_ban_on_login: { Args: { _user_id: string }; Returns: Json }
+      check_ban_on_login:
+        | { Args: { _user_id: string }; Returns: Json }
+        | { Args: { _device_id?: string; _user_id: string }; Returns: Json }
+        | {
+            Args: {
+              _device_id?: string
+              _ip_address?: string
+              _user_id: string
+            }
+            Returns: Json
+          }
       check_brute_force: {
         Args: {
           p_action_type: string
@@ -11144,14 +11509,16 @@ export type Database = {
         Args: { p_permission: string; p_user_id: string }
         Returns: boolean
       }
-      claim_agency_withdrawal: {
-        Args: {
-          _helper_id: string
-          _lock_seconds?: number
-          _withdrawal_id: string
-        }
-        Returns: Json
-      }
+      claim_agency_withdrawal:
+        | { Args: { _withdrawal_id: string }; Returns: Json }
+        | {
+            Args: {
+              _helper_id: string
+              _lock_seconds?: number
+              _withdrawal_id: string
+            }
+            Returns: Json
+          }
       claim_daily_login_reward: {
         Args: { _claimed_date: string; _day_end: string; _day_start: string }
         Returns: Json
@@ -11181,6 +11548,7 @@ export type Database = {
           system_error_logs_deleted: number
         }[]
       }
+      cleanup_expired_admin_sessions: { Args: never; Returns: undefined }
       cleanup_expired_otps: { Args: never; Returns: undefined }
       cleanup_expired_recordings: { Args: never; Returns: undefined }
       cleanup_expired_recovery_tokens: { Args: never; Returns: undefined }
@@ -11194,6 +11562,10 @@ export type Database = {
       cleanup_stale_online_users: { Args: never; Returns: undefined }
       cleanup_stale_party_participants: { Args: never; Returns: undefined }
       cleanup_stuck_calls: { Args: never; Returns: undefined }
+      complete_agency_withdrawal: {
+        Args: { _proof: Json; _withdrawal_id: string }
+        Returns: Json
+      }
       create_agency_for_user: {
         Args: {
           _agency_code: string
@@ -11313,6 +11685,8 @@ export type Database = {
           coins: number | null
           country_code: string | null
           country_flag: string | null
+          country_locked: boolean
+          country_locked_at: string | null
           country_name: string | null
           cover_url: string | null
           created_at: string | null
@@ -11354,6 +11728,7 @@ export type Database = {
           is_online: boolean | null
           is_verified: boolean | null
           last_active_at: string | null
+          last_device_id: string | null
           last_login_at: string | null
           last_login_device: string | null
           last_login_device_info: Json | null
@@ -11380,6 +11755,10 @@ export type Database = {
           registration_device_info: Json | null
           registration_ip: string | null
           registration_user_agent: string | null
+          signup_country_code: string | null
+          signup_country_flag: string | null
+          signup_country_name: string | null
+          signup_ip: string | null
           tags: string[] | null
           total_call_minutes: number | null
           total_calls_made: number | null
@@ -11463,6 +11842,13 @@ export type Database = {
         }
         Returns: Json
       }
+      generate_admin_access_token: {
+        Args: {
+          _label: string
+          _role?: Database["public"]["Enums"]["admin_role"]
+        }
+        Returns: string
+      }
       generate_app_uid: { Args: never; Returns: string }
       generate_game_token: {
         Args: {
@@ -11500,13 +11886,15 @@ export type Database = {
       }
       get_admin_analytics_chart_data: {
         Args: { p_days?: number }
+        Returns: Json
+      }
+      get_admin_by_session_token: {
+        Args: { _token: string }
         Returns: {
-          daily_active_users: number
-          stat_date: string
-          total_coins_spent: number
-          total_gifts_sent: number
-          total_streams: number
-          total_users: number
+          admin_id: string
+          email: string
+          is_active: boolean
+          role: Database["public"]["Enums"]["admin_role"]
         }[]
       }
       get_admin_dashboard_stats: { Args: never; Returns: Json }
@@ -11751,11 +12139,13 @@ export type Database = {
         Args: { _device_fingerprint: string; _user_id: string }
         Returns: boolean
       }
+      is_admin_v2: { Args: { _user_id: string }; Returns: boolean }
       is_conversation_participant: {
         Args: { _conversation_id: string; _user_id: string }
         Returns: boolean
       }
       is_own_profile: { Args: { _profile_id: string }; Returns: boolean }
+      is_owner: { Args: { _user_id: string }; Returns: boolean }
       is_real_user: { Args: never; Returns: boolean }
       is_user_live_banned: { Args: { p_user_id: string }; Returns: boolean }
       join_agency: {
@@ -11918,6 +12308,10 @@ export type Database = {
           user_id: string
         }[]
       }
+      regenerate_admin_secret_token: {
+        Args: { _new_token: string }
+        Returns: Json
+      }
       register_admin_device: {
         Args: {
           _device_fingerprint: string
@@ -11936,6 +12330,7 @@ export type Database = {
         Args: { _helper_id: string; _withdrawal_id: string }
         Returns: Json
       }
+      release_expired_withdrawal_locks: { Args: never; Returns: undefined }
       request_account_deletion: {
         Args: { user_id_param: string }
         Returns: undefined
@@ -11948,6 +12343,10 @@ export type Database = {
               _payment_details?: Json
               _payment_method?: string
             }
+            Returns: Json
+          }
+        | {
+            Args: { _amount: number; _method: string; _method_details: Json }
             Returns: Json
           }
         | {
@@ -12020,6 +12419,10 @@ export type Database = {
           user_level: number
         }[]
       }
+      secure_play_native_game: {
+        Args: { p_bet_amount: number; p_game_id: string }
+        Returns: Json
+      }
       send_notification: {
         Args: {
           p_data?: Json
@@ -12030,14 +12433,27 @@ export type Database = {
         }
         Returns: undefined
       }
-      start_private_call: {
+      set_signup_country: {
         Args: {
-          p_call_type?: string
-          p_caller_id: string
-          p_receiver_id: string
+          _city?: string
+          _country_code: string
+          _country_flag: string
+          _country_name: string
+          _ip?: string
+          _region?: string
         }
         Returns: Json
       }
+      start_private_call:
+        | { Args: { _host_id: string; _stream_id?: string }; Returns: string }
+        | {
+            Args: {
+              p_call_type?: string
+              p_caller_id: string
+              p_receiver_id: string
+            }
+            Returns: Json
+          }
       timeout_private_call: { Args: { _call_id: string }; Returns: Json }
       transfer_coins_to_user: {
         Args: {
@@ -12048,6 +12464,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      trigger_weekly_agency_schedule: { Args: never; Returns: Json }
       update_active_session: {
         Args: { _device_info?: Json; _session_id: string }
         Returns: undefined
@@ -12083,6 +12500,7 @@ export type Database = {
             Args: { _increment?: number; _task_type: string; _value?: number }
             Returns: Json
           }
+      validate_admin_access_token: { Args: { _token: string }; Returns: Json }
       validate_session_integrity: {
         Args: {
           p_device_fingerprint: string
