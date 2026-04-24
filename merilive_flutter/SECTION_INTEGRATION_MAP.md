@@ -258,7 +258,61 @@ Realtime hook: subscribe to `profiles` row UPDATE, recompute level locally OR re
 
 ---
 
-## Section 11 — Model file index (Flutter)
+## Section 11 — Diamond Recharge / Top-Up (My Diamonds page)
+
+> **CRITICAL — Mirror the web `src/pages/Recharge.tsx` 1:1.** Same layout, same 3 tabs, same balance header. No design changes in Flutter.
+
+Screen: `lib/screens/recharge_screen.dart` — uses `CoinPackageModel`, `PaymentGatewayModel`, `RechargeTransactionModel`, `FirstRechargeBonusModel`, `RechargeCampaignModel`, `HelperDiamondPackageModel`.
+
+### 11.1 Top-of-page header (My Diamonds)
+
+| UI element | Source |
+|---|---|
+| Diamond balance | `profiles.coins` for current `auth.uid()` (read via `useUserBalance` equivalent — single-source cached) |
+| Avatar + name | current user `profiles_public` row |
+| Refresh button | re-call `ensure_profile_exists` then re-read balance |
+
+> Balance MUST update in realtime when a recharge succeeds. Subscribe to `profiles:me:<userId>` channel and on UPDATE, refresh the cached balance.
+
+### 11.2 Three Tabs (mirror web exactly)
+
+| Tab | Backing |
+|---|---|
+| **Google** (Play Store) | `coin_packages` where `is_active AND product_id IS NOT NULL`. Use Play Billing SDK with `product_id`. |
+| **Recommend** (international gateways) | `coin_packages` + `payment_gateways` where `gateway_type IN ('stripe','sslcommerz')` AND user country is in `country_codes`. |
+| **Helper** (manual via topup helper) | `helper_diamond_packages` + `topup_helpers` (level 1–5) + `helper_payment_methods`. |
+
+### 11.3 Banners shown in header
+
+| Banner | Source |
+|---|---|
+| First-recharge bonus | `first_recharge_bonus` where `is_active`, hide if user has any `recharge_transactions` with `status='success'`. |
+| Live campaign | `recharge_campaigns` where `is_active AND now() BETWEEN start_at AND end_at AND 'recharge' = ANY(display_locations)`. |
+
+### 11.4 Recharge flow (per gateway type)
+
+1. **Play Store** → `playStoreBilling.purchase(productId)` → on success, edge function `playstore-verify-purchase` validates + credits diamonds via `recharge_user_diamonds` RPC.
+2. **Stripe / SSLCommerz** → edge function `create-checkout-session` returns hosted URL → in-app browser → on `stripe-webhook` callback, diamonds credited.
+3. **Manual helper** → user picks helper + package + uploads payment proof → INSERT into `helper_topup_requests` (status `pending`). Helper completes via `helper_topup_user` RPC.
+4. **ZiniPay (BD auto)** → in-app modal flow with `skip_redirect: true`, polls `zinipay_status` then auto-credits.
+
+### 11.5 Forbidden in this section
+
+- ❌ **Never** UPDATE `profiles.coins` directly. Always go through `recharge_user_diamonds` RPC (server-side, edge-function only).
+- ❌ **Never** trust client-side price. The selected package's `price_usd` is re-validated server-side before crediting.
+- ❌ **Never** show payment numbers from a non-payroll-enabled helper. Filter helpers in the Helper tab using `trader_level = 5 AND payroll_enabled = true` for withdrawal-related flows; standard recharge uses any active helper.
+
+### 11.6 Realtime updates
+
+| Channel | Event |
+|---|---|
+| `profiles:me:<userId>` | balance changed → refresh header |
+| `recharge_campaigns` | new campaign or expiry → refresh banner |
+| `recharge:<userId>` | helper request status change → toast + refresh history |
+
+---
+
+## Section 12 — Model file index (Flutter)
 
 | Domain | File |
 |---|---|
@@ -276,6 +330,7 @@ Realtime hook: subscribe to `profiles` row UPDATE, recompute level locally OR re
 | AI chat | `lib/models/ai_chat_model.dart` |
 | App version | `lib/models/app_version_model.dart` |
 | Trader / payment | `lib/models/trader_model.dart`, `payment_gateway_model.dart` |
-| Diamond package | `lib/models/package_model.dart` |
+| Diamond package (legacy) | `lib/models/package_model.dart` |
+| **Recharge / Diamond Top-Up** | **`lib/models/recharge_model.dart`** (CoinPackage, PaymentGateway, RechargeTransaction, FirstRechargeBonus, RechargeCampaign, HelperDiamondPackage) |
 
 Whenever the DB schema changes, regenerate the affected models and update both this file and `API_REFERENCE.md`.
