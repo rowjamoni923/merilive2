@@ -1634,22 +1634,19 @@ export default function AdminLayout() {
   };
 
   const handleLogout = async () => {
-    // Clear admin-specific access flags FIRST
+    // Clear admin session (independent from user app)
+    const { clearAdminSession } = await import('@/utils/adminSession');
+    clearAdminSession();
     revokeAdminAccess();
-    
-    // Also clear any cached admin queries
+
     setIsAdmin(false);
     setCurrentUser(null);
 
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        localStorage.setItem('meri_manual_logout', 'true');
-        await supabase.auth.signOut({ scope: 'local' });
-      }
-    } catch {}
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('admin-session-change'));
+    }
 
-    // Force navigate - use window.location to ensure full page reload and clear all state
+    // Force navigate - full page reload to clear React state
     window.location.href = '/admin/login';
   };
 
