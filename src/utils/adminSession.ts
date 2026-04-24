@@ -114,6 +114,7 @@ export const clearAdminSession = (): void => {
   try {
     window.localStorage.removeItem(ADMIN_SESSION_KEY);
     window.sessionStorage.removeItem(ADMIN_SESSION_KEY);
+    window.localStorage.removeItem(ADMIN_TOKEN_KEY);
   } catch {}
 };
 
