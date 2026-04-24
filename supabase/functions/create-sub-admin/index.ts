@@ -237,16 +237,28 @@ serve(async (req) => {
       }
     }
 
-    // Generate secure login link with access token from environment
-    const SUBADMIN_ACCESS_SECRET = Deno.env.get("ADMIN_SUBADMIN_TOKEN");
-    if (!SUBADMIN_ACCESS_SECRET) {
-      console.error("[create-sub-admin] ADMIN_SUBADMIN_TOKEN not configured");
-      return new Response(
-        JSON.stringify({ error: "Server configuration error: access token not set" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-    const loginLink = `https://merilive.com/admin/auth?access=${SUBADMIN_ACCESS_SECRET}&email=${encodeURIComponent(normalizedEmail)}`;
+    // Generate luxurious year-aware sub-admin token
+    // Format: gala-noir-onyx-<YEAR>-prism-<8-hex>
+    const BASE_SECRET =
+      Deno.env.get('ADMIN_TOKEN_BASE_SECRET') ||
+      Deno.env.get('ADMIN_OWNER_TOKEN') ||
+      'merilive-secret-base-2026-fallback';
+    const year = new Date().getUTCFullYear();
+    const enc = new TextEncoder();
+    const cryptoKey = await crypto.subtle.importKey(
+      'raw',
+      enc.encode(BASE_SECRET),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+    const sig = await crypto.subtle.sign('HMAC', cryptoKey, enc.encode(`sub_admin:${year}`));
+    const subHash = Array.from(new Uint8Array(sig))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('')
+      .slice(0, 8);
+    const subAdminToken = `gala-noir-onyx-${year}-prism-${subHash}`;
+    const loginLink = `https://merilive.com/admin/auth?access=${subAdminToken}&email=${encodeURIComponent(normalizedEmail)}`;
 
     console.log("[create-sub-admin] Sub-admin created successfully!");
 

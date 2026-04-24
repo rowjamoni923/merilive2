@@ -45,6 +45,8 @@ import {
   Lock
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase } from "@/integrations/supabase/adminClient";
+import { getAdminSession } from "@/utils/adminSession";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -378,13 +380,16 @@ const AdminSubAdmins = () => {
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
-  // Fetch sub-admin token from server instead of hardcoding
+  // Fetch the live luxurious sub-admin token (year-aware) from server
   const [subAdminTokenForLinks, setSubAdminTokenForLinks] = useState<string | null>(null);
-  
+
   useEffect(() => {
     const fetchToken = async () => {
       try {
-        const { data, error } = await supabase.functions.invoke('get-admin-tokens', { body: {} });
+        const session = getAdminSession();
+        const { data, error } = await adminSupabase.functions.invoke('get-admin-tokens', {
+          body: { admin_id: session?.admin_id },
+        });
         if (!error && data?.subadmin_token) {
           setSubAdminTokenForLinks(data.subadmin_token);
         }
