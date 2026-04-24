@@ -218,12 +218,8 @@ export const AdminAnalyticsCharts = memo(() => {
         </div>
       )}
 
-      {loading && !data ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
-        </div>
-      ) : (
-        <>
+      {/* Charts always render — empty state shown per chart when no data */}
+      <>
           {/* Charts Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             {/* User Growth */}
@@ -232,30 +228,33 @@ export const AdminAnalyticsCharts = memo(() => {
                 <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
                   <Users className="w-4 h-4 text-purple-400" />
                   User & Host Growth
+                  {loading && !data && <Loader2 className="w-3 h-3 animate-spin text-slate-400" />}
                   <Badge className="bg-emerald-600/20 text-emerald-300 border-emerald-500/30 text-[10px] ml-auto">REAL</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-4 pb-2">
-                <ResponsiveContainer width="100%" height={220}>
-                  <AreaChart data={chartUserGrowth} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorNewUsers" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={COLORS.users} stopOpacity={0.4} />
-                        <stop offset="100%" stopColor={COLORS.users} stopOpacity={0} />
-                      </linearGradient>
-                      <linearGradient id="colorNewHosts" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={COLORS.hosts} stopOpacity={0.4} />
-                        <stop offset="100%" stopColor={COLORS.hosts} stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />
-                    <XAxis dataKey="date" tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Area type="monotone" dataKey="New Users" stroke={COLORS.users} fill="url(#colorNewUsers)" strokeWidth={2.5} />
-                    <Area type="monotone" dataKey="New Hosts" stroke={COLORS.hosts} fill="url(#colorNewHosts)" strokeWidth={2.5} />
-                  </AreaChart>
-                </ResponsiveContainer>
+                {chartUserGrowth.some(d => d["New Users"] > 0 || d["New Hosts"] > 0) ? (
+                  <ResponsiveContainer width="100%" height={220}>
+                    <AreaChart data={chartUserGrowth} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="colorNewUsers" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={COLORS.users} stopOpacity={0.4} />
+                          <stop offset="100%" stopColor={COLORS.users} stopOpacity={0} />
+                        </linearGradient>
+                        <linearGradient id="colorNewHosts" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={COLORS.hosts} stopOpacity={0.4} />
+                          <stop offset="100%" stopColor={COLORS.hosts} stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />
+                      <XAxis dataKey="date" tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Area type="monotone" dataKey="New Users" stroke={COLORS.users} fill="url(#colorNewUsers)" strokeWidth={2.5} />
+                      <Area type="monotone" dataKey="New Hosts" stroke={COLORS.hosts} fill="url(#colorNewHosts)" strokeWidth={2.5} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : <ChartEmpty label="user signups" />}
               </CardContent>
             </Card>
 
@@ -265,25 +264,28 @@ export const AdminAnalyticsCharts = memo(() => {
                 <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
                   <DollarSign className="w-4 h-4 text-emerald-400" />
                   Recharge Revenue
+                  {loading && !data && <Loader2 className="w-3 h-3 animate-spin text-slate-400" />}
                   <Badge className="bg-emerald-600/20 text-emerald-300 border-emerald-500/30 text-[10px] ml-auto">REAL</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-4 pb-2">
-                <ResponsiveContainer width="100%" height={220}>
-                  <AreaChart data={chartRechargeRevenue} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={COLORS.revenue} stopOpacity={0.4} />
-                        <stop offset="100%" stopColor={COLORS.revenue} stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />
-                    <XAxis dataKey="date" tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Area type="monotone" dataKey="Revenue" stroke={COLORS.revenue} fill="url(#colorRevenue)" strokeWidth={2.5} />
-                  </AreaChart>
-                </ResponsiveContainer>
+                {chartRechargeRevenue.some(d => d.Revenue > 0) ? (
+                  <ResponsiveContainer width="100%" height={220}>
+                    <AreaChart data={chartRechargeRevenue} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={COLORS.revenue} stopOpacity={0.4} />
+                          <stop offset="100%" stopColor={COLORS.revenue} stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />
+                      <XAxis dataKey="date" tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Area type="monotone" dataKey="Revenue" stroke={COLORS.revenue} fill="url(#colorRevenue)" strokeWidth={2.5} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : <ChartEmpty label="recharges" />}
               </CardContent>
             </Card>
 
@@ -293,25 +295,28 @@ export const AdminAnalyticsCharts = memo(() => {
                 <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
                   <Gift className="w-4 h-4 text-amber-400" />
                   Gift Volume (Coins)
+                  {loading && !data && <Loader2 className="w-3 h-3 animate-spin text-slate-400" />}
                   <Badge className="bg-amber-600/20 text-amber-300 border-amber-500/30 text-[10px] ml-auto">REAL</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-4 pb-2">
-                <ResponsiveContainer width="100%" height={220}>
-                  <BarChart data={chartGiftRevenue} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorCoins" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={COLORS.coins} stopOpacity={0.9} />
-                        <stop offset="100%" stopColor={COLORS.coins} stopOpacity={0.3} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />
-                    <XAxis dataKey="date" tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="Coins" fill="url(#colorCoins)" radius={[6, 6, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+                {chartGiftRevenue.some(d => d.Coins > 0) ? (
+                  <ResponsiveContainer width="100%" height={220}>
+                    <BarChart data={chartGiftRevenue} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="colorCoins" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={COLORS.coins} stopOpacity={0.9} />
+                          <stop offset="100%" stopColor={COLORS.coins} stopOpacity={0.3} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />
+                      <XAxis dataKey="date" tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Bar dataKey="Coins" fill="url(#colorCoins)" radius={[6, 6, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : <ChartEmpty label="gifts sent" />}
               </CardContent>
             </Card>
 
@@ -321,24 +326,26 @@ export const AdminAnalyticsCharts = memo(() => {
                 <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
                   <Phone className="w-4 h-4 text-cyan-400" />
                   Call Activity
+                  {loading && !data && <Loader2 className="w-3 h-3 animate-spin text-slate-400" />}
                   <Badge className="bg-cyan-600/20 text-cyan-300 border-cyan-500/30 text-[10px] ml-auto">REAL</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-4 pb-2">
-                <ResponsiveContainer width="100%" height={220}>
-                  <LineChart data={chartCallActivity} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />
-                    <XAxis dataKey="date" tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Line type="monotone" dataKey="Calls" stroke={COLORS.calls} strokeWidth={2.5} dot={{ r: 3, fill: COLORS.calls }} />
-                    <Line type="monotone" dataKey="Minutes" stroke="#a78bfa" strokeWidth={2} strokeDasharray="5 5" dot={false} />
-                  </LineChart>
-                </ResponsiveContainer>
+                {chartCallActivity.some(d => d.Calls > 0 || d.Minutes > 0) ? (
+                  <ResponsiveContainer width="100%" height={220}>
+                    <LineChart data={chartCallActivity} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />
+                      <XAxis dataKey="date" tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Line type="monotone" dataKey="Calls" stroke={COLORS.calls} strokeWidth={2.5} dot={{ r: 3, fill: COLORS.calls }} />
+                      <Line type="monotone" dataKey="Minutes" stroke="#a78bfa" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : <ChartEmpty label="calls" />}
               </CardContent>
             </Card>
           </div>
-
           {/* Agency Distribution (smaller) */}
           {pieData.length > 0 && (
             <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 border-slate-700/40 backdrop-blur-sm shadow-xl overflow-hidden max-w-md">
