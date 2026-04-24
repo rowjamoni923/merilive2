@@ -668,11 +668,22 @@ const AdminPartyBackgrounds = () => {
                     !bg.is_active && "opacity-60"
                   )}
                 >
-                  <img
-                    src={bg.image_url || ''}
-                    alt={bg.name}
-                    className="w-20 h-12 object-cover rounded-lg"
-                  />
+                  <div
+                    className="w-20 h-12 rounded-lg overflow-hidden bg-muted shrink-0"
+                    style={bg.gradient_css && !bg.image_url ? { background: bg.gradient_css } : undefined}
+                  >
+                    {bg.image_url && (
+                      <img
+                        src={bg.image_url}
+                        alt={bg.name}
+                        loading="lazy"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    )}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="font-medium truncate">{bg.name}</p>
