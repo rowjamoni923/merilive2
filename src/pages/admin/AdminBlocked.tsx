@@ -60,53 +60,37 @@ export default function AdminBlocked() {
   const fetchBlockedItems = async () => {
     if (blockedUsers.length === 0) setLoading(true);
     try {
+      // Use admin SECURITY DEFINER RPC to reliably load blocked users
+      // (bypasses restricted profiles RLS while still requiring admin auth)
       const { data: users, error: usersError } = await supabase
-        .from("profiles")
-        .select("id, display_name, avatar_url, blocked_at, blocked_reason, is_host")
-        .eq("is_blocked", true)
-        .order("blocked_at", { ascending: false });
+        .rpc("admin_list_blocked_users", { _search: null, _limit: 500 });
 
       if (usersError) throw usersError;
-      setBlockedUsers(users || []);
+      setBlockedUsers((users || []) as BlockedUser[]);
+      setAdminCache('admin_blocked_users', users || []);
 
       const { data: agencies, error: agenciesError } = await supabase
-        .from("agencies")
-        .select("id, owner_id, name, agency_code, blocked_at, blocked_reason, total_hosts")
-        .eq("is_blocked", true)
-        .order("blocked_at", { ascending: false });
+        .rpc("admin_list_blocked_agencies", { _search: null, _limit: 500 });
 
       if (agenciesError) throw agenciesError;
 
-      const ownerIds = [...new Set((agencies || []).map((agency: any) => agency.owner_id).filter(Boolean))];
-      let ownerMap = new Map<string, { display_name: string; avatar_url: string | null }>();
-
-      if (ownerIds.length > 0) {
-        const { data: owners, error: ownersError } = await supabase
-          .from('profiles')
-          .select('id, display_name, avatar_url')
-          .in('id', ownerIds);
-
-        if (ownersError) throw ownersError;
-
-        (owners || []).forEach((owner) => {
-          ownerMap.set(owner.id, {
-            display_name: owner.display_name || 'Unknown Owner',
-            avatar_url: owner.avatar_url,
-          });
-        });
-      }
-
-      const formattedAgencies = (agencies || []).map((agency: any) => ({
+      const formattedAgencies = ((agencies || []) as any[]).map((agency) => ({
         id: agency.id,
         name: agency.name,
         agency_code: agency.agency_code,
         blocked_at: agency.blocked_at,
         blocked_reason: agency.blocked_reason,
         total_hosts: agency.total_hosts,
-        owner: agency.owner_id ? ownerMap.get(agency.owner_id) || null : null,
+        owner: agency.owner_id
+          ? {
+              display_name: agency.owner_display_name || 'Unknown Owner',
+              avatar_url: agency.owner_avatar_url,
+            }
+          : null,
       })) as BlockedAgency[];
 
       setBlockedAgencies(formattedAgencies);
+      setAdminCache('admin_blocked_agencies', formattedAgencies);
     } catch (error) {
       console.error("Error fetching blocked items:", error);
       toast.error("Failed to load data");
