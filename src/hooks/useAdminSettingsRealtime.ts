@@ -204,16 +204,31 @@ const initializeRealtimeSubscription = () => {
   };
   void fetchAllSettings();
 
-  // Poll non-publication tables every 60s (cost-free, just DB reads)
-  const pollTimer = setInterval(async () => {
-    if (document.visibilityState !== 'visible') return;
-    await Promise.all([
-      refreshBanners(), refreshGifts(), refreshDiamondPackages(),
-      refreshCurrencyRates(), refreshBranding(), refreshGameSettings(),
-      refreshPaymentMethods(),
-    ]);
-    notifySubscribers();
-  }, 60_000);
+  // ⚡ ZERO POLLING: settings refresh only when admin panel dispatches a change
+  // event (admin-table-update). All admin mutations now trigger this event,
+  // so a 60s timer is no longer needed and was removed to save battery + DB cost.
+  const handleAdminMutationEvent = async (e: Event) => {
+    const detail = (e as CustomEvent).detail;
+    const table = detail?.table;
+    const refreshMap: Record<string, (() => Promise<void> | void)> = {
+      banners: refreshBanners,
+      gifts: refreshGifts,
+      coin_packages: refreshDiamondPackages,
+      currency_rates: refreshCurrencyRates,
+      branding_settings: refreshBranding,
+      game_settings: refreshGameSettings,
+      app_settings: refreshAppSettings,
+      topup_payment_methods: refreshPaymentMethods,
+    };
+    if (table && refreshMap[table]) {
+      await refreshMap[table]();
+      notifySubscribers();
+    }
+  };
+  window.addEventListener('admin-table-update', handleAdminMutationEvent);
+  (window as any).__adminSettingsEventCleanup = () => {
+    window.removeEventListener('admin-table-update', handleAdminMutationEvent);
+  };
 
   // Only subscribe to app_settings (the only publication table)
   const createPublicChannel = () => {
@@ -234,9 +249,6 @@ const initializeRealtimeSubscription = () => {
   };
 
   createPublicChannel();
-
-  // Store poll timer cleanup
-  (window as any).__adminSettingsPollTimer = pollTimer;
 };
 
 // Refresh functions
