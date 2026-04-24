@@ -172,15 +172,10 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
 
   if (!checked) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center px-6">
-        <div className="w-full max-w-sm rounded-2xl border border-border bg-card/80 p-6 text-center shadow-sm backdrop-blur-sm">
-          <div className="mb-4 flex justify-center">
-            <div className="h-3 w-3 animate-pulse rounded-full bg-primary" />
-          </div>
-          <h1 className="text-base font-semibold text-foreground">Loading your account</h1>
-          <p className="mt-2 text-sm text-muted-foreground">We're preparing your access...</p>
-        </div>
-      </div>
+      <MeriLiveLoader
+        message="Loading your account"
+        subMessage="We're preparing your access..."
+      />
     );
   }
 
