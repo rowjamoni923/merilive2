@@ -229,7 +229,7 @@ export default function AdminDeviceManagement() {
           </div>
           
           <Button
-            onClick={fetchDevices}
+            onClick={loadDevices}
             variant="outline"
             className="border-white/20 text-white hover:bg-white/10"
           >
@@ -325,9 +325,9 @@ export default function AdminDeviceManagement() {
                             {/* Admin User */}
                             <div className="flex items-center gap-2 text-white/60 text-sm mb-2">
                               <User className="w-3.5 h-3.5" />
-                              <span>{device.admin_user?.display_name || device.admin_user?.email}</span>
+                              <span>{device.admin_display_name || device.admin_email}</span>
                               <Badge variant="outline" className="text-xs">
-                                {device.admin_user?.role}
+                                {device.admin_role}
                               </Badge>
                             </div>
                             
@@ -445,7 +445,7 @@ export default function AdminDeviceManagement() {
               {actionType === 'approve' && (
                 <>
                   Approving <strong className="text-white">{selectedDevice?.device_name}</strong> will grant{' '}
-                  <strong className="text-white">{selectedDevice?.admin_user?.display_name || selectedDevice?.admin_user?.email}</strong>{' '}
+                  <strong className="text-white">{selectedDevice?.admin_display_name || selectedDevice?.admin_email}</strong>{' '}
                   access to the admin panel from this device.
                 </>
               )}
