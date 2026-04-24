@@ -1060,18 +1060,18 @@ const Auth = () => {
       // OTP verified — now sign the user in (creates account if not exists)
       const { data: signInData, error: signInError } = await supabase.functions.invoke(
         "otp-direct-signin",
-        { body: { email: normalizedEmail } }
+        { body: { email: normalizedEmail, otp_verified: true } }
       );
 
       if (signInError) throw signInError;
-      if (!signInData?.success || !signInData?.session) {
+      if (!signInData?.success || !signInData?.access_token) {
         throw new Error(signInData?.error || "Failed to complete sign-in");
       }
 
       // Set the session in the Supabase client
       const { error: setErr } = await supabase.auth.setSession({
-        access_token: signInData.session.access_token,
-        refresh_token: signInData.session.refresh_token,
+        access_token: signInData.access_token,
+        refresh_token: signInData.refresh_token,
       });
       if (setErr) throw setErr;
 
