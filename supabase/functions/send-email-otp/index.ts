@@ -150,8 +150,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    const gmailUser = Deno.env.get("GMAIL_USER");
-    const gmailAppPassword = Deno.env.get("GMAIL_APP_PASSWORD");
+    const gmailUser = Deno.env.get("GMAIL_USER")?.trim().toLowerCase();
+    const gmailAppPassword = Deno.env.get("GMAIL_APP_PASSWORD")?.replace(/\s+/g, "").trim();
     if (!gmailUser || !gmailAppPassword) {
       console.error("[send-email-otp] Gmail SMTP credentials not configured");
       return new Response(
