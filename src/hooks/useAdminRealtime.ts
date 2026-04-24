@@ -257,7 +257,7 @@ export const useAdminRealtime = (
     // Direct channel for tables outside global monitoring (admin + non-admin routes)
     let channel: ReturnType<typeof supabase.channel> | null = null;
     if (directTables.length > 0) {
-      const name = channelName || `rt-${directTables.join('-')}-${Date.now()}`;
+      const name = channelName || `rt-${directTables.join('-')}-${crypto.randomUUID()}`;
       channel = supabase.channel(name);
       for (const table of directTables) {
         channel = channel.on(
