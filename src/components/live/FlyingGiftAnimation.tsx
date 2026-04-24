@@ -350,6 +350,35 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
           </div>
         </div>
 
+        {/* Personal value badge: sender sees diamonds spent, receiver sees beans earned.
+            Hidden for everyone else so spectators don't see private settlement values. */}
+        {(gift.isOwnGift || gift.isReceiverGift) && (
+          <motion.div
+            initial={{ opacity: 0, y: -6, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ delay: 0.25, type: 'spring', damping: 14, stiffness: 280 }}
+            className="mt-1.5 ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full backdrop-blur-md border border-white/20 bg-black/55 shadow-lg"
+          >
+            {gift.isOwnGift ? (
+              <>
+                <span className="text-[13px] leading-none">💎</span>
+                <span className="text-cyan-200 font-bold text-[11px] leading-none">
+                  -{totalDiamonds.toLocaleString()}
+                </span>
+                <span className="text-white/60 text-[9px] leading-none ml-0.5">spent</span>
+              </>
+            ) : (
+              <>
+                <span className="text-[13px] leading-none">🫘</span>
+                <span className="text-emerald-200 font-bold text-[11px] leading-none">
+                  +{totalBeans.toLocaleString()}
+                </span>
+                <span className="text-white/60 text-[9px] leading-none ml-0.5">earned</span>
+              </>
+            )}
+          </motion.div>
+        )}
+
         {/* Sparkle trail for premium */}
         {isPremium && (
           <div className="absolute -right-2 top-1/2 -translate-y-1/2">
