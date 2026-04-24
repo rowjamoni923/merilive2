@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
+import { getAdminSessionToken } from "@/utils/adminSession";
 import { toast } from "sonner";
 import { 
   Mail, Search, Loader2, Send, RefreshCw, Inbox, 
