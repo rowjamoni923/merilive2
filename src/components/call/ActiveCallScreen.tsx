@@ -378,7 +378,8 @@ export function ActiveCallScreen({
         soundUrl: gift.sound_url || undefined,
         giftColor: "bg-pink-500/50",
         count,
-        coins: result.transaction?.coins_spent || totalCost,
+        coins: gift.coins,
+        isOwnGift: true,
       });
 
       setShowGiftPanel(false);
