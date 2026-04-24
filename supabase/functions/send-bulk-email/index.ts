@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { Resend } from "https://esm.sh/resend@2.0.0";
+import nodemailer from "npm:nodemailer@6.9.12";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,16 +13,40 @@ interface BulkEmailRequest {
   customEmails?: string[];
 }
 
-// Resend email sender
+// Gmail SMTP — single shared transporter per cold start
+let cachedTransporter: any = null;
+function getTransporter() {
+  if (cachedTransporter) return cachedTransporter;
+  const gmailUser = (Deno.env.get("GMAIL_USER") ?? "").trim();
+  const gmailPass = (Deno.env.get("GMAIL_APP_PASSWORD") ?? "").replace(/\s+/g, "");
+  if (!gmailUser || !gmailPass) return null;
+  cachedTransporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    auth: { user: gmailUser, pass: gmailPass },
+    pool: true,
+    maxConnections: 3,
+    maxMessages: 100,
+  });
+  return cachedTransporter;
+}
+
 async function sendWithResend(to: string, subject: string, html: string): Promise<{ success: boolean; error?: string }> {
-  const apiKey = Deno.env.get("RESEND_API_KEY");
-  if (!apiKey) return { success: false, error: "RESEND_API_KEY not configured" };
+  const transporter = getTransporter();
+  if (!transporter) return { success: false, error: "GMAIL credentials not configured" };
+  const gmailUser = (Deno.env.get("GMAIL_USER") ?? "").trim();
   try {
-    const resend = new Resend(apiKey);
-    const response = await resend.emails.send({ from: "MeriLive <noreply@merilive.com>", to: [to], subject, html });
-    if (response.error) return { success: false, error: response.error.message };
+    await transporter.sendMail({
+      from: `"MeriLive" <${gmailUser}>`,
+      to,
+      subject,
+      html,
+    });
     return { success: true };
-  } catch (e: any) { return { success: false, error: e.message }; }
+  } catch (e: any) {
+    return { success: false, error: e?.message || String(e) };
+  }
 }
 
 Deno.serve(async (req) => {
