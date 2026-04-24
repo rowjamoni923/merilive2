@@ -3145,21 +3145,26 @@ export type Database = {
           duplicate_face_name: string | null
           duplicate_face_uid: string | null
           duplicate_face_user_id: string | null
+          duplicate_of_user_id: string | null
           face_image_url: string | null
+          face_rekognition_id: string | null
           full_name: string | null
           host_photos: string[] | null
           id: string
           is_duplicate_face: boolean | null
           language: string | null
+          match_confidence: number | null
           notes: string | null
           profile_photo_url: string | null
           reference_image_url: string | null
           rejection_reason: string | null
+          rekognition_external_id: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           selfie_url: string
           status: string | null
           user_id: string
+          verification_method: string | null
           verification_type: string | null
           video_url: string | null
         }
@@ -3173,21 +3178,26 @@ export type Database = {
           duplicate_face_name?: string | null
           duplicate_face_uid?: string | null
           duplicate_face_user_id?: string | null
+          duplicate_of_user_id?: string | null
           face_image_url?: string | null
+          face_rekognition_id?: string | null
           full_name?: string | null
           host_photos?: string[] | null
           id?: string
           is_duplicate_face?: boolean | null
           language?: string | null
+          match_confidence?: number | null
           notes?: string | null
           profile_photo_url?: string | null
           reference_image_url?: string | null
           rejection_reason?: string | null
+          rekognition_external_id?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           selfie_url: string
           status?: string | null
           user_id: string
+          verification_method?: string | null
           verification_type?: string | null
           video_url?: string | null
         }
@@ -3201,21 +3211,26 @@ export type Database = {
           duplicate_face_name?: string | null
           duplicate_face_uid?: string | null
           duplicate_face_user_id?: string | null
+          duplicate_of_user_id?: string | null
           face_image_url?: string | null
+          face_rekognition_id?: string | null
           full_name?: string | null
           host_photos?: string[] | null
           id?: string
           is_duplicate_face?: boolean | null
           language?: string | null
+          match_confidence?: number | null
           notes?: string | null
           profile_photo_url?: string | null
           reference_image_url?: string | null
           rejection_reason?: string | null
+          rekognition_external_id?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           selfie_url?: string
           status?: string | null
           user_id?: string
+          verification_method?: string | null
           verification_type?: string | null
           video_url?: string | null
         }
@@ -12544,6 +12559,15 @@ export type Database = {
         Args: { _face_hash: string; _matched_user_id: string; _user_id: string }
         Returns: undefined
       }
+      ban_duplicate_face_user: {
+        Args: {
+          _confidence: number
+          _original_user_id: string
+          _rekognition_face_id: string
+          _user_id: string
+        }
+        Returns: Json
+      }
       bulk_credit_call_earnings: {
         Args: { _admin_id: string; _call_ids: string[] }
         Returns: Json
@@ -13302,6 +13326,18 @@ export type Database = {
           p_bet_type?: string
           p_bet_value?: string
           p_round_id: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      process_face_verification_v3: {
+        Args: {
+          p_confidence: number
+          p_duplicate_user_id?: string
+          p_face_rekognition_id: string
+          p_is_match: boolean
+          p_live_face_url?: string
+          p_profile_photo_url: string
           p_user_id: string
         }
         Returns: Json
