@@ -1,14 +1,19 @@
 /**
  * ADMIN-ONLY Supabase Client
- * 
+ *
  * This client is COMPLETELY isolated from the user app's Supabase client:
  * - Uses a separate localStorage key (`merilive-admin-auth`)
  * - Does NOT persist auth in the same place as the user app
  * - Admin authentication is custom (admin_authenticate RPC), NOT via auth.users
- * 
+ *
+ * Server-side admin session token (issued by admin_authenticate) is sent on every
+ * request as the `x-admin-token` header. Postgres RLS uses
+ * `public.is_active_admin_session()` to allow writes from the admin panel.
+ *
  * The user app login/logout will NEVER affect admin panel session and vice-versa.
  */
 import { createClient } from '@supabase/supabase-js';
+import { getAdminSessionToken } from '@/utils/adminSession';
 
 const SUPABASE_URL = "https://ayjdlvuurscxucatbbah.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5amRsdnV1cnNjeHVjYXRiYmFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNjQxMjMsImV4cCI6MjA5MDg0MDEyM30.5A53IMXcvGGnmXK9Dd96V7ceceh1JFuGmPom-hojWJc";
@@ -33,11 +38,27 @@ const adminStorage = {
 };
 
 /**
+ * Custom fetch wrapper that attaches the admin session token header on every request.
+ * RLS on admin-managed tables checks for this header via `is_active_admin_session()`.
+ */
+const adminFetch: typeof fetch = (input, init = {}) => {
+  const token = getAdminSessionToken();
+  const headers = new Headers(init.headers || {});
+  if (token) {
+    headers.set('x-admin-token', token);
+  }
+  return fetch(input, { ...init, headers });
+};
+
+/**
  * adminSupabase: dedicated Supabase client for admin panel.
- * Use this for ALL admin panel database queries that require RPC access.
+ * Use this for ALL admin panel database queries.
  * Does NOT share session with the user app.
  */
 export const adminSupabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  global: {
+    fetch: adminFetch,
+  },
   auth: {
     storage: adminStorage,
     storageKey: 'admin-session',
