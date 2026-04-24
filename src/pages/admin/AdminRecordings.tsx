@@ -203,13 +203,13 @@ export default function AdminRecordings() {
 
   const handleDeleteRecording = async (recordingId: string) => {
     if (!confirm("Do you want to delete this recording?")) return;
-
+    const adminId = getCurrentAdminId();
+    if (!adminId) { toast.error("Not signed in"); return; }
     try {
-      const { error } = await supabase
-        .from("stream_recordings")
-        .update({ status: "deleted" })
-        .eq("id", recordingId);
-
+      const { error } = await supabase.rpc("admin_delete_recording", {
+        _admin_id: adminId,
+        _recording_id: recordingId,
+      });
       if (error) throw error;
       toast.success("Recording deleted");
       fetchRecordings();
