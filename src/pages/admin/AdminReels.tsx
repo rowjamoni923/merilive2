@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
+import { getCurrentAdminId } from "@/utils/adminSession";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
