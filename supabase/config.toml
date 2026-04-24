@@ -2,3 +2,6 @@ project_id = "ayjdlvuurscxucatbbah"
 
 [functions.slotslaunch-games]
 verify_jwt = false
+
+[functions.process-face-verification-v3]
+verify_jwt = true
