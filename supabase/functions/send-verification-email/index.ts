@@ -80,8 +80,8 @@ const handler = async (req: Request): Promise<Response> => {
 <!DOCTYPE html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#0a0a0f;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0f;padding:40px 0;">
+<body style="margin:0;padding:0;background:#ffffff;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;padding:20px 0;">
 <tr><td align="center">
 <table width="460" cellpadding="0" cellspacing="0" style="border-radius:20px;overflow:hidden;box-shadow:0 0 60px rgba(124,58,237,0.15),0 20px 60px rgba(0,0,0,0.4);">
 
