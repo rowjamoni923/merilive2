@@ -62,6 +62,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { format, formatDistanceToNow } from "date-fns";
@@ -69,6 +70,7 @@ import { AdminAlertBell } from "@/components/admin/AdminPhoneAlertsPanel";
 import { AdminProfileMenu } from "@/components/admin/AdminProfileMenu";
 import useAdminAccess from "@/hooks/useAdminAccess";
 import { revokeAdminAccess, hasAdminAccessFlag, hasOwnerAccessFlag } from "@/utils/adminAccessStorage";
+import { getAdminSession } from "@/utils/adminSession";
 import { ScreenSecuritySDK } from "@/sdk/ScreenSecuritySDK";
 import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -1526,110 +1528,68 @@ export default function AdminLayout() {
   // Zero-refresh admin UX: route changes handled by useAdminRealtime bootstrap refresh
   // No wildcard dispatch needed — each page's useAdminRealtime does its own initial fetch
   useEffect(() => {
-    checkAdminAccess();
-    
-    // Re-check admin access when auth session restores (e.g., after refresh)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        if (!isAdmin) {
-          console.log('[AdminLayout] Auth event:', event, '- re-checking admin access');
-          checkAdminAccess();
-        }
+    void checkAdminAccess();
+
+    const handler = () => {
+      void checkAdminAccess();
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', handler);
+      window.addEventListener('admin-session-change', handler);
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('storage', handler);
+        window.removeEventListener('admin-session-change', handler);
       }
-    });
-    
-    return () => { subscription.unsubscribe(); };
+    };
   }, []);
-
-  const waitForRestoredUser = async (timeoutMs = 1200): Promise<any | null> => {
-    // Quick check first - no waiting
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user) return session.user;
-
-    // Try refresh immediately
-    try {
-      const { data } = await supabase.auth.refreshSession();
-      if (data.session?.user) return data.session.user;
-    } catch {}
-
-    // Wait briefly for auth restore event (no interval polling)
-    return await new Promise((resolve) => {
-      let resolved = false;
-      const finish = (value: any) => {
-        if (resolved) return;
-        resolved = true;
-        clearTimeout(timeout);
-        subscription.unsubscribe();
-        resolve(value);
-      };
-
-      const timeout = setTimeout(() => finish(null), timeoutMs);
-
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, sess) => {
-        if (sess?.user) finish(sess.user);
-      });
-
-      void supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session?.user) finish(session.user);
-      });
-    });
-  };
 
   const checkAdminAccess = async () => {
     try {
-      const hasFlagAccess = hasAdminAccessFlag();
-      if (hasFlagAccess) {
-        console.log("[AdminLayout] ⚡ Admin access flag detected - validating authenticated session");
-      }
+      const adminSession = getAdminSession();
+      const hasFlagAccess = hasAdminAccessFlag() || hasOwnerAccessFlag();
 
-      const { data: { session } } = await supabase.auth.getSession();
-      let user = session?.user ?? null;
-
-      // Token/local flag alone is NOT enough for data access; require real auth session
-      if (!user) {
-        user = await waitForRestoredUser(hasFlagAccess ? 2200 : 1200);
-      }
-
-      if (!user) {
+      if (!adminSession) {
         if (hasFlagAccess) {
-          console.warn("[AdminLayout] Admin flag exists but no authenticated user/session - revoking local access");
+          console.warn('[AdminLayout] Admin flag exists but dedicated admin session is missing - revoking local access');
           revokeAdminAccess();
         }
+        setCurrentUser(null);
         setIsAdmin(false);
-        setIsLoading(false);
         return;
       }
 
-      // Fetch profile and check admin in parallel
-      const [profileRes, adminRes] = await Promise.all([
-        supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
-        supabase.rpc("is_admin", { _user_id: user.id }),
-      ]);
+      const { data: adminRecord, error } = await adminSupabase
+        .from('admin_users')
+        .select('id, user_id, email, display_name, role, is_active, accepted_at')
+        .eq('id', adminSession.admin_id)
+        .eq('is_active', true)
+        .maybeSingle();
 
-      setCurrentUser({ ...user, profile: profileRes.data });
-
-      let isAdminResult = !adminRes.error && adminRes.data === true;
-
-      // Only retry once if first attempt failed
-      if (!isAdminResult) {
-        await supabase.auth.refreshSession();
-        const retry = await supabase.rpc("is_admin", { _user_id: user.id });
-        isAdminResult = !retry.error && retry.data === true;
-      }
-
-      if (!isAdminResult) {
-        console.warn("[AdminLayout] User is not admin - revoking local admin flag");
+      if (error || !adminRecord) {
+        console.warn('[AdminLayout] Dedicated admin session is invalid or inactive - revoking local access', error);
         revokeAdminAccess();
+        setCurrentUser(null);
         setIsAdmin(false);
-        setIsLoading(false);
         return;
       }
 
+      setCurrentUser({
+        id: adminRecord.user_id ?? adminRecord.id,
+        admin_id: adminRecord.id,
+        email: adminRecord.email,
+        display_name: adminRecord.display_name,
+        role: adminRecord.role,
+        accepted_at: adminRecord.accepted_at,
+      });
       setIsAdmin(true);
     } catch (error) {
-      console.error("Admin check error:", error);
-      try { await supabase.auth.refreshSession(); } catch {}
-      setIsLoading(false);
+      console.error('Admin check error:', error);
+      setCurrentUser(null);
+      setIsAdmin(false);
     } finally {
       setIsLoading(false);
     }
