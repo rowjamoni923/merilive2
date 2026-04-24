@@ -1656,6 +1656,29 @@ const Auth = () => {
     setOtpLoading(true);
     try {
       if (otpCode === expectedOtpCode) {
+        // 🛡️ PERMANENT BAN GUARD — block signup if device/IP/face is on the urgent ban list
+        try {
+          const { getPersistentDeviceId } = await import('@/utils/persistentDeviceId');
+          const deviceId = await getPersistentDeviceId();
+          const { data: eligibility } = await supabase.rpc('check_signup_eligibility', {
+            _device_id: deviceId,
+            _ip_address: null,
+            _face_hash: null,
+          });
+          const result = eligibility as { eligible?: boolean; reason?: string } | null;
+          if (result && result.eligible === false) {
+            toast({
+              title: "🚫 Signup Blocked",
+              description: result.reason || "This device has been permanently banned. Please contact support.",
+              variant: "destructive",
+            });
+            setOtpLoading(false);
+            return;
+          }
+        } catch (eligErr) {
+          console.warn('[Auth] Signup eligibility check failed (non-fatal)', eligErr);
+        }
+
         // OTP verified successfully - NOW create the account
         const { data, error } = await supabase.auth.signUp({
           email,
