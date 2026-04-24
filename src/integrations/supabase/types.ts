@@ -1692,6 +1692,54 @@ export type Database = {
         }
         Relationships: []
       }
+      balance_audit_log: {
+        Row: {
+          actor_id: string | null
+          actor_role: string | null
+          bypass_used: boolean | null
+          column_name: string
+          created_at: string
+          delta: number | null
+          id: string
+          ip_address: string | null
+          new_value: number | null
+          old_value: number | null
+          rpc_function: string | null
+          table_name: string
+          user_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          actor_role?: string | null
+          bypass_used?: boolean | null
+          column_name: string
+          created_at?: string
+          delta?: number | null
+          id?: string
+          ip_address?: string | null
+          new_value?: number | null
+          old_value?: number | null
+          rpc_function?: string | null
+          table_name: string
+          user_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          actor_role?: string | null
+          bypass_used?: boolean | null
+          column_name?: string
+          created_at?: string
+          delta?: number | null
+          id?: string
+          ip_address?: string | null
+          new_value?: number | null
+          old_value?: number | null
+          rpc_function?: string | null
+          table_name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       banned_devices: {
         Row: {
           banned_at: string
