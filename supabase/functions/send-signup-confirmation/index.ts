@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "https://esm.sh/resend@2.0.0";
+import nodemailer from "npm:nodemailer@6.9.12";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -102,17 +102,36 @@ const enforceRateLimit = (email: string, ip: string) => {
   return null;
 };
 
-// ===== Resend Email Sender =====
+// ===== Gmail SMTP Email Sender =====
 
-async function sendWithResend(to: string, subject: string, html: string): Promise<{ success: boolean; error?: string }> {
-  const apiKey = Deno.env.get("RESEND_API_KEY");
-  if (!apiKey) return { success: false, error: "RESEND_API_KEY not configured" };
+async function sendWithGmail(to: string, subject: string, html: string): Promise<{ success: boolean; error?: string }> {
+  const gmailUser = (Deno.env.get("GMAIL_USER") ?? "").trim();
+  const gmailPass = (Deno.env.get("GMAIL_APP_PASSWORD") ?? "").replace(/\s+/g, "");
+
+  if (!gmailUser || !gmailPass) {
+    return { success: false, error: "GMAIL_USER or GMAIL_APP_PASSWORD not configured" };
+  }
+
   try {
-    const resend = new Resend(apiKey);
-    const response = await resend.emails.send({ from: "MeriLive <noreply@merilive.com>", to: [to], subject, html });
-    if (response.error) return { success: false, error: response.error.message };
+    const transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: { user: gmailUser, pass: gmailPass },
+    });
+
+    await transporter.sendMail({
+      from: `"MeriLive" <${gmailUser}>`,
+      to,
+      subject,
+      html,
+    });
+
     return { success: true };
-  } catch (e: any) { return { success: false, error: e.message }; }
+  } catch (e: any) {
+    console.error("Gmail SMTP error:", e?.message || e);
+    return { success: false, error: e?.message || String(e) };
+  }
 }
 
 // ===== Main Handler =====
@@ -242,20 +261,20 @@ const handler = async (req: Request): Promise<Response> => {
       </html>
     `;
 
-    console.log("Sending via Resend...");
-    const result = await sendWithResend(email, "🔐 Your MeriLive Verification Code", html);
+    console.log("Sending via Gmail SMTP...");
+    const result = await sendWithGmail(email, "Your MeriLive Verification Code", html);
 
     if (!result.success) {
-      console.error("Resend failed:", result.error);
+      console.error("Gmail SMTP failed:", result.error);
       return new Response(
         JSON.stringify({ success: false, error: "Email delivery failed", details: result.error, code }),
         { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
-    console.log("✅ Email sent successfully via Resend");
+    console.log("✅ Email sent successfully via Gmail SMTP");
     return new Response(
-      JSON.stringify({ success: true, provider: "Resend", code }),
+      JSON.stringify({ success: true, provider: "Gmail", code }),
       { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   } catch (error: any) {
