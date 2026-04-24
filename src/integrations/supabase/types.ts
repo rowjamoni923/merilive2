@@ -8190,25 +8190,46 @@ export type Database = {
       rating_reward_claims: {
         Row: {
           claimed_at: string
+          created_at: string
           id: string
           platform: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          reward_amount: number
           reward_coins: number
+          reward_type: string
+          screenshot_url: string | null
           status: string | null
           user_id: string
         }
         Insert: {
           claimed_at?: string
+          created_at?: string
           id?: string
           platform: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reward_amount?: number
           reward_coins?: number
+          reward_type?: string
+          screenshot_url?: string | null
           status?: string | null
           user_id: string
         }
         Update: {
           claimed_at?: string
+          created_at?: string
           id?: string
           platform?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reward_amount?: number
           reward_coins?: number
+          reward_type?: string
+          screenshot_url?: string | null
           status?: string | null
           user_id?: string
         }

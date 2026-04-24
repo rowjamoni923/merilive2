@@ -1,4 +1,4 @@
- import { useState, useEffect } from "react";
+ import { useState, useEffect, useCallback } from "react";
  import useAdminRealtime from "@/hooks/useAdminRealtime";
  import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
  import { Button } from "@/components/ui/button";
@@ -13,10 +13,13 @@
  
  interface ExchangeTier {
    id: string;
-   beans_amount: number;
-   diamonds_reward: number;
+   min_beans: number;
+   max_beans: number | null;
+   exchange_rate: number;
+   bonus_percent: number;
    display_order: number;
    is_active: boolean;
+   tier_name?: string | null;
  }
  
  export default function AdminUserBeansExchange() {
@@ -25,23 +28,34 @@
    const [loading, setLoading] = useState(false);
    const [showAddModal, setShowAddModal] = useState(false);
    const [editingTier, setEditingTier] = useState<ExchangeTier | null>(null);
-   const [formData, setFormData] = useState({ beans_amount: "", diamonds_reward: "", display_order: "0" });
+   const [formData, setFormData] = useState({ min_beans: "", max_beans: "", exchange_rate: "", bonus_percent: "0", display_order: "0", tier_name: "" });
    const [saving, setSaving] = useState(false);
 
-   useAdminRealtime(['user_beans_exchange_tiers'], () => fetchTiers());
- 
-   const fetchTiers = async () => {
-     const { data, error } = await supabase
-       .from('user_beans_exchange_tiers')
-       .select('*')
-       .order('display_order', { ascending: true });
-     
-     if (data) setTiers(data);
-     setLoading(false);
-   };
+   const fetchTiers = useCallback(async () => {
+     setLoading(true);
+     try {
+       const { data, error } = await supabase
+         .from('user_beans_exchange_tiers')
+         .select('*')
+         .order('display_order', { ascending: true });
+
+       if (error) throw error;
+       setTiers((data || []) as ExchangeTier[]);
+     } catch (error: any) {
+       toast({ title: "Failed to load tiers", description: error.message, variant: "destructive" });
+     } finally {
+       setLoading(false);
+     }
+   }, [toast]);
+
+   useEffect(() => {
+     fetchTiers();
+   }, [fetchTiers]);
+
+   useAdminRealtime(['user_beans_exchange_tiers'], fetchTiers);
  
    const handleSave = async () => {
-     if (!formData.beans_amount || !formData.diamonds_reward) {
+     if (!formData.min_beans || !formData.exchange_rate) {
        toast({ title: "Please fill all fields", variant: "destructive" });
        return;
      }
@@ -52,8 +66,11 @@
          const { error } = await supabase
            .from('user_beans_exchange_tiers')
            .update({
-             beans_amount: parseInt(formData.beans_amount),
-             diamonds_reward: parseInt(formData.diamonds_reward),
+             tier_name: formData.tier_name.trim() || null,
+             min_beans: parseInt(formData.min_beans),
+             max_beans: formData.max_beans ? parseInt(formData.max_beans) : null,
+             exchange_rate: Number(formData.exchange_rate),
+             bonus_percent: Number(formData.bonus_percent) || 0,
              display_order: parseInt(formData.display_order),
              updated_at: new Date().toISOString()
            })
@@ -64,11 +81,14 @@
        } else {
          const { error } = await supabase
            .from('user_beans_exchange_tiers')
-           .insert({
-             beans_amount: parseInt(formData.beans_amount),
-             diamonds_reward: parseInt(formData.diamonds_reward),
-             display_order: parseInt(formData.display_order)
-           });
+            .insert({
+              tier_name: formData.tier_name.trim() || null,
+              min_beans: parseInt(formData.min_beans),
+              max_beans: formData.max_beans ? parseInt(formData.max_beans) : null,
+              exchange_rate: Number(formData.exchange_rate),
+              bonus_percent: Number(formData.bonus_percent) || 0,
+              display_order: parseInt(formData.display_order)
+            });
          
          if (error) throw error;
          toast({ title: "Tier added successfully" });
@@ -76,7 +96,8 @@
  
        setShowAddModal(false);
        setEditingTier(null);
-       setFormData({ beans_amount: "", diamonds_reward: "", display_order: "0" });
+        setFormData({ min_beans: "", max_beans: "", exchange_rate: "", bonus_percent: "0", display_order: "0", tier_name: "" });
+        await fetchTiers();
      } catch (error: any) {
        toast({ title: "Error", description: error.message, variant: "destructive" });
      } finally {
@@ -112,17 +133,20 @@
  
    const openEditModal = (tier: ExchangeTier) => {
      setEditingTier(tier);
-     setFormData({
-       beans_amount: tier.beans_amount.toString(),
-       diamonds_reward: tier.diamonds_reward.toString(),
-       display_order: tier.display_order.toString()
-     });
+      setFormData({
+        min_beans: tier.min_beans.toString(),
+        max_beans: tier.max_beans?.toString() || "",
+        exchange_rate: tier.exchange_rate.toString(),
+        bonus_percent: (tier.bonus_percent ?? 0).toString(),
+        display_order: tier.display_order.toString(),
+        tier_name: tier.tier_name || ""
+      });
      setShowAddModal(true);
    };
  
    const openAddModal = () => {
      setEditingTier(null);
-     setFormData({ beans_amount: "", diamonds_reward: "", display_order: (tiers.length + 1).toString() });
+      setFormData({ min_beans: "", max_beans: "", exchange_rate: "", bonus_percent: "0", display_order: (tiers.length + 1).toString(), tier_name: "" });
      setShowAddModal(true);
    };
  
@@ -199,19 +223,32 @@
                    <span className="text-slate-500 text-xs">Order: {tier.display_order}</span>
                  </div>
                  
-                 <div className="text-center space-y-2 py-4">
-                   <div className="flex items-center justify-center gap-2">
-                     <Coins className="w-6 h-6 text-amber-400" />
-                     <span className="text-amber-400 font-bold text-2xl">{tier.beans_amount.toLocaleString()}</span>
-                   </div>
-                   
-                   <ArrowRight className="w-5 h-5 text-slate-500 mx-auto" />
-                   
-                   <div className="flex items-center justify-center gap-2">
-                     <Gem className="w-6 h-6 text-cyan-400" />
-                     <span className="text-cyan-400 font-bold text-2xl">{tier.diamonds_reward.toLocaleString()}</span>
-                   </div>
-                 </div>
+                  <div className="text-center space-y-3 py-4">
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">
+                        {tier.tier_name || `Tier ${tier.display_order}`}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {tier.max_beans
+                          ? `${tier.min_beans.toLocaleString()} - ${tier.max_beans.toLocaleString()} Beans`
+                          : `${tier.min_beans.toLocaleString()}+ Beans`}
+                      </p>
+                    </div>
+
+                    <ArrowRight className="w-5 h-5 text-muted-foreground mx-auto" />
+
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-center gap-2">
+                        <Gem className="w-5 h-5 text-primary" />
+                        <span className="text-primary font-bold text-xl">
+                          {tier.exchange_rate.toLocaleString()} rate
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Bonus: {Number(tier.bonus_percent || 0).toLocaleString()}%
+                      </p>
+                    </div>
+                  </div>
                  
                  <div className="flex items-center justify-between pt-2 border-t border-slate-700">
                    <Switch
@@ -253,41 +290,74 @@
            </DialogHeader>
            
            <div className="space-y-4 py-4">
-             <div className="space-y-2">
-               <Label className="text-white">Beans Amount</Label>
+              <div className="space-y-2">
+                <Label className="text-foreground">Tier Name</Label>
+                <Input
+                  placeholder="e.g., Starter Tier"
+                  value={formData.tier_name}
+                  onChange={(e) => setFormData({ ...formData, tier_name: e.target.value })}
+                  className="bg-background"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-foreground">Minimum Beans</Label>
                <div className="relative">
-                 <Coins className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-400" />
+                  <Coins className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                  <Input
                    type="number"
                    placeholder="e.g., 10000"
-                   value={formData.beans_amount}
-                   onChange={(e) => setFormData({ ...formData, beans_amount: e.target.value })}
-                   className="pl-10 bg-slate-800 border-slate-600 text-white"
+                    value={formData.min_beans}
+                    onChange={(e) => setFormData({ ...formData, min_beans: e.target.value })}
+                    className="pl-10 bg-background"
                  />
                </div>
              </div>
              
              <div className="space-y-2">
-               <Label className="text-white">Diamonds Reward</Label>
+                <Label className="text-foreground">Maximum Beans</Label>
+                <Input
+                  type="number"
+                  placeholder="Leave blank for no upper limit"
+                  value={formData.max_beans}
+                  onChange={(e) => setFormData({ ...formData, max_beans: e.target.value })}
+                  className="bg-background"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-foreground">Exchange Rate</Label>
                <div className="relative">
-                 <Gem className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cyan-400" />
+                  <Gem className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                  <Input
-                   type="number"
-                   placeholder="e.g., 1000"
-                   value={formData.diamonds_reward}
-                   onChange={(e) => setFormData({ ...formData, diamonds_reward: e.target.value })}
-                   className="pl-10 bg-slate-800 border-slate-600 text-white"
+                    type="number"
+                    step="0.01"
+                    placeholder="e.g., 0.10"
+                    value={formData.exchange_rate}
+                    onChange={(e) => setFormData({ ...formData, exchange_rate: e.target.value })}
+                    className="pl-10 bg-background"
                  />
                </div>
              </div>
+
+              <div className="space-y-2">
+                <Label className="text-foreground">Bonus Percent</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={formData.bonus_percent}
+                  onChange={(e) => setFormData({ ...formData, bonus_percent: e.target.value })}
+                  className="bg-background"
+                />
+              </div>
              
              <div className="space-y-2">
-               <Label className="text-white">Display Order</Label>
+                <Label className="text-foreground">Display Order</Label>
                <Input
                  type="number"
                  value={formData.display_order}
                  onChange={(e) => setFormData({ ...formData, display_order: e.target.value })}
-                 className="bg-slate-800 border-slate-600 text-white"
+                  className="bg-background"
                />
              </div>
            </div>
