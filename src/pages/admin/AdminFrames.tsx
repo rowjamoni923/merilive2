@@ -1029,6 +1029,18 @@ const AdminFrames = () => {
           </div>
         </div>
       )}
+
+      {/* Gift Frame Dialog */}
+      {giftFrame && (
+        <GiftFrameDialog
+          open={!!giftFrame}
+          onOpenChange={(o) => { if (!o) setGiftFrame(null); }}
+          frameId={giftFrame.id}
+          frameName={giftFrame.name}
+          framePreviewUrl={giftFrame.preview_url || giftFrame.frame_url}
+          sourceTable="avatar_frames"
+        />
+      )}
     </div>
   );
 };
