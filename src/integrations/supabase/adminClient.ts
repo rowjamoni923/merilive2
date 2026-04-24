@@ -38,18 +38,74 @@ const adminStorage = {
 };
 
 /**
- * Custom fetch wrapper that attaches the admin session token header on every request.
- * RLS on admin-managed tables checks for this header via `is_active_admin_session()`.
+ * Performance: cap unbounded SELECTs and dedupe identical in-flight reads.
+ *
+ * - REST GET requests to /rest/v1/* without ?limit= get a defensive ?limit=500.
+ *   Pages that explicitly use .range() or .limit() are untouched.
+ * - In-flight identical GETs are coalesced for 250ms to absorb double-renders.
+ */
+const SAFETY_LIMIT = 500;
+const DEDUPE_MS = 250;
+const inflight = new Map<string, { p: Promise<Response>; t: number }>();
+
+function urlString(input: RequestInfo | URL): string {
+  if (typeof input === 'string') return input;
+  if (input instanceof URL) return input.toString();
+  return (input as Request).url;
+}
+
+function applySafetyLimit(url: string): string {
+  // Only enforce on REST table endpoints; never touch RPC / auth / storage.
+  if (!url.includes('/rest/v1/')) return url;
+  if (url.includes('/rest/v1/rpc/')) return url;
+  // Already constrained
+  if (/[?&](limit|range|offset)=/.test(url)) return url;
+  // HEAD count requests are tiny — still cap defensively in case
+  const sep = url.includes('?') ? '&' : '?';
+  return `${url}${sep}limit=${SAFETY_LIMIT}`;
+}
+
+/**
+ * Custom fetch wrapper that attaches the admin session token header on every request,
+ * applies a safety limit on unbounded SELECTs, and dedupes identical in-flight reads.
+ * RLS on admin-managed tables checks for the header via `is_active_admin_session()`.
  */
 const adminFetch: typeof fetch = (input, init) => {
   const token = getAdminSessionToken();
   const opts: RequestInit = init ? { ...init } : {};
   const headers = new Headers(opts.headers || {});
-  if (token) {
-    headers.set('x-admin-token', token);
-  }
+  if (token) headers.set('x-admin-token', token);
   opts.headers = headers;
-  return fetch(input, opts);
+
+  let url = urlString(input);
+  const method = (opts.method || 'GET').toUpperCase();
+
+  // Apply safety limit only on simple GET reads.
+  if (method === 'GET' || method === 'HEAD') {
+    url = applySafetyLimit(url);
+  }
+
+  // Dedupe identical in-flight reads (GET only, no body).
+  if (method === 'GET') {
+    const key = url + '|' + (headers.get('range') || '') + '|' + (headers.get('prefer') || '');
+    const now = Date.now();
+    const hit = inflight.get(key);
+    if (hit && now - hit.t < DEDUPE_MS) {
+      return hit.p.then((r) => r.clone());
+    }
+    const p = fetch(url, opts);
+    inflight.set(key, { p, t: now });
+    p.finally(() => {
+      // Clear after slight grace so back-to-back identical calls hit dedupe window.
+      setTimeout(() => {
+        const cur = inflight.get(key);
+        if (cur && cur.p === p) inflight.delete(key);
+      }, DEDUPE_MS);
+    });
+    return p.then((r) => r.clone());
+  }
+
+  return fetch(url, opts);
 };
 
 /**
