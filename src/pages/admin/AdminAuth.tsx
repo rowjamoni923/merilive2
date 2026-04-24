@@ -79,7 +79,7 @@ export default function AdminAuth() {
 
     // Realtime subscription for instant approval
     const channel = adminSupabase
-      .channel(`device-approval-${pendingAdminId}`)
+      .channel(`device-approval-${pendingAdminId}-${crypto.randomUUID()}`)
       .on('postgres_changes', {
         event: 'UPDATE',
         schema: 'public',
