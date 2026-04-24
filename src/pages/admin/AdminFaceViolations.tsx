@@ -42,33 +42,20 @@ const AdminFaceViolations = () => {
   const fetchViolations = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('live_face_violations')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(200);
-
+      const adminId = getCurrentAdminId();
+      if (!adminId) { setViolations([]); return; }
+      const { data, error } = await supabase.rpc("admin_list_face_violations", {
+        _admin_id: adminId,
+        _limit: 200,
+      });
       if (error) throw error;
-
-      if (data && data.length > 0) {
-        const hostIds = [...new Set(data.map(v => v.host_id))];
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('id, display_name, avatar_url, app_uid')
-          .in('id', hostIds);
-
-        const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
-        
-        const enriched = data.map(v => ({
-          ...v,
-          host_name: profileMap.get(v.host_id)?.display_name || 'Unknown',
-          host_avatar: profileMap.get(v.host_id)?.avatar_url || null,
-          host_uid: profileMap.get(v.host_id)?.app_uid || null,
-        }));
-        setViolations(enriched);
-      } else {
-        setViolations([]);
-      }
+      const enriched = (data || []).map((v: any) => ({
+        ...v,
+        host_name: v.display_name || 'Unknown',
+        host_avatar: null,
+        host_uid: v.app_uid || null,
+      }));
+      setViolations(enriched as FaceViolation[]);
     } catch (err) {
       console.error('Error fetching violations:', err);
       toast.error('Failed to load data');
