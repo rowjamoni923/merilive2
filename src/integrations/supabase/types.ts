@@ -11675,6 +11675,15 @@ export type Database = {
         Args: { _to_host: boolean; _user_id: string }
         Returns: boolean
       }
+      admin_country_distribution: {
+        Args: { _admin_id: string }
+        Returns: {
+          country_code: string
+          country_flag: string
+          country_name: string
+          total: number
+        }[]
+      }
       admin_create_agency: {
         Args: {
           _agency_code: string
@@ -11689,11 +11698,27 @@ export type Database = {
         Args: { _log_id: string; _notes?: string }
         Returns: Json
       }
+      admin_delete_agency_policy: {
+        Args: { _admin_id: string; _id: string }
+        Returns: undefined
+      }
       admin_delete_party_background: {
         Args: { _admin_id: string; _id: string }
         Returns: Json
       }
+      admin_delete_recording: {
+        Args: { _admin_id: string; _recording_id: string }
+        Returns: undefined
+      }
+      admin_delete_reel: {
+        Args: { _admin_id: string; _reel_id: string }
+        Returns: undefined
+      }
       admin_delete_user: { Args: { _user_id: string }; Returns: boolean }
+      admin_end_stream: {
+        Args: { _admin_id: string; _stream_id: string }
+        Returns: undefined
+      }
       admin_force_verify_and_approve_host: {
         Args: {
           _approve_as?: string
@@ -11745,33 +11770,151 @@ export type Database = {
           is_host: boolean
         }[]
       }
-      admin_list_helper_orders: {
-        Args: { _limit?: number; _search?: string; _status?: string }
+      admin_list_face_violations: {
+        Args: { _admin_id: string; _limit?: number }
         Returns: {
-          amount_local: number
-          amount_usd: number
-          coin_amount: number
+          action_taken: string
+          app_uid: string
+          confidence: number
           created_at: string
-          currency_code: string
-          customer_app_uid: string
-          customer_avatar_url: string
-          customer_display_name: string
-          customer_id: string
-          helper_app_uid: string
-          helper_avatar_url: string
-          helper_display_name: string
-          helper_id: string
-          helper_notes: string
-          helper_user_id: string
-          helper_wallet_balance: number
+          display_name: string
+          frame_url: string
+          host_id: string
           id: string
-          payment_method: string
-          processed_at: string
+          reviewed_at: string
           status: string
-          user_country_code: string
-          user_id: string
-          user_payment_proof: string
+          stream_id: string
+          violation_type: string
         }[]
+      }
+      admin_list_helper_applications: {
+        Args: { _admin_id: string; _status?: string }
+        Returns: {
+          country_code: string
+          created_at: string | null
+          id: string
+          notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+          whatsapp_number: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "helper_applications"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      admin_list_helper_orders:
+        | {
+            Args: { _admin_id: string; _limit?: number }
+            Returns: {
+              amount_local: number | null
+              amount_usd: number | null
+              coin_amount: number | null
+              commission_amount: number | null
+              commission_rate: number | null
+              created_at: string | null
+              currency_code: string | null
+              customer_id: string | null
+              diamond_amount: number | null
+              helper_id: string
+              id: string
+              local_currency: string | null
+              local_price: number | null
+              notes: string | null
+              package_id: string
+              payment_details: Json
+              payment_method: string | null
+              payment_proof_url: string | null
+              processed_at: string | null
+              processing_time_minutes: number | null
+              status: string | null
+              total_price_usd: number | null
+              updated_at: string | null
+              user_country_code: string | null
+              user_id: string | null
+              user_payment_proof: string | null
+            }[]
+            SetofOptions: {
+              from: "*"
+              to: "helper_orders"
+              isOneToOne: false
+              isSetofReturn: true
+            }
+          }
+        | {
+            Args: { _limit?: number; _search?: string; _status?: string }
+            Returns: {
+              amount_local: number
+              amount_usd: number
+              coin_amount: number
+              created_at: string
+              currency_code: string
+              customer_app_uid: string
+              customer_avatar_url: string
+              customer_display_name: string
+              customer_id: string
+              helper_app_uid: string
+              helper_avatar_url: string
+              helper_display_name: string
+              helper_id: string
+              helper_notes: string
+              helper_user_id: string
+              helper_wallet_balance: number
+              id: string
+              payment_method: string
+              processed_at: string
+              status: string
+              user_country_code: string
+              user_id: string
+              user_payment_proof: string
+            }[]
+          }
+      admin_list_helper_topup_requests: {
+        Args: { _admin_id: string }
+        Returns: {
+          admin_notes: string | null
+          amount: number
+          created_at: string | null
+          helper_id: string
+          id: string
+          payment_method: string | null
+          payment_proof_url: string | null
+          processed_at: string | null
+          processed_by: string | null
+          status: string | null
+          updated_at: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "helper_topup_requests"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      admin_list_helper_upgrade_requests: {
+        Args: { _admin_id: string }
+        Returns: {
+          admin_notes: string | null
+          created_at: string | null
+          current_level: number | null
+          helper_id: string
+          id: string
+          requested_level: number
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "helper_upgrade_requests"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       admin_list_live_bans: {
         Args: { _limit?: number; _only_active?: boolean }
@@ -11847,6 +11990,79 @@ export type Database = {
           user_agent: string
         }[]
       }
+      admin_list_recordings: {
+        Args: { _admin_id: string; _limit?: number }
+        Returns: {
+          channel_name: string | null
+          created_at: string | null
+          duration_seconds: number | null
+          ended_at: string | null
+          expires_at: string | null
+          file_size_bytes: number | null
+          host_id: string | null
+          host_name: string | null
+          host_uid: string | null
+          id: string
+          metadata: Json | null
+          recording_sid: string | null
+          recording_url: string | null
+          resource_id: string | null
+          started_at: string | null
+          status: string | null
+          stream_id: string | null
+          thumbnail_url: string | null
+          total_coins: number | null
+          total_gifts: number | null
+          total_viewers: number | null
+          updated_at: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "stream_recordings"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      admin_list_reels: {
+        Args: { _admin_id: string; _limit?: number }
+        Returns: {
+          beans_earned: number | null
+          caption: string | null
+          category_id: string | null
+          comment_count: number
+          comments_count: number | null
+          created_at: string
+          duration_seconds: number | null
+          id: string
+          is_active: boolean | null
+          is_approved: boolean | null
+          is_original_sound: boolean | null
+          is_public: boolean | null
+          like_count: number | null
+          likes_count: number | null
+          music_artist: string | null
+          music_id: string | null
+          music_title: string | null
+          share_count: number
+          shares_count: number | null
+          sound_artist: string | null
+          sound_audio_url: string | null
+          sound_id: string | null
+          sound_title: string | null
+          thumbnail_url: string | null
+          updated_at: string
+          user_id: string
+          video_url: string
+          view_count: number | null
+          views_count: number | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "reels"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       admin_list_severity_bans: {
         Args: { _limit?: number; _severity?: string }
         Returns: {
@@ -11864,6 +12080,100 @@ export type Database = {
           severity: string
           user_id: string
         }[]
+      }
+      admin_list_streams: {
+        Args: { _admin_id: string; _limit?: number }
+        Returns: {
+          created_at: string | null
+          current_music_title: string | null
+          current_music_url: string | null
+          description: string | null
+          ended_at: string | null
+          host_id: string
+          id: string
+          is_active: boolean | null
+          last_heartbeat: string | null
+          music_playing: boolean | null
+          music_started_at: string | null
+          room_id: string | null
+          started_at: string | null
+          status: string | null
+          stream_type: string | null
+          thumbnail_url: string | null
+          title: string | null
+          total_coins_earned: number | null
+          total_gifts: number | null
+          viewer_count: number | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "live_streams"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      admin_list_topup_helpers: {
+        Args: { _admin_id: string }
+        Returns: {
+          approved_at: string | null
+          approved_by: string | null
+          auto_receive_orders: boolean | null
+          buy_rate: number | null
+          commission_rate: number | null
+          contact_info: Json | null
+          country_code: string | null
+          created_at: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          is_verified: boolean | null
+          order_notification_email: string | null
+          order_notification_phone: string | null
+          payment_credentials: Json | null
+          payroll_applied_at: string | null
+          payroll_approved_at: string | null
+          payroll_approved_by: string | null
+          payroll_enabled: boolean | null
+          payroll_status: string | null
+          sell_rate: number | null
+          supported_countries: string[] | null
+          total_bought: number | null
+          total_earnings: number | null
+          total_level_upgrade_cost: number | null
+          total_sold: number | null
+          trader_level: number | null
+          updated_at: string | null
+          user_id: string
+          wallet_balance: number | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "topup_helpers"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      admin_list_user_reports: {
+        Args: { _admin_id: string; _limit?: number; _status?: string }
+        Returns: {
+          admin_notes: string | null
+          created_at: string | null
+          description: string | null
+          evidence_urls: string[] | null
+          id: string
+          reason: string
+          reported_id: string
+          reporter_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "user_reports"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       admin_permanent_ban_step_one: {
         Args: {
@@ -11979,9 +12289,92 @@ export type Database = {
         Args: { _agency_id: string; _level: string }
         Returns: boolean
       }
+      admin_update_face_violation: {
+        Args: { _admin_id: string; _status: string; _violation_id: string }
+        Returns: undefined
+      }
+      admin_update_helper_application: {
+        Args: {
+          _admin_id: string
+          _app_id: string
+          _notes?: string
+          _status: string
+        }
+        Returns: {
+          country_code: string
+          created_at: string | null
+          id: string
+          notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+          whatsapp_number: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "helper_applications"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       admin_update_user_gender: {
         Args: { _gender: string; _user_id: string }
         Returns: boolean
+      }
+      admin_update_user_report: {
+        Args: {
+          _admin_id: string
+          _admin_note?: string
+          _report_id: string
+          _status: string
+        }
+        Returns: {
+          admin_notes: string | null
+          created_at: string | null
+          description: string | null
+          evidence_urls: string[] | null
+          id: string
+          reason: string
+          reported_id: string
+          reporter_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "user_reports"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      admin_upsert_agency_policy: {
+        Args: {
+          _admin_id: string
+          _content: Json
+          _display_order?: number
+          _is_active?: boolean
+          _section_key: string
+          _section_title: string
+        }
+        Returns: {
+          content: Json
+          created_at: string
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          section_key: string
+          section_title: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "agency_policy_settings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       admin_upsert_party_background: {
         Args: {
