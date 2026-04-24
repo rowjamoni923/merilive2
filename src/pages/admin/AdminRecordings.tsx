@@ -91,52 +91,45 @@ export default function AdminRecordings() {
   const fetchRecordings = useCallback(async () => {
     setLoading(true);
     try {
-      let query = supabase
-        .from("stream_recordings")
-        .select(`
-          *,
-          host:profiles!stream_recordings_host_id_fkey(
-            id, display_name, avatar_url, app_uid, is_verified
-          )
-        `)
-        .gte("expires_at", new Date().toISOString())
-        .order("created_at", { ascending: false });
-
-      if (statusFilter !== "all") {
-        query = query.eq("status", statusFilter);
-      }
-
-      const { data, error } = await query.limit(100);
-
+      const adminId = getCurrentAdminId();
+      if (!adminId) { setRecordings([]); return; }
+      const { data, error } = await supabase.rpc("admin_list_recordings", {
+        _admin_id: adminId,
+        _limit: 200,
+      });
       if (error) throw error;
+      const now = new Date();
+      const allRows = (data || []) as any[];
+      const validRows = allRows.filter((r) => !r.expires_at || new Date(r.expires_at) >= now);
+      const filteredRows = statusFilter !== "all" ? validRows.filter((r) => r.status === statusFilter) : validRows;
 
-      const formattedData = (data || []).map(rec => ({
+      // Enrich with host profile info
+      const hostIds = Array.from(new Set(filteredRows.map((r) => r.host_id).filter(Boolean)));
+      let hostMap: Record<string, any> = {};
+      if (hostIds.length) {
+        const { data: hosts } = await supabase
+          .from("profiles")
+          .select("id, display_name, avatar_url, app_uid, is_verified")
+          .in("id", hostIds);
+        hostMap = Object.fromEntries((hosts || []).map((h: any) => [h.id, h]));
+      }
+      const formattedData = filteredRows.map((rec: any) => ({
         ...rec,
-        host: Array.isArray(rec.host) ? rec.host[0] : rec.host
+        host: hostMap[rec.host_id] || null,
       })) as Recording[];
 
       setRecordings(formattedData);
 
-      // Fetch accurate global stats using head queries
-      const now = new Date();
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-
-      const [totalRes, readyRes] = await Promise.all([
-        supabase.from("stream_recordings").select("*", { count: "exact", head: true }).gte("expires_at", now.toISOString()),
-        supabase.from("stream_recordings").select("*", { count: "exact", head: true }).gte("expires_at", now.toISOString()).eq("status", "ready"),
-      ]);
-
-      const expiringToday = formattedData.filter(r => {
+      const expiringToday = formattedData.filter((r) => {
         const expiresAt = new Date(r.expires_at);
         return differenceInDays(expiresAt, now) <= 1;
       }).length;
 
       setStats({
-        totalRecordings: totalRes.count || 0,
-        readyRecordings: readyRes.count || 0,
+        totalRecordings: validRows.length,
+        readyRecordings: validRows.filter((r) => r.status === "ready").length,
         totalDuration: formattedData.reduce((sum, r) => sum + (r.duration_seconds || 0), 0),
-        expiringToday
+        expiringToday,
       });
     } catch (error) {
       console.error("Error fetching recordings:", error);
