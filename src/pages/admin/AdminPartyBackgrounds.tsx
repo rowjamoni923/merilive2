@@ -200,36 +200,36 @@ const AdminPartyBackgrounds = () => {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('party_room_backgrounds')
-        .insert({
-          name: formData.name,
-          image_url: formData.image_url || null,
-          gradient_css: formData.gradient_css || null,
-          category: formData.category,
-          is_premium: formData.is_premium,
-          is_active: formData.is_active,
-          price_diamonds: formData.price_diamonds,
-          display_order: formData.display_order
-        })
-        .select()
-        .single();
-      
+      const session = getAdminSession();
+      if (!session?.admin_id) {
+        toast.error("Admin session expired. Please re-login.");
+        return;
+      }
+      const { data, error } = await adminSupabase.rpc('admin_upsert_party_background' as any, {
+        _admin_id: session.admin_id,
+        _id: null,
+        _name: formData.name,
+        _image_url: formData.image_url || null,
+        _gradient_css: formData.gradient_css || null,
+        _category: formData.category,
+        _is_premium: formData.is_premium,
+        _is_active: formData.is_active,
+        _price_diamonds: formData.price_diamonds,
+        _display_order: formData.display_order,
+      });
       if (error) throw error;
-      
       if (data) {
         setBackgrounds(prev => [...prev, {
-          ...data,
-          category: data.category || 'nature',
-          price_diamonds: data.price_diamonds || 0
+          ...(data as any),
+          category: (data as any).category || 'nature',
+          price_diamonds: (data as any).price_diamonds || 0,
         }]);
       }
-      
       setShowAddDialog(false);
       toast.success("Background added successfully!");
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error adding background:', err);
-      toast.error("Failed to add background");
+      toast.error(err?.message || "Failed to add background");
     }
   };
 
@@ -240,20 +240,23 @@ const AdminPartyBackgrounds = () => {
     }
 
     try {
-      const { error } = await supabase
-        .from('party_room_backgrounds')
-        .update({
-          name: formData.name,
-          image_url: formData.image_url || null,
-          gradient_css: formData.gradient_css || null,
-          category: formData.category,
-          is_premium: formData.is_premium,
-          is_active: formData.is_active,
-          price_diamonds: formData.price_diamonds,
-          display_order: formData.display_order
-        })
-        .eq('id', selectedBackground.id);
-      
+      const session = getAdminSession();
+      if (!session?.admin_id) {
+        toast.error("Admin session expired. Please re-login.");
+        return;
+      }
+      const { error } = await adminSupabase.rpc('admin_upsert_party_background' as any, {
+        _admin_id: session.admin_id,
+        _id: selectedBackground.id,
+        _name: formData.name,
+        _image_url: formData.image_url || null,
+        _gradient_css: formData.gradient_css || null,
+        _category: formData.category,
+        _is_premium: formData.is_premium,
+        _is_active: formData.is_active,
+        _price_diamonds: formData.price_diamonds,
+        _display_order: formData.display_order,
+      });
       if (error) throw error;
 
       setBackgrounds(prev => prev.map(bg => 
