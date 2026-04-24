@@ -10,12 +10,9 @@ interface MeriLiveLoaderProps {
 }
 
 const LETTERS = ["M", "E", "R", "I", "L", "I", "V", "E"];
-// Total cycle = appear (0.6s * 8) + hold (0.8s) + vanish (0.6s * 8) + pause (0.4s)
-const CYCLE_DURATION = 6.8; // seconds
-const APPEAR_STEP = 0.18; // delay between each letter appearing
-const HOLD_AT = 1.6; // when all letters are visible
-const VANISH_START = 2.6; // when first letter starts vanishing
-const VANISH_STEP = 0.15;
+// Per-letter loop: appear → hold → vanish → wait. Letters are staggered by APPEAR_STEP.
+const CYCLE_DURATION = 3.2; // seconds (one full per-letter loop)
+const APPEAR_STEP = 0.18;   // visual delay between successive letters appearing
 
 export const MeriLiveLoader = ({
   message = "Loading your account",
@@ -32,7 +29,6 @@ export const MeriLiveLoader = ({
         <div className="flex items-end gap-[2px] sm:gap-1">
           {LETTERS.map((letter, i) => {
             const appearDelay = i * APPEAR_STEP;
-            const vanishDelay = VANISH_START + i * VANISH_STEP;
             return (
               <span
                 key={i}
@@ -40,7 +36,6 @@ export const MeriLiveLoader = ({
                 style={{
                   animationDuration: `${CYCLE_DURATION}s`,
                   animationDelay: `${appearDelay}s`,
-                  ['--vanish-delay' as any]: `${vanishDelay - appearDelay}s`,
                   filter: "drop-shadow(0 4px 16px hsl(var(--primary) / 0.35))",
                 }}
               >
@@ -73,12 +68,12 @@ export const MeriLiveLoader = ({
 
       <style>{`
         @keyframes meri-letter-cycle {
-          0%   { opacity: 0; transform: translateY(14px) scale(0.85); filter: blur(6px); }
-          12%  { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
-          38%  { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
-          /* vanish phase — staggered via inline --vanish-delay handled by per-letter delay */
-          55%  { opacity: 0; transform: translateY(-14px) scale(0.85); filter: blur(6px); }
-          100% { opacity: 0; transform: translateY(14px) scale(0.85); filter: blur(6px); }
+          0%   { opacity: 0; transform: translateY(16px) scale(0.7);  filter: blur(8px); }
+          18%  { opacity: 1; transform: translateY(0)    scale(1.08); filter: blur(0); }
+          28%  { opacity: 1; transform: translateY(0)    scale(1);    filter: blur(0); }
+          62%  { opacity: 1; transform: translateY(0)    scale(1);    filter: blur(0); }
+          80%  { opacity: 0; transform: translateY(-18px) scale(0.7); filter: blur(8px); }
+          100% { opacity: 0; transform: translateY(16px)  scale(0.7); filter: blur(8px); }
         }
         .meri-letter {
           display: inline-block;
