@@ -993,7 +993,7 @@ const App = () => {
                 <Route path="/live" element={<ProtectedRoute session={session}><Live /></ProtectedRoute>} />
                 <Route path="/live/:id" element={<ProtectedRoute session={session}><LiveStreamKeyWrapper /></ProtectedRoute>} />
                 <Route path="/chat" element={<ProtectedRoute session={session}><Chat /></ProtectedRoute>} />
-                <Route path="/profile" element={<ProtectedRoute session={session}><Profile /></ProtectedRoute>} />
+                <Route path="/profile" element={<ProtectedRoute session={session}><ErrorBoundary componentName="Profile"><Profile /></ErrorBoundary></ProtectedRoute>} />
                 <Route path="/recharge" element={<ProtectedRoute session={session}><Recharge /></ProtectedRoute>} />
                 <Route path="/payment-success" element={<ProtectedRoute session={session}><PaymentSuccess /></ProtectedRoute>} />
                 <Route path="/edit-profile" element={<ProtectedRoute session={session}><EditProfile /></ProtectedRoute>} />
