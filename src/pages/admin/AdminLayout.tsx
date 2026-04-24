@@ -408,6 +408,7 @@ const navGroups: NavGroup[] = [
       { label: "Device Management", icon: Smartphone, path: "/admin/device-management", hubKey: "settings-hub" },
       { label: "🎨 Event Themes", icon: Sparkles, path: "/admin/theme-manager", hubKey: "settings-hub" },
       { label: "Sub-Admin Management", icon: Shield, path: "/admin/sub-admins", ownerOnly: true },
+      { label: "🔐 Device Approvals", icon: Smartphone, path: "/admin/device-approvals", ownerOnly: true },
     ]
   },
 ];
