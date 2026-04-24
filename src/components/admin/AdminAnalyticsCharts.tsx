@@ -119,15 +119,18 @@ SummaryCard.displayName = "SummaryCard";
 
 export const AdminAnalyticsCharts = memo(() => {
   const [timeRange, setTimeRange] = useState<TimeRange>("7d");
-  const [data, setData] = useState<AnalyticsData | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Hydrate from cache so charts paint instantly on revisit (zero-loading UX)
+  const [data, setData] = useState<AnalyticsData | null>(() => loadCachedAnalytics("7d"));
+  const [loading, setLoading] = useState(!loadCachedAnalytics("7d"));
 
   const loadData = useCallback(async () => {
     try {
       const days = timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : 90;
       const { data: result, error } = await (supabase.rpc as any)("get_admin_analytics_chart_data", { p_days: days });
       if (error) throw error;
-      setData(result as unknown as AnalyticsData);
+      const parsed = result as unknown as AnalyticsData;
+      setData(parsed);
+      saveCachedAnalytics(timeRange, parsed);
     } catch (e) {
       console.error("[Analytics] Error loading chart data:", e);
     } finally {
@@ -136,9 +139,12 @@ export const AdminAnalyticsCharts = memo(() => {
   }, [timeRange]);
 
   useEffect(() => {
-    setLoading(true);
+    // Show cached data instantly for the new range, refresh in background
+    const cached = loadCachedAnalytics(timeRange);
+    if (cached) setData(cached);
+    else setLoading(true);
     loadData();
-  }, [loadData]);
+  }, [loadData, timeRange]);
 
   // Auto-refresh on relevant table changes
   useAdminRealtime(
