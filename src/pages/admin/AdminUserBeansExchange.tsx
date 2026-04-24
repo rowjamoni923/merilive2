@@ -223,19 +223,32 @@
                    <span className="text-slate-500 text-xs">Order: {tier.display_order}</span>
                  </div>
                  
-                 <div className="text-center space-y-2 py-4">
-                   <div className="flex items-center justify-center gap-2">
-                     <Coins className="w-6 h-6 text-amber-400" />
-                     <span className="text-amber-400 font-bold text-2xl">{tier.beans_amount.toLocaleString()}</span>
-                   </div>
-                   
-                   <ArrowRight className="w-5 h-5 text-slate-500 mx-auto" />
-                   
-                   <div className="flex items-center justify-center gap-2">
-                     <Gem className="w-6 h-6 text-cyan-400" />
-                     <span className="text-cyan-400 font-bold text-2xl">{tier.diamonds_reward.toLocaleString()}</span>
-                   </div>
-                 </div>
+                  <div className="text-center space-y-3 py-4">
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">
+                        {tier.tier_name || `Tier ${tier.display_order}`}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {tier.max_beans
+                          ? `${tier.min_beans.toLocaleString()} - ${tier.max_beans.toLocaleString()} Beans`
+                          : `${tier.min_beans.toLocaleString()}+ Beans`}
+                      </p>
+                    </div>
+
+                    <ArrowRight className="w-5 h-5 text-muted-foreground mx-auto" />
+
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-center gap-2">
+                        <Gem className="w-5 h-5 text-primary" />
+                        <span className="text-primary font-bold text-xl">
+                          {tier.exchange_rate.toLocaleString()} rate
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Bonus: {Number(tier.bonus_percent || 0).toLocaleString()}%
+                      </p>
+                    </div>
+                  </div>
                  
                  <div className="flex items-center justify-between pt-2 border-t border-slate-700">
                    <Switch
@@ -277,41 +290,74 @@
            </DialogHeader>
            
            <div className="space-y-4 py-4">
-             <div className="space-y-2">
-               <Label className="text-white">Beans Amount</Label>
+              <div className="space-y-2">
+                <Label className="text-foreground">Tier Name</Label>
+                <Input
+                  placeholder="e.g., Starter Tier"
+                  value={formData.tier_name}
+                  onChange={(e) => setFormData({ ...formData, tier_name: e.target.value })}
+                  className="bg-background"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-foreground">Minimum Beans</Label>
                <div className="relative">
-                 <Coins className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-400" />
+                  <Coins className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                  <Input
                    type="number"
                    placeholder="e.g., 10000"
-                   value={formData.beans_amount}
-                   onChange={(e) => setFormData({ ...formData, beans_amount: e.target.value })}
-                   className="pl-10 bg-slate-800 border-slate-600 text-white"
+                    value={formData.min_beans}
+                    onChange={(e) => setFormData({ ...formData, min_beans: e.target.value })}
+                    className="pl-10 bg-background"
                  />
                </div>
              </div>
              
              <div className="space-y-2">
-               <Label className="text-white">Diamonds Reward</Label>
+                <Label className="text-foreground">Maximum Beans</Label>
+                <Input
+                  type="number"
+                  placeholder="Leave blank for no upper limit"
+                  value={formData.max_beans}
+                  onChange={(e) => setFormData({ ...formData, max_beans: e.target.value })}
+                  className="bg-background"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-foreground">Exchange Rate</Label>
                <div className="relative">
-                 <Gem className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cyan-400" />
+                  <Gem className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                  <Input
-                   type="number"
-                   placeholder="e.g., 1000"
-                   value={formData.diamonds_reward}
-                   onChange={(e) => setFormData({ ...formData, diamonds_reward: e.target.value })}
-                   className="pl-10 bg-slate-800 border-slate-600 text-white"
+                    type="number"
+                    step="0.01"
+                    placeholder="e.g., 0.10"
+                    value={formData.exchange_rate}
+                    onChange={(e) => setFormData({ ...formData, exchange_rate: e.target.value })}
+                    className="pl-10 bg-background"
                  />
                </div>
              </div>
+
+              <div className="space-y-2">
+                <Label className="text-foreground">Bonus Percent</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={formData.bonus_percent}
+                  onChange={(e) => setFormData({ ...formData, bonus_percent: e.target.value })}
+                  className="bg-background"
+                />
+              </div>
              
              <div className="space-y-2">
-               <Label className="text-white">Display Order</Label>
+                <Label className="text-foreground">Display Order</Label>
                <Input
                  type="number"
                  value={formData.display_order}
                  onChange={(e) => setFormData({ ...formData, display_order: e.target.value })}
-                 className="bg-slate-800 border-slate-600 text-white"
+                  className="bg-background"
                />
              </div>
            </div>
