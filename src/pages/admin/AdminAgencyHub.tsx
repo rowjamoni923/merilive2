@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Building2, FileText, Users, Crown, Star, Clock, History, ExternalLink } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 
 // Agency Hub now owns ONLY agency-specific sections (Agencies + Policy).
 // Helper Management, Level 5 Helpers → Trader Hub

@@ -36,7 +36,7 @@ import {
   Legend,
   ResponsiveContainer
 } from "recharts";
-import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 
 export default function AdminReports() {

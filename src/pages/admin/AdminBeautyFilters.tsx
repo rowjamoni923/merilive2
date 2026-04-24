@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { useR2Upload } from "@/hooks/useR2Upload";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { toast } from "sonner";

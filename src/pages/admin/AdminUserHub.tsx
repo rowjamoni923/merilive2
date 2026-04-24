@@ -6,7 +6,7 @@ import {
   Activity, ScanFace, Crown, ArrowUpRight, ArrowDownRight,
   Sparkles, Eye, UserPlus
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import AdminLuxuryStatCard from "@/components/admin/AdminLuxuryStatCard";
 import AdminUserManagement from "./AdminUserManagement";
 import { cn } from "@/lib/utils";

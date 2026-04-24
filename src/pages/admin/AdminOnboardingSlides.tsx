@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import { ArrowLeft, Plus, Pencil, Trash2, GripVertical, Eye, EyeOff, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";

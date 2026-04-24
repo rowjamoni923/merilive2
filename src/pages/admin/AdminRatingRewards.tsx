@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { supabase } from '@/integrations/supabase/client';
+import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from 'sonner';
 import { useAdminRealtime } from '@/hooks/useAdminRealtime';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';

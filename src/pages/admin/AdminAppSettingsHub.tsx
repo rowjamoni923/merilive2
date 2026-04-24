@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Settings, Smartphone, Sparkles, Bell, Sliders, Shield, Wand2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import AdminLuxuryStatCard from "@/components/admin/AdminLuxuryStatCard";
 
 // Import existing components as tab content
