@@ -17,6 +17,8 @@ const ADMIN_SESSION_VERSION = 'v2';
 const APPROVED_DEVICES_KEY = 'merilive-admin-approved-devices';
 const ADMIN_TOKEN_KEY = 'merilive-admin-token';
 
+const hasWindow = () => typeof window !== 'undefined';
+
 export interface AdminSession {
   version: string;
   admin_id: string;
@@ -53,8 +55,6 @@ export const setAdminSessionToken = (token: string | null | undefined): void => 
     }
   } catch {}
 };
-
-const hasWindow = () => typeof window !== 'undefined';
 
 /**
  * Save admin session to localStorage (and sessionStorage for cross-tab).
