@@ -88,15 +88,35 @@ interface AdminNotification {
   data?: any;
 }
 
+/**
+ * NavItem — represents a single section/page in the Admin Panel sidebar.
+ *
+ * Each NavItem is a 1-to-1 mapping to ONE admin page component (no duplicates).
+ * The `description` field documents the section's exact purpose so AI tools
+ * (Anti Gravity, Lovable, etc.) and human developers can instantly understand
+ * what the page does without opening its source file.
+ */
 interface NavItem {
+  /** Display label shown in the sidebar (English, concise). */
   label: string;
-  
+  /** Lucide icon component rendered next to the label. */
   icon: React.ElementType;
+  /** Absolute admin route, e.g. "/admin/users". Must match a Route in App.tsx. */
   path: string;
+  /** Optional unread/pending count badge (set by realtime notification listener). */
   badge?: number;
-  notificationTypes?: string[]; // Types of notifications that count for this menu item
-  hubKey?: string; // Hub key for permission checking
-  ownerOnly?: boolean; // Only visible to owners
+  /** Notification `type` values that increment this item's badge. */
+  notificationTypes?: string[];
+  /** Hub key for sub-admin section-permission checks (see useAdminAccess). */
+  hubKey?: string;
+  /** When true, only the platform Owner sees this item (sub-admins are blocked). */
+  ownerOnly?: boolean;
+  /**
+   * Plain-English explanation of what this section does and which user-app
+   * feature it controls. Read by AI tools to understand admin↔app wiring.
+   * Keep under ~140 chars, no implementation details.
+   */
+  description?: string;
 }
 
 interface NavGroup {
