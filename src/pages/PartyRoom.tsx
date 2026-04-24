@@ -2299,7 +2299,8 @@ const PartyRoom = () => {
                 soundUrl: gift.sound_url || undefined,
                 giftColor: 'from-pink-500 to-purple-500',
                 count: count,
-                coins: totalCost
+                coins: gift.coins,
+                isOwnGift: true,
               };
               
               // Trigger flying gift animation IMMEDIATELY (for sender)
@@ -2315,13 +2316,14 @@ const PartyRoom = () => {
                   payload: {
                     senderId: currentUser.id,
                     senderName: currentUser?.profile?.display_name || 'Someone',
+                    receiverId: room.host?.id,
                     giftName: gift.name,
                     giftIcon: gift.emoji,
                     giftImageUrl: gift.icon_url,
                     animationUrl: gift.animation_url || gift.icon_url,
                     soundUrl: gift.sound_url || undefined,
                     count: count,
-                    coins: totalCost
+                    coins: gift.coins,
                   }
                 });
                 console.log('[PartyRoom] ✅ Gift broadcast sent instantly!');
