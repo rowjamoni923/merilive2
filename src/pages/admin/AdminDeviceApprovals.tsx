@@ -55,7 +55,7 @@ export default function AdminDeviceApprovals() {
 
     if (!session?.admin_id) return;
     const channel = adminSupabase
-      .channel('owner-device-approvals')
+      .channel(`owner-device-approvals-${crypto.randomUUID()}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'admin_allowed_devices' }, () => {
         load();
       })

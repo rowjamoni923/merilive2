@@ -73,7 +73,7 @@ const AdminHelperMessaging = () => {
   // ⚡ REALTIME: Zero-refresh instant message & reply updates
   useEffect(() => {
     const channel = supabase
-      .channel('admin-helper-messaging-rt')
+      .channel(`admin-helper-messaging-rt-${crypto.randomUUID()}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'helper_admin_messages' },

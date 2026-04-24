@@ -72,7 +72,7 @@ export function AdminAlertBell() {
 
   // Realtime subscription
   useEffect(() => {
-    const channel = supabase.channel('admin-phone-alerts-realtime')
+    const channel = supabase.channel(`admin-phone-alerts-realtime-${crypto.randomUUID()}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_moderation_logs' }, (payload) => {
         if (payload.new && (payload.new as any).violation_type !== 'user_report') {
           setUnreadCount(prev => prev + 1);

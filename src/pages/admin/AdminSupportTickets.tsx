@@ -901,7 +901,7 @@ const AdminSupportTickets = () => {
     // Real-time subscription — only refresh on INSERT events to avoid loops
     // UPDATE events (from translation saves, mark-as-read) should NOT trigger refetch
     const channel = supabase
-      .channel('admin-support-tickets-realtime')
+      .channel(`admin-support-tickets-realtime-${crypto.randomUUID()}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'support_tickets' }, () => {
         scheduleTicketRefresh(true);
       })
