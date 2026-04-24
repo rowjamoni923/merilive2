@@ -236,6 +236,7 @@ const AdminLogs = lazy(lazyRetry(() => import("./pages/admin/AdminLogs")));
 const AdminAgoraSettings = lazy(lazyRetry(() => import("./pages/admin/AdminAgoraSettings")));
 const AdminVIPPrivileges = lazy(lazyRetry(() => import("./pages/admin/AdminVIPPrivileges")));
 const AdminLiveBans = lazy(lazyRetry(() => import("./pages/admin/AdminLiveBans")));
+const AdminPermanentBan = lazy(lazyRetry(() => import("./pages/admin/AdminPermanentBan")));
 const AdminFaceViolations = lazy(lazyRetry(() => import("./pages/admin/AdminFaceViolations")));
 const AdminCoins = lazy(lazyRetry(() => import("./pages/admin/AdminCoins")));
 const AdminPaymentGateways = lazy(lazyRetry(() => import("./pages/admin/AdminPaymentGateways")));
@@ -1120,6 +1121,7 @@ const App = () => {
                   <Route path="balance-deduction" element={<AdminRouteGuard routeSegment="balance-deduction"><AdminBalanceDeduction /></AdminRouteGuard>} />
                   <Route path="feature-levels" element={<AdminRouteGuard routeSegment="feature-levels"><AdminFeatureLevels /></AdminRouteGuard>} />
                   <Route path="live-bans" element={<AdminRouteGuard routeSegment="live-bans"><AdminLiveBans /></AdminRouteGuard>} />
+                  <Route path="permanent-ban" element={<AdminRouteGuard routeSegment="permanent-ban"><AdminPermanentBan /></AdminRouteGuard>} />
                   <Route path="face-violations" element={<AdminRouteGuard routeSegment="face-violations"><AdminFaceViolations /></AdminRouteGuard>} />
                   <Route path="reels" element={<AdminRouteGuard routeSegment="reels"><AdminReels /></AdminRouteGuard>} />
                   <Route path="party-banners" element={<AdminRouteGuard routeSegment="party-banners"><AdminPartyBanners /></AdminRouteGuard>} />
