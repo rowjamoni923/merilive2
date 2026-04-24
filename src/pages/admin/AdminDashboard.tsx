@@ -35,6 +35,8 @@ import { cn } from "@/lib/utils";
 import { SystemHealthCheck } from "@/components/admin/SystemHealthCheck";
 import { AdminDashboardSkeleton } from "@/components/admin/AdminDashboardSkeleton";
 import { AdminAnalyticsCharts } from "@/components/admin/AdminAnalyticsCharts";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import { PremiumSpinner } from "@/components/ui/premium-spinner";
 
 interface DashboardStats {
   total_users: number;
@@ -545,7 +547,16 @@ export default function AdminDashboard() {
       </div>
 
       {/* ━━━ ANALYTICS CHARTS ━━━ */}
-      <AdminAnalyticsCharts />
+      <ErrorBoundary
+        componentName="AdminAnalyticsCharts"
+        fallback={
+          <div className="rounded-2xl border border-white/[0.06] bg-[#0c0c14] p-6 text-center text-slate-400 text-sm">
+            Analytics charts are temporarily unavailable. Other dashboard data is still live.
+          </div>
+        }
+      >
+        <AdminAnalyticsCharts />
+      </ErrorBoundary>
 
       {/* ━━━ QUICK ACTIONS + ACTIVITY ━━━ */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
@@ -625,13 +636,22 @@ export default function AdminDashboard() {
       </div>
 
       {/* ━━━ SYSTEM HEALTH ━━━ */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.2 }}
+      <ErrorBoundary
+        componentName="SystemHealthCheck"
+        fallback={
+          <div className="rounded-2xl border border-white/[0.06] bg-[#0c0c14] p-6 text-center text-slate-400 text-sm">
+            System health check is temporarily unavailable.
+          </div>
+        }
       >
-        <SystemHealthCheck />
-      </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.2 }}
+        >
+          <SystemHealthCheck />
+        </motion.div>
+      </ErrorBoundary>
     </div>
   );
 }
