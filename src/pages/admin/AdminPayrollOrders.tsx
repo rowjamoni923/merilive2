@@ -671,11 +671,11 @@ const AdminPayrollOrders = () => {
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
                       <p className="text-muted-foreground">Diamonds</p>
-                      <p className="font-bold text-emerald-400 text-lg">{selectedOrder.coin_amount.toLocaleString()} 💎</p>
+                      <p className="font-bold text-emerald-400 text-lg">{(selectedOrder.coin_amount ?? 0).toLocaleString()} 💎</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Price</p>
-                      <p className="font-bold">${selectedOrder.amount_usd.toFixed(2)}</p>
+                      <p className="font-bold">${(selectedOrder.amount_usd ?? 0).toFixed(2)}</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Local Price</p>
