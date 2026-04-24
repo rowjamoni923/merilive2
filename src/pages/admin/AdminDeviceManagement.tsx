@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -23,7 +23,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase } from "@/integrations/supabase/adminClient";
+import { getAdminSession } from "@/utils/adminSession";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -44,17 +45,15 @@ interface DeviceRecord {
   device_info: any;
   ip_address: string | null;
   user_agent: string | null;
-  status: 'pending' | 'approved' | 'blocked';
+  status: 'pending' | 'approved' | 'blocked' | 'rejected' | 'revoked';
   approved_by: string | null;
   approved_at: string | null;
   last_used_at: string | null;
   created_at: string;
   notes: string | null;
-  admin_user?: {
-    display_name: string | null;
-    email: string;
-    role: string;
-  };
+  admin_display_name?: string | null;
+  admin_email?: string;
+  admin_role?: string;
 }
 
 export default function AdminDeviceManagement() {
@@ -67,113 +66,82 @@ export default function AdminDeviceManagement() {
   const [actionLoading, setActionLoading] = useState(false);
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'blocked'>('all');
 
-  useAdminRealtime(['admin_allowed_devices'], () => checkOwnerAndFetchDevices());
+  const loadDevices = useCallback(async () => {
+    const session = getAdminSession();
+    if (!session?.admin_id) {
+      navigate('/admin/auth');
+      return;
+    }
 
-  useEffect(() => {
-    void checkOwnerAndFetchDevices();
-  }, []);
-
-  const checkOwnerAndFetchDevices = async () => {
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        navigate('/admin/auth');
-        return;
-      }
-
-      const { data: adminUser, error: adminUserError } = await supabase
-        .from('admin_users')
-        .select('role')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (adminUserError) throw adminUserError;
-
-      if (adminUser?.role !== 'owner') {
+      if (!session.is_owner) {
         toast.error('Only owner can access device management');
         navigate('/admin');
         return;
       }
 
       setIsOwner(true);
-      await fetchDevices();
-    } catch (error) {
-      console.error('Error:', error);
-      toast.error('Error loading data');
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const fetchDevices = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('admin_allowed_devices')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const { data, error } = await adminSupabase.rpc('admin_list_pending_devices' as any, {
+        _owner_admin_id: session.admin_id,
+      });
 
       if (error) throw error;
 
-      const adminUserIds = [...new Set((data || []).map((device) => device.admin_user_id).filter(Boolean))];
-      let adminUserMap = new Map<string, { display_name: string | null; email: string; role: string }>();
+      const rows = ((data as any[]) || []).map((row) => ({
+        ...row,
+        admin_display_name: row.admin_display_name,
+        admin_email: row.admin_email,
+        admin_role: row.admin_role,
+      })) as DeviceRecord[];
 
-      if (adminUserIds.length > 0) {
-        const { data: adminUsers, error: adminUsersError } = await supabase
-          .from('admin_users')
-          .select('user_id, display_name, email, role')
-          .in('user_id', adminUserIds);
-
-        if (adminUsersError) throw adminUsersError;
-
-        (adminUsers || []).forEach((adminUser) => {
-          adminUserMap.set(adminUser.user_id, {
-            display_name: adminUser.display_name,
-            email: adminUser.email,
-            role: adminUser.role,
-          });
-        });
-      }
-
-      setDevices((data || []).map((device) => ({
-        ...device,
-        admin_user: adminUserMap.get(device.admin_user_id),
-      })) as DeviceRecord[]);
-    } catch (error) {
-      console.error('Error fetching devices:', error);
-      toast.error('Failed to load devices');
+      setDevices(rows);
+    } catch (error: any) {
+      console.error('Error loading devices:', error);
+      toast.error(error?.message || 'Failed to load devices');
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [navigate]);
+
+  useAdminRealtime(['admin_allowed_devices'], () => {
+    void loadDevices();
+  });
+
+  useEffect(() => {
+    void loadDevices();
+  }, [loadDevices]);
 
   const handleDeviceAction = async () => {
-    if (!selectedDevice || !actionType) return;
+    const session = getAdminSession();
+    if (!selectedDevice || !actionType || !session?.admin_id) return;
 
     setActionLoading(true);
     try {
-      if (actionType === 'delete') {
-        const { error } = await supabase
-          .from('admin_allowed_devices')
-          .delete()
-          .eq('id', selectedDevice.id);
-
-        if (error) throw error;
-        toast.success('Device deleted successfully');
-      } else {
-        const newStatus = actionType === 'approve' ? 'approved' : 'blocked';
-        const { error } = await supabase.rpc('update_admin_device_status', {
+      if (actionType === 'delete' || actionType === 'block') {
+        const { data, error } = await adminSupabase.rpc('admin_revoke_device' as any, {
           _device_id: selectedDevice.id,
-          _new_status: newStatus,
-          _notes: null
+          _owner_admin_id: session.admin_id,
+          _reason: actionType === 'delete' ? 'Deleted by owner' : 'Blocked by owner',
         });
-
         if (error) throw error;
-        toast.success(actionType === 'approve' ? 'Device approved successfully' : 'Device blocked successfully');
+        if (!(data as any)?.success) throw new Error((data as any)?.error || 'Action failed');
+        toast.success(actionType === 'delete' ? 'Device removed successfully' : 'Device blocked successfully');
+      } else {
+        const { data, error } = await adminSupabase.rpc('admin_approve_device' as any, {
+          _device_id: selectedDevice.id,
+          _owner_admin_id: session.admin_id,
+        });
+        if (error) throw error;
+        if (!(data as any)?.success) throw new Error((data as any)?.error || 'Action failed');
+        toast.success('Device approved successfully');
       }
 
-      await fetchDevices();
+      await loadDevices();
     } catch (error: any) {
       console.error('Error:', error);
-      toast.error(error.message || 'Action failed');
+      toast.error(error?.message || 'Action failed');
     } finally {
       setActionLoading(false);
       setSelectedDevice(null);

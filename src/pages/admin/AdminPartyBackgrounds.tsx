@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { 
   Image, 
@@ -107,80 +107,41 @@ const AdminPartyBackgrounds = () => {
     display_order: 1
   });
 
-  // FETCH FROM DATABASE - Real Supabase integration
-  useEffect(() => {
-    const fetchBackgrounds = async () => {
-      setIsLoading(true);
-      
-      try {
-        const { data, error } = await supabase
-          .from('party_room_backgrounds')
-          .select('*')
-          .order('display_order', { ascending: true });
-        
-        if (error) throw error;
-        
-        if (data && data.length > 0) {
-          setBackgrounds(data.map(bg => ({
-            id: bg.id,
-            name: bg.name,
-            image_url: bg.image_url,
-            gradient_css: bg.gradient_css,
-            category: bg.category || 'nature',
-            is_premium: bg.is_premium || false,
-            is_active: bg.is_active ?? true,
-            price_diamonds: bg.price_diamonds || 0,
-            display_order: bg.display_order || 1,
-            created_at: bg.created_at
-          })));
-        } else {
-          // If no backgrounds in DB, seed with defaults
-          const seededBgs = await seedDefaultBackgrounds();
-          setBackgrounds(seededBgs);
-        }
-      } catch (err) {
-        console.error('Error fetching backgrounds:', err);
-        toast.error("Failed to load backgrounds");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const fetchBackgrounds = useCallback(async () => {
+    setIsLoading(true);
 
-    fetchBackgrounds();
-  }, []);
-  
-  // Seed default backgrounds if DB is empty
-  const seedDefaultBackgrounds = async () => {
-    const seeded: PartyBackground[] = [];
-    
-    for (const bg of defaultBackgrounds) {
+    try {
       const { data, error } = await supabase
         .from('party_room_backgrounds')
-        .insert({
-          name: bg.name,
-          image_url: bg.image_url,
-          gradient_css: bg.gradient_css,
-          category: bg.category,
-          is_premium: bg.is_premium,
-          is_active: bg.is_active,
-          price_diamonds: bg.price_diamonds,
-          display_order: bg.display_order
-        })
-        .select()
-        .single();
-      
-      if (data && !error) {
-        seeded.push({
-          ...data,
-          category: data.category || 'nature',
-          price_diamonds: data.price_diamonds || 0
-        });
-      }
+        .select('*')
+        .order('display_order', { ascending: true });
+
+      if (error) throw error;
+
+      setBackgrounds((data || []).map(bg => ({
+        id: bg.id,
+        name: bg.name,
+        image_url: bg.image_url,
+        gradient_css: bg.gradient_css,
+        category: bg.category || 'nature',
+        is_premium: bg.is_premium || false,
+        is_active: bg.is_active ?? true,
+        price_diamonds: bg.price_diamonds || 0,
+        display_order: bg.display_order || 1,
+        created_at: bg.created_at
+      })));
+    } catch (err) {
+      console.error('Error fetching backgrounds:', err);
+      toast.error("Failed to load backgrounds");
+      setBackgrounds([]);
+    } finally {
+      setIsLoading(false);
     }
-    
-    toast.success(`Seeded ${seeded.length} default backgrounds`);
-    return seeded;
-  };
+  }, []);
+
+  useEffect(() => {
+    void fetchBackgrounds();
+  }, [fetchBackgrounds]);
 
   const filteredBackgrounds = backgrounds.filter(bg => {
     const matchesSearch = bg.name.toLowerCase().includes(searchQuery.toLowerCase());
