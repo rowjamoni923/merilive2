@@ -1,6 +1,31 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import { Resend } from "https://esm.sh/resend@2.0.0";
+import nodemailer from "npm:nodemailer@6.9.12";
+
+async function sendOtpEmail(to: string, subject: string, html: string): Promise<{ success: boolean; error?: string }> {
+  const gmailUser = (Deno.env.get("GMAIL_USER") ?? "").trim();
+  const gmailPass = (Deno.env.get("GMAIL_APP_PASSWORD") ?? "").replace(/\s+/g, "");
+  if (!gmailUser || !gmailPass) {
+    return { success: false, error: "GMAIL credentials not configured" };
+  }
+  try {
+    const transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: { user: gmailUser, pass: gmailPass },
+    });
+    await transporter.sendMail({
+      from: `"MeriLive" <${gmailUser}>`,
+      to,
+      subject,
+      html,
+    });
+    return { success: true };
+  } catch (e: any) {
+    return { success: false, error: e?.message || String(e) };
+  }
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -27,8 +52,7 @@ serve(async (req: Request): Promise<Response> => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
-    
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const { email, action, otp, newPassword }: OTPRequest = await req.json();
