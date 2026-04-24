@@ -237,8 +237,13 @@ const AdminBeautyFilters = () => {
       return;
     }
 
-    const payload = {
+    // Auto-generate slug if missing (Flutter parity requirement)
+    const autoSlug = formData.slug.trim() || formData.name.trim().toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+
+    const basePayload: Record<string, any> = {
       name: formData.name.trim(),
+      slug: autoSlug,
       description: formData.description.trim() || null,
       category: formData.category,
       file_url: fileUrl,
@@ -256,6 +261,11 @@ const AdminBeautyFilters = () => {
       tags: formData.tags.split(",").map(t => t.trim()).filter(Boolean),
       updated_at: new Date().toISOString(),
     };
+
+    // Beauty filters get matrix + icon_name; AR stickers don't need matrix
+    const payload = activeTab === "beauty"
+      ? { ...basePayload, matrix: formData.matrix, icon_name: formData.icon_name.trim() || null }
+      : basePayload;
 
     let error;
     if (editingItem) {
