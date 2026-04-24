@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, memo } from "react";
+import { useState, useEffect, useCallback, memo, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -7,10 +7,29 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, Users, Gift, Phone, DollarSign, Loader2, Zap } from "lucide-react";
+import { TrendingUp, Users, Gift, Phone, DollarSign, Loader2, Zap, Inbox } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
+
+// Stale-while-revalidate cache so charts paint instantly on revisit
+const ANALYTICS_CACHE_KEY = "meri_admin_analytics_chart_v1";
+const loadCachedAnalytics = (range: string): any | null => {
+  try {
+    const raw = localStorage.getItem(`${ANALYTICS_CACHE_KEY}:${range}`);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+};
+const saveCachedAnalytics = (range: string, data: any) => {
+  try { localStorage.setItem(`${ANALYTICS_CACHE_KEY}:${range}`, JSON.stringify(data)); } catch {}
+};
+
+const ChartEmpty = ({ label }: { label: string }) => (
+  <div className="flex flex-col items-center justify-center h-[220px] text-slate-500">
+    <Inbox className="w-8 h-8 mb-2 opacity-50" />
+    <p className="text-xs font-semibold">No {label} in this period</p>
+  </div>
+);
 
 type TimeRange = "7d" | "30d" | "90d";
 
@@ -100,15 +119,18 @@ SummaryCard.displayName = "SummaryCard";
 
 export const AdminAnalyticsCharts = memo(() => {
   const [timeRange, setTimeRange] = useState<TimeRange>("7d");
-  const [data, setData] = useState<AnalyticsData | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Hydrate from cache so charts paint instantly on revisit (zero-loading UX)
+  const [data, setData] = useState<AnalyticsData | null>(() => loadCachedAnalytics("7d"));
+  const [loading, setLoading] = useState(!loadCachedAnalytics("7d"));
 
   const loadData = useCallback(async () => {
     try {
       const days = timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : 90;
       const { data: result, error } = await (supabase.rpc as any)("get_admin_analytics_chart_data", { p_days: days });
       if (error) throw error;
-      setData(result as unknown as AnalyticsData);
+      const parsed = result as unknown as AnalyticsData;
+      setData(parsed);
+      saveCachedAnalytics(timeRange, parsed);
     } catch (e) {
       console.error("[Analytics] Error loading chart data:", e);
     } finally {
@@ -117,9 +139,12 @@ export const AdminAnalyticsCharts = memo(() => {
   }, [timeRange]);
 
   useEffect(() => {
-    setLoading(true);
+    // Show cached data instantly for the new range, refresh in background
+    const cached = loadCachedAnalytics(timeRange);
+    if (cached) setData(cached);
+    else setLoading(true);
     loadData();
-  }, [loadData]);
+  }, [loadData, timeRange]);
 
   // Auto-refresh on relevant table changes
   useAdminRealtime(
@@ -193,12 +218,8 @@ export const AdminAnalyticsCharts = memo(() => {
         </div>
       )}
 
-      {loading && !data ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
-        </div>
-      ) : (
-        <>
+      {/* Charts always render — empty state shown per chart when no data */}
+      <>
           {/* Charts Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             {/* User Growth */}
@@ -207,30 +228,33 @@ export const AdminAnalyticsCharts = memo(() => {
                 <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
                   <Users className="w-4 h-4 text-purple-400" />
                   User & Host Growth
+                  {loading && !data && <Loader2 className="w-3 h-3 animate-spin text-slate-400" />}
                   <Badge className="bg-emerald-600/20 text-emerald-300 border-emerald-500/30 text-[10px] ml-auto">REAL</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-4 pb-2">
-                <ResponsiveContainer width="100%" height={220}>
-                  <AreaChart data={chartUserGrowth} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorNewUsers" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={COLORS.users} stopOpacity={0.4} />
-                        <stop offset="100%" stopColor={COLORS.users} stopOpacity={0} />
-                      </linearGradient>
-                      <linearGradient id="colorNewHosts" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={COLORS.hosts} stopOpacity={0.4} />
-                        <stop offset="100%" stopColor={COLORS.hosts} stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />
-                    <XAxis dataKey="date" tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Area type="monotone" dataKey="New Users" stroke={COLORS.users} fill="url(#colorNewUsers)" strokeWidth={2.5} />
-                    <Area type="monotone" dataKey="New Hosts" stroke={COLORS.hosts} fill="url(#colorNewHosts)" strokeWidth={2.5} />
-                  </AreaChart>
-                </ResponsiveContainer>
+                {chartUserGrowth.some(d => d["New Users"] > 0 || d["New Hosts"] > 0) ? (
+                  <ResponsiveContainer width="100%" height={220}>
+                    <AreaChart data={chartUserGrowth} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="colorNewUsers" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={COLORS.users} stopOpacity={0.4} />
+                          <stop offset="100%" stopColor={COLORS.users} stopOpacity={0} />
+                        </linearGradient>
+                        <linearGradient id="colorNewHosts" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={COLORS.hosts} stopOpacity={0.4} />
+                          <stop offset="100%" stopColor={COLORS.hosts} stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />
+                      <XAxis dataKey="date" tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Area type="monotone" dataKey="New Users" stroke={COLORS.users} fill="url(#colorNewUsers)" strokeWidth={2.5} />
+                      <Area type="monotone" dataKey="New Hosts" stroke={COLORS.hosts} fill="url(#colorNewHosts)" strokeWidth={2.5} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : <ChartEmpty label="user signups" />}
               </CardContent>
             </Card>
 
@@ -240,25 +264,28 @@ export const AdminAnalyticsCharts = memo(() => {
                 <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
                   <DollarSign className="w-4 h-4 text-emerald-400" />
                   Recharge Revenue
+                  {loading && !data && <Loader2 className="w-3 h-3 animate-spin text-slate-400" />}
                   <Badge className="bg-emerald-600/20 text-emerald-300 border-emerald-500/30 text-[10px] ml-auto">REAL</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-4 pb-2">
-                <ResponsiveContainer width="100%" height={220}>
-                  <AreaChart data={chartRechargeRevenue} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={COLORS.revenue} stopOpacity={0.4} />
-                        <stop offset="100%" stopColor={COLORS.revenue} stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />
-                    <XAxis dataKey="date" tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Area type="monotone" dataKey="Revenue" stroke={COLORS.revenue} fill="url(#colorRevenue)" strokeWidth={2.5} />
-                  </AreaChart>
-                </ResponsiveContainer>
+                {chartRechargeRevenue.some(d => d.Revenue > 0) ? (
+                  <ResponsiveContainer width="100%" height={220}>
+                    <AreaChart data={chartRechargeRevenue} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={COLORS.revenue} stopOpacity={0.4} />
+                          <stop offset="100%" stopColor={COLORS.revenue} stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />
+                      <XAxis dataKey="date" tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Area type="monotone" dataKey="Revenue" stroke={COLORS.revenue} fill="url(#colorRevenue)" strokeWidth={2.5} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : <ChartEmpty label="recharges" />}
               </CardContent>
             </Card>
 
@@ -268,25 +295,28 @@ export const AdminAnalyticsCharts = memo(() => {
                 <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
                   <Gift className="w-4 h-4 text-amber-400" />
                   Gift Volume (Coins)
+                  {loading && !data && <Loader2 className="w-3 h-3 animate-spin text-slate-400" />}
                   <Badge className="bg-amber-600/20 text-amber-300 border-amber-500/30 text-[10px] ml-auto">REAL</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-4 pb-2">
-                <ResponsiveContainer width="100%" height={220}>
-                  <BarChart data={chartGiftRevenue} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorCoins" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={COLORS.coins} stopOpacity={0.9} />
-                        <stop offset="100%" stopColor={COLORS.coins} stopOpacity={0.3} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />
-                    <XAxis dataKey="date" tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="Coins" fill="url(#colorCoins)" radius={[6, 6, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+                {chartGiftRevenue.some(d => d.Coins > 0) ? (
+                  <ResponsiveContainer width="100%" height={220}>
+                    <BarChart data={chartGiftRevenue} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="colorCoins" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={COLORS.coins} stopOpacity={0.9} />
+                          <stop offset="100%" stopColor={COLORS.coins} stopOpacity={0.3} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />
+                      <XAxis dataKey="date" tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Bar dataKey="Coins" fill="url(#colorCoins)" radius={[6, 6, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : <ChartEmpty label="gifts sent" />}
               </CardContent>
             </Card>
 
@@ -296,24 +326,26 @@ export const AdminAnalyticsCharts = memo(() => {
                 <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
                   <Phone className="w-4 h-4 text-cyan-400" />
                   Call Activity
+                  {loading && !data && <Loader2 className="w-3 h-3 animate-spin text-slate-400" />}
                   <Badge className="bg-cyan-600/20 text-cyan-300 border-cyan-500/30 text-[10px] ml-auto">REAL</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-4 pb-2">
-                <ResponsiveContainer width="100%" height={220}>
-                  <LineChart data={chartCallActivity} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />
-                    <XAxis dataKey="date" tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Line type="monotone" dataKey="Calls" stroke={COLORS.calls} strokeWidth={2.5} dot={{ r: 3, fill: COLORS.calls }} />
-                    <Line type="monotone" dataKey="Minutes" stroke="#a78bfa" strokeWidth={2} strokeDasharray="5 5" dot={false} />
-                  </LineChart>
-                </ResponsiveContainer>
+                {chartCallActivity.some(d => d.Calls > 0 || d.Minutes > 0) ? (
+                  <ResponsiveContainer width="100%" height={220}>
+                    <LineChart data={chartCallActivity} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />
+                      <XAxis dataKey="date" tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fill: "#94a3b8", fontSize: 10 }} axisLine={false} tickLine={false} />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Line type="monotone" dataKey="Calls" stroke={COLORS.calls} strokeWidth={2.5} dot={{ r: 3, fill: COLORS.calls }} />
+                      <Line type="monotone" dataKey="Minutes" stroke="#a78bfa" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : <ChartEmpty label="calls" />}
               </CardContent>
             </Card>
           </div>
-
           {/* Agency Distribution (smaller) */}
           {pieData.length > 0 && (
             <Card className="bg-gradient-to-br from-slate-800/90 to-slate-900/90 border-slate-700/40 backdrop-blur-sm shadow-xl overflow-hidden max-w-md">
@@ -339,7 +371,6 @@ export const AdminAnalyticsCharts = memo(() => {
             </Card>
           )}
         </>
-      )}
     </motion.div>
   );
 });
