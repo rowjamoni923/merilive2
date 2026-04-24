@@ -2,7 +2,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Plus, Edit2, Trash2, Search, Filter, Eye, EyeOff, Star, Upload, FileVideo, Image as ImageIcon, FileCode, Wand2 } from "lucide-react";
+import { Plus, Edit2, Trash2, Search, Filter, Eye, EyeOff, Star, Upload, FileVideo, Image as ImageIcon, FileCode, Wand2, Gift } from "lucide-react";
+import GiftFrameDialog from "@/components/admin/GiftFrameDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -101,6 +102,7 @@ const AdminFrames = () => {
   });
 
   const [fullscreenPreviewFrame, setFullscreenPreviewFrame] = useState<Frame | null>(null);
+  const [giftFrame, setGiftFrame] = useState<Frame | null>(null);
   const soundInputRef = useRef<HTMLInputElement>(null);
 
   const fetchFrames = useCallback(async (showToast: boolean = false) => {
