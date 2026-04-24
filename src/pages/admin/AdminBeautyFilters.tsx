@@ -621,6 +621,17 @@ const AdminBeautyFilters = () => {
               />
             </div>
 
+            {/* Color Matrix Editor — beauty filters only (Elite Beauty Studio parity) */}
+            {activeTab === "beauty" && (
+              <div className="pt-4 border-t border-muted/30">
+                <ColorMatrixEditor
+                  value={formData.matrix}
+                  onChange={(m) => setFormData({ ...formData, matrix: m })}
+                  previewUrl={previewImageFile ? URL.createObjectURL(previewImageFile) : (editingItem?.preview_url || null)}
+                />
+              </div>
+            )}
+
             {/* Upload Progress */}
             {uploading && (
               <div className="space-y-2">
