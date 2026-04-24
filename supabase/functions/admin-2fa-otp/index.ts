@@ -145,6 +145,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
       // Send via Gmail SMTP (same path as user app)
       let emailSent = false;
+      let emailError: string | null = null;
+      let smtpDetail: string | null = null;
       if (gmailUser && gmailAppPassword) {
         try {
           const transporter = nodemailer.createTransport({
@@ -152,21 +154,35 @@ Deno.serve(async (req: Request): Promise<Response> => {
             port: 465,
             secure: true,
             auth: { user: gmailUser, pass: gmailAppPassword },
+            tls: { rejectUnauthorized: true },
           });
 
-          await transporter.sendMail({
+          // Verify connection first
+          await transporter.verify();
+          console.log(`[admin-2fa-otp] ✅ SMTP verified for ${gmailUser}`);
+
+          const info = await transporter.sendMail({
             from: `MeriLive Admin <${gmailUser}>`,
             to: normalizedEmail,
+            replyTo: gmailUser,
             subject: `[MeriLive Admin] 2FA Code: ${otpCode}`,
             text: `Your MeriLive Admin 2FA code is: ${otpCode}. Valid for 5 minutes. Do not share.`,
             html: buildAdminOTPEmailHTML(otpCode),
+            headers: {
+              "X-Priority": "1",
+              "X-MSMail-Priority": "High",
+              "Importance": "High",
+            },
           });
-          emailSent = true;
-          console.log(`[admin-2fa-otp] ✅ OTP sent to ${normalizedEmail} via Gmail SMTP`);
+          emailSent = (info.accepted?.length ?? 0) > 0;
+          smtpDetail = `messageId=${info.messageId} accepted=${JSON.stringify(info.accepted)} rejected=${JSON.stringify(info.rejected)} response=${info.response}`;
+          console.log(`[admin-2fa-otp] ✅ OTP sent to ${normalizedEmail} | ${smtpDetail}`);
         } catch (emailErr: any) {
-          console.error("[admin-2fa-otp] Gmail SMTP send failed:", emailErr?.message || emailErr);
+          emailError = emailErr?.message || String(emailErr);
+          console.error("[admin-2fa-otp] ❌ Gmail SMTP send failed:", emailError);
         }
       } else {
+        emailError = "GMAIL_USER or GMAIL_APP_PASSWORD missing";
         console.error("[admin-2fa-otp] Gmail SMTP credentials missing");
       }
 
@@ -177,6 +193,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
           message: emailSent
             ? "Verification code sent to your email"
             : "Email service unavailable. Please try again or contact support.",
+          error_detail: emailError,
+          smtp_detail: smtpDetail,
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
