@@ -74,6 +74,7 @@ import { getAdminSession } from "@/utils/adminSession";
 import { ScreenSecuritySDK } from "@/sdk/ScreenSecuritySDK";
 import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { prefetchAdminRoute, prefetchCommonAdminRoutes } from "@/utils/adminRoutePrefetch";
 
 import { PremiumSpinner } from "@/components/ui/premium-spinner";
 
@@ -1261,15 +1262,13 @@ export default function AdminLayout() {
   }, [fetchHeaderStats, debouncedFetchHeaderStats]);
 
   // ⚡ Prefetch ALL admin page chunks after initial render to eliminate lazy-load delay
+  // Lighter prefetch strategy: warm only the most-used admin routes after mount.
+  // Other routes prefetch on sidebar hover via prefetchAdminRoute().
   useEffect(() => {
-    const prefetchTimer = setTimeout(() => {
-      const adminModules = import.meta.glob('../admin/*.tsx');
-      Object.values(adminModules).forEach(importFn => {
-        try { (importFn as Function)(); } catch {}
-      });
-    }, 3000); // Start prefetching 3s after mount
-    return () => clearTimeout(prefetchTimer);
+    const t = setTimeout(() => prefetchCommonAdminRoutes(), 1500);
+    return () => clearTimeout(t);
   }, []);
+
 
   // Debounced pending counts fetch
   const pendingCountsTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -2551,6 +2550,9 @@ export default function AdminLayout() {
                             <Link
                               key={item.path}
                               to={item.path}
+                              onMouseEnter={() => prefetchAdminRoute(item.path)}
+                              onFocus={() => prefetchAdminRoute(item.path)}
+                              onTouchStart={() => prefetchAdminRoute(item.path)}
                               onClick={() => {
                                 setIsMobileSidebarOpen(false);
                                 const normalizedItemPath = normalizeAdminPath(item.path);

@@ -250,9 +250,13 @@ export default function AdminDashboard() {
       try {
         const { data, error } = await supabase.rpc("get_admin_dashboard_stats");
         if (error) throw error;
-        const parsed = data as unknown as DashboardStats;
-        setStats(parsed);
-        saveCachedDashboardStats(parsed);
+        const parsed = data as any;
+        // RPC now returns daily_active_* + recent_activities in same payload — single round trip.
+        setStats(parsed as DashboardStats);
+        saveCachedDashboardStats(parsed as DashboardStats);
+        if (typeof parsed?.daily_active_users === 'number') setDailyActiveUsers(parsed.daily_active_users);
+        if (typeof parsed?.daily_active_hosts === 'number') setDailyActiveHosts(parsed.daily_active_hosts);
+        if (Array.isArray(parsed?.recent_activities)) setRecentActivities(parsed.recent_activities);
         setLastRefreshTime(new Date());
         return;
       } catch (error: any) {
@@ -270,37 +274,6 @@ export default function AdminDashboard() {
     if (lastError) console.error("Error fetching stats:", lastError);
   }, []);
 
-  const loadDailyActive = useCallback(async () => {
-    try {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const todayISO = today.toISOString();
-
-      const [usersRes, hostsRes] = await Promise.all([
-        supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('last_seen_at', todayISO),
-        supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_host', true).gte('last_seen_at', todayISO),
-      ]);
-
-      setDailyActiveUsers(usersRes.count || 0);
-      setDailyActiveHosts(hostsRes.count || 0);
-    } catch (e) {
-      console.error('Error fetching daily active counts:', e);
-    }
-  }, []);
-
-  const loadActivities = useCallback(async () => {
-    try {
-      const { data } = await supabase
-        .from("admin_logs")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(10);
-      setRecentActivities(data || []);
-    } catch (error) {
-      console.error("Error fetching activities:", error);
-    }
-  }, []);
-
   useAdminRealtime(
     ['profiles', 'gift_transactions', 'live_streams', 'agencies', 'private_calls', 'face_verification_submissions'],
     () => { loadData(); }
@@ -309,7 +282,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     let isMounted = true;
     if (!stats) setLoading(true);
-    Promise.all([loadData(), loadActivities(), loadDailyActive()]).finally(() => {
+    loadData().finally(() => {
       if (isMounted) setLoading(false);
     });
     const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -317,13 +290,13 @@ export default function AdminDashboard() {
       if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') loadData();
     });
     return () => { isMounted = false; authSubscription.unsubscribe(); };
-  }, [location.pathname, loadData, loadActivities, loadDailyActive]);
+  }, [location.pathname, loadData]);
 
   const handleManualRefresh = useCallback(async () => {
     setIsRefreshing(true);
-    await Promise.all([loadData(), loadActivities(), loadDailyActive()]);
+    await loadData();
     setIsRefreshing(false);
-  }, [loadData, loadActivities, loadDailyActive]);
+  }, [loadData]);
 
   if (loading && !stats) return <AdminDashboardSkeleton />;
 
