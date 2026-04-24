@@ -153,6 +153,20 @@ const Auth = () => {
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [countrySearch, setCountrySearch] = useState("");
 
+  const getFunctionErrorMessage = async (error: any, fallback: string) => {
+    try {
+      const response = error?.context;
+      if (response && typeof response.json === "function") {
+        const payload = await response.json();
+        return payload?.error || payload?.detail || payload?.message || fallback;
+      }
+    } catch (parseError) {
+      console.warn("[Auth] Failed to parse function error:", parseError);
+    }
+
+    return error?.message || fallback;
+  };
+
   // Auto-detect user's country for default country code
   useEffect(() => {
     const detectUserCountry = async () => {
@@ -1020,9 +1034,10 @@ const Auth = () => {
       setAuthStep("email_otp");
     } catch (error: any) {
       console.error("Email OTP error:", error);
+      const errorMessage = await getFunctionErrorMessage(error, "Failed to send verification code");
       toast({
         title: "Error",
-        description: error.message || "Failed to send verification code",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -1052,18 +1067,21 @@ const Auth = () => {
         { body: { email: normalizedEmail, otp: otpCode, purpose: "login" } }
       );
 
-      if (verifyError) throw verifyError;
+      if (verifyError) {
+        throw new Error(await getFunctionErrorMessage(verifyError, "Invalid verification code"));
+      }
       if (!verifyData?.success) {
         throw new Error(verifyData?.error || "Invalid verification code");
       }
 
-      // OTP verified — now sign the user in (creates account if not exists)
       const { data: signInData, error: signInError } = await supabase.functions.invoke(
         "otp-direct-signin",
         { body: { email: normalizedEmail, otp_verified: true } }
       );
 
-      if (signInError) throw signInError;
+      if (signInError) {
+        throw new Error(await getFunctionErrorMessage(signInError, "Failed to complete sign-in"));
+      }
       if (!signInData?.success || !signInData?.access_token) {
         throw new Error(signInData?.error || "Failed to complete sign-in");
       }
@@ -1535,9 +1553,10 @@ const Auth = () => {
         description: `A new verification code has been sent to ${normalizedEmail}`,
       });
     } catch (error: any) {
+      const errorMessage = await getFunctionErrorMessage(error, "Failed to resend code. Please try again.");
       toast({
         title: "Error",
-        description: error.message || "Failed to resend code. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
