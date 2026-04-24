@@ -193,8 +193,8 @@ const getAdminNotificationPath = (notification: AdminNotification): string => {
   if (type.includes('coin_exchange') || type.includes('diamond_sent')) return '/admin/coin-traders';
   if (type.includes('report') || type.includes('violation')) return '/admin/live-bans';
   if (type.includes('face_violation') || type === 'face_violation') return '/admin/face-violations';
-  if (type.includes('chat_moderation') || type === 'chat_moderation') return '/admin/chat-inspector';
-  if (type.includes('helper_order') || type === 'helper_order') return '/admin/helper-management';
+  if (type.includes('chat_moderation') || type === 'chat_moderation') return '/admin/contact-violations';
+  if (type.includes('helper_order') || type === 'helper_order') return '/admin/helper-orders';
   if (type.includes('security')) return '/admin/logs';
   if (type === 'system') return '/admin/settings';
   if (type.includes('party') || type.includes('room')) return '/admin/party-rooms';
