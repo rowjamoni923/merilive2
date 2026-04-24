@@ -196,23 +196,32 @@ export default function AdminLiveBans() {
         ? null 
         : new Date(Date.now() + parseInt(newBanDuration) * 60 * 60 * 1000).toISOString();
 
-      const { data, error } = await supabase.functions.invoke('admin-chat-inspector/create-ban', {
-        body: {
-          user_id: newBanUserId.trim(),
-          ban_reason: newBanReason || 'Manual ban by admin',
-          violation_type: newBanViolationType,
-          ban_duration_hours: newBanDuration === 'permanent' ? null : parseInt(newBanDuration),
-          ban_end: banEnd,
-          is_active: true,
-          auto_banned: false,
-        },
-      });
-
-      if (error) throw error;
-      if (data?.error) {
-        toast.error(data.error);
-        return;
+      // Resolve target: accept UUID directly, otherwise treat as app_uid
+      const trimmed = newBanUserId.trim();
+      let targetId = trimmed;
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(trimmed);
+      if (!isUuid) {
+        const { data: prof, error: profErr } = await supabase
+          .from('profiles').select('id').eq('app_uid', trimmed).maybeSingle();
+        if (profErr) throw profErr;
+        if (!prof?.id) { toast.error('User not found for that ID'); return; }
+        targetId = prof.id;
       }
+
+      const { error } = await supabase.from('live_bans').insert({
+        user_id: targetId,
+        ban_reason: newBanReason || 'Manual ban by admin',
+        reason: newBanReason || 'Manual ban by admin',
+        violation_type: newBanViolationType,
+        ban_type: newBanDuration === 'permanent' ? 'permanent' : 'temporary',
+        ban_duration_hours: newBanDuration === 'permanent' ? null : parseInt(newBanDuration),
+        ban_start: new Date().toISOString(),
+        ban_end: banEnd,
+        expires_at: banEnd,
+        is_active: true,
+        auto_banned: false,
+      } as any);
+      if (error) throw error;
 
       toast.success('User banned successfully ✅');
       setShowNewBanDialog(false);
