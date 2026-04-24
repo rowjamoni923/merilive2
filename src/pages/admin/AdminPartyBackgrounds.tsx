@@ -109,16 +109,26 @@ const AdminPartyBackgrounds = () => {
 
   const fetchBackgrounds = useCallback(async () => {
     setIsLoading(true);
+    const session = getAdminSession();
 
     try {
-      const { data, error } = await supabase
-        .from('party_room_backgrounds')
-        .select('*')
-        .order('display_order', { ascending: true });
+      let rows: any[] = [];
+      if (session?.admin_id) {
+        const { data, error } = await adminSupabase.rpc('admin_list_party_backgrounds' as any, {
+          _admin_id: session.admin_id,
+        });
+        if (error) throw error;
+        rows = (data as any[]) || [];
+      } else {
+        const { data, error } = await supabase
+          .from('party_room_backgrounds')
+          .select('*')
+          .order('display_order', { ascending: true });
+        if (error) throw error;
+        rows = data || [];
+      }
 
-      if (error) throw error;
-
-      setBackgrounds((data || []).map(bg => ({
+      setBackgrounds(rows.map((bg: any) => ({
         id: bg.id,
         name: bg.name,
         image_url: bg.image_url,
