@@ -106,34 +106,32 @@ export default function AdminLiveBans() {
   const fetchBans = async () => {
     setLoading(true);
     try {
+      // Use admin SECURITY DEFINER RPC for reliable cross-table fetch
       const { data, error } = await supabase
-        .from('live_bans')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .rpc('admin_list_live_bans', { _only_active: false, _limit: 500 });
 
       if (error) throw error;
-      
-      // Fetch profiles separately
-      const userIds = data?.map(b => b.user_id) || [];
-      let profilesData: any[] = [];
-      
-      if (userIds.length > 0) {
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('id, display_name, avatar_url, app_uid')
-          .in('id', userIds);
-        profilesData = profiles || [];
-      }
 
-      const bansWithProfiles = (data || []).map(ban => ({
-        ...ban,
-        profiles: profilesData.find((p: any) => p.id === ban.user_id) 
-          ? { 
-              display_name: profilesData.find((p: any) => p.id === ban.user_id)?.display_name || '', 
-              avatar_url: profilesData.find((p: any) => p.id === ban.user_id)?.avatar_url || '', 
-              uid: profilesData.find((p: any) => p.id === ban.user_id)?.app_uid || ban.user_id.slice(0, 8)
-            } 
-          : undefined
+      const bansWithProfiles = ((data || []) as any[]).map((row) => ({
+        id: row.id,
+        user_id: row.user_id,
+        ban_reason: row.ban_reason,
+        violation_type: row.violation_type,
+        warning_count: row.warning_count,
+        ban_start: row.ban_start,
+        ban_end: row.ban_end,
+        ban_duration_hours: row.ban_duration_hours,
+        is_active: row.is_active,
+        auto_banned: row.auto_banned,
+        unbanned_by: row.unbanned_by,
+        unbanned_at: row.unbanned_at,
+        profiles: row.display_name
+          ? {
+              display_name: row.display_name || '',
+              avatar_url: row.avatar_url || '',
+              uid: row.app_uid || (row.user_id ? row.user_id.slice(0, 8) : ''),
+            }
+          : undefined,
       }));
 
       setBans(bansWithProfiles as unknown as LiveBan[]);
