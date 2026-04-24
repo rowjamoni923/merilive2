@@ -51,7 +51,7 @@ class ProfileModel {
     this.avatarUrl,
     this.coverUrl,
     this.countryCode = 'BD',
-    this.countryName = 'বাংলাদেশ',
+    this.countryName = 'Bangladesh',
     this.countryFlag = '🇧🇩',
     this.age,
     this.gender,
@@ -96,7 +96,7 @@ class ProfileModel {
       avatarUrl: json['avatar_url'],
       coverUrl: json['cover_url'],
       countryCode: json['country_code'] ?? 'BD',
-      countryName: json['country_name'] ?? 'বাংলাদেশ',
+      countryName: json['country_name'] ?? 'Bangladesh',
       countryFlag: json['country_flag'] ?? '🇧🇩',
       age: json['age'],
       gender: json['gender'],
@@ -183,6 +183,11 @@ class ProfileModel {
       'trader_level': traderLevel,
     };
   }
+
+  /// Verified host = admin-approved + face-verified + not blocked.
+  /// Mirrors the platform-wide host visibility policy (host_visibility-governance-v2).
+  bool get isVerifiedHost =>
+      hostStatus == 'approved' && isFaceVerified && !isBlocked;
 }
 
 
