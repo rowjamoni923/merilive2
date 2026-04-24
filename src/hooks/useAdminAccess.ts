@@ -5,6 +5,7 @@ import { getAdminSession, type AdminSession } from "@/utils/adminSession";
 
 // Owner emails - hardcoded for absolute certainty
 const OWNER_EMAILS = ["smtv923@gmail.com", "sazzadshifa776@gmail.com"];
+const ADMIN_ACCESS_EVENT = "admin-access-updated";
 
 interface AdminUser {
   id: string;
@@ -23,6 +24,60 @@ interface AccessibleSection {
   section_name: string;
   hub_key: string;
   can_edit: boolean;
+}
+
+type AdminAccessEventDetail = {
+  adminId: string;
+  target: 'user' | 'sections' | 'all';
+};
+
+const adminAccessChannelRegistry = new Map<string, { channel: any; listeners: number }>();
+
+function emitAdminAccessUpdate(adminId: string, target: AdminAccessEventDetail['target']) {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(
+    new CustomEvent<AdminAccessEventDetail>(ADMIN_ACCESS_EVENT, {
+      detail: { adminId, target },
+    })
+  );
+}
+
+function ensureAdminAccessChannel(adminId: string) {
+  const existing = adminAccessChannelRegistry.get(adminId);
+  if (existing) {
+    existing.listeners += 1;
+    return existing.channel;
+  }
+
+  const channel = adminSupabase
+    .channel(`admin-access-${adminId}-${crypto.randomUUID()}`)
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'admin_users', filter: `id=eq.${adminId}` },
+      () => emitAdminAccessUpdate(adminId, 'user')
+    )
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'admin_section_permissions', filter: `admin_user_id=eq.${adminId}` },
+      () => emitAdminAccessUpdate(adminId, 'sections')
+    )
+    .subscribe();
+
+  adminAccessChannelRegistry.set(adminId, { channel, listeners: 1 });
+  return channel;
+}
+
+function releaseAdminAccessChannel(adminId: string) {
+  const existing = adminAccessChannelRegistry.get(adminId);
+  if (!existing) return;
+
+  if (existing.listeners <= 1) {
+    adminSupabase.removeChannel(existing.channel);
+    adminAccessChannelRegistry.delete(adminId);
+    return;
+  }
+
+  existing.listeners -= 1;
 }
 
 /**
@@ -74,7 +129,6 @@ export const useAdminAccess = () => {
     queryKey: ["admin-accessible-sections", adminId],
     queryFn: async () => {
       if (!adminId) return [];
-      // Direct query via admin_section_permissions joined with admin_sections
       const { data, error } = await adminSupabase
         .from("admin_section_permissions")
         .select(`
@@ -105,21 +159,29 @@ export const useAdminAccess = () => {
 
   // Realtime updates for permission changes
   useEffect(() => {
-    if (!adminId) return;
-    // Unique channel name per mount to avoid "cannot add callbacks after subscribe()" error
-    const channelName = `admin-access-${adminId}-${crypto.randomUUID()}`;
-    const channel = adminSupabase
-      .channel(channelName)
-      .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'admin_users', filter: `id=eq.${adminId}` },
-        () => queryClient.invalidateQueries({ queryKey: ["admin-user", adminId] })
-      )
-      .on('postgres_changes',
-        { event: '*', schema: 'public', table: 'admin_section_permissions', filter: `admin_user_id=eq.${adminId}` },
-        () => queryClient.invalidateQueries({ queryKey: ["admin-accessible-sections", adminId] })
-      )
-      .subscribe();
-    return () => { adminSupabase.removeChannel(channel); };
+    if (!adminId || typeof window === 'undefined') return;
+
+    ensureAdminAccessChannel(adminId);
+
+    const handleAccessUpdate = (event: Event) => {
+      const detail = (event as CustomEvent<AdminAccessEventDetail>).detail;
+      if (!detail || detail.adminId !== adminId) return;
+
+      if (detail.target === 'user' || detail.target === 'all') {
+        queryClient.invalidateQueries({ queryKey: ["admin-user", adminId] });
+      }
+
+      if (detail.target === 'sections' || detail.target === 'all') {
+        queryClient.invalidateQueries({ queryKey: ["admin-accessible-sections", adminId] });
+      }
+    };
+
+    window.addEventListener(ADMIN_ACCESS_EVENT, handleAccessUpdate as EventListener);
+
+    return () => {
+      window.removeEventListener(ADMIN_ACCESS_EVENT, handleAccessUpdate as EventListener);
+      releaseAdminAccessChannel(adminId);
+    };
   }, [queryClient, adminId]);
 
   const isOwner = !!session?.is_owner ||
