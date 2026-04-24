@@ -355,6 +355,101 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_permanent_ban_case_targets: {
+        Row: {
+          case_id: string
+          created_at: string
+          id: string
+          relation_details: Json
+          source: string
+          user_id: string
+        }
+        Insert: {
+          case_id: string
+          created_at?: string
+          id?: string
+          relation_details?: Json
+          source: string
+          user_id: string
+        }
+        Update: {
+          case_id?: string
+          created_at?: string
+          id?: string
+          relation_details?: Json
+          source?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_permanent_ban_case_targets_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "admin_permanent_ban_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_permanent_ban_cases: {
+        Row: {
+          created_at: string
+          evidence: Json
+          executed_at: string | null
+          executed_by: string | null
+          execution_summary: Json | null
+          id: string
+          include_gift_links: boolean
+          initiated_by: string
+          linked_target_count: number
+          lookback_days: number
+          reason: string
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          target_user_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          evidence?: Json
+          executed_at?: string | null
+          executed_by?: string | null
+          execution_summary?: Json | null
+          id?: string
+          include_gift_links?: boolean
+          initiated_by: string
+          linked_target_count?: number
+          lookback_days?: number
+          reason: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          target_user_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          evidence?: Json
+          executed_at?: string | null
+          executed_by?: string | null
+          execution_summary?: Json | null
+          id?: string
+          include_gift_links?: boolean
+          initiated_by?: string
+          linked_target_count?: number
+          lookback_days?: number
+          reason?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          target_user_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       admin_section_permissions: {
         Row: {
           admin_user_id: string
@@ -1748,6 +1843,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           reason: string | null
+          updated_at: string
           user_id: string | null
         }
         Insert: {
@@ -1757,6 +1853,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           reason?: string | null
+          updated_at?: string
           user_id?: string | null
         }
         Update: {
@@ -1766,6 +1863,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           reason?: string | null
+          updated_at?: string
           user_id?: string | null
         }
         Relationships: []
@@ -11453,6 +11551,22 @@ export type Database = {
         Returns: Json
       }
       admin_get_user_full_details: { Args: { _user_id: string }; Returns: Json }
+      admin_list_admin_users: {
+        Args: { _include_inactive?: boolean }
+        Returns: {
+          accepted_at: string
+          created_at: string
+          display_name: string
+          email: string
+          id: string
+          invited_at: string
+          is_active: boolean
+          last_login_at: string
+          normalized_display_name: string
+          role: string
+          user_id: string
+        }[]
+      }
       admin_list_blocked_agencies: {
         Args: { _limit?: number; _search?: string }
         Returns: {
@@ -11478,6 +11592,34 @@ export type Database = {
           is_host: boolean
         }[]
       }
+      admin_list_helper_orders: {
+        Args: { _limit?: number; _search?: string; _status?: string }
+        Returns: {
+          amount_local: number
+          amount_usd: number
+          coin_amount: number
+          created_at: string
+          currency_code: string
+          customer_app_uid: string
+          customer_avatar_url: string
+          customer_display_name: string
+          customer_id: string
+          helper_app_uid: string
+          helper_avatar_url: string
+          helper_display_name: string
+          helper_id: string
+          helper_notes: string
+          helper_user_id: string
+          helper_wallet_balance: number
+          id: string
+          payment_method: string
+          processed_at: string
+          status: string
+          user_country_code: string
+          user_id: string
+          user_payment_proof: string
+        }[]
+      }
       admin_list_live_bans: {
         Args: { _limit?: number; _only_active?: boolean }
         Returns: {
@@ -11497,6 +11639,24 @@ export type Database = {
           violation_type: string
           warning_count: number
         }[]
+      }
+      admin_permanent_ban_step_one: {
+        Args: {
+          _evidence?: Json
+          _include_gift_links?: boolean
+          _lookback_days?: number
+          _reason: string
+          _target_user_id: string
+        }
+        Returns: string
+      }
+      admin_permanent_ban_step_three: {
+        Args: { _case_id: string }
+        Returns: Json
+      }
+      admin_permanent_ban_step_two: {
+        Args: { _case_id: string; _review_note?: string }
+        Returns: Json
       }
       admin_process_face_verification: {
         Args: {
@@ -11531,6 +11691,14 @@ export type Database = {
       admin_remove_host_from_agency: {
         Args: { _host_id: string; _reason?: string }
         Returns: boolean
+      }
+      admin_resolve_permanent_ban_targets: {
+        Args: { _lookback_days?: number; _target_user_id: string }
+        Returns: {
+          relation_details: Json
+          source: string
+          user_id: string
+        }[]
       }
       admin_send_notification: {
         Args: {
