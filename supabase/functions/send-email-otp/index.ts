@@ -18,60 +18,105 @@ function generateOTP(): string {
   return otp;
 }
 
-function buildOTPEmailHTML(otp: string, purpose: string, _logoUrl: string): string {
-  const purposeText = purpose === "login" ? "Login Verification" : 
-                      purpose === "register" ? "Account Registration" :
-                      purpose === "reset" ? "Password Reset" : "Identity Verification";
-
-  const otpDigits = otp.split("").map(d => 
-    `<td style="width:44px;height:52px;background:linear-gradient(145deg,#1a1a2e,#16213e);border-radius:10px;text-align:center;vertical-align:middle;border:1px solid rgba(124,58,237,0.3);box-shadow:0 4px 15px rgba(124,58,237,0.15),inset 0 1px 0 rgba(255,255,255,0.05);"><span style="font-size:26px;font-weight:800;color:#e0b3ff;font-family:'Courier New',monospace;">${d}</span></td>`
-  ).join('<td style="width:8px;"></td>');
+/**
+ * INBOX-OPTIMIZED email template (Gmail Primary tab friendly)
+ * Spam-prevention rules applied:
+ *  - White background (no dark theme — Gmail flags dark HTML emails)
+ *  - Single clean color accent (no heavy gradients)
+ *  - Minimal emojis (max 0)
+ *  - Balanced text/HTML ratio (plain text version included)
+ *  - No suspicious words (Win, Free, Urgent, Click here, $$$)
+ *  - Proper semantic structure with table layout
+ *  - Real physical-style footer (improves trust)
+ */
+function buildOTPEmailHTML(otp: string, purpose: string): string {
+  const purposeText =
+    purpose === "login" ? "sign in to your account" :
+    purpose === "register" ? "complete your registration" :
+    purpose === "reset" ? "reset your password" :
+    "verify your identity";
 
   return `<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#0a0a0f;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0f;padding:40px 0;">
-<tr><td align="center">
-<table width="460" cellpadding="0" cellspacing="0" style="border-radius:20px;overflow:hidden;box-shadow:0 0 60px rgba(124,58,237,0.15),0 20px 60px rgba(0,0,0,0.4);">
-  <tr><td style="background:linear-gradient(135deg,#0f0c29 0%,#302b63 50%,#24243e 100%);padding:40px 40px 28px;text-align:center;border-bottom:1px solid rgba(124,58,237,0.2);">
-    <!-- Premium MeriLive wordmark (no broken logo image) -->
-    <div style="display:inline-block;padding:5px 18px;background:linear-gradient(135deg,rgba(168,85,247,0.12),rgba(236,72,153,0.10));border:1px solid rgba(168,85,247,0.28);border-radius:999px;margin-bottom:14px;">
-      <span style="color:#c4b5fd;font-size:9px;font-weight:700;letter-spacing:4px;text-transform:uppercase;">Premium · Live · Connect</span>
-    </div>
-    <h1 style="margin:0;font-size:36px;font-weight:800;letter-spacing:3px;line-height:1;background:linear-gradient(90deg,#a855f7 0%,#ec4899 50%,#f59e0b 100%);-webkit-background-clip:text;background-clip:text;color:transparent;">
-      MERI<span style="font-weight:300;">LIVE</span>
-    </h1>
-    <div style="margin:14px auto 0;width:70px;height:3px;background:linear-gradient(90deg,transparent,#a855f7,#ec4899,#a855f7,transparent);border-radius:2px;"></div>
-    <p style="margin:14px 0 0;color:rgba(167,139,250,0.9);font-size:12px;font-weight:600;letter-spacing:3px;text-transform:uppercase;">${purposeText}</p>
-  </td></tr>
-  <tr><td style="background:linear-gradient(180deg,#13131f 0%,#0e0e18 100%);padding:36px 40px;">
-    <p style="margin:0 0 6px;color:#e2e8f0;font-size:16px;font-weight:600;">Hello,</p>
-    <p style="margin:0 0 28px;color:#94a3b8;font-size:14px;line-height:1.6;">Use the following secure code to complete your ${purposeText.toLowerCase()}. This code is valid for a limited time only.</p>
-    <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 28px;">
-      <tr><td style="background:linear-gradient(145deg,#1e1b4b,#0f172a);border-radius:16px;padding:28px 20px;text-align:center;border:1px solid rgba(124,58,237,0.25);">
-        <p style="margin:0 0 14px;color:#7c3aed;font-size:11px;font-weight:600;letter-spacing:4px;text-transform:uppercase;">Your Verification Code</p>
-        <table cellpadding="0" cellspacing="0" style="margin:0 auto;"><tr>${otpDigits}</tr></table>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Your verification code</title>
+</head>
+<body style="margin:0;padding:0;background:#ffffff;font-family:Arial,Helvetica,sans-serif;color:#1f2937;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;padding:32px 16px;">
+  <tr><td align="center">
+    <table role="presentation" width="520" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;background:#ffffff;border:1px solid #e5e7eb;border-radius:8px;">
+
+      <!-- Brand wordmark (text only, no images) -->
+      <tr><td style="padding:28px 32px 8px 32px;text-align:center;border-bottom:1px solid #f3f4f6;">
+        <div style="font-size:24px;font-weight:700;letter-spacing:1px;color:#7c3aed;">MeriLive</div>
       </td></tr>
-    </table>
-    <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
-      <tr><td style="background:linear-gradient(135deg,rgba(124,58,237,0.1),rgba(168,85,247,0.05));border-radius:12px;padding:16px 20px;border-left:3px solid #7c3aed;">
-        <p style="margin:0;color:#c4b5fd;font-size:13px;font-weight:600;">⏱️ Expires in 5 minutes</p>
+
+      <!-- Body -->
+      <tr><td style="padding:32px;">
+        <p style="margin:0 0 16px 0;font-size:16px;color:#111827;">Hello,</p>
+        <p style="margin:0 0 24px 0;font-size:14px;line-height:1.6;color:#4b5563;">
+          Please use the verification code below to ${purposeText}. This code is valid for 5 minutes.
+        </p>
+
+        <!-- OTP block -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px 0;">
+          <tr><td align="center" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:24px;">
+            <div style="font-size:12px;color:#6b7280;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Verification Code</div>
+            <div style="font-size:32px;font-weight:700;letter-spacing:8px;color:#111827;font-family:'Courier New',Courier,monospace;">${otp}</div>
+          </td></tr>
+        </table>
+
+        <p style="margin:0 0 16px 0;font-size:13px;line-height:1.6;color:#6b7280;">
+          If you did not request this code, you can safely ignore this message. Someone may have entered your email address by mistake.
+        </p>
+
+        <p style="margin:24px 0 0 0;font-size:13px;color:#6b7280;">
+          Thanks,<br>The MeriLive Team
+        </p>
       </td></tr>
-    </table>
-    <table width="100%" cellpadding="0" cellspacing="0">
-      <tr><td style="background:rgba(239,68,68,0.06);border-radius:10px;padding:14px 18px;border:1px solid rgba(239,68,68,0.12);">
-        <p style="margin:0;color:#94a3b8;font-size:12px;">🛡️ Never share this code with anyone. MeriLive team will never ask for your verification code.</p>
+
+      <!-- Footer -->
+      <tr><td style="padding:20px 32px;border-top:1px solid #f3f4f6;background:#fafafa;border-radius:0 0 8px 8px;">
+        <p style="margin:0 0 4px 0;font-size:11px;color:#9ca3af;text-align:center;">
+          This is an automated message. Please do not reply to this email.
+        </p>
+        <p style="margin:0;font-size:11px;color:#9ca3af;text-align:center;">
+          &copy; ${new Date().getFullYear()} MeriLive. All rights reserved.
+        </p>
       </td></tr>
+
     </table>
-  </td></tr>
-  <tr><td style="background:#0a0a12;padding:24px 40px;text-align:center;border-top:1px solid rgba(124,58,237,0.1);">
-    <p style="margin:0 0 8px;color:#4a5568;font-size:11px;">If you didn't request this code, you can safely ignore this email.</p>
-    <p style="margin:0;color:#374151;font-size:10px;letter-spacing:1px;">© ${new Date().getFullYear()} MeriLive · All Rights Reserved</p>
   </td></tr>
 </table>
-</td></tr></table>
-</body></html>`;
+</body>
+</html>`;
+}
+
+function buildOTPEmailText(otp: string, purpose: string): string {
+  const purposeText =
+    purpose === "login" ? "sign in to your account" :
+    purpose === "register" ? "complete your registration" :
+    purpose === "reset" ? "reset your password" :
+    "verify your identity";
+
+  return `Hello,
+
+Please use the verification code below to ${purposeText}.
+
+Verification Code: ${otp}
+
+This code is valid for 5 minutes.
+
+If you did not request this code, you can safely ignore this message.
+
+Thanks,
+The MeriLive Team
+
+---
+This is an automated message. Please do not reply.
+© ${new Date().getFullYear()} MeriLive. All rights reserved.`;
 }
 
 Deno.serve(async (req) => {
@@ -119,7 +164,6 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Check rate limit
     const { data: rateLimitOk } = await supabase.rpc("check_otp_rate_limit", {
       p_email: email.toLowerCase(),
     });
@@ -131,7 +175,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Invalidate previous unused OTPs
     await supabase
       .from("email_otps")
       .update({ is_used: true })
@@ -139,7 +182,6 @@ Deno.serve(async (req) => {
       .eq("purpose", purpose)
       .eq("is_used", false);
 
-    // Generate & store OTP
     const otp = generateOTP();
     const { error: insertError } = await supabase.from("email_otps").insert({
       email: email.toLowerCase(),
@@ -156,17 +198,16 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Premium text-only branding — no logo image (broken-image fix)
-    const emailHTML = buildOTPEmailHTML(otp, purpose, "");
+    const emailHTML = buildOTPEmailHTML(otp, purpose);
+    const textContent = buildOTPEmailText(otp, purpose);
 
-    const subjectPrefix = purpose === "login" ? "Login" : 
-                         purpose === "register" ? "Registration" :
-                         purpose === "reset" ? "Password Reset" : "Verification";
+    // INBOX-FRIENDLY subject (no OTP digits, no brackets, no spam-trigger words)
+    const subject =
+      purpose === "login" ? "Your MeriLive sign-in code" :
+      purpose === "register" ? "Confirm your MeriLive account" :
+      purpose === "reset" ? "Reset your MeriLive password" :
+      "Your MeriLive verification code";
 
-    const subject = `[MeriLive] ${subjectPrefix} Code: ${otp}`;
-    const textContent = `Your MeriLive ${subjectPrefix.toLowerCase()} code is: ${otp}. Valid for 5 minutes. Do not share this code.`;
-
-    // Send via Gmail SMTP using nodemailer
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
       port: 465,
@@ -175,12 +216,11 @@ Deno.serve(async (req) => {
       tls: { rejectUnauthorized: true },
     });
 
-    // Verify SMTP connection BEFORE sending — surfaces auth errors immediately
     try {
       await transporter.verify();
-      console.log(`[send-email-otp] ✅ Gmail SMTP connection verified for ${gmailUser}`);
+      console.log(`[send-email-otp] SMTP verified for ${gmailUser}`);
     } catch (verifyErr: any) {
-      console.error("[send-email-otp] ❌ Gmail SMTP verify FAILED:", verifyErr?.message || verifyErr);
+      console.error("[send-email-otp] SMTP verify FAILED:", verifyErr?.message || verifyErr);
       return new Response(
         JSON.stringify({
           success: false,
@@ -192,21 +232,33 @@ Deno.serve(async (req) => {
     }
 
     try {
+      // Generate a deterministic Message-ID with our domain to improve deliverability
+      const messageId = `<${crypto.randomUUID()}@merilive.app>`;
+      const dateHeader = new Date().toUTCString();
+
       const info = await transporter.sendMail({
         from: `MeriLive <${gmailUser}>`,
         to: email,
         replyTo: gmailUser,
+        sender: gmailUser,
         subject,
         text: textContent,
         html: emailHTML,
+        messageId,
+        date: dateHeader,
+        // Inbox-friendly headers — REMOVED X-Priority/Importance:High
+        // (those flags actually HURT deliverability for transactional mail)
         headers: {
-          "X-Priority": "1",
-          "X-MSMail-Priority": "High",
-          "Importance": "High",
+          "List-Unsubscribe": `<mailto:${gmailUser}?subject=unsubscribe>`,
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+          "X-Entity-Ref-ID": crypto.randomUUID(),
+          "X-Mailer": "MeriLive Transactional",
+          "Auto-Submitted": "auto-generated",
+          "Precedence": "transactional",
         },
       });
 
-      console.log(`[send-email-otp] ✅ OTP sent to ${email} | messageId=${info.messageId} | response=${info.response} | accepted=${JSON.stringify(info.accepted)} | rejected=${JSON.stringify(info.rejected)}`);
+      console.log(`[send-email-otp] OTP sent to ${email} | messageId=${info.messageId} | accepted=${JSON.stringify(info.accepted)} | rejected=${JSON.stringify(info.rejected)}`);
 
       return new Response(
         JSON.stringify({
@@ -219,7 +271,7 @@ Deno.serve(async (req) => {
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     } catch (sendErr: any) {
-      console.error("[send-email-otp] ❌ Gmail SMTP sendMail FAILED:", sendErr?.message || sendErr);
+      console.error("[send-email-otp] Gmail SMTP sendMail FAILED:", sendErr?.message || sendErr);
       return new Response(
         JSON.stringify({
           success: false,
