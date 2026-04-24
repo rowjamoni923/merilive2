@@ -2,7 +2,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Plus, Edit2, Trash2, Search, Filter, Eye, EyeOff, Star, Upload, FileVideo, Image as ImageIcon, FileCode, Wand2 } from "lucide-react";
+import { Plus, Edit2, Trash2, Search, Filter, Eye, EyeOff, Star, Upload, FileVideo, Image as ImageIcon, FileCode, Wand2, Gift } from "lucide-react";
+import GiftFrameDialog from "@/components/admin/GiftFrameDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -101,6 +102,7 @@ const AdminFrames = () => {
   });
 
   const [fullscreenPreviewFrame, setFullscreenPreviewFrame] = useState<Frame | null>(null);
+  const [giftFrame, setGiftFrame] = useState<Frame | null>(null);
   const soundInputRef = useRef<HTMLInputElement>(null);
 
   const fetchFrames = useCallback(async (showToast: boolean = false) => {
@@ -670,6 +672,15 @@ const AdminFrames = () => {
                     size="icon"
                     variant="ghost"
                     className="h-7 w-7 bg-white/80 dark:bg-black/50 backdrop-blur-sm"
+                    onClick={() => setGiftFrame(frame)}
+                    title="Gift to a user"
+                  >
+                    <Gift className="w-4 h-4 text-pink-500" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 bg-white/80 dark:bg-black/50 backdrop-blur-sm"
                     onClick={() => toggleActive(frame)}
                     title={frame.is_active ? "Deactivate" : "Activate"}
                   >
@@ -1017,6 +1028,18 @@ const AdminFrames = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Gift Frame Dialog */}
+      {giftFrame && (
+        <GiftFrameDialog
+          open={!!giftFrame}
+          onOpenChange={(o) => { if (!o) setGiftFrame(null); }}
+          frameId={giftFrame.id}
+          frameName={giftFrame.name}
+          framePreviewUrl={giftFrame.preview_url || giftFrame.frame_url}
+          sourceTable="avatar_frames"
+        />
       )}
     </div>
   );
