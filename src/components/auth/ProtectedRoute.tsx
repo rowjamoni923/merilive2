@@ -50,17 +50,20 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
       return;
     }
 
-    // Check cache first — instant render if cached
+    // Always allow render immediately — ban check runs in background.
+    // This prevents the "Loading your account" screen from getting stuck
+    // if a previous async check is still in flight on route change.
+    setChecked(true);
+
+    // Check cache first — apply cached ban state if any
     const cached = banCheckCache.get(userId);
     if (cached && Date.now() - cached.checkedAt < BAN_CACHE_TTL) {
       setIsBanned(cached.isBanned);
-      setChecked(true);
     }
 
     // Prevent duplicate concurrent checks
     if (!checkingRef.current) {
       checkingRef.current = true;
-      setChecked(true);
 
       (async () => {
         try {
