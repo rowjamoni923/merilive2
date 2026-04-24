@@ -1,10 +1,10 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import { Resend } from "https://esm.sh/resend@2.0.0";
+import nodemailer from "npm:nodemailer@6.9.12";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 interface TwoFARequest {
@@ -14,10 +14,70 @@ interface TwoFARequest {
 }
 
 const generateOTP = (): string => {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  const digits = "0123456789";
+  const arr = new Uint8Array(6);
+  crypto.getRandomValues(arr);
+  let otp = "";
+  for (let i = 0; i < 6; i++) otp += digits[arr[i] % 10];
+  return otp;
 };
 
-serve(async (req: Request): Promise<Response> => {
+function buildAdminOTPEmailHTML(otp: string): string {
+  const otpDigits = otp
+    .split("")
+    .map(
+      (d) =>
+        `<td style="width:46px;height:56px;background:linear-gradient(145deg,#1a1033,#2a1454);border-radius:12px;text-align:center;vertical-align:middle;border:1px solid rgba(168,85,247,0.45);box-shadow:0 6px 18px rgba(124,58,237,0.25),inset 0 1px 0 rgba(255,255,255,0.08);"><span style="font-size:28px;font-weight:800;color:#e9d5ff;font-family:'Courier New',monospace;letter-spacing:1px;">${d}</span></td>`
+    )
+    .join('<td style="width:8px;"></td>');
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#07060f;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#07060f;padding:44px 0;">
+<tr><td align="center">
+<table width="480" cellpadding="0" cellspacing="0" style="border-radius:22px;overflow:hidden;box-shadow:0 0 80px rgba(168,85,247,0.18),0 24px 60px rgba(0,0,0,0.55);">
+  <tr><td style="background:linear-gradient(135deg,#1a0b3d 0%,#3b0764 50%,#1a0b3d 100%);padding:42px 40px 30px;text-align:center;border-bottom:1px solid rgba(168,85,247,0.22);">
+    <!-- Premium MeriLive wordmark (no logo image) -->
+    <div style="display:inline-block;padding:6px 22px;background:linear-gradient(135deg,rgba(168,85,247,0.12),rgba(236,72,153,0.10));border:1px solid rgba(168,85,247,0.28);border-radius:999px;margin-bottom:18px;">
+      <span style="color:#c4b5fd;font-size:10px;font-weight:700;letter-spacing:4px;text-transform:uppercase;">Admin Control Center</span>
+    </div>
+    <h1 style="margin:0;font-size:38px;font-weight:800;letter-spacing:3px;line-height:1;background:linear-gradient(90deg,#a855f7 0%,#ec4899 50%,#f59e0b 100%);-webkit-background-clip:text;background-clip:text;color:transparent;">
+      MERI<span style="font-weight:300;">LIVE</span>
+    </h1>
+    <div style="margin:14px auto 0;width:80px;height:3px;background:linear-gradient(90deg,transparent,#a855f7,#ec4899,#a855f7,transparent);border-radius:2px;"></div>
+    <p style="margin:14px 0 0;color:rgba(196,181,253,0.85);font-size:12px;font-weight:600;letter-spacing:3px;text-transform:uppercase;">🛡️ 2FA Verification</p>
+  </td></tr>
+  <tr><td style="background:linear-gradient(180deg,#13101f 0%,#0a0814 100%);padding:38px 40px;">
+    <p style="margin:0 0 8px;color:#f1f5f9;font-size:17px;font-weight:600;">Owner Login Verification</p>
+    <p style="margin:0 0 28px;color:#94a3b8;font-size:13px;line-height:1.6;">Use the secure code below to complete your admin panel login. This code is sensitive — keep it private.</p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 28px;">
+      <tr><td style="background:linear-gradient(145deg,#1e1b4b,#0f0a1e);border-radius:18px;padding:28px 20px;text-align:center;border:1px solid rgba(168,85,247,0.3);">
+        <p style="margin:0 0 14px;color:#a855f7;font-size:11px;font-weight:700;letter-spacing:5px;text-transform:uppercase;">Your 6-Digit Code</p>
+        <table cellpadding="0" cellspacing="0" style="margin:0 auto;"><tr>${otpDigits}</tr></table>
+      </td></tr>
+    </table>
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">
+      <tr><td style="background:linear-gradient(135deg,rgba(245,158,11,0.10),rgba(236,72,153,0.06));border-radius:12px;padding:14px 18px;border-left:3px solid #f59e0b;">
+        <p style="margin:0;color:#fcd34d;font-size:13px;font-weight:600;">⏱️ Expires in 5 minutes</p>
+      </td></tr>
+    </table>
+    <table width="100%" cellpadding="0" cellspacing="0">
+      <tr><td style="background:rgba(239,68,68,0.07);border-radius:10px;padding:14px 18px;border:1px solid rgba(239,68,68,0.15);">
+        <p style="margin:0;color:#fca5a5;font-size:12px;line-height:1.5;">🚨 If you did not attempt to login, your password may be compromised. Change it immediately.</p>
+      </td></tr>
+    </table>
+  </td></tr>
+  <tr><td style="background:#07060f;padding:22px 40px;text-align:center;border-top:1px solid rgba(168,85,247,0.12);">
+    <p style="margin:0;color:#475569;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;">© ${new Date().getFullYear()} MeriLive · Admin Console</p>
+  </td></tr>
+</table>
+</td></tr></table>
+</body></html>`;
+}
+
+Deno.serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -25,7 +85,8 @@ serve(async (req: Request): Promise<Response> => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    const gmailUser = Deno.env.get("GMAIL_USER");
+    const gmailAppPassword = Deno.env.get("GMAIL_APP_PASSWORD");
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const { email, action, otp }: TwoFARequest = await req.json();
@@ -76,81 +137,46 @@ serve(async (req: Request): Promise<Response> => {
 
       if (insertError) {
         console.error("[admin-2fa-otp] Insert error:", insertError);
-        throw new Error("Failed to generate OTP");
+        return new Response(
+          JSON.stringify({ error: "Failed to generate OTP" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
 
-      // Fetch branding logo
-      let logoUrl = '';
-      try {
-        const { data: brandingData } = await supabase
-          .from('branding_settings')
-          .select('logo_image_url')
-          .eq('id', 'default')
-          .maybeSingle();
-        if (brandingData?.logo_image_url) {
-          logoUrl = brandingData.logo_image_url;
-        }
-      } catch (e) {
-        console.warn("[admin-2fa-otp] Could not fetch branding logo:", e);
-      }
-
-      const logoHtml = logoUrl
-        ? `<img src="${logoUrl}" alt="MeriLive" style="width:64px;height:64px;object-fit:contain;margin:0 auto 16px;display:block;border-radius:14px;" />`
-        : `<div style="width:56px;height:56px;margin:0 auto 16px;background:linear-gradient(135deg,#a855f7,#ec4899);border-radius:14px;display:flex;align-items:center;justify-content:center;"><span style="font-size:28px;">🛡️</span></div>`;
-
-      // Send via email
+      // Send via Gmail SMTP (same path as user app)
       let emailSent = false;
-      if (resendApiKey) {
+      if (gmailUser && gmailAppPassword) {
         try {
-          const resend = new Resend(resendApiKey);
-          await resend.emails.send({
-            from: "MeriLive <noreply@merilive.com>",
-            to: [normalizedEmail],
-            subject: "🔐 MeriLive Admin - Login Verification Code",
-            html: `
-              <!DOCTYPE html>
-              <html>
-              <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-              <body style="margin:0;padding:0;background:#0f0a1e;font-family:'Segoe UI',Arial,sans-serif;">
-                <div style="max-width:480px;margin:0 auto;padding:32px 20px;">
-                  <div style="text-align:center;margin-bottom:28px;">
-                    <h1 style="color:#a855f7;font-size:28px;margin:0;letter-spacing:1px;">MERI<span style="color:#ec4899;">LIVE</span></h1>
-                    <p style="color:#9ca3af;font-size:13px;margin:4px 0 0;">Admin 2FA Verification</p>
-                  </div>
-                  <div style="background:linear-gradient(135deg,#1e1b3a,#1a1033);border:1px solid #7c3aed33;border-radius:16px;padding:28px;text-align:center;">
-                    ${logoHtml}
-                    <h2 style="color:#ffffff;font-size:20px;margin:0 0 8px;">Login Verification Code</h2>
-                    <p style="color:#9ca3af;font-size:13px;margin:0 0 24px;">Enter this code to complete your admin login</p>
-                    <div style="background:#0f0a1e;border:2px dashed #7c3aed;border-radius:12px;padding:20px;margin:0 0 20px;">
-                      <div style="font-size:36px;font-weight:bold;letter-spacing:12px;color:#a855f7;font-family:'Courier New',monospace;">
-                        ${otpCode}
-                      </div>
-                    </div>
-                    <p style="color:#f87171;font-size:12px;margin:0 0 6px;">⏰ This code expires in 5 minutes</p>
-                    <p style="color:#6b7280;font-size:11px;margin:0;">If you didn't try to login, someone may have your password. Change it immediately!</p>
-                  </div>
-                  <div style="text-align:center;margin-top:24px;">
-                    <p style="color:#4b5563;font-size:11px;margin:0;">© ${new Date().getFullYear()} MeriLive. All rights reserved.</p>
-                  </div>
-                </div>
-              </body>
-              </html>
-            `,
+          const transporter = nodemailer.createTransport({
+            host: "smtp.gmail.com",
+            port: 465,
+            secure: true,
+            auth: { user: gmailUser, pass: gmailAppPassword },
+          });
+
+          await transporter.sendMail({
+            from: `MeriLive Admin <${gmailUser}>`,
+            to: normalizedEmail,
+            subject: `[MeriLive Admin] 2FA Code: ${otpCode}`,
+            text: `Your MeriLive Admin 2FA code is: ${otpCode}. Valid for 5 minutes. Do not share.`,
+            html: buildAdminOTPEmailHTML(otpCode),
           });
           emailSent = true;
-          console.log(`[admin-2fa-otp] OTP sent to ${normalizedEmail}`);
+          console.log(`[admin-2fa-otp] ✅ OTP sent to ${normalizedEmail} via Gmail SMTP`);
         } catch (emailErr: any) {
-          console.error("[admin-2fa-otp] Email send failed:", emailErr.message);
+          console.error("[admin-2fa-otp] Gmail SMTP send failed:", emailErr?.message || emailErr);
         }
+      } else {
+        console.error("[admin-2fa-otp] Gmail SMTP credentials missing");
       }
-
-      console.log(`[admin-2fa-otp] OTP generated for ${normalizedEmail}, sent: ${emailSent}`);
 
       return new Response(
         JSON.stringify({
           success: true,
           email_sent: emailSent,
-          message: emailSent ? "Verification code sent to your email" : "Email service unavailable, please contact support",
+          message: emailSent
+            ? "Verification code sent to your email"
+            : "Email service unavailable. Please try again or contact support.",
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -173,15 +199,13 @@ serve(async (req: Request): Promise<Response> => {
         .maybeSingle();
 
       if (findError || !otpRecord) {
-        // Track failed attempts
-        console.warn(`[admin-2fa-otp] Failed verification attempt for ${normalizedEmail}`);
+        console.warn(`[admin-2fa-otp] Failed verification for ${normalizedEmail}`);
         return new Response(
           JSON.stringify({ error: "Invalid or expired verification code" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      // Mark as used
       await supabase
         .from("admin_login_otps")
         .update({ is_used: true })
@@ -202,7 +226,7 @@ serve(async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error("[admin-2fa-otp] Error:", error);
     return new Response(
-      JSON.stringify({ error: error.message || "Internal server error" }),
+      JSON.stringify({ error: error?.message || "Internal server error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
