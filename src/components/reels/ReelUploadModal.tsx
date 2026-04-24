@@ -186,10 +186,40 @@ export const ReelUploadModal = ({
         console.error('Thumbnail generation failed:', thumbErr);
       }
       
-      setUploadProgress(80);
+      setUploadProgress(75);
+
+      // 🛡️ NSFW MODERATION CHECK (Sightengine) — runs BEFORE creating reel record
+      toast.loading("Checking video for prohibited content...", { id: 'mod-check' });
+      try {
+        const { data: modData, error: modError } = await supabase.functions.invoke(
+          'moderate-video-sightengine',
+          { body: { videoUrl: videoUrlData.publicUrl, userId: user.id } }
+        );
+
+        if (modError) {
+          console.warn('[Moderation] check failed, allowing upload:', modError);
+        } else if (modData && modData.isSafe === false) {
+          // Delete uploaded video from storage
+          await supabase.storage.from('reels').remove([videoFileName]);
+          toast.dismiss('mod-check');
+          toast.error("Upload blocked", {
+            description: modData.reason || "Your video contains prohibited content.",
+            duration: 6000,
+          });
+          setUploading(false);
+          setUploadProgress(0);
+          return;
+        }
+        toast.dismiss('mod-check');
+      } catch (modErr) {
+        console.warn('[Moderation] exception, allowing upload:', modErr);
+        toast.dismiss('mod-check');
+      }
+
+      setUploadProgress(85);
 
       // Create reel record with sound info
-      const { error: reelError } = await supabase
+      const { data: reelInsert, error: reelError } = await supabase
         .from('reels')
         .insert({
           user_id: user.id,
@@ -207,9 +237,18 @@ export const ReelUploadModal = ({
           // Legacy fields
           music_title: selectedSound?.title || null,
           music_artist: selectedSound?.artist || null,
-        });
+        })
+        .select('id')
+        .single();
 
       if (reelError) throw reelError;
+
+      // Fire-and-forget background log with reelId for audit trail
+      if (reelInsert?.id) {
+        supabase.functions.invoke('moderate-video-sightengine', {
+          body: { videoUrl: videoUrlData.publicUrl, userId: user.id, reelId: reelInsert.id }
+        }).catch(() => {});
+      }
 
       setUploadProgress(100);
       
