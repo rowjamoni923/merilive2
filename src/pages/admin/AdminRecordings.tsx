@@ -40,6 +40,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
+import { getCurrentAdminId } from "@/utils/adminSession";
 import { toast } from "sonner";
 import { format, differenceInDays } from "date-fns";
 
