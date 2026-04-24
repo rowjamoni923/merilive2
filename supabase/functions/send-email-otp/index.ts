@@ -31,58 +31,85 @@ function generateOTP(): string {
  */
 function buildOTPEmailHTML(otp: string, purpose: string): string {
   const purposeText =
-    purpose === "login" ? "sign in to your account" :
-    purpose === "register" ? "complete your registration" :
-    purpose === "reset" ? "reset your password" :
-    "verify your identity";
+    purpose === "login" ? "sign in to your MeriLive account" :
+    purpose === "register" ? "complete your MeriLive registration" :
+    purpose === "reset" ? "reset your MeriLive password" :
+    "verify your MeriLive identity";
+
+  const headline =
+    purpose === "login" ? "Sign-In Verification" :
+    purpose === "register" ? "Welcome to MeriLive" :
+    purpose === "reset" ? "Password Reset" :
+    "Identity Verification";
+
+  // Split OTP into individual digits for premium boxed display
+  const digits = otp.split("");
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Your verification code</title>
+<meta name="x-apple-disable-message-reformatting">
+<title>Your MeriLive verification code</title>
 </head>
-<body style="margin:0;padding:0;background:#ffffff;font-family:Arial,Helvetica,sans-serif;color:#1f2937;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;padding:32px 16px;">
+<body style="margin:0;padding:0;background:#f4f1ec;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1a1a1a;">
+<div style="display:none;max-height:0;overflow:hidden;">Your MeriLive verification code is ${otp}. Valid for 5 minutes.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f1ec;padding:40px 16px;">
   <tr><td align="center">
-    <table role="presentation" width="520" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;background:#ffffff;border:1px solid #e5e7eb;border-radius:8px;">
+    <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background:#ffffff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,0.06);overflow:hidden;">
 
-      <!-- Brand wordmark (text only, no images) -->
-      <tr><td style="padding:28px 32px 8px 32px;text-align:center;border-bottom:1px solid #f3f4f6;">
-        <div style="font-size:24px;font-weight:700;letter-spacing:1px;color:#7c3aed;">MeriLive</div>
+      <!-- Premium Header with Gradient -->
+      <tr><td style="background:linear-gradient(135deg,#1a0b2e 0%,#3d1f5c 50%,#1a0b2e 100%);padding:40px 32px;text-align:center;">
+        <div style="font-size:13px;font-weight:600;letter-spacing:4px;color:#d4af37;text-transform:uppercase;margin-bottom:12px;">✦ MeriLive ✦</div>
+        <div style="font-size:28px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;margin:0;">${headline}</div>
+        <div style="width:60px;height:3px;background:linear-gradient(90deg,transparent,#d4af37,transparent);margin:16px auto 0;"></div>
       </td></tr>
 
-      <!-- Body -->
-      <tr><td style="padding:32px;">
-        <p style="margin:0 0 16px 0;font-size:16px;color:#111827;">Hello,</p>
-        <p style="margin:0 0 24px 0;font-size:14px;line-height:1.6;color:#4b5563;">
-          Please use the verification code below to ${purposeText}. This code is valid for 5 minutes.
+      <!-- Main Body -->
+      <tr><td style="padding:40px 40px 24px 40px;">
+        <p style="margin:0 0 12px 0;font-size:17px;font-weight:600;color:#1a1a1a;">Hello,</p>
+        <p style="margin:0 0 32px 0;font-size:15px;line-height:1.6;color:#555555;">
+          Use the verification code below to ${purposeText}. For your security, this code will expire in <strong style="color:#1a0b2e;">5 minutes</strong>.
         </p>
 
-        <!-- OTP block -->
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px 0;">
-          <tr><td align="center" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:24px;">
-            <div style="font-size:12px;color:#6b7280;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Verification Code</div>
-            <div style="font-size:32px;font-weight:700;letter-spacing:8px;color:#111827;font-family:'Courier New',Courier,monospace;">${otp}</div>
+        <!-- Premium OTP Display - Boxed Digits -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 28px 0;">
+          <tr><td align="center" style="background:linear-gradient(135deg,#faf8f3 0%,#ffffff 100%);border:1px solid #e8e3d8;border-radius:12px;padding:32px 16px;">
+            <div style="font-size:11px;font-weight:600;color:#8b7355;letter-spacing:3px;text-transform:uppercase;margin-bottom:20px;">Verification Code</div>
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center"><tr>
+              ${digits.map((d) => `<td style="padding:0 4px;"><div style="display:inline-block;width:44px;height:56px;line-height:56px;background:#ffffff;border:2px solid #d4af37;border-radius:10px;font-size:28px;font-weight:700;color:#1a0b2e;font-family:'SF Mono','Courier New',Courier,monospace;text-align:center;box-shadow:0 2px 8px rgba(212,175,55,0.15);">${d}</div></td>`).join("")}
+            </tr></table>
+            <div style="margin-top:18px;font-size:12px;color:#8b7355;">⏱ Expires in 5 minutes</div>
           </td></tr>
         </table>
 
-        <p style="margin:0 0 16px 0;font-size:13px;line-height:1.6;color:#6b7280;">
-          If you did not request this code, you can safely ignore this message. Someone may have entered your email address by mistake.
+        <!-- Security Note -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 24px 0;">
+          <tr><td style="background:#fdf6e3;border-left:3px solid #d4af37;padding:14px 18px;border-radius:6px;">
+            <p style="margin:0;font-size:13px;line-height:1.5;color:#6b5b3a;">
+              <strong>🔒 Security tip:</strong> MeriLive will never ask for this code. Do not share it with anyone.
+            </p>
+          </td></tr>
+        </table>
+
+        <p style="margin:0;font-size:13px;line-height:1.6;color:#888888;">
+          If you did not request this code, you can safely ignore this email — someone may have entered your address by mistake.
         </p>
 
-        <p style="margin:24px 0 0 0;font-size:13px;color:#6b7280;">
-          Thanks,<br>The MeriLive Team
+        <p style="margin:32px 0 0 0;font-size:14px;color:#555555;">
+          Warm regards,<br><strong style="color:#1a0b2e;">The MeriLive Team</strong>
         </p>
       </td></tr>
 
-      <!-- Footer -->
-      <tr><td style="padding:20px 32px;border-top:1px solid #f3f4f6;background:#fafafa;border-radius:0 0 8px 8px;">
-        <p style="margin:0 0 4px 0;font-size:11px;color:#9ca3af;text-align:center;">
-          This is an automated message. Please do not reply to this email.
+      <!-- Premium Footer -->
+      <tr><td style="background:#1a0b2e;padding:24px 32px;text-align:center;">
+        <div style="font-size:14px;font-weight:600;color:#d4af37;letter-spacing:2px;margin-bottom:8px;">MERILIVE</div>
+        <p style="margin:0 0 8px 0;font-size:11px;color:#9b88b5;line-height:1.5;">
+          Premium Live Streaming &amp; Social Platform
         </p>
-        <p style="margin:0;font-size:11px;color:#9ca3af;text-align:center;">
+        <p style="margin:0;font-size:10px;color:#6b5783;line-height:1.5;">
+          This is an automated message — please do not reply.<br>
           &copy; ${new Date().getFullYear()} MeriLive. All rights reserved.
         </p>
       </td></tr>

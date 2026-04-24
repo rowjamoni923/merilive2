@@ -1003,15 +1003,13 @@ const Auth = () => {
     setEmail(normalizedEmail);
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email: normalizedEmail,
-        options: {
-          shouldCreateUser: true,
-        },
+      const { data, error } = await supabase.functions.invoke("send-email-otp", {
+        body: { email: normalizedEmail, purpose: "login" },
       });
 
-      if (error) {
-        throw error;
+      if (error) throw error;
+      if (data && data.success === false) {
+        throw new Error(data.error || "Failed to send verification code");
       }
 
       toast({
@@ -1032,7 +1030,7 @@ const Auth = () => {
     }
   };
 
-  // NEW Email Flow - Step 2: Verify OTP via Supabase Auth and continue directly
+  // NEW Email Flow - Step 2: Verify OTP via custom edge function and sign in
   const handleVerifyEmailOtp = async () => {
     if (!otpCode || otpCode.length !== 6) {
       toast({
@@ -1048,17 +1046,38 @@ const Auth = () => {
 
     setOtpLoading(true);
     try {
-      const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
-        email: normalizedEmail,
-        token: otpCode,
-        type: "email",
-      });
+      // Verify the OTP via our custom function
+      const { data: verifyData, error: verifyError } = await supabase.functions.invoke(
+        "verify-email-otp",
+        { body: { email: normalizedEmail, otp: otpCode, purpose: "login" } }
+      );
 
-      if (verifyError || !verifyData?.user) {
-        throw verifyError || new Error("Invalid verification code");
+      if (verifyError) throw verifyError;
+      if (!verifyData?.success) {
+        throw new Error(verifyData?.error || "Invalid verification code");
       }
 
-      const verifiedUser = verifyData.user;
+      // OTP verified — now sign the user in (creates account if not exists)
+      const { data: signInData, error: signInError } = await supabase.functions.invoke(
+        "otp-direct-signin",
+        { body: { email: normalizedEmail, otp_verified: true } }
+      );
+
+      if (signInError) throw signInError;
+      if (!signInData?.success || !signInData?.access_token) {
+        throw new Error(signInData?.error || "Failed to complete sign-in");
+      }
+
+      // Set the session in the Supabase client
+      const { error: setErr } = await supabase.auth.setSession({
+        access_token: signInData.access_token,
+        refresh_token: signInData.refresh_token,
+      });
+      if (setErr) throw setErr;
+
+      const { data: { user: verifiedUser } } = await supabase.auth.getUser();
+      if (!verifiedUser) throw new Error("Sign-in completed but user not found");
+
       const fallbackDisplayName =
         verifiedUser.user_metadata?.full_name ||
         verifiedUser.user_metadata?.name ||
@@ -1497,20 +1516,18 @@ const Auth = () => {
     }
   };
 
-  // Resend OTP for new email flow using Supabase Auth
+  // Resend OTP for new email flow using custom edge function
   const handleResendEmailOtp = async () => {
     setOtpLoading(true);
     try {
       const normalizedEmail = email.trim().toLowerCase();
-      const { error } = await supabase.auth.signInWithOtp({
-        email: normalizedEmail,
-        options: {
-          shouldCreateUser: true,
-        },
+      const { data, error } = await supabase.functions.invoke("send-email-otp", {
+        body: { email: normalizedEmail, purpose: "login" },
       });
 
-      if (error) {
-        throw error;
+      if (error) throw error;
+      if (data && data.success === false) {
+        throw new Error(data.error || "Failed to resend code");
       }
 
       toast({
