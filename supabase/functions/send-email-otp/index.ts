@@ -18,7 +18,87 @@ function generateOTP(): string {
   return otp;
 }
 
-// ===== Gmail SMTP (primary) =====
+function normalizeOAuthSecret(value: string | undefined): string {
+  return (value ?? "")
+    .trim()
+    .replace(/\r?\n/g, "")
+    .replace(/^['"]|['"]$/g, "");
+}
+
+async function getGmailAccessToken(): Promise<string> {
+  const clientId = normalizeOAuthSecret(Deno.env.get("GMAIL_CLIENT_ID"));
+  const clientSecret = normalizeOAuthSecret(Deno.env.get("GMAIL_CLIENT_SECRET"));
+  const refreshToken = normalizeOAuthSecret(Deno.env.get("GMAIL_REFRESH_TOKEN"));
+
+  if (!clientId || !clientSecret || !refreshToken) {
+    throw new Error("Gmail OAuth credentials not configured");
+  }
+
+  const response = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      refresh_token: refreshToken,
+      grant_type: "refresh_token",
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    console.error("[send-email-otp] Gmail OAuth token refresh failed:", errText);
+    throw new Error(`Gmail OAuth token refresh failed (${response.status})`);
+  }
+
+  const data = await response.json();
+  if (!data?.access_token) {
+    throw new Error("Gmail OAuth access token missing");
+  }
+
+  return data.access_token as string;
+}
+
+// ===== Gmail OAuth (primary) =====
+async function sendWithGmailOAuth(to: string, subject: string, html: string): Promise<{ success: boolean; error?: string }> {
+  const gmailUser = normalizeOAuthSecret(Deno.env.get("GMAIL_USER"));
+  const clientId = normalizeOAuthSecret(Deno.env.get("GMAIL_CLIENT_ID"));
+  const clientSecret = normalizeOAuthSecret(Deno.env.get("GMAIL_CLIENT_SECRET"));
+  const refreshToken = normalizeOAuthSecret(Deno.env.get("GMAIL_REFRESH_TOKEN"));
+
+  if (!gmailUser || !clientId || !clientSecret || !refreshToken) {
+    return { success: false, error: "Gmail OAuth credentials not configured" };
+  }
+
+  try {
+    const accessToken = await getGmailAccessToken();
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        type: "OAuth2",
+        user: gmailUser,
+        clientId,
+        clientSecret,
+        refreshToken,
+        accessToken,
+      },
+    });
+
+    await transporter.sendMail({
+      from: `"MeriLive" <${gmailUser}>`,
+      to,
+      subject,
+      html,
+    });
+
+    return { success: true };
+  } catch (e: any) {
+    console.error("[send-email-otp] Gmail OAuth error:", e?.message || e);
+    return { success: false, error: e?.message || String(e) };
+  }
+}
+
+// ===== Gmail SMTP (fallback) =====
 async function sendWithGmail(to: string, subject: string, html: string): Promise<{ success: boolean; error?: string }> {
   const gmailUser = (Deno.env.get("GMAIL_USER") ?? "").trim();
   const gmailPass = (Deno.env.get("GMAIL_APP_PASSWORD") ?? "").replace(/\s+/g, "");
@@ -117,8 +197,11 @@ async function sendWithBrevo(to: string, subject: string, html: string): Promise
 
 // Try Gmail → Resend → Brevo (returns on first success)
 async function sendEmail(to: string, subject: string, html: string): Promise<{ success: boolean; provider?: string; error?: string }> {
+  const gmailOAuth = await sendWithGmailOAuth(to, subject, html);
+  if (gmailOAuth.success) return { success: true, provider: "gmail-oauth" };
+
   const gmail = await sendWithGmail(to, subject, html);
-  if (gmail.success) return { success: true, provider: "gmail" };
+  if (gmail.success) return { success: true, provider: "gmail-smtp" };
 
   const resend = await sendWithResend(to, subject, html);
   if (resend.success) return { success: true, provider: "resend" };
@@ -128,7 +211,7 @@ async function sendEmail(to: string, subject: string, html: string): Promise<{ s
 
   return {
     success: false,
-    error: `All providers failed. Gmail: ${gmail.error}; Resend: ${resend.error}; Brevo: ${brevo.error}`,
+    error: `All providers failed. Gmail OAuth: ${gmailOAuth.error}; Gmail SMTP: ${gmail.error}; Resend: ${resend.error}; Brevo: ${brevo.error}`,
   };
 }
 
