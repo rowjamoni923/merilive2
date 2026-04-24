@@ -58,8 +58,8 @@ const AdminGmailSupport = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const callGmailApi = async (action: string, params: any = {}) => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) throw new Error('Not authenticated');
+    const adminToken = getAdminSessionToken();
+    if (!adminToken) throw new Error('Admin session expired. Please re-login.');
 
     const response = await fetch(
       `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gmail-support`,
@@ -67,8 +67,9 @@ const AdminGmailSupport = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          'x-admin-token': adminToken,
         },
         body: JSON.stringify({ action, ...params }),
       }
