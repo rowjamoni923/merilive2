@@ -8568,6 +8568,45 @@ export type Database = {
         }
         Relationships: []
       }
+      reel_moderation_log: {
+        Row: {
+          created_at: string
+          details: Json | null
+          id: string
+          is_safe: boolean
+          provider: string | null
+          reason: string | null
+          reel_id: string | null
+          score: number | null
+          user_id: string | null
+          video_url: string
+        }
+        Insert: {
+          created_at?: string
+          details?: Json | null
+          id?: string
+          is_safe: boolean
+          provider?: string | null
+          reason?: string | null
+          reel_id?: string | null
+          score?: number | null
+          user_id?: string | null
+          video_url: string
+        }
+        Update: {
+          created_at?: string
+          details?: Json | null
+          id?: string
+          is_safe?: boolean
+          provider?: string | null
+          reason?: string | null
+          reel_id?: string | null
+          score?: number | null
+          user_id?: string | null
+          video_url?: string
+        }
+        Relationships: []
+      }
       reel_reports: {
         Row: {
           created_at: string
