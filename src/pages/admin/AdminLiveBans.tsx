@@ -137,9 +137,45 @@ export default function AdminLiveBans() {
       }));
 
       setBans(bansWithProfiles as unknown as LiveBan[]);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching bans:', error);
-      toast.error('Failed to load bans');
+      // Fallback: when admin SECURITY DEFINER RPC is unavailable (e.g. transient
+      // missing x-admin-token header right after page reload), try the direct
+      // table read which is also covered by the "Admin session full access"
+      // RLS policy. This prevents the spurious "Failed to load bans" toast on
+      // the moderation hub when the session token is still being attached.
+      try {
+        const { data: rows, error: directErr } = await supabase
+          .from('live_bans')
+          .select('id,user_id,ban_reason,violation_type,warning_count,ban_start,ban_end,ban_duration_hours,is_active,auto_banned,unbanned_by,unbanned_at')
+          .order('ban_start', { ascending: false })
+          .limit(500);
+        if (directErr) throw directErr;
+
+        const userIds = Array.from(new Set((rows || []).map((r: any) => r.user_id).filter(Boolean)));
+        let profileMap = new Map<string, { display_name: string; avatar_url: string; app_uid: string }>();
+        if (userIds.length > 0) {
+          const { data: profs } = await supabase
+            .from('profiles')
+            .select('id,display_name,avatar_url,app_uid')
+            .in('id', userIds);
+          (profs || []).forEach((p: any) => profileMap.set(p.id, {
+            display_name: p.display_name || '',
+            avatar_url: p.avatar_url || '',
+            app_uid: p.app_uid || (p.id ? p.id.slice(0, 8) : ''),
+          }));
+        }
+
+        const mapped = (rows || []).map((row: any) => ({
+          ...row,
+          profiles: profileMap.get(row.user_id) || undefined,
+        }));
+        setBans(mapped as unknown as LiveBan[]);
+      } catch (fallbackErr: any) {
+        console.error('Fallback live_bans fetch also failed:', fallbackErr);
+        const msg = (error?.message || fallbackErr?.message || '').toString();
+        toast.error(msg ? `Failed to load bans: ${msg}` : 'Failed to load bans');
+      }
     } finally {
       setLoading(false);
     }
