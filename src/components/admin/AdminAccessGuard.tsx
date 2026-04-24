@@ -1,7 +1,7 @@
 import { useState, useEffect, ReactNode } from "react";
 import { Loader2 } from "lucide-react";
 import BlogPage from "@/pages/BlogPage";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { getAdminSession } from "@/utils/adminSession";
 import { hasAdminAccessFlag, hasOwnerAccessFlag, grantAdminAccess, setAdminLinkToken } from "@/utils/adminAccessStorage";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
@@ -40,6 +40,7 @@ const isLoginRoute = (): boolean => {
 export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
   const [hasValidToken, setHasValidToken] = useState<boolean>(false);
+  const location = useLocation();
 
   useEffect(() => {
     let mounted = true;
@@ -65,12 +66,14 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
 
         // 2. Check admin session
         const session = getAdminSession();
+        const hasFlag = hasAdminAccessFlag() || hasOwnerAccessFlag();
 
         if (mounted) {
           if (session) {
             setIsAuthorized(true);
-          } else if (isLoginRoute() && (accessToken || hasAdminAccessFlag() || hasOwnerAccessFlag())) {
-            // Allow rendering login form
+          } else if (accessToken || hasFlag) {
+            // Token valid OR previously granted flag → allow login page rendering
+            // (we'll redirect to /admin/auth below if not already there)
             setIsAuthorized(true);
           } else {
             setIsAuthorized(false);
@@ -117,9 +120,14 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
 
   // Authorized: render admin panel / login page
   if (isAuthorized) {
+    const session = getAdminSession();
     // If the user has a session but is on the login route, redirect to admin home
-    if (isLoginRoute() && getAdminSession()) {
+    if (isLoginRoute() && session) {
       return <Navigate to="/admin" replace />;
+    }
+    // If NO session and NOT on login route → redirect to login (preserve token in URL is unnecessary, flag is stored)
+    if (!session && !isLoginRoute()) {
+      return <Navigate to="/admin/auth" replace />;
     }
     return <>{children}</>;
   }
