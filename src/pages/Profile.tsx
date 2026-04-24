@@ -1537,23 +1537,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     };
   }, [loading, currentUser, isOwnProfile, navigate]);
 
-  if (loading && !profile) {
-    return (
-      <div className="mobile-page flex flex-col bg-background animate-pulse">
-        <div className="h-48 bg-muted" />
-        <div className="px-4 -mt-12 space-y-3">
-          <div className="w-24 h-24 rounded-full bg-muted border-4 border-background" />
-          <div className="h-5 w-32 bg-muted rounded" />
-          <div className="h-4 w-48 bg-muted rounded" />
-        </div>
-      </div>
-    );
-  }
-
-  if (!currentUser && isOwnProfile) {
-    return null;
-  }
-
   useEffect(() => {
     if (loading || profile || !isOwnProfile || !currentUser || profileCreationAttemptedRef.current) return;
 
@@ -1617,6 +1600,23 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       cancelled = true;
     };
   }, [loading, profile, isOwnProfile, currentUser, toast]);
+
+  if (loading && !profile) {
+    return (
+      <div className="mobile-page flex flex-col bg-background animate-pulse">
+        <div className="h-48 bg-muted" />
+        <div className="px-4 -mt-12 space-y-3">
+          <div className="w-24 h-24 rounded-full bg-muted border-4 border-background" />
+          <div className="h-5 w-32 bg-muted rounded" />
+          <div className="h-4 w-48 bg-muted rounded" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentUser && isOwnProfile) {
+    return null;
+  }
 
   if (!profile && isOwnProfile && currentUser) {
     return (
