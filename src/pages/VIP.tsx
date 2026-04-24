@@ -540,7 +540,9 @@ const VIP = () => {
       }
 
       // Fetch ADMIN-ASSIGNED frames (from user_role_frames table)
-      // These are frames assigned by admin/agency owner to specific users
+      // These are frames assigned by admin/agency owner to specific users.
+      // user_role_frames can reference EITHER role_frames OR avatar_frames
+      // (disambiguated by source_table column).
       const { data: assignedFrames } = await supabase
         .from("user_role_frames")
         .select(`
@@ -549,9 +551,10 @@ const VIP = () => {
           expires_at,
           role_type,
           is_equipped,
+          source_table,
           role_frames (
             id,
-            frame_name,
+            frame_name:name,
             frame_url,
             description,
             is_active
@@ -559,24 +562,57 @@ const VIP = () => {
         `)
         .eq("user_id", user.id);
 
+      // Collect avatar_frames ids that need a separate lookup
+      const avatarFrameIds = (assignedFrames || [])
+        .filter((a: any) => (a.source_table || 'role_frames') === 'avatar_frames')
+        .map((a: any) => a.frame_id);
+
+      let avatarFrameMap: Record<string, any> = {};
+      if (avatarFrameIds.length > 0) {
+        const { data: avFrames } = await supabase
+          .from("avatar_frames")
+          .select("id, name, frame_url, image_url, preview_url, description, is_active")
+          .in("id", avatarFrameIds);
+        for (const f of avFrames || []) {
+          avatarFrameMap[(f as any).id] = f;
+        }
+      }
+
       if (assignedFrames) {
         for (const assigned of assignedFrames) {
-          const frame = assigned.role_frames as any;
+          const src = (assigned as any).source_table || 'role_frames';
+          let frame: any = null;
+
+          if (src === 'avatar_frames') {
+            const af = avatarFrameMap[(assigned as any).frame_id];
+            if (af) {
+              frame = {
+                id: af.id,
+                frame_name: af.name,
+                frame_url: af.frame_url || af.image_url,
+                description: af.description,
+                is_active: af.is_active,
+              };
+            }
+          } else {
+            frame = (assigned as any).role_frames;
+          }
+
           if (frame && frame.is_active && isValidAssetUrl(frame.frame_url)) {
-            const isEquipped = assigned.is_equipped || frame.id === equippedFrameId;
+            const isEquipped = (assigned as any).is_equipped || frame.id === equippedFrameId;
             const alreadyExists = allPrivileges.some(p => p.item_id === frame.id);
             if (!alreadyExists) {
               allPrivileges.push({
-                id: assigned.id,
+                id: (assigned as any).id,
                 item_id: frame.id,
                 name: frame.frame_name,
                 category: 'frame',
                 preview_url: frame.frame_url,
                 animation_url: frame.frame_url,
                 is_equipped: isEquipped,
-                expires_at: assigned.expires_at,
+                expires_at: (assigned as any).expires_at,
                 source: 'admin_assigned',
-                role_type: assigned.role_type,
+                role_type: (assigned as any).role_type,
               });
             }
           }
