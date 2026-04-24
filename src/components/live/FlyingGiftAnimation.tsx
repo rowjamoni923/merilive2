@@ -54,12 +54,20 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
   const mountedRef = useRef(true);
   const completedRef = useRef(false);
   const animationStartedRef = useRef(false);
+  const hostPercent = useHostGiftPercent();
 
   const displayAnimationUrl = useMemo(() => gift.animationUrl || gift.giftImageUrl, [gift.animationUrl, gift.giftImageUrl]);
   const animationType = useMemo(() => getAnimationType(displayAnimationUrl), [displayAnimationUrl]);
   const isSVGA = animationType === 'svga' && !svgaError;
   const isPremium = gift.coins >= 10000;
   const isLuxury = gift.coins >= 1000;
+
+  // Diamonds spent (sender view) and beans earned (receiver view)
+  const totalDiamonds = gift.coins * gift.count;
+  const totalBeans = useMemo(() => {
+    if (typeof gift.beansEarned === 'number') return gift.beansEarned;
+    return Math.floor(totalDiamonds * hostPercent / 100);
+  }, [gift.beansEarned, totalDiamonds, hostPercent]);
 
   // Note: gift.soundUrl is now passed to SVGAPlayerWithAudio as a fallback,
   // and is also played here for non-SVGA gifts (e.g. image/video).
