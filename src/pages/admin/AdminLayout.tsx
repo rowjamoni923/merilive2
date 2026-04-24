@@ -74,6 +74,7 @@ import { getAdminSession } from "@/utils/adminSession";
 import { ScreenSecuritySDK } from "@/sdk/ScreenSecuritySDK";
 import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { prefetchAdminRoute, prefetchCommonAdminRoutes } from "@/utils/adminRoutePrefetch";
 
 import { PremiumSpinner } from "@/components/ui/premium-spinner";
 
@@ -2551,6 +2552,9 @@ export default function AdminLayout() {
                             <Link
                               key={item.path}
                               to={item.path}
+                              onMouseEnter={() => prefetchAdminRoute(item.path)}
+                              onFocus={() => prefetchAdminRoute(item.path)}
+                              onTouchStart={() => prefetchAdminRoute(item.path)}
                               onClick={() => {
                                 setIsMobileSidebarOpen(false);
                                 const normalizedItemPath = normalizeAdminPath(item.path);
