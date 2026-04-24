@@ -66,38 +66,16 @@ const AdminFaceViolations = () => {
   useAdminRealtime(['live_face_violations'], fetchViolations);
 
   const handleBanHost = async (violation: FaceViolation) => {
+    const adminId = getCurrentAdminId();
+    if (!adminId) { toast.error("Not signed in"); return; }
     try {
-      await supabase
-        .from('live_face_violations')
-        .update({
-          admin_reviewed: true,
-          reviewed_at: new Date().toISOString(),
-          action_taken: 'live_ban',
-        })
-        .eq('id', violation.id);
-
-      await supabase.from('live_violations').insert({
-        user_id: violation.host_id,
-        violation_type: 'face_not_detected',
-        action_taken: 'live_ban',
-        ban_duration_hours: 24,
-        notes: 'Auto-banned for 24 hours due to face not detected',
-        created_at: new Date().toISOString(),
+      await supabase.rpc("admin_update_face_violation", {
+        _admin_id: adminId,
+        _violation_id: violation.id,
+        _status: 'live_ban',
       });
-
-      await supabase.from('admin_logs').insert({
-        action_type: 'live_ban',
-        target_type: 'user',
-        target_id: violation.host_id,
-        details: {
-          reason: 'Face not detected during live stream',
-          violation_id: violation.id,
-          stream_id: violation.stream_id,
-          ban_duration: '24h',
-        },
-      });
-
-      toast.success('Host banned from live for 24 hours');
+      // Optional: also call admin_session_block_user / admin RPC to enforce 24h live ban
+      toast.success('Host marked for live ban');
       fetchViolations();
     } catch (err) {
       console.error('Ban error:', err);
@@ -106,16 +84,14 @@ const AdminFaceViolations = () => {
   };
 
   const handleMarkReviewed = async (violation: FaceViolation) => {
+    const adminId = getCurrentAdminId();
+    if (!adminId) { toast.error("Not signed in"); return; }
     try {
-      await supabase
-        .from('live_face_violations')
-        .update({
-          admin_reviewed: true,
-          reviewed_at: new Date().toISOString(),
-          action_taken: 'warning',
-        })
-        .eq('id', violation.id);
-
+      await supabase.rpc("admin_update_face_violation", {
+        _admin_id: adminId,
+        _violation_id: violation.id,
+        _status: 'warning',
+      });
       toast.success('Review completed');
       fetchViolations();
     } catch (err) {
