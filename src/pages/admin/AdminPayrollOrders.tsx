@@ -300,7 +300,7 @@ const AdminPayrollOrders = () => {
             })
             .eq('id', order.helper_id);
 
-          await adminSendNotification(order.user_id, '💎 Diamonds Added!', `Received ${order.coin_amount.toLocaleString()} diamonds from ${order.helper?.user?.display_name || 'Payroll Helper'}!`, 'coin_purchase_helper')
+          await adminSendNotification(order.user_id, '💎 Diamonds Added!', `Received ${(order.coin_amount ?? 0).toLocaleString()} diamonds from ${order.helper?.user?.display_name || 'Payroll Helper'}!`, 'coin_purchase_helper')
         }
       }
 
@@ -514,10 +514,10 @@ const AdminPayrollOrders = () => {
                       
                       <div className="flex items-center gap-3 mt-2 flex-wrap">
                         <span className="text-lg font-bold text-emerald-600">
-                          {order.coin_amount.toLocaleString()} {order.order_type === 'agency_withdrawal' ? 'Beans' : '💎'}
+                          {(order.coin_amount ?? 0).toLocaleString()} {order.order_type === 'agency_withdrawal' ? 'Beans' : '💎'}
                         </span>
                         <span className="text-sm text-slate-600">
-                          {order.currency_code === 'BDT' ? '৳' : '$'}{order.amount_local.toFixed(0)}
+                          {order.currency_code === 'BDT' ? '৳' : '$'}{(order.amount_local ?? 0).toFixed(0)}
                         </span>
                         <Badge variant="outline" className="text-xs">{order.payment_method}</Badge>
                         {order.user_payment_proof && (
@@ -671,11 +671,11 @@ const AdminPayrollOrders = () => {
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
                       <p className="text-muted-foreground">Diamonds</p>
-                      <p className="font-bold text-emerald-400 text-lg">{selectedOrder.coin_amount.toLocaleString()} 💎</p>
+                      <p className="font-bold text-emerald-400 text-lg">{(selectedOrder.coin_amount ?? 0).toLocaleString()} 💎</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Price</p>
-                      <p className="font-bold">${selectedOrder.amount_usd.toFixed(2)}</p>
+                      <p className="font-bold">${(selectedOrder.amount_usd ?? 0).toFixed(2)}</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Local Price</p>
@@ -855,9 +855,9 @@ const AdminPayrollOrders = () => {
                     <Gem className="w-5 h-5 text-blue-400" />
                     <div className="text-sm text-blue-300">
                       <p className="font-medium">Upon approval, helper will receive</p>
-                      <p>{Math.max(0, selectedOrder.coin_amount - 50000).toLocaleString()} 💎 Diamonds</p>
+                      <p>{Math.max(0, (selectedOrder.coin_amount ?? 0) - 50000).toLocaleString()} 💎 Diamonds</p>
                       <p className="text-xs text-blue-400 mt-1">
-                        (Total {selectedOrder.coin_amount.toLocaleString()} - 50,000 system fee)
+                        (Total {(selectedOrder.coin_amount ?? 0).toLocaleString()} - 50,000 system fee)
                       </p>
                     </div>
                   </div>
