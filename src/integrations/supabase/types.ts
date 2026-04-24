@@ -10706,6 +10706,7 @@ export type Database = {
           notes: string | null
           purchased_at: string | null
           role_type: string | null
+          source_table: string
           user_id: string
         }
         Insert: {
@@ -10718,6 +10719,7 @@ export type Database = {
           notes?: string | null
           purchased_at?: string | null
           role_type?: string | null
+          source_table?: string
           user_id: string
         }
         Update: {
@@ -10730,6 +10732,7 @@ export type Database = {
           notes?: string | null
           purchased_at?: string | null
           role_type?: string | null
+          source_table?: string
           user_id?: string
         }
         Relationships: []
@@ -11729,6 +11732,16 @@ export type Database = {
         Returns: Json
       }
       admin_get_user_full_details: { Args: { _user_id: string }; Returns: Json }
+      admin_gift_frame_to_user: {
+        Args: {
+          p_expires_at?: string
+          p_frame_id: string
+          p_notes?: string
+          p_source_table?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       admin_list_admin_users: {
         Args: { _include_inactive?: boolean }
         Returns: {
