@@ -3313,6 +3313,7 @@ const LiveStream = () => {
             giftColor: "bg-pink-500/50",
             count: count,
             coins: gift.coins,
+            isOwnGift: true,
           });
           
           // Add gift message to chat IMMEDIATELY (optimistic)
