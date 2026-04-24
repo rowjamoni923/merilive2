@@ -300,7 +300,7 @@ const AdminPayrollOrders = () => {
             })
             .eq('id', order.helper_id);
 
-          await adminSendNotification(order.user_id, '💎 Diamonds Added!', `Received ${order.coin_amount.toLocaleString()} diamonds from ${order.helper?.user?.display_name || 'Payroll Helper'}!`, 'coin_purchase_helper')
+          await adminSendNotification(order.user_id, '💎 Diamonds Added!', `Received ${(order.coin_amount ?? 0).toLocaleString()} diamonds from ${order.helper?.user?.display_name || 'Payroll Helper'}!`, 'coin_purchase_helper')
         }
       }
 
