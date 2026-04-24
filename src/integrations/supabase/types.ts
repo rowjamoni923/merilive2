@@ -12175,6 +12175,7 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      admin_logout: { Args: { _token: string }; Returns: undefined }
       admin_permanent_ban_step_one: {
         Args: {
           _evidence?: Json
@@ -12634,6 +12635,8 @@ export type Database = {
         }
         Returns: string
       }
+      current_admin_id_from_header: { Args: never; Returns: string }
+      current_admin_token_from_header: { Args: never; Returns: string }
       current_user_id: { Args: never; Returns: string }
       debug_distribute_test: {
         Args: { p_category: string; p_period_type: string }
@@ -13152,6 +13155,7 @@ export type Database = {
         | { Args: { _amount: number; _user_id: string }; Returns: Json }
         | { Args: { _amount: number; _user_id: string }; Returns: Json }
       increment_reel_view: { Args: { reel_uuid: string }; Returns: undefined }
+      is_active_admin_session: { Args: never; Returns: boolean }
       is_admin:
         | { Args: never; Returns: boolean }
         | { Args: { _user_id: string }; Returns: boolean }
