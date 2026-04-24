@@ -55,7 +55,7 @@ const AdminCountryDistribution = () => {
   }, [fetchCountryStats]);
 
   useAdminRealtime(["profiles"], () => {
-    setTimeout(fetchCountryStats, 3000);
+    fetchCountryStats();
   });
 
   const totalCountryUsers = countryStats.reduce((s, c) => s + c.count, 0);
