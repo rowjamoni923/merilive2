@@ -18,87 +18,7 @@ function generateOTP(): string {
   return otp;
 }
 
-function normalizeOAuthSecret(value: string | undefined): string {
-  return (value ?? "")
-    .trim()
-    .replace(/\r?\n/g, "")
-    .replace(/^['"]|['"]$/g, "");
-}
-
-async function getGmailAccessToken(): Promise<string> {
-  const clientId = normalizeOAuthSecret(Deno.env.get("GMAIL_CLIENT_ID"));
-  const clientSecret = normalizeOAuthSecret(Deno.env.get("GMAIL_CLIENT_SECRET"));
-  const refreshToken = normalizeOAuthSecret(Deno.env.get("GMAIL_REFRESH_TOKEN"));
-
-  if (!clientId || !clientSecret || !refreshToken) {
-    throw new Error("Gmail OAuth credentials not configured");
-  }
-
-  const response = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      client_id: clientId,
-      client_secret: clientSecret,
-      refresh_token: refreshToken,
-      grant_type: "refresh_token",
-    }),
-  });
-
-  if (!response.ok) {
-    const errText = await response.text();
-    console.error("[send-email-otp] Gmail OAuth token refresh failed:", errText);
-    throw new Error(`Gmail OAuth token refresh failed (${response.status})`);
-  }
-
-  const data = await response.json();
-  if (!data?.access_token) {
-    throw new Error("Gmail OAuth access token missing");
-  }
-
-  return data.access_token as string;
-}
-
-// ===== Gmail OAuth (primary) =====
-async function sendWithGmailOAuth(to: string, subject: string, html: string): Promise<{ success: boolean; error?: string }> {
-  const gmailUser = normalizeOAuthSecret(Deno.env.get("GMAIL_USER"));
-  const clientId = normalizeOAuthSecret(Deno.env.get("GMAIL_CLIENT_ID"));
-  const clientSecret = normalizeOAuthSecret(Deno.env.get("GMAIL_CLIENT_SECRET"));
-  const refreshToken = normalizeOAuthSecret(Deno.env.get("GMAIL_REFRESH_TOKEN"));
-
-  if (!gmailUser || !clientId || !clientSecret || !refreshToken) {
-    return { success: false, error: "Gmail OAuth credentials not configured" };
-  }
-
-  try {
-    const accessToken = await getGmailAccessToken();
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        type: "OAuth2",
-        user: gmailUser,
-        clientId,
-        clientSecret,
-        refreshToken,
-        accessToken,
-      },
-    });
-
-    await transporter.sendMail({
-      from: `"MeriLive" <${gmailUser}>`,
-      to,
-      subject,
-      html,
-    });
-
-    return { success: true };
-  } catch (e: any) {
-    console.error("[send-email-otp] Gmail OAuth error:", e?.message || e);
-    return { success: false, error: e?.message || String(e) };
-  }
-}
-
-// ===== Gmail SMTP (fallback) =====
+// ===== Gmail SMTP (only provider) =====
 async function sendWithGmail(to: string, subject: string, html: string): Promise<{ success: boolean; error?: string }> {
   const gmailUser = (Deno.env.get("GMAIL_USER") ?? "").trim();
   const gmailPass = (Deno.env.get("GMAIL_APP_PASSWORD") ?? "").replace(/\s+/g, "");
@@ -129,90 +49,11 @@ async function sendWithGmail(to: string, subject: string, html: string): Promise
   }
 }
 
-// ===== Resend (fallback #1) =====
-async function sendWithResend(to: string, subject: string, html: string): Promise<{ success: boolean; error?: string }> {
-  const apiKey = (Deno.env.get("RESEND_API_KEY") ?? "").trim();
-  if (!apiKey) return { success: false, error: "RESEND_API_KEY not configured" };
-
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: "MeriLive <onboarding@resend.dev>",
-        to: [to],
-        subject,
-        html,
-      }),
-    });
-
-    if (!res.ok) {
-      const errText = await res.text();
-      console.error("[send-email-otp] Resend error:", res.status, errText);
-      return { success: false, error: `Resend ${res.status}: ${errText}` };
-    }
-    return { success: true };
-  } catch (e: any) {
-    console.error("[send-email-otp] Resend exception:", e?.message || e);
-    return { success: false, error: e?.message || String(e) };
-  }
-}
-
-// ===== Brevo (fallback #2) =====
-async function sendWithBrevo(to: string, subject: string, html: string): Promise<{ success: boolean; error?: string }> {
-  const apiKey = (Deno.env.get("BREVO_API_KEY") ?? "").trim();
-  const senderEmail = (Deno.env.get("GMAIL_USER") ?? "noreply@merilive.app").trim();
-  if (!apiKey) return { success: false, error: "BREVO_API_KEY not configured" };
-
-  try {
-    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
-      method: "POST",
-      headers: {
-        "api-key": apiKey,
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-      },
-      body: JSON.stringify({
-        sender: { name: "MeriLive", email: senderEmail },
-        to: [{ email: to }],
-        subject,
-        htmlContent: html,
-      }),
-    });
-
-    if (!res.ok) {
-      const errText = await res.text();
-      console.error("[send-email-otp] Brevo error:", res.status, errText);
-      return { success: false, error: `Brevo ${res.status}: ${errText}` };
-    }
-    return { success: true };
-  } catch (e: any) {
-    console.error("[send-email-otp] Brevo exception:", e?.message || e);
-    return { success: false, error: e?.message || String(e) };
-  }
-}
-
-// Try Gmail → Resend → Brevo (returns on first success)
+// Single provider: Gmail SMTP
 async function sendEmail(to: string, subject: string, html: string): Promise<{ success: boolean; provider?: string; error?: string }> {
-  const gmailOAuth = await sendWithGmailOAuth(to, subject, html);
-  if (gmailOAuth.success) return { success: true, provider: "gmail-oauth" };
-
   const gmail = await sendWithGmail(to, subject, html);
   if (gmail.success) return { success: true, provider: "gmail-smtp" };
-
-  const resend = await sendWithResend(to, subject, html);
-  if (resend.success) return { success: true, provider: "resend" };
-
-  const brevo = await sendWithBrevo(to, subject, html);
-  if (brevo.success) return { success: true, provider: "brevo" };
-
-  return {
-    success: false,
-    error: `All providers failed. Gmail OAuth: ${gmailOAuth.error}; Gmail SMTP: ${gmail.error}; Resend: ${resend.error}; Brevo: ${brevo.error}`,
-  };
+  return { success: false, error: gmail.error };
 }
 
 function buildOTPEmailHTML(otp: string, purpose: string): string {
