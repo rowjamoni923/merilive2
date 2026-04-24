@@ -232,6 +232,7 @@ const navGroups: NavGroup[] = [
       { label: "Blocked Users", icon: Ban, path: "/admin/blocked", hubKey: "user-hub" },
       { label: "Live Bans", icon: ShieldAlert, path: "/admin/live-bans", hubKey: "user-hub" },
       { label: "Permanent Ban (3-Step)", icon: Ban, path: "/admin/permanent-ban", hubKey: "user-hub" },
+      { label: "Country Distribution", icon: Users, path: "/admin/country-distribution", hubKey: "user-hub" },
       { label: "Face Violations", icon: ScanFace, path: "/admin/face-violations", hubKey: "user-hub" },
       { label: "Moderation", icon: Shield, path: "/admin/moderation", hubKey: "user-hub" },
       { label: "User Reports", icon: ShieldAlert, path: "/admin/user-reports", hubKey: "user-hub" },

@@ -38,6 +38,7 @@ const ROUTE_HUB_MAP: Record<string, string> = {
   'blocked': 'user-hub',
   'live-bans': 'user-hub',
   'permanent-ban': 'user-hub',
+  'country-distribution': 'user-hub',
   'face-violations': 'user-hub',
   'moderation': 'user-hub',
   'user-reports': 'user-hub',
