@@ -371,7 +371,6 @@ export const AdminAnalyticsCharts = memo(() => {
             </Card>
           )}
         </>
-      )}
     </motion.div>
   );
 });
