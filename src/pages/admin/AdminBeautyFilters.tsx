@@ -157,9 +157,11 @@ const AdminBeautyFilters = () => {
 
   const resetForm = () => {
     setFormData({
-      name: "", description: "", category: "",
+      name: "", slug: "", description: "", category: "",
       is_premium: false, is_free: true, price_diamonds: 0,
       min_level: 0, display_order: 0, tags: "",
+      matrix: IDENTITY_MATRIX as number[],
+      icon_name: "",
     });
     setSelectedFile(null);
     setPreviewImageFile(null);
@@ -179,6 +181,7 @@ const AdminBeautyFilters = () => {
     setEditingItem(item);
     setFormData({
       name: item.name,
+      slug: (item as any).slug || "",
       description: item.description || "",
       category: item.category,
       is_premium: item.is_premium,
@@ -187,6 +190,10 @@ const AdminBeautyFilters = () => {
       min_level: item.min_level,
       display_order: item.display_order,
       tags: item.tags?.join(", ") || "",
+      matrix: Array.isArray((item as any).matrix) && (item as any).matrix.length === 20
+        ? (item as any).matrix
+        : IDENTITY_MATRIX,
+      icon_name: (item as any).icon_name || "",
     });
     setShowAddDialog(true);
   };
