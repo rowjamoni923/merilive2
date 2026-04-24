@@ -733,7 +733,7 @@ const AdminFaceVerification = () => {
                 </div>
 
                 {/* Face Verification */}
-                {selectedSubmission.face_image_url && (
+                {selectedSubmission.face_image_url && !selectedSubmission.face_image_url.startsWith('admin-approved://') && (
                   <div className="space-y-3">
                     <h4 className="font-semibold flex items-center gap-2 text-purple-300">
                       <ScanFace className="w-5 h-5" /> Face Verification
@@ -746,6 +746,17 @@ const AdminFaceVerification = () => {
                         <img src={selectedSubmission.face_image_url} alt="Face" className="max-h-80 object-contain cursor-pointer" onClick={() => setExpandedPhoto(selectedSubmission.face_image_url)} />
                       )}
                     </div>
+                  </div>
+                )}
+
+                {/* No-media notice (legacy / empty submissions) */}
+                {!selectedSubmission.profile_photo_url
+                  && !selectedSubmission.video_url
+                  && (!selectedSubmission.host_photos || selectedSubmission.host_photos.length === 0)
+                  && (!selectedSubmission.face_image_url || selectedSubmission.face_image_url.startsWith('admin-approved://')) && (
+                  <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-center">
+                    <p className="text-amber-300 font-medium text-sm">⚠ No media submitted by user</p>
+                    <p className="text-amber-200/70 text-xs mt-1">Legacy or admin-approved record — no photo/video attached.</p>
                   </div>
                 )}
 
