@@ -18,6 +18,7 @@ import {
   Sparkles, Upload, Trash2, Plus, Edit, Eye, EyeOff,
   RefreshCw, Wand2, Smile, Search, Crown, Star, Diamond
 } from "lucide-react";
+import { ColorMatrixEditor, IDENTITY_MATRIX } from "@/components/admin/beauty/ColorMatrixEditor";
 
 // Preview image imports for built-in MediaPipe filters
 import skinSmoothingImg from '@/assets/beauty-filters/skin-smoothing.png';
@@ -124,6 +125,7 @@ const AdminBeautyFilters = () => {
 
   const [formData, setFormData] = useState({
     name: "",
+    slug: "",
     description: "",
     category: "",
     is_premium: false,
@@ -132,6 +134,8 @@ const AdminBeautyFilters = () => {
     min_level: 0,
     display_order: 0,
     tags: "",
+    matrix: IDENTITY_MATRIX as number[],
+    icon_name: "",
   });
 
   useAdminRealtime(["beauty_filters", "ar_stickers"], () => fetchAll());
@@ -153,9 +157,11 @@ const AdminBeautyFilters = () => {
 
   const resetForm = () => {
     setFormData({
-      name: "", description: "", category: "",
+      name: "", slug: "", description: "", category: "",
       is_premium: false, is_free: true, price_diamonds: 0,
       min_level: 0, display_order: 0, tags: "",
+      matrix: IDENTITY_MATRIX as number[],
+      icon_name: "",
     });
     setSelectedFile(null);
     setPreviewImageFile(null);
@@ -175,6 +181,7 @@ const AdminBeautyFilters = () => {
     setEditingItem(item);
     setFormData({
       name: item.name,
+      slug: (item as any).slug || "",
       description: item.description || "",
       category: item.category,
       is_premium: item.is_premium,
@@ -183,6 +190,10 @@ const AdminBeautyFilters = () => {
       min_level: item.min_level,
       display_order: item.display_order,
       tags: item.tags?.join(", ") || "",
+      matrix: Array.isArray((item as any).matrix) && (item as any).matrix.length === 20
+        ? (item as any).matrix
+        : IDENTITY_MATRIX,
+      icon_name: (item as any).icon_name || "",
     });
     setShowAddDialog(true);
   };
@@ -226,8 +237,13 @@ const AdminBeautyFilters = () => {
       return;
     }
 
-    const payload = {
+    // Auto-generate slug if missing (Flutter parity requirement)
+    const autoSlug = formData.slug.trim() || formData.name.trim().toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+
+    const basePayload: Record<string, any> = {
       name: formData.name.trim(),
+      slug: autoSlug,
       description: formData.description.trim() || null,
       category: formData.category,
       file_url: fileUrl,
@@ -245,6 +261,11 @@ const AdminBeautyFilters = () => {
       tags: formData.tags.split(",").map(t => t.trim()).filter(Boolean),
       updated_at: new Date().toISOString(),
     };
+
+    // Beauty filters get matrix + icon_name; AR stickers don't need matrix
+    const payload = activeTab === "beauty"
+      ? { ...basePayload, matrix: formData.matrix, icon_name: formData.icon_name.trim() || null }
+      : basePayload;
 
     let error;
     if (editingItem) {
@@ -438,6 +459,25 @@ const AdminBeautyFilters = () => {
               />
             </div>
 
+            {/* Slug — Flutter parity */}
+            <div>
+              <Label className="flex items-center gap-2">
+                Slug
+                <span className="text-[10px] text-muted-foreground font-normal">
+                  (Flutter app key — auto-generated if empty)
+                </span>
+              </Label>
+              <Input
+                placeholder="e.g. natural, cat_ears, crown"
+                value={formData.slug}
+                onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "_") })}
+                className="font-mono text-sm"
+              />
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Must match the slug used in <code className="text-fuchsia-400">BeautyEffectService</code> for zero-breakage sync.
+              </p>
+            </div>
+
             {/* Description */}
             <div>
               <Label>Description</Label>
@@ -447,6 +487,18 @@ const AdminBeautyFilters = () => {
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               />
             </div>
+
+            {/* Icon name (for beauty filters only) */}
+            {activeTab === "beauty" && (
+              <div>
+                <Label>Lucide Icon Name (optional)</Label>
+                <Input
+                  placeholder="e.g. Sparkles, Sun, Heart"
+                  value={formData.icon_name}
+                  onChange={(e) => setFormData({ ...formData, icon_name: e.target.value })}
+                />
+              </div>
+            )}
 
             {/* Category */}
             <div>
@@ -568,6 +620,17 @@ const AdminBeautyFilters = () => {
                 onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
               />
             </div>
+
+            {/* Color Matrix Editor — beauty filters only (Elite Beauty Studio parity) */}
+            {activeTab === "beauty" && (
+              <div className="pt-4 border-t border-muted/30">
+                <ColorMatrixEditor
+                  value={formData.matrix}
+                  onChange={(m) => setFormData({ ...formData, matrix: m })}
+                  previewUrl={previewImageFile ? URL.createObjectURL(previewImageFile) : (editingItem?.preview_url || null)}
+                />
+              </div>
+            )}
 
             {/* Upload Progress */}
             {uploading && (
