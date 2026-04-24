@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback, memo, forwardRef, Suspense, lazy, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useHostGiftPercent } from "@/hooks/useHostGiftPercent";
 
 const SVGAPlayerWithAudio = lazy(() => import("@/components/common/SVGAPlayerWithAudio"));
 
@@ -17,6 +18,12 @@ export interface FlyingGift {
   coins: number;
   animationUrl?: string;
   soundUrl?: string;
+  /** True if the current viewer SENT this gift — shows diamonds spent badge */
+  isOwnGift?: boolean;
+  /** True if the current viewer is the RECEIVER (host) — shows beans earned badge */
+  isReceiverGift?: boolean;
+  /** Optional explicit beans amount (overrides client-side calculation) */
+  beansEarned?: number;
 }
 
 interface FlyingGiftAnimationProps {
