@@ -1692,6 +1692,54 @@ export type Database = {
         }
         Relationships: []
       }
+      balance_audit_log: {
+        Row: {
+          actor_id: string | null
+          actor_role: string | null
+          bypass_used: boolean | null
+          column_name: string
+          created_at: string
+          delta: number | null
+          id: string
+          ip_address: string | null
+          new_value: number | null
+          old_value: number | null
+          rpc_function: string | null
+          table_name: string
+          user_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          actor_role?: string | null
+          bypass_used?: boolean | null
+          column_name: string
+          created_at?: string
+          delta?: number | null
+          id?: string
+          ip_address?: string | null
+          new_value?: number | null
+          old_value?: number | null
+          rpc_function?: string | null
+          table_name: string
+          user_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          actor_role?: string | null
+          bypass_used?: boolean | null
+          column_name?: string
+          created_at?: string
+          delta?: number | null
+          id?: string
+          ip_address?: string | null
+          new_value?: number | null
+          old_value?: number | null
+          rpc_function?: string | null
+          table_name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       banned_devices: {
         Row: {
           banned_at: string
@@ -11031,7 +11079,7 @@ export type Database = {
           level: string | null
           logo_url: string | null
           name: string | null
-          owner_id: string | null
+          parent_agency_id: string | null
           total_agents: number | null
           total_hosts: number | null
         }
@@ -11043,7 +11091,7 @@ export type Database = {
           level?: string | null
           logo_url?: string | null
           name?: string | null
-          owner_id?: string | null
+          parent_agency_id?: string | null
           total_agents?: number | null
           total_hosts?: number | null
         }
@@ -11055,7 +11103,7 @@ export type Database = {
           level?: string | null
           logo_url?: string | null
           name?: string | null
-          owner_id?: string | null
+          parent_agency_id?: string | null
           total_agents?: number | null
           total_hosts?: number | null
         }
@@ -11090,6 +11138,7 @@ export type Database = {
       profiles_public: {
         Row: {
           age: number | null
+          agency_id: string | null
           app_uid: string | null
           avatar_url: string | null
           bio: string | null
@@ -11110,29 +11159,45 @@ export type Database = {
           equipped_medal_id: string | null
           equipped_noble_card_id: string | null
           equipped_vehicle_id: string | null
+          face_verified_at: string | null
           frame_id: string | null
           gender: string | null
           hide_location: boolean | null
           host_availability: string | null
           host_level: number | null
+          host_photos: string[] | null
           host_status: string | null
+          host_verified_at: string | null
           id: string | null
+          is_agency_owner: boolean | null
+          is_banned: boolean | null
           is_blocked: boolean | null
+          is_deleted: boolean | null
           is_face_verified: boolean | null
           is_host: boolean | null
           is_in_call: boolean | null
           is_online: boolean | null
           is_verified: boolean | null
+          last_active_at: string | null
+          last_seen: string | null
           last_seen_at: string | null
-          previous_host_level: number | null
+          max_user_level: number | null
+          profile_photo_url: string | null
           region: string | null
           tags: string[] | null
+          total_call_minutes: number | null
+          total_calls_received: number | null
+          total_earnings: number | null
           user_level: number | null
           username: string | null
+          verification_type: string | null
           vip_expires_at: string | null
+          vip_tier: number | null
+          weekly_earnings: number | null
         }
         Insert: {
           age?: number | null
+          agency_id?: string | null
           app_uid?: string | null
           avatar_url?: string | null
           bio?: string | null
@@ -11153,29 +11218,45 @@ export type Database = {
           equipped_medal_id?: string | null
           equipped_noble_card_id?: string | null
           equipped_vehicle_id?: string | null
+          face_verified_at?: string | null
           frame_id?: string | null
           gender?: string | null
           hide_location?: boolean | null
           host_availability?: string | null
           host_level?: number | null
+          host_photos?: string[] | null
           host_status?: string | null
+          host_verified_at?: string | null
           id?: string | null
+          is_agency_owner?: boolean | null
+          is_banned?: boolean | null
           is_blocked?: boolean | null
+          is_deleted?: boolean | null
           is_face_verified?: boolean | null
           is_host?: boolean | null
           is_in_call?: boolean | null
           is_online?: boolean | null
           is_verified?: boolean | null
+          last_active_at?: string | null
+          last_seen?: string | null
           last_seen_at?: string | null
-          previous_host_level?: number | null
+          max_user_level?: number | null
+          profile_photo_url?: string | null
           region?: string | null
           tags?: string[] | null
+          total_call_minutes?: number | null
+          total_calls_received?: number | null
+          total_earnings?: number | null
           user_level?: number | null
           username?: string | null
+          verification_type?: string | null
           vip_expires_at?: string | null
+          vip_tier?: number | null
+          weekly_earnings?: number | null
         }
         Update: {
           age?: number | null
+          agency_id?: string | null
           app_uid?: string | null
           avatar_url?: string | null
           bio?: string | null
@@ -11196,28 +11277,58 @@ export type Database = {
           equipped_medal_id?: string | null
           equipped_noble_card_id?: string | null
           equipped_vehicle_id?: string | null
+          face_verified_at?: string | null
           frame_id?: string | null
           gender?: string | null
           hide_location?: boolean | null
           host_availability?: string | null
           host_level?: number | null
+          host_photos?: string[] | null
           host_status?: string | null
+          host_verified_at?: string | null
           id?: string | null
+          is_agency_owner?: boolean | null
+          is_banned?: boolean | null
           is_blocked?: boolean | null
+          is_deleted?: boolean | null
           is_face_verified?: boolean | null
           is_host?: boolean | null
           is_in_call?: boolean | null
           is_online?: boolean | null
           is_verified?: boolean | null
+          last_active_at?: string | null
+          last_seen?: string | null
           last_seen_at?: string | null
-          previous_host_level?: number | null
+          max_user_level?: number | null
+          profile_photo_url?: string | null
           region?: string | null
           tags?: string[] | null
+          total_call_minutes?: number | null
+          total_calls_received?: number | null
+          total_earnings?: number | null
           user_level?: number | null
           username?: string | null
+          verification_type?: string | null
           vip_expires_at?: string | null
+          vip_tier?: number | null
+          weekly_earnings?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {
