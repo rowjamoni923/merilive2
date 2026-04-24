@@ -40,8 +40,7 @@ const SVGAPreviewWithMuteToggle: React.FC<SVGAPreviewWithMuteToggleProps> = ({
   const [isMuted, setIsMuted] = useState(true);
   const [hasAudio, setHasAudio] = useState(false);
   const [key, setKey] = useState(0);
-
-  const isSvga = isSvgaUrl(src);
+  const [imgError, setImgError] = useState(false);
 
   const toggleMute = useCallback(() => {
     setIsMuted(prev => !prev);
@@ -55,16 +54,43 @@ const SVGAPreviewWithMuteToggle: React.FC<SVGAPreviewWithMuteToggleProps> = ({
     }
   }, []);
 
-  // For non-SVGA formats (GIF, WebP, PNG, JPG) — render as <img>
+  const isSvga = isSvgaUrl(src);
+
+  // Empty / invalid src → graceful placeholder (no broken image icon)
+  if (!src || src.trim() === '') {
+    return (
+      <div className={cn(
+        "relative flex flex-col items-center justify-center bg-muted/40 border border-dashed border-muted-foreground/30 rounded-lg text-muted-foreground gap-1",
+        containerClassName
+      )}>
+        <Music className="w-5 h-5 opacity-50" />
+        <span className="text-[10px] uppercase tracking-wide opacity-60">No animation</span>
+      </div>
+    );
+  }
+
+  // Non-SVGA (GIF/WebP/PNG/JPG) → render as <img> with error fallback
   if (!isSvga) {
+    if (imgError) {
+      return (
+        <div className={cn(
+          "relative flex flex-col items-center justify-center bg-muted/40 border border-dashed border-muted-foreground/30 rounded-lg text-muted-foreground gap-1",
+          containerClassName
+        )}>
+          <Music className="w-5 h-5 opacity-50" />
+          <span className="text-[10px] uppercase tracking-wide opacity-60">Preview unavailable</span>
+        </div>
+      );
+    }
     return (
       <div className={cn("relative", containerClassName)}>
         <img
           src={src}
           alt="Animation preview"
-          className={cn("object-contain", className)}
+          className={cn("object-contain w-full h-full", className)}
           loading="lazy"
           decoding="async"
+          onError={() => setImgError(true)}
         />
       </div>
     );

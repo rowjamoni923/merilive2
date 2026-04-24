@@ -3027,13 +3027,18 @@ export type Database = {
         Row: {
           animation_url: string | null
           created_at: string | null
+          description: string | null
           display_order: number | null
+          duration_ms: number | null
           id: string
           image_url: string
           is_active: boolean | null
           is_premium: boolean | null
           level_required: number | null
+          min_level: number | null
+          min_vip_tier: number | null
           name: string
+          preview_url: string | null
           price_coins: number | null
           price_diamonds: number | null
           updated_at: string | null
@@ -3041,13 +3046,18 @@ export type Database = {
         Insert: {
           animation_url?: string | null
           created_at?: string | null
+          description?: string | null
           display_order?: number | null
+          duration_ms?: number | null
           id?: string
           image_url: string
           is_active?: boolean | null
           is_premium?: boolean | null
           level_required?: number | null
+          min_level?: number | null
+          min_vip_tier?: number | null
           name: string
+          preview_url?: string | null
           price_coins?: number | null
           price_diamonds?: number | null
           updated_at?: string | null
@@ -3055,13 +3065,18 @@ export type Database = {
         Update: {
           animation_url?: string | null
           created_at?: string | null
+          description?: string | null
           display_order?: number | null
+          duration_ms?: number | null
           id?: string
           image_url?: string
           is_active?: boolean | null
           is_premium?: boolean | null
           level_required?: number | null
+          min_level?: number | null
+          min_vip_tier?: number | null
           name?: string
+          preview_url?: string | null
           price_coins?: number | null
           price_diamonds?: number | null
           updated_at?: string | null
