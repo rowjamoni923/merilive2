@@ -41,13 +41,15 @@ const adminStorage = {
  * Custom fetch wrapper that attaches the admin session token header on every request.
  * RLS on admin-managed tables checks for this header via `is_active_admin_session()`.
  */
-const adminFetch: typeof fetch = (input, init = {}) => {
+const adminFetch: typeof fetch = (input, init) => {
   const token = getAdminSessionToken();
-  const headers = new Headers(init.headers || {});
+  const opts: RequestInit = init ? { ...init } : {};
+  const headers = new Headers(opts.headers || {});
   if (token) {
     headers.set('x-admin-token', token);
   }
-  return fetch(input, { ...init, headers });
+  opts.headers = headers;
+  return fetch(input, opts);
 };
 
 /**
