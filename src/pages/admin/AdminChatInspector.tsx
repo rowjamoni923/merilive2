@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { format, formatDistanceToNow } from "date-fns";
-import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { useToast } from "@/hooks/use-toast";
 
 // Import sub-sections as tab content

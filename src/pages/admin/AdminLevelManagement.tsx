@@ -3,7 +3,7 @@ import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Crown, Users, Sparkles, Settings2, Shield, UserPlus } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 
 // Import existing components as tab content
 import AdminLevelTiers from "./AdminLevelTiers";

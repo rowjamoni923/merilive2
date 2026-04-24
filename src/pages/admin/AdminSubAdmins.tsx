@@ -44,7 +44,7 @@ import {
   Smartphone,
   Lock
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { getAdminSession } from "@/utils/adminSession";
 import { toast } from "sonner";

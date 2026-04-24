@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 
 // ==========================================

@@ -30,7 +30,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { bn } from "date-fns/locale";

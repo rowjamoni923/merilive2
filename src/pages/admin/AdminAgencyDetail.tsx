@@ -59,7 +59,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import { format, formatDistanceToNow } from "date-fns";
 import { bn } from "date-fns/locale";

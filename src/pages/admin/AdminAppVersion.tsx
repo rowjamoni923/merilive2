@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import { Loader2, Save, RefreshCw, Smartphone, Apple, Download, AlertTriangle } from "lucide-react";
 import { parseSettingValue } from "@/utils/adminSettingsStorage";

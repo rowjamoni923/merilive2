@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";

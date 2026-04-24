@@ -42,7 +42,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import SVGAPreviewWithMuteToggle from "@/components/admin/SVGAPreviewWithMuteToggle";
 import { UniversalAnimationPlayer } from "@/features/shared/animations";

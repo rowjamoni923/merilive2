@@ -24,7 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { getAdminSession } from "@/utils/adminSession";
 import { toast } from "sonner";

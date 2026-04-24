@@ -4,7 +4,7 @@ import { Gamepad2, Settings2, Server, Globe, Trophy, Loader2 } from "lucide-reac
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 
 // Lazy import the existing components
 import AdminGameSettings from "./AdminGameSettings";

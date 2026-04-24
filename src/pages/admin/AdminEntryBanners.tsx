@@ -35,7 +35,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import SVGAPreviewWithMuteToggle from '@/components/admin/SVGAPreviewWithMuteToggle';
 import { EntryBannerAnimation } from "@/components/live/EntryBannerAnimation";
 import adminStyles from "@/styles/adminStyles";

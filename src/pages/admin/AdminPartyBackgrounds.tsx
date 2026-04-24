@@ -40,7 +40,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { getAdminSession } from "@/utils/adminSession";
 import { cn } from "@/lib/utils";

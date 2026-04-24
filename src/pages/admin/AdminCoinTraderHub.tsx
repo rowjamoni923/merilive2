@@ -4,7 +4,7 @@ import { Coins, Users, Package, Activity, CreditCard, Wallet, DollarSign, Settin
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 
 // Import existing components
 import AdminCoinTraders from "./AdminCoinTraders";

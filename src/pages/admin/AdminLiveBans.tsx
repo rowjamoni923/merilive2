@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { getAdminSession } from "@/utils/adminSession";
 import { toast } from "sonner";

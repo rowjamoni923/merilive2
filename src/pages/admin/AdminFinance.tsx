@@ -3,7 +3,7 @@ import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Wallet, ArrowUpDown, CreditCard, History, Calculator, Minus, DollarSign, Globe, MessageCircle, Globe2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 
 // Import existing components as tab content
 import AdminCommissions from "./AdminCommissions";

@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Bell, Send, Users, Globe, Target, Clock, CheckCircle2, Loader2, Link2, ImagePlus, X, ExternalLink, Zap, ChevronDown, ChevronUp, Edit3, Save, Trash2, Plus } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import useAdminRealtime from "@/hooks/useAdminRealtime";

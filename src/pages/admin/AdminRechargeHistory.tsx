@@ -21,7 +21,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle
 } from "@/components/ui/dialog";
 import { ImageViewer, useImageViewer } from "@/components/ui/image-viewer";
-import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import { format } from "date-fns";
 

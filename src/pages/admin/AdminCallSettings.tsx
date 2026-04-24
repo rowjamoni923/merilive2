@@ -24,7 +24,7 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import { parseSettingValue, saveAppSetting } from "@/utils/adminSettingsStorage";
 import { useAdminRealtime } from "@/hooks/useAdminRealtime";
