@@ -766,6 +766,20 @@ export default function AdminWithdrawals() {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
+                            {(() => {
+                              const proof = withdrawal.helper_payment_screenshot || pd?.helper_payment_screenshot;
+                              if (!proof) return null;
+                              return (
+                                <button
+                                  type="button"
+                                  className="w-10 h-10 rounded-md overflow-hidden border border-purple-300 hover:border-purple-500 transition shrink-0"
+                                  title="View helper payment screenshot"
+                                  onClick={(e) => { e.stopPropagation(); imageViewer.openImage(proof); }}
+                                >
+                                  <img src={proof} alt="Helper proof" className="w-full h-full object-cover" loading="lazy" />
+                                </button>
+                              );
+                            })()}
                             <Button
                               variant="ghost"
                               size="icon"
