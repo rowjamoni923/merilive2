@@ -5,60 +5,97 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+/**
+ * Returns the luxurious year-based admin tokens.
+ * Auth: caller must be an admin owner (custom admin session OR auth.users → admin_users).
+ *
+ * Token format (year-aware, regenerates each calendar year):
+ *   Owner    : gala-royal-velvet-<YEAR>-aurora-<8-hex>
+ *   Sub-Admin: gala-noir-onyx-<YEAR>-prism-<8-hex>
+ */
+
+async function deriveHash(secret: string, payload: string): Promise<string> {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    enc.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(payload));
+  return Array.from(new Uint8Array(sig))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
+    .slice(0, 8);
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Verify the caller is an authenticated owner/admin
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    const body = await req.json().catch(() => ({}));
+    const adminId: string | undefined = body?.admin_id;
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: authHeader } } }
-    );
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Check if user is owner (using service role to bypass RLS)
     const adminClient = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    const { data: adminUser } = await adminClient
-      .from('admin_users')
-      .select('role')
-      .eq('user_id', user.id)
-      .eq('is_active', true)
-      .single();
+    // Path A — custom admin session caller (preferred, fully decoupled from auth.users)
+    let isOwner = false;
+    if (adminId) {
+      const { data: row } = await adminClient
+        .from('admin_users')
+        .select('role, is_active')
+        .eq('id', adminId)
+        .maybeSingle();
+      if (row?.role === 'owner' && row?.is_active) isOwner = true;
+    }
 
-    if (!adminUser || adminUser.role !== 'owner') {
+    // Path B — legacy auth header
+    if (!isOwner) {
+      const authHeader = req.headers.get('Authorization');
+      if (authHeader) {
+        const userClient = createClient(
+          Deno.env.get('SUPABASE_URL')!,
+          Deno.env.get('SUPABASE_ANON_KEY')!,
+          { global: { headers: { Authorization: authHeader } } }
+        );
+        const { data: { user } } = await userClient.auth.getUser();
+        if (user) {
+          const { data: row } = await adminClient
+            .from('admin_users')
+            .select('role, is_active')
+            .eq('user_id', user.id)
+            .maybeSingle();
+          if (row?.role === 'owner' && row?.is_active) isOwner = true;
+        }
+      }
+    }
+
+    if (!isOwner) {
       return new Response(
         JSON.stringify({ error: 'Only owners can view tokens' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Return tokens from environment
+    const BASE_SECRET =
+      Deno.env.get('ADMIN_TOKEN_BASE_SECRET') ||
+      Deno.env.get('ADMIN_OWNER_TOKEN') ||
+      'merilive-secret-base-2026-fallback';
+    const year = new Date().getUTCFullYear();
+    const ownerHash = await deriveHash(BASE_SECRET, `owner:${year}`);
+    const subHash = await deriveHash(BASE_SECRET, `sub_admin:${year}`);
+
     return new Response(
       JSON.stringify({
-        owner_token: Deno.env.get('ADMIN_OWNER_TOKEN') || null,
-        subadmin_token: Deno.env.get('ADMIN_SUBADMIN_TOKEN') || null,
+        owner_token: `gala-royal-velvet-${year}-aurora-${ownerHash}`,
+        subadmin_token: `gala-noir-onyx-${year}-prism-${subHash}`,
+        year,
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
