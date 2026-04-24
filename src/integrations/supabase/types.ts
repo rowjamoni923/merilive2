@@ -367,6 +367,36 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_owner_whitelist: {
+        Row: {
+          added_by: string | null
+          created_at: string
+          display_name: string | null
+          email: string
+          id: string
+          is_active: boolean
+          updated_at: string
+        }
+        Insert: {
+          added_by?: string | null
+          created_at?: string
+          display_name?: string | null
+          email: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Update: {
+          added_by?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       admin_permanent_ban_case_targets: {
         Row: {
           case_id: string
@@ -11497,6 +11527,10 @@ export type Database = {
         Args: { _agency_id: string; _amount: number; _note?: string }
         Returns: boolean
       }
+      admin_add_owner: {
+        Args: { _admin_id: string; _display_name?: string; _new_email: string }
+        Returns: Json
+      }
       admin_add_user_coins: {
         Args: { _amount: number; _note?: string; _user_id: string }
         Returns: Json
@@ -11664,6 +11698,15 @@ export type Database = {
           warning_count: number
         }[]
       }
+      admin_list_owners: {
+        Args: { _admin_id: string }
+        Returns: {
+          created_at: string
+          display_name: string
+          email: string
+          is_active: boolean
+        }[]
+      }
       admin_list_pending_devices: {
         Args: { _owner_admin_id: string }
         Returns: {
@@ -11735,6 +11778,10 @@ export type Database = {
       admin_remove_host_from_agency: {
         Args: { _host_id: string; _reason?: string }
         Returns: boolean
+      }
+      admin_remove_owner: {
+        Args: { _admin_id: string; _target_email: string }
+        Returns: Json
       }
       admin_request_device_access: {
         Args: {
