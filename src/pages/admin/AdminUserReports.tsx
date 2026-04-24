@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
+import { getCurrentAdminId } from "@/utils/adminSession";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 
