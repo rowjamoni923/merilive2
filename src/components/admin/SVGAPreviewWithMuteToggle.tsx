@@ -41,7 +41,21 @@ const SVGAPreviewWithMuteToggle: React.FC<SVGAPreviewWithMuteToggleProps> = ({
   const [hasAudio, setHasAudio] = useState(false);
   const [key, setKey] = useState(0);
 
+  const [imgError, setImgError] = useState(false);
   const isSvga = isSvgaUrl(src);
+
+  // Empty / invalid src → show graceful placeholder (no broken-image icon)
+  if (!src || src.trim() === '') {
+    return (
+      <div className={cn(
+        "relative flex flex-col items-center justify-center bg-slate-800/40 border border-dashed border-slate-600/40 rounded-lg text-slate-400 gap-1",
+        containerClassName
+      )}>
+        <Music className="w-5 h-5 opacity-50" />
+        <span className="text-[10px] uppercase tracking-wide opacity-60">No animation</span>
+      </div>
+    );
+  }
 
   const toggleMute = useCallback(() => {
     setIsMuted(prev => !prev);
@@ -57,14 +71,26 @@ const SVGAPreviewWithMuteToggle: React.FC<SVGAPreviewWithMuteToggleProps> = ({
 
   // For non-SVGA formats (GIF, WebP, PNG, JPG) — render as <img>
   if (!isSvga) {
+    if (imgError) {
+      return (
+        <div className={cn(
+          "relative flex flex-col items-center justify-center bg-slate-800/40 border border-dashed border-slate-600/40 rounded-lg text-slate-400 gap-1",
+          containerClassName
+        )}>
+          <Music className="w-5 h-5 opacity-50" />
+          <span className="text-[10px] uppercase tracking-wide opacity-60">Preview unavailable</span>
+        </div>
+      );
+    }
     return (
       <div className={cn("relative", containerClassName)}>
         <img
           src={src}
           alt="Animation preview"
-          className={cn("object-contain", className)}
+          className={cn("object-contain w-full h-full", className)}
           loading="lazy"
           decoding="async"
+          onError={() => setImgError(true)}
         />
       </div>
     );
