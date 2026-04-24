@@ -11142,6 +11142,8 @@ export type Database = {
           app_uid: string | null
           avatar_url: string | null
           bio: string | null
+          blocked_at: string | null
+          blocked_reason: string | null
           call_rate_per_minute: number | null
           city: string | null
           country_code: string | null
@@ -11201,6 +11203,8 @@ export type Database = {
           app_uid?: string | null
           avatar_url?: string | null
           bio?: string | null
+          blocked_at?: string | null
+          blocked_reason?: string | null
           call_rate_per_minute?: number | null
           city?: string | null
           country_code?: string | null
@@ -11260,6 +11264,8 @@ export type Database = {
           app_uid?: string | null
           avatar_url?: string | null
           bio?: string | null
+          blocked_at?: string | null
+          blocked_reason?: string | null
           call_rate_per_minute?: number | null
           city?: string | null
           country_code?: string | null
@@ -11447,6 +11453,51 @@ export type Database = {
         Returns: Json
       }
       admin_get_user_full_details: { Args: { _user_id: string }; Returns: Json }
+      admin_list_blocked_agencies: {
+        Args: { _limit?: number; _search?: string }
+        Returns: {
+          agency_code: string
+          blocked_at: string
+          blocked_reason: string
+          id: string
+          name: string
+          owner_avatar_url: string
+          owner_display_name: string
+          owner_id: string
+          total_hosts: number
+        }[]
+      }
+      admin_list_blocked_users: {
+        Args: { _limit?: number; _search?: string }
+        Returns: {
+          avatar_url: string
+          blocked_at: string
+          blocked_reason: string
+          display_name: string
+          id: string
+          is_host: boolean
+        }[]
+      }
+      admin_list_live_bans: {
+        Args: { _limit?: number; _only_active?: boolean }
+        Returns: {
+          app_uid: string
+          auto_banned: boolean
+          avatar_url: string
+          ban_duration_hours: number
+          ban_end: string
+          ban_reason: string
+          ban_start: string
+          display_name: string
+          id: string
+          is_active: boolean
+          unbanned_at: string
+          unbanned_by: string
+          user_id: string
+          violation_type: string
+          warning_count: number
+        }[]
+      }
       admin_process_face_verification: {
         Args: {
           _action: string
