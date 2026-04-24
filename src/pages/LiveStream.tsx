@@ -990,6 +990,7 @@ const LiveStream = () => {
           giftColor: "bg-pink-500/50",
           count: data.count || 1,
           coins: data.giftCoins || 0,
+          isReceiverGift: isHost,
         });
         
         // 2. INSTANT beans counter update for host
