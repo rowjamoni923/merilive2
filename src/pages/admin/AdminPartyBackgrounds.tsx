@@ -274,45 +274,62 @@ const AdminPartyBackgrounds = () => {
 
   const handleDelete = async (id: string) => {
     try {
-      // First, clear any party rooms referencing this background (foreign key constraint)
+      const session = getAdminSession();
+      if (!session?.admin_id) {
+        toast.error("Admin session expired. Please re-login.");
+        return;
+      }
+
+      // Clear referencing party rooms first (best-effort, ignored if RLS denies)
       await supabase
         .from('party_rooms')
         .update({ background_id: null } as any)
         .eq('background_id', id);
 
-      const { error } = await supabase
-        .from('party_room_backgrounds')
-        .delete()
-        .eq('id', id);
-      
+      const { data, error } = await adminSupabase.rpc('admin_delete_party_background' as any, {
+        _admin_id: session.admin_id,
+        _id: id,
+      });
       if (error) throw error;
-      
+      if (!(data as any)?.success) throw new Error('Delete failed');
+
       setBackgrounds(prev => prev.filter(bg => bg.id !== id));
       toast.success("Background deleted");
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error deleting background:', err);
-      toast.error("Failed to delete background");
+      toast.error(err?.message || "Failed to delete background");
     }
   };
 
   const handleToggleActive = async (id: string) => {
     const bg = backgrounds.find(b => b.id === id);
     if (!bg) return;
-    
+
     try {
-      const { error } = await supabase
-        .from('party_room_backgrounds')
-        .update({ is_active: !bg.is_active })
-        .eq('id', id);
-      
+      const session = getAdminSession();
+      if (!session?.admin_id) {
+        toast.error("Admin session expired. Please re-login.");
+        return;
+      }
+      const { error } = await adminSupabase.rpc('admin_upsert_party_background' as any, {
+        _admin_id: session.admin_id,
+        _id: id,
+        _name: bg.name,
+        _image_url: bg.image_url,
+        _gradient_css: bg.gradient_css,
+        _category: bg.category,
+        _is_premium: bg.is_premium,
+        _is_active: !bg.is_active,
+        _price_diamonds: bg.price_diamonds,
+        _display_order: bg.display_order,
+      });
       if (error) throw error;
-      
-      setBackgrounds(prev => prev.map(b => 
+      setBackgrounds(prev => prev.map(b =>
         b.id === id ? { ...b, is_active: !b.is_active } : b
       ));
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error toggling background:', err);
-      toast.error("Failed to update background");
+      toast.error(err?.message || "Failed to update background");
     }
   };
 
