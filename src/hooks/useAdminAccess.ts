@@ -106,8 +106,10 @@ export const useAdminAccess = () => {
   // Realtime updates for permission changes
   useEffect(() => {
     if (!adminId) return;
+    // Unique channel name per mount to avoid "cannot add callbacks after subscribe()" error
+    const channelName = `admin-access-${adminId}-${crypto.randomUUID()}`;
     const channel = adminSupabase
-      .channel(`admin-access-${adminId}`)
+      .channel(channelName)
       .on('postgres_changes',
         { event: '*', schema: 'public', table: 'admin_users', filter: `id=eq.${adminId}` },
         () => queryClient.invalidateQueries({ queryKey: ["admin-user", adminId] })
