@@ -280,8 +280,8 @@ const AdminGmailSupport = () => {
 
     setTranslatingId(msgId);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Not authenticated');
+      const adminToken = getAdminSessionToken();
+      if (!adminToken) throw new Error('Admin session expired. Please re-login.');
 
       // Our message (Bengali) → English, User message (any language) → Bengali
       const targetLang = isOurMessage ? 'en' : 'bn';
@@ -293,8 +293,9 @@ const AdminGmailSupport = () => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`,
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
             'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            'x-admin-token': adminToken,
           },
           body: JSON.stringify({
             text: plainText.slice(0, 2000),
