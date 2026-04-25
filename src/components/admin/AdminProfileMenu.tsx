@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -74,7 +74,11 @@ export function AdminProfileMenu({ isOpen, onClose, onLogout, adminUser, current
     }
     setResetting(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      // Admin password change goes through dedicated RPC (admin sessions are decoupled from auth.users)
+      const { error } = await supabase.rpc('admin_change_own_password' as any, {
+        p_admin_user_id: adminUser.id,
+        p_new_password: newPassword,
+      });
       if (error) throw error;
       toast.success('Password updated successfully!');
       setNewPassword('');

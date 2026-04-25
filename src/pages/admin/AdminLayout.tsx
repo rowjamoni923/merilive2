@@ -61,7 +61,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { supabase } from "@/integrations/supabase/client";
+// supabase user-app client removed — admin layout uses adminSupabase exclusively
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -1253,12 +1253,12 @@ export default function AdminLayout() {
     // Realtime-driven: listen to live_streams & profiles changes via unified system
     // No polling interval needed — useAdminRealtime handles updates
     // Unique channel name per mount to avoid "cannot add callbacks after subscribe()" error
-    const ch = supabase
+    const ch = adminSupabase
       .channel(`admin-header-stats-${crypto.randomUUID()}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'live_streams' }, debouncedFetchHeaderStats)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, debouncedFetchHeaderStats)
       .subscribe();
-    return () => { clearTimeout(initialTimer); supabase.removeChannel(ch); };
+    return () => { clearTimeout(initialTimer); adminSupabase.removeChannel(ch); };
   }, [fetchHeaderStats, debouncedFetchHeaderStats]);
 
   // ⚡ Prefetch ALL admin page chunks after initial render to eliminate lazy-load delay
@@ -1874,7 +1874,7 @@ export default function AdminLayout() {
     }, 2500);
 
     // ⚡ Single global subscription: chunked channels for ALL tables
-    const globalChannels: ReturnType<typeof supabase.channel>[] = [];
+    const globalChannels: ReturnType<typeof adminSupabase.channel>[] = [];
     const globalTables = Array.from(GLOBALLY_MONITORED_TABLES);
     const CHUNK_SIZE = 40; // Larger chunks = fewer channels
     const channelRetryTimers: NodeJS.Timeout[] = [];
@@ -1883,11 +1883,11 @@ export default function AdminLayout() {
       // Remove existing channel if any
       const existingIdx = globalChannels.findIndex((c: any) => c?.topic?.includes(`admin-unified-${chIdx}`));
       if (existingIdx >= 0) {
-        try { supabase.removeChannel(globalChannels[existingIdx]); } catch {}
+        try { adminSupabase.removeChannel(globalChannels[existingIdx]); } catch {}
         globalChannels.splice(existingIdx, 1);
       }
 
-      let ch = supabase.channel(`admin-unified-${chIdx}-${crypto.randomUUID()}`);
+      let ch = adminSupabase.channel(`admin-unified-${chIdx}-${crypto.randomUUID()}`);
       for (const table of chunk) {
         ch = ch.on('postgres_changes', { event: '*', schema: 'public', table }, (payload) => {
           dispatchAdminTableUpdate({
@@ -1903,7 +1903,7 @@ export default function AdminLayout() {
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           console.warn(`[Admin] ⚠️ Channel ${chIdx} error, retrying in 3s...`);
           const retryTimer = setTimeout(() => {
-            try { supabase.removeChannel(ch); } catch {}
+            try { adminSupabase.removeChannel(ch); } catch {}
             createChunkedChannel(chunk, chIdx);
           }, 3000);
           channelRetryTimers.push(retryTimer);
@@ -2098,7 +2098,7 @@ export default function AdminLayout() {
     return () => {
       clearTimeout(pendingCountsTimer);
       channelRetryTimers.forEach(t => clearTimeout(t));
-      globalChannels.forEach(ch => { try { supabase.removeChannel(ch); } catch {} });
+      globalChannels.forEach(ch => { try { adminSupabase.removeChannel(ch); } catch {} });
       window.removeEventListener(ADMIN_REALTIME_EVENT, handleUnifiedEvent);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
@@ -2130,7 +2130,7 @@ export default function AdminLayout() {
         // Re-check access after a short delay
         setTimeout(async () => {
           try {
-            const { data } = await supabase
+            const { data } = await adminSupabase
               .from('admin_users')
               .select('id, is_active')
               .eq('user_id', currentUser.id)
