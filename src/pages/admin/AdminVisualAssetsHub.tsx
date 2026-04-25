@@ -43,9 +43,13 @@ const AdminVisualAssetsHub = () => {
     } catch (e) { /* table might not exist */ }
     
     try {
-      const { count } = await supabase.from('chat_bubbles' as any).select('id', { count: 'exact', head: true }).eq('is_active', true);
+      const { count } = await supabase
+        .from('level_privileges')
+        .select('id', { count: 'exact', head: true })
+        .eq('privilege_type', 'chat_bubble')
+        .eq('is_active', true);
       bubblesCount = count || 0;
-    } catch (e) { /* table might not exist */ }
+    } catch (e) { /* fallback to 0 */ }
     
     try {
       const { count } = await supabase.from('gifts').select('id', { count: 'exact', head: true }).eq('is_active', true);
