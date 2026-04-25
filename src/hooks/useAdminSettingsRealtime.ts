@@ -256,7 +256,7 @@ const initializeRealtimeSubscription = () => {
 
 // Refresh functions
 const refreshBanners = async () => {
-  const { data } = await supabase
+  const { data } = await getSettingsClient()
     .from('banners')
     .select('*')
     .eq('is_active', true)
@@ -273,7 +273,7 @@ const refreshBanners = async () => {
 };
 
 const refreshGifts = async () => {
-  const { data } = await supabase
+  const { data } = await getSettingsClient()
     .from('gifts')
     .select('*')
     .eq('is_active', true)
@@ -282,7 +282,7 @@ const refreshGifts = async () => {
 };
 
 const refreshDiamondPackages = async () => {
-  const { data } = await supabase
+  const { data } = await getSettingsClient()
     .from('coin_packages')
     .select('*')
     .eq('is_active', true)
@@ -314,7 +314,7 @@ const refreshDiamondPackages = async () => {
 };
 
 const refreshCurrencyRates = async () => {
-  const { data } = await supabase
+  const { data } = await getSettingsClient()
     .from('currency_rates')
     .select('*')
     .eq('is_active', true)
@@ -323,7 +323,7 @@ const refreshCurrencyRates = async () => {
 };
 
 const refreshBranding = async () => {
-  const { data } = await supabase
+  const { data } = await getSettingsClient()
     .from('branding_settings')
     .select('*')
     .limit(1)
