@@ -1043,6 +1043,13 @@ const navGroups: NavGroup[] = [
         hubKey: "settings-hub",
         description: "Reusable notification templates referenced by server-side triggers (gift received, follow, etc.).",
       },
+      {
+        label: "Allowed Links",
+        icon: Shield,
+        path: "/admin/allowed-links",
+        hubKey: "settings-hub",
+        description: "Whitelist safe external URLs and link patterns allowed inside chat, profiles, and content.",
+      },
     ],
   },
   {
@@ -1143,6 +1150,20 @@ const navGroups: NavGroup[] = [
         path: "/admin/theme-manager",
         hubKey: "settings-hub",
         description: "Schedule seasonal app themes (Eid, New Year, Valentine) with auto-activate windows.",
+      },
+      {
+        label: "Landing Page",
+        icon: Image,
+        path: "/admin/landing-page",
+        hubKey: "settings-hub",
+        description: "Manage public landing-page sections, copy, and visibility for marketing surfaces.",
+      },
+      {
+        label: "Parcel Management",
+        icon: Package,
+        path: "/admin/parcel-management",
+        hubKey: "settings-hub",
+        description: "Manage parcel/reward package configurations and user-facing parcel availability.",
       },
       {
         label: "Sub-Admin Management",
