@@ -372,10 +372,10 @@ interface NotificationItemProps {
 
 const NotificationItem = ({ notification, onClick, delay = 0 }: NotificationItemProps) => {
   const { icon: Icon, color } = getNotificationIcon(notification.type, notification.priority);
-  const timeAgo = formatDistanceToNow(new Date(notification.created_at), {
-    addSuffix: true,
-    locale: enUS
-  });
+  const parsedDate = notification.created_at ? new Date(notification.created_at) : null;
+  const timeAgo = parsedDate && !isNaN(parsedDate.getTime())
+    ? formatDistanceToNow(parsedDate, { addSuffix: true, locale: enUS })
+    : '';
 
   const notificationData = notification.data as any;
   const isHelperPurchase = notification.type === 'coin_purchase_helper';

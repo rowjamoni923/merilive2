@@ -303,10 +303,10 @@ const OfficialNoticeItem = ({ notice, isRead, onRead, delay = 0 }: OfficialNotic
   const { viewerImage, isOpen, openImage, closeImage } = useImageViewer();
   const isUrgent = notice.priority === 'urgent';
   const isHigh = notice.priority === 'high';
-  const timeAgo = formatDistanceToNow(new Date(notice.created_at), {
-    addSuffix: true,
-    locale: enUS
-  });
+  const parsedDate = notice.created_at ? new Date(notice.created_at) : null;
+  const timeAgo = parsedDate && !isNaN(parsedDate.getTime())
+    ? formatDistanceToNow(parsedDate, { addSuffix: true, locale: enUS })
+    : '';
 
   const getPriorityConfig = () => {
     if (isUrgent) return {
