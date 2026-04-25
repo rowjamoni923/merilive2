@@ -11740,6 +11740,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      admin_change_own_password: {
+        Args: { p_admin_user_id: string; p_new_password: string }
+        Returns: Json
+      }
       admin_change_user_role: {
         Args: { _new_role: string; _user_id: string }
         Returns: boolean
