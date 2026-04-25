@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { adminSupabase } from '@/integrations/supabase/adminClient';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { parseSettingValue } from '@/utils/adminSettingsStorage';
 
@@ -123,12 +124,13 @@ const notifySubscribers = () => {
 };
 
 // Initialize channel once
-let realtimeChannel: ReturnType<typeof supabase.channel> | null = null;
+let realtimeChannel: ReturnType<typeof supabase.channel> | ReturnType<typeof adminSupabase.channel> | null = null;
 
 const isAdminRoute = () => typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
+const getSettingsClient = () => (isAdminRoute() ? adminSupabase : supabase);
 
 const subscribeTableChange = (
-  channel: ReturnType<typeof supabase.channel>,
+  channel: ReturnType<typeof supabase.channel> | ReturnType<typeof adminSupabase.channel>,
   table: string,
   refresh?: () => Promise<void> | void
 ) => {
@@ -233,10 +235,11 @@ const initializeRealtimeSubscription = () => {
   // Only subscribe to app_settings (the only publication table)
   const createPublicChannel = () => {
     if (realtimeChannel && typeof (realtimeChannel as any).unsubscribe === 'function') {
-      try { supabase.removeChannel(realtimeChannel as RealtimeChannel); } catch {}
+        try { getSettingsClient().removeChannel(realtimeChannel as RealtimeChannel); } catch {}
     }
 
-    let channel = supabase.channel(`public-settings-rt-${crypto.randomUUID()}`);
+    const client = getSettingsClient();
+    let channel = client.channel(`public-settings-rt-${crypto.randomUUID()}`);
     channel = subscribeTableChange(channel, 'app_settings', refreshAppSettings);
 
     realtimeChannel = channel.subscribe((status) => {
