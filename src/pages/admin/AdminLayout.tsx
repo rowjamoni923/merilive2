@@ -1253,7 +1253,7 @@ export default function AdminLayout() {
     // Realtime-driven: listen to live_streams & profiles changes via unified system
     // No polling interval needed — useAdminRealtime handles updates
     // Unique channel name per mount to avoid "cannot add callbacks after subscribe()" error
-    const ch = supabase
+    const ch = adminSupabase
       .channel(`admin-header-stats-${crypto.randomUUID()}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'live_streams' }, debouncedFetchHeaderStats)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, debouncedFetchHeaderStats)
@@ -2130,7 +2130,7 @@ export default function AdminLayout() {
         // Re-check access after a short delay
         setTimeout(async () => {
           try {
-            const { data } = await supabase
+            const { data } = await adminSupabase
               .from('admin_users')
               .select('id, is_active')
               .eq('user_id', currentUser.id)
