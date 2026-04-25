@@ -125,6 +125,7 @@ const notifySubscribers = () => {
 
 // Initialize channel once
 let realtimeChannel: ReturnType<typeof supabase.channel> | ReturnType<typeof adminSupabase.channel> | null = null;
+let realtimeMode: 'admin' | 'public' | null = null;
 
 const isAdminRoute = () => typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
 const getSettingsClient = () => (isAdminRoute() ? adminSupabase : supabase);
@@ -148,9 +149,22 @@ const subscribeTableChange = (
 };
 
 const initializeRealtimeSubscription = () => {
-  if (realtimeChannel) return;
-
   const adminMode = isAdminRoute();
+  const nextMode = adminMode ? 'admin' : 'public';
+
+  if (realtimeChannel && realtimeMode === nextMode) return;
+
+  if (realtimeChannel) {
+    try { (window as any).__adminSettingsEventCleanup?.(); } catch {}
+    try {
+      if (typeof (realtimeChannel as any).unsubscribe === 'function') {
+        getSettingsClient().removeChannel(realtimeChannel as RealtimeChannel);
+      }
+    } catch {}
+    realtimeChannel = null;
+    realtimeMode = null;
+  }
+
   console.log(`[AdminRealtime] Initializing ${adminMode ? 'admin (event-only)' : 'public'} settings subscription...`);
 
   // On admin routes, AdminLayout already creates global channels for ALL tables.
@@ -182,6 +196,7 @@ const initializeRealtimeSubscription = () => {
     };
     // Mark as initialized (use a sentinel instead of a channel)
     realtimeChannel = {} as any;
+    realtimeMode = 'admin';
     console.log('[AdminRealtime] Admin mode: using event-based sync (zero extra channels)');
     return;
   }
@@ -243,6 +258,7 @@ const initializeRealtimeSubscription = () => {
     channel = subscribeTableChange(channel, 'app_settings', refreshAppSettings);
 
     realtimeChannel = channel.subscribe((status) => {
+      realtimeMode = 'public';
       console.log('[AdminRealtime] Public settings subscription:', status);
       if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
         console.warn('[AdminRealtime] ⚠️ Channel error, retrying in 5s...');
