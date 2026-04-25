@@ -900,6 +900,13 @@ const navGroups: NavGroup[] = [
         hubKey: "content-hub",
         description: "Diamonds awarded when users rate the app on Play Store; manage claim window and amount.",
       },
+      {
+        label: "Reward Claims History",
+        icon: Gift,
+        path: "/admin/reward-claims-history",
+        hubKey: "content-hub",
+        description: "Review historical reward claims from rating, leaderboard, and engagement reward flows.",
+      },
     ],
   },
   {
@@ -953,6 +960,13 @@ const navGroups: NavGroup[] = [
         path: "/admin/call-settings",
         hubKey: "settings-hub",
         description: "Per-minute private-call rates, host earning percentage, and call-cut rules used by useCallSettings.",
+      },
+      {
+        label: "Today's Calls",
+        icon: Phone,
+        path: "/admin/today-calls",
+        hubKey: "settings-hub",
+        description: "Same-day call sessions, durations, billing totals, and host/user call activity.",
       },
     ],
   },
