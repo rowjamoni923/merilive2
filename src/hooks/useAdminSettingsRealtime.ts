@@ -367,7 +367,7 @@ const refreshBranding = async () => {
 };
 
 const refreshGameSettings = async () => {
-  const { data } = await supabase
+  const { data } = await getSettingsClient()
     .from('game_settings')
     .select('*')
     .eq('is_active', true)
@@ -376,7 +376,7 @@ const refreshGameSettings = async () => {
 };
 
 const refreshAppSettings = async () => {
-  const { data } = await supabase
+  const { data } = await getSettingsClient()
     .from('app_settings')
     .select('setting_key, setting_value');
   globalAppSettings.clear();
@@ -386,7 +386,7 @@ const refreshAppSettings = async () => {
 };
 
 const refreshPaymentMethods = async () => {
-  const { data } = await supabase
+  const { data } = await getSettingsClient()
     .from('topup_payment_methods' as any)
     .select('*')
     .eq('is_active', true)
