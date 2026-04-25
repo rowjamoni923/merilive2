@@ -158,7 +158,7 @@ const initializeRealtimeSubscription = () => {
     try { (window as any).__adminSettingsEventCleanup?.(); } catch {}
     try {
       if (typeof (realtimeChannel as any).unsubscribe === 'function') {
-        getSettingsClient().removeChannel(realtimeChannel as RealtimeChannel);
+        (realtimeChannel as any).unsubscribe();
       }
     } catch {}
     realtimeChannel = null;
