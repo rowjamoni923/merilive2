@@ -1232,8 +1232,8 @@ export default function AdminLayout() {
   const fetchHeaderStats = useCallback(async () => {
     try {
       const [onlineRes, liveRes] = await Promise.all([
-        (supabase.from('profiles') as any).select('id', { count: 'exact', head: true }).eq('is_online', true),
-        (supabase.from('live_streams') as any).select('id', { count: 'exact', head: true }).eq('is_active', true),
+        (adminSupabase.from('profiles') as any).select('id', { count: 'exact', head: true }).eq('is_online', true),
+        (adminSupabase.from('live_streams') as any).select('id', { count: 'exact', head: true }).eq('is_active', true),
       ]);
       setOnlineUsersCount(onlineRes.count || 0);
       setLiveStreamsCount(liveRes.count || 0);
@@ -1274,45 +1274,45 @@ export default function AdminLayout() {
   const pendingCountsTimerRef = useRef<NodeJS.Timeout | null>(null);
   const fetchPendingCountsRaw = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const user = session?.user;
-      if (!user) return;
+      // Admin panel uses dedicated admin session (not auth.users) — adminSupabase
+      // attaches the x-admin-token header which RLS recognizes via is_active_admin_session().
+      // No need to check user app session here.
 
       // Fetch ALL counts in parallel for maximum speed
       // Batch 1: Core counts
       const [upgradeRes, topupRes, helperAppRes, hostAppRes, withdrawalRes, helperRepliesRes, supportTicketsCountRes, userVerifyRes] = await Promise.all([
-        supabase.from('helper_upgrade_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('helper_topup_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('helper_applications').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('face_verification_submissions').select('*', { count: 'exact', head: true }).eq('status', 'pending').eq('verification_type', 'host'),
-        supabase.from('agency_withdrawals').select('*', { count: 'exact', head: true }).in('status', ['pending', 'processing']),
-        supabase.from('helper_message_replies').select('*', { count: 'exact', head: true }).eq('sender_type', 'helper').eq('is_read', false),
-        supabase.from('support_tickets').select('id', { count: 'exact', head: true }).eq('category', 'live_chat').in('status', ['open', 'pending']),
-        supabase.from('face_verification_submissions').select('*', { count: 'exact', head: true }).eq('status', 'pending').eq('verification_type', 'face'),
+        adminSupabase.from('helper_upgrade_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        adminSupabase.from('helper_topup_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        adminSupabase.from('helper_applications').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        adminSupabase.from('face_verification_submissions').select('*', { count: 'exact', head: true }).eq('status', 'pending').eq('verification_type', 'host'),
+        adminSupabase.from('agency_withdrawals').select('*', { count: 'exact', head: true }).in('status', ['pending', 'processing']),
+        adminSupabase.from('helper_message_replies').select('*', { count: 'exact', head: true }).eq('sender_type', 'helper').eq('is_read', false),
+        adminSupabase.from('support_tickets').select('id', { count: 'exact', head: true }).eq('category', 'live_chat').in('status', ['open', 'pending']),
+        adminSupabase.from('face_verification_submissions').select('*', { count: 'exact', head: true }).eq('status', 'pending').eq('verification_type', 'face'),
       ]);
 
       // Batch 2: Extended section counts
       const batch2 = await Promise.all([
-        supabase.from('user_reports' as any).select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('payroll_requests' as any).select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('helper_orders' as any).select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('live_bans' as any).select('*', { count: 'exact', head: true }).eq('is_active', true),
-        supabase.from('live_face_violations' as any).select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('host_conversion_requests' as any).select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('chat_moderation_logs' as any).select('*', { count: 'exact', head: true }).is('reviewed_at', null),
-        supabase.from('helper_withdrawal_requests' as any).select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        adminSupabase.from('user_reports' as any).select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        adminSupabase.from('payroll_requests' as any).select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        adminSupabase.from('helper_orders' as any).select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        adminSupabase.from('live_bans' as any).select('*', { count: 'exact', head: true }).eq('is_active', true),
+        adminSupabase.from('live_face_violations' as any).select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        adminSupabase.from('host_conversion_requests' as any).select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        adminSupabase.from('chat_moderation_logs' as any).select('*', { count: 'exact', head: true }).is('reviewed_at', null),
+        adminSupabase.from('helper_withdrawal_requests' as any).select('*', { count: 'exact', head: true }).eq('status', 'pending'),
       ]);
       const [userReportsRes, payrollRes, helperOrdersRes, liveBansRes, facViolationsRes, hostConvRes, moderationRes, helperWithdrawalRes] = batch2;
 
       // Batch 3: Additional section counts (only PENDING/actionable items — no daily activity counts)
       const batch3 = await Promise.all([
-        supabase.from('rating_reward_claims' as any).select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        adminSupabase.from('rating_reward_claims' as any).select('*', { count: 'exact', head: true }).eq('status', 'pending'),
         // NOTE: recharge_transactions & gift_transactions are informational (daily activity), NOT pending items
         // Do NOT show them as notification badges — they are not actionable
-        supabase.from('leaderboard_reward_history' as any).select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('consumption_return_history' as any).select('*', { count: 'exact', head: true }).eq('is_claimed', false),
-        supabase.from('agency_earnings_transfers' as any).select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('coin_transfers' as any).select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        adminSupabase.from('leaderboard_reward_history' as any).select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        adminSupabase.from('consumption_return_history' as any).select('*', { count: 'exact', head: true }).eq('is_claimed', false),
+        adminSupabase.from('agency_earnings_transfers' as any).select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        adminSupabase.from('coin_transfers' as any).select('*', { count: 'exact', head: true }).eq('status', 'pending'),
       ]);
       const [ratingRewardsRes, leaderboardRewardsRes, consumptionRes, agencyTransfersRes, coinTransfersRes] = batch3;
 
@@ -1322,14 +1322,8 @@ export default function AdminLayout() {
       ].filter(Boolean);
 
       if (queryErrors.length > 0) {
-        const authLikeError = queryErrors.some((err: any) => {
-          const msg = String(err?.message || '').toLowerCase();
-          return msg.includes('jwt') || msg.includes('not authenticated') || msg.includes('permission denied');
-        });
-
-        if (authLikeError) {
-          await supabase.auth.refreshSession();
-        }
+        // Just log — admin session handles its own validity (no user-app refresh needed)
+        console.warn('[AdminLayout] pending-counts query errors:', queryErrors.map((e: any) => e?.message).join(' | '));
         return;
       }
       
@@ -1409,15 +1403,15 @@ export default function AdminLayout() {
   // Fetch notifications — ONLY unread so old/read ones never reappear
   const fetchNotifications = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const user = session?.user;
-      if (!user) return;
+      // Use the admin's auth.users id (set in setCurrentUser after admin auth check)
+      const adminUserAuthId = currentUser?.id;
+      if (!adminUserAuthId) return;
 
       // Only fetch UNREAD notifications — once read, they never come back
-      const { data, error } = await supabase
+      const { data, error } = await adminSupabase
         .from('notifications')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', adminUserAuthId)
         .eq('is_read', false)
         .not('type', 'in', '(admin_message,admin_message_reply)')
         .order('created_at', { ascending: false })
@@ -1499,14 +1493,13 @@ export default function AdminLayout() {
 
     // After refresh, local cache may still be empty. Fallback to DB unread snapshot.
     if (unreadMatchingNotifications.length === 0) {
-      const { data: { session } } = await supabase.auth.getSession();
-      const user = session?.user;
-      if (!user) return;
+      const adminUserAuthId = currentUser?.id;
+      if (!adminUserAuthId) return;
 
-      const { data } = await supabase
+      const { data } = await adminSupabase
         .from('notifications')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', adminUserAuthId)
         .eq('is_read', false)
         .not('type', 'in', '(admin_message,admin_message_reply)')
         .order('created_at', { ascending: false })
@@ -1530,7 +1523,7 @@ export default function AdminLayout() {
       [normalizedPath]: 0,
     }));
 
-    const { error } = await supabase
+    const { error } = await adminSupabase
       .from('notifications')
       .update({ is_read: true })
       .in('id', ids);
@@ -1538,7 +1531,7 @@ export default function AdminLayout() {
     if (error) {
       fetchNotifications();
     }
-  }, [notifications]);
+  }, [notifications, currentUser]);
 
   // Mark notification as read and navigate
   const handleNotificationClick = async (notification: AdminNotification) => {
@@ -1574,7 +1567,7 @@ export default function AdminLayout() {
       }));
     }
 
-    const { error } = await supabase
+    const { error } = await adminSupabase
       .from('notifications')
       .update({ is_read: true })
       .eq('id', notification.id);
@@ -1599,14 +1592,13 @@ export default function AdminLayout() {
 
   // Mark all as read
   const markAllAsRead = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    const user = session?.user;
-    if (!user) return;
+    const adminUserAuthId = currentUser?.id;
+    if (!adminUserAuthId) return;
 
-    const { error } = await supabase
+    const { error } = await adminSupabase
       .from('notifications')
       .update({ is_read: true })
-      .eq('user_id', user.id)
+      .eq('user_id', adminUserAuthId)
       .eq('is_read', false);
 
     if (!error) {
