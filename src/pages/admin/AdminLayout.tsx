@@ -61,7 +61,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { supabase } from "@/integrations/supabase/client";
+// supabase user-app client removed — admin layout uses adminSupabase exclusively
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
