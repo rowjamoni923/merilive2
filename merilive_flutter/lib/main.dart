@@ -43,10 +43,12 @@ void main() async {
     systemNavigationBarIconBrightness: Brightness.light,
   ));
 
-  // Note: Replace with real keys
+  // ⚠️ PRODUCTION SUPABASE — same server as web admin & user app
+  // Project ref: ayjdlvuurscxucatbbah
   await Supabase.initialize(
-    url: 'https://ami-tomar-jonno.supabase.co',
-    anonKey: 'YOUR_ANON_KEY',
+    url: 'https://ayjdlvuurscxucatbbah.supabase.co',
+    anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5amRsdnV1cnNjeHVjYXRiYmFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNjQxMjMsImV4cCI6MjA5MDg0MDEyM30.5A53IMXcvGGnmXK9Dd96V7ceceh1JFuGmPom-hojWJc',
   );
 
   runApp(
