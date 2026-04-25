@@ -369,6 +369,13 @@ const navGroups: NavGroup[] = [
         hubKey: "user-hub",
         description: "User-submitted reports against other users (harassment, spam, inappropriate behavior).",
       },
+      {
+        label: "Online Users",
+        icon: Activity,
+        path: "/admin/online-users",
+        hubKey: "user-hub",
+        description: "Currently online users and presence state for realtime monitoring.",
+      },
     ],
   },
   {
@@ -713,6 +720,13 @@ const navGroups: NavGroup[] = [
         path: "/admin/gifts",
         hubKey: "finance-hub",
         description: "Manage gift catalog (5 categories: Wall, Lucky, Luxurious, VIP, Pro) with price and animation.",
+      },
+      {
+        label: "Gift Transactions",
+        icon: Activity,
+        path: "/admin/gift-transactions",
+        hubKey: "finance-hub",
+        description: "Audit every gift sent, including sender, receiver, diamond value, and settlement status.",
       },
       {
         label: "User Beans Exchange",
