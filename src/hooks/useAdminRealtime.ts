@@ -257,11 +257,7 @@ export const useAdminRealtime = (
   }, [isAdminRoute]);
 
   useEffect(() => {
-    const isAdminRoute =
-      typeof window !== 'undefined' &&
-      (window.location.pathname.startsWith('/admin') ||
-        window.location.hash.startsWith('#/admin') ||
-        window.location.hash.includes('/admin'));
+    const isOnAdminRoute = isAdminRoute();
 
     const eventTables = trackedTables.filter((t) => GLOBALLY_MONITORED_TABLES.has(t));
     const directTables = trackedTables.filter((t) => !GLOBALLY_MONITORED_TABLES.has(t));
@@ -284,10 +280,11 @@ export const useAdminRealtime = (
     }
 
     // Direct channel for tables outside global monitoring (admin + non-admin routes)
-    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let channel: ReturnType<typeof supabase.channel> | ReturnType<typeof adminSupabase.channel> | null = null;
     if (directTables.length > 0) {
+      const realtimeClient = isOnAdminRoute ? adminSupabase : supabase;
       const name = channelName || `rt-${directTables.join('-')}-${crypto.randomUUID()}`;
-      channel = supabase.channel(name);
+      channel = realtimeClient.channel(name);
       for (const table of directTables) {
         channel = channel.on(
           'postgres_changes',
@@ -303,7 +300,7 @@ export const useAdminRealtime = (
 
     // Optional stale fallback for exceptional cases only (disabled by default)
     const healthInterval =
-      isAdminRoute && enableStaleFallback
+        isOnAdminRoute && enableStaleFallback
         ? window.setInterval(() => {
             if (document.visibilityState !== 'visible') return;
             if (Date.now() - lastRealtimeTouch > staleRefreshMs) {
@@ -325,7 +322,7 @@ export const useAdminRealtime = (
       if (eventTables.length > 0) {
         window.removeEventListener(ADMIN_REALTIME_EVENT, handleGlobalEvent);
       }
-      if (channel) supabase.removeChannel(channel);
+      if (channel) (isOnAdminRoute ? adminSupabase : supabase).removeChannel(channel as any);
       if (healthInterval) clearInterval(healthInterval);
       if (enableVisibilityRefresh) {
         document.removeEventListener('visibilitychange', handleVisibility);
@@ -340,6 +337,7 @@ export const useAdminRealtime = (
     enableStaleFallback,
     staleRefreshMs,
     healthCheckIntervalMs,
+    isAdminRoute,
   ]);
 };
 
