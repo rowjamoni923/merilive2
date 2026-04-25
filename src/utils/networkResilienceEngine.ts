@@ -34,18 +34,22 @@ const measureLatency = async (): Promise<number> => {
   const { healthProbeTimeoutMs } = getAdaptiveNetworkProfile();
 
   try {
-    // Ping supabase health endpoint — lightweight, no auth needed
+    // Ping Supabase Auth health endpoint — lightweight and returns 200 with the anon key.
+    // Avoid /rest/v1/ HEAD because PostgREST root returns 401 and creates noisy false failures.
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), healthProbeTimeoutMs);
 
     try {
-      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/`, {
-        method: 'HEAD',
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/auth/v1/health`, {
+        method: 'GET',
         signal: controller.signal,
+        cache: 'no-store',
         headers: {
           'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
       });
+
+      if (!response.ok) throw new Error(`Supabase health check failed: ${response.status}`);
       return performance.now() - start;
     } finally {
       clearTimeout(timeout);
