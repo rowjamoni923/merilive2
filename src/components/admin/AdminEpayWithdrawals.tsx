@@ -37,7 +37,7 @@
  } from "@/components/ui/dialog";
  import { Textarea } from "@/components/ui/textarea";
  import { ScrollArea } from "@/components/ui/scroll-area";
- import { supabase } from "@/integrations/supabase/client";
+ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
  import { toast } from "sonner";
  import { format } from "date-fns";
  
