@@ -1,5 +1,7 @@
 import { useEffect, useRef, useCallback, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase } from "@/integrations/supabase/adminClient";
+import { getAdminSession } from "@/utils/adminSession";
 import { getAdminRealtimeLockRemaining } from "@/utils/adminRealtimeMutationGuard";
 
 /**
@@ -171,6 +173,15 @@ export const useAdminRealtime = (
   const staleRefreshMs = options.staleRefreshMs ?? DEFAULT_STALE_REFRESH_MS;
   const healthCheckIntervalMs = options.healthCheckIntervalMs ?? DEFAULT_HEALTH_CHECK_INTERVAL_MS;
 
+  const isAdminRoute = useCallback(() => {
+    if (typeof window === 'undefined') return false;
+    return (
+      window.location.pathname.startsWith('/admin') ||
+      window.location.hash.startsWith('#/admin') ||
+      window.location.hash.includes('/admin')
+    );
+  }, []);
+
   useEffect(() => {
     onUpdateRef.current = onUpdate;
   }, [onUpdate]);
@@ -209,32 +220,44 @@ export const useAdminRealtime = (
       }, 80);
     };
 
-    // Check if session already exists (covers route navigation between admin pages)
-    void supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        doInitialFetch();
-      }
-    });
+    let subscription: { unsubscribe: () => void } | null = null;
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        doInitialFetch();
-      }
-    });
+    if (isAdminRoute()) {
+      if (getAdminSession()) doInitialFetch();
+      const adminSessionHandler = () => {
+        if (getAdminSession()) doInitialFetch();
+      };
+      window.addEventListener('storage', adminSessionHandler);
+      window.addEventListener('admin-session-change', adminSessionHandler);
+      subscription = {
+        unsubscribe: () => {
+          window.removeEventListener('storage', adminSessionHandler);
+          window.removeEventListener('admin-session-change', adminSessionHandler);
+        },
+      };
+    } else {
+      // Non-admin fallback for any legacy usage outside /admin.
+      void supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) doInitialFetch();
+      });
+
+      const { data } = supabase.auth.onAuthStateChange((event) => {
+        if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          doInitialFetch();
+        }
+      });
+      subscription = data.subscription;
+    }
 
     return () => {
       cancelled = true;
-      subscription.unsubscribe();
+      subscription?.unsubscribe();
       if (authRefreshTimer) clearTimeout(authRefreshTimer);
     };
-  }, []);
+  }, [isAdminRoute]);
 
   useEffect(() => {
-    const isAdminRoute =
-      typeof window !== 'undefined' &&
-      (window.location.pathname.startsWith('/admin') ||
-        window.location.hash.startsWith('#/admin') ||
-        window.location.hash.includes('/admin'));
+    const isOnAdminRoute = isAdminRoute();
 
     const eventTables = trackedTables.filter((t) => GLOBALLY_MONITORED_TABLES.has(t));
     const directTables = trackedTables.filter((t) => !GLOBALLY_MONITORED_TABLES.has(t));
@@ -257,10 +280,11 @@ export const useAdminRealtime = (
     }
 
     // Direct channel for tables outside global monitoring (admin + non-admin routes)
-    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let channel: ReturnType<typeof supabase.channel> | ReturnType<typeof adminSupabase.channel> | null = null;
     if (directTables.length > 0) {
+      const realtimeClient = isOnAdminRoute ? adminSupabase : supabase;
       const name = channelName || `rt-${directTables.join('-')}-${crypto.randomUUID()}`;
-      channel = supabase.channel(name);
+      channel = realtimeClient.channel(name);
       for (const table of directTables) {
         channel = channel.on(
           'postgres_changes',
@@ -276,7 +300,7 @@ export const useAdminRealtime = (
 
     // Optional stale fallback for exceptional cases only (disabled by default)
     const healthInterval =
-      isAdminRoute && enableStaleFallback
+        isOnAdminRoute && enableStaleFallback
         ? window.setInterval(() => {
             if (document.visibilityState !== 'visible') return;
             if (Date.now() - lastRealtimeTouch > staleRefreshMs) {
@@ -298,7 +322,7 @@ export const useAdminRealtime = (
       if (eventTables.length > 0) {
         window.removeEventListener(ADMIN_REALTIME_EVENT, handleGlobalEvent);
       }
-      if (channel) supabase.removeChannel(channel);
+      if (channel) (isOnAdminRoute ? adminSupabase : supabase).removeChannel(channel as any);
       if (healthInterval) clearInterval(healthInterval);
       if (enableVisibilityRefresh) {
         document.removeEventListener('visibilitychange', handleVisibility);
@@ -313,6 +337,7 @@ export const useAdminRealtime = (
     enableStaleFallback,
     staleRefreshMs,
     healthCheckIntervalMs,
+    isAdminRoute,
   ]);
 };
 

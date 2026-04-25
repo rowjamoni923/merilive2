@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { adminSupabase } from '@/integrations/supabase/adminClient';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { parseSettingValue } from '@/utils/adminSettingsStorage';
 
@@ -123,12 +124,14 @@ const notifySubscribers = () => {
 };
 
 // Initialize channel once
-let realtimeChannel: ReturnType<typeof supabase.channel> | null = null;
+let realtimeChannel: ReturnType<typeof supabase.channel> | ReturnType<typeof adminSupabase.channel> | null = null;
+let realtimeMode: 'admin' | 'public' | null = null;
 
 const isAdminRoute = () => typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
+const getSettingsClient = () => (isAdminRoute() ? adminSupabase : supabase);
 
 const subscribeTableChange = (
-  channel: ReturnType<typeof supabase.channel>,
+  channel: ReturnType<typeof supabase.channel> | ReturnType<typeof adminSupabase.channel>,
   table: string,
   refresh?: () => Promise<void> | void
 ) => {
@@ -146,9 +149,22 @@ const subscribeTableChange = (
 };
 
 const initializeRealtimeSubscription = () => {
-  if (realtimeChannel) return;
-
   const adminMode = isAdminRoute();
+  const nextMode = adminMode ? 'admin' : 'public';
+
+  if (realtimeChannel && realtimeMode === nextMode) return;
+
+  if (realtimeChannel) {
+    try { (window as any).__adminSettingsEventCleanup?.(); } catch {}
+    try {
+      if (typeof (realtimeChannel as any).unsubscribe === 'function') {
+        (realtimeChannel as any).unsubscribe();
+      }
+    } catch {}
+    realtimeChannel = null;
+    realtimeMode = null;
+  }
+
   console.log(`[AdminRealtime] Initializing ${adminMode ? 'admin (event-only)' : 'public'} settings subscription...`);
 
   // On admin routes, AdminLayout already creates global channels for ALL tables.
@@ -180,6 +196,7 @@ const initializeRealtimeSubscription = () => {
     };
     // Mark as initialized (use a sentinel instead of a channel)
     realtimeChannel = {} as any;
+    realtimeMode = 'admin';
     console.log('[AdminRealtime] Admin mode: using event-based sync (zero extra channels)');
     return;
   }
@@ -233,13 +250,15 @@ const initializeRealtimeSubscription = () => {
   // Only subscribe to app_settings (the only publication table)
   const createPublicChannel = () => {
     if (realtimeChannel && typeof (realtimeChannel as any).unsubscribe === 'function') {
-      try { supabase.removeChannel(realtimeChannel as RealtimeChannel); } catch {}
+        try { getSettingsClient().removeChannel(realtimeChannel as RealtimeChannel); } catch {}
     }
 
-    let channel = supabase.channel(`public-settings-rt-${crypto.randomUUID()}`);
+    const client = getSettingsClient();
+    let channel = client.channel(`public-settings-rt-${crypto.randomUUID()}`);
     channel = subscribeTableChange(channel, 'app_settings', refreshAppSettings);
 
     realtimeChannel = channel.subscribe((status) => {
+      realtimeMode = 'public';
       console.log('[AdminRealtime] Public settings subscription:', status);
       if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
         console.warn('[AdminRealtime] ⚠️ Channel error, retrying in 5s...');
@@ -253,7 +272,7 @@ const initializeRealtimeSubscription = () => {
 
 // Refresh functions
 const refreshBanners = async () => {
-  const { data } = await supabase
+  const { data } = await getSettingsClient()
     .from('banners')
     .select('*')
     .eq('is_active', true)
@@ -270,7 +289,7 @@ const refreshBanners = async () => {
 };
 
 const refreshGifts = async () => {
-  const { data } = await supabase
+  const { data } = await getSettingsClient()
     .from('gifts')
     .select('*')
     .eq('is_active', true)
@@ -279,7 +298,7 @@ const refreshGifts = async () => {
 };
 
 const refreshDiamondPackages = async () => {
-  const { data } = await supabase
+  const { data } = await getSettingsClient()
     .from('coin_packages')
     .select('*')
     .eq('is_active', true)
@@ -311,7 +330,7 @@ const refreshDiamondPackages = async () => {
 };
 
 const refreshCurrencyRates = async () => {
-  const { data } = await supabase
+  const { data } = await getSettingsClient()
     .from('currency_rates')
     .select('*')
     .eq('is_active', true)
@@ -320,7 +339,7 @@ const refreshCurrencyRates = async () => {
 };
 
 const refreshBranding = async () => {
-  const { data } = await supabase
+  const { data } = await getSettingsClient()
     .from('branding_settings')
     .select('*')
     .limit(1)
@@ -364,7 +383,7 @@ const refreshBranding = async () => {
 };
 
 const refreshGameSettings = async () => {
-  const { data } = await supabase
+  const { data } = await getSettingsClient()
     .from('game_settings')
     .select('*')
     .eq('is_active', true)
@@ -373,7 +392,7 @@ const refreshGameSettings = async () => {
 };
 
 const refreshAppSettings = async () => {
-  const { data } = await supabase
+  const { data } = await getSettingsClient()
     .from('app_settings')
     .select('setting_key, setting_value');
   globalAppSettings.clear();
@@ -383,7 +402,7 @@ const refreshAppSettings = async () => {
 };
 
 const refreshPaymentMethods = async () => {
-  const { data } = await supabase
+  const { data } = await getSettingsClient()
     .from('topup_payment_methods' as any)
     .select('*')
     .eq('is_active', true)
