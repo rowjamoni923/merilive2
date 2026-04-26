@@ -28,7 +28,7 @@ interface BrandingSettings {
   logo_text_primary: string;
   logo_text_secondary: string;
   tagline: string;
-  background_type: 'image' | 'video';
+  background_type: 'image' | 'video' | 'gif' | 'gradient';
   background_url: string;
   logo_image_url: string | null;
 }
