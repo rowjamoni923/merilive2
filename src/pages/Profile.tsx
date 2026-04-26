@@ -1388,7 +1388,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       highlight: true,
       iconBg: "bg-gradient-to-r from-green-500 to-emerald-500",
       iconColor: "text-white",
-      show: isOwnProfile && isHost && isFemale // Only for female hosts
+      show: isOwnProfile && isFemale // Female host persona — visible from sign-up
     },
     { 
       icon: Star, 
@@ -1466,7 +1466,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       highlight: true,
       iconBg: isInActiveAgency ? "bg-gradient-to-r from-green-500 to-emerald-500" : "bg-gradient-to-r from-pink-500 to-rose-500",
       iconColor: "text-white",
-      show: isOwnProfile && isFemale && isHost
+      show: isOwnProfile && isFemale // Female host persona — visible from sign-up
     },
     { 
       icon: Building2, 
