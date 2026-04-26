@@ -65,7 +65,7 @@ export interface BrandingSettings {
   logo_text_secondary: string | null;
   tagline: string | null;
   logo_image_url: string | null;
-  background_type: string | null;
+  background_type: 'image' | 'video' | 'gif' | 'gradient' | null;
   background_url: string | null;
 }
 
