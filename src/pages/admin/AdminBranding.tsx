@@ -411,32 +411,24 @@ export default function AdminBranding() {
               <div className="space-y-2">
                 <Label>Background Upload</Label>
                 <div className="space-y-3">
-                  {settings.background_url && (
-                    <div className="relative rounded-lg overflow-hidden border aspect-video bg-muted">
-                      {settings.background_type === 'video' ? (
-                        <video
-                          src={settings.background_url}
-                          className="w-full h-full object-cover"
-                          muted
-                          loop
-                          autoPlay
-                          playsInline
-                        />
-                      ) : (
-                        <img
-                          src={settings.background_url}
-                          alt="Background"
-                          className="w-full h-full object-cover"
-                        />
-                      )}
-                    </div>
-                  )}
+                  <div className="relative rounded-lg overflow-hidden border aspect-video bg-muted">
+                    {renderBackgroundPreview("w-full h-full object-cover", true)}
+                    {settings.background_url && (
+                      <button
+                        onClick={removeBackground}
+                        className="absolute top-2 right-2 w-8 h-8 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-lg"
+                        aria-label="Remove background"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
                   
                   <div className="flex gap-2">
                     <input
                       ref={backgroundInputRef}
                       type="file"
-                      accept={settings.background_type === 'video' ? 'video/*' : 'image/*'}
+                      accept="image/*,image/gif,video/*,.gif,.mp4,.webm,.mov"
                       className="hidden"
                       onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0], 'background')}
                     />
@@ -451,13 +443,17 @@ export default function AdminBranding() {
                       ) : (
                         <Upload className="w-4 h-4 mr-2" />
                       )}
-                      {settings.background_type === 'video' ? 'Upload Video' : 'Upload Image'}
+                      Upload Image / GIF / Video
                     </Button>
+                    {settings.background_url && (
+                      <Button variant="destructive" onClick={removeBackground}>
+                        <X className="w-4 h-4 mr-2" />
+                        Remove
+                      </Button>
+                    )}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    {settings.background_type === 'video' 
-                      ? 'MP4, WebM (Max 50MB) - Video will autoplay on mobile'
-                      : 'PNG, JPG, WebP (Max 5MB)'}
+                    PNG, JPG, WebP (Max 5MB) · GIF, MP4, WebM, MOV (Max 50MB)
                   </p>
                 </div>
               </div>
