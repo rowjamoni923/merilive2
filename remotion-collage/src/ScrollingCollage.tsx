@@ -272,8 +272,6 @@ export const ScrollingCollage: React.FC = () => {
       >
         <div
           style={{
-            transform: `translateY(${titleY}px)`,
-            opacity: titleOpacity,
             fontSize: 88,
             fontWeight: 800,
             letterSpacing: -1.5,
@@ -290,8 +288,6 @@ export const ScrollingCollage: React.FC = () => {
         <div
           style={{
             marginTop: 14,
-            transform: `translateY(${subY}px)`,
-            opacity: subOpacity,
             fontSize: 32,
             fontWeight: 600,
             color: "rgba(255,255,255,0.92)",
