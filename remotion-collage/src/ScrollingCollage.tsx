@@ -8,9 +8,15 @@ import {
   spring,
 } from "remotion";
 import { loadFont } from "@remotion/google-fonts/Poppins";
+import { loadFont as loadPlayfair } from "@remotion/google-fonts/PlayfairDisplay";
 
 const { fontFamily } = loadFont("normal", {
   weights: ["500", "600", "700", "800"],
+  subsets: ["latin"],
+});
+
+const { fontFamily: displayFont } = loadPlayfair("normal", {
+  weights: ["700", "800", "900"],
   subsets: ["latin"],
 });
 
