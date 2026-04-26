@@ -82,7 +82,7 @@ export const saveAppSetting = async (
 };
 
 export const saveBrandingSettings = async (value: Record<string, unknown>, id?: string) => {
-  const { data: existing, error: checkError } = await supabase
+  const { data: existing, error: checkError } = await adminSupabase
     .from("branding_settings")
     .select("id")
     .eq("setting_key", "default")
@@ -98,7 +98,7 @@ export const saveBrandingSettings = async (value: Record<string, unknown>, id?: 
   };
 
   if (existing) {
-    const { error } = await supabase
+    const { error } = await adminSupabase
       .from("branding_settings")
       .update({
         setting_value: payload.setting_value,
@@ -111,13 +111,14 @@ export const saveBrandingSettings = async (value: Record<string, unknown>, id?: 
     return existing.id;
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await adminSupabase
     .from("branding_settings")
     .insert({
       ...(id ? { id } : {}),
       setting_key: payload.setting_key,
       setting_value: payload.setting_value,
       description: payload.description,
+      updated_at: payload.updated_at,
     })
     .select("id")
     .single();
