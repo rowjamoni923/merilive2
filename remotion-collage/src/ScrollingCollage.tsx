@@ -150,45 +150,14 @@ export const ScrollingCollage: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames } = useVideoConfig();
 
-  // Intro fade in
-  const introOpacity = interpolate(frame, [0, 20], [0, 1], {
-    extrapolateRight: "clamp",
-  });
-  // Outro fade out (last 20 frames)
-  const outroOpacity = interpolate(
-    frame,
-    [durationInFrames - 25, durationInFrames - 5],
-    [1, 0],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
-  );
-
-  // Title spring entrance
-  const titleSpring = spring({
-    frame: frame - 6,
-    fps,
-    config: { damping: 18, stiffness: 120, mass: 0.9 },
-  });
-  const titleY = interpolate(titleSpring, [0, 1], [40, 0]);
-  const titleOpacity = interpolate(titleSpring, [0, 1], [0, 1]);
-
-  // Subtitle a bit later
-  const subSpring = spring({
-    frame: frame - 18,
-    fps,
-    config: { damping: 20, stiffness: 110 },
-  });
-  const subY = interpolate(subSpring, [0, 1], [30, 0]);
-  const subOpacity = interpolate(subSpring, [0, 1], [0, 1]);
-
   // Slow ambient zoom on the whole collage for cinematic feel
-  const zoom = interpolate(frame, [0, durationInFrames], [1.0, 1.06]);
+  const zoom = interpolate(frame, [0, durationInFrames], [1.0, 1.04]);
 
   return (
     <AbsoluteFill
       style={{
         background:
           "radial-gradient(ellipse at 30% 20%, #2a0b3a 0%, #0a0a18 60%, #050510 100%)",
-        opacity: Math.min(introOpacity, outroOpacity),
         overflow: "hidden",
       }}
     >
