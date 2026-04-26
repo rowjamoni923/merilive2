@@ -353,7 +353,7 @@ export const ScrollingCollage: React.FC = () => {
       <div
         style={{
           position: "absolute",
-          top: 110,
+          top: 90,
           left: 0,
           right: 0,
           display: "flex",
@@ -362,34 +362,140 @@ export const ScrollingCollage: React.FC = () => {
           textAlign: "center",
           fontFamily,
           color: "white",
-          padding: "0 40px",
+          padding: "0 32px",
         }}
       >
+        {/* Premium MeriLive title with layered glow + gradient + shine */}
+        <div style={{ position: "relative", display: "inline-block" }}>
+          {/* Soft outer glow halo */}
+          <div
+            style={{
+              position: "absolute",
+              inset: -30,
+              background:
+                "radial-gradient(ellipse at center, rgba(255,77,148,0.45) 0%, rgba(168,85,247,0.25) 40%, rgba(255,77,148,0) 75%)",
+              filter: "blur(20px)",
+              zIndex: 0,
+            }}
+          />
+          {/* Decorative side accents */}
+          <span
+            style={{
+              position: "absolute",
+              left: -42,
+              top: "50%",
+              transform: "translateY(-50%)",
+              fontSize: 28,
+              color: "rgba(255,210,227,0.85)",
+              textShadow: "0 0 12px rgba(255,126,182,0.8)",
+              fontFamily: displayFont,
+            }}
+          >
+            ✦
+          </span>
+          <span
+            style={{
+              position: "absolute",
+              right: -42,
+              top: "50%",
+              transform: "translateY(-50%)",
+              fontSize: 28,
+              color: "rgba(255,210,227,0.85)",
+              textShadow: "0 0 12px rgba(255,126,182,0.8)",
+              fontFamily: displayFont,
+            }}
+          >
+            ✦
+          </span>
+          {/* The title text — Playfair Display, italic-ready, with a rich gradient */}
+          <div
+            style={{
+              position: "relative",
+              zIndex: 1,
+              fontFamily: displayFont,
+              fontSize: 110,
+              fontWeight: 900,
+              fontStyle: "italic",
+              letterSpacing: -2,
+              lineHeight: 1,
+              background:
+                "linear-gradient(180deg, #ffffff 0%, #ffe7f0 40%, #ff9ec5 75%, #ff4d94 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              filter:
+                "drop-shadow(0 4px 18px rgba(255,77,148,0.55)) drop-shadow(0 0 32px rgba(168,85,247,0.4))",
+            }}
+          >
+            MeriLive
+          </div>
+        </div>
+
+        {/* Elegant divider with star */}
         <div
           style={{
-            fontSize: 88,
-            fontWeight: 800,
-            letterSpacing: -1.5,
-            lineHeight: 1,
-            background:
-              "linear-gradient(180deg, #ffffff 0%, #ffd2e3 60%, #ff7eb6 100%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            textShadow: "0 6px 30px rgba(255,77,148,0.35)",
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            marginTop: 18,
           }}
         >
-          MeriLive
+          <div
+            style={{
+              height: 1.5,
+              width: 60,
+              background:
+                "linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,210,227,0.9) 100%)",
+            }}
+          />
+          <span
+            style={{
+              fontSize: 18,
+              color: "rgba(255,210,227,0.95)",
+              textShadow: "0 0 10px rgba(255,126,182,0.9)",
+            }}
+          >
+            ★
+          </span>
+          <div
+            style={{
+              height: 1.5,
+              width: 60,
+              background:
+                "linear-gradient(90deg, rgba(255,210,227,0.9) 0%, rgba(255,255,255,0) 100%)",
+            }}
+          />
         </div>
+
+        {/* Premium subtitle — bigger, bolder, gradient */}
         <div
           style={{
-            marginTop: 14,
-            fontSize: 32,
-            fontWeight: 600,
-            color: "rgba(255,255,255,0.92)",
+            marginTop: 16,
+            fontSize: 46,
+            fontWeight: 800,
             letterSpacing: 0.5,
+            lineHeight: 1.1,
+            background:
+              "linear-gradient(180deg, #ffffff 0%, #ffe7f0 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            filter: "drop-shadow(0 3px 12px rgba(255,255,255,0.25))",
           }}
         >
           Live Video Chat & Calls
+        </div>
+
+        {/* Small luxe tagline */}
+        <div
+          style={{
+            marginTop: 10,
+            fontSize: 16,
+            fontWeight: 600,
+            letterSpacing: 4,
+            textTransform: "uppercase",
+            color: "rgba(255,255,255,0.55)",
+          }}
+        >
+          Premium · Verified · Worldwide
         </div>
       </div>
     </AbsoluteFill>
