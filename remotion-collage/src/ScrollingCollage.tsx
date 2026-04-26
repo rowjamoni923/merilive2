@@ -103,11 +103,12 @@ const PhotoColumn: React.FC<ColumnProps> = ({
               left: 0,
               right: 0,
               bottom: 0,
-              height: "40%",
+              height: "55%",
               background:
-                "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 100%)",
+                "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.4) 55%, rgba(0,0,0,0.85) 100%)",
             }}
           />
+
           {/* Live badge on every 3rd card */}
           {idx % 3 === 0 && (
             <div
@@ -140,6 +141,95 @@ const PhotoColumn: React.FC<ColumnProps> = ({
               LIVE
             </div>
           )}
+
+          {/* Bottom row: name + call button (every card) */}
+          <div
+            style={{
+              position: "absolute",
+              left: 14,
+              right: 14,
+              bottom: 14,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 10,
+              fontFamily,
+            }}
+          >
+            <div style={{ display: "flex", flexDirection: "column", gap: 3, minWidth: 0 }}>
+              <div
+                style={{
+                  color: "white",
+                  fontWeight: 700,
+                  fontSize: 18,
+                  letterSpacing: 0.2,
+                  textShadow: "0 2px 6px rgba(0,0,0,0.6)",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {["Aria", "Mira", "Zara", "Lina", "Riya", "Nita", "Tara", "Sana", "Maya", "Jiya", "Kira", "Eva"][n % 12]}
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 5,
+                  color: "rgba(255,255,255,0.85)",
+                  fontWeight: 500,
+                  fontSize: 12,
+                }}
+              >
+                <span
+                  style={{
+                    width: 7,
+                    height: 7,
+                    borderRadius: 999,
+                    background: "#22c55e",
+                    boxShadow: "0 0 8px rgba(34,197,94,0.9)",
+                  }}
+                />
+                Online
+              </div>
+            </div>
+
+            {/* Call button - circular gradient with phone icon */}
+            <div
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 999,
+                background:
+                  "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow:
+                  "0 8px 24px rgba(34,197,94,0.55), inset 0 1px 0 rgba(255,255,255,0.4)",
+                border: "2px solid rgba(255,255,255,0.9)",
+                flexShrink: 0,
+              }}
+            >
+              {/* Phone icon (SVG) */}
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"
+                  stroke="white"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="white"
+                />
+              </svg>
+            </div>
+          </div>
         </div>
       ))}
     </div>
