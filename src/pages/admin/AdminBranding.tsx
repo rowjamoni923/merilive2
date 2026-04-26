@@ -163,11 +163,12 @@ export default function AdminBranding() {
     try {
       const primaryText = settings.logo_text_primary;
       const secondaryText = settings.logo_text_secondary;
+      const backgroundType = inferBackgroundTypeFromUrl(settings.background_url, settings.background_type);
       const savedId = await saveBrandingSettings({
         logo_text_primary: primaryText,
         logo_text_secondary: secondaryText,
         tagline: settings.tagline,
-        background_type: settings.background_type,
+        background_type: backgroundType,
         background_url: settings.background_url,
         logo_image_url: settings.logo_image_url,
         app_name: [primaryText, secondaryText].filter(Boolean).join(' '),
