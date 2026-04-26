@@ -161,7 +161,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         );
       }
 
-      // Send via Gmail SMTP → Brevo → Resend (multi-provider fallback)
+      // Send via Gmail SMTP only
       let emailSent = false;
       let emailError: string | null = null;
       let smtpDetail: string | null = null;
@@ -171,7 +171,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
       const htmlBody = buildAdminOTPEmailHTML(otpCode);
       const textBody = buildAdminOTPEmailText(otpCode);
 
-      // Provider 1: Gmail SMTP
       if (gmailUser && gmailAppPassword) {
         try {
           const transporter = nodemailer.createTransport({
@@ -210,74 +209,13 @@ Deno.serve(async (req: Request): Promise<Response> => {
           }
         } catch (emailErr: any) {
           emailError = emailErr?.message || String(emailErr);
-          console.warn("[admin-2fa-otp] Gmail failed, trying Brevo:", emailError);
+          console.error("[admin-2fa-otp] ❌ Gmail send failed:", emailError);
         }
+      } else {
+        emailError = "GMAIL_USER or GMAIL_APP_PASSWORD not configured";
+        console.error("[admin-2fa-otp] ❌", emailError);
       }
 
-      // Provider 2: Brevo (fallback)
-      if (!emailSent) {
-        const brevoKey = (Deno.env.get("BREVO_API_KEY") ?? "").trim();
-        if (brevoKey) {
-          try {
-            const senderEmail = gmailUser || "noreply@merilive.top";
-            const res = await fetch("https://api.brevo.com/v3/smtp/email", {
-              method: "POST",
-              headers: { "accept": "application/json", "api-key": brevoKey, "content-type": "application/json" },
-              body: JSON.stringify({
-                sender: { name: "MeriLive Admin", email: senderEmail },
-                to: [{ email: normalizedEmail }],
-                subject,
-                htmlContent: htmlBody,
-                textContent: textBody,
-              }),
-            });
-            if (res.ok) {
-              emailSent = true;
-              usedProvider = "brevo";
-              console.log(`[admin-2fa-otp] ✅ Sent via Brevo to ${normalizedEmail}`);
-            } else {
-              const txt = await res.text();
-              emailError = `Brevo ${res.status}: ${txt}`;
-              console.warn("[admin-2fa-otp] Brevo failed, trying Resend:", emailError);
-            }
-          } catch (e: any) {
-            emailError = `Brevo exception: ${e?.message || e}`;
-          }
-        }
-      }
-
-      // Provider 3: Resend (final fallback)
-      if (!emailSent) {
-        const resendKey = (Deno.env.get("RESEND_API_KEY") ?? "").trim();
-        if (resendKey) {
-          try {
-            const res = await fetch("https://api.resend.com/emails", {
-              method: "POST",
-              headers: { "Authorization": `Bearer ${resendKey}`, "Content-Type": "application/json" },
-              body: JSON.stringify({
-                from: "MeriLive Admin <onboarding@resend.dev>",
-                to: [normalizedEmail],
-                subject,
-                html: htmlBody,
-                text: textBody,
-              }),
-            });
-            if (res.ok) {
-              emailSent = true;
-              usedProvider = "resend";
-              console.log(`[admin-2fa-otp] ✅ Sent via Resend to ${normalizedEmail}`);
-            } else {
-              emailError = `Resend ${res.status}: ${await res.text()}`;
-            }
-          } catch (e: any) {
-            emailError = `Resend exception: ${e?.message || e}`;
-          }
-        }
-      }
-
-      if (!emailSent) {
-        console.error("[admin-2fa-otp] ❌ All providers failed:", emailError);
-      }
       smtpDetail = smtpDetail || `provider=${usedProvider || "none"}`;
 
       return new Response(
