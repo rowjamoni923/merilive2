@@ -66,11 +66,10 @@ await renderFrames({
 
 await browser.close({ silent: false });
 
-// Frames: element-0.png ... element-(N-1).png
-// Drop last frame so first==last seam is clean for loop
+// Frames: element-000.png ... element-(N-1).png (3-digit zero-padded)
 const total = composition.durationInFrames;
 const lastIdx = total - 1;
-const lastFile = path.join(framesDir, `element-${lastIdx}.png`);
+const lastFile = path.join(framesDir, `element-${String(lastIdx).padStart(3, "0")}.png`);
 if (fs.existsSync(lastFile)) {
   fs.unlinkSync(lastFile);
   console.log("[gif] Removed last frame for seamless loop");
@@ -84,13 +83,13 @@ const scale = "540:960";
 
 console.log("[gif] Building palette...");
 execSync(
-  `${ffmpeg} -y -framerate ${fps} -i ${framesDir}/element-%d.png -vf "scale=${scale}:flags=lanczos,palettegen=stats_mode=diff" /tmp/palette.png`,
+  `${ffmpeg} -y -framerate ${fps} -i ${framesDir}/element-%03d.png -vf "scale=${scale}:flags=lanczos,palettegen=stats_mode=diff" /tmp/palette.png`,
   { stdio: "inherit" }
 );
 
 console.log("[gif] Encoding GIF to", outputPath);
 execSync(
-  `${ffmpeg} -y -framerate ${fps} -i ${framesDir}/element-%d.png -i /tmp/palette.png -lavfi "scale=${scale}:flags=lanczos [x]; [x][1:v] paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle" -loop 0 ${outputPath}`,
+  `${ffmpeg} -y -framerate ${fps} -i ${framesDir}/element-%03d.png -i /tmp/palette.png -lavfi "scale=${scale}:flags=lanczos [x]; [x][1:v] paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle" -loop 0 ${outputPath}`,
   { stdio: "inherit" }
 );
 
