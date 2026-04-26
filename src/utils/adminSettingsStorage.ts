@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase } from "@/integrations/supabase/adminClient";
 
 type Primitive = string | number | boolean | null;
 type SettingValue = Primitive | Record<string, unknown> | Array<unknown>;
