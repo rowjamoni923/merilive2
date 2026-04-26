@@ -33,6 +33,15 @@ interface BrandingSettings {
   logo_image_url: string | null;
 }
 
+const inferBackgroundTypeFromUrl = (url: string, fallback: BrandingSettings['background_type']): BrandingSettings['background_type'] => {
+  const cleanUrl = url.split('?')[0].toLowerCase();
+  if (!cleanUrl) return 'gradient';
+  if (cleanUrl.endsWith('.gif')) return 'gif';
+  if (/\.(mp4|webm|mov|m4v)$/.test(cleanUrl)) return 'video';
+  if (/\.(png|jpe?g|webp|avif|bmp)$/.test(cleanUrl)) return 'image';
+  return fallback === 'gradient' ? 'image' : fallback;
+};
+
 export default function AdminBranding() {
   const [settings, setSettings] = useState<BrandingSettings>({
     id: 'default',
