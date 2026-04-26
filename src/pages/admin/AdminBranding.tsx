@@ -88,24 +88,24 @@ export default function AdminBranding() {
   const handleUpload = async (file: File, type: 'logo' | 'background') => {
     if (!file) return;
 
-    // Validate file type
     const isVideo = file.type.startsWith('video/');
-    const isImage = file.type.startsWith('image/');
+    const isGif = file.type === 'image/gif' || file.name.toLowerCase().endsWith('.gif');
+    const isImage = file.type.startsWith('image/') && !isGif;
     
-    if (type === 'background' && !isVideo && !isImage) {
-      toast.error("Please upload an image or video only");
+    if (type === 'background' && !isVideo && !isImage && !isGif) {
+      toast.error("Please upload an image, GIF, or video only");
       return;
     }
     
-    if (type === 'logo' && !isImage) {
+    if (type === 'logo' && !file.type.startsWith('image/')) {
       toast.error("Please upload an image only");
       return;
     }
 
-    // File size check (50MB for video, 5MB for image)
-    const maxSize = isVideo ? 50 * 1024 * 1024 : 5 * 1024 * 1024;
+    // File size check (50MB for video/GIF, 5MB for still image/logo)
+    const maxSize = isVideo || isGif ? 50 * 1024 * 1024 : 5 * 1024 * 1024;
     if (file.size > maxSize) {
-      toast.error(`File size cannot exceed ${isVideo ? '50MB' : '5MB'}`);
+      toast.error(`File size cannot exceed ${isVideo || isGif ? '50MB' : '5MB'}`);
       return;
     }
 
