@@ -1879,7 +1879,7 @@ const Auth = () => {
           loop
           playsInline
         />
-      ) : branding.background_type === 'image' && branding.background_url ? (
+      ) : (branding.background_type === 'image' || branding.background_type === 'gif') && branding.background_url ? (
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{
