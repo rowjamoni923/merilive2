@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
-import { getCachedGifts, getGiftsWithFetch, hasGiftCache } from "@/hooks/useGiftPrefetch";
+import { getCachedGifts, getGiftsWithFetch, hasGiftCache, subscribeToGiftCache } from "@/hooks/useGiftPrefetch";
 
 const HEAVY_ANIMATION_ASSET_PATTERN = /\.(svga|json)(\?|$)/i;
 
@@ -144,12 +144,20 @@ function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUs
   useEffect(() => {
     if (!isOpen) return;
 
+    const unsubscribe = subscribeToGiftCache(() => {
+      const latest = getCachedGifts();
+      if (latest.length > 0) {
+        setGifts(transformGifts(latest));
+        setLoading(false);
+      }
+    });
+
     // Use cached gifts immediately (instant display)
     const cached = getCachedGifts();
     if (cached.length > 0) {
       setGifts(transformGifts(cached));
       setLoading(false);
-      return;
+      return unsubscribe;
     }
 
     // Fallback: fetch if no cache
@@ -158,6 +166,8 @@ function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUs
       setGifts(transformGifts(data));
       setLoading(false);
     });
+
+    return unsubscribe;
   }, [isOpen, transformGifts]);
 
   // Fetch user balance (parallel with gifts)
