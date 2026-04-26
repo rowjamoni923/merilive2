@@ -331,48 +331,6 @@ export const ScrollingCollage: React.FC = () => {
         >
           Live Video Chat & Calls
         </div>
-        <div
-          style={{
-            marginTop: 18,
-            transform: `translateY(${subY}px)`,
-            opacity: subOpacity * 0.85,
-            fontSize: 22,
-            fontWeight: 500,
-            color: "rgba(255,255,255,0.7)",
-          }}
-        >
-          Meet beautiful people from around the world
-        </div>
-      </div>
-
-      {/* Bottom CTA */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 120,
-          left: 0,
-          right: 0,
-          display: "flex",
-          justifyContent: "center",
-          fontFamily,
-          opacity: subOpacity,
-        }}
-      >
-        <div
-          style={{
-            padding: "22px 56px",
-            borderRadius: 999,
-            background: "linear-gradient(135deg, #ff2d6f 0%, #ff6a3d 100%)",
-            color: "white",
-            fontSize: 32,
-            fontWeight: 700,
-            letterSpacing: 0.5,
-            boxShadow:
-              "0 20px 50px rgba(255,45,111,0.55), inset 0 1px 0 rgba(255,255,255,0.4)",
-          }}
-        >
-          Join Now — It's Free
-        </div>
       </div>
     </AbsoluteFill>
   );
