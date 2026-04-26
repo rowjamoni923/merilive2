@@ -23,7 +23,7 @@ const photoFile = (n: number) =>
 const buildColumn = (offset: number, count: number) =>
   Array.from({ length: count }, (_, i) => ((i * 3 + offset) % TOTAL_PHOTOS) + 1);
 
-const COLUMN_COUNT = 12; // photos per column (loop seamlessly)
+const COLUMN_COUNT = 8; // photos per column (loop seamlessly)
 const COLS = [
   buildColumn(0, COLUMN_COUNT),
   buildColumn(1, COLUMN_COUNT),
@@ -34,7 +34,7 @@ const COLS = [
 const CARD_W = 320;
 const CARD_H = 420;
 const GAP = 16;
-const COL_HEIGHT = COLUMN_COUNT * (CARD_H + GAP); // total scrollable height = 12 * 436 = 5232
+const COL_HEIGHT = COLUMN_COUNT * (CARD_H + GAP); // 8 * 436 = 3488
 
 interface ColumnProps {
   photos: number[];
