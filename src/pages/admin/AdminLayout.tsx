@@ -213,13 +213,13 @@ const getAdminNotificationPath = (notification: AdminNotification): string => {
   if (type.includes('withdraw')) return '/admin/withdrawals';
   if (type.includes('host_application')) return '/admin/host-applications';
   if (type.includes('host_approved') || type.includes('host_rejected') || type === 'new_user') return '/admin/user-management';
+  if (type.includes('face_violation') || type === 'face_violation') return '/admin/face-violations';
+  if (type.includes('chat_moderation') || type === 'chat_moderation') return '/admin/contact-violations';
+  if (type.includes('helper_order') || type === 'helper_order') return '/admin/helper-orders';
   if (type.includes('helper')) return '/admin/helper-management';
   if (type.includes('topup') || type.includes('coin_purchase')) return '/admin/topup-system';
   if (type.includes('coin_exchange') || type.includes('diamond_sent')) return '/admin/coin-traders';
   if (type.includes('report') || type.includes('violation')) return '/admin/live-bans';
-  if (type.includes('face_violation') || type === 'face_violation') return '/admin/face-violations';
-  if (type.includes('chat_moderation') || type === 'chat_moderation') return '/admin/contact-violations';
-  if (type.includes('helper_order') || type === 'helper_order') return '/admin/helper-orders';
   if (type.includes('security')) return '/admin/logs';
   if (type === 'system') return '/admin/settings';
   if (type.includes('party') || type.includes('room')) return '/admin/party-rooms';
@@ -2004,7 +2004,7 @@ export default function AdminLayout() {
         filter: (p: any) => p?.is_active === true,
       },
       helper_withdrawal_requests: { toast: '🏦 Helper Withdrawal', desc: 'A helper withdrawal request is pending', path: '/admin/level5-helpers' },
-      helper_orders: { toast: '📦 New Helper Order', desc: 'A new helper order has been placed', path: '/admin/helper-management' },
+      helper_orders: { toast: '📦 New Helper Order', desc: 'A new helper order has been placed', path: '/admin/helper-orders' },
       live_bans: { toast: '🚫 New Live Ban', desc: 'A user has been banned from live', path: '/admin/live-bans' },
       live_face_violations: { toast: '📸 Face Violation Detected', desc: 'A face violation was detected during live', path: '/admin/face-violations' },
     };
@@ -2114,7 +2114,7 @@ export default function AdminLayout() {
           const label = typeLabels[payload.violation_type] || `⚠️ ${payload.violation_type}`;
           toast.error(`${label} Detected!`, {
             description: `Content: ${payload.detected_content || 'Unknown'} | Action: ${payload.action_taken || 'detected'}`,
-            action: { label: '👉 View', onClick: () => navigate('/admin/chat-inspector') },
+            action: { label: '👉 View', onClick: () => navigate('/admin/contact-violations') },
             duration: 10000,
           });
         }
