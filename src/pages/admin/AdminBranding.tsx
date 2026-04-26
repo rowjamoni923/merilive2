@@ -473,7 +473,14 @@ export default function AdminBranding() {
                 <Label>Or enter URL</Label>
                 <Input
                   value={settings.background_url}
-                  onChange={(e) => setSettings(prev => ({ ...prev, background_url: e.target.value }))}
+                  onChange={(e) => {
+                    const backgroundUrl = e.target.value;
+                    setSettings(prev => ({
+                      ...prev,
+                      background_url: backgroundUrl,
+                      background_type: inferBackgroundTypeFromUrl(backgroundUrl, prev.background_type),
+                    }));
+                  }}
                   placeholder="https://..."
                 />
               </div>
