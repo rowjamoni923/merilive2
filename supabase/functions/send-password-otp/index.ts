@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import nodemailer from "npm:nodemailer@6.9.12";
 
-async function sendOtpEmail(to: string, subject: string, html: string): Promise<{ success: boolean; error?: string }> {
+async function sendWithGmail(to: string, subject: string, html: string): Promise<{ success: boolean; error?: string }> {
   const gmailUser = (Deno.env.get("GMAIL_USER") ?? "").trim();
   const gmailPass = (Deno.env.get("GMAIL_APP_PASSWORD") ?? "").replace(/\s+/g, "");
   if (!gmailUser || !gmailPass) {
@@ -25,6 +25,65 @@ async function sendOtpEmail(to: string, subject: string, html: string): Promise<
   } catch (e: any) {
     return { success: false, error: e?.message || String(e) };
   }
+}
+
+async function sendWithBrevo(to: string, subject: string, html: string): Promise<{ success: boolean; error?: string }> {
+  const apiKey = (Deno.env.get("BREVO_API_KEY") ?? "").trim();
+  if (!apiKey) return { success: false, error: "BREVO_API_KEY not configured" };
+  const senderEmail = (Deno.env.get("GMAIL_USER") ?? "noreply@merilive.top").trim();
+  try {
+    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: { "accept": "application/json", "api-key": apiKey, "content-type": "application/json" },
+      body: JSON.stringify({
+        sender: { name: "MeriLive Admin", email: senderEmail },
+        to: [{ email: to }],
+        subject,
+        htmlContent: html,
+      }),
+    });
+    if (res.ok) return { success: true };
+    return { success: false, error: `Brevo ${res.status}: ${await res.text()}` };
+  } catch (e: any) {
+    return { success: false, error: e?.message || String(e) };
+  }
+}
+
+async function sendWithResend(to: string, subject: string, html: string): Promise<{ success: boolean; error?: string }> {
+  const apiKey = (Deno.env.get("RESEND_API_KEY") ?? "").trim();
+  if (!apiKey) return { success: false, error: "RESEND_API_KEY not configured" };
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: "MeriLive <onboarding@resend.dev>",
+        to: [to],
+        subject,
+        html,
+      }),
+    });
+    if (res.ok) return { success: true };
+    return { success: false, error: `Resend ${res.status}: ${await res.text()}` };
+  } catch (e: any) {
+    return { success: false, error: e?.message || String(e) };
+  }
+}
+
+// Multi-provider with automatic fallback: Gmail → Brevo → Resend
+async function sendOtpEmail(to: string, subject: string, html: string): Promise<{ success: boolean; error?: string }> {
+  const gmail = await sendWithGmail(to, subject, html);
+  if (gmail.success) return { success: true };
+  console.warn("[send-password-otp] Gmail failed, trying Brevo:", gmail.error);
+
+  const brevo = await sendWithBrevo(to, subject, html);
+  if (brevo.success) return { success: true };
+  console.warn("[send-password-otp] Brevo failed, trying Resend:", brevo.error);
+
+  const resend = await sendWithResend(to, subject, html);
+  if (resend.success) return { success: true };
+
+  return { success: false, error: `All providers failed: Gmail(${gmail.error}) Brevo(${brevo.error}) Resend(${resend.error})` };
 }
 
 const corsHeaders = {
