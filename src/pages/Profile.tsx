@@ -1983,7 +1983,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                        <span className="text-[6px] bg-amber-700/80 text-amber-100 px-1 py-0.5 rounded-full font-medium">
                          Exchange
                        </span>
-                     ) : ((profile?.is_host && profile?.gender === 'female') || isAgencyOwner) && (
+                     ) : ((isHostPersona && isFemale) || isAgencyOwner) && (
                       <ChevronRight className="w-3 h-3 text-amber-800/60" />
                     )}
                   </div>
