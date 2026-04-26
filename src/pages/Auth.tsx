@@ -201,11 +201,11 @@ const Auth = () => {
   const { branding: realtimeBranding, loading: brandingLoading } = useBrandingRealtime();
   
   const branding = realtimeBranding ? {
-    logo_text_primary: realtimeBranding.logo_text_primary || 'meri',
-    logo_text_secondary: realtimeBranding.logo_text_secondary || 'LIVE',
-    tagline: realtimeBranding.tagline || 'Connect • Chat • Share',
-    background_type: (realtimeBranding.background_type || 'gradient') as 'image' | 'video' | 'gradient',
-    background_url: realtimeBranding.background_url || '',
+    logo_text_primary: realtimeBranding.logo_text_primary ?? '',
+    logo_text_secondary: realtimeBranding.logo_text_secondary ?? '',
+    tagline: realtimeBranding.tagline ?? '',
+    background_type: (realtimeBranding.background_type || 'gradient') as 'image' | 'video' | 'gif' | 'gradient',
+    background_url: realtimeBranding.background_url ?? '',
     logo_image_url: realtimeBranding.logo_image_url
   } : {
     logo_text_primary: 'meri',
