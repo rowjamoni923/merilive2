@@ -55,19 +55,26 @@ export const useFeatureLevelCheck = () => {
       console.log("[useFeatureLevelCheck] Loaded requirements:", data);
       return (data as FeatureRequirement[]).map(normalizeRequirement);
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes - this data rarely changes
+    // Always refetch on mount/focus so admin-panel changes apply immediately
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
 
-  // Real-time subscription for instant updates
+  // Real-time subscription for instant updates from admin panel
   useEffect(() => {
     const channelName = `feature-level-realtime-${Math.random().toString(36).slice(2, 8)}`;
     const channel = supabase
       .channel(channelName)
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'feature_level_requirements' }, 
-        () => {
-          console.log("[useFeatureLevelCheck] Real-time update received");
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'feature_level_requirements' },
+        (payload) => {
+          console.log("[useFeatureLevelCheck] Real-time update received", payload.eventType);
+          // Force immediate refetch (not just invalidate) so the new
+          // requirements are visible on the very next access check.
           queryClient.invalidateQueries({ queryKey: ["feature-level-requirements"] });
+          queryClient.refetchQueries({ queryKey: ["feature-level-requirements"] });
         }
       )
       .subscribe();
