@@ -32,9 +32,9 @@ const COLS = [
 
 // Each card dimensions (in design pixels for a 1080×1920 canvas)
 const CARD_W = 320;
-const CARD_H = 460;
-const GAP = 18;
-const COL_HEIGHT = COLUMN_COUNT * (CARD_H + GAP); // total scrollable height
+const CARD_H = 420;
+const GAP = 16;
+const COL_HEIGHT = COLUMN_COUNT * (CARD_H + GAP); // total scrollable height = 12 * 436 = 5232
 
 interface ColumnProps {
   photos: number[];
