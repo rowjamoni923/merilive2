@@ -696,7 +696,10 @@ const Auth = () => {
 
           const genderReady = !("gender" in cleanPatch) || refreshedProfile?.gender === cleanPatch.gender;
           const nameReady = !("display_name" in cleanPatch) || refreshedProfile?.display_name === cleanPatch.display_name;
-          const hostReady = !options.requireHost || refreshedProfile?.is_host === true;
+          // Note: requireHost is intentionally ignored — female accounts only become is_host=true
+          // after manual face verification approval (see business/female-host-auto-conversion-v3).
+          // Waiting for is_host to flip during signup will always time out and break name persistence.
+          const hostReady = true;
 
           if (refreshedProfile && genderReady && nameReady && hostReady) {
             return refreshedProfile;
