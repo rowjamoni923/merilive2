@@ -377,8 +377,8 @@ export default function AdminBranding() {
                 <Label>Background Type</Label>
                 <RadioGroup
                   value={settings.background_type}
-                  onValueChange={(v) => setSettings(prev => ({ ...prev, background_type: v as 'image' | 'video' }))}
-                  className="flex gap-4"
+                  onValueChange={(v) => setSettings(prev => ({ ...prev, background_type: v as BrandingSettings['background_type'] }))}
+                  className="flex flex-wrap gap-4"
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="image" id="bg-image" />
@@ -387,9 +387,21 @@ export default function AdminBranding() {
                     </Label>
                   </div>
                   <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="gif" id="bg-gif" />
+                    <Label htmlFor="bg-gif" className="flex items-center gap-1 cursor-pointer">
+                      <Image className="w-4 h-4" /> GIF
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
                     <RadioGroupItem value="video" id="bg-video" />
                     <Label htmlFor="bg-video" className="flex items-center gap-1 cursor-pointer">
                       <Video className="w-4 h-4" /> Video
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="gradient" id="bg-none" />
+                    <Label htmlFor="bg-none" className="cursor-pointer">
+                      None
                     </Label>
                   </div>
                 </RadioGroup>
