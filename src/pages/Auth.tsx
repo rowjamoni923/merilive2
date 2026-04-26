@@ -1907,12 +1907,29 @@ const Auth = () => {
           muted
           loop
           playsInline
+          preload="auto"
+          disablePictureInPicture
+          ref={(el) => { if (el) el.playbackRate = 0.6; }}
+          style={{
+            imageRendering: 'auto',
+            transform: 'translateZ(0)',
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
+            willChange: 'transform',
+            filter: 'contrast(1.05) saturate(1.08)',
+          }}
         />
       ) : (branding.background_type === 'image' || branding.background_type === 'gif') && branding.background_url ? (
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
             backgroundImage: `url('${branding.background_url}')`,
+            imageRendering: 'auto' as any,
+            transform: 'translateZ(0)',
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
+            willChange: 'transform',
+            filter: 'contrast(1.05) saturate(1.08)',
           }}
         />
       ) : (
