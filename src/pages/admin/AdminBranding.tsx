@@ -152,14 +152,16 @@ export default function AdminBranding() {
   const handleSave = async () => {
     setSaving(true);
     try {
+      const primaryText = settings.logo_text_primary;
+      const secondaryText = settings.logo_text_secondary;
       const savedId = await saveBrandingSettings({
-        logo_text_primary: settings.logo_text_primary,
-        logo_text_secondary: settings.logo_text_secondary,
+        logo_text_primary: primaryText,
+        logo_text_secondary: secondaryText,
         tagline: settings.tagline,
         background_type: settings.background_type,
         background_url: settings.background_url,
         logo_image_url: settings.logo_image_url,
-        app_name: `${settings.logo_text_primary} ${settings.logo_text_secondary}`.trim(),
+        app_name: [primaryText, secondaryText].filter(Boolean).join(' '),
         logo_url: settings.logo_image_url,
       }, settings.id !== 'default' ? settings.id : undefined);
 
