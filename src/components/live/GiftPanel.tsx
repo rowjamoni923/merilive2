@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { GiftSwipeableGrid } from "./GiftSwipeableGrid";
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
-import { getCachedGifts, getGiftsWithFetch, hasGiftCache } from "@/hooks/useGiftPrefetch";
+import { getCachedGifts, getGiftsWithFetch, hasGiftCache, subscribeToGiftCache } from "@/hooks/useGiftPrefetch";
 import { getCachedBalance, subscribeToBalance, getBalanceWithFetch } from "@/hooks/useUserBalance";
 
 // Lazy load animation players
@@ -145,10 +145,8 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
   useEffect(() => {
     if (!isOpen) return;
 
-    // Use cached gifts immediately (instant display < 100ms)
-    const cached = getCachedGifts();
-    if (cached.length > 0) {
-      const transformedGifts: GiftData[] = cached.map((gift) => ({
+    const applyGifts = (rawGifts: ReturnType<typeof getCachedGifts>) => {
+      const transformedGifts: GiftData[] = rawGifts.map((gift) => ({
         id: gift.id,
         name: gift.name,
         nameBn: gift.name,
@@ -160,27 +158,32 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
         animation_url: normalizeGiftAssetUrl(gift.animation_url),
       }));
       setGifts(transformedGifts);
+    };
+
+    const unsubscribe = subscribeToGiftCache(() => {
+      const latest = getCachedGifts();
+      if (latest.length > 0) {
+        applyGifts(latest);
+        setLoading(false);
+      }
+    });
+
+    // Use cached gifts immediately (instant display < 100ms)
+    const cached = getCachedGifts();
+    if (cached.length > 0) {
+      applyGifts(cached);
       setLoading(false);
-      return;
+      return unsubscribe;
     }
 
     // Fallback: fetch if no cache (rare case)
     setLoading(true);
     getGiftsWithFetch().then((data) => {
-      const transformedGifts: GiftData[] = data.map((gift) => ({
-        id: gift.id,
-        name: gift.name,
-        nameBn: gift.name,
-        emoji: '', // No defaults - only DB assets
-        coins: gift.coin_value,
-        category: gift.category || 'wall',
-        animationType: getAnimationType(gift.coin_value),
-        icon_url: getOptimizedGiftIconUrl(gift.icon_url, gift.animation_url),
-        animation_url: normalizeGiftAssetUrl(gift.animation_url),
-      }));
-      setGifts(transformedGifts);
+      applyGifts(data);
       setLoading(false);
     });
+
+    return unsubscribe;
   }, [isOpen]);
 
   // Determine animation type based on coin value

@@ -42,6 +42,10 @@ function setCache(key: string, value: string | undefined) {
   animationCache.set(key, { value, timestamp: Date.now() });
 }
 
+export function clearEntryAnimationCache(): void {
+  animationCache.clear();
+}
+
 export interface EntryAnimationResult {
   entranceAnimationUrl?: string;
   entranceSoundUrl?: string;
