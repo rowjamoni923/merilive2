@@ -1853,7 +1853,7 @@ const Auth = () => {
         <div className="fixed inset-0 overflow-hidden">
         {branding.background_type === 'video' && branding.background_url ? (
           <video src={branding.background_url} className="absolute inset-0 w-full h-full object-cover" autoPlay muted loop playsInline />
-        ) : branding.background_type === 'image' && branding.background_url ? (
+        ) : (branding.background_type === 'image' || branding.background_type === 'gif') && branding.background_url ? (
           <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url('${branding.background_url}')` }} />
         ) : (
           <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #0f0c29 0%, #302b63 40%, #24243e 70%, #0f0c29 100%)' }} />
