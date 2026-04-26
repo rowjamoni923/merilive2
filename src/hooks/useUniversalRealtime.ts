@@ -41,6 +41,7 @@ const tableDataCache = new Map<string, any[]>();
 const pendingUpdates = new Map<string, NodeJS.Timeout>();
 let lastForcedReconnectAt = 0;
 let channelRebuildTimer: NodeJS.Timeout | null = null;
+let authStateUnsubscribe: (() => void) | null = null;
 
 // Debounce time for batch updates (ms)
 const DEBOUNCE_MS = 80;
@@ -114,6 +115,36 @@ let reconnectTimer: NodeJS.Timeout | null = null;
 let isInitializing = false;
 
 const hasActiveSubscribers = () => subscribers.size > 0;
+
+const ensureAuthStateListener = () => {
+  if (authStateUnsubscribe) return;
+
+  const { data } = supabase.auth.onAuthStateChange((event, session) => {
+    if ((event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
+      if (hasActiveSubscribers() && !universalChannel && !isInitializing) {
+        setTimeout(() => void initializeUniversalChannel(), 0);
+      }
+      return;
+    }
+
+    if (event === 'SIGNED_OUT') {
+      isConnected = false;
+      isInitializing = false;
+      if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+        reconnectTimer = null;
+      }
+      if (channelRebuildTimer) {
+        clearTimeout(channelRebuildTimer);
+        channelRebuildTimer = null;
+      }
+      universalChannel = null;
+      void cleanupUniversalChannels();
+    }
+  });
+
+  authStateUnsubscribe = () => data.subscription.unsubscribe();
+};
 
 const cleanupUniversalChannels = async () => {
   const existingChannels = supabase
@@ -278,6 +309,8 @@ export const subscribeToTables = (
   tables: string[],
   callback: (table: string, event: EventType, payload: any) => void
 ): (() => void) => {
+  ensureAuthStateListener();
+
   subscribers.set(subscriberId, {
     id: subscriberId,
     tables,
