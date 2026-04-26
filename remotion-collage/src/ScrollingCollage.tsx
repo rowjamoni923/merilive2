@@ -23,7 +23,7 @@ const photoFile = (n: number) =>
 const buildColumn = (offset: number, count: number) =>
   Array.from({ length: count }, (_, i) => ((i * 3 + offset) % TOTAL_PHOTOS) + 1);
 
-const COLUMN_COUNT = 12; // photos per column (loop seamlessly)
+const COLUMN_COUNT = 8; // photos per column (loop seamlessly)
 const COLS = [
   buildColumn(0, COLUMN_COUNT),
   buildColumn(1, COLUMN_COUNT),
@@ -32,9 +32,9 @@ const COLS = [
 
 // Each card dimensions (in design pixels for a 1080×1920 canvas)
 const CARD_W = 320;
-const CARD_H = 460;
-const GAP = 18;
-const COL_HEIGHT = COLUMN_COUNT * (CARD_H + GAP); // total scrollable height
+const CARD_H = 420;
+const GAP = 16;
+const COL_HEIGHT = COLUMN_COUNT * (CARD_H + GAP); // 8 * 436 = 3488
 
 interface ColumnProps {
   photos: number[];
@@ -146,49 +146,19 @@ const PhotoColumn: React.FC<ColumnProps> = ({
   );
 };
 
+// Same speed for all columns so the loop seamlessly repeats every cycle.
+// COL_HEIGHT (3488) / DURATION_S (8) = 436 px/s
+const SCROLL_SPEED = COL_HEIGHT / 8;
+
 export const ScrollingCollage: React.FC = () => {
   const frame = useCurrentFrame();
-  const { fps, durationInFrames } = useVideoConfig();
-
-  // Intro fade in
-  const introOpacity = interpolate(frame, [0, 20], [0, 1], {
-    extrapolateRight: "clamp",
-  });
-  // Outro fade out (last 20 frames)
-  const outroOpacity = interpolate(
-    frame,
-    [durationInFrames - 25, durationInFrames - 5],
-    [1, 0],
-    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
-  );
-
-  // Title spring entrance
-  const titleSpring = spring({
-    frame: frame - 6,
-    fps,
-    config: { damping: 18, stiffness: 120, mass: 0.9 },
-  });
-  const titleY = interpolate(titleSpring, [0, 1], [40, 0]);
-  const titleOpacity = interpolate(titleSpring, [0, 1], [0, 1]);
-
-  // Subtitle a bit later
-  const subSpring = spring({
-    frame: frame - 18,
-    fps,
-    config: { damping: 20, stiffness: 110 },
-  });
-  const subY = interpolate(subSpring, [0, 1], [30, 0]);
-  const subOpacity = interpolate(subSpring, [0, 1], [0, 1]);
-
-  // Slow ambient zoom on the whole collage for cinematic feel
-  const zoom = interpolate(frame, [0, durationInFrames], [1.0, 1.06]);
+  const { fps } = useVideoConfig();
 
   return (
     <AbsoluteFill
       style={{
         background:
           "radial-gradient(ellipse at 30% 20%, #2a0b3a 0%, #0a0a18 60%, #050510 100%)",
-        opacity: Math.min(introOpacity, outroOpacity),
         overflow: "hidden",
       }}
     >
@@ -228,13 +198,11 @@ export const ScrollingCollage: React.FC = () => {
           alignItems: "flex-start",
           gap: GAP,
           paddingTop: 60,
-          transform: `scale(${zoom})`,
-          transformOrigin: "center center",
         }}
       >
         <PhotoColumn
           photos={COLS[0]}
-          speedPxPerSec={75}
+          speedPxPerSec={SCROLL_SPEED}
           direction="up"
           startOffset={0}
           fps={fps}
@@ -242,7 +210,7 @@ export const ScrollingCollage: React.FC = () => {
         />
         <PhotoColumn
           photos={COLS[1]}
-          speedPxPerSec={95}
+          speedPxPerSec={SCROLL_SPEED}
           direction="up"
           startOffset={CARD_H * 0.6}
           fps={fps}
@@ -250,7 +218,7 @@ export const ScrollingCollage: React.FC = () => {
         />
         <PhotoColumn
           photos={COLS[2]}
-          speedPxPerSec={70}
+          speedPxPerSec={SCROLL_SPEED}
           direction="up"
           startOffset={CARD_H * 0.3}
           fps={fps}
@@ -303,8 +271,6 @@ export const ScrollingCollage: React.FC = () => {
       >
         <div
           style={{
-            transform: `translateY(${titleY}px)`,
-            opacity: titleOpacity,
             fontSize: 88,
             fontWeight: 800,
             letterSpacing: -1.5,
@@ -321,8 +287,6 @@ export const ScrollingCollage: React.FC = () => {
         <div
           style={{
             marginTop: 14,
-            transform: `translateY(${subY}px)`,
-            opacity: subOpacity,
             fontSize: 32,
             fontWeight: 600,
             color: "rgba(255,255,255,0.92)",
@@ -330,48 +294,6 @@ export const ScrollingCollage: React.FC = () => {
           }}
         >
           Live Video Chat & Calls
-        </div>
-        <div
-          style={{
-            marginTop: 18,
-            transform: `translateY(${subY}px)`,
-            opacity: subOpacity * 0.85,
-            fontSize: 22,
-            fontWeight: 500,
-            color: "rgba(255,255,255,0.7)",
-          }}
-        >
-          Meet beautiful people from around the world
-        </div>
-      </div>
-
-      {/* Bottom CTA */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 120,
-          left: 0,
-          right: 0,
-          display: "flex",
-          justifyContent: "center",
-          fontFamily,
-          opacity: subOpacity,
-        }}
-      >
-        <div
-          style={{
-            padding: "22px 56px",
-            borderRadius: 999,
-            background: "linear-gradient(135deg, #ff2d6f 0%, #ff6a3d 100%)",
-            color: "white",
-            fontSize: 32,
-            fontWeight: 700,
-            letterSpacing: 0.5,
-            boxShadow:
-              "0 20px 50px rgba(255,45,111,0.55), inset 0 1px 0 rgba(255,255,255,0.4)",
-          }}
-        >
-          Join Now — It's Free
         </div>
       </div>
     </AbsoluteFill>
