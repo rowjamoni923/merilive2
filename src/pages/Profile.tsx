@@ -1726,7 +1726,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             name={resolvedProfileName || "U"}
             level={displayLevel} 
             size="xl"
-            isHost={profile?.is_host || profile?.gender === 'female'}
+            isHost={isHostPersona}
             showAnimation={true}
             showGlow={displayLevel >= 10}
           />
