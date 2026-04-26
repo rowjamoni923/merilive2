@@ -8,9 +8,15 @@ import {
   spring,
 } from "remotion";
 import { loadFont } from "@remotion/google-fonts/Poppins";
+import { loadFont as loadPlayfair } from "@remotion/google-fonts/PlayfairDisplay";
 
 const { fontFamily } = loadFont("normal", {
   weights: ["500", "600", "700", "800"],
+  subsets: ["latin"],
+});
+
+const { fontFamily: displayFont } = loadPlayfair("normal", {
+  weights: ["700", "800", "900"],
   subsets: ["latin"],
 });
 
@@ -103,11 +109,12 @@ const PhotoColumn: React.FC<ColumnProps> = ({
               left: 0,
               right: 0,
               bottom: 0,
-              height: "40%",
+              height: "55%",
               background:
-                "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 100%)",
+                "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.4) 55%, rgba(0,0,0,0.85) 100%)",
             }}
           />
+
           {/* Live badge on every 3rd card */}
           {idx % 3 === 0 && (
             <div
@@ -140,6 +147,95 @@ const PhotoColumn: React.FC<ColumnProps> = ({
               LIVE
             </div>
           )}
+
+          {/* Bottom row: name + call button (every card) */}
+          <div
+            style={{
+              position: "absolute",
+              left: 14,
+              right: 14,
+              bottom: 14,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 10,
+              fontFamily,
+            }}
+          >
+            <div style={{ display: "flex", flexDirection: "column", gap: 3, minWidth: 0 }}>
+              <div
+                style={{
+                  color: "white",
+                  fontWeight: 700,
+                  fontSize: 18,
+                  letterSpacing: 0.2,
+                  textShadow: "0 2px 6px rgba(0,0,0,0.6)",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {["Aria", "Mira", "Zara", "Lina", "Riya", "Nita", "Tara", "Sana", "Maya", "Jiya", "Kira", "Eva"][n % 12]}
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 5,
+                  color: "rgba(255,255,255,0.85)",
+                  fontWeight: 500,
+                  fontSize: 12,
+                }}
+              >
+                <span
+                  style={{
+                    width: 7,
+                    height: 7,
+                    borderRadius: 999,
+                    background: "#22c55e",
+                    boxShadow: "0 0 8px rgba(34,197,94,0.9)",
+                  }}
+                />
+                Online
+              </div>
+            </div>
+
+            {/* Call button - circular gradient with phone icon */}
+            <div
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 999,
+                background:
+                  "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow:
+                  "0 8px 24px rgba(34,197,94,0.55), inset 0 1px 0 rgba(255,255,255,0.4)",
+                border: "2px solid rgba(255,255,255,0.9)",
+                flexShrink: 0,
+              }}
+            >
+              {/* Phone icon (SVG) */}
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"
+                  stroke="white"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="white"
+                />
+              </svg>
+            </div>
+          </div>
         </div>
       ))}
     </div>
@@ -233,9 +329,9 @@ export const ScrollingCollage: React.FC = () => {
           top: 0,
           left: 0,
           right: 0,
-          height: 480,
+          height: 640,
           background:
-            "linear-gradient(180deg, rgba(5,5,16,0.92) 0%, rgba(5,5,16,0.55) 60%, rgba(5,5,16,0) 100%)",
+            "linear-gradient(180deg, rgba(5,5,16,0.95) 0%, rgba(5,5,16,0.78) 45%, rgba(5,5,16,0.35) 80%, rgba(5,5,16,0) 100%)",
           pointerEvents: "none",
         }}
       />
@@ -257,7 +353,7 @@ export const ScrollingCollage: React.FC = () => {
       <div
         style={{
           position: "absolute",
-          top: 110,
+          top: 90,
           left: 0,
           right: 0,
           display: "flex",
@@ -266,34 +362,140 @@ export const ScrollingCollage: React.FC = () => {
           textAlign: "center",
           fontFamily,
           color: "white",
-          padding: "0 40px",
+          padding: "0 32px",
         }}
       >
+        {/* Premium MeriLive title with layered glow + gradient + shine */}
+        <div style={{ position: "relative", display: "inline-block" }}>
+          {/* Soft outer glow halo */}
+          <div
+            style={{
+              position: "absolute",
+              inset: -30,
+              background:
+                "radial-gradient(ellipse at center, rgba(255,77,148,0.45) 0%, rgba(168,85,247,0.25) 40%, rgba(255,77,148,0) 75%)",
+              filter: "blur(20px)",
+              zIndex: 0,
+            }}
+          />
+          {/* Decorative side accents */}
+          <span
+            style={{
+              position: "absolute",
+              left: -42,
+              top: "50%",
+              transform: "translateY(-50%)",
+              fontSize: 28,
+              color: "rgba(255,210,227,0.85)",
+              textShadow: "0 0 12px rgba(255,126,182,0.8)",
+              fontFamily: displayFont,
+            }}
+          >
+            ✦
+          </span>
+          <span
+            style={{
+              position: "absolute",
+              right: -42,
+              top: "50%",
+              transform: "translateY(-50%)",
+              fontSize: 28,
+              color: "rgba(255,210,227,0.85)",
+              textShadow: "0 0 12px rgba(255,126,182,0.8)",
+              fontFamily: displayFont,
+            }}
+          >
+            ✦
+          </span>
+          {/* The title text — Playfair Display, italic-ready, with a rich gradient */}
+          <div
+            style={{
+              position: "relative",
+              zIndex: 1,
+              fontFamily: displayFont,
+              fontSize: 110,
+              fontWeight: 900,
+              fontStyle: "italic",
+              letterSpacing: -2,
+              lineHeight: 1,
+              background:
+                "linear-gradient(180deg, #ffffff 0%, #ffe7f0 40%, #ff9ec5 75%, #ff4d94 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              filter:
+                "drop-shadow(0 4px 18px rgba(255,77,148,0.55)) drop-shadow(0 0 32px rgba(168,85,247,0.4))",
+            }}
+          >
+            MeriLive
+          </div>
+        </div>
+
+        {/* Elegant divider with star */}
         <div
           style={{
-            fontSize: 88,
-            fontWeight: 800,
-            letterSpacing: -1.5,
-            lineHeight: 1,
-            background:
-              "linear-gradient(180deg, #ffffff 0%, #ffd2e3 60%, #ff7eb6 100%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            textShadow: "0 6px 30px rgba(255,77,148,0.35)",
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            marginTop: 18,
           }}
         >
-          MeriLive
+          <div
+            style={{
+              height: 1.5,
+              width: 60,
+              background:
+                "linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,210,227,0.9) 100%)",
+            }}
+          />
+          <span
+            style={{
+              fontSize: 18,
+              color: "rgba(255,210,227,0.95)",
+              textShadow: "0 0 10px rgba(255,126,182,0.9)",
+            }}
+          >
+            ★
+          </span>
+          <div
+            style={{
+              height: 1.5,
+              width: 60,
+              background:
+                "linear-gradient(90deg, rgba(255,210,227,0.9) 0%, rgba(255,255,255,0) 100%)",
+            }}
+          />
         </div>
+
+        {/* Premium subtitle — bigger, bolder, gradient */}
         <div
           style={{
-            marginTop: 14,
-            fontSize: 32,
-            fontWeight: 600,
-            color: "rgba(255,255,255,0.92)",
+            marginTop: 16,
+            fontSize: 46,
+            fontWeight: 800,
             letterSpacing: 0.5,
+            lineHeight: 1.1,
+            background:
+              "linear-gradient(180deg, #ffffff 0%, #ffe7f0 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            filter: "drop-shadow(0 3px 12px rgba(255,255,255,0.25))",
           }}
         >
           Live Video Chat & Calls
+        </div>
+
+        {/* Small luxe tagline */}
+        <div
+          style={{
+            marginTop: 10,
+            fontSize: 16,
+            fontWeight: 600,
+            letterSpacing: 4,
+            textTransform: "uppercase",
+            color: "rgba(255,255,255,0.55)",
+          }}
+        >
+          Premium · Verified · Worldwide
         </div>
       </div>
     </AbsoluteFill>
