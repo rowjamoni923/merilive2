@@ -146,12 +146,13 @@ const PhotoColumn: React.FC<ColumnProps> = ({
   );
 };
 
+// Same speed for all columns so the loop seamlessly repeats every cycle.
+// COL_HEIGHT (3488) / DURATION_S (8) = 436 px/s
+const SCROLL_SPEED = COL_HEIGHT / 8;
+
 export const ScrollingCollage: React.FC = () => {
   const frame = useCurrentFrame();
-  const { fps, durationInFrames } = useVideoConfig();
-
-  // Slow ambient zoom on the whole collage for cinematic feel
-  const zoom = interpolate(frame, [0, durationInFrames], [1.0, 1.04]);
+  const { fps } = useVideoConfig();
 
   return (
     <AbsoluteFill
