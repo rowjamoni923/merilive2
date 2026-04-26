@@ -49,85 +49,11 @@ async function sendWithGmail(to: string, subject: string, html: string): Promise
   }
 }
 
-// ===== Brevo (Sendinblue) HTTP API =====
-async function sendWithBrevo(to: string, subject: string, html: string): Promise<{ success: boolean; error?: string }> {
-  const apiKey = (Deno.env.get("BREVO_API_KEY") ?? "").trim();
-  if (!apiKey) return { success: false, error: "BREVO_API_KEY not configured" };
-
-  const senderEmail = (Deno.env.get("GMAIL_USER") ?? "noreply@merilive.top").trim();
-  try {
-    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
-      method: "POST",
-      headers: {
-        "accept": "application/json",
-        "api-key": apiKey,
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        sender: { name: "MeriLive", email: senderEmail },
-        to: [{ email: to }],
-        subject,
-        htmlContent: html,
-      }),
-    });
-
-    if (res.ok) return { success: true };
-    const errText = await res.text();
-    console.error("[send-email-otp] Brevo error:", res.status, errText);
-    return { success: false, error: `Brevo ${res.status}: ${errText}` };
-  } catch (e: any) {
-    console.error("[send-email-otp] Brevo exception:", e?.message || e);
-    return { success: false, error: e?.message || String(e) };
-  }
-}
-
-// ===== Resend HTTP API =====
-async function sendWithResend(to: string, subject: string, html: string): Promise<{ success: boolean; error?: string }> {
-  const apiKey = (Deno.env.get("RESEND_API_KEY") ?? "").trim();
-  if (!apiKey) return { success: false, error: "RESEND_API_KEY not configured" };
-
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: "MeriLive <onboarding@resend.dev>",
-        to: [to],
-        subject,
-        html,
-      }),
-    });
-
-    if (res.ok) return { success: true };
-    const errText = await res.text();
-    console.error("[send-email-otp] Resend error:", res.status, errText);
-    return { success: false, error: `Resend ${res.status}: ${errText}` };
-  } catch (e: any) {
-    console.error("[send-email-otp] Resend exception:", e?.message || e);
-    return { success: false, error: e?.message || String(e) };
-  }
-}
-
-// Multi-provider with automatic fallback: Gmail → Brevo → Resend
+// Gmail-only sender (no fallback providers)
 async function sendEmail(to: string, subject: string, html: string): Promise<{ success: boolean; provider?: string; error?: string }> {
-  // Try Gmail first
   const gmail = await sendWithGmail(to, subject, html);
   if (gmail.success) return { success: true, provider: "gmail-smtp" };
-  console.warn("[send-email-otp] Gmail failed, trying Brevo:", gmail.error);
-
-  // Fallback to Brevo
-  const brevo = await sendWithBrevo(to, subject, html);
-  if (brevo.success) return { success: true, provider: "brevo" };
-  console.warn("[send-email-otp] Brevo failed, trying Resend:", brevo.error);
-
-  // Final fallback: Resend
-  const resend = await sendWithResend(to, subject, html);
-  if (resend.success) return { success: true, provider: "resend" };
-
-  return { success: false, error: `All providers failed. Gmail: ${gmail.error} | Brevo: ${brevo.error} | Resend: ${resend.error}` };
+  return { success: false, error: gmail.error };
 }
 
 function buildOTPEmailHTML(otp: string, purpose: string): string {
