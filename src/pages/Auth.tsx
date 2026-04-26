@@ -1941,12 +1941,9 @@ const Auth = () => {
                    WebkitTextStroke: '0.5px rgba(255, 255, 255, 0.2)',
                  }}
                >
-                  {branding.logo_text_primary}
-                </h1>
-               {/* Sparkling star accent */}
-               <span className="absolute -right-3 -top-2 text-yellow-300 text-3xl animate-pulse drop-shadow-[0_0_10px_rgba(250,204,21,0.8)]">✦</span>
-               <span className="absolute -left-1 top-4 text-pink-300 text-lg animate-pulse delay-300">✧</span>
-              </div>
+                   {branding.logo_text_primary}
+                 </h1>
+               </div>
              
              {/* LIVE badge with elegant underline */}
              <div className="flex items-center gap-3 mt-1">
