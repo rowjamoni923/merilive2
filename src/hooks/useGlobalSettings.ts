@@ -298,6 +298,10 @@ async function getSettings(force = false): Promise<GlobalSettings> {
   return settingsFetchPromise;
 }
 
+export async function refreshGlobalSettingsCache(): Promise<GlobalSettings> {
+  return getSettings(true);
+}
+
 function ensureSettingsRealtimeSubscription() {
   if (settingsRealtimeChannel) return;
 
