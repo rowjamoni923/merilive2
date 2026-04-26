@@ -136,7 +136,7 @@ export default function AdminBranding() {
         setSettings(prev => ({
           ...prev,
           background_url: urlData.publicUrl,
-          background_type: isVideo ? 'video' : 'image'
+          background_type: isVideo ? 'video' : isGif ? 'gif' : 'image'
         }));
       }
 
