@@ -368,7 +368,7 @@ export default function AdminBranding() {
                 Background Settings
               </CardTitle>
               <CardDescription>
-                Set an image or video as the background
+                Set an image, GIF, or video as the background
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
