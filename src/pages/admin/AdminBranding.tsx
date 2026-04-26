@@ -185,6 +185,46 @@ export default function AdminBranding() {
     }));
   };
 
+  const removeBackground = () => {
+    setSettings(prev => ({
+      ...prev,
+      background_type: 'gradient',
+      background_url: ''
+    }));
+  };
+
+  const renderBackgroundPreview = (className: string, rounded = false) => {
+    if (settings.background_url && settings.background_type === 'video') {
+      return (
+        <video
+          src={settings.background_url}
+          className={className}
+          muted
+          loop
+          autoPlay
+          playsInline
+        />
+      );
+    }
+
+    if (settings.background_url && (settings.background_type === 'image' || settings.background_type === 'gif')) {
+      return (
+        <img
+          src={settings.background_url}
+          alt="Background"
+          className={className}
+        />
+      );
+    }
+
+    return (
+      <div
+        className={`${className} ${rounded ? 'rounded-lg' : ''}`}
+        style={{ background: 'linear-gradient(135deg, hsl(var(--primary) / 0.55), hsl(var(--background)), hsl(var(--accent) / 0.35))' }}
+      />
+    );
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
