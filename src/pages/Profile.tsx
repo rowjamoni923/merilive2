@@ -1197,10 +1197,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   // Determine if this is a host - hosts use host_level, users use user_level
   const isProfileHost = profile?.is_host === true;
   const isProfileFemale = profile?.gender === 'female' || profile?.gender === 'Female';
-  const isFemaleHost = isProfileHost && isProfileFemale;
+  // Visual host persona: every female account is rendered as a host from sign-up.
+  // Actual host privileges (receiving calls, withdrawing earnings) still require is_host=true,
+  // which only flips after face verification approval.
+  const isFemaleHost = isProfileFemale; // host UI shown for ALL female accounts
   
   // Use the correct level from database based on user type
-  // Female hosts show host_level, all others show user_level
+  // Female (host persona) show host_level, all others show user_level
   // CRITICAL: Fall back to cached userLevel to prevent "level 0 flash" during navigation
   const displayLevel = useMemo(() => {
     if (isFemaleHost) {
@@ -1218,12 +1221,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
   // Check if user should see Agency Center
   const isAgencyOwner = profile?.is_agency_owner || false;
-  const isHost = profile?.is_host || false;
+  const isHost = profile?.is_host || false;             // actual approved host (face verified)
+  const isHostPersona = isHost || isProfileFemale;       // visual host UI for all female accounts
   const hasAgency = profile?.agency_id || false;
-  const showAgencyCenter = isAgencyOwner || isHost || hasAgency;
+  const showAgencyCenter = isAgencyOwner || isHostPersona || hasAgency;
 
-  // Check if user is female and not already a host
-  const isFemale = profile?.gender === 'female' || profile?.gender === 'Female';
+  // Check if user is female and not already an approved host
+  const isFemale = isProfileFemale;
   const canApplyForHost = isFemale && !isHost && isOwnProfile;
 
   // Check face verification status
