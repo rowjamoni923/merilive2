@@ -69,12 +69,12 @@ export default function AdminBranding() {
         const parsed = parseSettingValue<Partial<BrandingSettings> & { app_name?: string; logo_url?: string }>(data.setting_value) || {};
         setSettings({
           id: data.id,
-          logo_text_primary: parsed.logo_text_primary || parsed.app_name?.split(' ')[0] || 'meri',
-          logo_text_secondary: parsed.logo_text_secondary || 'LIVE',
-          tagline: parsed.tagline || 'Connect • Chat • Share',
-          background_type: parsed.background_type || 'image',
-          background_url: parsed.background_url || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800',
-          logo_image_url: parsed.logo_image_url || parsed.logo_url || null,
+          logo_text_primary: parsed.logo_text_primary ?? parsed.app_name?.split(' ')[0] ?? 'meri',
+          logo_text_secondary: parsed.logo_text_secondary ?? 'LIVE',
+          tagline: parsed.tagline ?? 'Connect • Chat • Share',
+          background_type: (parsed.background_type ?? 'image') as BrandingSettings['background_type'],
+          background_url: parsed.background_url ?? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800',
+          logo_image_url: parsed.logo_image_url ?? parsed.logo_url ?? null,
         });
       }
     } catch (error) {
