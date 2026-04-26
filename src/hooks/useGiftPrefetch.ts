@@ -25,6 +25,7 @@ interface GiftCache {
   gifts: GiftCacheItem[];
   timestamp: number;
   loading: boolean;
+  version: number;
 }
 
 // Module-level cache (singleton)
@@ -32,6 +33,7 @@ const giftCache: GiftCache = {
   gifts: [],
   timestamp: 0,
   loading: false,
+  version: 0,
 };
 
 const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
@@ -63,6 +65,7 @@ export async function prefetchGifts(): Promise<GiftCacheItem[]> {
   }
 
   giftCache.loading = true;
+  const requestVersion = giftCache.version;
 
   try {
     const { data, error } = await supabase
@@ -78,11 +81,11 @@ export async function prefetchGifts(): Promise<GiftCacheItem[]> {
       return giftCache.gifts;
     }
 
-    giftCache.gifts = data || [];
-    giftCache.timestamp = Date.now();
-    
-    // Notify all listeners
-    listeners.forEach(cb => cb());
+    if (requestVersion === giftCache.version) {
+      giftCache.gifts = data || [];
+      giftCache.timestamp = Date.now();
+      listeners.forEach(cb => cb());
+    }
 
     console.log(`[GiftPrefetch] ✅ Cached ${giftCache.gifts.length} gifts`);
   } catch (e) {
@@ -130,8 +133,11 @@ export function subscribeToGiftCache(callback: () => void): () => void {
  * Clear the cache (call after admin updates gifts)
  */
 export function clearGiftCache(): void {
+  giftCache.version += 1;
   giftCache.gifts = [];
   giftCache.timestamp = 0;
+  giftCache.loading = false;
+  listeners.forEach(cb => cb());
 }
 
 /**
