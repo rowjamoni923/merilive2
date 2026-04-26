@@ -198,13 +198,11 @@ export const ScrollingCollage: React.FC = () => {
           alignItems: "flex-start",
           gap: GAP,
           paddingTop: 60,
-          transform: `scale(${zoom})`,
-          transformOrigin: "center center",
         }}
       >
         <PhotoColumn
           photos={COLS[0]}
-          speedPxPerSec={75}
+          speedPxPerSec={SCROLL_SPEED}
           direction="up"
           startOffset={0}
           fps={fps}
@@ -212,7 +210,7 @@ export const ScrollingCollage: React.FC = () => {
         />
         <PhotoColumn
           photos={COLS[1]}
-          speedPxPerSec={95}
+          speedPxPerSec={SCROLL_SPEED}
           direction="up"
           startOffset={CARD_H * 0.6}
           fps={fps}
@@ -220,7 +218,7 @@ export const ScrollingCollage: React.FC = () => {
         />
         <PhotoColumn
           photos={COLS[2]}
-          speedPxPerSec={70}
+          speedPxPerSec={SCROLL_SPEED}
           direction="up"
           startOffset={CARD_H * 0.3}
           fps={fps}
