@@ -329,9 +329,9 @@ export const ScrollingCollage: React.FC = () => {
           top: 0,
           left: 0,
           right: 0,
-          height: 480,
+          height: 640,
           background:
-            "linear-gradient(180deg, rgba(5,5,16,0.92) 0%, rgba(5,5,16,0.55) 60%, rgba(5,5,16,0) 100%)",
+            "linear-gradient(180deg, rgba(5,5,16,0.95) 0%, rgba(5,5,16,0.78) 45%, rgba(5,5,16,0.35) 80%, rgba(5,5,16,0) 100%)",
           pointerEvents: "none",
         }}
       />
