@@ -338,6 +338,8 @@ export const subscribeToTables = (
       connectionAttempts = 0;
       isConnected = false;
       universalChannel = null;
+      authStateUnsubscribe?.();
+      authStateUnsubscribe = null;
       void cleanupUniversalChannels();
       return;
     }
