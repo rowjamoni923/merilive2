@@ -161,10 +161,17 @@ Deno.serve(async (req: Request): Promise<Response> => {
         );
       }
 
-      // Send via Gmail SMTP (same path as user app)
+      // Send via Gmail SMTP → Brevo → Resend (multi-provider fallback)
       let emailSent = false;
       let emailError: string | null = null;
       let smtpDetail: string | null = null;
+      let usedProvider: string | null = null;
+
+      const subject = "Your MeriLive admin sign-in code";
+      const htmlBody = buildAdminOTPEmailHTML(otpCode);
+      const textBody = buildAdminOTPEmailText(otpCode);
+
+      // Provider 1: Gmail SMTP
       if (gmailUser && gmailAppPassword) {
         try {
           const transporter = nodemailer.createTransport({
@@ -174,20 +181,16 @@ Deno.serve(async (req: Request): Promise<Response> => {
             auth: { user: gmailUser, pass: gmailAppPassword },
             tls: { rejectUnauthorized: true },
           });
-
-          // Verify connection first
           await transporter.verify();
-          console.log(`[admin-2fa-otp] ✅ SMTP verified for ${gmailUser}`);
-
           const messageId = `<${crypto.randomUUID()}@merilive.app>`;
           const info = await transporter.sendMail({
             from: `MeriLive Admin <${gmailUser}>`,
             to: normalizedEmail,
             replyTo: gmailUser,
             sender: gmailUser,
-            subject: "Your MeriLive admin sign-in code",
-            text: buildAdminOTPEmailText(otpCode),
-            html: buildAdminOTPEmailHTML(otpCode),
+            subject,
+            text: textBody,
+            html: htmlBody,
             messageId,
             date: new Date().toUTCString(),
             headers: {
@@ -200,16 +203,82 @@ Deno.serve(async (req: Request): Promise<Response> => {
             },
           });
           emailSent = (info.accepted?.length ?? 0) > 0;
-          smtpDetail = `messageId=${info.messageId} accepted=${JSON.stringify(info.accepted)} rejected=${JSON.stringify(info.rejected)} response=${info.response}`;
-          console.log(`[admin-2fa-otp] ✅ OTP sent to ${normalizedEmail} | ${smtpDetail}`);
+          if (emailSent) {
+            usedProvider = "gmail-smtp";
+            smtpDetail = `messageId=${info.messageId} response=${info.response}`;
+            console.log(`[admin-2fa-otp] ✅ Sent via Gmail to ${normalizedEmail}`);
+          }
         } catch (emailErr: any) {
           emailError = emailErr?.message || String(emailErr);
-          console.error("[admin-2fa-otp] ❌ Gmail SMTP send failed:", emailError);
+          console.warn("[admin-2fa-otp] Gmail failed, trying Brevo:", emailError);
         }
-      } else {
-        emailError = "GMAIL_USER or GMAIL_APP_PASSWORD missing";
-        console.error("[admin-2fa-otp] Gmail SMTP credentials missing");
       }
+
+      // Provider 2: Brevo (fallback)
+      if (!emailSent) {
+        const brevoKey = (Deno.env.get("BREVO_API_KEY") ?? "").trim();
+        if (brevoKey) {
+          try {
+            const senderEmail = gmailUser || "noreply@merilive.top";
+            const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+              method: "POST",
+              headers: { "accept": "application/json", "api-key": brevoKey, "content-type": "application/json" },
+              body: JSON.stringify({
+                sender: { name: "MeriLive Admin", email: senderEmail },
+                to: [{ email: normalizedEmail }],
+                subject,
+                htmlContent: htmlBody,
+                textContent: textBody,
+              }),
+            });
+            if (res.ok) {
+              emailSent = true;
+              usedProvider = "brevo";
+              console.log(`[admin-2fa-otp] ✅ Sent via Brevo to ${normalizedEmail}`);
+            } else {
+              const txt = await res.text();
+              emailError = `Brevo ${res.status}: ${txt}`;
+              console.warn("[admin-2fa-otp] Brevo failed, trying Resend:", emailError);
+            }
+          } catch (e: any) {
+            emailError = `Brevo exception: ${e?.message || e}`;
+          }
+        }
+      }
+
+      // Provider 3: Resend (final fallback)
+      if (!emailSent) {
+        const resendKey = (Deno.env.get("RESEND_API_KEY") ?? "").trim();
+        if (resendKey) {
+          try {
+            const res = await fetch("https://api.resend.com/emails", {
+              method: "POST",
+              headers: { "Authorization": `Bearer ${resendKey}`, "Content-Type": "application/json" },
+              body: JSON.stringify({
+                from: "MeriLive Admin <onboarding@resend.dev>",
+                to: [normalizedEmail],
+                subject,
+                html: htmlBody,
+                text: textBody,
+              }),
+            });
+            if (res.ok) {
+              emailSent = true;
+              usedProvider = "resend";
+              console.log(`[admin-2fa-otp] ✅ Sent via Resend to ${normalizedEmail}`);
+            } else {
+              emailError = `Resend ${res.status}: ${await res.text()}`;
+            }
+          } catch (e: any) {
+            emailError = `Resend exception: ${e?.message || e}`;
+          }
+        }
+      }
+
+      if (!emailSent) {
+        console.error("[admin-2fa-otp] ❌ All providers failed:", emailError);
+      }
+      smtpDetail = smtpDetail || `provider=${usedProvider || "none"}`;
 
       return new Response(
         JSON.stringify({
