@@ -482,21 +482,7 @@ export default function AdminBranding() {
           <CardContent>
             <div className="relative aspect-[9/16] max-h-[600px] rounded-2xl overflow-hidden shadow-2xl border">
               {/* Background */}
-              {settings.background_type === 'video' ? (
-                <video
-                  src={settings.background_url}
-                  className="absolute inset-0 w-full h-full object-cover"
-                  muted
-                  loop
-                  autoPlay
-                  playsInline
-                />
-              ) : (
-                <div
-                  className="absolute inset-0 bg-cover bg-center"
-                  style={{ backgroundImage: `url('${settings.background_url}')` }}
-                />
-              )}
+              {renderBackgroundPreview("absolute inset-0 w-full h-full object-cover")}
               <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/60" />
 
               {/* Content */}
