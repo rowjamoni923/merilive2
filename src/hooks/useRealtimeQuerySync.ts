@@ -11,6 +11,10 @@
 import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { subscribeToTables } from '@/hooks/useUniversalRealtime';
+import { clearGiftCache, prefetchGifts } from '@/hooks/useGiftPrefetch';
+import { refreshGlobalSettingsCache } from '@/hooks/useGlobalSettings';
+import { clearEntryAnimationCache } from '@/utils/fetchEntryAnimation';
+import { clearAllFrameCaches } from '@/utils/frameCache';
 
 // Tables added to supabase_realtime publication for instant admin→app sync
 const TABLE_TO_QUERY_KEYS: Record<string, string[][]> = {
@@ -136,6 +140,19 @@ const QUERY_KEY_MIN_INVALIDATE_MS: Record<string, number> = {
   'active-streams': 3000,
 };
 
+const GLOBAL_SETTINGS_TABLES = new Set([
+  'app_settings',
+  'agency_level_tiers',
+  'helper_level_config',
+  'trader_level_tiers',
+  'vip_tiers',
+  'user_level_tiers',
+]);
+
+const GIFT_CACHE_TABLES = new Set(['gifts', 'gift_categories']);
+const ENTRY_ASSET_CACHE_TABLES = new Set(['entry_banners', 'entry_name_bars', 'shop_items', 'level_privileges', 'vip_tiers']);
+const FRAME_CACHE_TABLES = new Set(['avatar_frames', 'role_frames', 'user_role_frames', 'shop_items', 'profiles']);
+
 // Profiles handled separately
 const PROFILE_QUERY_KEYS: string[][] = [['user-profile'], ['host-profile']];
 const PROFILE_HOME_QUERY_KEYS: string[][] = [['index-hosts-v3'], ['host-countries']];
@@ -224,6 +241,23 @@ export const useRealtimeQuerySync = () => {
         const queryKeys = TABLE_TO_QUERY_KEYS[table];
         if (queryKeys) {
           invalidateWithDebounce(table, queryKeys);
+        }
+
+        if (GLOBAL_SETTINGS_TABLES.has(table)) {
+          void refreshGlobalSettingsCache();
+        }
+
+        if (GIFT_CACHE_TABLES.has(table)) {
+          clearGiftCache();
+          void prefetchGifts();
+        }
+
+        if (ENTRY_ASSET_CACHE_TABLES.has(table)) {
+          clearEntryAnimationCache();
+        }
+
+        if (FRAME_CACHE_TABLES.has(table)) {
+          clearAllFrameCaches();
         }
       }
     );
