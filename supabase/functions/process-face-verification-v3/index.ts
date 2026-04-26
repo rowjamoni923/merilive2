@@ -23,14 +23,18 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 // ───────────────── AWS SIGV4 ─────────────────
 async function sha256Hex(data: string | Uint8Array): Promise<string> {
   const bytes = typeof data === "string" ? new TextEncoder().encode(data) : data;
-  const hash = await crypto.subtle.digest("SHA-256", bytes);
+  const buf = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
+  const hash = await crypto.subtle.digest("SHA-256", buf);
   return [...new Uint8Array(hash)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 async function hmac(key: ArrayBuffer | Uint8Array, data: string): Promise<ArrayBuffer> {
+  const keyBuf = key instanceof Uint8Array
+    ? (key.buffer.slice(key.byteOffset, key.byteOffset + key.byteLength) as ArrayBuffer)
+    : key;
   const cryptoKey = await crypto.subtle.importKey(
     "raw",
-    key,
+    keyBuf,
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign"],
@@ -149,14 +153,14 @@ Deno.serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
     const token = authHeader.replace("Bearer ", "");
-    const { data: claims, error: claimsErr } = await supabaseUser.auth.getClaims(token);
-    if (claimsErr || !claims?.claims?.sub) {
+    const { data: userData, error: claimsErr } = await supabaseUser.auth.getUser(token);
+    if (claimsErr || !userData?.user?.id) {
       return new Response(JSON.stringify({ error: "Invalid token" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const userId = claims.claims.sub as string;
+    const userId = userData.user.id;
 
     // Body
     const body = await req.json().catch(() => ({}));
