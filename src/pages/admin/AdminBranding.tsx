@@ -28,10 +28,19 @@ interface BrandingSettings {
   logo_text_primary: string;
   logo_text_secondary: string;
   tagline: string;
-  background_type: 'image' | 'video';
+  background_type: 'image' | 'video' | 'gif' | 'gradient';
   background_url: string;
   logo_image_url: string | null;
 }
+
+const inferBackgroundTypeFromUrl = (url: string, fallback: BrandingSettings['background_type']): BrandingSettings['background_type'] => {
+  const cleanUrl = url.split('?')[0].toLowerCase();
+  if (!cleanUrl) return 'gradient';
+  if (cleanUrl.endsWith('.gif')) return 'gif';
+  if (/\.(mp4|webm|mov|m4v)$/.test(cleanUrl)) return 'video';
+  if (/\.(png|jpe?g|webp|avif|bmp)$/.test(cleanUrl)) return 'image';
+  return fallback === 'gradient' ? 'image' : fallback;
+};
 
 export default function AdminBranding() {
   const [settings, setSettings] = useState<BrandingSettings>({
@@ -69,12 +78,12 @@ export default function AdminBranding() {
         const parsed = parseSettingValue<Partial<BrandingSettings> & { app_name?: string; logo_url?: string }>(data.setting_value) || {};
         setSettings({
           id: data.id,
-          logo_text_primary: parsed.logo_text_primary || parsed.app_name?.split(' ')[0] || 'meri',
-          logo_text_secondary: parsed.logo_text_secondary || 'LIVE',
-          tagline: parsed.tagline || 'Connect • Chat • Share',
-          background_type: parsed.background_type || 'image',
-          background_url: parsed.background_url || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800',
-          logo_image_url: parsed.logo_image_url || parsed.logo_url || null,
+          logo_text_primary: parsed.logo_text_primary ?? parsed.app_name?.split(' ')[0] ?? 'meri',
+          logo_text_secondary: parsed.logo_text_secondary ?? 'LIVE',
+          tagline: parsed.tagline ?? 'Connect • Chat • Share',
+          background_type: (parsed.background_type ?? 'image') as BrandingSettings['background_type'],
+          background_url: parsed.background_url ?? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800',
+          logo_image_url: parsed.logo_image_url ?? parsed.logo_url ?? null,
         });
       }
     } catch (error) {
@@ -88,24 +97,24 @@ export default function AdminBranding() {
   const handleUpload = async (file: File, type: 'logo' | 'background') => {
     if (!file) return;
 
-    // Validate file type
     const isVideo = file.type.startsWith('video/');
-    const isImage = file.type.startsWith('image/');
+    const isGif = file.type === 'image/gif' || file.name.toLowerCase().endsWith('.gif');
+    const isImage = file.type.startsWith('image/') && !isGif;
     
-    if (type === 'background' && !isVideo && !isImage) {
-      toast.error("Please upload an image or video only");
+    if (type === 'background' && !isVideo && !isImage && !isGif) {
+      toast.error("Please upload an image, GIF, or video only");
       return;
     }
     
-    if (type === 'logo' && !isImage) {
+    if (type === 'logo' && !file.type.startsWith('image/')) {
       toast.error("Please upload an image only");
       return;
     }
 
-    // File size check (50MB for video, 5MB for image)
-    const maxSize = isVideo ? 50 * 1024 * 1024 : 5 * 1024 * 1024;
+    // File size check (50MB for video/GIF, 5MB for still image/logo)
+    const maxSize = isVideo || isGif ? 50 * 1024 * 1024 : 5 * 1024 * 1024;
     if (file.size > maxSize) {
-      toast.error(`File size cannot exceed ${isVideo ? '50MB' : '5MB'}`);
+      toast.error(`File size cannot exceed ${isVideo || isGif ? '50MB' : '5MB'}`);
       return;
     }
 
@@ -136,7 +145,7 @@ export default function AdminBranding() {
         setSettings(prev => ({
           ...prev,
           background_url: urlData.publicUrl,
-          background_type: isVideo ? 'video' : 'image'
+          background_type: isVideo ? 'video' : isGif ? 'gif' : 'image'
         }));
       }
 
@@ -152,14 +161,17 @@ export default function AdminBranding() {
   const handleSave = async () => {
     setSaving(true);
     try {
+      const primaryText = settings.logo_text_primary;
+      const secondaryText = settings.logo_text_secondary;
+      const backgroundType = inferBackgroundTypeFromUrl(settings.background_url, settings.background_type);
       const savedId = await saveBrandingSettings({
-        logo_text_primary: settings.logo_text_primary,
-        logo_text_secondary: settings.logo_text_secondary,
+        logo_text_primary: primaryText,
+        logo_text_secondary: secondaryText,
         tagline: settings.tagline,
-        background_type: settings.background_type,
+        background_type: backgroundType,
         background_url: settings.background_url,
         logo_image_url: settings.logo_image_url,
-        app_name: `${settings.logo_text_primary} ${settings.logo_text_secondary}`.trim(),
+        app_name: [primaryText, secondaryText].filter(Boolean).join(' '),
         logo_url: settings.logo_image_url,
       }, settings.id !== 'default' ? settings.id : undefined);
 
@@ -181,6 +193,46 @@ export default function AdminBranding() {
       ...prev,
       logo_image_url: null
     }));
+  };
+
+  const removeBackground = () => {
+    setSettings(prev => ({
+      ...prev,
+      background_type: 'gradient',
+      background_url: ''
+    }));
+  };
+
+  const renderBackgroundPreview = (className: string, rounded = false) => {
+    if (settings.background_url && settings.background_type === 'video') {
+      return (
+        <video
+          src={settings.background_url}
+          className={className}
+          muted
+          loop
+          autoPlay
+          playsInline
+        />
+      );
+    }
+
+    if (settings.background_url && (settings.background_type === 'image' || settings.background_type === 'gif')) {
+      return (
+        <img
+          src={settings.background_url}
+          alt="Background"
+          className={className}
+        />
+      );
+    }
+
+    return (
+      <div
+        className={`${className} ${rounded ? 'rounded-lg' : ''}`}
+        style={{ background: 'linear-gradient(135deg, hsl(var(--primary) / 0.55), hsl(var(--background)), hsl(var(--accent) / 0.35))' }}
+      />
+    );
   };
 
   if (loading) {
@@ -326,7 +378,7 @@ export default function AdminBranding() {
                 Background Settings
               </CardTitle>
               <CardDescription>
-                Set an image or video as the background
+                Set an image, GIF, or video as the background
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -335,8 +387,8 @@ export default function AdminBranding() {
                 <Label>Background Type</Label>
                 <RadioGroup
                   value={settings.background_type}
-                  onValueChange={(v) => setSettings(prev => ({ ...prev, background_type: v as 'image' | 'video' }))}
-                  className="flex gap-4"
+                  onValueChange={(v) => setSettings(prev => ({ ...prev, background_type: v as BrandingSettings['background_type'] }))}
+                  className="flex flex-wrap gap-4"
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="image" id="bg-image" />
@@ -345,9 +397,21 @@ export default function AdminBranding() {
                     </Label>
                   </div>
                   <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="gif" id="bg-gif" />
+                    <Label htmlFor="bg-gif" className="flex items-center gap-1 cursor-pointer">
+                      <Image className="w-4 h-4" /> GIF
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
                     <RadioGroupItem value="video" id="bg-video" />
                     <Label htmlFor="bg-video" className="flex items-center gap-1 cursor-pointer">
                       <Video className="w-4 h-4" /> Video
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="gradient" id="bg-none" />
+                    <Label htmlFor="bg-none" className="cursor-pointer">
+                      None
                     </Label>
                   </div>
                 </RadioGroup>
@@ -357,32 +421,24 @@ export default function AdminBranding() {
               <div className="space-y-2">
                 <Label>Background Upload</Label>
                 <div className="space-y-3">
-                  {settings.background_url && (
-                    <div className="relative rounded-lg overflow-hidden border aspect-video bg-muted">
-                      {settings.background_type === 'video' ? (
-                        <video
-                          src={settings.background_url}
-                          className="w-full h-full object-cover"
-                          muted
-                          loop
-                          autoPlay
-                          playsInline
-                        />
-                      ) : (
-                        <img
-                          src={settings.background_url}
-                          alt="Background"
-                          className="w-full h-full object-cover"
-                        />
-                      )}
-                    </div>
-                  )}
+                  <div className="relative rounded-lg overflow-hidden border aspect-video bg-muted">
+                    {renderBackgroundPreview("w-full h-full object-cover", true)}
+                    {settings.background_url && (
+                      <button
+                        onClick={removeBackground}
+                        className="absolute top-2 right-2 w-8 h-8 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-lg"
+                        aria-label="Remove background"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
                   
                   <div className="flex gap-2">
                     <input
                       ref={backgroundInputRef}
                       type="file"
-                      accept={settings.background_type === 'video' ? 'video/*' : 'image/*'}
+                      accept="image/*,image/gif,video/*,.gif,.mp4,.webm,.mov"
                       className="hidden"
                       onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0], 'background')}
                     />
@@ -397,13 +453,17 @@ export default function AdminBranding() {
                       ) : (
                         <Upload className="w-4 h-4 mr-2" />
                       )}
-                      {settings.background_type === 'video' ? 'Upload Video' : 'Upload Image'}
+                      Upload Image / GIF / Video
                     </Button>
+                    {settings.background_url && (
+                      <Button variant="destructive" onClick={removeBackground}>
+                        <X className="w-4 h-4 mr-2" />
+                        Remove
+                      </Button>
+                    )}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    {settings.background_type === 'video' 
-                      ? 'MP4, WebM (Max 50MB) - Video will autoplay on mobile'
-                      : 'PNG, JPG, WebP (Max 5MB)'}
+                    PNG, JPG, WebP (Max 5MB) · GIF, MP4, WebM, MOV (Max 50MB)
                   </p>
                 </div>
               </div>
@@ -413,7 +473,14 @@ export default function AdminBranding() {
                 <Label>Or enter URL</Label>
                 <Input
                   value={settings.background_url}
-                  onChange={(e) => setSettings(prev => ({ ...prev, background_url: e.target.value }))}
+                  onChange={(e) => {
+                    const backgroundUrl = e.target.value;
+                    setSettings(prev => ({
+                      ...prev,
+                      background_url: backgroundUrl,
+                      background_type: inferBackgroundTypeFromUrl(backgroundUrl, prev.background_type),
+                    }));
+                  }}
                   placeholder="https://..."
                 />
               </div>
@@ -432,21 +499,7 @@ export default function AdminBranding() {
           <CardContent>
             <div className="relative aspect-[9/16] max-h-[600px] rounded-2xl overflow-hidden shadow-2xl border">
               {/* Background */}
-              {settings.background_type === 'video' ? (
-                <video
-                  src={settings.background_url}
-                  className="absolute inset-0 w-full h-full object-cover"
-                  muted
-                  loop
-                  autoPlay
-                  playsInline
-                />
-              ) : (
-                <div
-                  className="absolute inset-0 bg-cover bg-center"
-                  style={{ backgroundImage: `url('${settings.background_url}')` }}
-                />
-              )}
+              {renderBackgroundPreview("absolute inset-0 w-full h-full object-cover")}
               <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/60" />
 
               {/* Content */}

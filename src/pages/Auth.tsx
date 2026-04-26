@@ -201,11 +201,11 @@ const Auth = () => {
   const { branding: realtimeBranding, loading: brandingLoading } = useBrandingRealtime();
   
   const branding = realtimeBranding ? {
-    logo_text_primary: realtimeBranding.logo_text_primary || 'meri',
-    logo_text_secondary: realtimeBranding.logo_text_secondary || 'LIVE',
-    tagline: realtimeBranding.tagline || 'Connect • Chat • Share',
-    background_type: (realtimeBranding.background_type || 'gradient') as 'image' | 'video' | 'gradient',
-    background_url: realtimeBranding.background_url || '',
+    logo_text_primary: realtimeBranding.logo_text_primary ?? '',
+    logo_text_secondary: realtimeBranding.logo_text_secondary ?? '',
+    tagline: realtimeBranding.tagline ?? '',
+    background_type: (realtimeBranding.background_type || 'gradient') as 'image' | 'video' | 'gif' | 'gradient',
+    background_url: realtimeBranding.background_url ?? '',
     logo_image_url: realtimeBranding.logo_image_url
   } : {
     logo_text_primary: 'meri',
@@ -1853,7 +1853,7 @@ const Auth = () => {
         <div className="fixed inset-0 overflow-hidden">
         {branding.background_type === 'video' && branding.background_url ? (
           <video src={branding.background_url} className="absolute inset-0 w-full h-full object-cover" autoPlay muted loop playsInline />
-        ) : branding.background_type === 'image' && branding.background_url ? (
+        ) : (branding.background_type === 'image' || branding.background_type === 'gif') && branding.background_url ? (
           <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url('${branding.background_url}')` }} />
         ) : (
           <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #0f0c29 0%, #302b63 40%, #24243e 70%, #0f0c29 100%)' }} />
@@ -1879,7 +1879,7 @@ const Auth = () => {
           loop
           playsInline
         />
-      ) : branding.background_type === 'image' && branding.background_url ? (
+      ) : (branding.background_type === 'image' || branding.background_type === 'gif') && branding.background_url ? (
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{

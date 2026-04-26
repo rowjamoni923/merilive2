@@ -65,7 +65,7 @@ export interface BrandingSettings {
   logo_text_secondary: string | null;
   tagline: string | null;
   logo_image_url: string | null;
-  background_type: string | null;
+  background_type: 'image' | 'video' | 'gif' | 'gradient' | null;
   background_url: string | null;
 }
 
@@ -345,35 +345,27 @@ const refreshBranding = async () => {
     .limit(1)
     .maybeSingle();
 
-  // branding_settings may store data as JSON in setting_value OR as flat columns
+  // branding_settings stores data as JSON in setting_value.
+  // Preserve explicit empty strings/nulls so admin "remove" actions do not fall back to old defaults.
   if (data) {
-    // If it has setting_value (JSON format), parse it
+    const normalize = (parsed: any): BrandingSettings => ({
+      id: data.id,
+      logo_text_primary: parsed.logo_text_primary ?? parsed.app_name?.split(' ')[0] ?? null,
+      logo_text_secondary: parsed.logo_text_secondary ?? null,
+      tagline: parsed.tagline ?? null,
+      logo_image_url: parsed.logo_image_url ?? parsed.logo_url ?? null,
+      background_type: parsed.background_type ?? null,
+      background_url: parsed.background_url ?? null,
+    });
+
     if (data.setting_value && typeof data.setting_value === 'string') {
       try {
-        const parsed = JSON.parse(data.setting_value);
-        globalBranding = {
-          id: data.id,
-          logo_text_primary: parsed.logo_text_primary || parsed.app_name?.split(' ')[0] || null,
-          logo_text_secondary: parsed.logo_text_secondary || 'LIVE',
-          tagline: parsed.tagline || null,
-          logo_image_url: parsed.logo_url || parsed.logo_image_url || null,
-          background_type: parsed.background_type || null,
-          background_url: parsed.background_url || null,
-        } as BrandingSettings;
+        globalBranding = normalize(JSON.parse(data.setting_value));
       } catch {
         globalBranding = data as BrandingSettings | null;
       }
     } else if (data.setting_value && typeof data.setting_value === 'object') {
-      const parsed = data.setting_value as any;
-      globalBranding = {
-        id: data.id,
-        logo_text_primary: parsed.logo_text_primary || parsed.app_name?.split(' ')[0] || null,
-        logo_text_secondary: parsed.logo_text_secondary || 'LIVE',
-        tagline: parsed.tagline || null,
-        logo_image_url: parsed.logo_url || parsed.logo_image_url || null,
-        background_type: parsed.background_type || null,
-        background_url: parsed.background_url || null,
-      } as BrandingSettings;
+      globalBranding = normalize(data.setting_value as any);
     } else {
       globalBranding = data as BrandingSettings | null;
     }
