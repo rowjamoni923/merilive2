@@ -1774,6 +1774,7 @@ export default function AdminLayout() {
   const playNotificationSoundRef = useRef<() => void>(() => {});
   const lastNotificationSoundAtRef = useRef(0);
   const browserNotifPermissionRef = useRef<NotificationPermission>('default');
+  const fallbackAudioRef = useRef<HTMLAudioElement | null>(null);
 
   // Request Browser Notification permission + unlock audio on first interaction
   useEffect(() => {
@@ -1788,29 +1789,53 @@ export default function AdminLayout() {
       }
     }
 
+    // Pre-create an HTML5 Audio element with a short embedded chime as fallback.
+    // This works in more situations than raw WebAudio and survives Chrome's
+    // AudioContext auto-suspend after long inactivity.
+    try {
+      // Tiny base64-encoded "ding" (short sine ping ~0.25s, MP3, ~3KB).
+      // Public-domain test tone bundled inline so we never miss a ping.
+      const CHIME_DATA_URI = 'data:audio/mp3;base64,//uQxAADB0gjPYDAYAEAAAcwAAACEcQQjE4DAaTk8nE4Tk8mEwmEwmEwQAAAAA';
+      const a = new Audio();
+      a.preload = 'auto';
+      a.volume = 0.6;
+      a.src = CHIME_DATA_URI;
+      fallbackAudioRef.current = a;
+    } catch {}
+
     const unlockAudio = () => {
-      if (audioUnlockedRef.current) return;
       try {
-        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const buffer = ctx.createBuffer(1, 1, 22050);
-        const source = ctx.createBufferSource();
-        source.buffer = buffer;
-        source.connect(ctx.destination);
-        source.start(0);
-        audioCtxRef.current = ctx;
-        audioUnlockedRef.current = true;
-        console.log('[Admin] 🔊 Audio unlocked for notifications');
+        if (!audioUnlockedRef.current) {
+          const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+          const buffer = ctx.createBuffer(1, 1, 22050);
+          const source = ctx.createBufferSource();
+          source.buffer = buffer;
+          source.connect(ctx.destination);
+          source.start(0);
+          audioCtxRef.current = ctx;
+          audioUnlockedRef.current = true;
+          console.log('[Admin] 🔊 Audio unlocked for notifications');
+        }
+        // Also "unlock" the fallback HTML5 element by playing+pausing on gesture.
+        const fb = fallbackAudioRef.current;
+        if (fb && fb.paused) {
+          fb.play().then(() => { fb.pause(); fb.currentTime = 0; }).catch(() => {});
+        }
       } catch (e) {
         console.log('[Admin] Audio unlock failed:', e);
       }
     };
 
-    document.addEventListener('click', unlockAudio, { once: true });
-    document.addEventListener('touchstart', unlockAudio, { once: true });
-    
+    // Use { capture: true } and DON'T use { once: true } — keep listener active
+    // so suspended AudioContexts can be resumed on subsequent interactions.
+    document.addEventListener('click', unlockAudio, { capture: true });
+    document.addEventListener('touchstart', unlockAudio, { capture: true });
+    document.addEventListener('keydown', unlockAudio, { capture: true });
+
     return () => {
-      document.removeEventListener('click', unlockAudio);
-      document.removeEventListener('touchstart', unlockAudio);
+      document.removeEventListener('click', unlockAudio, { capture: true } as any);
+      document.removeEventListener('touchstart', unlockAudio, { capture: true } as any);
+      document.removeEventListener('keydown', unlockAudio, { capture: true } as any);
     };
   }, []);
 
