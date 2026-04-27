@@ -329,7 +329,10 @@ const Index = () => {
     }
   }, [hosts, isEligibleCachedHost]);
 
-  const displayHosts = (hosts ?? instantHosts) as Array<Profile & { isLive?: boolean; liveStreamId?: string; liveThumbnailUrl?: string | null }>;
+  // Only fall back to the cached snapshot for the default view (Popular + All countries).
+  // For any other tab/country, always reflect the live query so users see filter changes immediately.
+  const isDefaultView = subTab === "popular" && selectedCountry === "all";
+  const displayHosts = (hosts ?? (isDefaultView ? instantHosts : [])) as Array<Profile & { isLive?: boolean; liveStreamId?: string; liveThumbnailUrl?: string | null }>;
 
   useEffect(() => {
     if (!hosts?.length) return;
@@ -677,6 +680,15 @@ const Index = () => {
               </div>
             )}
           </>
+        ) : isLoading ? (
+          <div className="grid grid-cols-2 gap-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                className="aspect-[3/4] rounded-2xl bg-white/5 animate-pulse border border-white/[0.04]"
+              />
+            ))}
+          </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-12 px-6 min-h-[60vh]">
             {/* Text content only - no icons */}
