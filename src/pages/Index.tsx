@@ -329,7 +329,10 @@ const Index = () => {
     }
   }, [hosts, isEligibleCachedHost]);
 
-  const displayHosts = (hosts ?? instantHosts) as Array<Profile & { isLive?: boolean; liveStreamId?: string; liveThumbnailUrl?: string | null }>;
+  // Only fall back to the cached snapshot for the default view (Popular + All countries).
+  // For any other tab/country, always reflect the live query so users see filter changes immediately.
+  const isDefaultView = subTab === "popular" && selectedCountry === "all";
+  const displayHosts = (hosts ?? (isDefaultView ? instantHosts : [])) as Array<Profile & { isLive?: boolean; liveStreamId?: string; liveThumbnailUrl?: string | null }>;
 
   useEffect(() => {
     if (!hosts?.length) return;
