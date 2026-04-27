@@ -680,6 +680,15 @@ const Index = () => {
               </div>
             )}
           </>
+        ) : isLoading ? (
+          <div className="grid grid-cols-2 gap-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                className="aspect-[3/4] rounded-2xl bg-white/5 animate-pulse border border-white/[0.04]"
+              />
+            ))}
+          </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-12 px-6 min-h-[60vh]">
             {/* Text content only - no icons */}
