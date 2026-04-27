@@ -1847,54 +1847,74 @@ export default function AdminLayout() {
 
       let ctx = audioCtxRef.current;
       if (!ctx || ctx.state === 'closed') {
-        ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-        audioCtxRef.current = ctx;
+        try {
+          ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+          audioCtxRef.current = ctx;
+        } catch {
+          ctx = null;
+        }
       }
-      
-      // Resume if suspended
-      if (ctx.state === 'suspended') {
-        ctx.resume();
+
+      // Resume if suspended (Chrome auto-suspends after long inactivity)
+      if (ctx && ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
       }
-      
-      const now = ctx.currentTime;
-      
-      // Tone 1: A5 (880Hz)
-      const osc1 = ctx.createOscillator();
-      const gain1 = ctx.createGain();
-      osc1.connect(gain1);
-      gain1.connect(ctx.destination);
-      osc1.frequency.value = 880;
-      osc1.type = 'sine';
-      gain1.gain.setValueAtTime(0.4, now);
-      gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
-      osc1.start(now);
-      osc1.stop(now + 0.12);
 
-      // Tone 2: D6 (1174Hz) - slightly delayed
-      const osc2 = ctx.createOscillator();
-      const gain2 = ctx.createGain();
-      osc2.connect(gain2);
-      gain2.connect(ctx.destination);
-      osc2.frequency.value = 1174.66;
-      osc2.type = 'sine';
-      gain2.gain.setValueAtTime(0.4, now + 0.1);
-      gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
-      osc2.start(now + 0.1);
-      osc2.stop(now + 0.25);
+      const canUseWebAudio = !!ctx && ctx.state === 'running' && audioUnlockedRef.current;
 
-      // Tone 3: High E6 (1318Hz) - final ping
-      const osc3 = ctx.createOscillator();
-      const gain3 = ctx.createGain();
-      osc3.connect(gain3);
-      gain3.connect(ctx.destination);
-      osc3.frequency.value = 1318.51;
-      osc3.type = 'sine';
-      gain3.gain.setValueAtTime(0.3, now + 0.2);
-      gain3.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-      osc3.start(now + 0.2);
-      osc3.stop(now + 0.4);
-      
-      console.log('[Admin] 🔔 Notification sound played');
+      if (canUseWebAudio && ctx) {
+        const now = ctx.currentTime;
+
+        // Tone 1: A5 (880Hz)
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.frequency.value = 880;
+        osc1.type = 'sine';
+        gain1.gain.setValueAtTime(0.4, now);
+        gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+        osc1.start(now);
+        osc1.stop(now + 0.12);
+
+        // Tone 2: D6 (1174Hz) - slightly delayed
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.frequency.value = 1174.66;
+        osc2.type = 'sine';
+        gain2.gain.setValueAtTime(0.4, now + 0.1);
+        gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+        osc2.start(now + 0.1);
+        osc2.stop(now + 0.25);
+
+        // Tone 3: High E6 (1318Hz) - final ping
+        const osc3 = ctx.createOscillator();
+        const gain3 = ctx.createGain();
+        osc3.connect(gain3);
+        gain3.connect(ctx.destination);
+        osc3.frequency.value = 1318.51;
+        osc3.type = 'sine';
+        gain3.gain.setValueAtTime(0.3, now + 0.2);
+        gain3.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+        osc3.start(now + 0.2);
+        osc3.stop(now + 0.4);
+
+        console.log('[Admin] 🔔 Notification sound played (WebAudio)');
+      } else {
+        // Fallback: HTML5 Audio element. Works after any prior interaction
+        // even when WebAudio context is suspended.
+        const fb = fallbackAudioRef.current;
+        if (fb) {
+          try { fb.currentTime = 0; } catch {}
+          fb.play()
+            .then(() => console.log('[Admin] 🔔 Notification sound played (HTML5 fallback)'))
+            .catch((err) => console.log('[Admin] HTML5 audio fallback blocked:', err?.message));
+        } else {
+          console.log('[Admin] No audio path available — interact with the page once to unlock sound.');
+        }
+      }
     } catch (e) {
       console.log('[Admin] Could not play notification sound:', e);
     }
