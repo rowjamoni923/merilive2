@@ -1789,17 +1789,12 @@ export default function AdminLayout() {
       }
     }
 
-    // Pre-create an HTML5 Audio element with a short embedded chime as fallback.
-    // This works in more situations than raw WebAudio and survives Chrome's
+    // Pre-create an HTML5 Audio element as a fallback. Survives Chrome's
     // AudioContext auto-suspend after long inactivity.
     try {
-      // Tiny base64-encoded "ding" (short sine ping ~0.25s, MP3, ~3KB).
-      // Public-domain test tone bundled inline so we never miss a ping.
-      const CHIME_DATA_URI = 'data:audio/mp3;base64,//uQxAADB0gjPYDAYAEAAAcwAAACEcQQjE4DAaTk8nE4Tk8mEwmEwmEwQAAAAA';
-      const a = new Audio();
+      const a = new Audio('/admin-notify.wav');
       a.preload = 'auto';
       a.volume = 0.6;
-      a.src = CHIME_DATA_URI;
       fallbackAudioRef.current = a;
     } catch {}
 
