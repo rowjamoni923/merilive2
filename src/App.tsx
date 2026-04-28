@@ -1110,7 +1110,8 @@ const App = () => {
                   {/* Deprecated → unified Pricing Hub (Pkg30) */}
                   <Route path="commission-calculator" element={<Navigate to="/admin/pricing-hub" replace />} />
                   <Route path="party-backgrounds" element={<AdminRouteGuard routeSegment="party-backgrounds"><AdminPartyBackgrounds /></AdminRouteGuard>} />
-                  <Route path="call-settings" element={<AdminRouteGuard routeSegment="call-settings"><AdminCallSettings /></AdminRouteGuard>} />
+                  {/* Deprecated → unified Pricing Hub (Pkg30) */}
+                  <Route path="call-settings" element={<Navigate to="/admin/pricing-hub" replace />} />
                   <Route path="online-users" element={<AdminRouteGuard routeSegment="online-users"><AdminOnlineUsers /></AdminRouteGuard>} />
                   <Route path="today-calls" element={<AdminRouteGuard routeSegment="today-calls"><AdminTodayCalls /></AdminRouteGuard>} />
                   <Route path="game-settings" element={<AdminRouteGuard routeSegment="game-settings"><AdminGameSettings /></AdminRouteGuard>} />
