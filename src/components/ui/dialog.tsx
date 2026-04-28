@@ -55,15 +55,29 @@ DialogContent.displayName = DialogPrimitive.Content.displayName;
 
 const DialogHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("flex flex-col space-y-1.5 text-center sm:text-left", className)} {...props} />
-  )
+    <div
+      ref={ref}
+      className={cn(
+        "flex flex-col space-y-1.5 text-center sm:text-left pb-3 mb-3 border-b border-white/[0.06]",
+        className,
+      )}
+      {...props}
+    />
+  ),
 );
 DialogHeader.displayName = "DialogHeader";
 
 const DialogFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className)} {...props} />
-  )
+    <div
+      ref={ref}
+      className={cn(
+        "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:space-x-2 pt-4 mt-4 border-t border-white/[0.06]",
+        className,
+      )}
+      {...props}
+    />
+  ),
 );
 DialogFooter.displayName = "DialogFooter";
 
