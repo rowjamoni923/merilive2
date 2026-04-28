@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback } from "react";
-import { motion } from "framer-motion";
 import {
   Save,
   Phone,
@@ -8,8 +7,6 @@ import {
   Wallet,
   ArrowRightLeft,
   Percent,
-  Plus,
-  Trash2,
   Crown,
   RefreshCw,
   Info,
@@ -40,20 +37,22 @@ interface AgencyLevelTier {
   id: string;
   level_code: string;
   level_name: string;
-  min_weekly_income: number;
-  max_weekly_income: number;
-  commission_rate: number;
+  min_weekly_income: number | "";
+  max_weekly_income: number | "";
+  commission_rate: number | "";
   display_order: number;
   is_active: boolean;
 }
 
 interface LevelRate {
-  level: number;
-  rate: number;
+  level: number | "";
+  rate: number | "";
 }
 
 const NUM = (v: any): number | "" =>
   v === "" || v === null || v === undefined || Number.isNaN(Number(v)) ? "" : Number(v);
+
+const inputNumber = (value: string): number | "" => (value === "" ? "" : Number(value));
 
 const Field = ({
   label,
@@ -186,14 +185,17 @@ export default function AdminPricingHub() {
     setSaving("tiers");
     try {
       for (const t of tiers) {
+        if (t.min_weekly_income === "" || t.max_weekly_income === "" || t.commission_rate === "") {
+          throw new Error("Agency tier weekly range and commission fields must be configured before saving.");
+        }
         const { error } = await supabase
           .from("agency_level_tiers")
           .update({
             level_code: t.level_code,
             level_name: t.level_name,
-            min_weekly_income: t.min_weekly_income,
-            max_weekly_income: t.max_weekly_income,
-            commission_rate: t.commission_rate,
+            min_weekly_income: Number(t.min_weekly_income),
+            max_weekly_income: Number(t.max_weekly_income),
+            commission_rate: Number(t.commission_rate),
             is_active: t.is_active,
             updated_at: new Date().toISOString(),
           })
@@ -212,7 +214,7 @@ export default function AdminPricingHub() {
     setTiers((prev) => prev.map((t) => (t.id === id ? { ...t, [field]: value } : t)));
   };
 
-  const updateLevelRate = (idx: number, field: "level" | "rate", value: number) => {
+  const updateLevelRate = (idx: number, field: "level" | "rate", value: number | "") => {
     if (!callRates) return;
     const arr: LevelRate[] = [...(callRates.level_rates ?? [])];
     arr[idx] = { ...arr[idx], [field]: value };
@@ -278,21 +280,21 @@ export default function AdminPricingHub() {
                       <Input
                         type="number"
                         value={NUM(callRates.default_rate)}
-                        onChange={(e) => setCallRates({ ...callRates, default_rate: Number(e.target.value) })}
+                        onChange={(e) => setCallRates({ ...callRates, default_rate: inputNumber(e.target.value) })}
                       />
                     </Field>
                     <Field label="Min rate">
                       <Input
                         type="number"
                         value={NUM(callRates.min_rate)}
-                        onChange={(e) => setCallRates({ ...callRates, min_rate: Number(e.target.value) })}
+                        onChange={(e) => setCallRates({ ...callRates, min_rate: inputNumber(e.target.value) })}
                       />
                     </Field>
                     <Field label="Max rate">
                       <Input
                         type="number"
                         value={NUM(callRates.max_rate)}
-                        onChange={(e) => setCallRates({ ...callRates, max_rate: Number(e.target.value) })}
+                        onChange={(e) => setCallRates({ ...callRates, max_rate: inputNumber(e.target.value) })}
                       />
                     </Field>
                     <Field label="Host commission %" hint="Company gets the remainder. Strict 21s rule applies on settlement.">
@@ -300,7 +302,7 @@ export default function AdminPricingHub() {
                         type="number"
                         value={NUM(callRates.host_commission_percent)}
                         onChange={(e) =>
-                          setCallRates({ ...callRates, host_commission_percent: Number(e.target.value) })
+                          setCallRates({ ...callRates, host_commission_percent: inputNumber(e.target.value) })
                         }
                       />
                     </Field>
@@ -309,7 +311,7 @@ export default function AdminPricingHub() {
                         type="number"
                         value={NUM(callRates.first_minute_grace_seconds)}
                         onChange={(e) =>
-                          setCallRates({ ...callRates, first_minute_grace_seconds: Number(e.target.value) })
+                          setCallRates({ ...callRates, first_minute_grace_seconds: inputNumber(e.target.value) })
                         }
                       />
                     </Field>
@@ -318,7 +320,7 @@ export default function AdminPricingHub() {
                         type="number"
                         value={NUM(callRates.min_level_for_custom_rate)}
                         onChange={(e) =>
-                          setCallRates({ ...callRates, min_level_for_custom_rate: Number(e.target.value) })
+                          setCallRates({ ...callRates, min_level_for_custom_rate: inputNumber(e.target.value) })
                         }
                       />
                     </Field>
@@ -363,7 +365,7 @@ export default function AdminPricingHub() {
                           <Input
                             type="number"
                             value={NUM(lr.rate)}
-                            onChange={(e) => updateLevelRate(idx, "rate", Number(e.target.value))}
+                            onChange={(e) => updateLevelRate(idx, "rate", inputNumber(e.target.value))}
                             className="h-8"
                           />
                         </div>
@@ -403,7 +405,7 @@ export default function AdminPricingHub() {
                     type="number"
                     value={NUM(giftCommission.host_percent)}
                     onChange={(e) =>
-                      setGiftCommission({ ...giftCommission, host_percent: Number(e.target.value) })
+                      setGiftCommission({ ...giftCommission, host_percent: inputNumber(e.target.value) })
                     }
                   />
                 </Field>
@@ -412,7 +414,7 @@ export default function AdminPricingHub() {
                     type="number"
                     value={NUM(giftCommission.company_percent)}
                     onChange={(e) =>
-                      setGiftCommission({ ...giftCommission, company_percent: Number(e.target.value) })
+                      setGiftCommission({ ...giftCommission, company_percent: inputNumber(e.target.value) })
                     }
                   />
                 </Field>
@@ -422,8 +424,8 @@ export default function AdminPricingHub() {
                   saveSection(
                     "gift_commission",
                     {
-                      host_percent: Number(giftCommission.host_percent || 0),
-                      company_percent: Number(giftCommission.company_percent || 0),
+                      host_percent: giftCommission.host_percent,
+                      company_percent: giftCommission.company_percent,
                       description: `Company takes ${giftCommission.company_percent}%, Host receives ${giftCommission.host_percent}%`,
                     },
                     "Gift commission"
@@ -478,7 +480,7 @@ export default function AdminPricingHub() {
                         <Input
                           type="number"
                           value={NUM(t.min_weekly_income)}
-                          onChange={(e) => updateTier(t.id, "min_weekly_income", Number(e.target.value))}
+                          onChange={(e) => updateTier(t.id, "min_weekly_income", inputNumber(e.target.value))}
                           className="h-8"
                         />
                       </Field>
@@ -486,7 +488,7 @@ export default function AdminPricingHub() {
                         <Input
                           type="number"
                           value={NUM(t.max_weekly_income)}
-                          onChange={(e) => updateTier(t.id, "max_weekly_income", Number(e.target.value))}
+                          onChange={(e) => updateTier(t.id, "max_weekly_income", inputNumber(e.target.value))}
                           className="h-8"
                         />
                       </Field>
@@ -495,7 +497,7 @@ export default function AdminPricingHub() {
                           type="number"
                           step="0.1"
                           value={NUM(t.commission_rate)}
-                          onChange={(e) => updateTier(t.id, "commission_rate", Number(e.target.value))}
+                          onChange={(e) => updateTier(t.id, "commission_rate", inputNumber(e.target.value))}
                           className="h-8"
                         />
                       </Field>
@@ -536,7 +538,7 @@ export default function AdminPricingHub() {
                   <Input
                     type="number"
                     value={NUM(withdrawal?.min_withdrawal)}
-                    onChange={(e) => setWithdrawal({ ...withdrawal, min_withdrawal: Number(e.target.value) })}
+                    onChange={(e) => setWithdrawal({ ...(withdrawal ?? {}), min_withdrawal: inputNumber(e.target.value) })}
                   />
                 </Field>
                 <Field label="Beans → USD rate" hint="9000 means 9000 beans = $1">
@@ -544,7 +546,7 @@ export default function AdminPricingHub() {
                     type="number"
                     value={NUM(withdrawal?.coins_to_dollar_rate)}
                     onChange={(e) =>
-                      setWithdrawal({ ...withdrawal, coins_to_dollar_rate: Number(e.target.value) })
+                      setWithdrawal({ ...(withdrawal ?? {}), coins_to_dollar_rate: inputNumber(e.target.value) })
                     }
                   />
                 </Field>
@@ -553,7 +555,7 @@ export default function AdminPricingHub() {
                     type="number"
                     value={NUM(withdrawal?.free_withdrawal_limit)}
                     onChange={(e) =>
-                      setWithdrawal({ ...withdrawal, free_withdrawal_limit: Number(e.target.value) })
+                      setWithdrawal({ ...(withdrawal ?? {}), free_withdrawal_limit: inputNumber(e.target.value) })
                     }
                   />
                 </Field>
@@ -583,7 +585,7 @@ export default function AdminPricingHub() {
                     type="number"
                     value={NUM(agencyCommission?.min_payout)}
                     onChange={(e) =>
-                      setAgencyCommission({ ...agencyCommission, min_payout: Number(e.target.value) })
+                      setAgencyCommission({ ...agencyCommission, min_payout: inputNumber(e.target.value) })
                     }
                   />
                 </Field>
@@ -592,7 +594,7 @@ export default function AdminPricingHub() {
                     type="number"
                     value={NUM(agencyCommission?.min_usd)}
                     onChange={(e) =>
-                      setAgencyCommission({ ...agencyCommission, min_usd: Number(e.target.value) })
+                      setAgencyCommission({ ...agencyCommission, min_usd: inputNumber(e.target.value) })
                     }
                   />
                 </Field>
@@ -603,7 +605,7 @@ export default function AdminPricingHub() {
                     onChange={(e) =>
                       setAgencyCommission({
                         ...agencyCommission,
-                        coins_to_dollar_rate: Number(e.target.value),
+                        coins_to_dollar_rate: inputNumber(e.target.value),
                       })
                     }
                   />
@@ -652,7 +654,7 @@ export default function AdminPricingHub() {
                   onClick={() =>
                     saveSection(
                       "agency_withdrawal_fee",
-                      { rate: Number(agencyWithdrawalFee || 0) },
+                      { rate: agencyWithdrawalFee },
                       "Agency withdrawal fee"
                     )
                   }
@@ -667,7 +669,7 @@ export default function AdminPricingHub() {
                   onClick={() =>
                     saveSection(
                       "helper_diamond_commission",
-                      { rate: Number(helperDiamondCommission || 0) },
+                      { rate: helperDiamondCommission },
                       "Helper diamond commission"
                     )
                   }
@@ -702,7 +704,7 @@ export default function AdminPricingHub() {
                     step="0.01"
                     value={NUM(coinExchange?.beans_to_diamonds_rate)}
                     onChange={(e) =>
-                      setCoinExchange({ ...coinExchange, beans_to_diamonds_rate: Number(e.target.value) })
+                      setCoinExchange({ ...(coinExchange ?? {}), beans_to_diamonds_rate: inputNumber(e.target.value) })
                     }
                   />
                 </Field>
@@ -712,7 +714,7 @@ export default function AdminPricingHub() {
                     step="0.1"
                     value={NUM(coinExchange?.exchange_fee_percent)}
                     onChange={(e) =>
-                      setCoinExchange({ ...coinExchange, exchange_fee_percent: Number(e.target.value) })
+                      setCoinExchange({ ...(coinExchange ?? {}), exchange_fee_percent: inputNumber(e.target.value) })
                     }
                   />
                 </Field>
@@ -721,7 +723,7 @@ export default function AdminPricingHub() {
                     type="number"
                     value={NUM(coinExchange?.min_exchange_amount)}
                     onChange={(e) =>
-                      setCoinExchange({ ...coinExchange, min_exchange_amount: Number(e.target.value) })
+                      setCoinExchange({ ...(coinExchange ?? {}), min_exchange_amount: inputNumber(e.target.value) })
                     }
                   />
                 </Field>
@@ -759,7 +761,7 @@ export default function AdminPricingHub() {
                     onChange={(e) =>
                       setHelperFeeSettings({
                         ...helperFeeSettings,
-                        platform_fee_percent: Number(e.target.value),
+                        platform_fee_percent: inputNumber(e.target.value),
                       })
                     }
                   />
@@ -772,7 +774,7 @@ export default function AdminPricingHub() {
                     onChange={(e) =>
                       setHelperFeeSettings({
                         ...helperFeeSettings,
-                        helper_receives_percent: Number(e.target.value),
+                        helper_receives_percent: inputNumber(e.target.value),
                       })
                     }
                   />
@@ -783,8 +785,8 @@ export default function AdminPricingHub() {
                   saveSection(
                     "helper_fee_settings",
                     {
-                      platform_fee_percent: Number(helperFeeSettings.platform_fee_percent || 0),
-                      helper_receives_percent: Number(helperFeeSettings.helper_receives_percent || 0),
+                      platform_fee_percent: helperFeeSettings.platform_fee_percent,
+                      helper_receives_percent: helperFeeSettings.helper_receives_percent,
                     },
                     "Helper fee split"
                   )

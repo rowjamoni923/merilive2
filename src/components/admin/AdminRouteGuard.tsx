@@ -27,7 +27,7 @@ const HUB_FIRST_PATH: Record<string, string> = {
  */
 
 // Map each admin route path segment to its required hub key
-const ROUTE_HUB_MAP: Record<string, string> = {
+const ROUTE_HUB_MAP: Record<string, string | string[]> = {
   // User System
   'user-hub': 'user-hub',
   'user-management': 'user-hub',
@@ -50,6 +50,7 @@ const ROUTE_HUB_MAP: Record<string, string> = {
   'agency-policy': 'agency-hub',
   'commissions': 'agency-hub',
   'commission-calculator': 'agency-hub',
+  'pricing-hub': ['agency-hub', 'settings-hub'],
 
   // Level & VIP
   'level-management': 'level-hub',
@@ -211,7 +212,11 @@ export default function AdminRouteGuard({ children, routeSegment }: AdminRouteGu
     return <Navigate to="/admin" replace />;
   }
 
-  if (hasHubAccess(requiredHub)) {
+  const allowed = Array.isArray(requiredHub)
+    ? requiredHub.some((hub) => hasHubAccess(hub))
+    : hasHubAccess(requiredHub);
+
+  if (allowed) {
     return <>{children}</>;
   }
 
