@@ -882,7 +882,7 @@ const AdminVIPPrivileges = () => {
                 </TabsContent>
               </Tabs>
             </div>
-          </ScrollArea>
+          </div>
 
           {/* Footer */}
           <div className="p-4 border-t border-slate-700 flex gap-3">
