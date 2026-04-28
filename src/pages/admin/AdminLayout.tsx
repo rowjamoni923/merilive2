@@ -479,6 +479,13 @@ const navGroups: NavGroup[] = [
         description: "Design and manage Noble subscription cards (Knight, Baron, Viscount, Earl, Marquis, Duke, King).",
       },
       {
+        label: "Noble Subscriptions",
+        icon: Crown,
+        path: "/admin/noble-subscriptions",
+        hubKey: "vip-hub",
+        description: "Monthly Noble subscription tiers (Baron → King): pricing, perks, anti-kick, recharge bonus, free diamonds.",
+      },
+      {
         label: "Ranking Rewards",
         icon: TrendingUp,
         path: "/admin/ranking-rewards",
