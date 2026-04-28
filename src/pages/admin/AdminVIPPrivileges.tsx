@@ -361,15 +361,18 @@ const AdminVIPPrivileges = () => {
 
       {/* Edit/Create Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="bg-slate-900 border-slate-700 max-w-2xl max-h-[90vh] p-0">
-          <DialogHeader className="p-4 border-b border-slate-700">
+        <DialogContent
+          className="bg-slate-900 border-slate-700 w-[95vw] sm:max-w-5xl max-h-[92vh] p-0 flex flex-col"
+          style={{ resize: 'both', overflow: 'hidden', minWidth: '320px', minHeight: '400px' }}
+        >
+          <DialogHeader className="p-4 border-b border-slate-700 shrink-0">
             <DialogTitle className="text-white flex items-center gap-2">
               <Crown className="w-5 h-5 text-amber-400" />
               {editingTier ? `Edit ${editingTier.tier_name}` : "Create VIP Tier"}
             </DialogTitle>
           </DialogHeader>
           
-          <ScrollArea className="max-h-[70vh]">
+          <ScrollArea className="flex-1 min-h-0">
             <div className="p-4 space-y-6">
               <Tabs defaultValue="basic">
                 <TabsList className="bg-slate-800 w-full">
