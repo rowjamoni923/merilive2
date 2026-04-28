@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   Crown, Plus, Edit2, Trash2, Sparkles, Gem, Gift, 
   Upload, Save, Image, Play, MessageCircle, Star, X,
-  RefreshCw
+  RefreshCw, Shield, EyeOff, Ghost, Coins, Calendar, Zap, Lock, TrendingUp
 } from "lucide-react";
 import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
 
