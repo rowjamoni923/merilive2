@@ -147,15 +147,13 @@ export default function AdminWithdrawals() {
 
   const fetchGlobalCounts = async () => {
     try {
-      const [pendingRes, approvedRes, pendingAmountRes] = await Promise.all([
-        supabase.from('agency_withdrawals').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('agency_withdrawals').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
-        supabase.from('agency_withdrawals').select('amount').eq('status', 'pending').limit(500),
-      ]);
+      const { data, error } = await supabase.rpc('admin_withdrawal_stats');
+      if (error) throw error;
+      const r = (data as any) || {};
       setGlobalCounts({
-        pending: pendingRes.count || 0,
-        approved: approvedRes.count || 0,
-        totalPendingAmount: pendingAmountRes.data?.reduce((sum, w) => sum + w.amount, 0) || 0,
+        pending: r.pending || 0,
+        approved: r.approved || 0,
+        totalPendingAmount: Number(r.total_pending_amount) || 0,
       });
     } catch (e) { console.error('Error fetching withdrawal counts:', e); }
   };
