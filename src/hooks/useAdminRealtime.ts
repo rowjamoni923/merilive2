@@ -226,8 +226,12 @@ export const useAdminRealtime = (
       };
     }
 
-    const eventTables = trackedTables.filter((t) => GLOBALLY_MONITORED_TABLES.has(t));
-    const directTables = trackedTables.filter((t) => !GLOBALLY_MONITORED_TABLES.has(t));
+    const eventTables = isOnAdminRoute
+      ? trackedTables.filter((t) => GLOBALLY_MONITORED_TABLES.has(t))
+      : [];
+    const directTables = isOnAdminRoute
+      ? []
+      : trackedTables.filter((t) => !GLOBALLY_MONITORED_TABLES.has(t));
 
     let lastRealtimeTouch = Date.now();
 
