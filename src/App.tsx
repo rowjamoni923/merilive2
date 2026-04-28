@@ -976,7 +976,6 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {!isAdminRoute && <Suspense fallback={null}><RealtimeQuerySyncBridge /></Suspense>}
       <Suspense fallback={null}><NativeSystemUIBridge /></Suspense>
       <RealtimeProvider notifyOnImportantUpdates={!isAdminRoute}>
         <PresenceProvider>
@@ -987,8 +986,8 @@ const App = () => {
               <Suspense fallback={null}><DeepLinkHandler /></Suspense>
               <Suspense fallback={null}><AndroidBackButtonHandler /></Suspense>
               <Suspense fallback={null}><GlobalScreenSecurity /></Suspense>
-              {/* Deferred hooks - loads after first paint */}
-              <Suspense fallback={null}><DeferredAppHooks userId={session?.user?.id || null} /></Suspense>
+              {/* Deferred hooks - route scoped so admin pages stay static */}
+              <RouteScopedBackgroundHooks userId={session?.user?.id || null} hasSession={!!session} />
               <CallProvider>
                   {/* ⚡ fallback={null} prevents a full-screen loader flash on
                       every navigation — each page renders its own skeleton */}
@@ -1235,20 +1234,6 @@ const App = () => {
                   }}
                 />
               )}
-{(() => {
-  const p = window.location.pathname;
-  const isPublicPage = ['/agency-policy', '/policies-benefits', '/helper-policy', '/policies', '/about', '/contact', '/agency-signup', '/create-agency', '/become-sub-agent', '/payroll-helper-guide', '/link', '/smart-link', '/privacy-policy', '/terms', '/google-library-order-rules', '/join-agency'].some(r => p.startsWith(r));
-  const showPopups = !p.startsWith('/admin') && !isPublicPage && session;
-  return showPopups ? <><WelcomeOnboarding /><EventPopupBanner /><DailyLoginPopup /><RatingRewardPopup /></> : null;
-})()}
-              {!isAdminRoute && (
-                <>
-                  <AppUpdateChecker />
-                  <NetworkStatusBar />
-                  <PushNotificationInitializer />
-                </>
-              )}
-              
             </Suspense>
               </CallProvider>
             </BrowserRouter>
