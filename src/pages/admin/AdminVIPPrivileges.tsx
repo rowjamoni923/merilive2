@@ -514,6 +514,145 @@ const AdminVIPPrivileges = () => {
                   ))}
                 </TabsContent>
 
+                {/* Power Perks Tab (Phase 1 fields) */}
+                <TabsContent value="power" className="space-y-3 mt-4">
+                  <p className="text-slate-400 text-sm mb-2">
+                    High-tier power privileges enforced server-side and in live rooms.
+                  </p>
+                  {[
+                    { key: 'anti_kick_protection', label: 'Anti-Kick Protection', icon: Shield, color: 'text-emerald-400', desc: 'Cannot be kicked by lower-rank moderators' },
+                    { key: 'stealth_mode', label: 'Stealth Mode', icon: Ghost, color: 'text-violet-400', desc: 'Browse profiles & rooms invisibly' },
+                    { key: 'hide_real_level', label: 'Hide Real Level', icon: EyeOff, color: 'text-slate-300', desc: 'Hide actual user level from other users' },
+                    { key: 'forbidden_words_bypass', label: 'Forbidden Words Bypass', icon: Lock, color: 'text-orange-400', desc: 'Bypass chat profanity filter' },
+                    { key: 'top_position_in_lists', label: 'Top Position in Lists', icon: TrendingUp, color: 'text-yellow-400', desc: 'Pinned to top in viewer/host lists' },
+                    { key: 'vip_only_lounge_access', label: 'VIP Lounge Access', icon: Crown, color: 'text-amber-400', desc: 'Access VIP-exclusive lounges' },
+                    { key: 'priority_random_match', label: 'Priority Random Match', icon: Zap, color: 'text-cyan-400', desc: 'Get matched faster in random calls' },
+                  ].map(({ key, label, icon: Icon, color, desc }) => (
+                    <div key={key} className="flex items-center justify-between bg-slate-800 p-3 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Icon className={`w-5 h-5 ${color}`} />
+                        <div>
+                          <div className="text-white">{label}</div>
+                          <div className="text-xs text-slate-500">{desc}</div>
+                        </div>
+                      </div>
+                      <Switch
+                        checked={(tierForm as any)[key] || false}
+                        onCheckedChange={(checked) => setTierForm(prev => ({ ...prev, [key]: checked }))}
+                      />
+                    </div>
+                  ))}
+
+                  <div className="bg-slate-800 p-3 rounded-lg">
+                    <label className="text-sm text-white block mb-2">Max Kick Tier Level (Anti-Kick threshold)</label>
+                    <p className="text-xs text-slate-500 mb-2">Moderators with tier_level ≤ this value cannot kick this VIP. Set 0 to disable.</p>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={tierForm.max_kick_tier_level ?? 0}
+                      onChange={(e) => setTierForm(prev => ({ ...prev, max_kick_tier_level: parseInt(e.target.value) || 0 }))}
+                      className="bg-slate-900 border-slate-600 text-white"
+                    />
+                  </div>
+                </TabsContent>
+
+                {/* Economy Tab (Phase 1 fields) */}
+                <TabsContent value="economy" className="space-y-3 mt-4">
+                  <p className="text-slate-400 text-sm mb-2">
+                    Daily rewards, recharge bonuses, and personalization perks.
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-slate-800 p-3 rounded-lg">
+                      <label className="text-sm text-white flex items-center gap-2 mb-2">
+                        <Coins className="w-4 h-4 text-amber-400" />
+                        Recharge Bonus %
+                      </label>
+                      <p className="text-xs text-slate-500 mb-2">Extra diamonds on every recharge (e.g. 5 = +5%)</p>
+                      <Input
+                        type="number"
+                        min={0}
+                        max={100}
+                        value={tierForm.recharge_bonus_percent ?? 0}
+                        onChange={(e) => setTierForm(prev => ({ ...prev, recharge_bonus_percent: parseInt(e.target.value) || 0 }))}
+                        className="bg-slate-900 border-slate-600 text-white"
+                      />
+                    </div>
+
+                    <div className="bg-slate-800 p-3 rounded-lg">
+                      <label className="text-sm text-white flex items-center gap-2 mb-2">
+                        <Gem className="w-4 h-4 text-cyan-400" />
+                        Daily Free Diamonds
+                      </label>
+                      <p className="text-xs text-slate-500 mb-2">Claimable once every 24 hours</p>
+                      <Input
+                        type="number"
+                        min={0}
+                        value={tierForm.daily_free_diamonds ?? 0}
+                        onChange={(e) => setTierForm(prev => ({ ...prev, daily_free_diamonds: parseInt(e.target.value) || 0 }))}
+                        className="bg-slate-900 border-slate-600 text-white"
+                      />
+                    </div>
+
+                    <div className="bg-slate-800 p-3 rounded-lg">
+                      <label className="text-sm text-white flex items-center gap-2 mb-2">
+                        <Calendar className="w-4 h-4 text-emerald-400" />
+                        Free Name Changes / Month
+                      </label>
+                      <Input
+                        type="number"
+                        min={0}
+                        value={tierForm.free_name_changes_per_month ?? 0}
+                        onChange={(e) => setTierForm(prev => ({ ...prev, free_name_changes_per_month: parseInt(e.target.value) || 0 }))}
+                        className="bg-slate-900 border-slate-600 text-white"
+                      />
+                    </div>
+
+                    <div className="bg-slate-800 p-3 rounded-lg">
+                      <label className="text-sm text-white flex items-center gap-2 mb-2">
+                        <Sparkles className="w-4 h-4 text-pink-400" />
+                        Entry Effect Duration (sec)
+                      </label>
+                      <Input
+                        type="number"
+                        min={1}
+                        max={60}
+                        value={tierForm.entry_effect_duration_seconds ?? 5}
+                        onChange={(e) => setTierForm(prev => ({ ...prev, entry_effect_duration_seconds: parseInt(e.target.value) || 5 }))}
+                        className="bg-slate-900 border-slate-600 text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-800 p-3 rounded-lg">
+                    <label className="text-sm text-white block mb-2">Username Color (hex)</label>
+                    <div className="flex gap-2 items-center">
+                      <Input
+                        type="color"
+                        value={tierForm.username_color || '#FFD700'}
+                        onChange={(e) => setTierForm(prev => ({ ...prev, username_color: e.target.value }))}
+                        className="w-16 h-10 bg-slate-900 border-slate-600 p-1"
+                      />
+                      <Input
+                        value={tierForm.username_color || ''}
+                        onChange={(e) => setTierForm(prev => ({ ...prev, username_color: e.target.value }))}
+                        placeholder="#FFD700"
+                        className="bg-slate-900 border-slate-600 text-white flex-1"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-800 p-3 rounded-lg">
+                    <label className="text-sm text-white block mb-2">Profile Background URL</label>
+                    <Input
+                      value={tierForm.profile_background_url || ''}
+                      onChange={(e) => setTierForm(prev => ({ ...prev, profile_background_url: e.target.value }))}
+                      placeholder="https://..."
+                      className="bg-slate-900 border-slate-600 text-white"
+                    />
+                  </div>
+                </TabsContent>
+
                 {/* Animations Tab */}
                 <TabsContent value="animations" className="space-y-4 mt-4">
                   <p className="text-slate-400 text-sm">
