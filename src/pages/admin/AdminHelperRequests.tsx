@@ -140,19 +140,11 @@ const AdminHelperRequests = () => {
         setTopupRequests(topups.map(req => ({ ...req, user: userMap.get(req.user_id) || null })));
       }
       
-      // Get pending counts
-      const { count: upgradeCount } = await supabase
-        .from('helper_upgrade_requests')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending');
-      
-      const { count: topupCount } = await supabase
-        .from('helper_topup_requests')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending');
-      
-      setPendingUpgradeCount(upgradeCount || 0);
-      setPendingTopupCount(topupCount || 0);
+      // Pkg6: single server-side aggregation RPC
+      const { data: statsData } = await supabase.rpc('admin_helper_requests_stats');
+      const s = (statsData as any) || {};
+      setPendingUpgradeCount(s.pendingUpgrades || 0);
+      setPendingTopupCount(s.pendingTopups || 0);
       
     } catch (error) {
       console.error('Error loading requests:', error);

@@ -12162,6 +12162,7 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_agency_overview_stats: { Args: never; Returns: Json }
       admin_apply_severity_ban: {
         Args: {
           _duration_value: number
@@ -12281,6 +12282,9 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_helper_applications_stats: { Args: never; Returns: Json }
+      admin_helper_management_stats: { Args: never; Returns: Json }
+      admin_helper_requests_stats: { Args: never; Returns: Json }
       admin_host_stats: { Args: never; Returns: Json }
       admin_list_admin_users: {
         Args: { _include_inactive?: boolean }
@@ -12941,7 +12945,9 @@ export type Database = {
       admin_live_ban_stats: { Args: never; Returns: Json }
       admin_logout: { Args: { _token: string }; Returns: undefined }
       admin_moderation_overview_stats: { Args: never; Returns: Json }
+      admin_party_management_stats: { Args: never; Returns: Json }
       admin_payment_gateway_stats: { Args: never; Returns: Json }
+      admin_payroll_orders_stats: { Args: never; Returns: Json }
       admin_permanent_ban_step_one: {
         Args: {
           _evidence?: Json
