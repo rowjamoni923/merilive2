@@ -48,7 +48,7 @@ const ROUTE_IMPORTERS: Record<string, Importer> = {
   '/admin/icon-registry': () => import('@/pages/admin/AdminIconRegistry'),
   '/admin/verified-badges': () => import('@/pages/admin/AdminVerifiedBadges'),
   '/admin/party-backgrounds': () => import('@/pages/admin/AdminPartyBackgrounds'),
-  // '/admin/call-settings' merged into '/admin/pricing-hub' (Pkg30)
+  // Deprecated pricing routes redirect to '/admin/pricing-hub' (Pkg30+)
   '/admin/agora-settings': () => import('@/pages/admin/AdminAgoraSettings'),
   '/admin/game-settings': () => import('@/pages/admin/AdminGameSettings'),
   '/admin/game-providers': () => import('@/pages/admin/AdminGameProviders'),
