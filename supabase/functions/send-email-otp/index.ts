@@ -44,8 +44,16 @@ async function sendWithGmail(to: string, subject: string, html: string): Promise
 
     return { success: true };
   } catch (e: any) {
-    console.error("[send-email-otp] Gmail SMTP error:", e?.message || e);
-    return { success: false, error: e?.message || String(e) };
+    const msg = e?.message || String(e);
+    const code = e?.code || e?.responseCode || "";
+    // Detect auth failures explicitly so future Gmail App Password issues are obvious in logs
+    const isAuthError = code === "EAUTH" || /535|invalid login|username and password not accepted|application-specific password/i.test(msg);
+    if (isAuthError) {
+      console.error("[send-email-otp] 🚨 GMAIL AUTH FAILURE — App Password invalid/expired. Please rotate GMAIL_APP_PASSWORD secret. Detail:", msg);
+      return { success: false, error: "Gmail authentication failed. Admin must rotate GMAIL_APP_PASSWORD secret." };
+    }
+    console.error("[send-email-otp] Gmail SMTP error:", msg, "code:", code);
+    return { success: false, error: msg };
   }
 }
 
