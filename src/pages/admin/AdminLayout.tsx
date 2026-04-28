@@ -2004,15 +2004,7 @@ export default function AdminLayout() {
     }
     console.log(`[Admin] ✅ Unified realtime: ${Math.ceil(globalTables.length / CHUNK_SIZE)} channels for ${globalTables.length} tables`);
 
-    // 🔄 Refresh only pending counts when tab becomes visible — NO full page reload
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        console.log('[Admin] 👁 Tab visible — refreshing pending counts only');
-        fetchPendingCounts();
-        fetchNotifications();
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    // Admin must not refetch on tab/app focus; live events and manual actions only.
 
     // ⚡ Event-based alert handler (replaces 3 separate alert channels)
     // Toast notifications & sound for INSERT events on critical tables
@@ -2185,7 +2177,6 @@ export default function AdminLayout() {
       channelRetryTimers.forEach(t => clearTimeout(t));
       globalChannels.forEach(ch => { try { adminSupabase.removeChannel(ch); } catch {} });
       window.removeEventListener(ADMIN_REALTIME_EVENT, handleUnifiedEvent);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [isAdmin, currentUser?.id]);
 

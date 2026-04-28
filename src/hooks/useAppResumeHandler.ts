@@ -80,6 +80,8 @@ export const useAppResumeHandler = (userId: string | null, queryClient?: QueryCl
   }, [queryClient]);
 
   const handleResume = useCallback(async () => {
+    if (!userId || window.location.pathname.startsWith('/admin')) return;
+
     // Debounce - native can emit multiple resume-like events in a short burst
     const now = Date.now();
     if (now - lastResumeTime.current < 10000) return;
@@ -142,9 +144,11 @@ export const useAppResumeHandler = (userId: string | null, queryClient?: QueryCl
     } catch (e) {
       // Ignore storage errors
     }
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
+    if (!userId || window.location.pathname.startsWith('/admin')) return;
+
     // === NATIVE: Capacitor appStateChange ===
     let removeNativeListener: (() => void) | null = null;
 
@@ -195,7 +199,7 @@ export const useAppResumeHandler = (userId: string | null, queryClient?: QueryCl
       document.removeEventListener('visibilitychange', handleVisibility);
       if (removeNativeListener) removeNativeListener();
     };
-  }, [isNative, handleResume]);
+  }, [userId, isNative, handleResume]);
 };
 
 /**

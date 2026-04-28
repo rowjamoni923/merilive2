@@ -15,6 +15,10 @@ export function lazyRetry<T extends React.ComponentType<any>>(
       if (!hasRetried) {
         sessionStorage.setItem(key, '1');
         console.warn('[LazyRetry] Chunk load failed, reloading page...', error);
+        if (window.location.pathname.startsWith('/admin')) {
+          console.error('[LazyRetry] Auto reload blocked on admin route.', error);
+          throw error;
+        }
         window.location.reload();
         // Return a never-resolving promise while page reloads
         return new Promise(() => {});
