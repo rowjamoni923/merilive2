@@ -1,11 +1,10 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { useEffect, useState } from "react";
 import { getAdminSession, type AdminSession } from "@/utils/adminSession";
 
 // Owner emails - hardcoded for absolute certainty
 const OWNER_EMAILS = ["smtv923@gmail.com", "sazzadshifa776@gmail.com"];
-const ADMIN_ACCESS_EVENT = "admin-access-updated";
 
 interface AdminUser {
   id: string;
@@ -26,66 +25,11 @@ interface AccessibleSection {
   can_edit: boolean;
 }
 
-type AdminAccessEventDetail = {
-  adminId: string;
-  target: 'user' | 'sections' | 'all';
-};
-
-const adminAccessChannelRegistry = new Map<string, { channel: any; listeners: number }>();
-
-function emitAdminAccessUpdate(adminId: string, target: AdminAccessEventDetail['target']) {
-  if (typeof window === 'undefined') return;
-  window.dispatchEvent(
-    new CustomEvent<AdminAccessEventDetail>(ADMIN_ACCESS_EVENT, {
-      detail: { adminId, target },
-    })
-  );
-}
-
-function ensureAdminAccessChannel(adminId: string) {
-  const existing = adminAccessChannelRegistry.get(adminId);
-  if (existing) {
-    existing.listeners += 1;
-    return existing.channel;
-  }
-
-  const channel = adminSupabase
-    .channel(`admin-access-${adminId}-${crypto.randomUUID()}`)
-    .on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: 'admin_users', filter: `id=eq.${adminId}` },
-      () => emitAdminAccessUpdate(adminId, 'user')
-    )
-    .on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: 'admin_section_permissions', filter: `admin_user_id=eq.${adminId}` },
-      () => emitAdminAccessUpdate(adminId, 'sections')
-    )
-    .subscribe();
-
-  adminAccessChannelRegistry.set(adminId, { channel, listeners: 1 });
-  return channel;
-}
-
-function releaseAdminAccessChannel(adminId: string) {
-  const existing = adminAccessChannelRegistry.get(adminId);
-  if (!existing) return;
-
-  if (existing.listeners <= 1) {
-    adminSupabase.removeChannel(existing.channel);
-    adminAccessChannelRegistry.delete(adminId);
-    return;
-  }
-
-  existing.listeners -= 1;
-}
-
 /**
  * useAdminAccess - now reads from the dedicated admin session instead of auth.users.
  * This means admin panel works independently from the user app login state.
  */
 export const useAdminAccess = () => {
-  const queryClient = useQueryClient();
   const [session, setSession] = useState<AdminSession | null>(() => getAdminSession());
 
   // Re-read session on storage events (cross-tab)
