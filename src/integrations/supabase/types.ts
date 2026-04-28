@@ -12258,6 +12258,7 @@ export type Database = {
         Args: { _admin_id: string; _stream_id: string }
         Returns: undefined
       }
+      admin_entry_effects_stats: { Args: never; Returns: Json }
       admin_face_verification_stats: { Args: never; Returns: Json }
       admin_finance_overview_stats: { Args: never; Returns: Json }
       admin_force_verify_and_approve_host: {
@@ -12297,6 +12298,40 @@ export type Database = {
           user_id: string
         }[]
       }
+      admin_list_avatar_frames_all: {
+        Args: never
+        Returns: {
+          animation_type: string | null
+          animation_url: string | null
+          category: string | null
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          frame_type: string | null
+          frame_url: string | null
+          id: string
+          image_url: string
+          is_active: boolean | null
+          is_free: boolean | null
+          is_premium: boolean | null
+          level_required: number | null
+          min_level: number | null
+          name: string
+          preview_url: string | null
+          price_coins: number | null
+          price_diamonds: number | null
+          sound_duration_ms: number | null
+          sound_url: string | null
+          target_type: string | null
+          updated_at: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "avatar_frames"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       admin_list_blocked_agencies: {
         Args: { _limit?: number; _search?: string }
         Returns: {
@@ -12321,6 +12356,65 @@ export type Database = {
           id: string
           is_host: boolean
         }[]
+      }
+      admin_list_chat_bubbles_all: {
+        Args: never
+        Returns: {
+          animation_url: string | null
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          duration_ms: number | null
+          icon_bg_color: string | null
+          icon_color: string | null
+          icon_name: string | null
+          icon_url: string | null
+          id: string
+          is_active: boolean | null
+          level: number
+          name: string | null
+          preview_url: string | null
+          privilege_key: string
+          privilege_name: string
+          privilege_type: string | null
+          sound_url: string | null
+          unlock_level: number | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "level_privileges"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      admin_list_chat_moderation_logs_paginated: {
+        Args: { _filter_type?: string; _page?: number; _page_size?: number }
+        Returns: Json
+      }
+      admin_list_entry_banners_all: {
+        Args: never
+        Returns: {
+          animation_url: string | null
+          created_at: string | null
+          display_order: number | null
+          duration: number | null
+          id: string
+          image_url: string
+          is_active: boolean | null
+          is_premium: boolean | null
+          level_required: number | null
+          name: string
+          price_coins: number | null
+          price_diamonds: number | null
+          sound_url: string | null
+          updated_at: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "entry_banners"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       admin_list_face_verification_paginated: {
         Args: {
@@ -12347,6 +12441,36 @@ export type Database = {
           stream_id: string
           violation_type: string
         }[]
+      }
+      admin_list_gifts_all: {
+        Args: never
+        Returns: {
+          animation_type: string | null
+          animation_url: string | null
+          category: string | null
+          category_id: string | null
+          coin_price: number | null
+          coin_value: number
+          created_at: string | null
+          display_order: number | null
+          icon_url: string | null
+          id: string
+          is_active: boolean | null
+          is_full_screen: boolean | null
+          is_lucky: boolean | null
+          min_level: number | null
+          name: string
+          receiver_beans: number | null
+          sound_duration_ms: number | null
+          sound_url: string | null
+          svga_url: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "gifts"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       admin_list_helper_applications: {
         Args: { _admin_id: string; _status?: string }
@@ -12637,6 +12761,29 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      admin_list_role_frames_all: {
+        Args: never
+        Returns: {
+          animation_type: string | null
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          frame_url: string
+          id: string
+          is_active: boolean | null
+          is_default: boolean | null
+          min_level: number | null
+          name: string
+          preview_url: string | null
+          role_type: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "role_frames"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       admin_list_severity_bans: {
         Args: { _limit?: number; _severity?: string }
         Returns: {
@@ -12654,6 +12801,48 @@ export type Database = {
           severity: string
           user_id: string
         }[]
+      }
+      admin_list_shop_items_all: {
+        Args: never
+        Returns: {
+          animation_file_url: string | null
+          animation_type: string | null
+          animation_url: string | null
+          category: string
+          created_at: string
+          description: string | null
+          display_order: number | null
+          duration_days: number | null
+          file_type: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          is_permanent: boolean | null
+          is_premium: boolean | null
+          is_vip_exclusive: boolean | null
+          item_type: string
+          level_required: number | null
+          min_level: number | null
+          name: string
+          preview_url: string | null
+          price_coins: number | null
+          price_diamonds: number | null
+          rarity: string | null
+          sound_duration_ms: number | null
+          sound_url: string | null
+          svga_url: string | null
+          tag: string | null
+          total_sold: number | null
+          updated_at: string
+          vip_discount_percent: number | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "shop_items"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       admin_list_streams: {
         Args: { _admin_id: string; _limit?: number }
@@ -12751,6 +12940,7 @@ export type Database = {
       }
       admin_live_ban_stats: { Args: never; Returns: Json }
       admin_logout: { Args: { _token: string }; Returns: undefined }
+      admin_moderation_overview_stats: { Args: never; Returns: Json }
       admin_payment_gateway_stats: { Args: never; Returns: Json }
       admin_permanent_ban_step_one: {
         Args: {
@@ -12830,6 +13020,7 @@ export type Database = {
         Args: { _admin_id: string; _target_email: string }
         Returns: Json
       }
+      admin_reports_overview_stats: { Args: never; Returns: Json }
       admin_request_device_access: {
         Args: {
           _admin_id: string
@@ -13015,6 +13206,7 @@ export type Database = {
         }
       }
       admin_user_stats: { Args: never; Returns: Json }
+      admin_visual_assets_stats: { Args: never; Returns: Json }
       admin_withdrawal_stats: { Args: never; Returns: Json }
       agency_send_diamonds_to_agency: {
         Args: {

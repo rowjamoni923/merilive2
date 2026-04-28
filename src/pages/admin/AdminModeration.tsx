@@ -119,46 +119,29 @@ export default function AdminModeration() {
   const fetchLogs = async () => {
     setLoading(true);
     try {
-      let query = supabase
-        .from("chat_moderation_logs")
-        .select("*", { count: "exact" });
-
-      if (filterType === "phone_number") {
-        query = query.eq("violation_type", "phone_number");
-      } else if (filterType === "auto_ban") {
-        query = query.eq("action_taken", "auto_ban");
-      } else if (filterType === "warning") {
-        query = query.eq("action_taken", "warning");
-      }
-
-      const from = (currentPage - 1) * pageSize;
-      const to = from + pageSize - 1;
-
-      const { data, error, count } = await query
-        .order("created_at", { ascending: false })
-        .range(from, to);
-
+      // Pkg10: single paginated RPC with embedded user profile (no client-side N+1 join)
+      const { data, error } = await supabase.rpc('admin_list_chat_moderation_logs_paginated' as any, {
+        _page: currentPage,
+        _page_size: pageSize,
+        _filter_type: filterType === 'all' ? 'all' : filterType,
+      });
       if (error) throw error;
 
-      // Fetch user profiles for logs
-      if (data && data.length > 0) {
-        const userIds = [...new Set(data.map(l => l.user_id))];
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("id, display_name, avatar_url, app_uid, is_blocked")
-          .in("id", userIds);
-
-        const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
-        const logsWithUsers = data.map(log => ({
-          ...log,
-          user: profilesMap.get(log.user_id)
-        }));
-        setLogs(logsWithUsers);
-      } else {
-        setLogs([]);
-      }
-      
-      setTotalLogs(count || 0);
+      const payload: any = data || {};
+      const rows: any[] = Array.isArray(payload.rows) ? payload.rows : [];
+      const logsWithUsers: ModerationLog[] = rows.map((r) => ({
+        ...r,
+        user: r.user_profile
+          ? {
+              display_name: r.user_profile.display_name ?? null,
+              avatar_url: r.user_profile.avatar_url ?? null,
+              app_uid: r.user_profile.app_uid ?? null,
+              is_blocked: r.user_profile.is_blocked ?? null,
+            }
+          : undefined,
+      }));
+      setLogs(logsWithUsers);
+      setTotalLogs(Number(payload.total || 0));
     } catch (error) {
       console.error("Error fetching logs:", error);
       toast.error("Failed to load logs");

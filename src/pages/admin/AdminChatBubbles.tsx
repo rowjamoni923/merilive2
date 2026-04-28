@@ -45,11 +45,8 @@ const AdminChatBubbles = () => {
   const fetchItems = useCallback(async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('level_privileges')
-        .select('*')
-        .eq('privilege_type', 'chat_bubble')
-        .order('unlock_level', { ascending: true });
+      // Pkg10: full-list RPC bypasses 500-row REST cap
+      const { data, error } = await supabase.rpc('admin_list_chat_bubbles_all' as any);
 
       if (error) throw error;
 

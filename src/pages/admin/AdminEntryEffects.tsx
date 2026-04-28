@@ -25,24 +25,18 @@ const AdminEntryEffects = () => {
   useAdminRealtime(['entry_banners', 'level_privileges', 'vehicle_entrances'], () => fetchStats());
 
   const fetchStats = async () => {
-    const [bannersRes, barsRes, nameBarsRes] = await Promise.all([
-      supabase.from('entry_banners').select('id', { count: 'exact' }),
-      supabase.from('level_privileges').select('id', { count: 'exact' }).eq('privilege_type', 'entry_bar'),
-      supabase.from('level_privileges').select('id', { count: 'exact' }).eq('privilege_type', 'entry_name_bar')
-    ]);
-
-    // Fetch vehicle entrances count
-    let vehiclesCount = 0;
-    try {
-      const { count } = await supabase.from('vehicle_entrances' as any).select('id', { count: 'exact', head: true }).eq('is_active', true);
-      vehiclesCount = count || 0;
-    } catch (e) { /* table might not exist */ }
-
+    // Pkg10: single RPC replaces 4 separate count queries
+    const { data, error } = await supabase.rpc('admin_entry_effects_stats' as any);
+    if (error || !data) {
+      console.error('admin_entry_effects_stats failed', error);
+      return;
+    }
+    const s: any = data;
     setStats({
-      banners: bannersRes.count || 0,
-      bars: barsRes.count || 0,
-      nameBars: nameBarsRes.count || 0,
-      vehicles: vehiclesCount
+      banners: Number(s.banners || 0),
+      bars: Number(s.bars || 0),
+      nameBars: Number(s.name_bars || 0),
+      vehicles: Number(s.vehicles || 0),
     });
   };
 

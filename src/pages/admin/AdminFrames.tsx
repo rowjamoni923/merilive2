@@ -108,17 +108,19 @@ const AdminFrames = () => {
   const fetchFrames = useCallback(async (showToast: boolean = false) => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("avatar_frames" as any)
-        .select("*")
-        .order("min_level", { ascending: true })
-        .order("display_order", { ascending: true });
+      // Pkg10: full-list RPC bypasses 500-row REST cap
+      const { data, error } = await supabase.rpc('admin_list_avatar_frames_all' as any);
 
       if (error) {
         toast.error("Failed to load frames");
         console.error(error);
       } else {
-        setFrames((data || []) as unknown as Frame[]);
+        const sorted = ((data as any[]) || []).slice().sort((a, b) => {
+          const al = a.min_level ?? 0, bl = b.min_level ?? 0;
+          if (al !== bl) return al - bl;
+          return (a.display_order ?? 0) - (b.display_order ?? 0);
+        });
+        setFrames(sorted as unknown as Frame[]);
         if (showToast) {
           toast.success(`${(data || []).length} frames loaded`);
         }

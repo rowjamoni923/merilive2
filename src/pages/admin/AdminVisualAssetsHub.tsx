@@ -29,50 +29,20 @@ const AdminVisualAssetsHub = () => {
   useAdminRealtime(['avatar_frames', 'role_frames', 'gifts', 'shop_items', 'entry_banners'], () => fetchStats());
 
   const fetchStats = async () => {
-    // Fetch all stats with error handling for tables that might not exist
-    let framesCount = 0, roleFramesCount = 0, bubblesCount = 0, giftsCount = 0, shopCount = 0, animationsCount = 0;
-    
-    try {
-      const { count } = await supabase.from('avatar_frames').select('id', { count: 'exact', head: true }).eq('is_active', true);
-      framesCount = count || 0;
-    } catch (e) { /* table might not exist */ }
-    
-    try {
-      const { count } = await supabase.from('role_frames').select('id', { count: 'exact', head: true }).eq('is_active', true);
-      roleFramesCount = count || 0;
-    } catch (e) { /* table might not exist */ }
-    
-    try {
-      const { count } = await supabase
-        .from('level_privileges')
-        .select('id', { count: 'exact', head: true })
-        .eq('privilege_type', 'chat_bubble')
-        .eq('is_active', true);
-      bubblesCount = count || 0;
-    } catch (e) { /* fallback to 0 */ }
-    
-    try {
-      const { count } = await supabase.from('gifts').select('id', { count: 'exact', head: true }).eq('is_active', true);
-      giftsCount = count || 0;
-    } catch (e) { /* table might not exist */ }
-    
-    try {
-      const { count } = await supabase.from('shop_items').select('id', { count: 'exact', head: true }).eq('is_active', true);
-      shopCount = count || 0;
-    } catch (e) { /* table might not exist */ }
-    
-    try {
-      const { count } = await supabase.from('entry_banners').select('id', { count: 'exact', head: true }).eq('is_active', true);
-      animationsCount = count || 0;
-    } catch (e) { /* table might not exist */ }
-
+    // Pkg10: single RPC replaces 6 separate count queries
+    const { data, error } = await supabase.rpc('admin_visual_assets_stats' as any);
+    if (error || !data) {
+      console.error('admin_visual_assets_stats failed', error);
+      return;
+    }
+    const s: any = data;
     setStats({
-      frames: framesCount,
-      roleFrames: roleFramesCount,
-      chatBubbles: bubblesCount,
-      animations: animationsCount,
-      gifts: giftsCount,
-      shopItems: shopCount
+      frames: Number(s.frames || 0),
+      roleFrames: Number(s.role_frames || 0),
+      chatBubbles: Number(s.chat_bubbles || 0),
+      animations: Number(s.entry_banners || 0),
+      gifts: Number(s.gifts || 0),
+      shopItems: Number(s.shop_items || 0),
     });
   };
 
