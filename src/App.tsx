@@ -192,7 +192,7 @@ const AdminCoinTraders = lazy(lazyRetry(() => import("./pages/admin/AdminCoinTra
 const AdminTraderOrders = lazy(lazyRetry(() => import("./pages/admin/AdminTraderOrders")));
 const AdminTraderTransactions = lazy(lazyRetry(() => import("./pages/admin/AdminTraderTransactions")));
 const AdminManualTopup = lazy(lazyRetry(() => import("./pages/admin/AdminManualTopup")));
-const AdminCommissionCalculator = lazy(lazyRetry(() => import("./pages/admin/AdminCommissionCalculator")));
+// AdminCommissionCalculator deprecated → AdminPricingHub (Pkg30)
 const AdminAnimationStore = lazy(lazyRetry(() => import("./pages/admin/AdminAnimationStore")));
 const AdminTopupSystem = lazy(lazyRetry(() => import("./pages/admin/AdminTopupSystem")));
 const AdminIconRegistry = lazy(lazyRetry(() => import("./pages/admin/AdminIconRegistry")));
