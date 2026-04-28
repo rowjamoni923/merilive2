@@ -125,14 +125,6 @@ export const useAdminRealtime = (
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const trackedTables = useMemo(() => Array.from(new Set(tables)), [tables.join('|')]);
 
-    const isOnAdminRoute = isAdminRoute();
-    const debounceMs = options.debounceMs ?? DEFAULT_DEBOUNCE_MS;
-    const enableRealtimeRefresh = !isOnAdminRoute && (options.enableRealtimeRefresh ?? false);
-    const enableVisibilityRefresh = !isOnAdminRoute && (options.enableVisibilityRefresh ?? false);
-    const enableStaleFallback = !isOnAdminRoute && (options.enableStaleFallback ?? false);
-  const staleRefreshMs = options.staleRefreshMs ?? DEFAULT_STALE_REFRESH_MS;
-  const healthCheckIntervalMs = options.healthCheckIntervalMs ?? DEFAULT_HEALTH_CHECK_INTERVAL_MS;
-
   const isAdminRoute = useCallback(() => {
     if (typeof window === 'undefined') return false;
     return (
@@ -141,6 +133,14 @@ export const useAdminRealtime = (
       window.location.hash.includes('/admin')
     );
   }, []);
+
+  const isOnAdminRoute = isAdminRoute();
+  const debounceMs = options.debounceMs ?? DEFAULT_DEBOUNCE_MS;
+  const enableRealtimeRefresh = !isOnAdminRoute && (options.enableRealtimeRefresh ?? false);
+  const enableVisibilityRefresh = !isOnAdminRoute && (options.enableVisibilityRefresh ?? false);
+  const enableStaleFallback = !isOnAdminRoute && (options.enableStaleFallback ?? false);
+  const staleRefreshMs = options.staleRefreshMs ?? DEFAULT_STALE_REFRESH_MS;
+  const healthCheckIntervalMs = options.healthCheckIntervalMs ?? DEFAULT_HEALTH_CHECK_INTERVAL_MS;
 
   useEffect(() => {
     onUpdateRef.current = onUpdate;
