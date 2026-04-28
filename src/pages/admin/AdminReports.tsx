@@ -63,62 +63,67 @@ export default function AdminReports() {
   const fetchReportData = async () => {
     setLoading(true);
     try {
-      // Fetch accurate counts using head queries (no 1000 row limit)
-      const [profilesCountRes, giftsCountRes, streamsCountRes, callsCountRes] = await Promise.all([
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const ninetyDaysAgo = new Date();
+      ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+
+      // Run ALL independent queries in parallel — was previously partially serial.
+      const [
+        profilesCountRes,
+        giftsCountRes,
+        streamsCountRes,
+        callsCountRes,
+        newUsersTodayRes,
+        giftsRes,
+        profilesRes,
+        streamsRes,
+      ] = await Promise.all([
         supabase.from("profiles").select("*", { count: "exact", head: true }),
         supabase.from("gift_transactions").select("*", { count: "exact", head: true }),
         supabase.from("live_streams").select("*", { count: "exact", head: true }),
         supabase.from("private_calls").select("*", { count: "exact", head: true }),
+        supabase
+          .from("profiles")
+          .select("*", { count: "exact", head: true })
+          .gte("created_at", today.toISOString()),
+        supabase
+          .from("gift_transactions")
+          .select("coin_amount, created_at")
+          .gte("created_at", ninetyDaysAgo.toISOString())
+          .order("created_at", { ascending: false })
+          .limit(1000),
+        supabase
+          .from("profiles")
+          .select("id, created_at")
+          .order("created_at", { ascending: false })
+          .limit(1000),
+        supabase
+          .from("live_streams")
+          .select("id, created_at")
+          .order("created_at", { ascending: false })
+          .limit(1000),
       ]);
 
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      const { count: newUsersTodayCount } = await supabase
-        .from("profiles")
-        .select("*", { count: "exact", head: true })
-        .gte("created_at", today.toISOString());
-
-      // Fetch coins spent - use limit to avoid fetching massive dataset
-      // Only fetch recent 90 days for chart data
-      const ninetyDaysAgo = new Date();
-      ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
-      
-      const { data: gifts } = await supabase
-        .from("gift_transactions")
-        .select("coin_amount, created_at")
-        .gte("created_at", ninetyDaysAgo.toISOString())
-        .order("created_at", { ascending: false })
-        .limit(1000);
+      const gifts = giftsRes.data;
+      const profiles = profilesRes.data;
+      const streams = streamsRes.data;
 
       const totalCoinsSpent = gifts?.reduce((sum, g) => sum + (g.coin_amount || 0), 0) || 0;
 
       setStats({
         totalUsers: profilesCountRes.count || 0,
-        newUsersToday: newUsersTodayCount || 0,
+        newUsersToday: newUsersTodayRes.count || 0,
         totalCoinsSpent,
         totalGiftsSent: giftsCountRes.count || 0,
         totalStreams: streamsCountRes.count || 0,
-        totalCalls: callsCountRes.count || 0
+        totalCalls: callsCountRes.count || 0,
       });
-
-      // Fetch recent data for charts (limited)
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, created_at")
-        .order("created_at", { ascending: false })
-        .limit(1000);
-
-      const { data: streams } = await supabase
-        .from("live_streams")
-        .select("id, created_at")
-        .order("created_at", { ascending: false })
-        .limit(1000);
 
       // Generate chart data based on period
       const days = period === "week" ? 7 : period === "month" ? 30 : 90;
       const data = [];
-      
+
       for (let i = days - 1; i >= 0; i--) {
         const date = new Date();
         date.setDate(date.getDate() - i);
@@ -142,7 +147,7 @@ export default function AdminReports() {
         }).length || 0;
 
         data.push({
-          date: date.toLocaleDateString("bn-BD", { day: "numeric", month: "short" }),
+          date: date.toLocaleDateString("en-US", { day: "numeric", month: "short" }),
           users: dayUsers,
           coins: dayGifts,
           streams: dayStreams
