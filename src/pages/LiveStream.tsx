@@ -847,7 +847,7 @@ const LiveStream = () => {
         },
         async (payload: any) => {
           const newMessageId = payload.new.id;
-          const senderId = payload.new.sender_id;
+          const senderId = payload.new.user_id;
           
           // Skip if this is our own message (optimistic update already added it)
           if (senderId === currentUserId) {
@@ -856,13 +856,13 @@ const LiveStream = () => {
               // Find if we have a temp message with similar content
               const hasTempMessage = prev.some(m => 
                 m.id.startsWith('temp_') && 
-                m.message === payload.new.content
+                m.message === payload.new.message
               );
               
               if (hasTempMessage) {
                 // Replace temp with real
                 return prev.map(m => 
-                  m.id.startsWith('temp_') && m.message === payload.new.content
+                  m.id.startsWith('temp_') && m.message === payload.new.message
                     ? { ...m, id: newMessageId }
                     : m
                 );
@@ -889,7 +889,7 @@ const LiveStream = () => {
           
           // Fetch sender info with all needed fields
           const { data: sender } = await supabase
-            .from("profiles")
+            .from("profiles_public")
             .select("display_name, user_level, avatar_url, country_flag, created_at")
             .eq("id", senderId)
             .single();
@@ -909,7 +909,7 @@ const LiveStream = () => {
               id: newMessageId,
               user: sender?.display_name || "User",
               initial: (sender?.display_name || "U").charAt(0),
-              message: payload.new.content,
+              message: payload.new.message,
               color: "text-white",
               userLevel: sender?.user_level || 1,
               userAvatar: sender?.avatar_url,
@@ -925,7 +925,7 @@ const LiveStream = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [id, streamData?.host_id, currentUserId]);
+  }, [id, streamData?.host_id, currentUserId, mapStreamChatRow]);
 
   // Subscribe to real-time gift transactions for THIS session's bean count
   // IMPORTANT: Only shows gifts received during THIS live session, NOT profile total
