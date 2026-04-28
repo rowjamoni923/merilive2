@@ -247,20 +247,14 @@ const AdminPaymentGateways = () => {
 
   const fetchStats = async () => {
     try {
-      const [totalRes, pendingRes, completedRes, revenueRes] = await Promise.all([
-        supabase.from('payment_transactions').select('*', { count: 'exact', head: true }),
-        supabase.from('payment_transactions').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('payment_transactions').select('*', { count: 'exact', head: true }).eq('status', 'completed'),
-        supabase.from('payment_transactions').select('amount_usd').eq('status', 'completed'),
-      ]);
-
-      const revenue = (revenueRes.data || []).reduce((sum, t) => sum + (t.amount_usd || 0), 0);
-
+      const { data, error } = await supabase.rpc('admin_payment_gateway_stats');
+      if (error) throw error;
+      const r = (data as any) || {};
       setStats({
-        totalTransactions: totalRes.count || 0,
-        pendingTransactions: pendingRes.count || 0,
-        completedTransactions: completedRes.count || 0,
-        totalRevenue: revenue,
+        totalTransactions: r.total_transactions || 0,
+        pendingTransactions: r.pending_transactions || 0,
+        completedTransactions: r.completed_transactions || 0,
+        totalRevenue: Number(r.total_revenue) || 0,
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
