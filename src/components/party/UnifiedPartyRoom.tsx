@@ -923,10 +923,21 @@ export function UnifiedPartyRoom({
           userAvatar: m.profiles?.avatar_url,
           isHost: m.profiles?.is_host || (m.sender_id === hostInfo?.id),
           isNewUser: false,
-          type: m.message_type || 'text'
+          type: m.message_type || 'text',
+          bubbleUrl: null,
         }));
         setPremiumMessages(unifiedMsgs);
         unifiedMsgs.forEach(m => processedMsgIdsRef.current.add(m.id));
+
+        // Asynchronously enrich each message with sender's equipped designer chat bubble
+        // (cached + de-duped per user — safe to call inside loops)
+        unifiedMsgs.forEach(async (m) => {
+          if (!m.userId) return;
+          const bubbleUrl = await getEquippedBubble(m.userId);
+          if (bubbleUrl) {
+            setPremiumMessages(prev => prev.map(pm => pm.id === m.id ? { ...pm, bubbleUrl } : pm));
+          }
+        });
       }
     };
     
