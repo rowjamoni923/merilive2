@@ -7905,6 +7905,7 @@ export type Database = {
           host_rating: number | null
           id: string
           last_billing_at: string | null
+          settled_at: string | null
           started_at: string | null
           status: string
           stream_id: string | null
@@ -7931,6 +7932,7 @@ export type Database = {
           host_rating?: number | null
           id?: string
           last_billing_at?: string | null
+          settled_at?: string | null
           started_at?: string | null
           status?: string
           stream_id?: string | null
@@ -7957,6 +7959,7 @@ export type Database = {
           host_rating?: number | null
           id?: string
           last_billing_at?: string | null
+          settled_at?: string | null
           started_at?: string | null
           status?: string
           stream_id?: string | null
@@ -13507,9 +13510,10 @@ export type Database = {
         Args: { p_competition_id: string }
         Returns: number
       }
-      end_private_call:
-        | { Args: { _call_id: string; _end_reason?: string }; Returns: boolean }
-        | { Args: { _call_id: string; _end_reason?: string }; Returns: boolean }
+      end_private_call: {
+        Args: { _call_id: string; _end_reason?: string }
+        Returns: boolean
+      }
       ensure_profile_row_from_auth: {
         Args: { _email?: string; _raw_user_meta_data?: Json; _user_id: string }
         Returns: {
@@ -14236,31 +14240,21 @@ export type Database = {
         Args: { user_id_param: string }
         Returns: undefined
       }
-      request_agency_withdrawal:
-        | {
-            Args: {
-              _agency_id: string
-              _amount: number
-              _payment_details?: Json
-              _payment_method?: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: { _amount: number; _method: string; _method_details: Json }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_agency_id: string
-              p_amount: number
-              p_notes?: string
-              p_payment_details?: Json
-              p_payment_method?: string
-            }
-            Returns: Json
-          }
+      request_agency_withdrawal: {
+        Args: {
+          p_agency_id: string
+          p_amount: number
+          p_notes?: string
+          p_payment_details?: Json
+          p_payment_method?: string
+        }
+        Returns: Json
+      }
       reset_my_call_status: { Args: never; Returns: undefined }
+      resolve_agency_commission_rate: {
+        Args: { _agency_id: string }
+        Returns: number
+      }
       roulette_complete_session: {
         Args: { p_session_id: string }
         Returns: undefined
@@ -14345,6 +14339,7 @@ export type Database = {
         }
         Returns: Json
       }
+      settle_private_call: { Args: { p_call_id: string }; Returns: Json }
       start_private_call:
         | { Args: { _host_id: string; _stream_id?: string }; Returns: string }
         | {
