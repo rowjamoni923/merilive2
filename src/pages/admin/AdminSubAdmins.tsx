@@ -841,6 +841,11 @@ const AdminSubAdmins = () => {
         <TabsContent value="owner-access">
           <OwnerAccessLinkGenerator />
         </TabsContent>
+
+        {/* Vault PIN Tab */}
+        <TabsContent value="vault-pin">
+          <VaultPinManager />
+        </TabsContent>
       </Tabs>
 
       {/* Permission Edit Dialog */}
