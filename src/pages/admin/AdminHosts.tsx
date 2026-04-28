@@ -147,7 +147,7 @@ export default function AdminHosts() {
         .from("app_settings")
         .select("setting_value")
         .eq("setting_key", "call_rates")
-        .single();
+        .maybeSingle();
       if (data?.setting_value) {
         const val = data.setting_value as any;
         setLevelRates(val.level_rates || []);

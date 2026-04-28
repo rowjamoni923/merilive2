@@ -94,7 +94,7 @@ const AdminTransferScheduler = () => {
         .from('app_settings')
         .select('setting_value')
         .eq('setting_key', 'transfer_schedule')
-        .single();
+        .maybeSingle();
 
       if (data?.setting_value) {
         const value = parseSettingValue<TransferSchedule>(data.setting_value) as TransferSchedule;

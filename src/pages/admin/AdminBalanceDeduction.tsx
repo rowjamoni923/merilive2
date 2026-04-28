@@ -134,7 +134,7 @@ export default function AdminBalanceDeduction() {
       .from('profiles')
       .select('display_name, avatar_url, app_uid')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
     return data;
   }, []);
 

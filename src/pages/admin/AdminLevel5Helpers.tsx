@@ -378,7 +378,7 @@ const AdminLevel5Helpers = () => {
         .from('topup_helpers')
         .select('wallet_balance, user_id')
         .eq('id', selectedWithdrawal.helper_id)
-        .single();
+        .maybeSingle();
 
       if (!helper) throw new Error('Helper not found');
 
