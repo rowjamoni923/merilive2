@@ -1,5 +1,5 @@
 import { useEffect, useState, lazy, Suspense, memo } from "react";
-import { useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { lazyRetry } from "@/utils/lazyRetry";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -409,6 +409,30 @@ const NativeSystemUIBridge = lazy(() => import("./hooks/useNativeSystemUI").then
   const Bridge = () => { m.useNativeSystemUI(); return null; };
   return { default: Bridge };
 }));
+
+const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: string | null; hasSession: boolean }) => {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+  const isPublicPage = ['/agency-policy', '/policies-benefits', '/helper-policy', '/policies', '/about', '/contact', '/agency-signup', '/create-agency', '/become-sub-agent', '/payroll-helper-guide', '/link', '/smart-link', '/privacy-policy', '/terms', '/google-library-order-rules', '/join-agency'].some(r => location.pathname.startsWith(r));
+  const showPopups = !isAdminRoute && !isPublicPage && hasSession;
+
+  return (
+    <>
+      {!isAdminRoute && <Suspense fallback={null}><RealtimeQuerySyncBridge /></Suspense>}
+      <Suspense fallback={null}><DeferredAppHooks userId={userId} /></Suspense>
+      {showPopups ? <><WelcomeOnboarding /><EventPopupBanner /><DailyLoginPopup /><RatingRewardPopup /></> : null}
+      {!isAdminRoute && (
+        <>
+          <AppUpdateChecker />
+          <NetworkStatusBar />
+          <PushNotificationInitializer />
+        </>
+      )}
+    </>
+  );
+});
+
+RouteScopedBackgroundHooks.displayName = 'RouteScopedBackgroundHooks';
 
 // ⚡ INSTANT-BOOT helper: synchronously detect a stored Supabase session in
 // localStorage so we can skip the full-screen "Checking your session..." loader
