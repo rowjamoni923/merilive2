@@ -229,6 +229,7 @@ const AdminContent = lazy(lazyRetry(() => import("./pages/admin/AdminContent")))
 const AdminDeviceManagement = lazy(lazyRetry(() => import("./pages/admin/AdminDeviceManagement")));
 const AdminDeviceApprovals = lazy(lazyRetry(() => import("./pages/admin/AdminDeviceApprovals")));
 const AdminCommissions = lazy(lazyRetry(() => import("./pages/admin/AdminCommissions")));
+const AdminPricingHub = lazy(lazyRetry(() => import("./pages/admin/AdminPricingHub")));
 const AdminWithdrawals = lazy(lazyRetry(() => import("./pages/admin/AdminWithdrawals")));
 const AdminBranding = lazy(lazyRetry(() => import("./pages/admin/AdminBranding")));
 const AdminNotificationTemplates = lazy(lazyRetry(() => import("./pages/admin/AdminNotificationTemplates")));
