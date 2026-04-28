@@ -416,21 +416,55 @@ async function fetchLevelBasedVehicle(userLevel: number): Promise<string | undef
 }
 
 /**
+ * Fetch active Noble subscription entrance animation for a user.
+ * Active monthly Noble subscription beats level-based entrance and acts as a fallback
+ * if user has no other equipped entrance.
+ */
+async function fetchActiveNobleEntrance(userId: string): Promise<string | undefined> {
+  if (!userId) return undefined;
+  const cacheKey = `noble-entrance:${userId}`;
+  const cached = getCached(cacheKey);
+  if (cached !== null) return cached;
+  try {
+    const { data } = await supabase
+      .from('user_noble_subscriptions')
+      .select('noble_cards:noble_card_id ( entrance_animation_url )')
+      .eq('user_id', userId)
+      .eq('is_active', true)
+      .gt('expires_at', new Date().toISOString())
+      .order('expires_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const url = (data?.noble_cards as any)?.entrance_animation_url || undefined;
+    setCache(cacheKey, url);
+    return url;
+  } catch (err) {
+    console.error('[fetchActiveNobleEntrance] error:', err);
+    return undefined;
+  }
+}
+
+/**
  * Fetch all entry animations for a user
  * This is the main function to use in LiveStream and PartyRoom
- * 
+ *
  * AUTO-ASSIGNS level-based animations when user has no equipped item:
  * - Entry Name Bar: checks entry_name_bars + level_privileges (entry_bar)
  * - Entrance: checks level_privileges (entrance/entrance_effect) + entry_banners
  * - Vehicle: checks level_privileges (vehicle_entrance)
- * 
+ *
+ * NOBLE PRIORITY: If userId is provided and user has an active Noble subscription
+ * with a custom entrance_animation_url, that wins over level-based fallback.
+ *
  * @param userLevel - Optional user level for auto-assigning level-based animations
+ * @param userId    - Optional user id for Noble subscription lookup
  */
 export async function fetchUserEntryAnimations(
   equippedEntranceId?: string | null,
   equippedEntryNameBarId?: string | null,
   equippedVehicleId?: string | null,
-  userLevel?: number | null
+  userLevel?: number | null,
+  userId?: string | null
 ): Promise<EntryAnimationResult> {
   const result: EntryAnimationResult = {};
 
@@ -462,15 +496,26 @@ export async function fetchUserEntryAnimations(
       );
     }
 
-    // Auto-assign entrance from level_privileges (entrance) + entry_banners
+    // Auto-assign entrance: Noble subscription wins over level-based fallback
     if (!result.entranceAnimationUrl) {
       autoAssignPromises.push(
-        fetchLevelBasedEntrance(userLevel).then(url => {
+        (async () => {
+          // 1) Try active Noble subscription first
+          if (userId) {
+            const nobleUrl = await fetchActiveNobleEntrance(userId);
+            if (nobleUrl) {
+              result.entranceAnimationUrl = nobleUrl;
+              console.log('[fetchUserEntryAnimations] ✅ Auto-assigned Noble subscription entrance');
+              return;
+            }
+          }
+          // 2) Fallback to level-based
+          const url = await fetchLevelBasedEntrance(userLevel);
           if (url) {
             result.entranceAnimationUrl = url;
             console.log('[fetchUserEntryAnimations] ✅ Auto-assigned level-based entrance');
           }
-        })
+        })()
       );
     }
 

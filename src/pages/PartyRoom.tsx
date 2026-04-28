@@ -1932,10 +1932,30 @@ const PartyRoom = () => {
       console.log('[PartyRoom] ❌ Cannot kick - no permission');
       return;
     }
-    
+
     console.log('[PartyRoom] 🚫 Host kicking user:', userId);
-    
+
     try {
+      // 🛡️ Phase 4: VIP/Noble anti-kick protection check
+      const moderatorId = currentUser?.id;
+      if (moderatorId && moderatorId !== userId) {
+        const { data: antiKick, error: antiKickErr } = await supabase.rpc(
+          'check_user_anti_kick',
+          { _target_user_id: userId, _moderator_user_id: moderatorId }
+        );
+        if (!antiKickErr) {
+          const result: any = antiKick;
+          if (result?.protected) {
+            const rank = result?.protection_source === 'noble_card'
+              ? `Noble (${result?.rank_name || ''})`
+              : `VIP (${result?.tier_name || ''})`;
+            toast.error(`Cannot kick — ${rank} member has anti-kick protection.`);
+            console.log('[PartyRoom] 🛡️ Kick blocked by anti-kick:', result);
+            return;
+          }
+        }
+      }
+
       // Remove user from seat AND room
       await supabase
         .from('party_room_participants')

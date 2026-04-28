@@ -836,7 +836,8 @@ export function UnifiedPartyRoom({
                 profile.equipped_entrance_id,
                 profile.equipped_entry_name_bar_id,
                 undefined,
-                userLevel
+                userLevel,
+                newParticipant.user_id
               );
               
               console.log('[UnifiedPartyRoom] 📍 Animation lookup result:', {
