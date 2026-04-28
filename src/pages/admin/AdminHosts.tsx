@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
+import AdminPagination from "@/components/admin/AdminPagination";
 import { getAdminCache, setAdminCache } from "@/utils/adminDataCache";
 import { motion } from "framer-motion";
 import {
