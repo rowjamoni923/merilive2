@@ -420,7 +420,7 @@ export default function AdminLiveBans() {
               <div className="flex items-center gap-3">
                 <CheckCircle className="w-8 h-8 text-green-500" />
                 <div>
-                  <p className="text-2xl font-bold">{bans.filter(b => !b.is_active).length}</p>
+                  <p className="text-2xl font-bold">{stats.unbanned.toLocaleString()}</p>
                   <p className="text-xs text-muted-foreground">Unbanned</p>
                 </div>
               </div>
