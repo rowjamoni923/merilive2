@@ -496,15 +496,26 @@ export async function fetchUserEntryAnimations(
       );
     }
 
-    // Auto-assign entrance from level_privileges (entrance) + entry_banners
+    // Auto-assign entrance: Noble subscription wins over level-based fallback
     if (!result.entranceAnimationUrl) {
       autoAssignPromises.push(
-        fetchLevelBasedEntrance(userLevel).then(url => {
+        (async () => {
+          // 1) Try active Noble subscription first
+          if (userId) {
+            const nobleUrl = await fetchActiveNobleEntrance(userId);
+            if (nobleUrl) {
+              result.entranceAnimationUrl = nobleUrl;
+              console.log('[fetchUserEntryAnimations] ✅ Auto-assigned Noble subscription entrance');
+              return;
+            }
+          }
+          // 2) Fallback to level-based
+          const url = await fetchLevelBasedEntrance(userLevel);
           if (url) {
             result.entranceAnimationUrl = url;
             console.log('[fetchUserEntryAnimations] ✅ Auto-assigned level-based entrance');
           }
-        })
+        })()
       );
     }
 
