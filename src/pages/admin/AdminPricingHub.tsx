@@ -7,6 +7,8 @@ import {
   Wallet,
   ArrowRightLeft,
   Percent,
+  Plus,
+  Trash2,
   Crown,
   RefreshCw,
   Info,
@@ -219,6 +221,18 @@ export default function AdminPricingHub() {
     const arr: LevelRate[] = [...(callRates.level_rates ?? [])];
     arr[idx] = { ...arr[idx], [field]: value };
     setCallRates({ ...callRates, level_rates: arr });
+  };
+
+  const addLevelRate = () => {
+    const arr: LevelRate[] = [...(callRates?.level_rates ?? [])];
+    const nextLevel = arr.length ? Math.max(...arr.map((lr) => Number(lr.level) || 0)) + 1 : 0;
+    setCallRates({ ...(callRates ?? {}), level_rates: [...arr, { level: nextLevel, rate: "" }] });
+  };
+
+  const removeLevelRate = (idx: number) => {
+    const arr: LevelRate[] = [...(callRates?.level_rates ?? [])];
+    arr.splice(idx, 1);
+    setCallRates({ ...(callRates ?? {}), level_rates: arr });
   };
 
   if (loading) {
