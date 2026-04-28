@@ -439,6 +439,20 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
       )}
     </motion.div>
   );
+
+  if (hasDesignerBubble) {
+    return (
+      <MessageBubbleWrapper
+        bubbleUrl={message.bubbleUrl}
+        safeAreaClassName="px-4 py-2"
+        maxWidthClassName="max-w-[92%]"
+      >
+        {innerContent}
+      </MessageBubbleWrapper>
+    );
+  }
+
+  return innerContent;
 });
 
 ChatMessageItem.displayName = 'ChatMessageItem';
