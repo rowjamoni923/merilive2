@@ -457,7 +457,7 @@ const AdminNobleSubscriptions = () => {
                 </TabsContent>
               </Tabs>
             </div>
-          </ScrollArea>
+          </div>
 
           <div className="p-4 border-t border-slate-700 shrink-0 flex justify-end gap-2">
             <Button variant="ghost" onClick={() => setDialogOpen(false)}>Cancel</Button>
