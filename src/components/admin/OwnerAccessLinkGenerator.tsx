@@ -21,6 +21,7 @@ import {
   Trash2,
   Plus,
   Sparkles,
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { PRODUCTION_DOMAIN } from "@/utils/shareLinks";
@@ -42,8 +43,11 @@ export default function OwnerAccessLinkGenerator() {
   const [showSubAdminSecret, setShowSubAdminSecret] = useState(false);
   const [ownerToken, setOwnerToken] = useState<string | null>(null);
   const [subAdminToken, setSubAdminToken] = useState<string | null>(null);
+  const [ownerRotatedAt, setOwnerRotatedAt] = useState<string | null>(null);
+  const [subAdminRotatedAt, setSubAdminRotatedAt] = useState<string | null>(null);
   const [tokenYear, setTokenYear] = useState<number>(new Date().getFullYear());
   const [loadingTokens, setLoadingTokens] = useState(true);
+  const [rotating, setRotating] = useState<'owner' | 'sub_admin' | null>(null);
 
   // Owner whitelist management
   const [owners, setOwners] = useState<OwnerRow[]>([]);
@@ -59,12 +63,44 @@ export default function OwnerAccessLinkGenerator() {
       if (!error && data) {
         setOwnerToken(data.owner_token || null);
         setSubAdminToken(data.subadmin_token || null);
+        setOwnerRotatedAt(data.owner_rotated_at || null);
+        setSubAdminRotatedAt(data.subadmin_rotated_at || null);
         if (data.year) setTokenYear(data.year);
       }
     } catch (err) {
       console.error('Failed to fetch admin tokens:', err);
     } finally {
       setLoadingTokens(false);
+    }
+  };
+
+  const handleGenerate = async (kind: 'owner' | 'sub_admin') => {
+    if (!session?.is_owner) {
+      toast.error('Only owners can generate secret links');
+      return;
+    }
+    const label = kind === 'owner' ? 'Owner' : 'Sub-Admin';
+    if (!confirm(`Generate a NEW ${label} secret link?\n\nThe old link will stop working immediately. Anyone using the old link will be locked out until they receive the new one.`)) {
+      return;
+    }
+    setRotating(kind);
+    try {
+      const { data, error } = await adminSupabase.rpc('admin_rotate_secret_token' as any, {
+        _admin_id: session.admin_id,
+        _kind: kind,
+      });
+      if (error) throw error;
+      const result = data as any;
+      if (!result?.success) throw new Error(result?.error || 'Failed');
+      toast.success(`New ${label} secret link generated!`);
+      await fetchTokens();
+      // Auto-reveal the freshly generated token
+      if (kind === 'owner') setShowOwnerSecret(true);
+      else setShowSubAdminSecret(true);
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to generate');
+    } finally {
+      setRotating(null);
     }
   };
 
@@ -225,7 +261,24 @@ export default function OwnerAccessLinkGenerator() {
                     Token: <span className="font-bold">{showOwnerSecret ? ownerToken : maskToken(ownerToken)}</span>
                   </p>
                 )}
+                {ownerRotatedAt && (
+                  <p className="text-[10px] text-emerald-300/80 mt-1">
+                    ✨ Manually rotated: {new Date(ownerRotatedAt).toLocaleString()}
+                  </p>
+                )}
               </div>
+
+              {session?.is_owner && (
+                <Button
+                  onClick={() => handleGenerate('owner')}
+                  disabled={rotating === 'owner' || loadingTokens}
+                  className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-semibold"
+                  size="lg"
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${rotating === 'owner' ? 'animate-spin' : ''}`} />
+                  {rotating === 'owner' ? 'Generating…' : '🔐 Generate New Owner Secret Link'}
+                </Button>
+              )}
 
               <div className="bg-accent/30 rounded-lg p-4 space-y-3">
                 <h4 className="text-sm font-medium flex items-center gap-2">
@@ -294,7 +347,24 @@ export default function OwnerAccessLinkGenerator() {
                     Token: <span className="font-bold">{showSubAdminSecret ? subAdminToken : maskToken(subAdminToken)}</span>
                   </p>
                 )}
+                {subAdminRotatedAt && (
+                  <p className="text-[10px] text-emerald-300/80 mt-1">
+                    ✨ Manually rotated: {new Date(subAdminRotatedAt).toLocaleString()}
+                  </p>
+                )}
               </div>
+
+              {session?.is_owner && (
+                <Button
+                  onClick={() => handleGenerate('sub_admin')}
+                  disabled={rotating === 'sub_admin' || loadingTokens}
+                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-semibold"
+                  size="lg"
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${rotating === 'sub_admin' ? 'animate-spin' : ''}`} />
+                  {rotating === 'sub_admin' ? 'Generating…' : '🔐 Generate New Sub-Admin Secret Link'}
+                </Button>
+              )}
 
               <div className="bg-accent/30 rounded-lg p-4 space-y-2">
                 <h4 className="text-sm font-medium flex items-center gap-2">

@@ -653,6 +653,30 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_token_overrides: {
+        Row: {
+          kind: string
+          rotated_at: string
+          rotated_by: string | null
+          rotated_year: number
+          token: string
+        }
+        Insert: {
+          kind: string
+          rotated_at?: string
+          rotated_by?: string | null
+          rotated_year?: number
+          token: string
+        }
+        Update: {
+          kind?: string
+          rotated_at?: string
+          rotated_by?: string | null
+          rotated_year?: number
+          token?: string
+        }
+        Relationships: []
+      }
       admin_users: {
         Row: {
           accepted_at: string | null
@@ -12703,6 +12727,10 @@ export type Database = {
       }
       admin_revoke_device: {
         Args: { _device_id: string; _owner_admin_id: string; _reason?: string }
+        Returns: Json
+      }
+      admin_rotate_secret_token: {
+        Args: { _admin_id: string; _kind: string }
         Returns: Json
       }
       admin_send_notification: {
