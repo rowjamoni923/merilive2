@@ -1937,7 +1937,7 @@ const PartyRoom = () => {
 
     try {
       // 🛡️ Phase 4: VIP/Noble anti-kick protection check
-      const moderatorId = user?.id;
+      const moderatorId = currentUser?.id;
       if (moderatorId && moderatorId !== userId) {
         const { data: antiKick, error: antiKickErr } = await supabase.rpc(
           'check_user_anti_kick',
