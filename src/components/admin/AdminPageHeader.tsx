@@ -13,6 +13,13 @@ interface AdminPageHeaderProps {
   className?: string;
 }
 
+/**
+ * AdminPageHeader — Pkg3 polished:
+ *  - Luxurious gradient icon tile with subtle glow ring
+ *  - Tight semantic title + subtitle hierarchy
+ *  - Fade-in animation on mount for smooth page transitions
+ *  - Wrap-friendly action area on small viewports
+ */
 export default function AdminPageHeader({
   title,
   subtitle,
@@ -20,35 +27,43 @@ export default function AdminPageHeader({
   onRefresh,
   isRefreshing = false,
   actions,
-  className
+  className,
 }: AdminPageHeaderProps) {
   return (
-    <div className={cn("flex items-center justify-between mb-6", className)}>
-      <div className="flex items-center gap-3">
+    <div
+      className={cn(
+        "flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6 animate-fade-in",
+        className,
+      )}
+    >
+      <div className="flex items-center gap-3 min-w-0">
         {Icon && (
-         <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/15">
-            <Icon className="w-6 h-6 text-amber-400" />
+          <div className="relative shrink-0">
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-amber-400/30 via-fuchsia-500/20 to-violet-500/30 blur-md opacity-70" />
+            <div className="relative p-2.5 rounded-xl bg-gradient-to-br from-amber-500/15 via-fuchsia-500/10 to-violet-500/15 border border-amber-400/20 shadow-[0_8px_24px_-12px_hsl(var(--admin-accent)/0.55)]">
+              <Icon className="w-6 h-6 text-amber-400" />
+            </div>
           </div>
         )}
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">{title}</h1>
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">{title}</h1>
           {subtitle && (
-            <p className="text-sm text-muted-foreground">{subtitle}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground truncate">{subtitle}</p>
           )}
         </div>
       </div>
-      
-      <div className="flex items-center gap-2">
+
+      <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
         {onRefresh && (
           <Button
             variant="outline"
             size="sm"
             onClick={onRefresh}
             disabled={isRefreshing}
-            className="gap-2"
+            className="gap-2 border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-amber-400/30 transition-all"
           >
             <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
-            {isRefreshing ? "Refreshing..." : "Refresh"}
+            <span className="hidden sm:inline">{isRefreshing ? "Refreshing..." : "Refresh"}</span>
           </Button>
         )}
         {actions}
