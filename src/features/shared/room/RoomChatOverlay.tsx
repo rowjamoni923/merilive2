@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import TraderBadge from "@/components/common/TraderBadge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { RoomWelcomeBanner } from "@/components/room/RoomWelcomeBanner";
+import { MessageBubbleWrapper } from "@/components/chat/MessageBubbleWrapper";
 
 import { 
   getLevelGradient, 
