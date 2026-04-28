@@ -42,6 +42,8 @@ export interface RoomChatMessage {
   traderLevel?: number;
   type?: 'text' | 'system' | 'gift' | 'join' | 'leave';
   timestamp?: Date;
+  /** Designer chat bubble (SVGA / Lottie / animated image) — wraps the message text */
+  bubbleUrl?: string | null;
 }
 
 // ============= GIFT ANIMATION TYPES =============

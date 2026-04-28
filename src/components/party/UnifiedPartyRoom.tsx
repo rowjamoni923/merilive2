@@ -48,6 +48,7 @@ import {
   type RoomChatMessage 
 } from "@/features/shared/room";
 import { fetchUserEntryAnimations } from "@/utils/fetchEntryAnimation";
+import { getEquippedBubble } from "@/utils/fetchEquippedBubbles";
 import { trackTaskProgress } from "@/hooks/useTaskProgress";
 import { RoomWelcomeBanner } from "@/components/room/RoomWelcomeBanner";
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
@@ -922,10 +923,21 @@ export function UnifiedPartyRoom({
           userAvatar: m.profiles?.avatar_url,
           isHost: m.profiles?.is_host || (m.sender_id === hostInfo?.id),
           isNewUser: false,
-          type: m.message_type || 'text'
+          type: m.message_type || 'text',
+          bubbleUrl: null,
         }));
         setPremiumMessages(unifiedMsgs);
         unifiedMsgs.forEach(m => processedMsgIdsRef.current.add(m.id));
+
+        // Asynchronously enrich each message with sender's equipped designer chat bubble
+        // (cached + de-duped per user — safe to call inside loops)
+        unifiedMsgs.forEach(async (m) => {
+          if (!m.userId) return;
+          const bubbleUrl = await getEquippedBubble(m.userId);
+          if (bubbleUrl) {
+            setPremiumMessages(prev => prev.map(pm => pm.id === m.id ? { ...pm, bubbleUrl } : pm));
+          }
+        });
       }
     };
     
@@ -971,7 +983,10 @@ export function UnifiedPartyRoom({
             .single();
           
           const msgType = newMsg.message_type || 'text';
-          
+
+          // Resolve sender's equipped designer chat bubble (cached + de-duped per user)
+          const bubbleUrl = await getEquippedBubble(newMsg.sender_id);
+
           // Add ONLY to unified messages (SAME format as Live Stream - ONE LINK)
           const unifiedMsg: RoomChatMessage = {
             id: newMsg.id,
@@ -984,7 +999,8 @@ export function UnifiedPartyRoom({
             userAvatar: senderData?.avatar_url,
             isHost: senderData?.is_host || (newMsg.sender_id === hostInfo?.id),
             isNewUser: false,
-            type: msgType
+            type: msgType,
+            bubbleUrl,
           };
           setPremiumMessages(prev => [...prev.slice(-100), unifiedMsg]);
         }
@@ -1052,6 +1068,7 @@ export function UnifiedPartyRoom({
     
     // OPTIMISTIC UPDATE: Instantly show message in UI before DB save
     const senderName = hostInfo?.displayName || 'You';
+    const ownBubble = await getEquippedBubble(currentUserId);
     const optimisticMessage: RoomChatMessage = {
       id: tempId,
       userId: currentUserId,
@@ -1062,9 +1079,10 @@ export function UnifiedPartyRoom({
       userAvatar: hostInfo?.avatarUrl,
       isHost: isHost,
       type: 'text',
-      timestamp: new Date()
+      timestamp: new Date(),
+      bubbleUrl: ownBubble,
     };
-    
+
     // Add to local state immediately (instant feedback)
     setPremiumMessages(prev => [...prev, optimisticMessage]);
     

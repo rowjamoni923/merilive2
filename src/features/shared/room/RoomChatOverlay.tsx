@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import TraderBadge from "@/components/common/TraderBadge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { RoomWelcomeBanner } from "@/components/room/RoomWelcomeBanner";
+import { MessageBubbleWrapper } from "@/components/chat/MessageBubbleWrapper";
 
 import { 
   getLevelGradient, 
@@ -277,21 +278,30 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
 
   if (!isVisible) return null;
 
-  return (
+  // ===== DESIGNER SVGA BUBBLE WRAPPER =====
+  // If sender has an equipped chat bubble (VIP / Noble / Shop), the SVGA bubble itself
+  // becomes the message background — text sits inside the designed safe area.
+  // We skip the gradient/border/glow styling so the bubble art is fully visible.
+  const hasDesignerBubble = !!message.bubbleUrl && !isSystemMessage && !isJoinMessage;
+
+  const innerContent = (
     <motion.div
       initial={{ opacity: 0, x: -80 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 60, transition: { duration: 0.15 } }}
       transition={{ type: "spring", damping: 28, stiffness: 350 }}
       className={cn(
-        "flex flex-wrap items-center gap-1.5 rounded-2xl w-fit max-w-[92%]",
-        "bg-gradient-to-r backdrop-blur-md",
-        getBgStyle(),
-        "border",
-        getBorderStyle(),
-        getGlowStyle(),
-        // Gift messages are SMALLER
-        isGiftMessage ? "py-1 px-2.5" : "py-1.5 px-3.5"
+        "flex flex-wrap items-center gap-1.5 w-fit",
+        // Only apply default gradient bubble styling when there's NO designer bubble
+        !hasDesignerBubble && [
+          "rounded-2xl max-w-[92%]",
+          "bg-gradient-to-r backdrop-blur-md",
+          getBgStyle(),
+          "border",
+          getBorderStyle(),
+          getGlowStyle(),
+          isGiftMessage ? "py-1 px-2.5" : "py-1.5 px-3.5",
+        ],
       )}
     >
       {/* Mini Avatar - smaller for gift messages */}
@@ -429,6 +439,20 @@ const ChatMessageItem = memo(({ message, autoHide, onAutoHide }: ChatMessageItem
       )}
     </motion.div>
   );
+
+  if (hasDesignerBubble) {
+    return (
+      <MessageBubbleWrapper
+        bubbleUrl={message.bubbleUrl}
+        safeAreaClassName="px-4 py-2"
+        maxWidthClassName="max-w-[92%]"
+      >
+        {innerContent}
+      </MessageBubbleWrapper>
+    );
+  }
+
+  return innerContent;
 });
 
 ChatMessageItem.displayName = 'ChatMessageItem';
