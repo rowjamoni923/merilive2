@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo, Suspense, startTransition } from "react";
 import { ADMIN_REALTIME_EVENT, type AdminTableUpdateEvent } from "@/hooks/useAdminRealtime";
+import { startAdminGlobalRealtime, stopAdminGlobalRealtime } from "@/utils/adminGlobalRealtime";
 import { useNavigate, Outlet, Link, useLocation, Navigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
