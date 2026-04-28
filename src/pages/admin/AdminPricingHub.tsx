@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback } from "react";
-import { motion } from "framer-motion";
 import {
   Save,
   Phone,
@@ -8,8 +7,6 @@ import {
   Wallet,
   ArrowRightLeft,
   Percent,
-  Plus,
-  Trash2,
   Crown,
   RefreshCw,
   Info,
