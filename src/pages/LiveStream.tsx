@@ -816,42 +816,19 @@ const LiveStream = () => {
     const fetchMessages = async () => {
       const { data: chatMessages } = await supabase
         .from("stream_chat")
-        .select(`
-          id,
-          content,
-          created_at,
-          sender_id,
-          profiles!stream_chat_sender_id_fkey (
-            display_name,
-            user_level,
-            avatar_url,
-            country_flag,
-            created_at
-          )
-        `)
+        .select("id, message, message_type, created_at, user_id")
         .eq("stream_id", id)
         .order("created_at", { ascending: true })
         .limit(50);
       
-      if (chatMessages) {
-        const now = new Date();
-        setMessages(chatMessages.map((msg: any) => {
-          const userCreatedAt = msg.profiles?.created_at ? new Date(msg.profiles.created_at) : null;
-          const isNewUser = userCreatedAt ? (now.getTime() - userCreatedAt.getTime()) < 7 * 24 * 60 * 60 * 1000 : false;
-          
-          return {
-            id: msg.id,
-            user: msg.profiles?.display_name || "User",
-            initial: (msg.profiles?.display_name || "U").charAt(0),
-            message: msg.content,
-            color: "text-white",
-            userLevel: msg.profiles?.user_level || 1,
-            userAvatar: msg.profiles?.avatar_url,
-            isHost: msg.sender_id === hostId,
-            isNewUser,
-            countryFlag: msg.profiles?.country_flag,
-          };
-        }));
+      if (chatMessages?.length) {
+        const userIds = [...new Set(chatMessages.map((msg: any) => msg.user_id).filter(Boolean))];
+        const { data: profiles } = await supabase
+          .from("profiles_public")
+          .select("id, display_name, user_level, avatar_url, country_flag, created_at")
+          .in("id", userIds);
+        const profileMap = new Map((profiles || []).map((profile: any) => [profile.id, profile]));
+        setMessages(chatMessages.map((msg: any) => mapStreamChatRow(msg, profileMap.get(msg.user_id), hostId)));
       }
     };
     
