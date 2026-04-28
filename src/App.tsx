@@ -213,7 +213,6 @@ const AdminLevel5Helpers = lazy(lazyRetry(() => import("./pages/admin/AdminLevel
 const AdminGameServer = lazy(lazyRetry(() => import("./pages/admin/AdminGameServer")));
 const AdminTopupPaymentMethods = lazy(lazyRetry(() => import("./pages/admin/AdminTopupPaymentMethods")));
 const AdminHelperRequests = lazy(lazyRetry(() => import("./pages/admin/AdminHelperRequests")));
-const AdminHelperDiamondPricing = lazy(lazyRetry(() => import("./pages/admin/AdminHelperDiamondPricing")));
 const AdminHelperManagement = lazy(lazyRetry(() => import("./pages/admin/AdminHelperManagement")));
 const AdminHelperOrders = lazy(lazyRetry(() => import("./pages/admin/AdminHelperOrders")));
 const AdminPayrollOrders = lazy(lazyRetry(() => import("./pages/admin/AdminPayrollOrders")));
@@ -1130,7 +1129,7 @@ const App = () => {
                   <Route path="game-providers" element={<AdminRouteGuard routeSegment="game-providers"><AdminGameProviders /></AdminRouteGuard>} />
                   <Route path="topup-payment-methods" element={<AdminRouteGuard routeSegment="topup-payment-methods"><AdminTopupPaymentMethods /></AdminRouteGuard>} />
                   <Route path="helper-requests" element={<AdminRouteGuard routeSegment="helper-requests"><AdminHelperRequests /></AdminRouteGuard>} />
-                  <Route path="helper-diamond-pricing" element={<AdminRouteGuard routeSegment="helper-diamond-pricing"><AdminHelperDiamondPricing /></AdminRouteGuard>} />
+                  <Route path="helper-diamond-pricing" element={<Navigate to="/admin/pricing-hub" replace />} />
                   <Route path="helper-management" element={<AdminRouteGuard routeSegment="helper-management"><AdminHelperManagement /></AdminRouteGuard>} />
                   <Route path="streams" element={<AdminRouteGuard routeSegment="streams"><AdminStreams /></AdminRouteGuard>} />
                   <Route path="recordings" element={<AdminRouteGuard routeSegment="recordings"><AdminRecordings /></AdminRouteGuard>} />
