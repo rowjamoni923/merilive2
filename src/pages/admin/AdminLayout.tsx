@@ -590,6 +590,13 @@ const navGroups: NavGroup[] = [
     hubKey: "finance-hub",
     items: [
       {
+        label: "Pricing & Commission Hub",
+        icon: Percent,
+        path: "/admin/pricing-hub",
+        hubKey: "finance-hub",
+        description: "SINGLE unified page for ALL commissions, call rates, gift split, agency tiers, withdrawal floors, exchange & helper fees.",
+      },
+      {
         label: "Finance Management",
         icon: DollarSign,
         path: "/admin/finance",

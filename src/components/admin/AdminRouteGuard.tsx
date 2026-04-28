@@ -50,7 +50,11 @@ const ROUTE_HUB_MAP: Record<string, string | string[]> = {
   'agency-policy': 'agency-hub',
   'commissions': 'agency-hub',
   'commission-calculator': 'agency-hub',
-  'pricing-hub': ['agency-hub', 'settings-hub'],
+  // Pricing Hub is the unified destination for legacy commissions, call-settings,
+  // commission-calculator and helper-diamond-pricing routes. Any sub-admin who
+  // historically owned ANY of those areas (agency, finance settings, or trader/helper)
+  // must keep access after the redirect collapses them into /admin/pricing-hub.
+  'pricing-hub': ['agency-hub', 'settings-hub', 'trader-hub', 'finance-hub'],
 
   // Level & VIP
   'level-management': 'level-hub',
