@@ -55,6 +55,8 @@ interface LevelRate {
 const NUM = (v: any): number | "" =>
   v === "" || v === null || v === undefined || Number.isNaN(Number(v)) ? "" : Number(v);
 
+const inputNumber = (value: string): number | "" => (value === "" ? "" : Number(value));
+
 const Field = ({
   label,
   hint,
@@ -278,21 +280,21 @@ export default function AdminPricingHub() {
                       <Input
                         type="number"
                         value={NUM(callRates.default_rate)}
-                        onChange={(e) => setCallRates({ ...callRates, default_rate: Number(e.target.value) })}
+                        onChange={(e) => setCallRates({ ...callRates, default_rate: inputNumber(e.target.value) })}
                       />
                     </Field>
                     <Field label="Min rate">
                       <Input
                         type="number"
                         value={NUM(callRates.min_rate)}
-                        onChange={(e) => setCallRates({ ...callRates, min_rate: Number(e.target.value) })}
+                        onChange={(e) => setCallRates({ ...callRates, min_rate: inputNumber(e.target.value) })}
                       />
                     </Field>
                     <Field label="Max rate">
                       <Input
                         type="number"
                         value={NUM(callRates.max_rate)}
-                        onChange={(e) => setCallRates({ ...callRates, max_rate: Number(e.target.value) })}
+                        onChange={(e) => setCallRates({ ...callRates, max_rate: inputNumber(e.target.value) })}
                       />
                     </Field>
                     <Field label="Host commission %" hint="Company gets the remainder. Strict 21s rule applies on settlement.">
@@ -300,7 +302,7 @@ export default function AdminPricingHub() {
                         type="number"
                         value={NUM(callRates.host_commission_percent)}
                         onChange={(e) =>
-                          setCallRates({ ...callRates, host_commission_percent: Number(e.target.value) })
+                          setCallRates({ ...callRates, host_commission_percent: inputNumber(e.target.value) })
                         }
                       />
                     </Field>
@@ -309,7 +311,7 @@ export default function AdminPricingHub() {
                         type="number"
                         value={NUM(callRates.first_minute_grace_seconds)}
                         onChange={(e) =>
-                          setCallRates({ ...callRates, first_minute_grace_seconds: Number(e.target.value) })
+                          setCallRates({ ...callRates, first_minute_grace_seconds: inputNumber(e.target.value) })
                         }
                       />
                     </Field>
@@ -318,7 +320,7 @@ export default function AdminPricingHub() {
                         type="number"
                         value={NUM(callRates.min_level_for_custom_rate)}
                         onChange={(e) =>
-                          setCallRates({ ...callRates, min_level_for_custom_rate: Number(e.target.value) })
+                          setCallRates({ ...callRates, min_level_for_custom_rate: inputNumber(e.target.value) })
                         }
                       />
                     </Field>
