@@ -220,12 +220,29 @@ export default function AdminLiveBans() {
     }
   };
 
+  const fetchStats = async () => {
+    try {
+      const { data, error } = await supabase.rpc('admin_live_ban_stats');
+      if (error) throw error;
+      const s = (data as any) || {};
+      setStats({
+        active: Number(s.active) || 0,
+        auto: Number(s.auto) || 0,
+        unbanned: Number(s.unbanned) || 0,
+        total: Number(s.total) || 0,
+      });
+    } catch (e) {
+      console.error('Failed to load live ban stats:', e);
+    }
+  };
+
   useEffect(() => {
     fetchBans();
     fetchSettings();
+    fetchStats();
   }, []);
 
-  useAdminRealtime(['live_bans'], () => fetchBans());
+  useAdminRealtime(['live_bans'], () => { fetchBans(); fetchStats(); });
 
   const handleCreateBan = async () => {
     if (!newBanUserId) {
