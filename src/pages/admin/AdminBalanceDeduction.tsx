@@ -179,7 +179,7 @@ export default function AdminBalanceDeduction() {
   }, [loadAlerts]);
 
   useAdminRealtime(['notifications'], () => {
-    void loadAlerts();
+    void loadAlerts(, { enableRealtimeRefresh: true });
   });
 
   // Handle quick action from alert

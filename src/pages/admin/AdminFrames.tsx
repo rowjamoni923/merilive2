@@ -133,7 +133,7 @@ const AdminFrames = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
-  useAdminRealtime(['avatar_frames'], fetchFrames);
+  useAdminRealtime(['avatar_frames'], fetchFrames, { enableRealtimeRefresh: true });
 
   // R2 upload for large files
   const uploadToR2 = async (file: File, folder: string): Promise<string> => {

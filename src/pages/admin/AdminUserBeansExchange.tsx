@@ -52,7 +52,7 @@
      fetchTiers();
    }, [fetchTiers]);
 
-   useAdminRealtime(['user_beans_exchange_tiers'], fetchTiers);
+   useAdminRealtime(['user_beans_exchange_tiers'], fetchTiers, { enableRealtimeRefresh: true });
  
    const handleSave = async () => {
      if (!formData.min_beans || !formData.exchange_rate) {

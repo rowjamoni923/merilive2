@@ -85,7 +85,7 @@ const AdminTasksSettings = () => {
     fetchBonusSettings();
   }, []);
 
-  useAdminRealtime(['daily_tasks'], () => { fetchTasks(); fetchBonusSettings(); });
+  useAdminRealtime(['daily_tasks'], () => { fetchTasks(, { enableRealtimeRefresh: true }); fetchBonusSettings(); });
 
   const fetchBonusSettings = async () => {
     try {

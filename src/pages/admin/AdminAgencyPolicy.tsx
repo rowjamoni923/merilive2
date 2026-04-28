@@ -203,7 +203,7 @@ const AdminAgencyPolicy = () => {
   };
 
   useAdminRealtime(['agency_policy_settings', 'agency_level_tiers'], () => {
-    fetchPolicies();
+    fetchPolicies(, { enableRealtimeRefresh: true });
     fetchCommissionTiers();
   });
 

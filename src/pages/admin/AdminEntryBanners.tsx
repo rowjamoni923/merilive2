@@ -85,7 +85,7 @@ export default function AdminEntryBanners() {
     duration_ms: 3000
   });
 
-  useAdminRealtime(['entry_banners'], () => fetchBanners());
+  useAdminRealtime(['entry_banners'], () => fetchBanners(), { enableRealtimeRefresh: true });
 
   const fetchBanners = async () => {
     try {

@@ -49,7 +49,7 @@ const AdminRewardClaimsHistory = () => {
     fetchClaims();
   }, [dateFilter]);
 
-  useAdminRealtime(['user_task_progress', 'daily_tasks'], () => fetchClaims());
+  useAdminRealtime(['user_task_progress', 'daily_tasks'], () => fetchClaims(), { enableRealtimeRefresh: true });
 
   const getResetDateRange = (): { startDate: string; endDate: string } => {
     const now = new Date();

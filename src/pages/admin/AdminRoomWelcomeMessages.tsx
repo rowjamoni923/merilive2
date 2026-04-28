@@ -80,7 +80,7 @@ export default function AdminRoomWelcomeMessages() {
     void fetchMessages();
   }, []);
 
-  useAdminRealtime(["room_welcome_messages"], fetchMessages);
+  useAdminRealtime(["room_welcome_messages"], fetchMessages, { enableRealtimeRefresh: true });
 
   const handleUpdateMessage = async (message: WelcomeMessage) => {
     setSaving(message.id);

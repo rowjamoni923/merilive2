@@ -74,7 +74,7 @@ const AdminLeaderboardManagement = () => {
     fetchRewards();
   }, [selectedCategory, selectedPeriod]);
 
-  useAdminRealtime(['app_settings', 'leaderboard_podium_frames', 'leaderboard_reward_config'], () => fetchIconSettings());
+  useAdminRealtime(['app_settings', 'leaderboard_podium_frames', 'leaderboard_reward_config'], () => fetchIconSettings(), { enableRealtimeRefresh: true });
 
   const fetchIconSettings = async () => {
     const data = await loadAppSettingsByPrefix<string>("leaderboard_");

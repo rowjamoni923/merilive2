@@ -63,7 +63,7 @@ const AdminFaceViolations = () => {
     setLoading(false);
   };
 
-  useAdminRealtime(['live_face_violations'], fetchViolations);
+  useAdminRealtime(['live_face_violations'], fetchViolations, { enableRealtimeRefresh: true });
 
   const handleBanHost = async (violation: FaceViolation) => {
     const adminId = getCurrentAdminId();

@@ -96,7 +96,7 @@ export default function AdminPartyRooms() {
     return () => clearTimeout(debounce);
   }, [currentPage, filterType, searchQuery]);
 
-  useAdminRealtime(['party_rooms', 'party_room_participants'], () => fetchRooms());
+  useAdminRealtime(['party_rooms', 'party_room_participants'], () => fetchRooms(), { enableRealtimeRefresh: true });
 
   const fetchRooms = async () => {
     if (!rooms || rooms.length === 0) setLoading(true);

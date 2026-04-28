@@ -429,7 +429,7 @@ const AdminRechargeHistory = () => {
     fetchRecords();
   }, [fetchRecords]);
 
-  useAdminRealtime(['helper_orders', 'recharge_transactions', 'payment_transactions', 'helper_transactions', 'coin_transfers'], fetchRecords);
+  useAdminRealtime(['helper_orders', 'recharge_transactions', 'payment_transactions', 'helper_transactions', 'coin_transfers'], fetchRecords, { enableRealtimeRefresh: true });
 
   const getStatusBadge = (status: string) => {
     switch (status) {

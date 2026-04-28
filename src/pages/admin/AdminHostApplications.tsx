@@ -122,7 +122,7 @@ export default function AdminHostApplications() {
   }, [currentPage, filterStatus, searchQuery]);
 
   useAdminRealtime(['face_verification_submissions', 'profiles'], () => {
-    fetchApplications();
+    fetchApplications(, { enableRealtimeRefresh: true });
     fetchStatusCounts();
     fetchPendingHostsWithoutSubmission();
   });

@@ -97,7 +97,7 @@ export default function AdminBanners() {
   }, []);
 
   // Real-time updates
-  useAdminRealtime(['banners'], fetchBanners, 'admin-banners-rt');
+  useAdminRealtime(['banners'], fetchBanners, 'admin-banners-rt', { enableRealtimeRefresh: true });
 
   const openEditor = (banner: Banner | null) => {
     if (banner) {

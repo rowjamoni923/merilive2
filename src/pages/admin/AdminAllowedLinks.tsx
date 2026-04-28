@@ -43,7 +43,7 @@ const AdminAllowedLinks = () => {
     category: "general",
   });
 
-  useAdminRealtime(['allowed_external_links'], () => fetchLinks());
+  useAdminRealtime(['allowed_external_links'], () => fetchLinks(), { enableRealtimeRefresh: true });
 
   const fetchLinks = async () => {
     const { data, error } = await supabase

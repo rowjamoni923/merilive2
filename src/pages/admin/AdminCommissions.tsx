@@ -95,7 +95,7 @@ export default function AdminCommissions() {
   const guardEnd = (key: string) => { actionGuardRef.current.delete(key); };
   const [calcBeansInput, setCalcBeansInput] = useState(10000);
 
-  useAdminRealtime(['app_settings', 'agency_commission_history'], () => fetchSettings());
+  useAdminRealtime(['app_settings', 'agency_commission_history'], () => fetchSettings(), { enableRealtimeRefresh: true });
 
   const fetchSettings = async () => {
     try {

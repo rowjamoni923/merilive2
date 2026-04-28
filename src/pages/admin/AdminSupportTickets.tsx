@@ -286,7 +286,7 @@ const AdminSupportTickets = () => {
   }, [statusFilter, toast]);
 
   // Realtime: auto-refresh on support_tickets or support_messages changes
-  useAdminRealtime(['support_tickets', 'support_messages'], () => loadTickets(), 'admin-support-tickets-rt');
+  useAdminRealtime(['support_tickets', 'support_messages'], () => loadTickets(), 'admin-support-tickets-rt', { enableRealtimeRefresh: true });
 
   const isLegacyAiSummaryMessage = (content?: string) =>
     isAiSummarySupportMessage(content);

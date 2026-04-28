@@ -105,7 +105,7 @@ const AdminIconRegistry = () => {
   }, []);
 
   
-  useAdminRealtime(['app_icon_registry'], fetchIcons);
+  useAdminRealtime(['app_icon_registry'], fetchIcons, { enableRealtimeRefresh: true });
 
   const filteredIcons = useMemo(() => {
     return icons.filter(icon => {

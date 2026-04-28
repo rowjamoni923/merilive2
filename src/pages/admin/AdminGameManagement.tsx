@@ -31,7 +31,7 @@ export default function AdminGameManagement() {
     serverStatus: "online"
   });
 
-  useAdminRealtime(['game_settings', 'game_providers'], () => fetchStats());
+  useAdminRealtime(['game_settings', 'game_providers'], () => fetchStats(), { enableRealtimeRefresh: true });
 
   const fetchStats = async () => {
     const [gamesRes, providersRes] = await Promise.all([

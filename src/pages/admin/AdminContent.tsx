@@ -39,7 +39,7 @@ export default function AdminContent() {
   const [editActive, setEditActive] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
 
-  useAdminRealtime(['app_content'], () => fetchPages());
+  useAdminRealtime(['app_content'], () => fetchPages(), { enableRealtimeRefresh: true });
 
   const fetchPages = async () => {
     try {

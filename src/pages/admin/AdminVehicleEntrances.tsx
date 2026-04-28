@@ -76,7 +76,7 @@ const AdminVehicleEntrances = () => {
     fetchItems();
   }, [fetchItems]);
 
-  useAdminRealtime(['vehicle_entrances'], () => fetchItems());
+  useAdminRealtime(['vehicle_entrances'], () => fetchItems(), { enableRealtimeRefresh: true });
 
   const uploadFile = async (file: File, folder: string): Promise<string | null> => {
     try {

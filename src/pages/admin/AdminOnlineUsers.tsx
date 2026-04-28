@@ -44,7 +44,7 @@ export default function AdminOnlineUsers() {
   };
 
   
-  useAdminRealtime(["profiles"], fetchOnlineUsers);
+  useAdminRealtime(["profiles"], fetchOnlineUsers, { enableRealtimeRefresh: true });
 
   const filtered = users.filter(u => {
     if (!search) return true;

@@ -47,7 +47,7 @@ const AdminCommissionCalculator = () => {
   // Example calculations
   const exampleGiftAmounts = [100, 500, 1000, 5000, 10000, 50000, 100000];
 
-  useAdminRealtime(['app_settings'], () => fetchSettings());
+  useAdminRealtime(['app_settings'], () => fetchSettings(), { enableRealtimeRefresh: true });
 
   const fetchSettings = async () => {
     setLoading(true);

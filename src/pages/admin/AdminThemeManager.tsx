@@ -411,7 +411,7 @@ const AdminThemeManager = () => {
     ? themes
     : themes.filter(t => (t as any).country_code === selectedCountry);
 
-  useAdminRealtime(['app_event_themes'], fetchThemes);
+  useAdminRealtime(['app_event_themes'], fetchThemes, { enableRealtimeRefresh: true });
 
   const handleToggleActive = async (theme: EventTheme) => {
     setSaving(theme.id);

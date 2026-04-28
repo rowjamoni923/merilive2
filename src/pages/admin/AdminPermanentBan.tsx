@@ -118,7 +118,7 @@ export default function AdminPermanentBan() {
 
   useEffect(() => { fetchBans(); }, [fetchBans]);
 
-  useAdminRealtime(["live_bans"], () => fetchBans());
+  useAdminRealtime(["live_bans"], () => fetchBans(), { enableRealtimeRefresh: true });
 
   // Reset duration default when severity changes
   useEffect(() => {

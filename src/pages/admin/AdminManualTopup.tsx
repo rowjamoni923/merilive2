@@ -65,7 +65,7 @@ const AdminManualTopup = () => {
     loadRecentTopups();
   }, []);
 
-  useAdminRealtime(['admin_logs', 'profiles'], () => loadRecentTopups());
+  useAdminRealtime(['admin_logs', 'profiles'], () => loadRecentTopups(), { enableRealtimeRefresh: true });
 
   // Auto-search with debounce when searchQuery changes
   useEffect(() => {

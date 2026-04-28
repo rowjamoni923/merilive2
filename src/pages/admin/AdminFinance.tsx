@@ -26,7 +26,7 @@ const AdminFinance = () => {
     pendingEpay: 0
   });
 
-  useAdminRealtime(['agency_withdrawals', 'coin_transfers', 'payroll_requests'], () => fetchStats());
+  useAdminRealtime(['agency_withdrawals', 'coin_transfers', 'payroll_requests'], () => fetchStats(), { enableRealtimeRefresh: true });
 
   const fetchStats = async () => {
     const today = new Date().toISOString().split('T')[0];

@@ -70,7 +70,7 @@ const AdminRewardsManagement = () => {
     fetchAll();
   }, [fetchAll]);
 
-  useAdminRealtime(['daily_login_rewards_config', 'first_recharge_bonus', 'consumption_return_config', 'limited_time_offers'], () => fetchAll());
+  useAdminRealtime(['daily_login_rewards_config', 'first_recharge_bonus', 'consumption_return_config', 'limited_time_offers'], () => fetchAll(), { enableRealtimeRefresh: true });
 
   // ===== DAILY LOGIN HANDLERS =====
   const updateLoginReward = async (id: string, field: string, value: any) => {

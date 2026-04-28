@@ -156,7 +156,7 @@ export default function AdminErrorLogs() {
     fetchErrors();
   }, [filterType, filterResolved, searchQuery]);
 
-  useAdminRealtime(['system_error_logs'], () => fetchErrors());
+  useAdminRealtime(['system_error_logs'], () => fetchErrors(), { enableRealtimeRefresh: true });
 
   const handleResolve = async (errorId: string) => {
     try {

@@ -20,7 +20,7 @@ const AdminLevelManagement = () => {
     features: 0
   });
 
-  useAdminRealtime(['user_level_tiers', 'level_privileges', 'feature_level_requirements'], () => fetchStats());
+  useAdminRealtime(['user_level_tiers', 'level_privileges', 'feature_level_requirements'], () => fetchStats(), { enableRealtimeRefresh: true });
 
   const fetchStats = async () => {
     const [tiersRes, privilegesRes, featuresRes] = await Promise.all([

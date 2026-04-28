@@ -27,7 +27,7 @@ const AdminAgencyHub = () => {
     pendingWithdrawals: 0
   });
 
-  useAdminRealtime(['agencies', 'agency_earnings_transfers', 'agency_hosts', 'topup_helpers'], () => fetchStats());
+  useAdminRealtime(['agencies', 'agency_earnings_transfers', 'agency_hosts', 'topup_helpers'], () => fetchStats(), { enableRealtimeRefresh: true });
 
   useEffect(() => {
     fetchStats();

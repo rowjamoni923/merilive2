@@ -181,7 +181,7 @@ const AdminHelperManagement = () => {
     ['helper_applications', 'helper_upgrade_requests', 'helper_topup_requests', 'helper_withdrawal_requests', 'helper_orders', 'topup_helpers'],
     loadData,
     'admin-helper-mgmt-rt'
-  );
+  , { enableRealtimeRefresh: true });
 
   const loadApplications = async () => {
     const { data } = await supabase

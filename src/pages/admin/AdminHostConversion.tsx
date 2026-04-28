@@ -35,7 +35,7 @@ const AdminHostConversion = () => {
   const [processing, setProcessing] = useState<string | null>(null);
   const [responseText, setResponseText] = useState<Record<string, string>>({});
 
-  useAdminRealtime(['host_conversion_requests'], () => loadRequests());
+  useAdminRealtime(['host_conversion_requests'], () => loadRequests(), { enableRealtimeRefresh: true });
 
   const loadRequests = async () => {
     setLoading(true);

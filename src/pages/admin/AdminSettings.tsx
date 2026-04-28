@@ -80,7 +80,7 @@ export default function AdminSettings() {
   const platformFeeExampleAmount = Math.round((helperRewardExample * helperPlatformFeePercent) / 100);
   const helperNetExampleAmount = Math.round((helperRewardExample * helperReceivesPercent) / 100);
 
-  useAdminRealtime(['app_settings'], () => fetchSettings());
+  useAdminRealtime(['app_settings'], () => fetchSettings(), { enableRealtimeRefresh: true });
 
   const fetchSettings = async () => {
     try {

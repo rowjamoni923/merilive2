@@ -113,7 +113,7 @@ const AdminPayrollOrders = () => {
     todayTotal: 0
   });
 
-  useAdminRealtime(['helper_orders', 'agency_withdrawals'], () => fetchOrders());
+  useAdminRealtime(['helper_orders', 'agency_withdrawals'], () => fetchOrders(), { enableRealtimeRefresh: true });
 
   // Auto search if order_id is in URL
   useEffect(() => {

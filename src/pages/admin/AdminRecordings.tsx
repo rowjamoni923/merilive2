@@ -143,7 +143,7 @@ export default function AdminRecordings() {
     fetchRecordings();
   }, [fetchRecordings]);
 
-  useAdminRealtime(['stream_recordings'], () => fetchRecordings());
+  useAdminRealtime(['stream_recordings'], () => fetchRecordings(), { enableRealtimeRefresh: true });
 
   const filteredRecordings = recordings.filter(rec =>
     rec.host_uid?.toLowerCase().includes(searchQuery.toLowerCase()) ||

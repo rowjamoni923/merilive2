@@ -62,7 +62,7 @@ const AdminTransferScheduler = () => {
     fetchHistory();
   }, []);
 
-  useAdminRealtime(['agency_earnings_transfers'], () => { fetchSchedule(); fetchHistory(); });
+  useAdminRealtime(['agency_earnings_transfers'], () => { fetchSchedule(, { enableRealtimeRefresh: true }); fetchHistory(); });
 
   useEffect(() => {
     if (!schedule.next_transfer_at || !schedule.is_active) return;

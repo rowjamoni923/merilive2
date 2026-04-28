@@ -165,7 +165,7 @@ export default function AdminAgencyDetail() {
     }
   }, [agencyId]);
 
-  useAdminRealtime(['agencies', 'agency_hosts', 'agency_earnings_transfers'], () => { if (agencyId) fetchAgencyDetails(); });
+  useAdminRealtime(['agencies', 'agency_hosts', 'agency_earnings_transfers'], () => { if (agencyId) fetchAgencyDetails(, { enableRealtimeRefresh: true }); });
 
   const fetchAgencyDetails = async () => {
     setLoading(true);

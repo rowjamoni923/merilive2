@@ -62,7 +62,7 @@ const AdminOnboardingSlides = () => {
   }, []);
 
   useEffect(() => { fetchSlides(); }, [fetchSlides]);
-  useAdminRealtime(["onboarding_slides"], () => fetchSlides());
+  useAdminRealtime(["onboarding_slides"], () => fetchSlides(), { enableRealtimeRefresh: true });
 
   const openCreate = () => {
     setEditingSlide(null);

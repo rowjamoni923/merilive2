@@ -88,7 +88,7 @@ const AdminEntryBars = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useAdminRealtime(['level_privileges'], () => fetchEntryBars());
+  useAdminRealtime(['level_privileges'], () => fetchEntryBars(), { enableRealtimeRefresh: true });
 
   const uploadFile = async (file: File, folder: string): Promise<string | null> => {
     try {

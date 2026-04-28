@@ -181,7 +181,7 @@ export default function AdminRatingRewards() {
   }, [filter, fetchClaims, fetchTransactionHistory]);
 
   useAdminRealtime(['rating_reward_claims'], () => {
-    if (filter === 'history') fetchTransactionHistory();
+    if (filter === 'history') fetchTransactionHistory(, { enableRealtimeRefresh: true });
     else fetchClaims();
   }, 'admin-rating-rewards');
 

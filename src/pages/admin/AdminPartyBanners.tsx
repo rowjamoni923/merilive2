@@ -84,7 +84,7 @@ export default function AdminPartyBanners() {
     room_types: ['audio', 'video', 'game'],
   });
 
-  useAdminRealtime(['party_room_banners'], () => fetchBanners());
+  useAdminRealtime(['party_room_banners'], () => fetchBanners(), { enableRealtimeRefresh: true });
 
   const fetchBanners = async () => {
     try {

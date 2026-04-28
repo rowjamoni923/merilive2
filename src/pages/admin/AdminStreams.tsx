@@ -242,7 +242,7 @@ export default function AdminStreams() {
   }, [fetchStreams, fetchActiveBans]);
 
   useAdminRealtime(['live_bans'], () => {
-    void fetchActiveBans();
+    void fetchActiveBans(, { enableRealtimeRefresh: true });
   });
 
   useEffect(() => {

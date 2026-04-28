@@ -90,7 +90,7 @@ export default function AdminModeration() {
     fetchSettings();
   }, [currentPage, filterType]);
 
-  useAdminRealtime(['chat_moderation_logs'], () => fetchLogs());
+  useAdminRealtime(['chat_moderation_logs'], () => fetchLogs(), { enableRealtimeRefresh: true });
 
   const fetchSettings = async () => {
     const { data } = await supabase

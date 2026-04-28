@@ -22,7 +22,7 @@ const AdminEntryEffects = () => {
     vehicles: 0
   });
 
-  useAdminRealtime(['entry_banners', 'level_privileges', 'vehicle_entrances'], () => fetchStats());
+  useAdminRealtime(['entry_banners', 'level_privileges', 'vehicle_entrances'], () => fetchStats(), { enableRealtimeRefresh: true });
 
   const fetchStats = async () => {
     const [bannersRes, barsRes, nameBarsRes] = await Promise.all([

@@ -221,7 +221,7 @@ export default function AdminLiveBans() {
     fetchSettings();
   }, []);
 
-  useAdminRealtime(['live_bans'], () => fetchBans());
+  useAdminRealtime(['live_bans'], () => fetchBans(), { enableRealtimeRefresh: true });
 
   const handleCreateBan = async () => {
     if (!newBanUserId) {

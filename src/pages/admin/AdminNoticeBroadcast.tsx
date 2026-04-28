@@ -119,7 +119,7 @@ const AdminNoticeBroadcast = () => {
     { code: "Arabic", label: "🇸🇦 Arabic" },
   ];
 
-  useAdminRealtime(['admin_notices'], () => fetchNotices());
+  useAdminRealtime(['admin_notices'], () => fetchNotices(), { enableRealtimeRefresh: true });
 
   const fetchNotices = async () => {
     try {

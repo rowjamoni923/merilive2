@@ -366,7 +366,7 @@ export default function AdminUserManagement() {
   };
 
   useAdminRealtime(['profiles', 'face_verification_submissions', 'agencies', 'chat_moderation_logs'], () => {
-    if (activeTab === "users") fetchUsers();
+    if (activeTab === "users") fetchUsers(, { enableRealtimeRefresh: true });
     else if (activeTab === "hosts") fetchHosts();
     else if (activeTab === "blocked") fetchBlockedItems();
     else if (activeTab === "face-verification") fetchFaceSubmissions();

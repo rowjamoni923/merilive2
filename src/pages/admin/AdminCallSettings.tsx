@@ -153,7 +153,7 @@ export default function AdminCallSettings() {
     ['app_settings', 'call_events'],
     fetchSettings,
     'admin-call-settings-rt'
-  );
+  , { enableRealtimeRefresh: true });
 
   const fetchStats = async () => {
     try {

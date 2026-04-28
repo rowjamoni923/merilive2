@@ -142,7 +142,7 @@ const AdminParcelManagement = () => {
     fetchStats();
   }, [fetchTemplates, fetchStats]);
 
-  useAdminRealtime(['parcel_templates'], () => { fetchTemplates(); });
+  useAdminRealtime(['parcel_templates'], () => { fetchTemplates(, { enableRealtimeRefresh: true }); });
 
   const handleSave = async () => {
     if (!editingTemplate?.name) {

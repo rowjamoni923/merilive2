@@ -98,7 +98,7 @@ const AdminRankingRewards = () => {
     }
   };
 
-  useAdminRealtime(['ranking_rewards'], () => fetchRewards());
+  useAdminRealtime(['ranking_rewards'], () => fetchRewards(), { enableRealtimeRefresh: true });
 
   const filteredRewards = rewards.filter(
     r => r.ranking_type === activeRankingType && r.period_type === activePeriod

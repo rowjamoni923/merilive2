@@ -106,7 +106,7 @@ export default function AdminHosts() {
   }, [statusFilter]);
 
   useAdminRealtime(['profiles'], () => {
-    fetchHosts();
+    fetchHosts(, { enableRealtimeRefresh: true });
     fetchStats();
   });
 

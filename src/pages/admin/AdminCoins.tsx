@@ -156,7 +156,7 @@ export default function AdminCoins() {
     };
   };
 
-  useAdminRealtime(['coin_packages', 'currency_rates', 'app_settings'], () => fetchData());
+  useAdminRealtime(['coin_packages', 'currency_rates', 'app_settings'], () => fetchData(), { enableRealtimeRefresh: true });
 
   const fetchData = async () => {
     setLoading(true);

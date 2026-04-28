@@ -26,7 +26,7 @@ const AdminVisualAssetsHub = () => {
     shopItems: 0
   });
 
-  useAdminRealtime(['avatar_frames', 'role_frames', 'gifts', 'shop_items', 'entry_banners'], () => fetchStats());
+  useAdminRealtime(['avatar_frames', 'role_frames', 'gifts', 'shop_items', 'entry_banners'], () => fetchStats(), { enableRealtimeRefresh: true });
 
   const fetchStats = async () => {
     // Fetch all stats with error handling for tables that might not exist

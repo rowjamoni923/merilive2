@@ -210,7 +210,7 @@ export default function AdminContactViolations({ onViewChat }: AdminContactViola
   };
 
 
-  useAdminRealtime(['host_contact_violations'], () => fetchViolations());
+  useAdminRealtime(['host_contact_violations'], () => fetchViolations(), { enableRealtimeRefresh: true });
 
   // Filter violations based on search and tab
   const filteredViolations = violations.filter(v => {

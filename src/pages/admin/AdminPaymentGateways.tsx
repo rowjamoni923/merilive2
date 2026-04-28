@@ -177,7 +177,7 @@ const AdminPaymentGateways = () => {
   }, []);
 
   useAdminRealtime(['payment_gateways', 'payment_transactions'], () => {
-    fetchGateways();
+    fetchGateways(, { enableRealtimeRefresh: true });
     fetchTransactions();
     fetchStats();
   });

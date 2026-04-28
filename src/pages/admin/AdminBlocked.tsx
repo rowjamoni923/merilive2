@@ -105,7 +105,7 @@ export default function AdminBlocked() {
     void fetchBlockedItems();
   }, []);
 
-  useAdminRealtime(['profiles', 'agencies', 'banned_devices'], fetchBlockedItems, 'admin-blocked-rt');
+  useAdminRealtime(['profiles', 'agencies', 'banned_devices'], fetchBlockedItems, 'admin-blocked-rt', { enableRealtimeRefresh: true });
 
   const handleUnblockUser = async (userId: string) => {
     try {

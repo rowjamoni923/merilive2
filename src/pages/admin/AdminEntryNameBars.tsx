@@ -76,7 +76,7 @@ const AdminEntryNameBars = () => {
     }
   };
 
-  useAdminRealtime(['entry_name_bars'], fetchNameBars);
+  useAdminRealtime(['entry_name_bars'], fetchNameBars, { enableRealtimeRefresh: true });
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: 'animation_url' | 'preview_url') => {
     const file = e.target.files?.[0];

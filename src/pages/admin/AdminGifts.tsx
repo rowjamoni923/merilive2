@@ -177,7 +177,7 @@ export default function AdminGifts() {
   }, [location.pathname]);
 
   // Real-time updates
-  useAdminRealtime(['gifts', 'gift_categories', 'lucky_gift_config'], fetchGifts, 'admin-gifts-rt');
+  useAdminRealtime(['gifts', 'gift_categories', 'lucky_gift_config'], fetchGifts, 'admin-gifts-rt', { enableRealtimeRefresh: true });
 
   // Lucky Gift Config Management
   const fetchLuckyConfigs = useCallback(async (giftId: string) => {
