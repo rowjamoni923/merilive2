@@ -1126,7 +1126,7 @@ const VIP = () => {
         <TabsContent value="noble" className="flex-1 overflow-y-auto mt-0 py-4" style={{ paddingBottom: 'var(--content-bottom-padding)' }}>
           <VipNobleSection
             userId={currentUserId}
-            userDiamonds={userCoins}
+            userDiamonds={userDiamonds}
             onAfterPurchase={() => { /* refetch handled inside */ }}
           />
         </TabsContent>
