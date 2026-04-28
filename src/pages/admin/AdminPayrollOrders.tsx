@@ -206,31 +206,17 @@ const AdminPayrollOrders = () => {
       
       setOrders(allOrders);
 
-      // Calculate stats using DB-level counts for accuracy
-      const [helperTotalRes, helperPendingRes, helperProcessingRes, helperCompletedRes, helperCancelledRes] = await Promise.all([
-        supabase.from('helper_orders').select('*', { count: 'exact', head: true }),
-        supabase.from('helper_orders').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('helper_orders').select('*', { count: 'exact', head: true }).eq('status', 'processing'),
-        supabase.from('helper_orders').select('*', { count: 'exact', head: true }).eq('status', 'completed'),
-        supabase.from('helper_orders').select('*', { count: 'exact', head: true }).in('status', ['cancelled', 'failed']),
-      ]);
-
-      const [awProcessingRes, awApprovedRes, awRejectedRes] = await Promise.all([
-        supabase.from('agency_withdrawals').select('*', { count: 'exact', head: true }).eq('status', 'processing'),
-        supabase.from('agency_withdrawals').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
-        supabase.from('agency_withdrawals').select('*', { count: 'exact', head: true }).eq('status', 'rejected'),
-      ]);
-
-      const today = new Date().toDateString();
-      const todayOrders = allOrders.filter(o => new Date(o.created_at).toDateString() === today);
+      // Pkg6: single server-side aggregation RPC (replaces 8 parallel COUNT queries)
+      const { data: statsData } = await supabase.rpc('admin_payroll_orders_stats');
+      const s = (statsData as any) || {};
 
       setStats({
-        total: (helperTotalRes.count || 0) + (awProcessingRes.count || 0) + (awApprovedRes.count || 0) + (awRejectedRes.count || 0),
-        pending: helperPendingRes.count || 0,
-        processing: (helperProcessingRes.count || 0) + (awProcessingRes.count || 0),
-        completed: (helperCompletedRes.count || 0) + (awApprovedRes.count || 0),
-        cancelled: (helperCancelledRes.count || 0) + (awRejectedRes.count || 0),
-        todayTotal: todayOrders.reduce((sum, o) => sum + o.amount_usd, 0)
+        total: s.total || 0,
+        pending: s.pending || 0,
+        processing: s.processing || 0,
+        completed: s.completed || 0,
+        cancelled: s.cancelled || 0,
+        todayTotal: s.todayTotal || 0
       });
     } catch (error) {
       console.error(error);
