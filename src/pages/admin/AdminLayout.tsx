@@ -405,18 +405,11 @@ const navGroups: NavGroup[] = [
         description: "Edit the public Agency Policy page (terms shown to agency owners in the user app).",
       },
       {
-        label: "Commissions",
+        label: "Pricing & Commission Hub",
         icon: Percent,
-        path: "/admin/commissions",
+        path: "/admin/pricing-hub",
         hubKey: "agency-hub",
-        description: "Set and audit per-agency commission rates applied to host gift earnings.",
-      },
-      {
-        label: "Commission Calculator",
-        icon: Percent,
-        path: "/admin/commission-calculator",
-        hubKey: "agency-hub",
-        description: "Calculator tool to preview agency cuts vs. host payouts before changing commission tiers.",
+        description: "SINGLE unified page for ALL commissions, call rates, gift split, agency tiers, withdrawal floors, exchange & helper fees. Replaces old Commissions / Calculator / Call Settings pages.",
       },
     ],
   },
@@ -963,11 +956,11 @@ const navGroups: NavGroup[] = [
     hubKey: "settings-hub",
     items: [
       {
-        label: "Call Settings",
+        label: "Call Pricing → Hub",
         icon: Phone,
-        path: "/admin/call-settings",
+        path: "/admin/pricing-hub",
         hubKey: "settings-hub",
-        description: "Per-minute private-call rates, host earning percentage, and call-cut rules used by useCallSettings.",
+        description: "Per-minute call rates, host % and grace seconds now live in the unified Pricing & Commission Hub.",
       },
       {
         label: "Today's Calls",

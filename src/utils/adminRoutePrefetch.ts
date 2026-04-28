@@ -35,7 +35,7 @@ const ROUTE_IMPORTERS: Record<string, Importer> = {
   '/admin/permanent-ban': () => import('@/pages/admin/AdminPermanentBan'),
   '/admin/contact-violations': () => import('@/pages/admin/AdminContactViolations'),
   '/admin/coins': () => import('@/pages/admin/AdminCoins'),
-  '/admin/commissions': () => import('@/pages/admin/AdminCommissions'),
+  '/admin/pricing-hub': () => import('@/pages/admin/AdminPricingHub'),
   '/admin/finance': () => import('@/pages/admin/AdminFinance'),
   '/admin/coin-traders': () => import('@/pages/admin/AdminCoinTraders'),
   '/admin/banners': () => import('@/pages/admin/AdminBanners'),
@@ -48,7 +48,7 @@ const ROUTE_IMPORTERS: Record<string, Importer> = {
   '/admin/icon-registry': () => import('@/pages/admin/AdminIconRegistry'),
   '/admin/verified-badges': () => import('@/pages/admin/AdminVerifiedBadges'),
   '/admin/party-backgrounds': () => import('@/pages/admin/AdminPartyBackgrounds'),
-  '/admin/call-settings': () => import('@/pages/admin/AdminCallSettings'),
+  // '/admin/call-settings' merged into '/admin/pricing-hub' (Pkg30)
   '/admin/agora-settings': () => import('@/pages/admin/AdminAgoraSettings'),
   '/admin/game-settings': () => import('@/pages/admin/AdminGameSettings'),
   '/admin/game-providers': () => import('@/pages/admin/AdminGameProviders'),

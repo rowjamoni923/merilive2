@@ -192,13 +192,13 @@ const AdminCoinTraders = lazy(lazyRetry(() => import("./pages/admin/AdminCoinTra
 const AdminTraderOrders = lazy(lazyRetry(() => import("./pages/admin/AdminTraderOrders")));
 const AdminTraderTransactions = lazy(lazyRetry(() => import("./pages/admin/AdminTraderTransactions")));
 const AdminManualTopup = lazy(lazyRetry(() => import("./pages/admin/AdminManualTopup")));
-const AdminCommissionCalculator = lazy(lazyRetry(() => import("./pages/admin/AdminCommissionCalculator")));
+// AdminCommissionCalculator deprecated → AdminPricingHub (Pkg30)
 const AdminAnimationStore = lazy(lazyRetry(() => import("./pages/admin/AdminAnimationStore")));
 const AdminTopupSystem = lazy(lazyRetry(() => import("./pages/admin/AdminTopupSystem")));
 const AdminIconRegistry = lazy(lazyRetry(() => import("./pages/admin/AdminIconRegistry")));
 const AdminVerifiedBadges = lazy(lazyRetry(() => import("./pages/admin/AdminVerifiedBadges")));
 const AdminPartyBackgrounds = lazy(lazyRetry(() => import("./pages/admin/AdminPartyBackgrounds")));
-const AdminCallSettings = lazy(lazyRetry(() => import("./pages/admin/AdminCallSettings")));
+// AdminCallSettings deprecated → AdminPricingHub (Pkg30)
 const AdminOnlineUsers = lazy(lazyRetry(() => import("./pages/admin/AdminOnlineUsers")));
 const AdminTodayCalls = lazy(lazyRetry(() => import("./pages/admin/AdminTodayCalls")));
 const AdminGameSettings = lazy(lazyRetry(() => import("./pages/admin/AdminGameSettings")));
@@ -228,7 +228,8 @@ const AdminOnboardingSlides = lazy(lazyRetry(() => import("./pages/admin/AdminOn
 const AdminContent = lazy(lazyRetry(() => import("./pages/admin/AdminContent")));
 const AdminDeviceManagement = lazy(lazyRetry(() => import("./pages/admin/AdminDeviceManagement")));
 const AdminDeviceApprovals = lazy(lazyRetry(() => import("./pages/admin/AdminDeviceApprovals")));
-const AdminCommissions = lazy(lazyRetry(() => import("./pages/admin/AdminCommissions")));
+// AdminCommissions deprecated → AdminPricingHub (Pkg30)
+const AdminPricingHub = lazy(lazyRetry(() => import("./pages/admin/AdminPricingHub")));
 const AdminWithdrawals = lazy(lazyRetry(() => import("./pages/admin/AdminWithdrawals")));
 const AdminBranding = lazy(lazyRetry(() => import("./pages/admin/AdminBranding")));
 const AdminNotificationTemplates = lazy(lazyRetry(() => import("./pages/admin/AdminNotificationTemplates")));
@@ -1106,9 +1107,11 @@ const App = () => {
                   <Route path="animation-store" element={<AdminRouteGuard routeSegment="animation-store"><AdminAnimationStore /></AdminRouteGuard>} />
                   <Route path="manual-topup" element={<AdminRouteGuard routeSegment="manual-topup"><AdminManualTopup /></AdminRouteGuard>} />
                   <Route path="topup-system" element={<AdminRouteGuard routeSegment="topup-system"><AdminTopupSystem /></AdminRouteGuard>} />
-                  <Route path="commission-calculator" element={<AdminRouteGuard routeSegment="commission-calculator"><AdminCommissionCalculator /></AdminRouteGuard>} />
+                  {/* Deprecated → unified Pricing Hub (Pkg30) */}
+                  <Route path="commission-calculator" element={<Navigate to="/admin/pricing-hub" replace />} />
                   <Route path="party-backgrounds" element={<AdminRouteGuard routeSegment="party-backgrounds"><AdminPartyBackgrounds /></AdminRouteGuard>} />
-                  <Route path="call-settings" element={<AdminRouteGuard routeSegment="call-settings"><AdminCallSettings /></AdminRouteGuard>} />
+                  {/* Deprecated → unified Pricing Hub (Pkg30) */}
+                  <Route path="call-settings" element={<Navigate to="/admin/pricing-hub" replace />} />
                   <Route path="online-users" element={<AdminRouteGuard routeSegment="online-users"><AdminOnlineUsers /></AdminRouteGuard>} />
                   <Route path="today-calls" element={<AdminRouteGuard routeSegment="today-calls"><AdminTodayCalls /></AdminRouteGuard>} />
                   <Route path="game-settings" element={<AdminRouteGuard routeSegment="game-settings"><AdminGameSettings /></AdminRouteGuard>} />
@@ -1138,7 +1141,10 @@ const App = () => {
                   <Route path="popup-banners" element={<AdminRouteGuard routeSegment="popup-banners"><AdminPopupBanners /></AdminRouteGuard>} />
                   <Route path="onboarding-slides" element={<AdminRouteGuard routeSegment="onboarding-slides"><AdminOnboardingSlides /></AdminRouteGuard>} />
                   <Route path="content" element={<AdminRouteGuard routeSegment="content"><AdminContent /></AdminRouteGuard>} />
-                  <Route path="commissions" element={<AdminRouteGuard routeSegment="commissions"><AdminCommissions /></AdminRouteGuard>} />
+                  {/* Pkg30 — UNIFIED Commission & Pricing Hub */}
+                  <Route path="pricing-hub" element={<AdminRouteGuard routeSegment="pricing-hub"><AdminPricingHub /></AdminRouteGuard>} />
+                  {/* Deprecated → unified Pricing Hub */}
+                  <Route path="commissions" element={<Navigate to="/admin/pricing-hub" replace />} />
                   <Route path="withdrawals" element={<AdminRouteGuard routeSegment="withdrawals"><AdminWithdrawals /></AdminRouteGuard>} />
                   <Route path="branding" element={<AdminRouteGuard routeSegment="branding"><AdminBranding /></AdminRouteGuard>} />
                   <Route path="notification-templates" element={<AdminRouteGuard routeSegment="notification-templates"><AdminNotificationTemplates /></AdminRouteGuard>} />

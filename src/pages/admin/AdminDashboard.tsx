@@ -545,7 +545,7 @@ export default function AdminDashboard() {
           </motion.div>
           
           <QuickAction title="Host Applications" description="Review new applications" icon={Shield} link="/admin/host-applications" accentColor="#a78bfa" delay={0.7} />
-          <QuickAction title="Commissions" description="Manage rates & payouts" icon={Coins} link="/admin/commissions" accentColor="#f97316" delay={0.75} />
+          <QuickAction title="Pricing Hub" description="All commissions & rates" icon={Coins} link="/admin/pricing-hub" accentColor="#f97316" delay={0.75} />
           <QuickAction title="Payment Gateways" description="Configure payments" icon={Wallet} link="/admin/payment-gateways" accentColor="#ec4899" delay={0.8} />
           <QuickAction title="Withdrawals" description="Process pending requests" icon={Wallet} link="/admin/withdrawals" accentColor="#10b981" delay={0.85} />
           <QuickAction title="Reports" description="Analytics & insights" icon={TrendingUp} link="/admin/reports" accentColor="#0ea5e9" delay={0.9} />
