@@ -983,7 +983,10 @@ export function UnifiedPartyRoom({
             .single();
           
           const msgType = newMsg.message_type || 'text';
-          
+
+          // Resolve sender's equipped designer chat bubble (cached + de-duped per user)
+          const bubbleUrl = await getEquippedBubble(newMsg.sender_id);
+
           // Add ONLY to unified messages (SAME format as Live Stream - ONE LINK)
           const unifiedMsg: RoomChatMessage = {
             id: newMsg.id,
@@ -996,7 +999,8 @@ export function UnifiedPartyRoom({
             userAvatar: senderData?.avatar_url,
             isHost: senderData?.is_host || (newMsg.sender_id === hostInfo?.id),
             isNewUser: false,
-            type: msgType
+            type: msgType,
+            bubbleUrl,
           };
           setPremiumMessages(prev => [...prev.slice(-100), unifiedMsg]);
         }
