@@ -2153,6 +2153,166 @@ body > div[class*="fixed"][class*="backdrop-blur"] {
   background: hsl(262 50% 28%) !important;
 }
 
+/* ============================================
+   PKG3 — UI/UX POLISH (admin shell + tables + dialogs)
+   ============================================ */
+
+/* Smooth page transition on every admin route change */
+.admin-content > * {
+  animation: admin-page-enter 0.28s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+@keyframes admin-page-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Premium scrollbar inside admin shell */
+.admin-content ::-webkit-scrollbar { width: 10px; height: 10px; }
+.admin-content ::-webkit-scrollbar-track { background: transparent; }
+.admin-content ::-webkit-scrollbar-thumb {
+  background: hsl(225 15% 22%);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.admin-content ::-webkit-scrollbar-thumb:hover { background: hsl(262 50% 40%); background-clip: padding-box; border: 2px solid transparent; }
+
+/* Tables — luxury polish: sticky header, zebra hover, rounded container */
+.admin-content table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.admin-content table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: linear-gradient(180deg, hsl(230 14% 11%) 0%, hsl(230 14% 9%) 100%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid hsl(225 15% 20%) !important;
+  color: hsl(45 90% 70%) !important;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+.admin-content table tbody tr {
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+.admin-content table tbody tr:nth-child(even) {
+  background: hsl(230 12% 9% / 0.5);
+}
+.admin-content table tbody tr:hover {
+  background: hsl(262 50% 22% / 0.25) !important;
+}
+.admin-content table tbody td {
+  border-bottom: 1px solid hsl(225 15% 14%) !important;
+}
+
+/* Dialog — luxurious card surface */
+[data-radix-popper-content-wrapper] [role="dialog"],
+.admin-content [role="dialog"],
+[role="dialog"][data-state="open"] {
+  background: linear-gradient(180deg, hsl(230 14% 10%) 0%, hsl(230 14% 7%) 100%) !important;
+  border: 1px solid hsl(225 15% 22%) !important;
+  box-shadow:
+    0 32px 64px -32px hsl(0 0% 0% / 0.7),
+    0 0 0 1px hsl(45 90% 60% / 0.06),
+    inset 0 1px 0 hsl(255 100% 100% / 0.04) !important;
+}
+
+/* Dialog header gradient accent */
+.admin-content [role="dialog"] [class*="DialogHeader"],
+.admin-content [role="dialog"] header {
+  position: relative;
+}
+.admin-content [role="dialog"] [class*="DialogHeader"]::after,
+.admin-content [role="dialog"] header::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, hsl(45 90% 60% / 0.4), transparent);
+}
+
+/* Sheet (drawer) — same luxury treatment */
+[role="dialog"][data-state="open"][data-side] {
+  background: linear-gradient(180deg, hsl(230 14% 9%) 0%, hsl(230 14% 6%) 100%) !important;
+  border-color: hsl(225 15% 22%) !important;
+}
+
+/* Buttons — luxurious focus ring + smooth hover */
+.admin-content button:not(:disabled) {
+  transition: transform 0.12s ease, box-shadow 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
+}
+.admin-content button:not(:disabled):active {
+  transform: scale(0.97);
+}
+.admin-content button:focus-visible {
+  outline: none !important;
+  box-shadow: 0 0 0 2px hsl(230 14% 8%), 0 0 0 4px hsl(45 90% 60% / 0.6) !important;
+}
+
+/* Card hover lift (subtle) */
+.admin-content [class*="rounded-2xl"][class*="border"]:not(button):not([role]):not([class*="DialogContent"]) {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.admin-content [class*="rounded-2xl"][class*="border"]:not(button):not([role]):not([class*="DialogContent"]):hover {
+  border-color: hsl(45 90% 60% / 0.18) !important;
+}
+
+/* Empty-state utility */
+.admin-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: hsl(215 20% 58%);
+  gap: 0.5rem;
+}
+.admin-empty-state svg {
+  width: 3rem;
+  height: 3rem;
+  opacity: 0.4;
+  margin-bottom: 0.5rem;
+}
+
+/* Badge polish */
+.admin-content [class*="Badge"] {
+  letter-spacing: 0.02em;
+  border-radius: 6px;
+}
+
+/* Tabs — gold underline on active */
+.admin-content [role="tablist"] [role="tab"][data-state="active"] {
+  position: relative;
+}
+
+/* Skeleton shimmer */
+.admin-content [class*="Skeleton"] {
+  background: linear-gradient(
+    90deg,
+    hsl(230 12% 14%) 0%,
+    hsl(230 12% 18%) 50%,
+    hsl(230 12% 14%) 100%
+  ) !important;
+  background-size: 200% 100% !important;
+  animation: admin-skeleton-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes admin-skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Reduce-motion: disable polish animations */
+@media (prefers-reduced-motion: reduce) {
+  .admin-content > * { animation: none !important; }
+  .admin-content [class*="Skeleton"] { animation: none !important; }
+  .admin-content button:not(:disabled):active { transform: none !important; }
+}
+
 /* Select & Dropdown popovers - global */
 [data-radix-popper-content-wrapper] {
   z-index: 9999 !important;
