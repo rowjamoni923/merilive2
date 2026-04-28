@@ -52,6 +52,7 @@ import { format } from "date-fns";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import DeviceApprovalSection from "@/components/admin/DeviceApprovalSection";
 import OwnerAccessLinkGenerator from "@/components/admin/OwnerAccessLinkGenerator";
+import VaultPinManager from "@/components/admin/VaultPinManager";
 
 interface AdminUser {
   id: string;
@@ -648,7 +649,7 @@ const AdminSubAdmins = () => {
 
       {/* Tabs for Sub-Admins, Device Management, Owner Access */}
       <Tabs defaultValue="sub-admins" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="sub-admins" className="flex items-center gap-2">
             <Users className="w-4 h-4" />
             Sub-Admins
@@ -665,6 +666,10 @@ const AdminSubAdmins = () => {
           <TabsTrigger value="owner-access" className="flex items-center gap-2">
             <Crown className="w-4 h-4" />
             Owner Access
+          </TabsTrigger>
+          <TabsTrigger value="vault-pin" className="flex items-center gap-2">
+            <Lock className="w-4 h-4" />
+            Vault PIN
           </TabsTrigger>
         </TabsList>
 
@@ -835,6 +840,11 @@ const AdminSubAdmins = () => {
         {/* Owner Access Tab */}
         <TabsContent value="owner-access">
           <OwnerAccessLinkGenerator />
+        </TabsContent>
+
+        {/* Vault PIN Tab */}
+        <TabsContent value="vault-pin">
+          <VaultPinManager />
         </TabsContent>
       </Tabs>
 
