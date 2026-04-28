@@ -1,13 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Eye, Search, RefreshCw, User, Star, Phone } from "lucide-react";
+import { Eye, Search, RefreshCw, User, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
+import AdminPagination from "@/components/admin/AdminPagination";
 
 interface OnlineUser {
   id: string;
@@ -20,40 +21,60 @@ interface OnlineUser {
   app_uid: string | null;
 }
 
+const PAGE_SIZE = 60;
+
 export default function AdminOnlineUsers() {
   const [users, setUsers] = useState<OnlineUser[]>([]);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
 
-  const fetchOnlineUsers = async () => {
-    setLoading(true);
+  // Pkg9: server-side pagination + search via admin_list_online_users RPC.
+  // Eliminates the 500-row direct profiles SELECT cap.
+  const fetchOnlineUsers = useCallback(async () => {
+    if (users.length === 0) setLoading(true);
+    else setRefreshing(true);
     try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, display_name, avatar_url, user_level, is_host, country_code, last_seen_at, app_uid")
-        .eq("is_online", true)
-        .order("last_seen_at", { ascending: false })
-        .limit(500);
-
-      if (!error && data) setUsers(data);
+      const { data, error } = await supabase.rpc("admin_list_online_users", {
+        _search: search || null,
+        _limit: PAGE_SIZE,
+        _offset: (page - 1) * PAGE_SIZE,
+      });
+      if (error) throw error;
+      const payload = (data as any) || {};
+      setUsers((payload.rows || []) as OnlineUser[]);
+      setTotal(Number(payload.total) || 0);
     } catch (e) {
       console.error("Error fetching online users:", e);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, [search, page, users.length]);
 
-  
-  useAdminRealtime(["profiles"], fetchOnlineUsers);
+  // Debounce search input → search state
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setSearch(searchInput.trim());
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [searchInput]);
 
-  const filtered = users.filter(u => {
-    if (!search) return true;
-    const q = search.toLowerCase();
-    return (u.display_name?.toLowerCase().includes(q)) || (u.app_uid?.toLowerCase().includes(q));
-  });
+  useEffect(() => {
+    void fetchOnlineUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, page]);
 
-  const hosts = filtered.filter(u => u.is_host);
-  const regular = filtered.filter(u => !u.is_host);
+  useAdminRealtime(["profiles"], () => { void fetchOnlineUsers(); });
+
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  const hosts = useMemo(() => users.filter(u => u.is_host), [users]);
+  const regular = useMemo(() => users.filter(u => !u.is_host), [users]);
 
   return (
     <div className="space-y-6">
@@ -63,7 +84,7 @@ export default function AdminOnlineUsers() {
             <Eye className="w-6 h-6 text-emerald-400" />
             Online Users
             <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 ml-2">
-              {users.length} Online
+              {total.toLocaleString()} Online
             </Badge>
           </h1>
           <p className="text-sm text-slate-400 mt-1">Currently active users in the app</p>
@@ -73,18 +94,18 @@ export default function AdminOnlineUsers() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <Input
               placeholder="Search name or UID..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
+              value={searchInput}
+              onChange={e => setSearchInput(e.target.value)}
               className="pl-9 bg-slate-800 border-slate-700 text-white w-64"
             />
           </div>
-          <Button onClick={fetchOnlineUsers} variant="outline" size="icon" className="border-slate-700">
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          <Button onClick={() => void fetchOnlineUsers()} variant="outline" size="icon" className="border-slate-700">
+            <RefreshCw className={`w-4 h-4 ${loading || refreshing ? 'animate-spin' : ''}`} />
           </Button>
         </div>
       </div>
 
-      {/* Online Hosts */}
+      {/* Online Hosts (current page) */}
       {hosts.length > 0 && (
         <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-emerald-500/30">
           <CardHeader className="pb-3">
@@ -124,7 +145,7 @@ export default function AdminOnlineUsers() {
         </Card>
       )}
 
-      {/* Online Regular Users */}
+      {/* Online Regular Users (current page) */}
       <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700/50">
         <CardHeader className="pb-3">
           <CardTitle className="text-white text-lg flex items-center gap-2">
@@ -162,6 +183,15 @@ export default function AdminOnlineUsers() {
               ))}
             </div>
           )}
+          <AdminPagination
+            page={page}
+            totalPages={totalPages}
+            totalCount={total}
+            pageSize={PAGE_SIZE}
+            refreshing={refreshing}
+            onPageChange={setPage}
+            className="mt-4"
+          />
         </CardContent>
       </Card>
 
