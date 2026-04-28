@@ -52,6 +52,7 @@ import { format } from "date-fns";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import DeviceApprovalSection from "@/components/admin/DeviceApprovalSection";
 import OwnerAccessLinkGenerator from "@/components/admin/OwnerAccessLinkGenerator";
+import VaultPinManager from "@/components/admin/VaultPinManager";
 
 interface AdminUser {
   id: string;
