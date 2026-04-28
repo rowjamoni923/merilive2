@@ -58,7 +58,7 @@ export default function AdminReports() {
     fetchReportData();
   }, [period]);
 
-  useAdminRealtime(['profiles', 'gift_transactions', 'live_streams', 'private_calls'], () => fetchReportData(), { enableRealtimeRefresh: true });
+  useAdminRealtime(['profiles', 'gift_transactions', 'live_streams', 'private_calls'], () => fetchReportData());
 
   const fetchReportData = async () => {
     setLoading(true);

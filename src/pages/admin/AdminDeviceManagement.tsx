@@ -106,7 +106,7 @@ export default function AdminDeviceManagement() {
   }, [navigate]);
 
   useAdminRealtime(['admin_allowed_devices'], () => {
-    void loadDevices(, { enableRealtimeRefresh: true });
+    void loadDevices();
   });
 
   useEffect(() => {

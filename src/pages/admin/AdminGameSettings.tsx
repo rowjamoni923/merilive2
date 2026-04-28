@@ -195,7 +195,7 @@ export default function AdminGameSettings() {
     ['game_settings'],
     fetchGames,
     'admin-game-settings-rt'
-  , { enableRealtimeRefresh: true });
+  );
 
   const fetchStats = async () => {
     const today = new Date().toISOString().split('T')[0];

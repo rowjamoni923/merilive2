@@ -78,7 +78,7 @@ const AdminTopupPaymentMethods = () => {
   }, [toast]);
 
   useEffect(() => { loadMethods(); }, [loadMethods]);
-  useAdminRealtime(['topup_payment_methods'], loadMethods, { enableRealtimeRefresh: true });
+  useAdminRealtime(['topup_payment_methods'], loadMethods);
 
   const resetForm = () => {
     setEditingMethod(null);

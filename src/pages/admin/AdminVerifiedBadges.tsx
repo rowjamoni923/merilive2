@@ -42,7 +42,7 @@ const AdminVerifiedBadges = () => {
   };
 
   useEffect(() => { fetchBadges(); }, []);
-  useAdminRealtime(['branding_settings'], fetchBadges, 'admin-badges-rt', { enableRealtimeRefresh: true });
+  useAdminRealtime(['branding_settings'], fetchBadges, 'admin-badges-rt');
 
   const handleUpload = async (key: string, file: File) => {
     if (!file.type.startsWith("image/")) {

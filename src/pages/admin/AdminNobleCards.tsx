@@ -75,7 +75,7 @@ const AdminNobleCards = () => {
     fetchItems();
   }, [fetchItems]);
 
-  useAdminRealtime(['level_privileges'], () => fetchItems(), { enableRealtimeRefresh: true });
+  useAdminRealtime(['level_privileges'], () => fetchItems());
 
   const uploadToR2 = async (file: File, folder: string): Promise<string> => {
     const formData = new FormData();

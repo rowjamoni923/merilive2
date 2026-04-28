@@ -112,7 +112,7 @@ export default function AdminTodayCalls() {
     }
   };
 
-  useAdminRealtime(["private_calls"], fetchCalls, { enableRealtimeRefresh: true });
+  useAdminRealtime(["private_calls"], fetchCalls);
 
   const filtered = calls.filter(c => {
     if (!search) return true;

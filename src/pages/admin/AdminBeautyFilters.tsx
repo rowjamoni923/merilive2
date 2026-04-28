@@ -138,7 +138,7 @@ const AdminBeautyFilters = () => {
     icon_name: "",
   });
 
-  useAdminRealtime(["beauty_filters", "ar_stickers"], () => fetchAll(), { enableRealtimeRefresh: true });
+  useAdminRealtime(["beauty_filters", "ar_stickers"], () => fetchAll());
 
   useEffect(() => {
     fetchAll();

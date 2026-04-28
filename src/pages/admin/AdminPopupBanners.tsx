@@ -41,7 +41,7 @@ const AdminPopupBanners = () => {
     is_active: true, display_order: 0, start_date: '', end_date: '',
   });
 
-  useAdminRealtime(['popup_event_banners'], () => fetchBanners(), { enableRealtimeRefresh: true });
+  useAdminRealtime(['popup_event_banners'], () => fetchBanners());
 
   const fetchBanners = async () => {
     try {

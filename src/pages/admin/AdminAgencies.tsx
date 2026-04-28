@@ -290,7 +290,7 @@ export default function AdminAgencies() {
   }, []);
 
   useAdminRealtime(['agencies', 'agency_level_tiers'], () => {
-    fetchAgencies(, { enableRealtimeRefresh: true });
+    fetchAgencies();
     if (!isSavingRef.current && !hasUnsavedTierChangesRef.current) {
       fetchLevelTiers();
     }

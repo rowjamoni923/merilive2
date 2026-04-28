@@ -83,7 +83,7 @@ export default function AdminGiftTransactions() {
   }, [fetchTransactions]);
 
   useAdminRealtime(['gift_transactions'], () => {
-    void fetchTransactions(, { enableRealtimeRefresh: true });
+    void fetchTransactions();
   });
 
   // Aggregate by receiver

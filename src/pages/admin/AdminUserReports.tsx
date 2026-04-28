@@ -64,7 +64,7 @@ export default function AdminUserReports() {
   const [adminNotes, setAdminNotes] = useState("");
   const [actionTaken, setActionTaken] = useState("");
 
-  useAdminRealtime(['user_reports'], () => fetchReports(), { enableRealtimeRefresh: true });
+  useAdminRealtime(['user_reports'], () => fetchReports());
 
   const fetchReports = async () => {
     const adminId = getCurrentAdminId();

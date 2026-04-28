@@ -89,7 +89,7 @@ const AdminHelperOrders = () => {
   const [selectedOrder, setSelectedOrder] = useState<HelperOrder | null>(null);
   const [showOrderModal, setShowOrderModal] = useState(false);
 
-  useAdminRealtime(['helper_orders'], () => fetchOrders(), { enableRealtimeRefresh: true });
+  useAdminRealtime(['helper_orders'], () => fetchOrders());
 
   useEffect(() => {
     void fetchOrders();

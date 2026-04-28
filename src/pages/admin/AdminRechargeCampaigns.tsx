@@ -156,7 +156,7 @@ export default function AdminRechargeCampaigns() {
     fetchCoinPackages();
   }, [fetchCampaigns, fetchCoinPackages]);
 
-  useAdminRealtime(["recharge_campaigns"], fetchCampaigns, "admin-recharge-campaigns-rt", { enableRealtimeRefresh: true });
+  useAdminRealtime(["recharge_campaigns"], fetchCampaigns, "admin-recharge-campaigns-rt");
 
   const openCreate = () => {
     setEditing(null);

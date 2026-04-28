@@ -288,7 +288,7 @@ const AdminShop = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
-  useAdminRealtime(['shop_items'], fetchItems, { enableRealtimeRefresh: true });
+  useAdminRealtime(['shop_items'], fetchItems);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

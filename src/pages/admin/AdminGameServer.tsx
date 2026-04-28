@@ -85,7 +85,7 @@ export default function AdminGameServer() {
   useEffect(() => {
     fetchData();
   }, []);
-  useAdminRealtime(['game_server_settings'], fetchData, 'admin-game-server-rt', { enableRealtimeRefresh: true });
+  useAdminRealtime(['game_server_settings'], fetchData, 'admin-game-server-rt');
 
   const fetchSettings = async () => {
     const { data, error } = await supabase

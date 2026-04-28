@@ -105,7 +105,7 @@ const AdminFeatureLevels = () => {
   });
 
   useAdminRealtime(['feature_level_requirements'], () => {
-    void refetch(, { enableRealtimeRefresh: true });
+    void refetch();
   });
 
   const updateMutation = useMutation({

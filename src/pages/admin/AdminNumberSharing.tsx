@@ -144,7 +144,7 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
     fetchViolations();
   }, [fetchViolations]);
 
-  useAdminRealtime(['host_contact_violations'], () => fetchViolations(), { enableRealtimeRefresh: true });
+  useAdminRealtime(['host_contact_violations'], () => fetchViolations());
 
   const openBanDialog = (v: ViolationRecord) => {
     setBanTarget(v);

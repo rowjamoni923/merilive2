@@ -141,7 +141,7 @@ export default function AdminWithdrawals() {
   }, [filterStatus]);
 
   useAdminRealtime(['agency_withdrawals'], () => {
-    fetchWithdrawals(, { enableRealtimeRefresh: true });
+    fetchWithdrawals();
     fetchGlobalCounts();
   });
 

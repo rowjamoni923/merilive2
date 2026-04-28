@@ -265,7 +265,7 @@ const AdminTopupSystem = () => {
     () => loadAllData(false),
     'admin-topup-rt',
     { debounceMs: 1500 }
-  , { enableRealtimeRefresh: true });
+  );
 
   // Fetch Level Tiers
   const fetchLevelTiers = async () => {

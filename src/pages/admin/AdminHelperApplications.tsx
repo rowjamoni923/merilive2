@@ -112,7 +112,7 @@ const AdminHelperApplications = () => {
     loadData();
   }, [statusFilter]);
 
-  useAdminRealtime(['helper_applications'], () => loadData(), { enableRealtimeRefresh: true });
+  useAdminRealtime(['helper_applications'], () => loadData());
 
   const loadData = async () => {
     setLoading(true);

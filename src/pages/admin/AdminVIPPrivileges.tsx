@@ -95,7 +95,7 @@ const AdminVIPPrivileges = () => {
   useEffect(() => {
     fetchTiers();
   }, []);
-  useAdminRealtime(['vip_tiers'], fetchTiers, 'admin-vip-privileges-rt', { enableRealtimeRefresh: true });
+  useAdminRealtime(['vip_tiers'], fetchTiers, 'admin-vip-privileges-rt');
 
   const handleFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>, 

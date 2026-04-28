@@ -29,7 +29,7 @@ export default function AdminPartyManagement() {
     totalBackgrounds: 0
   });
 
-  useAdminRealtime(['party_rooms', 'party_room_participants'], () => fetchStats(), { enableRealtimeRefresh: true });
+  useAdminRealtime(['party_rooms', 'party_room_participants'], () => fetchStats());
 
   const fetchStats = async () => {
     const [roomsRes, bannersRes] = await Promise.all([

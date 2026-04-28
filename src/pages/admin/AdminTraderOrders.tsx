@@ -76,7 +76,7 @@ const AdminTraderOrders = () => {
     todayTotal: 0
   });
 
-  useAdminRealtime(['helper_orders'], () => fetchOrders(), { enableRealtimeRefresh: true });
+  useAdminRealtime(['helper_orders'], () => fetchOrders());
 
   const fetchOrders = async () => {
     setLoading(true);

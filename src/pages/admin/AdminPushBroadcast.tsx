@@ -100,7 +100,7 @@ export default function AdminPushBroadcast() {
 
   // ⚡ Zero-refresh: invalidate device-token stats whenever device_tokens changes
   useAdminRealtime(['device_tokens'], () => {
-    queryClient.invalidateQueries({ queryKey: ['device-token-stats'] }, { enableRealtimeRefresh: true });
+    queryClient.invalidateQueries({ queryKey: ['device-token-stats'] });
   });
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {

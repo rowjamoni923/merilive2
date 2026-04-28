@@ -83,7 +83,7 @@ const AdminAnimationStore = () => {
 
   // Load existing assignments
 
-  useAdminRealtime(['animation_store_items'], () => loadAssignments(), { enableRealtimeRefresh: true });
+  useAdminRealtime(['animation_store_items'], () => loadAssignments());
 
   const loadAssignments = async () => {
     const { data, error } = await supabase

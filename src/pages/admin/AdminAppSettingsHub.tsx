@@ -23,7 +23,7 @@ const AdminAppSettingsHub = () => {
     settings: 0
   });
 
-  useAdminRealtime(['app_version_settings', 'notification_templates', 'app_settings'], () => fetchStats(), { enableRealtimeRefresh: true });
+  useAdminRealtime(['app_version_settings', 'notification_templates', 'app_settings'], () => fetchStats());
 
   const fetchStats = async () => {
     const [versionRes, templatesRes, settingsRes] = await Promise.all([

@@ -78,7 +78,7 @@ const AdminReels = () => {
   const [newCategoryIcon, setNewCategoryIcon] = useState("");
   const [newCategoryOrder, setNewCategoryOrder] = useState(0);
 
-  useAdminRealtime(['reels', 'reel_categories'], () => fetchData(), { enableRealtimeRefresh: true });
+  useAdminRealtime(['reels', 'reel_categories'], () => fetchData());
 
   const fetchData = async () => {
     setLoading(true);

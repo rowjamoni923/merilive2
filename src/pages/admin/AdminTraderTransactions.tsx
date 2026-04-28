@@ -51,7 +51,7 @@ const AdminTraderTransactions = () => {
     pendingValue: 0
   });
 
-  useAdminRealtime(['helper_transactions'], () => fetchTransactions(), { enableRealtimeRefresh: true });
+  useAdminRealtime(['helper_transactions'], () => fetchTransactions());
 
   const fetchTransactions = async () => {
     setLoading(true);

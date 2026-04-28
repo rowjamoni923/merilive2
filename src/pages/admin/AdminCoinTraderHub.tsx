@@ -40,7 +40,7 @@ export default function AdminDiamondTraderHub() {
     helperPaymentMethods: 0
   });
 
-  useAdminRealtime(['topup_helpers', 'helper_orders', 'helper_transactions', 'topup_payment_methods'], () => fetchStats(), { enableRealtimeRefresh: true });
+  useAdminRealtime(['topup_helpers', 'helper_orders', 'helper_transactions', 'topup_payment_methods'], () => fetchStats());
 
   const fetchStats = async () => {
     const today = new Date().toISOString().split('T')[0];

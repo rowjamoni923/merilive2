@@ -100,7 +100,7 @@ const AdminTransferHistory = () => {
     fetchTransfers();
   }, [selectedAgency, dateFilter, sortField, sortOrder]);
 
-  useAdminRealtime(['agency_earnings_transfers', 'agencies'], () => { fetchTransfers(, { enableRealtimeRefresh: true }); fetchAgencies(); });
+  useAdminRealtime(['agency_earnings_transfers', 'agencies'], () => { fetchTransfers(); fetchAgencies(); });
 
   const fetchAgencies = async () => {
     const { data } = await supabase

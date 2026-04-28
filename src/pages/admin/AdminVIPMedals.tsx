@@ -76,7 +76,7 @@ const AdminVIPMedals = () => {
     fetchItems();
   }, [fetchItems]);
 
-  useAdminRealtime(['level_privileges'], fetchItems, { enableRealtimeRefresh: true });
+  useAdminRealtime(['level_privileges'], fetchItems);
 
   // R2 upload for large files
   const uploadToR2 = async (file: File, folder: string): Promise<string> => {

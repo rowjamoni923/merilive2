@@ -60,7 +60,7 @@ export default function AdminBranding() {
   const logoInputRef = useRef<HTMLInputElement>(null);
   const backgroundInputRef = useRef<HTMLInputElement>(null);
 
-  useAdminRealtime(['branding_settings'], () => fetchSettings(), { enableRealtimeRefresh: true });
+  useAdminRealtime(['branding_settings'], () => fetchSettings());
 
   const fetchSettings = async () => {
     try {

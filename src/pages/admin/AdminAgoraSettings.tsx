@@ -38,7 +38,7 @@ export default function AdminAgoraSettings() {
     fetchActiveStreamCount();
   }, []);
 
-  useAdminRealtime(['app_settings', 'live_streams'], () => { fetchSettings(, { enableRealtimeRefresh: true }); fetchActiveStreamCount(); });
+  useAdminRealtime(['app_settings', 'live_streams'], () => { fetchSettings(); fetchActiveStreamCount(); });
 
   const fetchActiveStreamCount = async () => {
     try {

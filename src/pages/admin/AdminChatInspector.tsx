@@ -360,7 +360,7 @@ const AdminChatInspector = () => {
   }, [chatSubTab, mainTab, loadPhoneAlerts]);
 
   useAdminRealtime(['notifications', 'chat_moderation_logs'], () => {
-    void loadPhoneAlerts(mainTab === "phone-alerts" || chatSubTab === "alerts", { enableRealtimeRefresh: true });
+    void loadPhoneAlerts(mainTab === "phone-alerts" || chatSubTab === "alerts");
   });
 
   return (

@@ -143,7 +143,7 @@ const AdminLevel5Helpers = () => {
   }>>([]);
 
   useAdminRealtime(['topup_helpers', 'helper_withdrawal_requests', 'helper_level_config'], () => {
-    loadHelpers(, { enableRealtimeRefresh: true });
+    loadHelpers();
     loadPayrollApplications();
     loadStats();
     loadWithdrawals();

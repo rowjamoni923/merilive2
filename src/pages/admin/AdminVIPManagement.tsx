@@ -19,7 +19,7 @@ const AdminVIPManagement = () => {
     activeVIPs: 0
   });
 
-  useAdminRealtime(['vip_tiers', 'level_privileges'], () => fetchStats(), { enableRealtimeRefresh: true });
+  useAdminRealtime(['vip_tiers', 'level_privileges'], () => fetchStats());
 
   const fetchStats = async () => {
     const [tiersRes, medalsRes, cardsRes] = await Promise.all([

@@ -56,7 +56,7 @@ const AdminNotificationTemplates = () => {
   const [previewDialog, setPreviewDialog] = useState(false);
   const [previewContent, setPreviewContent] = useState({ title: "", message: "" });
 
-  useAdminRealtime(['notification_templates'], () => fetchTemplates(), { enableRealtimeRefresh: true });
+  useAdminRealtime(['notification_templates'], () => fetchTemplates());
 
   const fetchTemplates = async () => {
     try {

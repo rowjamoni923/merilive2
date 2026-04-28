@@ -128,7 +128,7 @@ const AdminSubAdmins = () => {
     fetchSections();
   }, []);
 
-  useAdminRealtime(['admin_users'], () => fetchAdmins(), { enableRealtimeRefresh: true });
+  useAdminRealtime(['admin_users'], () => fetchAdmins());
 
   const fetchAdmins = async () => {
     const { data, error } = await supabase
@@ -440,7 +440,7 @@ const AdminSubAdmins = () => {
     const { count } = await supabase
       .from('admin_allowed_devices')
       .select('*', { count: 'exact', head: true })
-      .eq('status', 'pending', { enableRealtimeRefresh: true });
+      .eq('status', 'pending');
     setPendingDeviceCount(count || 0);
   });
 

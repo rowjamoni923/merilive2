@@ -92,7 +92,7 @@ const AdminRoleFrames = () => {
   const [assignRoleType, setAssignRoleType] = useState<string>('admin');
   const [searching, setSearching] = useState(false);
 
-  useAdminRealtime(['role_frames'], () => fetchData(), { enableRealtimeRefresh: true });
+  useAdminRealtime(['role_frames'], () => fetchData());
 
   const fetchData = async () => {
     setLoading(true);

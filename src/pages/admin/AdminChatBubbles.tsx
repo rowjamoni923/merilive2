@@ -76,7 +76,7 @@ const AdminChatBubbles = () => {
     fetchItems();
   }, [fetchItems]);
 
-  useAdminRealtime(['chat_bubble_frames'], () => fetchItems(), { enableRealtimeRefresh: true });
+  useAdminRealtime(['chat_bubble_frames'], () => fetchItems());
 
   // R2 upload for large files
   const uploadToR2 = async (file: File, folder: string): Promise<string> => {

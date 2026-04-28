@@ -49,7 +49,7 @@ const AdminLevelTiers = () => {
   const iconInputRef = useRef<HTMLInputElement>(null);
   const animationInputRef = useRef<HTMLInputElement>(null);
 
-  useAdminRealtime(['user_level_tiers', 'level_privileges'], () => fetchTiers(), { enableRealtimeRefresh: true });
+  useAdminRealtime(['user_level_tiers', 'level_privileges'], () => fetchTiers());
 
   const fetchTiers = async () => {
     setLoading(true);

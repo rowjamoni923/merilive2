@@ -276,7 +276,7 @@ export default function AdminDashboard() {
 
   useAdminRealtime(
     ['profiles', 'gift_transactions', 'live_streams', 'agencies', 'private_calls', 'face_verification_submissions'],
-    () => { loadData(, { enableRealtimeRefresh: true }); }
+    () => { loadData(); }
   );
 
   useEffect(() => {

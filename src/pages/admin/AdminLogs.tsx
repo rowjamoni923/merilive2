@@ -61,7 +61,7 @@ export default function AdminLogs() {
     fetchLogs();
   }, [actionFilter]);
 
-  useAdminRealtime(['admin_logs'], () => fetchLogs(), { enableRealtimeRefresh: true });
+  useAdminRealtime(['admin_logs'], () => fetchLogs());
 
   const fetchLogs = async () => {
     setLoading(true);

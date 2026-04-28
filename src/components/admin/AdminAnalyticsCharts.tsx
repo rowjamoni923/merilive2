@@ -150,7 +150,7 @@ export const AdminAnalyticsCharts = memo(() => {
   useAdminRealtime(
     ['gift_transactions', 'private_calls', 'recharge_transactions', 'profiles'],
     () => loadData()
-  , { enableRealtimeRefresh: true });
+  );
 
   const chartUserGrowth = data?.user_growth?.map(d => ({
     date: formatDate(d.date),

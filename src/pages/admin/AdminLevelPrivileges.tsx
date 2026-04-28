@@ -129,7 +129,7 @@ const AdminLevelPrivileges = () => {
   const [uploadingFile, setUploadingFile] = useState(false);
   const [previewAnimation, setPreviewAnimation] = useState<string | null>(null);
 
-  useAdminRealtime(['level_privileges'], () => fetchData(), { enableRealtimeRefresh: true });
+  useAdminRealtime(['level_privileges'], () => fetchData());
 
   const fetchData = async () => {
     try {

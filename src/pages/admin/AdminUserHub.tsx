@@ -107,7 +107,7 @@ const AdminUserHub = () => {
   }, [fetchStats, fetchCountryStats]);
 
   useAdminRealtime(['profiles'], () => {
-    fetchStats(, { enableRealtimeRefresh: true });
+    fetchStats();
     fetchCountryStats();
   });
 

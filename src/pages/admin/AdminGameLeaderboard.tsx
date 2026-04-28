@@ -76,7 +76,7 @@ export default function AdminGameLeaderboard() {
 
   
 
-  useAdminRealtime(['gift_transactions', 'private_calls'], () => fetchAll(), { enableRealtimeRefresh: true });
+  useAdminRealtime(['gift_transactions', 'private_calls'], () => fetchAll());
 
   const fetchAll = async () => {
     setLoading(true);

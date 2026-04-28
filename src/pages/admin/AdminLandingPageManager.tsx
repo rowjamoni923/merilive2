@@ -186,7 +186,7 @@ const AdminLandingPageManager = () => {
 
   // ⚡ Zero-refresh: instantly refetch when sections or settings change in DB
   useAdminRealtime(['landing_page_sections', 'app_settings'], () => {
-    fetchAll(, { enableRealtimeRefresh: true });
+    fetchAll();
   });
 
   const fetchAll = async () => {

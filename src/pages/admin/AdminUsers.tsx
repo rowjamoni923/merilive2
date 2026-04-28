@@ -152,7 +152,7 @@ export default function AdminUsers() {
   }, [currentPage, filterType, searchQuery, searchType]);
 
   useAdminRealtime(['profiles'], () => {
-    void fetchUsers(, { enableRealtimeRefresh: true });
+    void fetchUsers();
   });
 
   useEffect(() => {

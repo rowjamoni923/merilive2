@@ -92,7 +92,7 @@ const AdminHelperRequests = () => {
     loadRequests();
   }, [statusFilter]);
 
-  useAdminRealtime(['helper_upgrade_requests', 'helper_topup_requests'], () => loadRequests(), { enableRealtimeRefresh: true });
+  useAdminRealtime(['helper_upgrade_requests', 'helper_topup_requests'], () => loadRequests());
 
   const loadRequests = async () => {
     setLoading(true);

@@ -221,7 +221,7 @@ const AdminFaceVerification = () => {
     }
   };
 
-  useAdminRealtime(['face_verification_submissions'], fetchSubmissions, { enableRealtimeRefresh: true });
+  useAdminRealtime(['face_verification_submissions'], fetchSubmissions);
 
   const handleRefresh = () => { setRefreshing(true); fetchSubmissions(); };
 

@@ -34,7 +34,7 @@ export default function AdminContentManagement() {
     activeBanners: 0
   });
 
-  useAdminRealtime(['live_streams', 'stream_recordings', 'reels', 'banners'], () => fetchStats(), { enableRealtimeRefresh: true });
+  useAdminRealtime(['live_streams', 'stream_recordings', 'reels', 'banners'], () => fetchStats());
 
   const fetchStats = async () => {
     const [streamsRes, recordingsRes, reelsRes, bannersRes] = await Promise.all([

@@ -69,7 +69,7 @@ const AdminHelperDiamondPricing = () => {
     ['helper_diamond_packages'],
     loadPackages,
     'admin-helper-pricing-rt'
-  , { enableRealtimeRefresh: true });
+  );
 
   const handleUpdate = async (pkg: DiamondPackage) => {
     setSaving(true);

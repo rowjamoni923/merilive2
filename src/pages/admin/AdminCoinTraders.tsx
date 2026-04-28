@@ -70,7 +70,7 @@ const AdminCoinTraders = () => {
   }, []);
 
   useAdminRealtime(['topup_helpers', 'helper_transactions', 'profiles'], () => {
-    fetchHelpers(, { enableRealtimeRefresh: true });
+    fetchHelpers();
     fetchTransactions();
   });
 
