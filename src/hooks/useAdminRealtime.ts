@@ -125,10 +125,11 @@ export const useAdminRealtime = (
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const trackedTables = useMemo(() => Array.from(new Set(tables)), [tables.join('|')]);
 
-  const debounceMs = options.debounceMs ?? DEFAULT_DEBOUNCE_MS;
-  const enableRealtimeRefresh = options.enableRealtimeRefresh ?? false;
-  const enableVisibilityRefresh = options.enableVisibilityRefresh ?? false;
-  const enableStaleFallback = options.enableStaleFallback ?? false;
+    const isOnAdminRoute = isAdminRoute();
+    const debounceMs = options.debounceMs ?? DEFAULT_DEBOUNCE_MS;
+    const enableRealtimeRefresh = !isOnAdminRoute && (options.enableRealtimeRefresh ?? false);
+    const enableVisibilityRefresh = !isOnAdminRoute && (options.enableVisibilityRefresh ?? false);
+    const enableStaleFallback = !isOnAdminRoute && (options.enableStaleFallback ?? false);
   const staleRefreshMs = options.staleRefreshMs ?? DEFAULT_STALE_REFRESH_MS;
   const healthCheckIntervalMs = options.healthCheckIntervalMs ?? DEFAULT_HEALTH_CHECK_INTERVAL_MS;
 
@@ -216,8 +217,6 @@ export const useAdminRealtime = (
   }, [isAdminRoute]);
 
   useEffect(() => {
-    const isOnAdminRoute = isAdminRoute();
-
     if (isOnAdminRoute && !enableRealtimeRefresh) {
       return () => {
         if (debounceRef.current) clearTimeout(debounceRef.current);
