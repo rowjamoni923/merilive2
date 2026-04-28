@@ -29,21 +29,20 @@ const AdminFinance = () => {
   useAdminRealtime(['agency_withdrawals', 'coin_transfers', 'payroll_requests'], () => fetchStats());
 
   const fetchStats = async () => {
-    const today = new Date().toISOString().split('T')[0];
-    
-    const [withdrawalsRes, transfersRes, epayRes] = await Promise.all([
-      supabase.from('agency_withdrawals').select('id', { count: 'exact' }).eq('status', 'pending'),
-      supabase.from('coin_transfers').select('id', { count: 'exact' }).gte('created_at', today),
-      supabase.from('agency_withdrawals').select('id', { count: 'exact' }).eq('status', 'pending').eq('payment_method', 'epay')
-    ]);
-
-    setStats({
-      pendingWithdrawals: withdrawalsRes.count || 0,
-      pendingPayroll: 0,
-      todayTransfers: transfersRes.count || 0,
-      totalDeductions: 0,
-      pendingEpay: epayRes.count || 0
-    });
+    try {
+      const { data, error } = await supabase.rpc('admin_finance_overview_stats');
+      if (error) throw error;
+      const r = (data as any) || {};
+      setStats({
+        pendingWithdrawals: r.pending_withdrawals || 0,
+        pendingPayroll: 0,
+        todayTransfers: r.today_transfers || 0,
+        totalDeductions: 0,
+        pendingEpay: r.pending_epay || 0,
+      });
+    } catch (e) {
+      console.error('[AdminFinance] stats error', e);
+    }
   };
 
   return (
