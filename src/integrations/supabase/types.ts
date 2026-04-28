@@ -12826,10 +12826,9 @@ export type Database = {
         Args: { _device_id: string; _owner_admin_id: string; _reason?: string }
         Returns: Json
       }
-      admin_rotate_secret_token: {
-        Args: { _admin_id: string; _kind: string }
-        Returns: Json
-      }
+      admin_rotate_secret_token:
+        | { Args: { _admin_id: string; _kind: string }; Returns: Json }
+        | { Args: { p_token_kind: string }; Returns: Json }
       admin_send_notification: {
         Args: {
           _data?: Json
