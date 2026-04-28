@@ -1299,16 +1299,10 @@ export default function AdminLayout() {
   useEffect(() => {
     // ⚡ Defer header stats by 2s — not needed for initial render
     const initialTimer = setTimeout(fetchHeaderStats, 2000);
-    // Realtime-driven: listen to live_streams & profiles changes via unified system
-    // No polling interval needed — useAdminRealtime handles updates
-    // Unique channel name per mount to avoid "cannot add callbacks after subscribe()" error
-    const ch = adminSupabase
-      .channel(`admin-header-stats-${crypto.randomUUID()}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'live_streams' }, debouncedFetchHeaderStats)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, debouncedFetchHeaderStats)
-      .subscribe();
-    return () => { clearTimeout(initialTimer); adminSupabase.removeChannel(ch); };
-  }, [fetchHeaderStats, debouncedFetchHeaderStats]);
+    // No realtime header subscription: profiles/live_streams are noisy and caused
+    // constant admin layout refreshes while admins were editing pages.
+    return () => clearTimeout(initialTimer);
+  }, [fetchHeaderStats]);
 
   // ⚡ Prefetch ALL admin page chunks after initial render to eliminate lazy-load delay
   // Lighter prefetch strategy: warm only the most-used admin routes after mount.
