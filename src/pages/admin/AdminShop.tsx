@@ -47,6 +47,7 @@ import { toast } from "sonner";
 import SVGAPreviewWithMuteToggle from "@/components/admin/SVGAPreviewWithMuteToggle";
 import { UniversalAnimationPlayer } from "@/features/shared/animations";
 import { useR2Upload } from "@/hooks/useR2Upload";
+import { LazyImage } from "@/components/LazyImage";
 
 const adminCardStyles = "bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/10";
 const adminButtonStyles = { primary: "bg-gradient-to-r from-purple-500 to-pink-500 text-white" };
@@ -732,7 +733,7 @@ const AdminShop = () => {
                     
                     // If preview_url exists and is a real image (not SVGA/Lottie), show as img
                     if (previewUrl && !isSVGA(previewUrl) && !isLottie(previewUrl)) {
-                      return <img src={previewUrl} alt={item.name} className="w-full h-full object-cover" />;
+                      return <LazyImage src={previewUrl} alt={item.name} className="w-full h-full object-cover" />;
                     }
                     
                     // Otherwise use animation player for SVGA/Lottie
@@ -749,7 +750,7 @@ const AdminShop = () => {
                     }
                     
                     if (item.image_url) {
-                      return <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />;
+                      return <LazyImage src={item.image_url} alt={item.name} className="w-full h-full object-cover" />;
                     }
                     
                     return <CategoryIcon className="w-8 h-8 text-purple-400" />;
