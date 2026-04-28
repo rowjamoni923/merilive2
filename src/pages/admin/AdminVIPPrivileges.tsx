@@ -44,6 +44,22 @@ interface VIPTier {
   entry_animation_url?: string | null;
   bubble_animation_url?: string | null;
   badge_animation_url?: string | null;
+  // Power Perks (Phase 1)
+  anti_kick_protection?: boolean;
+  stealth_mode?: boolean;
+  hide_real_level?: boolean;
+  forbidden_words_bypass?: boolean;
+  top_position_in_lists?: boolean;
+  vip_only_lounge_access?: boolean;
+  priority_random_match?: boolean;
+  max_kick_tier_level?: number;
+  // Economy (Phase 1)
+  recharge_bonus_percent?: number;
+  daily_free_diamonds?: number;
+  free_name_changes_per_month?: number;
+  entry_effect_duration_seconds?: number;
+  username_color?: string | null;
+  profile_background_url?: string | null;
 }
 
 const defaultTier: Partial<VIPTier> = {
@@ -66,6 +82,22 @@ const defaultTier: Partial<VIPTier> = {
   profile_highlight: true,
   is_active: true,
   display_order: 0,
+  // Power Perks defaults
+  anti_kick_protection: false,
+  stealth_mode: false,
+  hide_real_level: false,
+  forbidden_words_bypass: false,
+  top_position_in_lists: false,
+  vip_only_lounge_access: false,
+  priority_random_match: false,
+  max_kick_tier_level: 0,
+  // Economy defaults
+  recharge_bonus_percent: 0,
+  daily_free_diamonds: 0,
+  free_name_changes_per_month: 0,
+  entry_effect_duration_seconds: 5,
+  username_color: '',
+  profile_background_url: '',
 };
 
 const AdminVIPPrivileges = () => {
