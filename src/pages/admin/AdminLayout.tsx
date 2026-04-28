@@ -2141,6 +2141,7 @@ export default function AdminLayout() {
     return () => {
       clearTimeout(pendingCountsTimer);
       window.removeEventListener(ADMIN_REALTIME_EVENT, handleUnifiedEvent);
+      stopAdminGlobalRealtime();
     };
   }, [isAdmin, currentUser?.id]);
 
