@@ -144,6 +144,11 @@ const DEFAULT_HEALTH_CHECK_INTERVAL_MS = 30_000;
 interface UseAdminRealtimeOptions {
   debounceMs?: number;
   /**
+   * Admin pages default to initial-load only to prevent noisy tables from
+   * refreshing forms/lists every few seconds across the whole admin panel.
+   */
+  enableRealtimeRefresh?: boolean;
+  /**
    * Disabled by default to keep admin pages strictly realtime-driven
    * (no timer-based refresh when tab becomes visible).
    */
@@ -168,6 +173,7 @@ export const useAdminRealtime = (
   const trackedTables = useMemo(() => Array.from(new Set(tables)), [tables.join('|')]);
 
   const debounceMs = options.debounceMs ?? DEFAULT_DEBOUNCE_MS;
+  const enableRealtimeRefresh = options.enableRealtimeRefresh ?? false;
   const enableVisibilityRefresh = options.enableVisibilityRefresh ?? false;
   const enableStaleFallback = options.enableStaleFallback ?? false;
   const staleRefreshMs = options.staleRefreshMs ?? DEFAULT_STALE_REFRESH_MS;
@@ -259,6 +265,12 @@ export const useAdminRealtime = (
   useEffect(() => {
     const isOnAdminRoute = isAdminRoute();
 
+    if (isOnAdminRoute && !enableRealtimeRefresh) {
+      return () => {
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+      };
+    }
+
     const eventTables = trackedTables.filter((t) => GLOBALLY_MONITORED_TABLES.has(t));
     const directTables = trackedTables.filter((t) => !GLOBALLY_MONITORED_TABLES.has(t));
 
@@ -333,6 +345,7 @@ export const useAdminRealtime = (
       trackedTables.join('|'),
     debouncedRefresh,
     channelName,
+    enableRealtimeRefresh,
     enableVisibilityRefresh,
     enableStaleFallback,
     staleRefreshMs,
