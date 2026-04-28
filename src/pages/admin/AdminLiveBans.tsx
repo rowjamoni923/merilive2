@@ -396,7 +396,7 @@ export default function AdminLiveBans() {
               <div className="flex items-center gap-3">
                 <Ban className="w-8 h-8 text-red-500" />
                 <div>
-                  <p className="text-2xl font-bold">{bans.filter(b => b.is_active).length}</p>
+                  <p className="text-2xl font-bold">{stats.active.toLocaleString()}</p>
                   <p className="text-xs text-muted-foreground">Active Bans</p>
                 </div>
               </div>
