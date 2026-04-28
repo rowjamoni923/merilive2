@@ -170,23 +170,26 @@ export default function AdminHosts() {
 
   const fetchStats = async () => {
     try {
-      const [totalRes, activeRes, pendingRes, blockedRes, earningsRes] = await Promise.all([
-        supabase.from("profiles").select("*", { count: "exact", head: true }).eq("is_host", true),
-        supabase.from("profiles").select("*", { count: "exact", head: true }).eq("is_host", true).eq("host_status", "approved").eq("is_blocked", false),
-        supabase.from("profiles").select("*", { count: "exact", head: true }).eq("is_host", true).eq("host_status", "pending"),
-        supabase.from("profiles").select("*", { count: "exact", head: true }).eq("is_host", true).eq("is_blocked", true),
-        supabase.from("profiles").select("total_earnings").eq("is_host", true),
-      ]);
-
+      // Pkg5: server-side aggregation via admin_host_stats RPC
+      // (avoids 500-row REST cap and inaccurate client-side SUM of total_earnings)
+      const { data, error } = await supabase.rpc('admin_host_stats');
+      if (error) throw error;
+      const s = (data || {}) as {
+        total_hosts?: number;
+        active_hosts?: number;
+        pending_hosts?: number;
+        blocked_hosts?: number;
+        total_earnings?: number | string;
+      };
       setStats({
-        totalHosts: totalRes.count || 0,
-        activeHosts: activeRes.count || 0,
-        pendingHosts: pendingRes.count || 0,
-        blockedHosts: blockedRes.count || 0,
-        totalEarnings: (earningsRes.data || []).reduce((sum, h) => sum + (h.total_earnings || 0), 0)
+        totalHosts: Number(s.total_hosts || 0),
+        activeHosts: Number(s.active_hosts || 0),
+        pendingHosts: Number(s.pending_hosts || 0),
+        blockedHosts: Number(s.blocked_hosts || 0),
+        totalEarnings: Number(s.total_earnings || 0),
       });
     } catch (error) {
-      console.error("Error fetching stats:", error);
+      console.error("Error fetching host stats:", error);
     }
   };
 
