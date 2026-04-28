@@ -99,51 +99,54 @@ export const ProfessionalChatMessage = ({
     );
   }
 
-  // VIP chat message with custom bubble
-  if (bubbleUrl && isVIP) {
+  // VIP / Noble chat message with custom designer SVGA bubble
+  // The bubble image WRAPS the message content (Chamet/MICO-style designer bubble)
+  if (bubbleUrl) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative flex flex-wrap items-start gap-1 py-0.5"
+        className="py-0.5"
       >
-        {/* Custom VIP Bubble Background */}
-        <div className="absolute inset-0 -z-10 opacity-80">
-          <UniversalAnimationPlayer
-            src={bubbleUrl}
-            className="w-full h-full"
-            loop
-            autoPlay
-          />
-        </div>
-        
-        {/* Level Badge */}
-        <InlineLevelBadge level={userLevel} />
-        
-        {/* VIP Badge with tier-specific styling */}
-        <span className={cn(
-          "inline-flex items-center h-4 px-1.5 rounded text-[9px] font-bold",
-          vipTier >= 5 ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white" :
-          vipTier >= 3 ? "bg-gradient-to-r from-cyan-400 to-blue-500 text-white" :
-          "bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-900"
-        )}>
-          VIP{vipTier}
-        </span>
-        
-        {/* User Name */}
-        <span 
-          className={cn(
-            "font-bold text-xs",
-            vipTier >= 5 ? "text-pink-300" :
-            vipTier >= 3 ? "text-cyan-300" :
-            "text-amber-300"
-          )}
+        <MessageBubbleWrapper
+          bubbleUrl={bubbleUrl}
+          safeAreaClassName="px-4 py-2"
+          maxWidthClassName="max-w-[280px]"
         >
-          {userName}:
-        </span>
-        
-        {/* Message */}
-        <span className="text-white text-xs break-words">{message}</span>
+          <div className="flex flex-wrap items-center gap-1">
+            {/* Level Badge */}
+            <InlineLevelBadge level={userLevel} />
+
+            {/* VIP Badge with tier-specific styling */}
+            {isVIP && (
+              <span className={cn(
+                "inline-flex items-center h-4 px-1.5 rounded text-[9px] font-bold",
+                vipTier >= 5 ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white" :
+                vipTier >= 3 ? "bg-gradient-to-r from-cyan-400 to-blue-500 text-white" :
+                "bg-gradient-to-r from-amber-500 to-yellow-500 text-amber-900"
+              )}>
+                VIP{vipTier}
+              </span>
+            )}
+
+            {/* User Name */}
+            <span
+              className={cn(
+                "font-bold text-xs drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]",
+                vipTier >= 5 ? "text-pink-200" :
+                vipTier >= 3 ? "text-cyan-200" :
+                "text-amber-200"
+              )}
+            >
+              {userName}:
+            </span>
+
+            {/* Message — sits inside the designer bubble */}
+            <span className="text-white text-xs break-words drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
+              {message}
+            </span>
+          </div>
+        </MessageBubbleWrapper>
       </motion.div>
     );
   }
