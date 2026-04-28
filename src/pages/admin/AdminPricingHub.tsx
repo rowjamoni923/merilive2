@@ -185,14 +185,17 @@ export default function AdminPricingHub() {
     setSaving("tiers");
     try {
       for (const t of tiers) {
+        if (t.min_weekly_income === "" || t.max_weekly_income === "" || t.commission_rate === "") {
+          throw new Error("Agency tier weekly range and commission fields must be configured before saving.");
+        }
         const { error } = await supabase
           .from("agency_level_tiers")
           .update({
             level_code: t.level_code,
             level_name: t.level_name,
-            min_weekly_income: t.min_weekly_income,
-            max_weekly_income: t.max_weekly_income,
-            commission_rate: t.commission_rate,
+            min_weekly_income: Number(t.min_weekly_income),
+            max_weekly_income: Number(t.max_weekly_income),
+            commission_rate: Number(t.commission_rate),
             is_active: t.is_active,
             updated_at: new Date().toISOString(),
           })
