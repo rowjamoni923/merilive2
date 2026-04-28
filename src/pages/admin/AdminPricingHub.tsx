@@ -48,8 +48,8 @@ interface AgencyLevelTier {
 }
 
 interface LevelRate {
-  level: number;
-  rate: number;
+  level: number | "";
+  rate: number | "";
 }
 
 const NUM = (v: any): number | "" =>
@@ -214,7 +214,7 @@ export default function AdminPricingHub() {
     setTiers((prev) => prev.map((t) => (t.id === id ? { ...t, [field]: value } : t)));
   };
 
-  const updateLevelRate = (idx: number, field: "level" | "rate", value: number) => {
+  const updateLevelRate = (idx: number, field: "level" | "rate", value: number | "") => {
     if (!callRates) return;
     const arr: LevelRate[] = [...(callRates.level_rates ?? [])];
     arr[idx] = { ...arr[idx], [field]: value };
@@ -365,7 +365,7 @@ export default function AdminPricingHub() {
                           <Input
                             type="number"
                             value={NUM(lr.rate)}
-                            onChange={(e) => updateLevelRate(idx, "rate", Number(e.target.value))}
+                            onChange={(e) => updateLevelRate(idx, "rate", inputNumber(e.target.value))}
                             className="h-8"
                           />
                         </div>
@@ -405,7 +405,7 @@ export default function AdminPricingHub() {
                     type="number"
                     value={NUM(giftCommission.host_percent)}
                     onChange={(e) =>
-                      setGiftCommission({ ...giftCommission, host_percent: Number(e.target.value) })
+                      setGiftCommission({ ...giftCommission, host_percent: inputNumber(e.target.value) })
                     }
                   />
                 </Field>
@@ -414,7 +414,7 @@ export default function AdminPricingHub() {
                     type="number"
                     value={NUM(giftCommission.company_percent)}
                     onChange={(e) =>
-                      setGiftCommission({ ...giftCommission, company_percent: Number(e.target.value) })
+                      setGiftCommission({ ...giftCommission, company_percent: inputNumber(e.target.value) })
                     }
                   />
                 </Field>
@@ -424,8 +424,8 @@ export default function AdminPricingHub() {
                   saveSection(
                     "gift_commission",
                     {
-                      host_percent: Number(giftCommission.host_percent || 0),
-                      company_percent: Number(giftCommission.company_percent || 0),
+                      host_percent: giftCommission.host_percent,
+                      company_percent: giftCommission.company_percent,
                       description: `Company takes ${giftCommission.company_percent}%, Host receives ${giftCommission.host_percent}%`,
                     },
                     "Gift commission"
