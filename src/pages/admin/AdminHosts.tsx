@@ -84,11 +84,15 @@ export default function AdminHosts() {
   const [hosts, setHosts] = useState<Host[]>(() => getAdminCache<Host[]>('admin_hosts_list') || []);
   const [loading, setLoading] = useState(() => !getAdminCache('admin_hosts_list'));
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedHost, setSelectedHost] = useState<Host | null>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [levelRates, setLevelRates] = useState<LevelRate[]>([]);
   const [defaultRate, setDefaultRate] = useState(0);
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const pageSize = 50;
   const [stats, setStats] = useState({
     totalHosts: 0,
     activeHosts: 0,
@@ -97,14 +101,23 @@ export default function AdminHosts() {
     totalEarnings: 0
   });
 
+  // Debounce search input
   useEffect(() => {
-    // Skip initial mount — useAdminRealtime handles it after auth
-    if (statusFilter !== 'all') {
-      fetchHosts();
-      fetchStats();
-      fetchCallRates();
-    }
-  }, [statusFilter]);
+    const t = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 300);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  // Reset page when filter/search changes
+  useEffect(() => {
+    setPage(1);
+  }, [statusFilter, debouncedSearch]);
+
+  useEffect(() => {
+    fetchHosts();
+    fetchStats();
+    fetchCallRates();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter, debouncedSearch, page]);
 
   useAdminRealtime(['profiles'], () => {
     fetchHosts();
@@ -114,26 +127,21 @@ export default function AdminHosts() {
   const fetchHosts = async () => {
     if (hosts.length === 0) setLoading(true);
     try {
-      let query = supabase
-        .from("profiles")
-        .select(`
-          id, display_name, avatar_url, is_verified, is_blocked,
-          host_level, host_status, call_rate_per_minute, total_earnings,
-          total_call_minutes, total_calls_received, agency_id, created_at,
-          agencies(name, agency_code)
-        `)
-        .eq("is_host", true)
-        .order("total_earnings", { ascending: false });
-
-      if (statusFilter !== "all") {
-        query = query.eq("host_status", statusFilter);
-      }
-
-      const { data, error } = await query.limit(100);
+      // Pkg5: server-side paginated host listing via admin_list_hosts_paginated RPC
+      // (bypasses 500-row REST cap, supports filter+search server-side)
+      const { data, error } = await supabase.rpc('admin_list_hosts_paginated', {
+        _status: statusFilter === 'all' ? null : statusFilter,
+        _search: debouncedSearch || null,
+        _limit: pageSize,
+        _offset: (page - 1) * pageSize,
+      });
 
       if (error) throw error;
-      setHosts((data as unknown as Host[]) || []);
-      setAdminCache('admin_hosts_list', (data as unknown as Host[]) || []);
+      const payload = (data || {}) as { rows?: Host[]; total?: number };
+      const rows = (payload.rows || []) as Host[];
+      setHosts(rows);
+      setTotalCount(Number(payload.total || 0));
+      setAdminCache('admin_hosts_list', rows);
     } catch (error) {
       console.error("Error fetching hosts:", error);
       toast.error("Failed to load hosts");
