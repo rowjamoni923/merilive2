@@ -432,7 +432,7 @@ export default function AdminLiveBans() {
               <div className="flex items-center gap-3">
                 <Video className="w-8 h-8 text-purple-500" />
                 <div>
-                  <p className="text-2xl font-bold">{bans.length}</p>
+                  <p className="text-2xl font-bold">{stats.total.toLocaleString()}</p>
                   <p className="text-xs text-muted-foreground">Total Bans</p>
                 </div>
               </div>
