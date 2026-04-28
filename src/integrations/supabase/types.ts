@@ -12258,6 +12258,7 @@ export type Database = {
         Args: { _admin_id: string; _stream_id: string }
         Returns: undefined
       }
+      admin_finance_overview_stats: { Args: never; Returns: Json }
       admin_force_verify_and_approve_host: {
         Args: {
           _approve_as?: string
@@ -12725,6 +12726,7 @@ export type Database = {
         }
       }
       admin_logout: { Args: { _token: string }; Returns: undefined }
+      admin_payment_gateway_stats: { Args: never; Returns: Json }
       admin_permanent_ban_step_one: {
         Args: {
           _evidence?: Json
@@ -12987,6 +12989,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      admin_withdrawal_stats: { Args: never; Returns: Json }
       agency_send_diamonds_to_agency: {
         Args: {
           _amount: number
