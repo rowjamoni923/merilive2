@@ -228,7 +228,7 @@ const AdminOnboardingSlides = lazy(lazyRetry(() => import("./pages/admin/AdminOn
 const AdminContent = lazy(lazyRetry(() => import("./pages/admin/AdminContent")));
 const AdminDeviceManagement = lazy(lazyRetry(() => import("./pages/admin/AdminDeviceManagement")));
 const AdminDeviceApprovals = lazy(lazyRetry(() => import("./pages/admin/AdminDeviceApprovals")));
-const AdminCommissions = lazy(lazyRetry(() => import("./pages/admin/AdminCommissions")));
+// AdminCommissions deprecated → AdminPricingHub (Pkg30)
 const AdminPricingHub = lazy(lazyRetry(() => import("./pages/admin/AdminPricingHub")));
 const AdminWithdrawals = lazy(lazyRetry(() => import("./pages/admin/AdminWithdrawals")));
 const AdminBranding = lazy(lazyRetry(() => import("./pages/admin/AdminBranding")));
