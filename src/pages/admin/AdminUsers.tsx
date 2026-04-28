@@ -137,12 +137,11 @@ export default function AdminUsers() {
       setAdminCache('admin_users_list', data || []);
       setTotalUsers(count || 0);
 
-      // Fetch blocked count for warning banner
-      const { count: blockedC } = await supabase
-        .from("profiles")
-        .select("id", { count: "exact", head: true })
-        .eq("is_blocked", true);
-      setBlockedCount(blockedC || 0);
+      // Pkg5: server-side aggregation via admin_user_stats RPC
+      // (single round-trip, exact counts beyond 500-row REST cap)
+      const { data: statsData } = await supabase.rpc('admin_user_stats');
+      const s = (statsData || {}) as { blocked?: number };
+      setBlockedCount(Number(s.blocked || 0));
     } catch (error) {
       console.error("Error fetching users:", error);
       toast.error("Failed to load users");

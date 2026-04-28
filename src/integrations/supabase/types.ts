@@ -12279,6 +12279,7 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_host_stats: { Args: never; Returns: Json }
       admin_list_admin_users: {
         Args: { _include_inactive?: boolean }
         Returns: {
@@ -12989,6 +12990,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      admin_user_stats: { Args: never; Returns: Json }
       admin_withdrawal_stats: { Args: never; Returns: Json }
       agency_send_diamonds_to_agency: {
         Args: {
