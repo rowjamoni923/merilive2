@@ -241,6 +241,25 @@ const LiveStream = () => {
   // Music player panel
   const [showMusicPlayer, setShowMusicPlayer] = useState(false);
 
+  const mapStreamChatRow = useCallback((msg: any, profile: any, hostId: string): RoomChatMessage => {
+    const displayName = profile?.display_name || "User";
+    const userCreatedAt = profile?.created_at ? new Date(profile.created_at) : null;
+    const isNewUser = userCreatedAt ? (Date.now() - userCreatedAt.getTime()) < 7 * 24 * 60 * 60 * 1000 : false;
+
+    return {
+      id: msg.id,
+      user: displayName,
+      initial: displayName.charAt(0),
+      message: msg.message || "",
+      color: "text-white",
+      userLevel: profile?.user_level || 1,
+      userAvatar: profile?.avatar_url || undefined,
+      isHost: msg.user_id === hostId,
+      isNewUser,
+      countryFlag: profile?.country_flag || undefined,
+    };
+  }, []);
+
   const [showGamePanel, setShowGamePanel] = useState(false);
   
   // Flying gift animation
