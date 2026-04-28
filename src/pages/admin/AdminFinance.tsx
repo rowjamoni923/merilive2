@@ -5,19 +5,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Wallet, ArrowUpDown, CreditCard, History, Calculator, Minus, DollarSign, Globe, MessageCircle, Globe2 } from "lucide-react";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 
-// Import existing components as tab content
-import AdminCommissions from "./AdminCommissions";
 import AdminWithdrawals from "./AdminWithdrawals";
 import AdminPayrollOrders from "./AdminPayrollOrders";
 import AdminTransferHistory from "./AdminTransferHistory";
 import AdminBalanceDeduction from "./AdminBalanceDeduction";
-import AdminCommissionCalculator from "./AdminCommissionCalculator";
 import AdminCoins from "./AdminCoins";
 import AdminHelperMessaging from "@/components/admin/AdminHelperMessaging";
 import AdminEpayWithdrawals from "@/components/admin/AdminEpayWithdrawals";
 
 const AdminFinance = () => {
-  const [activeTab, setActiveTab] = useState("commissions");
+  const [activeTab, setActiveTab] = useState("withdrawals");
   const [stats, setStats] = useState({
     pendingWithdrawals: 0,
     pendingPayroll: 0,
@@ -94,14 +91,7 @@ const AdminFinance = () => {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4 md:grid-cols-8 bg-slate-900/50 p-1 h-auto">
-          <TabsTrigger 
-            value="commissions" 
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white py-2 text-xs"
-          >
-            <Calculator className="w-4 h-4 mr-1" />
-            <span className="hidden md:inline">Commission</span>
-          </TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4 md:grid-cols-7 bg-slate-900/50 p-1 h-auto">
           <TabsTrigger 
             value="withdrawals" 
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-amber-500 data-[state=active]:text-black py-2 text-xs"
@@ -131,13 +121,6 @@ const AdminFinance = () => {
             <span className="hidden md:inline">Currency</span>
           </TabsTrigger>
           <TabsTrigger 
-            value="calculator" 
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-500 data-[state=active]:text-white py-2 text-xs"
-          >
-            <Calculator className="w-4 h-4 mr-1" />
-            <span className="hidden md:inline">Calculator</span>
-          </TabsTrigger>
-          <TabsTrigger 
             value="deduction" 
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-rose-500 data-[state=active]:text-white py-2 text-xs"
           >
@@ -165,10 +148,6 @@ const AdminFinance = () => {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="commissions" className="mt-0">
-          <AdminCommissions />
-        </TabsContent>
-
         <TabsContent value="withdrawals" className="mt-0">
           <AdminWithdrawals />
         </TabsContent>
@@ -183,10 +162,6 @@ const AdminFinance = () => {
 
         <TabsContent value="currency" className="mt-0">
           <AdminCoins />
-        </TabsContent>
-
-        <TabsContent value="calculator" className="mt-0">
-          <AdminCommissionCalculator />
         </TabsContent>
 
         <TabsContent value="deduction" className="mt-0">
