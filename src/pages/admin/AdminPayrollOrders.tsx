@@ -290,7 +290,7 @@ const AdminPayrollOrders = () => {
             .from('topup_helpers')
             .select('wallet_balance, total_sold')
             .eq('id', order.helper_id)
-            .single();
+            .maybeSingle();
 
           await supabase
             .from('topup_helpers')

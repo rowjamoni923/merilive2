@@ -146,7 +146,7 @@ const AdminTraderOrders = () => {
           .from('topup_helpers')
           .select('wallet_balance, total_sold, user:user_id(display_name, avatar_url)')
           .eq('id', order.helper_id)
-          .single();
+          .maybeSingle();
 
         await supabase
           .from('topup_helpers')

@@ -186,7 +186,7 @@ export default function AdminAgencyDetail() {
           .from("profiles")
           .select("id, display_name, avatar_url, country_flag")
           .eq("id", agencyData.owner_id)
-          .single();
+          .maybeSingle();
         owner = ownerData;
       }
       

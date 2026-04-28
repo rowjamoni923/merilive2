@@ -168,7 +168,7 @@ const AdminAnimationStore = () => {
         .from('level_animations')
         .select('id')
         .eq('level', assignLevel)
-        .single();
+        .maybeSingle();
 
       if (existingInDb) {
         // Update existing record for this level

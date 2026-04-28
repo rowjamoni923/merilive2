@@ -155,7 +155,7 @@ export default function AdminHostSearch() {
             owner:profiles!agencies_owner_id_fkey(display_name, avatar_url)
           `)
           .eq("id", hostData.agency_id)
-          .single();
+          .maybeSingle();
 
         // Transform owner from array to object
         const transformedAgency = agencyData ? {
@@ -170,7 +170,7 @@ export default function AdminHostSearch() {
           .select("joined_at, joined_via, status")
           .eq("host_id", hostData.id)
           .eq("agency_id", hostData.agency_id)
-          .single();
+          .maybeSingle();
 
         setAgencyHostInfo(joinData);
       }

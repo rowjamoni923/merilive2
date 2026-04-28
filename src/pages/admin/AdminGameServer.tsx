@@ -92,7 +92,7 @@ export default function AdminGameServer() {
       .from('game_server_settings')
       .select('*')
       .limit(1)
-      .single();
+      .maybeSingle();
     
     if (!error && data) {
       setSettings(data as GameServerSettings);

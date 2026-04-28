@@ -622,7 +622,7 @@ export default function AdminAgencies() {
             owner:profiles!agencies_owner_id_fkey(display_name, avatar_url)
           `)
           .eq("id", hostData.agency_id)
-          .single();
+          .maybeSingle();
 
         const transformedAgency = agencyData ? {
           ...agencyData,
@@ -635,7 +635,7 @@ export default function AdminAgencies() {
           .select("joined_at, joined_via, status")
           .eq("host_id", hostData.id)
           .eq("agency_id", hostData.agency_id)
-          .single();
+          .maybeSingle();
 
         setHostAgencyInfo(joinData);
       }
@@ -809,7 +809,7 @@ export default function AdminAgencies() {
         .from("profiles")
         .select("country_code, display_name")
         .eq("id", selectedAgency.owner_id)
-        .single();
+        .maybeSingle();
 
       const { data: existingHelper } = await supabase
         .from("topup_helpers")
