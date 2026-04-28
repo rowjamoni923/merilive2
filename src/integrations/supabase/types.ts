@@ -492,6 +492,54 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_pin_otp: {
+        Row: {
+          consumed_at: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          otp_hash: string
+        }
+        Insert: {
+          consumed_at?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          otp_hash: string
+        }
+        Update: {
+          consumed_at?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          otp_hash?: string
+        }
+        Relationships: []
+      }
+      admin_pin_trusted_devices: {
+        Row: {
+          device_fingerprint: string
+          trusted_at: string
+          trusted_by_admin: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          device_fingerprint: string
+          trusted_at?: string
+          trusted_by_admin?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          device_fingerprint?: string
+          trusted_at?: string
+          trusted_by_admin?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       admin_section_permissions: {
         Row: {
           admin_user_id: string
@@ -561,6 +609,33 @@ export type Database = {
           section_key?: string
           section_name?: string
           section_name_bn?: string | null
+        }
+        Relationships: []
+      }
+      admin_security_pin: {
+        Row: {
+          failed_attempts: number
+          id: boolean
+          locked_until: string | null
+          pin_hash: string
+          set_at: string
+          set_by: string | null
+        }
+        Insert: {
+          failed_attempts?: number
+          id?: boolean
+          locked_until?: string | null
+          pin_hash: string
+          set_at?: string
+          set_by?: string | null
+        }
+        Update: {
+          failed_attempts?: number
+          id?: boolean
+          locked_until?: string | null
+          pin_hash?: string
+          set_at?: string
+          set_by?: string | null
         }
         Relationships: []
       }
@@ -12668,6 +12743,28 @@ export type Database = {
         Args: { _case_id: string; _review_note?: string }
         Returns: Json
       }
+      admin_pin_device_trusted: {
+        Args: { _device_fingerprint: string }
+        Returns: Json
+      }
+      admin_pin_request_reset: { Args: never; Returns: Json }
+      admin_pin_reset_with_otp: {
+        Args: { _new_pin: string; _otp: string }
+        Returns: Json
+      }
+      admin_pin_set: {
+        Args: { _admin_id: string; _current_pin?: string; _new_pin: string }
+        Returns: Json
+      }
+      admin_pin_status: { Args: never; Returns: Json }
+      admin_pin_verify: {
+        Args: {
+          _device_fingerprint: string
+          _pin: string
+          _user_agent?: string
+        }
+        Returns: Json
+      }
       admin_process_face_verification: {
         Args: {
           _action: string
@@ -13621,6 +13718,7 @@ export type Database = {
         Returns: Json
       }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
+      hash_admin_pin: { Args: { _pin: string }; Returns: string }
       helper_add_coins_to_user: {
         Args: { _amount: number; _user_id: string }
         Returns: Json
