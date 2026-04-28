@@ -1868,8 +1868,8 @@ const LiveStream = () => {
     // Save MASKED message to database
     const { error } = await supabase.from("stream_chat").insert({
       stream_id: id,
-      sender_id: currentUserId,
-      content: contentToSend,
+      user_id: currentUserId,
+      message: contentToSend,
     });
     
     if (error) {
@@ -3400,8 +3400,9 @@ const LiveStream = () => {
                 const finalGiftMessage = `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${successCount}`;
                 await supabase.from("stream_chat").insert({
                   stream_id: id,
-                  sender_id: currentUserId,
-                  content: finalGiftMessage,
+                  user_id: currentUserId,
+                  message: finalGiftMessage,
+                  message_type: 'gift',
                 });
               }
             } catch (err) {
