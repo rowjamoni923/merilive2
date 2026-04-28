@@ -106,7 +106,8 @@ export function useRoomEntryEffects(currentUserId: string | null) {
         profile.equipped_entrance_id,
         profile.equipped_entry_name_bar_id,
         profile.equipped_vehicle_id,
-        profile.user_level
+        profile.user_level,
+        userId
       );
 
       return { entranceAnimationUrl, entranceSoundUrl, entryNameBarUrl, vehicleAnimationUrl };
