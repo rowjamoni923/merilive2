@@ -408,7 +408,7 @@ export default function AdminLiveBans() {
               <div className="flex items-center gap-3">
                 <AlertTriangle className="w-8 h-8 text-yellow-500" />
                 <div>
-                  <p className="text-2xl font-bold">{bans.filter(b => b.auto_banned).length}</p>
+                  <p className="text-2xl font-bold">{stats.auto.toLocaleString()}</p>
                   <p className="text-xs text-muted-foreground">Auto Bans</p>
                 </div>
               </div>
