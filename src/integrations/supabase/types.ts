@@ -12885,6 +12885,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      apply_vip_recharge_bonus: {
+        Args: { _base_diamonds: number; _recharge_id: string; _user_id: string }
+        Returns: Json
+      }
       approve_agency_withdrawal: {
         Args: { _withdrawal_id: string }
         Returns: Json
@@ -12985,6 +12989,10 @@ export type Database = {
         Args: { _device_id?: string; _face_hash?: string; _ip_address?: string }
         Returns: Json
       }
+      check_user_anti_kick: {
+        Args: { _moderator_user_id: string; _target_user_id: string }
+        Returns: Json
+      }
       check_user_permission: {
         Args: { p_permission: string; p_user_id: string }
         Returns: boolean
@@ -13021,6 +13029,7 @@ export type Database = {
         Args: { _task_id: string; _user_id: string }
         Returns: Json
       }
+      claim_vip_daily_reward: { Args: never; Returns: Json }
       cleanup_application_logs: {
         Args: never
         Returns: {
@@ -13497,6 +13506,17 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_noble_subscriptions_needing_reminder: {
+        Args: never
+        Returns: {
+          days_remaining: number
+          expires_at: string
+          rank_name: string
+          reminder_type: string
+          subscription_id: string
+          user_id: string
+        }[]
+      }
       get_task_program_day: { Args: { _host_id: string }; Returns: number }
       get_task_reset_date: { Args: never; Returns: string }
       get_top_gifters_leaderboard: {
@@ -13673,6 +13693,10 @@ export type Database = {
         Args: { p_conversation_id: string; p_recipient_id: string }
         Returns: number
       }
+      mark_noble_reminder_sent: {
+        Args: { _reminder_type: string; _subscription_id: string }
+        Returns: undefined
+      }
       place_game_bet:
         | {
             Args: { p_amount: number; p_game_type?: string; p_user_id: string }
@@ -13768,6 +13792,10 @@ export type Database = {
         Returns: Json
       }
       process_weekly_agency_transfers: { Args: never; Returns: Json }
+      purchase_noble_card: {
+        Args: { _auto_renew?: boolean; _noble_card_id: string }
+        Returns: Json
+      }
       purchase_vip_tier: {
         Args: {
           p_duration_days: number
