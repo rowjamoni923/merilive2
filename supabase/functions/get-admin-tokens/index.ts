@@ -91,10 +91,29 @@ Deno.serve(async (req) => {
     const ownerHash = await deriveHash(BASE_SECRET, `owner:${year}`);
     const subHash = await deriveHash(BASE_SECRET, `sub_admin:${year}`);
 
+    let ownerToken = `gala-royal-velvet-${year}-aurora-${ownerHash}`;
+    let subadminToken = `gala-noir-onyx-${year}-prism-${subHash}`;
+    let ownerRotatedAt: string | null = null;
+    let subadminRotatedAt: string | null = null;
+
+    // Check for owner-rotated overrides (current year only)
+    const { data: overrides } = await adminClient
+      .from('admin_token_overrides')
+      .select('kind, token, rotated_at, rotated_year');
+    if (Array.isArray(overrides)) {
+      for (const o of overrides) {
+        if (o.rotated_year !== year) continue;
+        if (o.kind === 'owner') { ownerToken = o.token; ownerRotatedAt = o.rotated_at; }
+        if (o.kind === 'sub_admin') { subadminToken = o.token; subadminRotatedAt = o.rotated_at; }
+      }
+    }
+
     return new Response(
       JSON.stringify({
-        owner_token: `gala-royal-velvet-${year}-aurora-${ownerHash}`,
-        subadmin_token: `gala-noir-onyx-${year}-prism-${subHash}`,
+        owner_token: ownerToken,
+        subadmin_token: subadminToken,
+        owner_rotated_at: ownerRotatedAt,
+        subadmin_rotated_at: subadminRotatedAt,
         year,
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
