@@ -9746,6 +9746,7 @@ export type Database = {
           gift_transaction_id: string | null
           host_id: string
           id: string
+          source_type: string
           sub_agent_id: string
         }
         Insert: {
@@ -9755,6 +9756,7 @@ export type Database = {
           gift_transaction_id?: string | null
           host_id: string
           id?: string
+          source_type?: string
           sub_agent_id: string
         }
         Update: {
@@ -9764,6 +9766,7 @@ export type Database = {
           gift_transaction_id?: string | null
           host_id?: string
           id?: string
+          source_type?: string
           sub_agent_id?: string
         }
         Relationships: []
@@ -13457,6 +13460,16 @@ export type Database = {
           _user_id: string
         }
         Returns: string
+      }
+      credit_sub_agent_commission: {
+        Args: {
+          _agency_id: string
+          _host_earnings: number
+          _host_id: string
+          _source_id: string
+          _source_type: string
+        }
+        Returns: undefined
       }
       current_admin_id_from_header: { Args: never; Returns: string }
       current_admin_token_from_header: { Args: never; Returns: string }
