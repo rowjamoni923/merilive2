@@ -74,7 +74,7 @@ export const saveAppSetting = async (
     updated_at: new Date().toISOString(),
   };
 
-  const { error } = await supabase
+  const { error } = await adminSupabase
     .from("app_settings")
     .upsert(payload, { onConflict: "setting_key" });
 
