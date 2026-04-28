@@ -198,7 +198,7 @@ const AdminTopupSystem = lazy(lazyRetry(() => import("./pages/admin/AdminTopupSy
 const AdminIconRegistry = lazy(lazyRetry(() => import("./pages/admin/AdminIconRegistry")));
 const AdminVerifiedBadges = lazy(lazyRetry(() => import("./pages/admin/AdminVerifiedBadges")));
 const AdminPartyBackgrounds = lazy(lazyRetry(() => import("./pages/admin/AdminPartyBackgrounds")));
-const AdminCallSettings = lazy(lazyRetry(() => import("./pages/admin/AdminCallSettings")));
+// AdminCallSettings deprecated → AdminPricingHub (Pkg30)
 const AdminOnlineUsers = lazy(lazyRetry(() => import("./pages/admin/AdminOnlineUsers")));
 const AdminTodayCalls = lazy(lazyRetry(() => import("./pages/admin/AdminTodayCalls")));
 const AdminGameSettings = lazy(lazyRetry(() => import("./pages/admin/AdminGameSettings")));
