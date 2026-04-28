@@ -12258,6 +12258,7 @@ export type Database = {
         Args: { _admin_id: string; _stream_id: string }
         Returns: undefined
       }
+      admin_face_verification_stats: { Args: never; Returns: Json }
       admin_finance_overview_stats: { Args: never; Returns: Json }
       admin_force_verify_and_approve_host: {
         Args: {
@@ -12466,6 +12467,15 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      admin_list_hosts_paginated: {
+        Args: {
+          _limit?: number
+          _offset?: number
+          _search?: string
+          _status?: string
+        }
+        Returns: Json
       }
       admin_list_live_bans: {
         Args: { _limit?: number; _only_active?: boolean }
