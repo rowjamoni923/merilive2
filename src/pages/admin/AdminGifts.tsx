@@ -155,15 +155,17 @@ export default function AdminGifts() {
   const fetchGifts = useCallback(async () => {
     try {
       if (gifts.length === 0) setLoading(true);
-      const { data, error } = await supabase
-        .from("gifts")
-        .select("*")
-        .order("display_order", { ascending: true })
-        .order("coin_value", { ascending: true });
+      // Pkg10: full-list RPC bypasses 500-row REST cap
+      const { data, error } = await supabase.rpc('admin_list_gifts_all' as any);
 
       if (error) throw error;
-      setGifts((data || []) as unknown as GiftItem[]);
-      setAdminCache('admin_gifts', (data || []) as unknown as GiftItem[]);
+      const sorted = ((data as any[]) || []).slice().sort((a, b) => {
+        const d = (a.display_order ?? 0) - (b.display_order ?? 0);
+        if (d !== 0) return d;
+        return (a.coin_value ?? 0) - (b.coin_value ?? 0);
+      });
+      setGifts(sorted as unknown as GiftItem[]);
+      setAdminCache('admin_gifts', sorted as unknown as GiftItem[]);
     } catch (error) {
       console.error("Error fetching gifts:", error);
       toast.error("Failed to load gifts");
