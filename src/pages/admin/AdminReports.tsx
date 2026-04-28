@@ -63,100 +63,34 @@ export default function AdminReports() {
   const fetchReportData = async () => {
     setLoading(true);
     try {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const ninetyDaysAgo = new Date();
-      ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+      // Pkg10: single RPC replaces 4 count + 3 large-fetch queries (server-side aggregation)
+      const { data, error } = await supabase.rpc('admin_reports_overview_stats' as any);
+      if (error) throw error;
 
-      // Run ALL independent queries in parallel — was previously partially serial.
-      const [
-        profilesCountRes,
-        giftsCountRes,
-        streamsCountRes,
-        callsCountRes,
-        newUsersTodayRes,
-        giftsRes,
-        profilesRes,
-        streamsRes,
-      ] = await Promise.all([
-        supabase.from("profiles").select("*", { count: "exact", head: true }),
-        supabase.from("gift_transactions").select("*", { count: "exact", head: true }),
-        supabase.from("live_streams").select("*", { count: "exact", head: true }),
-        supabase.from("private_calls").select("*", { count: "exact", head: true }),
-        supabase
-          .from("profiles")
-          .select("*", { count: "exact", head: true })
-          .gte("created_at", today.toISOString()),
-        supabase
-          .from("gift_transactions")
-          .select("coin_amount, created_at")
-          .gte("created_at", ninetyDaysAgo.toISOString())
-          .order("created_at", { ascending: false })
-          .limit(1000),
-        supabase
-          .from("profiles")
-          .select("id, created_at")
-          .order("created_at", { ascending: false })
-          .limit(1000),
-        supabase
-          .from("live_streams")
-          .select("id, created_at")
-          .order("created_at", { ascending: false })
-          .limit(1000),
-      ]);
-
-      const gifts = giftsRes.data;
-      const profiles = profilesRes.data;
-      const streams = streamsRes.data;
-
-      const totalCoinsSpent = gifts?.reduce((sum, g) => sum + (g.coin_amount || 0), 0) || 0;
-
+      const payload: any = data || {};
       setStats({
-        totalUsers: profilesCountRes.count || 0,
-        newUsersToday: newUsersTodayRes.count || 0,
-        totalCoinsSpent,
-        totalGiftsSent: giftsCountRes.count || 0,
-        totalStreams: streamsCountRes.count || 0,
-        totalCalls: callsCountRes.count || 0,
+        totalUsers: Number(payload.total_users || 0),
+        newUsersToday: Number(payload.new_users_today || 0),
+        totalCoinsSpent: Number(payload.total_coins_spent_90d || 0),
+        totalGiftsSent: Number(payload.total_gifts_sent || 0),
+        totalStreams: Number(payload.total_streams || 0),
+        totalCalls: Number(payload.total_calls || 0),
       });
 
-      // Generate chart data based on period
+      // Slice the 90-day series to selected period
       const days = period === "week" ? 7 : period === "month" ? 30 : 90;
-      const data = [];
+      const series: any[] = Array.isArray(payload.series) ? payload.series : [];
+      const sliced = series.slice(-days).map((row: any) => {
+        const d = new Date(row.date);
+        return {
+          date: d.toLocaleDateString("en-US", { day: "numeric", month: "short" }),
+          users: Number(row.users || 0),
+          coins: Number(row.coins || 0),
+          streams: Number(row.streams || 0),
+        };
+      });
+      setChartData(sliced);
 
-      for (let i = days - 1; i >= 0; i--) {
-        const date = new Date();
-        date.setDate(date.getDate() - i);
-        date.setHours(0, 0, 0, 0);
-        const nextDate = new Date(date);
-        nextDate.setDate(nextDate.getDate() + 1);
-
-        const dayUsers = profiles?.filter(p => {
-          const created = new Date(p.created_at);
-          return created >= date && created < nextDate;
-        }).length || 0;
-
-        const dayGifts = gifts?.filter(g => {
-          const created = new Date(g.created_at!);
-          return created >= date && created < nextDate;
-        }).reduce((sum, g) => sum + (g.coin_amount || 0), 0) || 0;
-
-        const dayStreams = streams?.filter(s => {
-          const created = new Date(s.created_at!);
-          return created >= date && created < nextDate;
-        }).length || 0;
-
-        data.push({
-          date: date.toLocaleDateString("en-US", { day: "numeric", month: "short" }),
-          users: dayUsers,
-          coins: dayGifts,
-          streams: dayStreams
-        });
-      }
-
-      setChartData(data);
-
-      // Gift distribution data for pie chart
       const giftDistribution = [
         { name: "Small Gifts", value: 35, color: "#22c55e" },
         { name: "Medium Gifts", value: 40, color: "#3b82f6" },
@@ -164,7 +98,6 @@ export default function AdminReports() {
         { name: "Special Gifts", value: 5, color: "#f59e0b" }
       ];
       setGiftData(giftDistribution);
-
     } catch (error) {
       console.error("Error fetching report data:", error);
       toast.error("Failed to load report data");
