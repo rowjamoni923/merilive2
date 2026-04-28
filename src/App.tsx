@@ -1217,9 +1217,13 @@ const App = () => {
   const showPopups = !p.startsWith('/admin') && !isPublicPage && session;
   return showPopups ? <><WelcomeOnboarding /><EventPopupBanner /><DailyLoginPopup /><RatingRewardPopup /></> : null;
 })()}
-              <AppUpdateChecker />
-              <NetworkStatusBar />
-              <PushNotificationInitializer />
+              {!isAdminRoute && (
+                <>
+                  <AppUpdateChecker />
+                  <NetworkStatusBar />
+                  <PushNotificationInitializer />
+                </>
+              )}
               
             </Suspense>
               </CallProvider>
