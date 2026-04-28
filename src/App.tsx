@@ -946,9 +946,9 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Suspense fallback={null}><RealtimeQuerySyncBridge /></Suspense>
+      {!isAdminRoute && <Suspense fallback={null}><RealtimeQuerySyncBridge /></Suspense>}
       <Suspense fallback={null}><NativeSystemUIBridge /></Suspense>
-      <RealtimeProvider notifyOnImportantUpdates={true}>
+      <RealtimeProvider notifyOnImportantUpdates={!isAdminRoute}>
         <PresenceProvider>
           <TooltipProvider>
             <Toaster />
