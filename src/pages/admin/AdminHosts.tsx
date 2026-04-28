@@ -543,6 +543,14 @@ export default function AdminHosts() {
               )}
             </TableBody>
           </Table>
+          <AdminPagination
+            page={page}
+            totalPages={Math.max(1, Math.ceil(totalCount / pageSize))}
+            totalCount={totalCount}
+            pageSize={pageSize}
+            onPageChange={setPage}
+            className="border-t border-white/10"
+          />
         </CardContent>
       </Card>
 
