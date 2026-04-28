@@ -261,7 +261,24 @@ export default function OwnerAccessLinkGenerator() {
                     Token: <span className="font-bold">{showOwnerSecret ? ownerToken : maskToken(ownerToken)}</span>
                   </p>
                 )}
+                {ownerRotatedAt && (
+                  <p className="text-[10px] text-emerald-300/80 mt-1">
+                    ✨ Manually rotated: {new Date(ownerRotatedAt).toLocaleString()}
+                  </p>
+                )}
               </div>
+
+              {session?.is_owner && (
+                <Button
+                  onClick={() => handleGenerate('owner')}
+                  disabled={rotating === 'owner' || loadingTokens}
+                  className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-semibold"
+                  size="lg"
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${rotating === 'owner' ? 'animate-spin' : ''}`} />
+                  {rotating === 'owner' ? 'Generating…' : '🔐 Generate New Owner Secret Link'}
+                </Button>
+              )}
 
               <div className="bg-accent/30 rounded-lg p-4 space-y-3">
                 <h4 className="text-sm font-medium flex items-center gap-2">
