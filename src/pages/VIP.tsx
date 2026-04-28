@@ -35,6 +35,7 @@ import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
 import { clearFrameCache } from "@/components/common/AvatarWithFrame";
 import useExpiredItemsRestorer from "@/hooks/useExpiredItemsRestorer";
 import { resolveLevelFromTiers } from "@/utils/levelResolver";
+import VipNobleSection from "@/components/vip/VipNobleSection";
 
 interface VIPTier {
   id: string;
