@@ -15,6 +15,7 @@ import { adminStyles, gradients } from "@/styles/adminStyles";
 import { levelBadgeAnimations, LevelBadgeAnimation } from "@/data/levelBadgeAnimations";
 import { AnimationPickerModal, premiumLevelAnimations } from "@/components/admin/AnimationPickerModal";
 import Lottie from "lottie-react";
+import { LazyImage } from "@/components/LazyImage";
 
 interface LevelTier {
   id: string;
@@ -232,7 +233,7 @@ const AdminLevelTiers = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             {tier.icon_url || tier.animation_url ? (
-              <img 
+              <LazyImage 
                 src={tier.animation_url || tier.icon_url || ''} 
                 alt={tier.level_name}
                 className="w-12 h-12 rounded-xl object-cover shadow-md"

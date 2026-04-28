@@ -62,6 +62,7 @@ import { defaultGiftAnimations, animationCategories, type DefaultAnimation } fro
 import Lottie from "lottie-react";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
 import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
+import { LazyImage } from "@/components/LazyImage";
 
 interface GiftItem {
   id: string;
@@ -844,7 +845,7 @@ export default function AdminGifts() {
                               autoPlay={true}
                             />
                           ) : (
-                            <img src={gift.icon_url} alt={gift.name} className="w-full h-full object-contain" />
+                            <LazyImage src={gift.icon_url} alt={gift.name} className="w-full h-full object-contain" />
                           )
                         ) : (
                           <span className="text-3xl">{gift.icon_url}</span>
