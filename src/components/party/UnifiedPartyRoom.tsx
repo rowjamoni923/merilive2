@@ -1068,6 +1068,7 @@ export function UnifiedPartyRoom({
     
     // OPTIMISTIC UPDATE: Instantly show message in UI before DB save
     const senderName = hostInfo?.displayName || 'You';
+    const ownBubble = await getEquippedBubble(currentUserId);
     const optimisticMessage: RoomChatMessage = {
       id: tempId,
       userId: currentUserId,
@@ -1078,9 +1079,10 @@ export function UnifiedPartyRoom({
       userAvatar: hostInfo?.avatarUrl,
       isHost: isHost,
       type: 'text',
-      timestamp: new Date()
+      timestamp: new Date(),
+      bubbleUrl: ownBubble,
     };
-    
+
     // Add to local state immediately (instant feedback)
     setPremiumMessages(prev => [...prev, optimisticMessage]);
     
