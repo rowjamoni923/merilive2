@@ -1107,7 +1107,8 @@ const App = () => {
                   <Route path="animation-store" element={<AdminRouteGuard routeSegment="animation-store"><AdminAnimationStore /></AdminRouteGuard>} />
                   <Route path="manual-topup" element={<AdminRouteGuard routeSegment="manual-topup"><AdminManualTopup /></AdminRouteGuard>} />
                   <Route path="topup-system" element={<AdminRouteGuard routeSegment="topup-system"><AdminTopupSystem /></AdminRouteGuard>} />
-                  <Route path="commission-calculator" element={<AdminRouteGuard routeSegment="commission-calculator"><AdminCommissionCalculator /></AdminRouteGuard>} />
+                  {/* Deprecated → unified Pricing Hub (Pkg30) */}
+                  <Route path="commission-calculator" element={<Navigate to="/admin/pricing-hub" replace />} />
                   <Route path="party-backgrounds" element={<AdminRouteGuard routeSegment="party-backgrounds"><AdminPartyBackgrounds /></AdminRouteGuard>} />
                   <Route path="call-settings" element={<AdminRouteGuard routeSegment="call-settings"><AdminCallSettings /></AdminRouteGuard>} />
                   <Route path="online-users" element={<AdminRouteGuard routeSegment="online-users"><AdminOnlineUsers /></AdminRouteGuard>} />
