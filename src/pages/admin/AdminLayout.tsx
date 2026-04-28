@@ -956,11 +956,11 @@ const navGroups: NavGroup[] = [
     hubKey: "settings-hub",
     items: [
       {
-        label: "Call Settings",
+        label: "Call Pricing → Hub",
         icon: Phone,
-        path: "/admin/call-settings",
+        path: "/admin/pricing-hub",
         hubKey: "settings-hub",
-        description: "Per-minute private-call rates, host earning percentage, and call-cut rules used by useCallSettings.",
+        description: "Per-minute call rates, host % and grace seconds now live in the unified Pricing & Commission Hub.",
       },
       {
         label: "Today's Calls",
