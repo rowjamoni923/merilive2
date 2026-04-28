@@ -261,6 +261,7 @@ const AdminRoleFrames = lazy(lazyRetry(() => import("./pages/admin/AdminRoleFram
 const AdminChatBubbles = lazy(lazyRetry(() => import("./pages/admin/AdminChatBubbles")));
 const AdminVIPMedals = lazy(lazyRetry(() => import("./pages/admin/AdminVIPMedals")));
 const AdminNobleCards = lazy(lazyRetry(() => import("./pages/admin/AdminNobleCards")));
+const AdminNobleSubscriptions = lazy(lazyRetry(() => import("./pages/admin/AdminNobleSubscriptions")));
 const AdminVehicleEntrances = lazy(lazyRetry(() => import("./pages/admin/AdminVehicleEntrances")));
 const AdminEntryBanners = lazy(lazyRetry(() => import("./pages/admin/AdminEntryBanners")));
 const AdminEntryNameBars = lazy(lazyRetry(() => import("./pages/admin/AdminEntryNameBars")));
@@ -1164,6 +1165,7 @@ const App = () => {
                   <Route path="chat-bubbles" element={<AdminRouteGuard routeSegment="chat-bubbles"><AdminChatBubbles /></AdminRouteGuard>} />
                   <Route path="vip-medals" element={<AdminRouteGuard routeSegment="vip-medals"><AdminVIPMedals /></AdminRouteGuard>} />
                   <Route path="noble-cards" element={<AdminRouteGuard routeSegment="noble-cards"><AdminNobleCards /></AdminRouteGuard>} />
+                  <Route path="noble-subscriptions" element={<AdminRouteGuard routeSegment="noble-subscriptions"><AdminNobleSubscriptions /></AdminRouteGuard>} />
                   <Route path="vehicle-entrances" element={<AdminRouteGuard routeSegment="vehicle-entrances"><AdminVehicleEntrances /></AdminRouteGuard>} />
                   <Route path="entry-banners" element={<AdminRouteGuard routeSegment="entry-banners"><AdminEntryBanners /></AdminRouteGuard>} />
                   <Route path="entry-name-bars" element={<AdminRouteGuard routeSegment="entry-name-bars"><AdminEntryNameBars /></AdminRouteGuard>} />
