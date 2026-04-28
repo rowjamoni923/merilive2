@@ -13775,6 +13775,10 @@ export type Database = {
         Args: { owner_user_id: string }
         Returns: number
       }
+      get_agency_numeric_level: {
+        Args: { _agency_id: string }
+        Returns: number
+      }
       get_agency_rankings: {
         Args: { _limit?: number; _period_type: string; _ranking_type: string }
         Returns: {
@@ -13886,6 +13890,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_rate_for_numeric_level: { Args: { _level: number }; Returns: number }
       get_task_program_day: { Args: { _host_id: string }; Returns: number }
       get_task_reset_date: { Args: never; Returns: string }
       get_top_gifters_leaderboard: {
