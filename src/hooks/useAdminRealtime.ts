@@ -42,10 +42,13 @@ export function dispatchAdminTableUpdate(detail: AdminTableUpdateEvent) {
 // Admin pages consume them via events — zero extra channels.
 
 // ⚡ Global admin subscription coverage.
-// Any table listed here is watched once by AdminLayout and fan-outs updates to pages
-// via window events, letting most admin pages refresh without opening extra channels.
+// IMPORTANT: Keep this ACTIONABLE-ONLY. Do not add noisy activity tables here
+// (profiles, live_streams, stream_viewers, transactions, balance logs, etc.).
+// Those tables can change every second and caused the whole Admin Panel to
+// look like it was auto-refreshing. Admin pages load once and use manual
+// refresh unless a table below is a real pending/security/notification event.
 export const GLOBALLY_MONITORED_TABLES = new Set<string>([
-  // Pending action tables (drive badge counts + toast alerts)
+  // Pending action tables (drive badge counts + toast alerts only)
   'helper_upgrade_requests',
   'helper_topup_requests',
   'helper_applications',
@@ -69,70 +72,22 @@ export const GLOBALLY_MONITORED_TABLES = new Set<string>([
   'admin_notices',
   'admin_notifications',
 
-  // Core shared lookup/data tables used across many admin pages
-  'profiles',
-  'topup_helpers',
-  'agency_hosts',
-  'app_settings',
+  // Admin session/security changes only
   'admin_logs',
   'admin_users',
   'admin_allowed_devices',
   'admin_sections',
   'admin_section_permissions',
-  'banners',
-  'animations',
-  'assets',
 
-  // Financial / operational tables
-  'recharge_transactions',
-  'coin_transfers',
-  'agency_earnings_transfers',
+  // Pending finance/content approvals
   'rating_reward_claims',
   'leaderboard_reward_history',
   'consumption_return_history',
-  'helper_transactions',
-  'payment_transactions',
-  'private_calls',
-  'stream_viewers',
+  'agency_earnings_transfers',
+  'coin_transfers',
 
-  // Activity / moderation
-  'live_streams',
-  'host_contact_violations',
+  // Moderation/security queues
   'banned_devices',
-
-  // Settings / content tables (admin-managed)
-  'game_providers',
-  'game_server_settings',
-  'vip_tiers',
-  'branding_settings',
-  'app_version_settings',
-  'recharge_campaigns',
-  'invitation_settings',
-  'invitation_reward_tiers',
-  'coin_packages',
-  'level_privileges',
-  'level_animations',
-  'user_level_tiers',
-  'leaderboard_reward_config',
-  'party_rooms',
-  'party_room_banners',
-  'party_room_backgrounds',
-  'popup_event_banners',
-  'reels',
-  'reel_categories',
-  'reel_reports',
-  'avatar_frames',
-  'role_frames',
-  'user_role_frames',
-  'gifts',
-  'sounds',
-  'helper_diamond_packages',
-  'helper_level_config',
-  'helper_notifications',
-  'helper_country_payment_methods',
-  'trader_level_tiers',
-  'landing_page_sections',
-  'device_tokens',
 ]);
 
 // ============= HOOK =============
