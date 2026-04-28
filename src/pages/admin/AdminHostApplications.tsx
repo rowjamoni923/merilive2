@@ -129,19 +129,21 @@ export default function AdminHostApplications() {
 
   const fetchStatusCounts = async () => {
     try {
-      // Use parallel count queries instead of fetching all rows
-      const [pendingRes, reviewRes, approvedRes, rejectedRes] = await Promise.all([
-        supabase.from("face_verification_submissions").select("id", { count: "exact", head: true }).eq("status", "pending"),
-        supabase.from("face_verification_submissions").select("id", { count: "exact", head: true }).eq("status", "under_review"),
-        supabase.from("face_verification_submissions").select("id", { count: "exact", head: true }).eq("status", "approved"),
-        supabase.from("face_verification_submissions").select("id", { count: "exact", head: true }).eq("status", "rejected"),
-      ]);
-
+      // Pkg5: server-side aggregation via admin_face_verification_stats RPC
+      // (single round-trip, replaces 4 separate count queries)
+      const { data, error } = await supabase.rpc('admin_face_verification_stats');
+      if (error) throw error;
+      const s = (data || {}) as {
+        pending?: number;
+        under_review?: number;
+        approved?: number;
+        rejected?: number;
+      };
       setStatusCounts({
-        pending: pendingRes.count || 0,
-        under_review: reviewRes.count || 0,
-        approved: approvedRes.count || 0,
-        rejected: rejectedRes.count || 0,
+        pending: Number(s.pending || 0),
+        under_review: Number(s.under_review || 0),
+        approved: Number(s.approved || 0),
+        rejected: Number(s.rejected || 0),
       });
     } catch (error) {
       console.error("Error fetching status counts:", error);
