@@ -157,32 +157,11 @@ export const useAdminAccess = () => {
     gcTime: 10 * 60 * 1000,
   });
 
-  // Realtime updates for permission changes
+  // Admin access loads on mount only. Realtime permission invalidation is disabled
+  // so admin pages never refetch while an admin is working.
   useEffect(() => {
-    if (!adminId || typeof window === 'undefined') return;
-
-    ensureAdminAccessChannel(adminId);
-
-    const handleAccessUpdate = (event: Event) => {
-      const detail = (event as CustomEvent<AdminAccessEventDetail>).detail;
-      if (!detail || detail.adminId !== adminId) return;
-
-      if (detail.target === 'user' || detail.target === 'all') {
-        queryClient.invalidateQueries({ queryKey: ["admin-user", adminId] });
-      }
-
-      if (detail.target === 'sections' || detail.target === 'all') {
-        queryClient.invalidateQueries({ queryKey: ["admin-accessible-sections", adminId] });
-      }
-    };
-
-    window.addEventListener(ADMIN_ACCESS_EVENT, handleAccessUpdate as EventListener);
-
-    return () => {
-      window.removeEventListener(ADMIN_ACCESS_EVENT, handleAccessUpdate as EventListener);
-      releaseAdminAccessChannel(adminId);
-    };
-  }, [queryClient, adminId]);
+    return undefined;
+  }, []);
 
   const isOwner = !!session?.is_owner ||
                   adminUser?.role === 'owner' ||
