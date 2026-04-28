@@ -15,7 +15,9 @@ import { initializeNativeApp, isNativeApp } from "./utils/nativeUtils";
 // =============================================
 installRealtimeGuard();
 installAuthRequestGuard();
-startNetworkResilienceEngine();
+if (!window.location.pathname.startsWith('/admin')) {
+  startNetworkResilienceEngine();
+}
 // 🔊 Install global audio unlock — first user tap unlocks SVGA gift sounds
 installAudioUnlock();
 
@@ -24,6 +26,7 @@ installAudioUnlock();
 // Fixes 100vh issue on mobile browsers (address bar)
 // =============================================
 function setViewportHeight() {
+  if (window.location.pathname.startsWith('/admin')) return;
   const vh = window.innerHeight * 0.01;
   document.documentElement.style.setProperty('--vh', `${vh}px`);
 }
@@ -66,6 +69,7 @@ if (container) {
 // This makes EVERY page navigation feel instant (<100ms)
 if (typeof window !== 'undefined') {
   const prefetchAllRoutes = () => {
+    if (window.location.pathname.startsWith('/admin')) return;
     // Tier 1: Most-used routes (load first)
     const tier1 = [
       () => import('./pages/Profile'),

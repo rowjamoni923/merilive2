@@ -17,6 +17,9 @@ const CLEANUP_COOLDOWN_MS = 2 * 60 * 1000;
 // Manual offline key
 const MANUAL_OFFLINE_KEY = 'meri_manual_offline';
 
+const isAdminRoute = () =>
+  typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
+
 /**
  * 🔵 Enhanced PresenceProvider v2
  * 
@@ -110,6 +113,7 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     let cancelled = false;
     
     const init = async () => {
+      if (isAdminRoute()) return;
       const { data: { session } } = await supabase.auth.getSession();
       const user = session?.user ?? null;
       if (user && !cancelled) {
@@ -186,6 +190,7 @@ export const PresenceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // ============ MAIN PRESENCE TRACKING ============
   useEffect(() => {
+    if (isAdminRoute()) return;
     if (!userId) return;
     // Only hosts can be manually offline; regular users always start heartbeat
     if (localStorage.getItem(MANUAL_OFFLINE_KEY) === 'true' && isHost) {

@@ -28,6 +28,9 @@ let recoveryInFlight: Promise<void> | null = null;
 
 const qualityListeners = new Set<(quality: ConnectionQuality) => void>();
 
+const isAdminRoute = () =>
+  typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
+
 // ============= Speed Test (lightweight) =============
 const measureLatency = async (): Promise<number> => {
   const start = performance.now();
@@ -95,6 +98,7 @@ const updateQuality = (quality: ConnectionQuality) => {
 
 // ============= Recovery Actions =============
 const performInstantRecovery = async (reason: 'online' | 'resume' | 'silent-disconnect') => {
+  if (isAdminRoute()) return;
   if (recoveryInFlight) return recoveryInFlight;
 
   const now = Date.now();
@@ -136,6 +140,7 @@ const performInstantRecovery = async (reason: 'online' | 'resume' | 'silent-disc
 
 // ============= Network Event Handlers =============
 const handleOnline = () => {
+  if (isAdminRoute()) return;
   lastOnlineAt = Date.now();
   const wasOfflineMs = lastOfflineAt > 0 ? lastOnlineAt - lastOfflineAt : 0;
   console.log(`[NetworkEngine] 🟢 Online (was offline for ${wasOfflineMs}ms)`);
@@ -151,12 +156,14 @@ const handleOnline = () => {
 };
 
 const handleOffline = () => {
+  if (isAdminRoute()) return;
   lastOfflineAt = Date.now();
   updateQuality('offline');
   console.log('[NetworkEngine] 🔴 Offline detected');
 };
 
 const handleVisibilityChange = () => {
+  if (isAdminRoute()) return;
   if (document.visibilityState === 'hidden') {
     lastHiddenAt = Date.now();
     return;
@@ -180,6 +187,7 @@ const startHealthMonitor = () => {
 
   // Adaptive cadence by network quality (e.g., slower cadence on 2G/3G)
   networkCheckInterval = setInterval(async () => {
+    if (isAdminRoute()) return;
     if (!navigator.onLine) {
       updateQuality('offline');
       return;

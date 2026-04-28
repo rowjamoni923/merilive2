@@ -8,6 +8,9 @@ import {
   forceReconnectChannel
 } from '@/hooks/useUniversalRealtime';
 
+const isAdminRoute = () =>
+  typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
+
 /**
  * 🌐 Global Real-time Provider
  * 
@@ -58,6 +61,7 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({
 
   // Update connection status only when showConnectionStatus is enabled
   useEffect(() => {
+    if (isAdminRoute()) return;
     if (!showConnectionStatus) return;
     const interval = setInterval(() => {
       setConnectionState(getConnectionStatus());
@@ -67,6 +71,7 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({
 
   // Subscribe to important tables for notifications - DEFERRED to reduce channel pressure
   useEffect(() => {
+    if (isAdminRoute()) return;
     if (!notifyOnImportantUpdates) return;
 
     // Defer subscription by 5 seconds to prioritize initial render
@@ -101,6 +106,7 @@ export const RealtimeProvider: React.FC<RealtimeProviderProps> = ({
 
   // Force reconnect without page reload
   const forceReconnect = useCallback(() => {
+    if (isAdminRoute()) return;
     console.log('[RealtimeProvider] 🔄 Force reconnect triggered');
     forceReconnectChannel();
   }, []);
