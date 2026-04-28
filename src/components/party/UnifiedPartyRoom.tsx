@@ -48,6 +48,7 @@ import {
   type RoomChatMessage 
 } from "@/features/shared/room";
 import { fetchUserEntryAnimations } from "@/utils/fetchEntryAnimation";
+import { getEquippedBubble } from "@/utils/fetchEquippedBubbles";
 import { trackTaskProgress } from "@/hooks/useTaskProgress";
 import { RoomWelcomeBanner } from "@/components/room/RoomWelcomeBanner";
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
