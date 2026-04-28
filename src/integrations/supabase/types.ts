@@ -12322,6 +12322,15 @@ export type Database = {
           is_host: boolean
         }[]
       }
+      admin_list_face_verification_paginated: {
+        Args: {
+          _limit?: number
+          _offset?: number
+          _search?: string
+          _status?: string
+        }
+        Returns: Json
+      }
       admin_list_face_violations: {
         Args: { _admin_id: string; _limit?: number }
         Returns: {
@@ -12496,6 +12505,10 @@ export type Database = {
           violation_type: string
           warning_count: number
         }[]
+      }
+      admin_list_online_users: {
+        Args: { _limit?: number; _offset?: number; _search?: string }
+        Returns: Json
       }
       admin_list_owners: {
         Args: { _admin_id: string }
@@ -12736,6 +12749,7 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      admin_live_ban_stats: { Args: never; Returns: Json }
       admin_logout: { Args: { _token: string }; Returns: undefined }
       admin_payment_gateway_stats: { Args: never; Returns: Json }
       admin_permanent_ban_step_one: {

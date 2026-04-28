@@ -85,6 +85,10 @@ export default function AdminLiveBans() {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterActive, setFilterActive] = useState<"all" | "active" | "expired">("all");
+  // Pkg9: full-history stats from server (independent of 500-row window)
+  const [stats, setStats] = useState<{ active: number; auto: number; unbanned: number; total: number }>(
+    { active: 0, auto: 0, unbanned: 0, total: 0 }
+  );
   
   // New ban dialog
   const [showNewBanDialog, setShowNewBanDialog] = useState(false);
@@ -216,12 +220,29 @@ export default function AdminLiveBans() {
     }
   };
 
+  const fetchStats = async () => {
+    try {
+      const { data, error } = await supabase.rpc('admin_live_ban_stats');
+      if (error) throw error;
+      const s = (data as any) || {};
+      setStats({
+        active: Number(s.active) || 0,
+        auto: Number(s.auto) || 0,
+        unbanned: Number(s.unbanned) || 0,
+        total: Number(s.total) || 0,
+      });
+    } catch (e) {
+      console.error('Failed to load live ban stats:', e);
+    }
+  };
+
   useEffect(() => {
     fetchBans();
     fetchSettings();
+    fetchStats();
   }, []);
 
-  useAdminRealtime(['live_bans'], () => fetchBans());
+  useAdminRealtime(['live_bans'], () => { fetchBans(); fetchStats(); });
 
   const handleCreateBan = async () => {
     if (!newBanUserId) {
@@ -375,7 +396,7 @@ export default function AdminLiveBans() {
               <div className="flex items-center gap-3">
                 <Ban className="w-8 h-8 text-red-500" />
                 <div>
-                  <p className="text-2xl font-bold">{bans.filter(b => b.is_active).length}</p>
+                  <p className="text-2xl font-bold">{stats.active.toLocaleString()}</p>
                   <p className="text-xs text-muted-foreground">Active Bans</p>
                 </div>
               </div>
@@ -387,7 +408,7 @@ export default function AdminLiveBans() {
               <div className="flex items-center gap-3">
                 <AlertTriangle className="w-8 h-8 text-yellow-500" />
                 <div>
-                  <p className="text-2xl font-bold">{bans.filter(b => b.auto_banned).length}</p>
+                  <p className="text-2xl font-bold">{stats.auto.toLocaleString()}</p>
                   <p className="text-xs text-muted-foreground">Auto Bans</p>
                 </div>
               </div>
@@ -399,7 +420,7 @@ export default function AdminLiveBans() {
               <div className="flex items-center gap-3">
                 <CheckCircle className="w-8 h-8 text-green-500" />
                 <div>
-                  <p className="text-2xl font-bold">{bans.filter(b => !b.is_active).length}</p>
+                  <p className="text-2xl font-bold">{stats.unbanned.toLocaleString()}</p>
                   <p className="text-xs text-muted-foreground">Unbanned</p>
                 </div>
               </div>
@@ -411,7 +432,7 @@ export default function AdminLiveBans() {
               <div className="flex items-center gap-3">
                 <Video className="w-8 h-8 text-purple-500" />
                 <div>
-                  <p className="text-2xl font-bold">{bans.length}</p>
+                  <p className="text-2xl font-bold">{stats.total.toLocaleString()}</p>
                   <p className="text-xs text-muted-foreground">Total Bans</p>
                 </div>
               </div>
