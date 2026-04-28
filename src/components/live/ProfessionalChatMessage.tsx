@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { LevelBadge, InlineLevelBadge } from "@/components/common/LevelBadge";
 import TraderBadge from "@/components/common/TraderBadge";
-import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
+import { MessageBubbleWrapper } from "@/components/chat/MessageBubbleWrapper";
 
 interface ChatMessageProps {
   id: string;
