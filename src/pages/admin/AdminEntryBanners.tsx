@@ -89,13 +89,11 @@ export default function AdminEntryBanners() {
 
   const fetchBanners = async () => {
     try {
-      const { data, error } = await supabase
-        .from('entry_banners')
-        .select('*')
-        .order('display_order', { ascending: true });
+      // Pkg10: full-list RPC bypasses 500-row REST cap
+      const { data, error } = await supabase.rpc('admin_list_entry_banners_all' as any);
 
       if (error) throw error;
-      setBanners(data || []);
+      setBanners((data as any[]) || []);
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
