@@ -126,13 +126,13 @@ export default function AdminPricingHub() {
         map[row.setting_key] = parseSettingValue(row.setting_value);
       });
 
-      setCallRates(map.call_rates ?? null);
+      setCallRates(map.call_rates ?? {});
       setGiftCommission({
         host_percent: map.gift_commission?.host_percent ?? "",
         company_percent: map.gift_commission?.company_percent ?? "",
       });
-      setAgencyCommission(map.agency_commission ?? null);
-      setWithdrawal(map.withdrawal_settings ?? null);
+      setAgencyCommission(map.agency_commission ?? {});
+      setWithdrawal(map.withdrawal_settings ?? {});
 
       // Fee settings can be stored as numeric or {rate: x}
       const aw = map.agency_withdrawal_fee;
@@ -146,7 +146,7 @@ export default function AdminPricingHub() {
         helper_receives_percent: map.helper_fee_settings?.helper_receives_percent ?? "",
       });
 
-      setCoinExchange(map.coin_exchange ?? null);
+      setCoinExchange(map.coin_exchange ?? {});
 
       // Load agency_level_tiers
       const { data: tierData, error: tierErr } = await supabase
@@ -271,9 +271,6 @@ export default function AdminPricingHub() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {!callRates ? (
-                <p className="text-sm text-muted-foreground">Not configured.</p>
-              ) : (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <Field label="Default rate (diamonds/min)">
@@ -381,7 +378,6 @@ export default function AdminPricingHub() {
                     {saving === "call_rates" ? "Saving..." : "Save Call Settings"}
                   </Button>
                 </>
-              )}
             </CardContent>
           </Card>
         </TabsContent>
