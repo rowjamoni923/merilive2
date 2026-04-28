@@ -246,8 +246,8 @@ const AdminTopupSystem = () => {
     };
   }, [searchQuery, selectedUser]);
 
-  const loadAllData = async () => {
-    setLoading(true);
+  const loadAllData = async (showSpinner = true) => {
+    if (showSpinner) setLoading(true);
     await Promise.all([
       fetchHelpers(),
       loadRecentTopups(),
@@ -255,13 +255,16 @@ const AdminTopupSystem = () => {
       fetchTransactions(),
       fetchLevelTiers()
     ]);
-    setLoading(false);
+    if (showSpinner) setLoading(false);
   };
 
+  // 🔇 Silent realtime refresh — no spinner flicker, no profiles flood, debounced 1.5s
+  // ❌ Removed 'profiles' (high-traffic, irrelevant) → was causing per-second refresh
   useAdminRealtime(
-    ['helper_topup_requests', 'recharge_transactions', 'coin_transactions', 'profiles'],
-    loadAllData,
-    'admin-topup-rt'
+    ['helper_topup_requests', 'recharge_transactions', 'coin_transactions'],
+    () => loadAllData(false),
+    'admin-topup-rt',
+    { debounceMs: 1500 }
   );
 
   // Fetch Level Tiers
