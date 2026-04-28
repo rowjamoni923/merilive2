@@ -347,7 +347,24 @@ export default function OwnerAccessLinkGenerator() {
                     Token: <span className="font-bold">{showSubAdminSecret ? subAdminToken : maskToken(subAdminToken)}</span>
                   </p>
                 )}
+                {subAdminRotatedAt && (
+                  <p className="text-[10px] text-emerald-300/80 mt-1">
+                    ✨ Manually rotated: {new Date(subAdminRotatedAt).toLocaleString()}
+                  </p>
+                )}
               </div>
+
+              {session?.is_owner && (
+                <Button
+                  onClick={() => handleGenerate('sub_admin')}
+                  disabled={rotating === 'sub_admin' || loadingTokens}
+                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-semibold"
+                  size="lg"
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${rotating === 'sub_admin' ? 'animate-spin' : ''}`} />
+                  {rotating === 'sub_admin' ? 'Generating…' : '🔐 Generate New Sub-Admin Secret Link'}
+                </Button>
+              )}
 
               <div className="bg-accent/30 rounded-lg p-4 space-y-2">
                 <h4 className="text-sm font-medium flex items-center gap-2">
