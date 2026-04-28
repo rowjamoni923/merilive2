@@ -35,25 +35,17 @@ const AdminAgencyHub = () => {
 
   const fetchStats = async () => {
     try {
-      const [agenciesRes, activeRes, inactiveRes, withdrawalRes] = await Promise.all([
-        supabase.from('agencies').select('id', { count: 'exact', head: true }),
-        supabase.from('agencies').select('id', { count: 'exact', head: true }).eq('is_active', true),
-        supabase.from('agencies').select('id', { count: 'exact', head: true }).eq('is_active', false),
-        supabase.from('agency_withdrawals').select('id', { count: 'exact', head: true }).in('status', ['pending', 'processing'])
-      ]);
-
-      const helpersQuery = supabase.from('topup_helpers' as any).select('*', { count: 'exact', head: true }).eq('is_active', true);
-      const level5Query = supabase.from('topup_helpers' as any).select('*', { count: 'exact', head: true }).eq('trader_level', 5);
-      
-      const [helpersRes, level5Res] = await Promise.all([helpersQuery, level5Query]);
-
+      // Pkg6: single server-side aggregation RPC
+      const { data, error } = await supabase.rpc('admin_agency_overview_stats');
+      if (error) throw error;
+      const s = (data as any) || {};
       setStats({
-        totalAgencies: agenciesRes.count || 0,
-        activeAgencies: activeRes.count || 0,
-        totalHelpers: (helpersRes as any).count || 0,
-        level5Helpers: (level5Res as any).count || 0,
-        inactiveAgencies: inactiveRes.count || 0,
-        pendingWithdrawals: withdrawalRes.count || 0
+        totalAgencies: s.totalAgencies || 0,
+        activeAgencies: s.activeAgencies || 0,
+        totalHelpers: s.totalHelpers || 0,
+        level5Helpers: s.level5Helpers || 0,
+        inactiveAgencies: s.inactiveAgencies || 0,
+        pendingWithdrawals: s.pendingWithdrawals || 0
       });
     } catch (error) {
       console.error('Error fetching agency hub stats:', error);

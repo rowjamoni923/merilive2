@@ -32,25 +32,19 @@ export default function AdminPartyManagement() {
   useAdminRealtime(['party_rooms', 'party_room_participants'], () => fetchStats());
 
   const fetchStats = async () => {
-    const [roomsRes, bannersRes] = await Promise.all([
-      supabase.from('party_rooms').select('id', { count: 'exact', head: true }).eq('is_active', true),
-      supabase.from('party_room_banners').select('id', { count: 'exact', head: true }).eq('is_active', true)
-    ]);
-
-    // Note: party_backgrounds count fetched separately as it might not exist in types
-    let backgroundCount = 0;
+    // Pkg6: single server-side aggregation RPC
     try {
-      const { count } = await supabase.from('party_room_backgrounds' as any).select('id', { count: 'exact', head: true }).eq('is_active', true);
-      backgroundCount = count || 0;
+      const { data, error } = await supabase.rpc('admin_party_management_stats');
+      if (error) throw error;
+      const s = (data as any) || {};
+      setStats({
+        activeRooms: s.activeRooms || 0,
+        totalBanners: s.totalBanners || 0,
+        totalBackgrounds: s.totalBackgrounds || 0
+      });
     } catch (e) {
-      backgroundCount = 12; // Default count
+      console.error('Error fetching party management stats:', e);
     }
-
-    setStats({
-      activeRooms: roomsRes.count || 0,
-      totalBanners: bannersRes.count || 0,
-      totalBackgrounds: backgroundCount
-    });
   };
 
   return (
