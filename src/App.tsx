@@ -689,6 +689,12 @@ const App = () => {
           if (lastNonce === nonceStr) return;
 
           localStorage.setItem('meri_last_global_reentry_nonce', nonceStr);
+
+          if (window.location.pathname.startsWith('/admin')) {
+            console.warn('[App] 🚨 Global app re-entry signal ignored on admin route.');
+            return;
+          }
+
           console.warn('[App] 🚨 Global app re-entry signal received. Reloading app...');
 
           setTimeout(() => {
