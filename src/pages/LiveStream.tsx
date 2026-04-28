@@ -241,6 +241,25 @@ const LiveStream = () => {
   // Music player panel
   const [showMusicPlayer, setShowMusicPlayer] = useState(false);
 
+  const mapStreamChatRow = useCallback((msg: any, profile: any, hostId: string): RoomChatMessage => {
+    const displayName = profile?.display_name || "User";
+    const userCreatedAt = profile?.created_at ? new Date(profile.created_at) : null;
+    const isNewUser = userCreatedAt ? (Date.now() - userCreatedAt.getTime()) < 7 * 24 * 60 * 60 * 1000 : false;
+
+    return {
+      id: msg.id,
+      user: displayName,
+      initial: displayName.charAt(0),
+      message: msg.message || "",
+      color: "text-white",
+      userLevel: profile?.user_level || 1,
+      userAvatar: profile?.avatar_url || undefined,
+      isHost: msg.user_id === hostId,
+      isNewUser,
+      countryFlag: profile?.country_flag || undefined,
+    };
+  }, []);
+
   const [showGamePanel, setShowGamePanel] = useState(false);
   
   // Flying gift animation
@@ -797,42 +816,19 @@ const LiveStream = () => {
     const fetchMessages = async () => {
       const { data: chatMessages } = await supabase
         .from("stream_chat")
-        .select(`
-          id,
-          content,
-          created_at,
-          sender_id,
-          profiles!stream_chat_sender_id_fkey (
-            display_name,
-            user_level,
-            avatar_url,
-            country_flag,
-            created_at
-          )
-        `)
+        .select("id, message, message_type, created_at, user_id")
         .eq("stream_id", id)
         .order("created_at", { ascending: true })
         .limit(50);
       
-      if (chatMessages) {
-        const now = new Date();
-        setMessages(chatMessages.map((msg: any) => {
-          const userCreatedAt = msg.profiles?.created_at ? new Date(msg.profiles.created_at) : null;
-          const isNewUser = userCreatedAt ? (now.getTime() - userCreatedAt.getTime()) < 7 * 24 * 60 * 60 * 1000 : false;
-          
-          return {
-            id: msg.id,
-            user: msg.profiles?.display_name || "User",
-            initial: (msg.profiles?.display_name || "U").charAt(0),
-            message: msg.content,
-            color: "text-white",
-            userLevel: msg.profiles?.user_level || 1,
-            userAvatar: msg.profiles?.avatar_url,
-            isHost: msg.sender_id === hostId,
-            isNewUser,
-            countryFlag: msg.profiles?.country_flag,
-          };
-        }));
+      if (chatMessages?.length) {
+        const userIds = [...new Set(chatMessages.map((msg: any) => msg.user_id).filter(Boolean))];
+        const { data: profiles } = await supabase
+          .from("profiles_public")
+          .select("id, display_name, user_level, avatar_url, country_flag, created_at")
+          .in("id", userIds);
+        const profileMap = new Map((profiles || []).map((profile: any) => [profile.id, profile]));
+        setMessages(chatMessages.map((msg: any) => mapStreamChatRow(msg, profileMap.get(msg.user_id), hostId)));
       }
     };
     
@@ -851,7 +847,7 @@ const LiveStream = () => {
         },
         async (payload: any) => {
           const newMessageId = payload.new.id;
-          const senderId = payload.new.sender_id;
+          const senderId = payload.new.user_id;
           
           // Skip if this is our own message (optimistic update already added it)
           if (senderId === currentUserId) {
@@ -860,13 +856,13 @@ const LiveStream = () => {
               // Find if we have a temp message with similar content
               const hasTempMessage = prev.some(m => 
                 m.id.startsWith('temp_') && 
-                m.message === payload.new.content
+                m.message === payload.new.message
               );
               
               if (hasTempMessage) {
                 // Replace temp with real
                 return prev.map(m => 
-                  m.id.startsWith('temp_') && m.message === payload.new.content
+                  m.id.startsWith('temp_') && m.message === payload.new.message
                     ? { ...m, id: newMessageId }
                     : m
                 );
@@ -893,7 +889,7 @@ const LiveStream = () => {
           
           // Fetch sender info with all needed fields
           const { data: sender } = await supabase
-            .from("profiles")
+            .from("profiles_public")
             .select("display_name, user_level, avatar_url, country_flag, created_at")
             .eq("id", senderId)
             .single();
@@ -913,7 +909,7 @@ const LiveStream = () => {
               id: newMessageId,
               user: sender?.display_name || "User",
               initial: (sender?.display_name || "U").charAt(0),
-              message: payload.new.content,
+              message: payload.new.message,
               color: "text-white",
               userLevel: sender?.user_level || 1,
               userAvatar: sender?.avatar_url,
@@ -929,7 +925,7 @@ const LiveStream = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [id, streamData?.host_id, currentUserId]);
+  }, [id, streamData?.host_id, currentUserId, mapStreamChatRow]);
 
   // Subscribe to real-time gift transactions for THIS session's bean count
   // IMPORTANT: Only shows gifts received during THIS live session, NOT profile total
@@ -1872,8 +1868,8 @@ const LiveStream = () => {
     // Save MASKED message to database
     const { error } = await supabase.from("stream_chat").insert({
       stream_id: id,
-      sender_id: currentUserId,
-      content: contentToSend,
+      user_id: currentUserId,
+      message: contentToSend,
     });
     
     if (error) {
@@ -3404,8 +3400,9 @@ const LiveStream = () => {
                 const finalGiftMessage = `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${successCount}`;
                 await supabase.from("stream_chat").insert({
                   stream_id: id,
-                  sender_id: currentUserId,
-                  content: finalGiftMessage,
+                  user_id: currentUserId,
+                  message: finalGiftMessage,
+                  message_type: 'gift',
                 });
               }
             } catch (err) {
