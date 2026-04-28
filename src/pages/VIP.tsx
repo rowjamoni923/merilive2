@@ -1107,6 +1107,13 @@ const VIP = () => {
             VIP Plans
           </TabsTrigger>
           <TabsTrigger 
+            value="noble" 
+            className="flex-1 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-yellow-500"
+          >
+            <Crown className="w-4 h-4 mr-2" />
+            Noble
+          </TabsTrigger>
+          <TabsTrigger 
             value="privileges" 
             className="flex-1 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500"
           >
@@ -1114,6 +1121,15 @@ const VIP = () => {
             My Privileges
           </TabsTrigger>
         </TabsList>
+
+        {/* Noble & Daily Reward Tab */}
+        <TabsContent value="noble" className="flex-1 overflow-y-auto mt-0 py-4" style={{ paddingBottom: 'var(--content-bottom-padding)' }}>
+          <VipNobleSection
+            userId={currentUserId}
+            userDiamonds={userCoins}
+            onAfterPurchase={() => { /* refetch handled inside */ }}
+          />
+        </TabsContent>
 
         {/* VIP Plans Tab */}
         <TabsContent value="vip" className="flex-1 overflow-y-auto mt-0 px-4 py-4" style={{ paddingBottom: 'var(--content-bottom-padding)' }}>
