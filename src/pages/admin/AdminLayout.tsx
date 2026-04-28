@@ -777,13 +777,6 @@ const navGroups: NavGroup[] = [
         hubKey: "trader-hub",
         description: "Elite Level-5 helper roster with payroll settings and elevated trade limits.",
       },
-      {
-        label: "Helper Diamond Pricing",
-        icon: Coins,
-        path: "/admin/helper-diamond-pricing",
-        hubKey: "trader-hub",
-        description: "Set per-country diamond pricing tables that helpers use when fulfilling user orders.",
-      },
     ],
   },
   {
@@ -1404,7 +1397,7 @@ export default function AdminLayout() {
         // Visual Assets
         '/admin/visual-assets': 0,
         // Calling
-        '/admin/call-settings': 0,
+        '/admin/pricing-hub': 0,
         // Coin & Finance
         '/admin/coin-trader-hub': coinTransfersRes?.count || 0,
         '/admin/finance': financeCount,
