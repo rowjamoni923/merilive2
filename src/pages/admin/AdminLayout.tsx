@@ -1956,10 +1956,12 @@ export default function AdminLayout() {
       fetchPendingCounts();
     }, 2500);
 
-    // ⚡ Single global subscription: chunked channels for ALL tables
+    // ⚡ Single global subscription: actionable admin tables only.
+    // No profiles/live_streams/activity tables here — they change constantly and
+    // were the root cause of the Admin Panel auto-refreshing every few seconds.
     const globalChannels: ReturnType<typeof adminSupabase.channel>[] = [];
     const globalTables = Array.from(GLOBALLY_MONITORED_TABLES);
-    const CHUNK_SIZE = 40; // Larger chunks = fewer channels
+    const CHUNK_SIZE = 20;
     const channelRetryTimers: NodeJS.Timeout[] = [];
 
     const createChunkedChannel = (chunk: string[], chIdx: number) => {
