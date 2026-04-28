@@ -1963,9 +1963,11 @@ export default function AdminLayout() {
       fetchPendingCounts();
     }, 2500);
 
-    // Admin panel is initial-load only. No global realtime channels are mounted,
-    // so pages/forms never refresh while an admin is working.
-    console.log('[Admin] Auto-refresh disabled: realtime channels skipped for admin layout');
+    // ⚡ Package 7: Mount ONE global postgres_changes subscriber for all
+    // GLOBALLY_MONITORED_TABLES. It chunks tables into multiple channels,
+    // dedupes duplicate events, and auto-reconnects on disconnect / tab resume.
+    // All admin pages consume these via window events (zero extra channels).
+    startAdminGlobalRealtime();
 
     // Admin must not refetch on tab/app focus; live events and manual actions only.
 
