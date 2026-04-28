@@ -480,7 +480,7 @@ export default function AdminPricingHub() {
                         <Input
                           type="number"
                           value={NUM(t.min_weekly_income)}
-                          onChange={(e) => updateTier(t.id, "min_weekly_income", Number(e.target.value))}
+                          onChange={(e) => updateTier(t.id, "min_weekly_income", inputNumber(e.target.value))}
                           className="h-8"
                         />
                       </Field>
@@ -488,7 +488,7 @@ export default function AdminPricingHub() {
                         <Input
                           type="number"
                           value={NUM(t.max_weekly_income)}
-                          onChange={(e) => updateTier(t.id, "max_weekly_income", Number(e.target.value))}
+                          onChange={(e) => updateTier(t.id, "max_weekly_income", inputNumber(e.target.value))}
                           className="h-8"
                         />
                       </Field>
@@ -497,7 +497,7 @@ export default function AdminPricingHub() {
                           type="number"
                           step="0.1"
                           value={NUM(t.commission_rate)}
-                          onChange={(e) => updateTier(t.id, "commission_rate", Number(e.target.value))}
+                          onChange={(e) => updateTier(t.id, "commission_rate", inputNumber(e.target.value))}
                           className="h-8"
                         />
                       </Field>
@@ -538,7 +538,7 @@ export default function AdminPricingHub() {
                   <Input
                     type="number"
                     value={NUM(withdrawal?.min_withdrawal)}
-                    onChange={(e) => setWithdrawal({ ...withdrawal, min_withdrawal: Number(e.target.value) })}
+                    onChange={(e) => setWithdrawal({ ...(withdrawal ?? {}), min_withdrawal: inputNumber(e.target.value) })}
                   />
                 </Field>
                 <Field label="Beans → USD rate" hint="9000 means 9000 beans = $1">
@@ -546,7 +546,7 @@ export default function AdminPricingHub() {
                     type="number"
                     value={NUM(withdrawal?.coins_to_dollar_rate)}
                     onChange={(e) =>
-                      setWithdrawal({ ...withdrawal, coins_to_dollar_rate: Number(e.target.value) })
+                      setWithdrawal({ ...(withdrawal ?? {}), coins_to_dollar_rate: inputNumber(e.target.value) })
                     }
                   />
                 </Field>
@@ -555,7 +555,7 @@ export default function AdminPricingHub() {
                     type="number"
                     value={NUM(withdrawal?.free_withdrawal_limit)}
                     onChange={(e) =>
-                      setWithdrawal({ ...withdrawal, free_withdrawal_limit: Number(e.target.value) })
+                      setWithdrawal({ ...(withdrawal ?? {}), free_withdrawal_limit: inputNumber(e.target.value) })
                     }
                   />
                 </Field>
