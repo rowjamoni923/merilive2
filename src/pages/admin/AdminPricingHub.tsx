@@ -368,7 +368,12 @@ export default function AdminPricingHub() {
                   <Separator />
 
                   <div>
-                    <Label className="text-sm font-semibold">Per-Level Rates (diamonds/min)</Label>
+                    <div className="flex items-center justify-between gap-2">
+                      <Label className="text-sm font-semibold">Per-Level Rates (diamonds/min)</Label>
+                      <Button type="button" variant="outline" size="sm" onClick={addLevelRate}>
+                        <Plus className="h-3 w-3 mr-1" /> Add Level
+                      </Button>
+                    </div>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
                       {(callRates.level_rates ?? []).map((lr: LevelRate, idx: number) => (
                         <div key={idx} className="flex items-center gap-2">
@@ -379,6 +384,9 @@ export default function AdminPricingHub() {
                             onChange={(e) => updateLevelRate(idx, "rate", inputNumber(e.target.value))}
                             className="h-8"
                           />
+                          <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeLevelRate(idx)}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
                         </div>
                       ))}
                     </div>
