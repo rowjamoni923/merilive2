@@ -407,10 +407,12 @@ const AdminVIPPrivileges = () => {
           <ScrollArea className="flex-1 min-h-0">
             <div className="p-4 space-y-6">
               <Tabs defaultValue="basic">
-                <TabsList className="bg-slate-800 w-full">
-                  <TabsTrigger value="basic" className="flex-1">Basic Info</TabsTrigger>
-                  <TabsTrigger value="privileges" className="flex-1">Privileges</TabsTrigger>
-                  <TabsTrigger value="animations" className="flex-1">Animations</TabsTrigger>
+                <TabsList className="bg-slate-800 w-full flex-wrap h-auto">
+                  <TabsTrigger value="basic" className="flex-1 min-w-[90px]">Basic</TabsTrigger>
+                  <TabsTrigger value="privileges" className="flex-1 min-w-[90px]">Cosmetic</TabsTrigger>
+                  <TabsTrigger value="power" className="flex-1 min-w-[90px]">Power Perks</TabsTrigger>
+                  <TabsTrigger value="economy" className="flex-1 min-w-[90px]">Economy</TabsTrigger>
+                  <TabsTrigger value="animations" className="flex-1 min-w-[90px]">Animations</TabsTrigger>
                 </TabsList>
 
                 {/* Basic Info Tab */}
