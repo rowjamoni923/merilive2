@@ -6480,6 +6480,114 @@ export type Database = {
         }
         Relationships: []
       }
+      noble_cards: {
+        Row: {
+          anti_kick_protection: boolean
+          badge_color: string | null
+          badge_url: string | null
+          cashback_percent: number
+          created_at: string
+          crown_url: string | null
+          custom_avatar_frame_url: string | null
+          custom_chat_bubble_url: string | null
+          daily_free_diamonds: number
+          description: string | null
+          display_order: number
+          duration_days: number
+          entrance_animation_url: string | null
+          entry_effect_duration_seconds: number
+          exclusive_emoji_pack: boolean
+          forbidden_words_bypass: boolean
+          free_name_changes_per_month: number
+          hide_real_level: boolean
+          id: string
+          is_active: boolean
+          monthly_diamond_cost: number
+          monthly_free_diamonds: number
+          priority_random_match: boolean
+          profile_background_url: string | null
+          rank_code: string
+          rank_name: string
+          rank_order: number
+          recharge_bonus_percent: number
+          stealth_mode: boolean
+          top_position_in_lists: boolean
+          updated_at: string
+          username_color: string | null
+          vip_only_lounge_access: boolean
+        }
+        Insert: {
+          anti_kick_protection?: boolean
+          badge_color?: string | null
+          badge_url?: string | null
+          cashback_percent?: number
+          created_at?: string
+          crown_url?: string | null
+          custom_avatar_frame_url?: string | null
+          custom_chat_bubble_url?: string | null
+          daily_free_diamonds?: number
+          description?: string | null
+          display_order?: number
+          duration_days?: number
+          entrance_animation_url?: string | null
+          entry_effect_duration_seconds?: number
+          exclusive_emoji_pack?: boolean
+          forbidden_words_bypass?: boolean
+          free_name_changes_per_month?: number
+          hide_real_level?: boolean
+          id?: string
+          is_active?: boolean
+          monthly_diamond_cost: number
+          monthly_free_diamonds?: number
+          priority_random_match?: boolean
+          profile_background_url?: string | null
+          rank_code: string
+          rank_name: string
+          rank_order?: number
+          recharge_bonus_percent?: number
+          stealth_mode?: boolean
+          top_position_in_lists?: boolean
+          updated_at?: string
+          username_color?: string | null
+          vip_only_lounge_access?: boolean
+        }
+        Update: {
+          anti_kick_protection?: boolean
+          badge_color?: string | null
+          badge_url?: string | null
+          cashback_percent?: number
+          created_at?: string
+          crown_url?: string | null
+          custom_avatar_frame_url?: string | null
+          custom_chat_bubble_url?: string | null
+          daily_free_diamonds?: number
+          description?: string | null
+          display_order?: number
+          duration_days?: number
+          entrance_animation_url?: string | null
+          entry_effect_duration_seconds?: number
+          exclusive_emoji_pack?: boolean
+          forbidden_words_bypass?: boolean
+          free_name_changes_per_month?: number
+          hide_real_level?: boolean
+          id?: string
+          is_active?: boolean
+          monthly_diamond_cost?: number
+          monthly_free_diamonds?: number
+          priority_random_match?: boolean
+          profile_background_url?: string | null
+          rank_code?: string
+          rank_name?: string
+          rank_order?: number
+          recharge_bonus_percent?: number
+          stealth_mode?: boolean
+          top_position_in_lists?: boolean
+          updated_at?: string
+          username_color?: string | null
+          vip_only_lounge_access?: boolean
+        }
+        Relationships: []
+      }
       notification_preferences: {
         Row: {
           category: string
@@ -10562,6 +10670,62 @@ export type Database = {
         }
         Relationships: []
       }
+      user_noble_subscriptions: {
+        Row: {
+          auto_renew: boolean
+          cancelled_at: string | null
+          created_at: string
+          diamonds_spent: number
+          expires_at: string
+          id: string
+          is_active: boolean
+          last_reminder_sent_at: string | null
+          noble_card_id: string
+          reminders_sent: Json
+          started_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_renew?: boolean
+          cancelled_at?: string | null
+          created_at?: string
+          diamonds_spent?: number
+          expires_at: string
+          id?: string
+          is_active?: boolean
+          last_reminder_sent_at?: string | null
+          noble_card_id: string
+          reminders_sent?: Json
+          started_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_renew?: boolean
+          cancelled_at?: string | null
+          created_at?: string
+          diamonds_spent?: number
+          expires_at?: string
+          id?: string
+          is_active?: boolean
+          last_reminder_sent_at?: string | null
+          noble_card_id?: string
+          reminders_sent?: Json
+          started_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_noble_subscriptions_noble_card_id_fkey"
+            columns: ["noble_card_id"]
+            isOneToOne: false
+            referencedRelation: "noble_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_parcels: {
         Row: {
           actual_reward_amount: number | null
@@ -10926,6 +11090,41 @@ export type Database = {
         }
         Relationships: []
       }
+      user_vip_medals: {
+        Row: {
+          awarded_at: string
+          awarded_by: string | null
+          id: string
+          is_displayed: boolean
+          medal_id: string
+          user_id: string
+        }
+        Insert: {
+          awarded_at?: string
+          awarded_by?: string | null
+          id?: string
+          is_displayed?: boolean
+          medal_id: string
+          user_id: string
+        }
+        Update: {
+          awarded_at?: string
+          awarded_by?: string | null
+          id?: string
+          is_displayed?: boolean
+          medal_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_vip_medals_medal_id_fkey"
+            columns: ["medal_id"]
+            isOneToOne: false
+            referencedRelation: "vip_medals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_vip_subscriptions: {
         Row: {
           amount_paid: number | null
@@ -11091,6 +11290,36 @@ export type Database = {
         }
         Relationships: []
       }
+      vip_daily_rewards_log: {
+        Row: {
+          claim_date: string
+          claimed_at: string
+          diamonds_awarded: number
+          id: string
+          source_id: string | null
+          source_type: string
+          user_id: string
+        }
+        Insert: {
+          claim_date?: string
+          claimed_at?: string
+          diamonds_awarded: number
+          id?: string
+          source_id?: string | null
+          source_type: string
+          user_id: string
+        }
+        Update: {
+          claim_date?: string
+          claimed_at?: string
+          diamonds_awarded?: number
+          id?: string
+          source_id?: string | null
+          source_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       vip_exclusive_items: {
         Row: {
           created_at: string
@@ -11127,107 +11356,233 @@ export type Database = {
         }
         Relationships: []
       }
+      vip_medals: {
+        Row: {
+          animation_url: string | null
+          created_at: string
+          criteria_type: string | null
+          criteria_value: number | null
+          description: string | null
+          display_order: number
+          icon_url: string | null
+          id: string
+          is_active: boolean
+          medal_code: string
+          medal_name: string
+          rarity: string
+          updated_at: string
+        }
+        Insert: {
+          animation_url?: string | null
+          created_at?: string
+          criteria_type?: string | null
+          criteria_value?: number | null
+          description?: string | null
+          display_order?: number
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean
+          medal_code: string
+          medal_name: string
+          rarity?: string
+          updated_at?: string
+        }
+        Update: {
+          animation_url?: string | null
+          created_at?: string
+          criteria_type?: string | null
+          criteria_value?: number | null
+          description?: string | null
+          display_order?: number
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean
+          medal_code?: string
+          medal_name?: string
+          rarity?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      vip_recharge_bonus_log: {
+        Row: {
+          applied_at: string
+          base_diamonds: number
+          bonus_diamonds: number
+          bonus_percent: number
+          id: string
+          recharge_id: string | null
+          source_id: string | null
+          source_type: string
+          user_id: string
+        }
+        Insert: {
+          applied_at?: string
+          base_diamonds: number
+          bonus_diamonds: number
+          bonus_percent: number
+          id?: string
+          recharge_id?: string | null
+          source_id?: string | null
+          source_type: string
+          user_id: string
+        }
+        Update: {
+          applied_at?: string
+          base_diamonds?: number
+          bonus_diamonds?: number
+          bonus_percent?: number
+          id?: string
+          recharge_id?: string | null
+          source_id?: string | null
+          source_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       vip_tiers: {
         Row: {
           ad_free: boolean | null
+          anti_kick_protection: boolean
           badge_animation_url: string | null
           badge_color: string | null
           badge_url: string | null
           benefits: Json | null
           bubble_animation_url: string | null
           created_at: string
+          daily_free_diamonds: number
           description: string | null
           display_order: number | null
           duration_days: number | null
           entrance_url: string | null
           entry_animation_url: string | null
+          entry_effect_duration_seconds: number
           exclusive_bubbles: boolean | null
           exclusive_entry_bars: boolean | null
           exclusive_frames: boolean | null
           exclusive_gifts: boolean | null
           exclusive_stickers: boolean | null
           faster_support: boolean | null
+          forbidden_words_bypass: boolean
           frame_animation_url: string | null
           frame_url: string | null
+          free_name_changes_per_month: number
+          hide_real_level: boolean
           id: string
           is_active: boolean | null
+          max_kick_tier_level: number
           price_diamonds: number | null
           price_monthly: number
           price_yearly: number | null
           priority_matching: boolean | null
+          priority_random_match: boolean
+          profile_background_url: string | null
           profile_highlight: boolean | null
+          recharge_bonus_percent: number
+          stealth_mode: boolean
           tier_code: string | null
           tier_level: number
           tier_name: string
+          top_position_in_lists: boolean
           updated_at: string
+          username_color: string | null
+          vip_only_lounge_access: boolean
           vip_only_rooms: boolean | null
         }
         Insert: {
           ad_free?: boolean | null
+          anti_kick_protection?: boolean
           badge_animation_url?: string | null
           badge_color?: string | null
           badge_url?: string | null
           benefits?: Json | null
           bubble_animation_url?: string | null
           created_at?: string
+          daily_free_diamonds?: number
           description?: string | null
           display_order?: number | null
           duration_days?: number | null
           entrance_url?: string | null
           entry_animation_url?: string | null
+          entry_effect_duration_seconds?: number
           exclusive_bubbles?: boolean | null
           exclusive_entry_bars?: boolean | null
           exclusive_frames?: boolean | null
           exclusive_gifts?: boolean | null
           exclusive_stickers?: boolean | null
           faster_support?: boolean | null
+          forbidden_words_bypass?: boolean
           frame_animation_url?: string | null
           frame_url?: string | null
+          free_name_changes_per_month?: number
+          hide_real_level?: boolean
           id?: string
           is_active?: boolean | null
+          max_kick_tier_level?: number
           price_diamonds?: number | null
           price_monthly: number
           price_yearly?: number | null
           priority_matching?: boolean | null
+          priority_random_match?: boolean
+          profile_background_url?: string | null
           profile_highlight?: boolean | null
+          recharge_bonus_percent?: number
+          stealth_mode?: boolean
           tier_code?: string | null
           tier_level: number
           tier_name: string
+          top_position_in_lists?: boolean
           updated_at?: string
+          username_color?: string | null
+          vip_only_lounge_access?: boolean
           vip_only_rooms?: boolean | null
         }
         Update: {
           ad_free?: boolean | null
+          anti_kick_protection?: boolean
           badge_animation_url?: string | null
           badge_color?: string | null
           badge_url?: string | null
           benefits?: Json | null
           bubble_animation_url?: string | null
           created_at?: string
+          daily_free_diamonds?: number
           description?: string | null
           display_order?: number | null
           duration_days?: number | null
           entrance_url?: string | null
           entry_animation_url?: string | null
+          entry_effect_duration_seconds?: number
           exclusive_bubbles?: boolean | null
           exclusive_entry_bars?: boolean | null
           exclusive_frames?: boolean | null
           exclusive_gifts?: boolean | null
           exclusive_stickers?: boolean | null
           faster_support?: boolean | null
+          forbidden_words_bypass?: boolean
           frame_animation_url?: string | null
           frame_url?: string | null
+          free_name_changes_per_month?: number
+          hide_real_level?: boolean
           id?: string
           is_active?: boolean | null
+          max_kick_tier_level?: number
           price_diamonds?: number | null
           price_monthly?: number
           price_yearly?: number | null
           priority_matching?: boolean | null
+          priority_random_match?: boolean
+          profile_background_url?: string | null
           profile_highlight?: boolean | null
+          recharge_bonus_percent?: number
+          stealth_mode?: boolean
           tier_code?: string | null
           tier_level?: number
           tier_name?: string
+          top_position_in_lists?: boolean
           updated_at?: string
+          username_color?: string | null
+          vip_only_lounge_access?: boolean
           vip_only_rooms?: boolean | null
         }
         Relationships: []
@@ -12928,6 +13283,7 @@ export type Database = {
         }
         Returns: Json
       }
+      expire_noble_subscriptions: { Args: never; Returns: number }
       finalize_first_minute_earnings: {
         Args: { p_call_id: string }
         Returns: undefined
@@ -13165,6 +13521,21 @@ export type Database = {
           helper_id: string
           helper_wallet_balance: number
           personal_coins: number
+        }[]
+      }
+      get_user_active_noble: {
+        Args: { _user_id: string }
+        Returns: {
+          badge_url: string
+          crown_url: string
+          days_remaining: number
+          entrance_animation_url: string
+          expires_at: string
+          noble_card_id: string
+          rank_code: string
+          rank_name: string
+          rank_order: number
+          subscription_id: string
         }[]
       }
       get_user_balance: { Args: { _user_id: string }; Returns: Json }
