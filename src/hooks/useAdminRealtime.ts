@@ -217,18 +217,22 @@ export const useAdminRealtime = (
   }, [isAdminRoute]);
 
   useEffect(() => {
-    if (isOnAdminRoute && !enableRealtimeRefresh) {
-      return () => {
-        if (debounceRef.current) clearTimeout(debounceRef.current);
-      };
-    }
-
+    // Admin route: ALWAYS subscribe to window events for tables in the
+    // global monitor set (Package 7 — global subscriber dispatches them).
+    // Direct postgres_changes only used for tables outside the global set
+    // or non-admin routes.
     const eventTables = isOnAdminRoute
       ? trackedTables.filter((t) => GLOBALLY_MONITORED_TABLES.has(t))
       : [];
     const directTables = isOnAdminRoute
-      ? []
+      ? trackedTables.filter((t) => !GLOBALLY_MONITORED_TABLES.has(t))
       : trackedTables.filter((t) => !GLOBALLY_MONITORED_TABLES.has(t));
+
+    if (isOnAdminRoute && eventTables.length === 0 && directTables.length === 0) {
+      return () => {
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+      };
+    }
 
     let lastRealtimeTouch = Date.now();
 
