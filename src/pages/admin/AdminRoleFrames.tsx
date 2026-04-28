@@ -97,21 +97,24 @@ const AdminRoleFrames = () => {
   const fetchData = async () => {
     setLoading(true);
     
-    // Fetch role frames
-    const { data: framesData, error: framesError } = await supabase
-      .from('role_frames')
-      .select('*')
-      .order('role_type')
-      .order('display_order');
-    
+    // Pkg10: full-list RPC bypasses 500-row REST cap
+    const { data: framesData, error: framesError } = await supabase.rpc('admin_list_role_frames_all' as any);
+
     if (framesError) {
       toast({ title: "Error", description: framesError.message, variant: "destructive" });
     } else {
-      // Map DB `name` column to component `frame_name`
-      const mapped = (framesData || []).map((f: any) => ({
-        ...f,
-        frame_name: f.name || f.frame_name || '',
-      }));
+      // Map DB `name` column to component `frame_name`; sort like before (role_type, display_order)
+      const mapped = ((framesData as any[]) || [])
+        .slice()
+        .sort((a, b) => {
+          const r = String(a.role_type || '').localeCompare(String(b.role_type || ''));
+          if (r !== 0) return r;
+          return (a.display_order ?? 0) - (b.display_order ?? 0);
+        })
+        .map((f: any) => ({
+          ...f,
+          frame_name: f.name || f.frame_name || '',
+        }));
       setFrames(mapped);
     }
 
