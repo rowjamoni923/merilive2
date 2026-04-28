@@ -340,6 +340,11 @@ const AdminVIPPrivileges = () => {
                 {tier.exclusive_bubbles && <Badge variant="outline" className="border-amber-500 text-amber-400">Bubbles</Badge>}
                 {tier.ad_free && <Badge variant="outline" className="border-green-500 text-green-400">Ad-Free</Badge>}
                 {tier.profile_highlight && <Badge variant="outline" className="border-rose-500 text-rose-400">Glow</Badge>}
+                {tier.anti_kick_protection && <Badge variant="outline" className="border-emerald-500 text-emerald-400">Anti-Kick</Badge>}
+                {tier.stealth_mode && <Badge variant="outline" className="border-violet-500 text-violet-400">Stealth</Badge>}
+                {tier.hide_real_level && <Badge variant="outline" className="border-slate-400 text-slate-300">Hide Level</Badge>}
+                {(tier.recharge_bonus_percent ?? 0) > 0 && <Badge variant="outline" className="border-yellow-500 text-yellow-400">+{tier.recharge_bonus_percent}% Recharge</Badge>}
+                {(tier.daily_free_diamonds ?? 0) > 0 && <Badge variant="outline" className="border-cyan-500 text-cyan-400">{tier.daily_free_diamonds}💎/day</Badge>}
               </div>
 
               {/* Animation Previews */}
