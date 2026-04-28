@@ -143,64 +143,25 @@ const AdminFaceVerification = () => {
         }, ADMIN_FAST_LOADING_TIMEOUT_MS);
       }
 
-      const { data, error } = await supabase
-        .from('face_verification_submissions')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(FACE_VERIFICATION_FETCH_LIMIT);
+      // Pkg9 hardening: single server-side RPC replaces direct table SELECT +
+      // N+1 client joins (profile/agency). Server enforces is_active_admin_session.
+      const { data, error } = await supabase.rpc(
+        'admin_list_face_verification_paginated',
+        { _status: null, _search: null, _limit: FACE_VERIFICATION_FETCH_LIMIT, _offset: 0 }
+      );
 
       if (error) throw error;
 
-      // Fetch profiles separately since no FK exists
-      const userIds = [...new Set((data || []).map((s: any) => s.user_id).filter(Boolean))];
-      let profileMap: Record<string, any> = {};
-      if (userIds.length > 0) {
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('id, display_name, avatar_url, app_uid, gender, is_host, is_face_verified, is_verified, country_code, country_flag, country_name, city, region, registration_ip, last_login_ip')
-          .in('id', userIds);
-        if (profiles) {
-          profiles.forEach((p: any) => { profileMap[p.id] = p; });
-        }
-      }
+      const payload = (data as any) || {};
+      const rows = (payload.rows || []) as any[];
 
-      const dataWithProfiles = (data || []).map((s: any) => ({
+      const enriched: Submission[] = rows.map((s) => ({
         ...s,
-        profile: profileMap[s.user_id] || null,
-      }));
-
-      const hostUserIds = Array.from(new Set(dataWithProfiles
-        .filter((s: any) => s.verification_type === 'host')
-        .map((s: any) => s.user_id)));
-
-      let agencyMap: Record<string, { agency_name: string; agency_code: string }> = {};
-      if (hostUserIds.length > 0) {
-        const { data: agencyData } = await supabase
-          .from('agency_hosts')
-          .select('host_id, agency_id')
-          .in('host_id', hostUserIds)
-          .eq('status', 'active');
-
-        if (agencyData && agencyData.length > 0) {
-          const agencyIds = [...new Set(agencyData.map((ah: any) => ah.agency_id).filter(Boolean))];
-          const { data: agencies } = await supabase
-            .from('agencies')
-            .select('id, name, agency_code')
-            .in('id', agencyIds);
-          const agencyLookup: Record<string, any> = {};
-          if (agencies) agencies.forEach((a: any) => { agencyLookup[a.id] = a; });
-          agencyData.forEach((ah: any) => {
-            const ag = agencyLookup[ah.agency_id];
-            if (ag) {
-              agencyMap[ah.host_id] = { agency_name: ag.name, agency_code: ag.agency_code };
-            }
-          });
-        }
-      }
-
-      const enriched = dataWithProfiles.map((s: any) => ({
-        ...s,
-        agency_info: agencyMap[s.user_id] || null,
+        // RPC returns profile as a jsonb object; normalize null → undefined
+        profile: s.profile && s.profile.id ? s.profile : undefined,
+        agency_info: s.agency_name
+          ? { agency_name: s.agency_name, agency_code: s.agency_code }
+          : null,
       }));
 
       setSubmissions(enriched);
