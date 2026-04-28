@@ -85,6 +85,10 @@ export default function AdminLiveBans() {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterActive, setFilterActive] = useState<"all" | "active" | "expired">("all");
+  // Pkg9: full-history stats from server (independent of 500-row window)
+  const [stats, setStats] = useState<{ active: number; auto: number; unbanned: number; total: number }>(
+    { active: 0, auto: 0, unbanned: 0, total: 0 }
+  );
   
   // New ban dialog
   const [showNewBanDialog, setShowNewBanDialog] = useState(false);
