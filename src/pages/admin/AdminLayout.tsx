@@ -1956,53 +1956,9 @@ export default function AdminLayout() {
       fetchPendingCounts();
     }, 2500);
 
-    // ⚡ Single global subscription: actionable admin tables only.
-    // No profiles/live_streams/activity tables here — they change constantly and
-    // were the root cause of the Admin Panel auto-refreshing every few seconds.
-    const globalChannels: ReturnType<typeof adminSupabase.channel>[] = [];
-    const globalTables = Array.from(GLOBALLY_MONITORED_TABLES);
-    const CHUNK_SIZE = 20;
-    const channelRetryTimers: NodeJS.Timeout[] = [];
-
-    const createChunkedChannel = (chunk: string[], chIdx: number) => {
-      // Remove existing channel if any
-      const existingIdx = globalChannels.findIndex((c: any) => c?.topic?.includes(`admin-unified-${chIdx}`));
-      if (existingIdx >= 0) {
-        try { adminSupabase.removeChannel(globalChannels[existingIdx]); } catch {}
-        globalChannels.splice(existingIdx, 1);
-      }
-
-      let ch = adminSupabase.channel(`admin-unified-${chIdx}-${crypto.randomUUID()}`);
-      for (const table of chunk) {
-        ch = ch.on('postgres_changes', { event: '*', schema: 'public', table }, (payload) => {
-          dispatchAdminTableUpdate({
-            table,
-            eventType: payload.eventType as 'INSERT' | 'UPDATE' | 'DELETE',
-            payload: payload.new,
-          });
-        });
-      }
-
-      ch.subscribe((status) => {
-        console.log(`[Admin] Unified channel ${chIdx} status:`, status);
-        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          console.warn(`[Admin] ⚠️ Channel ${chIdx} error, retrying in 3s...`);
-          const retryTimer = setTimeout(() => {
-            try { adminSupabase.removeChannel(ch); } catch {}
-            createChunkedChannel(chunk, chIdx);
-          }, 3000);
-          channelRetryTimers.push(retryTimer);
-        }
-      });
-      globalChannels.push(ch);
-    };
-
-    for (let i = 0; i < globalTables.length; i += CHUNK_SIZE) {
-      const chunk = globalTables.slice(i, i + CHUNK_SIZE);
-      const chIdx = Math.floor(i / CHUNK_SIZE) + 1;
-      createChunkedChannel(chunk, chIdx);
-    }
-    console.log(`[Admin] ✅ Unified realtime: ${Math.ceil(globalTables.length / CHUNK_SIZE)} channels for ${globalTables.length} tables`);
+    // Admin panel is initial-load only. No global realtime channels are mounted,
+    // so pages/forms never refresh while an admin is working.
+    console.log('[Admin] Auto-refresh disabled: realtime channels skipped for admin layout');
 
     // Admin must not refetch on tab/app focus; live events and manual actions only.
 
@@ -2174,8 +2130,6 @@ export default function AdminLayout() {
 
     return () => {
       clearTimeout(pendingCountsTimer);
-      channelRetryTimers.forEach(t => clearTimeout(t));
-      globalChannels.forEach(ch => { try { adminSupabase.removeChannel(ch); } catch {} });
       window.removeEventListener(ADMIN_REALTIME_EVENT, handleUnifiedEvent);
     };
   }, [isAdmin, currentUser?.id]);
