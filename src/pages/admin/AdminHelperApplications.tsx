@@ -134,23 +134,11 @@ const AdminHelperApplications = () => {
       const { data: appsData } = await query;
       setApplications(appsData || []);
 
-      // Fetch stats
-      const { count: pendingCount } = await supabase
-        .from('helper_applications')
-        .select('id', { count: 'exact', head: true })
-        .eq('status', 'pending');
+      // Pkg6: single server-side aggregation RPC for application stats
+      const { data: statsData } = await supabase.rpc('admin_helper_applications_stats');
+      const s = (statsData as any) || {};
 
-      const { count: approvedCount } = await supabase
-        .from('helper_applications')
-        .select('id', { count: 'exact', head: true })
-        .eq('status', 'approved');
-
-      const { count: rejectedCount } = await supabase
-        .from('helper_applications')
-        .select('id', { count: 'exact', head: true })
-        .eq('status', 'rejected');
-
-      // Fetch payroll requests
+      // Fetch payroll requests (still needed as a list, not just stats)
       const { data: payrollData } = await supabase
         .from('payroll_requests')
         .select(`
@@ -161,13 +149,11 @@ const AdminHelperApplications = () => {
 
       setPayrollRequests((payrollData || []) as PayrollRequest[]);
 
-      const pendingPayroll = (payrollData || []).filter((p: any) => p.status === 'pending').length;
-
       setStats({
-        pending: pendingCount || 0,
-        approved: approvedCount || 0,
-        rejected: rejectedCount || 0,
-        pendingPayroll
+        pending: s.pending || 0,
+        approved: s.approved || 0,
+        rejected: s.rejected || 0,
+        pendingPayroll: s.pendingPayroll || 0
       });
 
     } catch (error) {

@@ -226,38 +226,20 @@ const AdminHelperManagement = () => {
   };
 
   const loadStats = async () => {
-    const [
-      { count: pendingApps },
-      { count: approvedApps },
-      { count: rejectedApps },
-      { count: totalHelpers },
-      { count: activeHelpers },
-      { count: level5Helpers },
-      { count: pendingUpgrades },
-      { count: pendingTopups },
-      { count: pendingPayroll },
-    ] = await Promise.all([
-      supabase.from('helper_applications').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-      supabase.from('helper_applications').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
-      supabase.from('helper_applications').select('*', { count: 'exact', head: true }).eq('status', 'rejected'),
-      supabase.from('topup_helpers').select('*', { count: 'exact', head: true }),
-      supabase.from('topup_helpers').select('*', { count: 'exact', head: true }).eq('is_active', true),
-      supabase.from('topup_helpers').select('*', { count: 'exact', head: true }).eq('trader_level', 5),
-      supabase.from('helper_upgrade_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-      supabase.from('helper_topup_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-      supabase.from('topup_helpers').select('*', { count: 'exact', head: true }).eq('payroll_status', 'pending'),
-    ]);
+    // Pkg6: single server-side aggregation RPC (replaces 9 parallel COUNT queries)
+    const { data: statsData } = await supabase.rpc('admin_helper_management_stats');
+    const s = (statsData as any) || {};
 
     setStats({
-      pendingApplications: pendingApps || 0,
-      approvedApplications: approvedApps || 0,
-      rejectedApplications: rejectedApps || 0,
-      totalHelpers: totalHelpers || 0,
-      activeHelpers: activeHelpers || 0,
-      level5Helpers: level5Helpers || 0,
-      pendingUpgrades: pendingUpgrades || 0,
-      pendingTopups: pendingTopups || 0,
-      pendingPayroll: pendingPayroll || 0,
+      pendingApplications: s.pendingApplications || 0,
+      approvedApplications: s.approvedApplications || 0,
+      rejectedApplications: s.rejectedApplications || 0,
+      totalHelpers: s.totalHelpers || 0,
+      activeHelpers: s.activeHelpers || 0,
+      level5Helpers: s.level5Helpers || 0,
+      pendingUpgrades: s.pendingUpgrades || 0,
+      pendingTopups: s.pendingTopups || 0,
+      pendingPayroll: s.pendingPayroll || 0,
     });
   };
   
