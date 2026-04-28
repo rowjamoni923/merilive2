@@ -399,8 +399,8 @@ const AdminVIPPrivileges = () => {
       {/* Edit/Create Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent
-          className="bg-slate-900 border-slate-700 w-[95vw] sm:max-w-5xl max-h-[92vh] p-0 flex flex-col"
-          style={{ resize: 'both', overflow: 'hidden', minWidth: '320px', minHeight: '400px' }}
+          className="bg-slate-900 border-slate-700 w-[95vw] sm:max-w-5xl max-h-[92vh] p-0 flex flex-col overflow-hidden"
+          style={{ resize: 'both', minWidth: '320px', minHeight: '400px' }}
         >
           <DialogHeader className="p-4 border-b border-slate-700 shrink-0">
             <DialogTitle className="text-white flex items-center gap-2">
@@ -408,8 +408,8 @@ const AdminVIPPrivileges = () => {
               {editingTier ? `Edit ${editingTier.tier_name}` : "Create VIP Tier"}
             </DialogTitle>
           </DialogHeader>
-          
-          <ScrollArea className="flex-1 min-h-0">
+
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
             <div className="p-4 space-y-6">
               <Tabs defaultValue="basic">
                 <TabsList className="bg-slate-800 w-full flex-wrap h-auto">
@@ -882,7 +882,7 @@ const AdminVIPPrivileges = () => {
                 </TabsContent>
               </Tabs>
             </div>
-          </ScrollArea>
+          </div>
 
           {/* Footer */}
           <div className="p-4 border-t border-slate-700 flex gap-3">
