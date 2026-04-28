@@ -269,17 +269,19 @@ const AdminShop = () => {
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("shop_items")
-      .select("*")
-      .order("category")
-      .order("display_order");
+    // Pkg10: full-list RPC bypasses 500-row REST cap
+    const { data, error } = await supabase.rpc('admin_list_shop_items_all' as any);
 
     if (error) {
       toast.error("Failed to load shop items");
       console.error(error);
     } else {
-      setItems((data || []).map(normalizeShopItem));
+      const sorted = ((data as any[]) || []).slice().sort((a, b) => {
+        const c = String(a.category || '').localeCompare(String(b.category || ''));
+        if (c !== 0) return c;
+        return (a.display_order ?? 0) - (b.display_order ?? 0);
+      });
+      setItems(sorted.map(normalizeShopItem));
     }
     setLoading(false);
   }, []);
