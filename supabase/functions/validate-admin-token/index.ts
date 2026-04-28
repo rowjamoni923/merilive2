@@ -116,6 +116,31 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Check owner-rotated overrides first (current year)
+    try {
+      const adminClient = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      );
+      const { data: overrides } = await adminClient
+        .from('admin_token_overrides')
+        .select('kind, token, rotated_year');
+      if (Array.isArray(overrides)) {
+        for (const o of overrides) {
+          if (o.rotated_year !== currentYear) continue;
+          if (o.token === token.trim()) {
+            const role = o.kind === 'owner' ? 'owner' : 'sub_admin';
+            return new Response(
+              JSON.stringify({ valid: true, role, year: currentYear, source: 'override' }),
+              { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('override check failed:', e);
+    }
+
     // Parse luxurious format
     const parsed = parseToken(token.trim());
     if (!parsed) {
