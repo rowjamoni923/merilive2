@@ -7,6 +7,8 @@ import {
   Wallet,
   ArrowRightLeft,
   Percent,
+  Plus,
+  Trash2,
   Crown,
   RefreshCw,
   Info,
@@ -126,13 +128,13 @@ export default function AdminPricingHub() {
         map[row.setting_key] = parseSettingValue(row.setting_value);
       });
 
-      setCallRates(map.call_rates ?? null);
+      setCallRates(map.call_rates ?? {});
       setGiftCommission({
         host_percent: map.gift_commission?.host_percent ?? "",
         company_percent: map.gift_commission?.company_percent ?? "",
       });
-      setAgencyCommission(map.agency_commission ?? null);
-      setWithdrawal(map.withdrawal_settings ?? null);
+      setAgencyCommission(map.agency_commission ?? {});
+      setWithdrawal(map.withdrawal_settings ?? {});
 
       // Fee settings can be stored as numeric or {rate: x}
       const aw = map.agency_withdrawal_fee;
@@ -146,7 +148,7 @@ export default function AdminPricingHub() {
         helper_receives_percent: map.helper_fee_settings?.helper_receives_percent ?? "",
       });
 
-      setCoinExchange(map.coin_exchange ?? null);
+      setCoinExchange(map.coin_exchange ?? {});
 
       // Load agency_level_tiers
       const { data: tierData, error: tierErr } = await supabase
@@ -221,6 +223,18 @@ export default function AdminPricingHub() {
     setCallRates({ ...callRates, level_rates: arr });
   };
 
+  const addLevelRate = () => {
+    const arr: LevelRate[] = [...(callRates?.level_rates ?? [])];
+    const nextLevel = arr.length ? Math.max(...arr.map((lr) => Number(lr.level) || 0)) + 1 : 0;
+    setCallRates({ ...(callRates ?? {}), level_rates: [...arr, { level: nextLevel, rate: "" }] });
+  };
+
+  const removeLevelRate = (idx: number) => {
+    const arr: LevelRate[] = [...(callRates?.level_rates ?? [])];
+    arr.splice(idx, 1);
+    setCallRates({ ...(callRates ?? {}), level_rates: arr });
+  };
+
   if (loading) {
     return (
       <div className="admin-content p-6">
@@ -271,9 +285,6 @@ export default function AdminPricingHub() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {!callRates ? (
-                <p className="text-sm text-muted-foreground">Not configured.</p>
-              ) : (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <Field label="Default rate (diamonds/min)">
@@ -357,7 +368,12 @@ export default function AdminPricingHub() {
                   <Separator />
 
                   <div>
-                    <Label className="text-sm font-semibold">Per-Level Rates (diamonds/min)</Label>
+                    <div className="flex items-center justify-between gap-2">
+                      <Label className="text-sm font-semibold">Per-Level Rates (diamonds/min)</Label>
+                      <Button type="button" variant="outline" size="sm" onClick={addLevelRate}>
+                        <Plus className="h-3 w-3 mr-1" /> Add Level
+                      </Button>
+                    </div>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
                       {(callRates.level_rates ?? []).map((lr: LevelRate, idx: number) => (
                         <div key={idx} className="flex items-center gap-2">
@@ -368,6 +384,9 @@ export default function AdminPricingHub() {
                             onChange={(e) => updateLevelRate(idx, "rate", inputNumber(e.target.value))}
                             className="h-8"
                           />
+                          <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeLevelRate(idx)}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
                         </div>
                       ))}
                     </div>
@@ -381,7 +400,6 @@ export default function AdminPricingHub() {
                     {saving === "call_rates" ? "Saving..." : "Save Call Settings"}
                   </Button>
                 </>
-              )}
             </CardContent>
           </Card>
         </TabsContent>
