@@ -76,13 +76,11 @@ export const GLOBALLY_MONITORED_TABLES = new Set<string>([
   'admin_logs',
   'admin_users',
   'admin_allowed_devices',
-  'admin_sections',
   'admin_section_permissions',
 
   // Pending finance/content approvals
   'rating_reward_claims',
   'leaderboard_reward_history',
-  'consumption_return_history',
   'agency_earnings_transfers',
   'coin_transfers',
 
