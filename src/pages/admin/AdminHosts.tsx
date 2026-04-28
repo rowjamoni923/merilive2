@@ -251,10 +251,7 @@ export default function AdminHosts() {
     }
   };
 
-  const filteredHosts = hosts.filter(host =>
-    host.display_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    host.id.includes(searchQuery)
-  );
+  const filteredHosts = hosts;
 
   const formatCoins = (coins: number) => {
     if (coins >= 1000000) return `${(coins / 1000000).toFixed(1)}M`;
