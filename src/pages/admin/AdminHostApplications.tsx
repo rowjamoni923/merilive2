@@ -313,7 +313,7 @@ export default function AdminHostApplications() {
       if (error) throw error;
       toast.success("Review started");
       fetchApplications();
-    } catch { toast.error((error as any)?.message || "Operation failed"); } finally { guardEnd(`review-${app.id}`); }
+    } catch (error) { toast.error((error as any)?.message || "Operation failed"); } finally { guardEnd(`review-${app.id}`); }
   };
 
   const totalPages = Math.ceil(totalApplications / pageSize);
