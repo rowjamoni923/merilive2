@@ -526,7 +526,7 @@ export default function AdminAgencies() {
       fetchAgencies();
     } catch (error) {
       console.error("Error updating agency:", error);
-      toast.error("Operation failed");
+      toast.error((error as any)?.message || "Operation failed");
     } finally {
       setActionLoading(false);
       if (selectedAgency) guardEnd(`cancel-${selectedAgency.id}`);
