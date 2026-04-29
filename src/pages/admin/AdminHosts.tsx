@@ -247,7 +247,8 @@ export default function AdminHosts() {
       fetchHosts();
       fetchStats();
     } catch (error) {
-      toast.error("Operation failed");
+      console.error("Error blocking host:", error);
+      toast.error(error instanceof Error ? error.message : "Operation failed");
     }
   };
 
