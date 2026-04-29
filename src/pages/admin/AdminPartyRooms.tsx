@@ -195,7 +195,7 @@ export default function AdminPartyRooms() {
       fetchRooms();
     } catch (error) {
       console.error("Error ending room:", error);
-      toast.error("Operation failed");
+      toast.error((error as any)?.message || "Operation failed");
     } finally {
       setActionLoading(false);
     }

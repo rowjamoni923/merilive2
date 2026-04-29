@@ -473,7 +473,7 @@ export default function AdminUserManagement() {
       fetchUsers();
     } catch (error) {
       console.error("Error blocking user:", error);
-      toast.error("Operation failed");
+      toast.error((error as any)?.message || "Operation failed");
     } finally {
       setActionLoading(false);
       endSingleFlight(actionKey);
@@ -501,7 +501,7 @@ export default function AdminUserManagement() {
       fetchUsers();
     } catch (error) {
       console.error("Error updating host status:", error);
-      toast.error("Operation failed");
+      toast.error((error as any)?.message || "Operation failed");
     } finally {
       setActionLoading(false);
       endSingleFlight(actionKey);
@@ -538,7 +538,7 @@ export default function AdminUserManagement() {
       fetchFaceSubmissions();
     } catch (error) {
       console.error('Error converting:', error);
-      toast.error('Operation failed');
+      toast.error((error as any)?.message || "Operation failed");
     } finally {
       setActionLoading(false);
       endSingleFlight(actionKey);
@@ -569,7 +569,7 @@ export default function AdminUserManagement() {
       fetchUsers();
     } catch (error) {
       console.error("Error verifying user:", error);
-      toast.error("Operation failed");
+      toast.error((error as any)?.message || "Operation failed");
     } finally {
       setActionLoading(false);
       endSingleFlight(actionKey);
@@ -716,7 +716,7 @@ export default function AdminUserManagement() {
       fetchHosts();
       fetchHostStats();
     } catch (error) {
-      toast.error("Operation failed");
+      toast.error((error as any)?.message || "Operation failed");
     } finally {
       setActionLoading(false);
       endSingleFlight(actionKey);
@@ -817,7 +817,7 @@ export default function AdminUserManagement() {
       fetchApplications();
     } catch (error) {
       console.error("Error approving:", error);
-      toast.error("Operation failed");
+      toast.error((error as any)?.message || "Operation failed");
     } finally {
       setActionLoading(false);
       endSingleFlight(actionKey);
@@ -855,7 +855,7 @@ export default function AdminUserManagement() {
       fetchApplications();
     } catch (error) {
       console.error("Error rejecting:", error);
-      toast.error("Operation failed");
+      toast.error((error as any)?.message || "Operation failed");
     } finally {
       setActionLoading(false);
       endSingleFlight(actionKey);

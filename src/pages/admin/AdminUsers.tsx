@@ -180,7 +180,7 @@ export default function AdminUsers() {
       fetchUsers();
     } catch (error) {
       console.error("Error blocking user:", error);
-      toast.error("Operation failed");
+      toast.error((error as any)?.message || "Operation failed");
     } finally {
       setActionLoading(false);
     }
@@ -199,7 +199,7 @@ export default function AdminUsers() {
       fetchUsers();
     } catch (error) {
       console.error("Error updating host status:", error);
-      toast.error("Operation failed");
+      toast.error((error as any)?.message || "Operation failed");
     }
   };
 
@@ -215,7 +215,7 @@ export default function AdminUsers() {
       fetchUsers();
     } catch (error) {
       console.error("Error verifying user:", error);
-      toast.error("Operation failed");
+      toast.error((error as any)?.message || "Operation failed");
     }
   };
 
