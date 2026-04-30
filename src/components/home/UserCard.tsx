@@ -91,12 +91,9 @@ export const UserCard = ({
           </div>
         )}
 
-        {/* Online Badge - Top Left (if not live) — ALWAYS visible regardless of verification */}
+        {/* Online Indicator - subtle green dot only (industry standard, no text) */}
         {!isLive && isOnline && (
-          <div className="absolute top-3 left-2 flex items-center gap-1 bg-gradient-to-r from-emerald-500/90 to-green-500/90 backdrop-blur-sm rounded-full px-2 py-0.5 shadow-lg border border-white/30">
-            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-            <span className="text-[10px] font-bold text-white tracking-wide">Online</span>
-          </div>
+          <div className="absolute top-3 left-3 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white/80 shadow-md animate-pulse" />
         )}
 
         {/* Verified Badge - Top Right (if not live) */}
