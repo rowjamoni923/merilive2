@@ -424,6 +424,18 @@ const ProfileDetail = () => {
     // Process gifts received
     const receivedCounts: Record<string, { name: string; icon: string; count: number; totalCoins: number }> = {};
     const giftSendersList: GiftWithSender[] = [];
+
+    // Fetch sender profiles via profiles_public (RLS-safe for non-owner reads)
+    const senderIds = Array.from(new Set((receivedTransactionsResult?.data || []).map((t: any) => t.sender_id).filter(Boolean)));
+    let senderMap: Record<string, any> = {};
+    if (senderIds.length > 0) {
+      const { data: senders } = await supabase
+        .from('profiles_public')
+        .select('id, display_name, username, avatar_url, app_uid')
+        .in('id', senderIds);
+      (senders || []).forEach((s: any) => { senderMap[s.id] = s; });
+    }
+
     receivedTransactionsResult?.data?.forEach((t: any) => {
       const giftId = t.gift_id;
       if (!receivedCounts[giftId]) {
@@ -431,11 +443,12 @@ const ProfileDetail = () => {
       }
       receivedCounts[giftId].count++;
       receivedCounts[giftId].totalCoins += t.coin_amount || 0;
+      const sender = senderMap[t.sender_id];
       giftSendersList.push({
         id: t.id, gift_id: t.gift_id, gift_name: t.gifts?.name || "Gift", gift_icon: t.gifts?.icon_url || "🎁",
         coin_amount: t.coin_amount || 0, sender_id: t.sender_id,
-        sender_name: t.profiles?.display_name || t.profiles?.username || "Anonymous",
-        sender_avatar: t.profiles?.avatar_url || null, sender_uid: t.profiles?.app_uid || null, created_at: t.created_at
+        sender_name: sender?.display_name || sender?.username || "Anonymous",
+        sender_avatar: sender?.avatar_url || null, sender_uid: sender?.app_uid || null, created_at: t.created_at
       });
     });
     setGiftsWithSenders(giftSendersList);
