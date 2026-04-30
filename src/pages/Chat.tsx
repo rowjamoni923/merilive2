@@ -1088,7 +1088,7 @@ const Chat = () => {
 
     if (existing) {
       const { data: profile } = await supabase
-        .from('profiles')
+        .from('profiles_public')
         .select('id, display_name, avatar_url, is_online, is_verified, is_host, gender, call_rate_per_minute')
         .eq('id', otherUserId)
         .maybeSingle();
@@ -1116,7 +1116,7 @@ const Chat = () => {
       }
 
       const { data: profile } = await supabase
-        .from('profiles')
+        .from('profiles_public')
         .select('id, display_name, avatar_url, is_online, is_verified, is_host, gender, call_rate_per_minute')
         .eq('id', otherUserId)
         .maybeSingle();
@@ -1289,7 +1289,7 @@ const Chat = () => {
     // Fetch sender profiles
     const senderIds = [...new Set(data?.map(m => m.sender_id) || [])];
     const { data: profiles } = await supabase
-      .from('profiles')
+      .from('profiles_public')
       .select('id, display_name, avatar_url')
       .in('id', senderIds);
 
