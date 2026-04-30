@@ -134,13 +134,28 @@ const Discover = () => {
           .gte('joined_at', twoHoursAgo),
         supabase
           .from('party_rooms')
-          .select(`*, host:profiles_public!party_rooms_host_id_fkey(id, display_name, avatar_url, user_level, host_level, country_flag, country_code, is_online, is_host, gender, total_earnings, weekly_earnings, max_user_level)`)
+          .select(`*`)
           .eq('is_active', true)
           .gte('created_at', twoHoursAgo),
       ]);
 
       if (participantsRes.error) throw participantsRes.error;
       if (roomsRes.error) throw roomsRes.error;
+
+      // Fetch host profiles via profiles_public (RLS-safe)
+      const hostIds = Array.from(new Set((roomsRes.data || []).map((r: any) => r.host_id).filter(Boolean)));
+      let hostMap: Record<string, any> = {};
+      if (hostIds.length > 0) {
+        const { data: hosts } = await supabase
+          .from('profiles_public')
+          .select('id, display_name, avatar_url, user_level, host_level, country_flag, country_code, is_online, is_host, gender, total_earnings, weekly_earnings, max_user_level')
+          .in('id', hostIds);
+        (hosts || []).forEach((h: any) => { hostMap[h.id] = h; });
+      }
+      // Stitch host into room rows for downstream code
+      (roomsRes.data || []).forEach((room: any) => {
+        room.host = hostMap[room.host_id] || null;
+      });
 
       const activeParticipants = participantsRes.data || [];
       const roomParticipantCounts = new Map<string, number>();
