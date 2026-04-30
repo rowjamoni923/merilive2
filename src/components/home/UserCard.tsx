@@ -91,16 +91,19 @@ export const UserCard = ({
           </div>
         )}
 
+        {/* Online Badge - Top Left (if not live) — ALWAYS visible regardless of verification */}
+        {!isLive && isOnline && (
+          <div className="absolute top-3 left-2 flex items-center gap-1 bg-gradient-to-r from-emerald-500/90 to-green-500/90 backdrop-blur-sm rounded-full px-2 py-0.5 shadow-lg border border-white/30">
+            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+            <span className="text-[10px] font-bold text-white tracking-wide">Online</span>
+          </div>
+        )}
+
         {/* Verified Badge - Top Right (if not live) */}
         {!isLive && (isVerified || isFaceVerified) && (
           <div className="absolute top-3 right-3 w-5 h-5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center shadow-lg border border-white/50">
             <CheckCircle className="w-3 h-3 text-white fill-current" />
           </div>
-        )}
-
-        {/* Online Indicator - Only if not live but online and not verified badge shown */}
-        {!isLive && isOnline && !(isVerified || isFaceVerified) && (
-          <div className="absolute top-3 right-3 w-3 h-3 bg-green-500 rounded-full border-2 border-white shadow-lg" />
         )}
 
         {/* Call Button for Hosts - Bottom Right */}

@@ -135,8 +135,8 @@ const SearchUsers = () => {
         ? supabase
             .from('profiles_public')
             .select('id, display_name, username, avatar_url, is_online, is_verified, is_host, country_flag, bio, tags, app_uid')
-            .like('app_uid', `${cleanQuery}%`)
-            .limit(20)
+            .eq('app_uid', cleanQuery)
+            .limit(50)
         : Promise.resolve({ data: [] as UserProfile[] });
 
       const tagPromise = tags.length > 0
