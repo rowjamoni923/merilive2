@@ -473,23 +473,15 @@ const Index = () => {
             </>
           )}
 
-          {/* Online / Busy Badge */}
+          {/* Online / Busy Indicator - subtle dot only, no text (industry standard) */}
           {!user.isLive && user.is_online && (
             <div className="absolute top-2.5 left-2">
               <div className={cn(
-                "flex items-center gap-1.5 px-2.5 py-1 rounded-full shadow-lg",
+                "w-2.5 h-2.5 rounded-full ring-2 ring-white/80 shadow-md",
                 isActuallyBusy
-                  ? "bg-gradient-to-r from-amber-500/90 to-orange-500/90"
-                  : "bg-gradient-to-r from-emerald-500/90 to-green-500/90"
-              )}>
-                <span className={cn(
-                  "w-1.5 h-1.5 rounded-full bg-white",
-                  !isActuallyBusy && "animate-pulse"
-                )} />
-                <span className="text-[10px] font-bold text-white tracking-wide">
-                  {isActuallyBusy ? "Busy" : "Online"}
-                </span>
-              </div>
+                  ? "bg-amber-500"
+                  : "bg-emerald-500 animate-pulse"
+              )} />
             </div>
           )}
 
