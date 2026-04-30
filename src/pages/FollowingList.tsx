@@ -122,7 +122,7 @@ const FollowingList = () => {
       // Fetch profiles for all users
       if (allUserIds.length > 0) {
         const { data: profiles, error: profilesError } = await supabase
-          .from('profiles')
+          .from('profiles_public')
           .select('id, display_name, avatar_url, is_online, is_verified, is_host, country_flag')
           .in('id', allUserIds);
 

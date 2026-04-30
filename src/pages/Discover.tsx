@@ -134,7 +134,7 @@ const Discover = () => {
           .gte('joined_at', twoHoursAgo),
         supabase
           .from('party_rooms')
-          .select(`*, host:profiles!party_rooms_host_id_fkey(id, display_name, avatar_url, user_level, host_level, country_flag, country_code, is_online, is_host, gender, total_recharged, total_earnings, weekly_earnings, max_user_level)`)
+          .select(`*, host:profiles_public!party_rooms_host_id_fkey(id, display_name, avatar_url, user_level, host_level, country_flag, country_code, is_online, is_host, gender, total_earnings, weekly_earnings, max_user_level)`)
           .eq('is_active', true)
           .gte('created_at', twoHoursAgo),
       ]);
