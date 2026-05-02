@@ -45,47 +45,50 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
   useEffect(() => {
     let mounted = true;
 
-    const verify = async () => {
-      try {
-        // 1. Validate URL access token (gates admin panel discovery)
-        const accessToken = getAccessTokenFromURL();
-        if (accessToken) {
-          try {
-            const { data } = await adminSupabase.functions.invoke('validate-admin-token', {
-              body: { token: accessToken },
-            });
-            if (data?.valid) {
-              setAdminLinkToken(accessToken);
-              grantAdminAccess(data.role === 'owner');
-              if (mounted) setHasValidToken(true);
-            }
-          } catch (e) {
-            console.warn('[AdminAccessGuard] token validation failed', e);
-          }
-        }
-
-        // 2. Check admin session
-        const session = getAdminSession();
-        const hasFlag = hasAdminAccessFlag() || hasOwnerAccessFlag();
-
-        if (mounted) {
-          if (session) {
-            setIsAuthorized(true);
-          } else if (accessToken || hasFlag) {
-            // Token valid OR previously granted flag → allow login page rendering
-            // (we'll redirect to /admin/auth below if not already there)
-            setIsAuthorized(true);
-          } else {
-            setIsAuthorized(false);
-          }
-        }
-      } catch (e) {
-        console.error('[AdminAccessGuard] verify error', e);
-        if (mounted) setIsAuthorized(false);
+    // Synchronous decision FIRST so we never spin forever if the edge fn is slow.
+    const decideSync = () => {
+      const session = getAdminSession();
+      const hasFlag = hasAdminAccessFlag() || hasOwnerAccessFlag();
+      const accessToken = getAccessTokenFromURL();
+      if (!mounted) return;
+      if (session) {
+        setIsAuthorized(true);
+      } else if (hasFlag || accessToken) {
+        // Allow login page render; token will be validated in background.
+        setIsAuthorized(true);
+      } else {
+        setIsAuthorized(false);
       }
     };
 
-    verify();
+    decideSync();
+
+    // Background: validate URL access token (with hard 6s timeout) and persist flag.
+    const accessToken = getAccessTokenFromURL();
+    if (accessToken) {
+      (async () => {
+        try {
+          const timeout = new Promise<{ data: any }>((_, reject) =>
+            setTimeout(() => reject(new Error('validate-admin-token timeout')), 6000)
+          );
+          const call = adminSupabase.functions.invoke('validate-admin-token', {
+            body: { token: accessToken },
+          }) as Promise<{ data: any }>;
+          const { data } = await Promise.race([call, timeout]);
+          if (data?.valid) {
+            setAdminLinkToken(accessToken);
+            grantAdminAccess(data.role === 'owner');
+            if (mounted) {
+              setHasValidToken(true);
+              setIsAuthorized(true);
+            }
+          }
+        } catch (e) {
+          console.warn('[AdminAccessGuard] token validation failed/timed out', e);
+          // Fall back: if user already had a flag from a previous valid visit, keep it.
+        }
+      })();
+    }
 
     // Listen for session changes (login/logout in other tabs)
     const handler = () => {
