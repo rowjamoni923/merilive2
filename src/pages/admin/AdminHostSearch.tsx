@@ -26,6 +26,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import { format, formatDistanceToNow } from "date-fns";
 import { enUS } from "date-fns/locale";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface HostResult {
   id: string;
@@ -175,7 +176,7 @@ export default function AdminHostSearch() {
         setAgencyHostInfo(joinData);
       }
     } catch (error) {
-      console.error("Search error:", error);
+      recordAdminError({ kind: "rpc", label: "AdminHostSearch.SearchError", message: error instanceof Error ? error.message : "Search error" });
       toast.error("Search failed");
     } finally {
       setLoading(false);

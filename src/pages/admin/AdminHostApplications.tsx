@@ -54,6 +54,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface HostSubmission {
   id: string;
@@ -146,7 +147,7 @@ export default function AdminHostApplications() {
         rejected: Number(s.rejected || 0),
       });
     } catch (error) {
-      console.error("Error fetching status counts:", error);
+      recordAdminError({ kind: "rpc", label: "AdminHostApplications.ErrorFetchingStatusCounts", message: error instanceof Error ? error.message : "Error fetching status counts" });
     }
   };
 
@@ -173,7 +174,7 @@ export default function AdminHostApplications() {
       setPendingHosts(noSubmission);
       setPendingHostsCount(noSubmission.length);
     } catch (error) {
-      console.error("Error fetching pending hosts:", error);
+      recordAdminError({ kind: "rpc", label: "AdminHostApplications.ErrorFetchingPendingHosts", message: error instanceof Error ? error.message : "Error fetching pending hosts" });
     }
   };
 
@@ -228,7 +229,7 @@ export default function AdminHostApplications() {
       setApplications(femaleOnly as HostSubmission[]);
       setTotalApplications(femaleOnly.length);
     } catch (error) {
-      console.error("Error fetching host applications:", error);
+      recordAdminError({ kind: "rpc", label: "AdminHostApplications.ErrorFetchingHostApplications", message: error instanceof Error ? error.message : "Error fetching host applications" });
       toast.error("Failed to load applications");
     } finally {
       setLoading(false);
@@ -267,7 +268,7 @@ export default function AdminHostApplications() {
       setAdminNotes("");
       fetchApplications();
     } catch (error) {
-      console.error("Error approving:", error);
+      recordAdminError({ kind: "rpc", label: "AdminHostApplications.ErrorApproving", message: error instanceof Error ? error.message : "Error approving" });
       toast.error((error as any)?.message || "Operation failed");
     } finally {
       setActionLoading(false);
