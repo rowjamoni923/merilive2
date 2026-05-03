@@ -3,13 +3,11 @@ import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 
 import en from "./locales/en";
-import bn from "./locales/bn";
 import hi from "./locales/hi";
 import ar from "./locales/ar";
 
 const resources = {
   en: { translation: en },
-  bn: { translation: bn },
   hi: { translation: hi },
   ar: { translation: ar },
 };
