@@ -524,7 +524,7 @@ export const useNotifications = () => {
     } catch (error) {
       console.error('Failed to mark all notifications as read:', error);
       setNotifications(previousNotifications);
-      setUnreadCount(previousNotifications.length);
+      setUnreadCount(previousNotifications.filter(n => !n.is_read).length);
       emitGlobalUnreadRefresh();
       fetchNotifications();
     }
