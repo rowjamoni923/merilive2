@@ -44,6 +44,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { getAdminSession } from "@/utils/adminSession";
 import { cn } from "@/lib/utils";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface PartyBackground {
   id: string;
@@ -143,7 +144,7 @@ const AdminPartyBackgrounds = () => {
         created_at: bg.created_at
       })));
     } catch (err) {
-      console.error('Error fetching backgrounds:', err);
+      recordAdminError({ kind: "rpc", label: "AdminPartyBackgrounds.ErrorFetchingBackgrounds", message: err instanceof Error ? err.message : "Error fetching backgrounds" });
       toast.error("Failed to load backgrounds");
       setBackgrounds([]);
     } finally {
@@ -228,7 +229,7 @@ const AdminPartyBackgrounds = () => {
       setShowAddDialog(false);
       toast.success("Background added successfully!");
     } catch (err: any) {
-      console.error('Error adding background:', err);
+      recordAdminError({ kind: "rpc", label: "AdminPartyBackgrounds.ErrorAddingBackground", message: err instanceof Error ? err.message : "Error adding background" });
       toast.error(err?.message || "Failed to add background");
     }
   };
@@ -267,7 +268,7 @@ const AdminPartyBackgrounds = () => {
       setShowEditDialog(false);
       toast.success("Background updated successfully!");
     } catch (err) {
-      console.error('Error updating background:', err);
+      recordAdminError({ kind: "rpc", label: "AdminPartyBackgrounds.ErrorUpdatingBackground", message: err instanceof Error ? err.message : "Error updating background" });
       toast.error("Failed to update background");
     }
   };
@@ -296,7 +297,7 @@ const AdminPartyBackgrounds = () => {
       setBackgrounds(prev => prev.filter(bg => bg.id !== id));
       toast.success("Background deleted");
     } catch (err: any) {
-      console.error('Error deleting background:', err);
+      recordAdminError({ kind: "rpc", label: "AdminPartyBackgrounds.ErrorDeletingBackground", message: err instanceof Error ? err.message : "Error deleting background" });
       toast.error(err?.message || "Failed to delete background");
     }
   };
@@ -328,7 +329,7 @@ const AdminPartyBackgrounds = () => {
         b.id === id ? { ...b, is_active: !b.is_active } : b
       ));
     } catch (err: any) {
-      console.error('Error toggling background:', err);
+      recordAdminError({ kind: "rpc", label: "AdminPartyBackgrounds.ErrorTogglingBackground", message: err instanceof Error ? err.message : "Error toggling background" });
       toast.error(err?.message || "Failed to update background");
     }
   };
@@ -388,7 +389,7 @@ const AdminPartyBackgrounds = () => {
       setUploadProgress(100);
       toast.success("Image uploaded successfully!");
     } catch (err: any) {
-      console.error('Error uploading file:', err);
+      recordAdminError({ kind: "rpc", label: "AdminPartyBackgrounds.ErrorUploadingFile", message: err instanceof Error ? err.message : "Error uploading file" });
       toast.error(err.message || "Failed to upload image");
     } finally {
       setIsUploading(false);

@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Edit, Trash2, Upload, RefreshCw, Play, Eye, MessageCircle } from "lucide-react";
 import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface ChatBubbleItem {
   id: string;
@@ -62,7 +63,7 @@ const AdminChatBubbles = () => {
 
       setItems(mapped);
     } catch (error) {
-      console.error('Error fetching chat bubbles:', error);
+      recordAdminError({ kind: "rpc", label: "AdminChatBubbles.ErrorFetchingChatBubbles", message: error instanceof Error ? error.message : "Error fetching chat bubbles" });
       toast.error('Failed to load Chat Bubbles');
     } finally {
       setLoading(false);
@@ -120,7 +121,7 @@ const AdminChatBubbles = () => {
 
       return urlData.publicUrl;
     } catch (error) {
-      console.error('Upload error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminChatBubbles.UploadError", message: error instanceof Error ? error.message : "Upload error" });
       toast.error('File upload failed');
       return null;
     }
@@ -220,7 +221,7 @@ const AdminChatBubbles = () => {
       setDialogOpen(false);
       fetchItems();
     } catch (error: any) {
-      console.error('Save error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminChatBubbles.SaveError", message: error instanceof Error ? error.message : "Save error" });
       toast.error('Failed to save');
     } finally {
       setSaving(false);
@@ -240,7 +241,7 @@ const AdminChatBubbles = () => {
       toast.success('Chat Bubble deleted');
       fetchItems();
     } catch (error) {
-      console.error('Delete error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminChatBubbles.DeleteError", message: error instanceof Error ? error.message : "Delete error" });
       toast.error('Failed to delete');
     }
   };
@@ -256,7 +257,7 @@ const AdminChatBubbles = () => {
       toast.success(item.is_active ? 'Deactivated' : 'Activated');
       fetchItems();
     } catch (error) {
-      console.error('Toggle error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminChatBubbles.ToggleError", message: error instanceof Error ? error.message : "Toggle error" });
     }
   };
 

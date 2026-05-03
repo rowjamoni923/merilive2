@@ -12,6 +12,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import { adminStyles } from "@/styles/adminStyles";
 import { useR2Upload } from "@/hooks/useR2Upload";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 // Lazy load SVGA player
 const SVGAPreviewWithMuteToggle = lazy(() => import("@/components/admin/SVGAPreviewWithMuteToggle"));
@@ -69,7 +70,7 @@ const AdminEntryNameBars = () => {
       if (error) throw error;
       setNameBars(data || []);
     } catch (error) {
-      console.error("Error fetching entry name bars:", error);
+      recordAdminError({ kind: "rpc", label: "AdminEntryNameBars.ErrorFetchingEntryNameBars", message: error instanceof Error ? error.message : "Error fetching entry name bars" });
       toast.error("Failed to load entry name bars");
     } finally {
       setLoading(false);
@@ -97,7 +98,7 @@ const AdminEntryNameBars = () => {
       setFormData(prev => ({ ...prev, [field]: result.url! }));
       toast.success("File uploaded successfully");
     } catch (error) {
-      console.error("Upload error:", error);
+      recordAdminError({ kind: "rpc", label: "AdminEntryNameBars.UploadError", message: error instanceof Error ? error.message : "Upload error" });
       toast.error("Failed to upload file");
     } finally {
       setUploading(false);
@@ -122,7 +123,7 @@ const AdminEntryNameBars = () => {
       resetForm();
       fetchNameBars();
     } catch (error) {
-      console.error("Error adding entry name bar:", error);
+      recordAdminError({ kind: "rpc", label: "AdminEntryNameBars.ErrorAddingEntryNameBar", message: error instanceof Error ? error.message : "Error adding entry name bar" });
       toast.error("Failed to add entry name bar");
     }
   };
@@ -143,7 +144,7 @@ const AdminEntryNameBars = () => {
       setSelectedNameBar(null);
       fetchNameBars();
     } catch (error) {
-      console.error("Error updating entry name bar:", error);
+      recordAdminError({ kind: "rpc", label: "AdminEntryNameBars.ErrorUpdatingEntryNameBar", message: error instanceof Error ? error.message : "Error updating entry name bar" });
       toast.error("Failed to update entry name bar");
     }
   };
@@ -164,7 +165,7 @@ const AdminEntryNameBars = () => {
       setSelectedNameBar(null);
       fetchNameBars();
     } catch (error) {
-      console.error("Error deleting entry name bar:", error);
+      recordAdminError({ kind: "rpc", label: "AdminEntryNameBars.ErrorDeletingEntryNameBar", message: error instanceof Error ? error.message : "Error deleting entry name bar" });
       toast.error("Failed to delete entry name bar");
     }
   };
@@ -181,7 +182,7 @@ const AdminEntryNameBars = () => {
       toast.success(nameBar.is_active ? "Name Bar deactivated" : "Name Bar activated");
       fetchNameBars();
     } catch (error) {
-      console.error("Error toggling status:", error);
+      recordAdminError({ kind: "rpc", label: "AdminEntryNameBars.ErrorTogglingStatus", message: error instanceof Error ? error.message : "Error toggling status" });
       toast.error("Failed to update status");
     }
   };

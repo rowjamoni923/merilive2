@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Edit, Trash2, Upload, RefreshCw, Play, Eye, Volume2, Sparkles, Image } from "lucide-react";
 import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
 import { useR2Upload } from "@/hooks/useR2Upload";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface EntryBarItem {
   id: string;
@@ -76,7 +77,7 @@ const AdminEntryBars = () => {
 
       setEntryBars(mapped);
     } catch (error) {
-      console.error('Error fetching entry bars:', error);
+      recordAdminError({ kind: "rpc", label: "AdminEntryBars.ErrorFetchingEntryBars", message: error instanceof Error ? error.message : "Error fetching entry bars" });
       toast.error('Failed to load Entry Bars');
     } finally {
       setLoading(false);
@@ -101,7 +102,7 @@ const AdminEntryBars = () => {
       }
       return null;
     } catch (error) {
-      console.error('Upload error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminEntryBars.UploadError", message: error instanceof Error ? error.message : "Upload error" });
       toast.error('File upload failed');
       return null;
     }
@@ -221,7 +222,7 @@ const AdminEntryBars = () => {
       setDialogOpen(false);
       fetchEntryBars();
     } catch (error: any) {
-      console.error('Save error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminEntryBars.SaveError", message: error instanceof Error ? error.message : "Save error" });
       toast.error('Failed to save: ' + (error?.message || 'Unknown error'));
     } finally {
       setSaving(false);
@@ -241,7 +242,7 @@ const AdminEntryBars = () => {
       toast.success('Entry Bar deleted');
       fetchEntryBars();
     } catch (error) {
-      console.error('Delete error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminEntryBars.DeleteError", message: error instanceof Error ? error.message : "Delete error" });
       toast.error('Failed to delete');
     }
   };
@@ -257,7 +258,7 @@ const AdminEntryBars = () => {
       toast.success(currentState ? 'Deactivated' : 'Activated');
       fetchEntryBars();
     } catch (error) {
-      console.error('Toggle error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminEntryBars.ToggleError", message: error instanceof Error ? error.message : "Toggle error" });
       toast.error('Failed to update status');
     }
   };

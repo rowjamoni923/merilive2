@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Edit, Trash2, Upload, RefreshCw, Eye, Car } from "lucide-react";
 import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
 import { useR2Upload } from "@/hooks/useR2Upload";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface VehicleEntranceItem {
   id: string;
@@ -65,7 +66,7 @@ const AdminVehicleEntrances = () => {
 
       setItems(mapped);
     } catch (error) {
-      console.error('Error fetching vehicle entrances:', error);
+      recordAdminError({ kind: "rpc", label: "AdminVehicleEntrances.ErrorFetchingVehicleEntrances", message: error instanceof Error ? error.message : "Error fetching vehicle entrances" });
       toast.error('Failed to load Vehicle Entrances');
     } finally {
       setLoading(false);
@@ -89,7 +90,7 @@ const AdminVehicleEntrances = () => {
       }
       return null;
     } catch (error) {
-      console.error('Upload error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminVehicleEntrances.UploadError", message: error instanceof Error ? error.message : "Upload error" });
       toast.error('File upload failed');
       return null;
     }
@@ -183,7 +184,7 @@ const AdminVehicleEntrances = () => {
       setDialogOpen(false);
       fetchItems();
     } catch (error: any) {
-      console.error('Save error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminVehicleEntrances.SaveError", message: error instanceof Error ? error.message : "Save error" });
       toast.error('Failed to save');
     } finally {
       setSaving(false);
@@ -203,7 +204,7 @@ const AdminVehicleEntrances = () => {
       toast.success('Vehicle Entrance deleted');
       fetchItems();
     } catch (error) {
-      console.error('Delete error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminVehicleEntrances.DeleteError", message: error instanceof Error ? error.message : "Delete error" });
       toast.error('Failed to delete');
     }
   };
@@ -219,7 +220,7 @@ const AdminVehicleEntrances = () => {
       toast.success(item.is_active ? 'Deactivated' : 'Activated');
       fetchItems();
     } catch (error) {
-      console.error('Toggle error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminVehicleEntrances.ToggleError", message: error instanceof Error ? error.message : "Toggle error" });
     }
   };
 

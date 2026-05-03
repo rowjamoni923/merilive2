@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface ContentPage {
   id: string;
@@ -51,7 +52,7 @@ export default function AdminContent() {
       if (error) throw error;
       setPages(data || []);
     } catch (error) {
-      console.error("Error fetching pages:", error);
+      recordAdminError({ kind: "rpc", label: "AdminContent.ErrorFetchingPages", message: error instanceof Error ? error.message : "Error fetching pages" });
       toast.error("Failed to load pages");
     } finally {
       setLoading(false);

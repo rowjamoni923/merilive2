@@ -14,6 +14,7 @@ import AdminGifts from "./AdminGifts";
 import AdminShop from "./AdminShop";
 import AdminEntryEffects from "./AdminEntryEffects";
 import AdminBeautyFilters from "./AdminBeautyFilters";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 const AdminVisualAssetsHub = () => {
   const [activeTab, setActiveTab] = useState("frames");
@@ -32,7 +33,7 @@ const AdminVisualAssetsHub = () => {
     // Pkg10: single RPC replaces 6 separate count queries
     const { data, error } = await supabase.rpc('admin_visual_assets_stats' as any);
     if (error || !data) {
-      console.error('admin_visual_assets_stats failed', error);
+      recordAdminError({ kind: "rpc", label: "AdminVisualAssetsHub.AdminvisualassetsstatsFailed", message: error instanceof Error ? error.message : "admin_visual_assets_stats failed" });
       return;
     }
     const s: any = data;

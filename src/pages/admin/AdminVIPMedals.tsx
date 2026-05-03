@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Edit, Trash2, Upload, RefreshCw, Eye, Medal } from "lucide-react";
 import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface VIPMedalItem {
   id: string;
@@ -65,7 +66,7 @@ const AdminVIPMedals = () => {
 
       setItems(mapped);
     } catch (error) {
-      console.error('Error fetching VIP medals:', error);
+      recordAdminError({ kind: "rpc", label: "AdminVIPMedals.ErrorFetchingVipMedals", message: error instanceof Error ? error.message : "Error fetching VIP medals" });
       toast.error('Failed to load VIP Medals');
     } finally {
       setLoading(false);
@@ -123,7 +124,7 @@ const AdminVIPMedals = () => {
 
       return urlData.publicUrl;
     } catch (error) {
-      console.error('Upload error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminVIPMedals.UploadError", message: error instanceof Error ? error.message : "Upload error" });
       toast.error('File upload failed');
       return null;
     }
@@ -223,7 +224,7 @@ const AdminVIPMedals = () => {
       setDialogOpen(false);
       fetchItems();
     } catch (error: any) {
-      console.error('Save error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminVIPMedals.SaveError", message: error instanceof Error ? error.message : "Save error" });
       toast.error('Failed to save');
     } finally {
       setSaving(false);
@@ -243,7 +244,7 @@ const AdminVIPMedals = () => {
       toast.success('VIP Medal deleted');
       fetchItems();
     } catch (error) {
-      console.error('Delete error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminVIPMedals.DeleteError", message: error instanceof Error ? error.message : "Delete error" });
       toast.error('Failed to delete');
     }
   };
@@ -259,7 +260,7 @@ const AdminVIPMedals = () => {
       toast.success(item.is_active ? 'Deactivated' : 'Activated');
       fetchItems();
     } catch (error) {
-      console.error('Toggle error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminVIPMedals.ToggleError", message: error instanceof Error ? error.message : "Toggle error" });
     }
   };
 
