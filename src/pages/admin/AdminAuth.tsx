@@ -12,6 +12,7 @@ import { grantAdminAccess, revokeAdminAccess } from "@/utils/adminAccessStorage"
 import { getDeviceFingerprint } from "@/utils/deviceFingerprint";
 import { toast } from "sonner";
 import { z } from "zod";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email"),
@@ -210,6 +211,7 @@ export default function AdminAuth() {
       }
     } catch (err: any) {
       console.error('[AdminAuth] login error', err);
+      recordAdminError({ kind: "rpc", label: "AdminAuth.device", message: err instanceof Error ? err.message : String(err) });
       toast.error(err?.message || 'Login failed');
     } finally {
       setLoading(false);

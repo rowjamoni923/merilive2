@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface EventTheme {
   id: string;
@@ -442,6 +443,7 @@ const AdminThemeManager = () => {
       await fetchThemes();
     } catch (err) {
       console.error("Toggle theme error:", err);
+      recordAdminError({ kind: "rpc", label: "AdminThemeManager.countryLabel", message: err instanceof Error ? err.message : String(err) });
       toast.error("Failed to update theme");
     } finally {
       setSaving(null);
