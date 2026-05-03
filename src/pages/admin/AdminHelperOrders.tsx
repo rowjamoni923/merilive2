@@ -367,7 +367,7 @@ const AdminHelperOrders = () => {
                     </div>
                     <div>
                       <p className="text-lg font-bold">
-                        {order.currency_code === 'BDT' ? '৳' : '$'}
+                        {order.currency_code === 'BDT' ? 'Tk ' : '$'}
                         {order.amount_local?.toLocaleString() || order.amount_usd}
                       </p>
                       <p className="text-[10px] text-muted-foreground">{order.currency_code || 'USD'}</p>
@@ -414,7 +414,7 @@ const AdminHelperOrders = () => {
                 <div>
                   <p className="text-muted-foreground">Amount</p>
                   <p className="font-bold">
-                    {selectedOrder.currency_code === 'BDT' ? '৳' : '$'}
+                    {selectedOrder.currency_code === 'BDT' ? 'Tk ' : '$'}
                     {selectedOrder.amount_local?.toLocaleString() || selectedOrder.amount_usd}
                   </p>
                 </div>

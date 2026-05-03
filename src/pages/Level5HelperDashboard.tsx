@@ -1603,7 +1603,7 @@ const Level5HelperDashboard = () => {
                       <div className="text-right">
                         <p className="text-emerald-400 font-bold">{order.coin_amount?.toLocaleString()} 💎</p>
                         <p className="text-slate-400 text-xs">
-                          {order.currency_code === 'BDT' ? '৳' : '$'}{order.amount_local?.toFixed(0)}
+                          {order.currency_code === 'BDT' ? 'Tk ' : '$'}{order.amount_local?.toFixed(0)}
                         </p>
                         <Badge variant="outline" className="text-[10px] text-slate-400 mt-1">
                           {order.payment_method}
@@ -2142,7 +2142,7 @@ const Level5HelperDashboard = () => {
                                 {order.coin_amount?.toLocaleString()} 💎
                               </p>
                               <p className="text-slate-400 text-xs">
-                                {order.currency_code === 'BDT' ? '৳' : '$'}{order.amount_local?.toFixed(0)}
+                                {order.currency_code === 'BDT' ? 'Tk ' : '$'}{order.amount_local?.toFixed(0)}
                               </p>
                               <p className="text-slate-500 text-[10px]">
                                 {order.processed_at ? format(new Date(order.processed_at), 'dd MMM') : ''}
@@ -3279,7 +3279,7 @@ const Level5HelperDashboard = () => {
                       {(() => {
                         const pd = selectedAgencyWithdrawal.payment_details as any;
                         const cc = pd?.currency_code || selectedAgencyWithdrawal.currency_code;
-                        const symbolMap: Record<string, string> = { BDT: '৳', INR: '₹', PKR: '₨', NPR: '₨', IDR: 'Rp', PHP: '₱', MYR: 'RM', THB: '฿', VND: '₫', LKR: 'Rs', AED: 'د.إ', SAR: '﷼', USD: '$', GBP: '£' };
+                        const symbolMap: Record<string, string> = { BDT: 'Tk ', INR: '₹', PKR: '₨', NPR: '₨', IDR: 'Rp', PHP: '₱', MYR: 'RM', THB: '฿', VND: '₫', LKR: 'Rs', AED: 'د.إ', SAR: '﷼', USD: '$', GBP: '£' };
                         const symbol = symbolMap[cc] || cc || '';
                         const netLocal = resolveNetWithdrawalLocal(selectedAgencyWithdrawal);
                         return `${symbol}${Number(netLocal).toLocaleString()}`;
@@ -3354,7 +3354,7 @@ const Level5HelperDashboard = () => {
                           {(() => {
                             const pd = selectedAgencyWithdrawal.payment_details as any;
                             const cc = pd?.currency_code || selectedAgencyWithdrawal.currency_code;
-                            const symbolMap: Record<string, string> = { BDT: '৳', INR: '₹', PKR: '₨', NPR: '₨', IDR: 'Rp', PHP: '₱', MYR: 'RM', THB: '฿', VND: '₫', LKR: 'Rs' };
+                            const symbolMap: Record<string, string> = { BDT: 'Tk ', INR: '₹', PKR: '₨', NPR: '₨', IDR: 'Rp', PHP: '₱', MYR: 'RM', THB: '฿', VND: '₫', LKR: 'Rs' };
                             const symbol = symbolMap[cc] || '';
                             const netLocal = resolveNetWithdrawalLocal(selectedAgencyWithdrawal);
                             return `${symbol}${Number(netLocal).toLocaleString()}`;

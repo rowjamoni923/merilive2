@@ -1627,7 +1627,7 @@ const AgencyDashboard = () => {
                           {/* Amount & Status */}
                           <div className="text-right shrink-0">
                             <p className={`font-bold ${config.text}`}>
-                              {wCurrency === 'BDT' ? '৳' : wCurrency === 'INR' ? '₹' : '$'}{localAmt.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                              {wCurrency === 'BDT' ? 'Tk ' : wCurrency === 'INR' ? '₹' : '$'}{localAmt.toLocaleString('en-US', { maximumFractionDigits: 0 })}
                             </p>
                             <p className={`text-xs font-medium ${config.text} capitalize`}>
                               {displayStatus}
