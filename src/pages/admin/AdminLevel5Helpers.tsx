@@ -25,6 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { format, subDays, startOfDay, eachDayOfInterval } from "date-fns";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from "recharts";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface Level5Helper {
   id: string;
@@ -170,7 +171,7 @@ const AdminLevel5Helpers = () => {
         loadChartData()
       ]);
     } catch (error) {
-      console.error(error);
+      recordAdminError({ kind: "rpc", label: "AdminLevel5Helpers", message: error instanceof Error ? error.message : "Level5 helpers error" });
     } finally {
       setLoading(false);
     }

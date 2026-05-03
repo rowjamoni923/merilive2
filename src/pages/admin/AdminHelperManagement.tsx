@@ -172,7 +172,7 @@ const AdminHelperManagement = () => {
         loadStats(),
       ]);
     } catch (error) {
-      console.error(error);
+      recordAdminError({ kind: "rpc", label: "AdminHelperManagement", message: error instanceof Error ? error.message : "Helper management error" });
     } finally {
       setLoading(false);
     }

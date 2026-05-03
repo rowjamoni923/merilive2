@@ -253,7 +253,7 @@ const AdminAgencyPolicy = () => {
       if (error) throw error;
       return true;
     } catch (error: any) {
-      console.error(`Error saving ${sectionKey}:`, error);
+      recordAdminError({ kind: "rpc", label: `AdminAgencyPolicy.save.${sectionKey}`, message: error instanceof Error ? error.message : "Failed to save section" });
       throw error;
     }
   };
