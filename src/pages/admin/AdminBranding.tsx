@@ -22,6 +22,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import { parseSettingValue, saveBrandingSettings } from "@/utils/adminSettingsStorage";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface BrandingSettings {
   id: string;
@@ -88,6 +89,7 @@ export default function AdminBranding() {
       }
     } catch (error) {
       console.error("Error fetching branding settings:", error);
+      recordAdminError({ kind: "rpc", label: "AdminBranding.parsed", message: error instanceof Error ? error.message : String(error) });
       toast.error("Failed to load settings");
     } finally {
       setLoading(false);
@@ -152,6 +154,7 @@ export default function AdminBranding() {
       toast.success("Upload successful");
     } catch (error) {
       console.error("Upload error:", error);
+      recordAdminError({ kind: "rpc", label: "AdminBranding.fileName", message: error instanceof Error ? error.message : String(error) });
       toast.error("Upload failed");
     } finally {
       setUploading(null);
@@ -182,6 +185,7 @@ export default function AdminBranding() {
       toast.success("Settings saved!");
     } catch (error) {
       console.error("Save error:", error);
+      recordAdminError({ kind: "rpc", label: "AdminBranding.savedId", message: error instanceof Error ? error.message : String(error) });
       toast.error("Failed to save settings");
     } finally {
       setSaving(false);

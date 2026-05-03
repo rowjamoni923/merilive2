@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { parseSettingValue, saveAppSetting } from "@/utils/adminSettingsStorage";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 /**
  * Pkg30 — UNIFIED Commission & Pricing Hub
@@ -159,6 +160,7 @@ export default function AdminPricingHub() {
       setTiers((tierData as AgencyLevelTier[]) ?? []);
     } catch (e: any) {
       console.error(e);
+      recordAdminError({ kind: "rpc", label: "AdminPricingHub.hd", message: e });
       toast.error(e?.message ?? "Failed to load settings");
     } finally {
       setLoading(false);

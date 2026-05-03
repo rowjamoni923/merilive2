@@ -78,6 +78,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { prefetchAdminRoute, prefetchCommonAdminRoutes } from "@/utils/adminRoutePrefetch";
 
 import { PremiumSpinner } from "@/components/ui/premium-spinner";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface AdminNotification {
   id: string;
@@ -1289,6 +1290,7 @@ export default function AdminLayout() {
       setLiveStreamsCount(liveRes.count || 0);
     } catch (e) {
       console.error('Error fetching header stats:', e);
+      recordAdminError({ kind: "rpc", label: "AdminLayout.fetchHeaderStats", message: e instanceof Error ? e.message : String(e) });
     }
   }, []);
 
@@ -1435,6 +1437,7 @@ export default function AdminLayout() {
       });
     } catch (error) {
       console.error('Error fetching pending counts:', error);
+      recordAdminError({ kind: "rpc", label: "AdminLayout.contentCount", message: error instanceof Error ? error.message : String(error) });
     }
   };
 
@@ -1477,6 +1480,7 @@ export default function AdminLayout() {
       }
     } catch (error) {
       console.error('Error fetching notifications:', error);
+      recordAdminError({ kind: "rpc", label: "AdminLayout.resolvedPath", message: error instanceof Error ? error.message : String(error) });
     }
   };
 
@@ -2332,6 +2336,7 @@ export default function AdminLayout() {
       setIsAdmin(true);
     } catch (error) {
       console.error('Admin check error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminLayout.hasFlagAccess", message: error instanceof Error ? error.message : String(error) });
       setCurrentUser(null);
       setIsAdmin(false);
     } finally {
