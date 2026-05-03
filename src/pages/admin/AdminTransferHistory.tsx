@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/dialog";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from 'sonner';
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface TransferRecord {
   id: string;
@@ -168,7 +169,7 @@ const AdminTransferHistory = () => {
       });
 
     } catch (error) {
-      console.error('Error fetching transfers:', error);
+      recordAdminError({ kind: "rpc", label: "AdminTransferHistory.ErrorFetchingTransfers", message: error instanceof Error ? error.message : "Error fetching transfers" });
       toast.error('Failed to load data');
     } finally {
       setLoading(false);

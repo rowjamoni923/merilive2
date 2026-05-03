@@ -25,6 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
 import { adminSendNotification } from "@/utils/adminNotification";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface HelperOrder {
   id: string;
@@ -109,7 +110,7 @@ const AdminTraderOrders = () => {
         todayTotal: todayOrders.reduce((sum, o) => sum + o.amount_usd, 0)
       });
     } catch (error) {
-      console.error(error);
+      recordAdminError({ kind: "rpc", label: "AdminTraderOrders", message: error instanceof Error ? error.message : String(error) });
     } finally {
       setLoading(false);
     }
@@ -137,7 +138,7 @@ const AdminTraderOrders = () => {
          });
          
          if (rpcError) {
-           console.error('RPC Error:', rpcError);
+           recordAdminError({ kind: "rpc", label: "AdminTraderOrders.RpcError", message: rpcError instanceof Error ? rpcError.message : "RPC Error" });
            throw new Error('Failed to add coins to user');
          }
 

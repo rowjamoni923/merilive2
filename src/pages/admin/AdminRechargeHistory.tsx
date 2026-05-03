@@ -24,6 +24,7 @@ import { ImageViewer, useImageViewer } from "@/components/ui/image-viewer";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface RechargeRecord {
   id: string;
@@ -418,7 +419,7 @@ const AdminRechargeHistory = () => {
         setRecords(enriched);
       }
     } catch (error) {
-      console.error('Fetch error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminRechargeHistory.FetchError", message: error instanceof Error ? error.message : "Fetch error" });
       toast.error('Failed to load recharge history');
     } finally {
       setLoading(false);

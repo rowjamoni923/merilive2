@@ -37,6 +37,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 
 import { adminSendNotification } from "@/utils/adminNotification";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 // Interfaces
 interface UserProfile {
@@ -278,7 +279,7 @@ const AdminTopupSystem = () => {
         setLevelTiers(data.length > 0 ? data.map(normalizeLevelTier) : DEFAULT_LEVEL_TIERS);
       }
     } catch (error) {
-      console.error('Error fetching level tiers:', error);
+      recordAdminError({ kind: "rpc", label: "AdminTopupSystem.ErrorFetchingLevelTiers", message: error instanceof Error ? error.message : "Error fetching level tiers" });
       setLevelTiers(DEFAULT_LEVEL_TIERS);
     }
   };
@@ -316,7 +317,7 @@ const AdminTopupSystem = () => {
             .eq('id', editingTier.id);
       
       if (error) {
-        console.error('[AdminTopupSystem] Save error:', error);
+        recordAdminError({ kind: "rpc", label: "AdminTopupSystem.AdmintopupsystemSaveError", message: error instanceof Error ? error.message : "[AdminTopupSystem] Save error" });
         throw error;
       }
       
@@ -327,7 +328,7 @@ const AdminTopupSystem = () => {
       // Force refresh the data
       await fetchLevelTiers();
     } catch (error: any) {
-      console.error('[AdminTopupSystem] Error saving tier:', error);
+      recordAdminError({ kind: "rpc", label: "AdminTopupSystem.AdmintopupsystemErrorSavingTier", message: error instanceof Error ? error.message : "[AdminTopupSystem] Error saving tier" });
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
       setSavingTier(false);
@@ -382,7 +383,7 @@ const AdminTopupSystem = () => {
       console.log('[AdminTopup] Name search result:', nameMatch);
       setSearchResults(nameMatch || []);
     } catch (error) {
-      console.error('[AdminTopup] Search error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminTopupSystem.AdmintopupSearchError", message: error instanceof Error ? error.message : "[AdminTopup] Search error" });
       setSearchResults([]);
     } finally {
       setSearching(false);
@@ -420,7 +421,7 @@ const AdminTopupSystem = () => {
         setStats(prev => ({ ...prev, totalManualTopups: logsWithUsers.length }));
       }
     } catch (error) {
-      console.error(error);
+      recordAdminError({ kind: "rpc", label: "AdminTopupSystem", message: error instanceof Error ? error.message : String(error) });
     }
   };
 
@@ -469,7 +470,7 @@ const AdminTopupSystem = () => {
         totalCoinsTraded: (data || []).reduce((sum: number, h: any) => sum + (h.total_bought || 0), 0),
       }));
     } catch (error) {
-      console.error(error);
+      recordAdminError({ kind: "rpc", label: "AdminTopupSystem", message: error instanceof Error ? error.message : String(error) });
     }
   };
 
@@ -510,7 +511,7 @@ const AdminTopupSystem = () => {
     }).eq('id', helper.id);
 
     if (updateError) {
-      console.error('[Admin] Failed to toggle helper:', updateError);
+      recordAdminError({ kind: "rpc", label: "AdminTopupSystem.AdminFailedToToggleHelper", message: updateError instanceof Error ? updateError.message : "[Admin] Failed to toggle helper" });
       toast({ title: "Error", description: `Failed to ${action} helper: ${updateError.message}`, variant: "destructive" });
       return;
     }
@@ -647,7 +648,7 @@ const AdminTopupSystem = () => {
       setOrders(data || []);
       setStats(prev => ({ ...prev, pendingOrders: (data || []).filter((o: any) => o.status === 'pending').length }));
     } catch (error) {
-      console.error(error);
+      recordAdminError({ kind: "rpc", label: "AdminTopupSystem", message: error instanceof Error ? error.message : String(error) });
     } finally {
       setOrdersLoading(false);
     }
@@ -663,7 +664,7 @@ const AdminTopupSystem = () => {
         .limit(100);
       setTransactions(data || []);
     } catch (error) {
-      console.error(error);
+      recordAdminError({ kind: "rpc", label: "AdminTopupSystem", message: error instanceof Error ? error.message : String(error) });
     } finally {
       setTransactionsLoading(false);
     }
@@ -679,7 +680,7 @@ const AdminTopupSystem = () => {
          });
          
          if (rpcError) {
-           console.error('RPC Error:', rpcError);
+           recordAdminError({ kind: "rpc", label: "AdminTopupSystem.RpcError", message: rpcError instanceof Error ? rpcError.message : "RPC Error" });
            throw new Error('Failed to add coins to user');
          }
          

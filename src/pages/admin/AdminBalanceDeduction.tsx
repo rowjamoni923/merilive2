@@ -35,6 +35,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import { adminStyles, gradients, iconBgColors } from "@/styles/adminStyles";
 import { motion, AnimatePresence } from "framer-motion";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface SearchResult {
   type: 'user' | 'host' | 'agency' | 'helper';
@@ -447,7 +448,7 @@ export default function AdminBalanceDeduction() {
         toast.info("No results found");
       }
     } catch (error) {
-      console.error('Search error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminBalanceDeduction.SearchError", message: error instanceof Error ? error.message : "Search error" });
       toast.error("Search failed");
     } finally {
       setIsSearching(false);
@@ -673,7 +674,7 @@ export default function AdminBalanceDeduction() {
       // Refresh search results
       handleSearch();
     } catch (error) {
-      console.error('Add error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminBalanceDeduction.AddError", message: error instanceof Error ? error.message : "Add error" });
       toast.error("Failed to add amount");
     } finally {
       setIsAdding(false);
@@ -834,7 +835,7 @@ export default function AdminBalanceDeduction() {
       // Refresh search results
       handleSearch();
     } catch (error) {
-      console.error('Deduction error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminBalanceDeduction.DeductionError", message: error instanceof Error ? error.message : "Deduction error" });
       toast.error("Failed to deduct amount");
     } finally {
       setIsDeducting(false);
@@ -904,7 +905,7 @@ export default function AdminBalanceDeduction() {
       // Refresh search results
       handleSearch();
     } catch (error) {
-      console.error('Block error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminBalanceDeduction.BlockError", message: error instanceof Error ? error.message : "Block error" });
       toast.error("Failed to block");
     } finally {
       setIsBlocking(false);

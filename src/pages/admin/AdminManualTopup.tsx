@@ -18,6 +18,7 @@ import {
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface UserProfile {
   id: string;
@@ -112,7 +113,7 @@ const AdminManualTopup = () => {
         .limit(1);
       
       if (exactError) {
-        console.error('[AdminManualTopup] Exact search error:', exactError);
+        recordAdminError({ kind: "rpc", label: "AdminManualTopup.AdminmanualtopupExactSearchError", message: exactError instanceof Error ? exactError.message : "[AdminManualTopup] Exact search error" });
       }
       
       // If exact match found, use it
@@ -132,7 +133,7 @@ const AdminManualTopup = () => {
         .limit(20);
       
       if (partialError) {
-        console.error('[AdminManualTopup] Partial search error:', partialError);
+        recordAdminError({ kind: "rpc", label: "AdminManualTopup.AdminmanualtopupPartialSearchError", message: partialError instanceof Error ? partialError.message : "[AdminManualTopup] Partial search error" });
         setSearchResults([]);
         return;
       }
@@ -140,7 +141,7 @@ const AdminManualTopup = () => {
       console.log('[AdminManualTopup] Partial results:', partialMatch?.length || 0, 'users found');
       setSearchResults(partialMatch || []);
     } catch (error: any) {
-      console.error('[AdminManualTopup] Search exception:', error);
+      recordAdminError({ kind: "rpc", label: "AdminManualTopup.AdminmanualtopupSearchException", message: error instanceof Error ? error.message : "[AdminManualTopup] Search exception" });
       setSearchResults([]);
     } finally {
       setSearching(false);
@@ -177,7 +178,7 @@ const AdminManualTopup = () => {
         setRecentTopups(logsWithUsers);
       }
     } catch (error) {
-      console.error(error);
+      recordAdminError({ kind: "rpc", label: "AdminManualTopup", message: error instanceof Error ? error.message : String(error) });
     }
   };
 
