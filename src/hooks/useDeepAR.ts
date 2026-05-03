@@ -4,8 +4,8 @@ import { Capacitor, registerPlugin } from '@capacitor/core';
 // ============================================================
 // MeriLive DeepAR Native Camera + Beauty Hook
 // ============================================================
-// এটি সম্পূর্ণ NATIVE camera system control করে।
-// WebView camera ব্যবহার করে না — সরাসরি Android Camera2 API।
+// Fully controls the NATIVE camera system.
+// Does not use WebView camera — direct Android Camera2 API.
 // ============================================================
 
 interface DeepARPlugin {
