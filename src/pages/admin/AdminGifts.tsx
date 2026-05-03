@@ -396,7 +396,7 @@ export default function AdminGifts() {
             if (xhr.status >= 200 && xhr.status < 300) {
               resolve(true);
             } else {
-              console.error(`[Upload] XHR failed: ${xhr.status} - ${xhr.responseText}`);
+              recordAdminError({ kind: "rpc", label: "AdminGifts.UploadXHR", message: `XHR failed: ${xhr.status} - ${xhr.responseText}` });
               reject(new Error(`Upload failed: ${xhr.status}`));
             }
           });
