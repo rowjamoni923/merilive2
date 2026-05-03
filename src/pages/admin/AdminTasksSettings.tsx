@@ -288,7 +288,7 @@ const AdminTasksSettings = () => {
                   className="mt-1"
                 />
                 <p className="text-[10px] text-muted-foreground mt-1">
-                  Daily max: {(bonusSettings.beans_per_hour * bonusSettings.max_hours_per_day).toLocaleString()} beans
+                  Daily max: {((bonusSettings.beans_per_hour ?? 0) * (bonusSettings.max_hours_per_day ?? 0)).toLocaleString()} beans
                 </p>
               </div>
               <div>
