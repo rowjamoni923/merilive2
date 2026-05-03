@@ -11,6 +11,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { parseSettingValue, saveAppSetting } from "@/utils/adminSettingsStorage";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface InvitationTier {
   id: string;
@@ -69,6 +70,7 @@ const AdminInvitationSettings = () => {
       }
     } catch (error) {
       console.error('Error fetching banner:', error);
+      recordAdminError({ kind: "rpc", label: "AdminInvitationSettings.url", message: error instanceof Error ? error.message : String(error) });
     }
   };
 
@@ -80,6 +82,7 @@ const AdminInvitationSettings = () => {
       toast.success('Banner updated');
     } catch (error) {
       console.error('Error saving banner:', error);
+      recordAdminError({ kind: "rpc", label: "AdminInvitationSettings.handleSaveBanner", message: error instanceof Error ? error.message : String(error) });
       toast.error('Failed to save banner');
     } finally {
       setSavingBanner(false);
@@ -111,6 +114,7 @@ const AdminInvitationSettings = () => {
       toast.success('Banner uploaded, save now');
     } catch (error: any) {
       console.error('Upload error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminInvitationSettings.fileName", message: error instanceof Error ? error.message : String(error) });
       toast.error('Upload failed: ' + (error.message || 'Unknown error'));
     } finally {
       setUploadingBanner(false);
@@ -128,6 +132,7 @@ const AdminInvitationSettings = () => {
       setTiers(data || []);
     } catch (error) {
       console.error('Error fetching tiers:', error);
+      recordAdminError({ kind: "rpc", label: "AdminInvitationSettings.fetchTiers", message: error instanceof Error ? error.message : String(error) });
       toast.error('Failed to load tiers');
     } finally {
       setLoading(false);
@@ -168,6 +173,7 @@ const AdminInvitationSettings = () => {
       fetchTiers();
     } catch (error) {
       console.error('Error saving tier:', error);
+      recordAdminError({ kind: "rpc", label: "AdminInvitationSettings.insertData", message: error instanceof Error ? error.message : String(error) });
       toast.error('Failed to save');
     } finally {
       setSaving(false);
@@ -186,6 +192,7 @@ const AdminInvitationSettings = () => {
       fetchTiers();
     } catch (error) {
       console.error('Error deleting tier:', error);
+      recordAdminError({ kind: "rpc", label: "AdminInvitationSettings.handleDelete", message: error instanceof Error ? error.message : String(error) });
       toast.error('Failed to delete');
     }
   };
@@ -220,6 +227,7 @@ const AdminInvitationSettings = () => {
       fetchTiers();
     } catch (error) {
       console.error('Error toggling tier:', error);
+      recordAdminError({ kind: "rpc", label: "AdminInvitationSettings.toggleActive", message: error instanceof Error ? error.message : String(error) });
     }
   };
 

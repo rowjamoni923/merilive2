@@ -16,6 +16,7 @@ import { Gamepad2, TrendingUp, Coins, Loader2, BarChart3, Edit, Star, Trophy, Za
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { useAdminRealtime } from "@/hooks/useAdminRealtime";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface BetMultiplier {
   bet_type: string;
@@ -160,6 +161,7 @@ export default function AdminGameSettings() {
     } catch (error: any) {
       toast.error("Failed to upload logo");
       console.error("Upload error:", error);
+      recordAdminError({ kind: "rpc", label: "AdminGameSettings.filePath", message: error instanceof Error ? error.message : String(error) });
     } finally {
       setUploading(false);
     }

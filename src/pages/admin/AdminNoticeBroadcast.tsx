@@ -58,6 +58,7 @@ import { useToast } from "@/hooks/use-toast";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { formatDistanceToNow } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface AdminNotice {
   id: string;
@@ -133,6 +134,7 @@ const AdminNoticeBroadcast = () => {
       setNotices((data as AdminNotice[]) || []);
     } catch (error: any) {
       console.error("Error fetching notices:", error);
+      recordAdminError({ kind: "rpc", label: "AdminNoticeBroadcast.fetchNotices", message: error instanceof Error ? error.message : String(error) });
     } finally {
       setLoadingNotices(false);
     }

@@ -10,6 +10,7 @@ import { Search, Gift, Calendar, ArrowLeft, Coins, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface ClaimRecord {
   id: string;
@@ -136,6 +137,7 @@ const AdminRewardClaimsHistory = () => {
       setClaims(enriched);
     } catch (error) {
       console.error('Failed to fetch claims:', error);
+      recordAdminError({ kind: "rpc", label: "AdminRewardClaimsHistory.profile", message: error instanceof Error ? error.message : String(error) });
     } finally {
       setLoading(false);
     }

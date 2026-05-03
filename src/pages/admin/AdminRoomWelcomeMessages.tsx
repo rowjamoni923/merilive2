@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface WelcomeMessage {
   id: string;
@@ -70,6 +71,7 @@ export default function AdminRoomWelcomeMessages() {
       setMessages(data || []);
     } catch (error) {
       console.error("Error fetching messages:", error);
+      recordAdminError({ kind: "rpc", label: "AdminRoomWelcomeMessages.fetchMessages", message: error instanceof Error ? error.message : String(error) });
       toast.error("Failed to load welcome messages");
     } finally {
       setLoading(false);
@@ -97,6 +99,7 @@ export default function AdminRoomWelcomeMessages() {
       toast.success("Welcome message updated");
     } catch (error) {
       console.error("Error updating message:", error);
+      recordAdminError({ kind: "rpc", label: "AdminRoomWelcomeMessages.handleUpdateMessage", message: error instanceof Error ? error.message : String(error) });
       toast.error("Failed to update message");
     } finally {
       setSaving(null);

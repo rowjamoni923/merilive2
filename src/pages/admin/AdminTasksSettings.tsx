@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface DailyTask {
   id: string;
@@ -100,6 +101,7 @@ const AdminTasksSettings = () => {
       }
     } catch (error) {
       console.error('Error fetching bonus settings:', error);
+      recordAdminError({ kind: "rpc", label: "AdminTasksSettings.fetchBonusSettings", message: error instanceof Error ? error.message : String(error) });
     }
   };
 
@@ -121,6 +123,7 @@ const AdminTasksSettings = () => {
       toast.success('New host bonus settings updated');
     } catch (error) {
       console.error('Error saving bonus settings:', error);
+      recordAdminError({ kind: "rpc", label: "AdminTasksSettings.saveBonusSettings", message: error instanceof Error ? error.message : String(error) });
       toast.error('Failed to save settings');
     } finally {
       setSavingBonus(false);
@@ -138,6 +141,7 @@ const AdminTasksSettings = () => {
       setTasks(data || []);
     } catch (error) {
       console.error('Error fetching tasks:', error);
+      recordAdminError({ kind: "rpc", label: "AdminTasksSettings.fetchTasks", message: error instanceof Error ? error.message : String(error) });
       toast.error('Failed to load tasks');
     } finally {
       setLoading(false);
@@ -185,6 +189,7 @@ const AdminTasksSettings = () => {
       fetchTasks();
     } catch (err) {
       console.error('Error saving task:', err);
+      recordAdminError({ kind: "rpc", label: "AdminTasksSettings.insertData", message: err instanceof Error ? err.message : String(err) });
       toast.error('Failed to save');
     } finally {
       setSaving(false);
@@ -205,6 +210,7 @@ const AdminTasksSettings = () => {
       fetchTasks();
     } catch (error) {
       console.error('Error deleting task:', error);
+      recordAdminError({ kind: "rpc", label: "AdminTasksSettings.handleDelete", message: error instanceof Error ? error.message : String(error) });
       toast.error('Failed to delete');
     }
   };
@@ -244,6 +250,7 @@ const AdminTasksSettings = () => {
       fetchTasks();
     } catch (error) {
       console.error('Error toggling task:', error);
+      recordAdminError({ kind: "rpc", label: "AdminTasksSettings.toggleActive", message: error instanceof Error ? error.message : String(error) });
     }
   };
 
