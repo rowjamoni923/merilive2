@@ -138,13 +138,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    const subject =
-      purpose === "login" ? "[MeriLive] Your Sign-In Code" :
-      purpose === "register" ? "[MeriLive] Confirm Your Account" :
-      purpose === "reset" ? "[MeriLive] Reset Your Password" :
-      "[MeriLive] Your Verification Code";
-
-    const html = buildOTPEmailHTML(otp, purpose);
+    const subject = buildOtpEmailSubject(purpose);
+    const html = buildOtpEmailHTML({ otp, purpose, expiryMinutes: 5 });
     const result = await sendEmail(email, subject, html);
 
     if (!result.success) {
