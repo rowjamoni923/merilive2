@@ -1957,11 +1957,11 @@ export default function AdminLayout() {
       fetchPendingCounts();
     }, 2500);
 
-    // 🔒 ADMIN MANUAL-REFRESH POLICY
-    // The global postgres_changes subscriber is intentionally disabled.
-    // Admin pages refresh data only via their manual refresh button, and
-    // pending badge counts refresh on initial mount + manual sidebar refresh.
-    // startAdminGlobalRealtime();  // ← disabled per admin manual-refresh policy
+    // ⚡ Realtime PUSH only (no timers, no polling).
+    // ONE global postgres_changes subscriber for GLOBALLY_MONITORED_TABLES.
+    // Pages re-render the moment Postgres pushes a change — no auto-refresh,
+    // no setInterval, no visibility polling.
+    startAdminGlobalRealtime();
 
     // Admin must not refetch on tab/app focus; live events and manual actions only.
 
