@@ -160,7 +160,7 @@ const AdminCoinTraders = () => {
       .maybeSingle();
 
     if (verifyData?.is_active !== newStatus) {
-      console.error('[CoinTraders] Toggle verification failed! Expected:', newStatus, 'Got:', verifyData?.is_active);
+      recordAdminError({ kind: "rpc", label: "AdminCoinTraders.ToggleVerify", message: `Toggle verification mismatch: expected ${newStatus}, got ${verifyData?.is_active}` });
       toast({ title: "Error", description: `Database update failed - status did not change.`, variant: "destructive" });
       return;
     }
