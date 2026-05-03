@@ -288,7 +288,7 @@ const AdminTasksSettings = () => {
                   className="mt-1"
                 />
                 <p className="text-[10px] text-muted-foreground mt-1">
-                  Daily max: {(bonusSettings.beans_per_hour * bonusSettings.max_hours_per_day).toLocaleString()} beans
+                  Daily max: {((bonusSettings.beans_per_hour ?? 0) * (bonusSettings.max_hours_per_day ?? 0)).toLocaleString()} beans
                 </p>
               </div>
               <div>
@@ -316,7 +316,7 @@ const AdminTasksSettings = () => {
 
             <div className="p-3 rounded-xl bg-purple-100/60 border border-purple-200">
               <p className="text-xs text-purple-700">
-                📌 <strong>Summary:</strong> New verified hosts earn {bonusSettings.beans_per_hour.toLocaleString()} beans/hour for the first {bonusSettings.eligible_days} days (max {bonusSettings.max_hours_per_day} hours/day = {(bonusSettings.beans_per_hour * bonusSettings.max_hours_per_day).toLocaleString()} beans)
+                📌 <strong>Summary:</strong> New verified hosts earn {(bonusSettings.beans_per_hour ?? 0).toLocaleString()} beans/hour for the first {bonusSettings.eligible_days ?? 0} days (max {bonusSettings.max_hours_per_day ?? 0} hours/day = {((bonusSettings.beans_per_hour ?? 0) * (bonusSettings.max_hours_per_day ?? 0)).toLocaleString()} beans)
               </p>
             </div>
 
