@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import nodemailer from "npm:nodemailer@6.9.12";
+import { buildOtpEmailHTML, buildOtpEmailSubject } from "../_shared/otp-email-template.ts";
 
 async function sendWithGmail(to: string, subject: string, html: string): Promise<{ success: boolean; error?: string }> {
   const gmailUser = (Deno.env.get("GMAIL_USER") ?? "").trim();
@@ -140,42 +141,11 @@ serve(async (req: Request): Promise<Response> => {
         );
       }
 
-      // Send OTP via Gmail SMTP
-      const html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body style="margin:0;padding:0;background:#0f0a1e;font-family:'Segoe UI',Arial,sans-serif;">
-          <div style="max-width:480px;margin:0 auto;padding:32px 20px;">
-            <div style="text-align:center;margin-bottom:28px;">
-              <h1 style="color:#a855f7;font-size:28px;margin:0;letter-spacing:1px;">MERI<span style="color:#ec4899;">LIVE</span></h1>
-              <p style="color:#9ca3af;font-size:13px;margin:4px 0 0;">Admin Panel Security</p>
-            </div>
-            <div style="background:linear-gradient(135deg,#1e1b3a,#1a1033);border:1px solid #7c3aed33;border-radius:16px;padding:28px;text-align:center;">
-              <h2 style="color:#ffffff;font-size:20px;margin:0 0 8px;">Password Reset OTP</h2>
-              <p style="color:#9ca3af;font-size:13px;margin:0 0 24px;">Use the code below to reset your admin panel password</p>
-              <div style="background:#0f0a1e;border:2px dashed #7c3aed;border-radius:12px;padding:20px;margin:0 0 20px;">
-                <div style="font-size:36px;font-weight:bold;letter-spacing:12px;color:#a855f7;font-family:'Courier New',monospace;">
-                  ${otpCode}
-                </div>
-              </div>
-              <p style="color:#f87171;font-size:12px;margin:0 0 6px;">This code expires in 10 minutes</p>
-              <p style="color:#6b7280;font-size:11px;margin:0;">If you didn't request this, please ignore this email.</p>
-            </div>
-            <div style="text-align:center;margin-top:24px;">
-              <p style="color:#4b5563;font-size:11px;margin:0;">© ${new Date().getFullYear()} MeriLive. All rights reserved.</p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `;
-
+      // Send OTP via Gmail SMTP using shared luxurious template
+      const html = buildOtpEmailHTML({ otp: otpCode, purpose: "password_reset", expiryMinutes: 10 });
       const sendResult = await sendOtpEmail(
         email.toLowerCase(),
-        "MeriLive - Password Reset OTP",
+        buildOtpEmailSubject("password_reset"),
         html
       );
       const emailSent = sendResult.success;
