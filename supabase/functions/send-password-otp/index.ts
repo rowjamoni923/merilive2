@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import nodemailer from "npm:nodemailer@6.9.12";
+import { buildOtpEmailHTML, buildOtpEmailSubject } from "../_shared/otp-email-template.ts";
 
 async function sendWithGmail(to: string, subject: string, html: string): Promise<{ success: boolean; error?: string }> {
   const gmailUser = (Deno.env.get("GMAIL_USER") ?? "").trim();
