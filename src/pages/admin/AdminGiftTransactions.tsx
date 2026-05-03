@@ -322,6 +322,15 @@ export default function AdminGiftTransactions() {
                 </Card>
               ))
             )}
+            {hasMore && activeTab === 'all' && !searchQuery && (
+              <Button
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="w-full mt-3 bg-fuchsia-600 hover:bg-fuchsia-700 text-white"
+              >
+                {loadingMore ? 'Loading...' : `Load More (${Math.max(0, todayCount - transactions.length)} remaining)`}
+              </Button>
+            )}
           </div>
         )}
       </div>
