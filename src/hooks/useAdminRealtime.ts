@@ -217,25 +217,55 @@ export const useAdminRealtime = (
   }, [isAdminRoute]);
 
   useEffect(() => {
-    // 🔒 ADMIN MANUAL-REFRESH POLICY
-    // On /admin routes we DO NOT subscribe to postgres_changes, window events,
-    // visibility changes, or stale-fallback timers. Admin pages refresh data
-    // ONLY via the page's manual refresh button (which calls the same onUpdate
-    // callback). The auth-aware effect above still performs the initial load.
+    // 🔒 ADMIN: PUSH-ONLY refresh (Postgres realtime events).
+    // No setInterval, no visibility polling, no stale-fallback timers.
+    // Pages re-fetch ONLY when:
+    //   1. Initial auth-aware mount (above effect), OR
+    //   2. Postgres pushes a real change to a tracked table.
     if (isOnAdminRoute) {
+      const eventTables = trackedTables.filter((t) => GLOBALLY_MONITORED_TABLES.has(t));
+      const directTables = trackedTables.filter((t) => !GLOBALLY_MONITORED_TABLES.has(t));
+
+      const handleGlobalEvent = (e: Event) => {
+        const detail = (e as CustomEvent<AdminTableUpdateEvent>).detail;
+        if (detail?.table === '*' || eventTables.includes(detail?.table)) {
+          debouncedRefresh();
+        }
+      };
+      if (eventTables.length > 0) {
+        window.addEventListener(ADMIN_REALTIME_EVENT, handleGlobalEvent);
+      }
+
+      let channel: ReturnType<typeof adminSupabase.channel> | null = null;
+      if (directTables.length > 0) {
+        const name = channelName || `rt-${directTables.join('-')}-${crypto.randomUUID()}`;
+        channel = adminSupabase.channel(name);
+        for (const table of directTables) {
+          channel = channel.on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table },
+            () => debouncedRefresh()
+          );
+        }
+        channel.subscribe();
+      }
+
       return () => {
+        if (eventTables.length > 0) {
+          window.removeEventListener(ADMIN_REALTIME_EVENT, handleGlobalEvent);
+        }
+        if (channel) adminSupabase.removeChannel(channel);
         if (debounceRef.current) clearTimeout(debounceRef.current);
       };
     }
 
-    // Non-admin routes keep prior realtime behaviour for legacy callers.
+    // Non-admin routes — direct postgres_changes for legacy callers.
     const directTables = trackedTables.filter((t) => !GLOBALLY_MONITORED_TABLES.has(t));
     if (directTables.length === 0) {
       return () => {
         if (debounceRef.current) clearTimeout(debounceRef.current);
       };
     }
-
     const name = channelName || `rt-${directTables.join('-')}-${crypto.randomUUID()}`;
     let channel: ReturnType<typeof supabase.channel> = supabase.channel(name);
     for (const table of directTables) {
@@ -246,28 +276,11 @@ export const useAdminRealtime = (
       );
     }
     channel.subscribe();
-
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible') debouncedRefresh();
-    };
-    if (enableVisibilityRefresh) {
-      document.addEventListener('visibilitychange', handleVisibility);
-    }
-
     return () => {
       supabase.removeChannel(channel);
-      if (enableVisibilityRefresh) {
-        document.removeEventListener('visibilitychange', handleVisibility);
-      }
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [
-    trackedTables.join('|'),
-    debouncedRefresh,
-    channelName,
-    enableVisibilityRefresh,
-    isOnAdminRoute,
-  ]);
+  }, [trackedTables.join('|'), debouncedRefresh, channelName, isOnAdminRoute]);
 };
 
 export default useAdminRealtime;

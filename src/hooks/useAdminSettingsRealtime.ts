@@ -167,16 +167,34 @@ const initializeRealtimeSubscription = () => {
 
   console.log(`[AdminRealtime] Initializing ${adminMode ? 'admin (event-only)' : 'public'} settings subscription...`);
 
-  // On admin routes, AdminLayout already creates global channels for ALL tables.
-  // We only listen to window events instead of creating duplicate postgres_changes channels.
-  // 🔒 ADMIN MANUAL-REFRESH POLICY
-  // On /admin routes we DO NOT subscribe to admin-table-update events.
-  // Settings pages re-fetch data when the user clicks their refresh button
-  // (or invalidates via direct refresh* call after their own mutation).
+  // ⚡ Admin: PUSH-only sync via global admin-table-update events.
+  // No timers, no polling — re-fetch only when Postgres pushes a real change.
   if (adminMode) {
+    const handleAdminEvent = async (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      const table = detail?.table;
+      const refreshMap: Record<string, (() => Promise<void> | void)> = {
+        banners: refreshBanners,
+        gifts: refreshGifts,
+        coin_packages: refreshDiamondPackages,
+        currency_rates: refreshCurrencyRates,
+        branding_settings: refreshBranding,
+        game_settings: refreshGameSettings,
+        app_settings: refreshAppSettings,
+        topup_payment_methods: refreshPaymentMethods,
+      };
+      if (table && refreshMap[table]) {
+        await refreshMap[table]();
+        notifySubscribers();
+      }
+    };
+    window.addEventListener('admin-table-update', handleAdminEvent);
+    (window as any).__adminSettingsEventCleanup = () => {
+      window.removeEventListener('admin-table-update', handleAdminEvent);
+    };
     realtimeChannel = {} as any;
     realtimeMode = 'admin';
-    console.log('[AdminRealtime] Admin mode: manual-refresh only (no event sync)');
+    console.log('[AdminRealtime] Admin mode: push-only event sync (no timers)');
     return;
   }
 
