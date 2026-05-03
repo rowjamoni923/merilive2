@@ -22,6 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 import { adminSendNotification } from "@/utils/adminNotification";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface PaymentGateway {
   id: string;
@@ -215,7 +216,7 @@ const AdminPaymentGateways = () => {
 
       setGateways(mapped);
     } catch (error) {
-      console.error('Error fetching gateways:', error);
+      recordAdminError({ kind: "rpc", label: "AdminPaymentGateways.ErrorFetchingGateways", message: error instanceof Error ? error.message : "Error fetching gateways" });
       toast({
         title: "Error",
         description: "Failed to load payment gateways",
@@ -241,7 +242,7 @@ const AdminPaymentGateways = () => {
       if (error) throw error;
       setTransactions(data || []);
     } catch (error) {
-      console.error('Error fetching transactions:', error);
+      recordAdminError({ kind: "rpc", label: "AdminPaymentGateways.ErrorFetchingTransactions", message: error instanceof Error ? error.message : "Error fetching transactions" });
     }
   };
 
@@ -257,7 +258,7 @@ const AdminPaymentGateways = () => {
         totalRevenue: Number(r.total_revenue) || 0,
       });
     } catch (error) {
-      console.error('Error fetching stats:', error);
+      recordAdminError({ kind: "rpc", label: "AdminPaymentGateways.ErrorFetchingStats", message: error instanceof Error ? error.message : "Error fetching stats" });
     }
   };
 
@@ -368,7 +369,7 @@ const AdminPaymentGateways = () => {
       setShowModal(false);
       fetchGateways();
     } catch (error: any) {
-      console.error('Error saving gateway:', error);
+      recordAdminError({ kind: "rpc", label: "AdminPaymentGateways.ErrorSavingGateway", message: error instanceof Error ? error.message : "Error saving gateway" });
       toast({
         title: "Error",
         description: error.message || "Failed to save payment gateway",
@@ -395,7 +396,7 @@ const AdminPaymentGateways = () => {
       
       fetchGateways();
     } catch (error) {
-      console.error('Error toggling gateway:', error);
+      recordAdminError({ kind: "rpc", label: "AdminPaymentGateways.ErrorTogglingGateway", message: error instanceof Error ? error.message : "Error toggling gateway" });
       toast({
         title: "Error",
         description: "Failed to update gateway status",
@@ -417,7 +418,7 @@ const AdminPaymentGateways = () => {
       toast({ title: "Success", description: "Payment gateway deleted" });
       fetchGateways();
     } catch (error) {
-      console.error('Error deleting gateway:', error);
+      recordAdminError({ kind: "rpc", label: "AdminPaymentGateways.ErrorDeletingGateway", message: error instanceof Error ? error.message : "Error deleting gateway" });
       toast({
         title: "Error",
         description: "Failed to delete payment gateway",
@@ -470,7 +471,7 @@ const AdminPaymentGateways = () => {
       fetchTransactions();
       fetchStats();
     } catch (error: any) {
-      console.error('Error updating transaction:', error);
+      recordAdminError({ kind: "rpc", label: "AdminPaymentGateways.ErrorUpdatingTransaction", message: error instanceof Error ? error.message : "Error updating transaction" });
       toast({
         title: "Error",
         description: error.message || "Failed to update transaction",
@@ -512,7 +513,7 @@ const AdminPaymentGateways = () => {
 
       fetchGateways();
     } catch (error: any) {
-      console.error('Logo upload error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminPaymentGateways.LogoUploadError", message: error instanceof Error ? error.message : "Logo upload error" });
       toast({
         title: "Upload Failed",
         description: error.message || "Failed to upload logo",

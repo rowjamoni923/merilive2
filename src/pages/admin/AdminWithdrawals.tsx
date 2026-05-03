@@ -56,6 +56,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { bn } from "date-fns/locale";
 import { resolveNetWithdrawalBeans, resolveNetWithdrawalLocal, resolveNetWithdrawalUsd } from "@/utils/agencyWithdrawalAmounts";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface PaymentDetails {
   country_code?: string;
@@ -155,7 +156,7 @@ export default function AdminWithdrawals() {
         approved: r.approved || 0,
         totalPendingAmount: Number(r.total_pending_amount) || 0,
       });
-    } catch (e) { console.error('Error fetching withdrawal counts:', e); }
+    } catch (e) { recordAdminError({ kind: "rpc", label: "AdminWithdrawals.ErrorFetchingWithdrawalCounts", message: e instanceof Error ? e.message : "Error fetching withdrawal counts" }); }
   };
 
   const fetchSettings = async () => {
@@ -216,7 +217,7 @@ export default function AdminWithdrawals() {
             .in("id", uniqueAgencyIds);
 
           if (agenciesError) {
-            console.error("Error fetching agencies for withdrawals:", agenciesError);
+            recordAdminError({ kind: "rpc", label: "AdminWithdrawals.ErrorFetchingAgenciesForWithdrawals", message: agenciesError instanceof Error ? agenciesError.message : "Error fetching agencies for withdrawals" });
           } else if (agencies) {
             agenciesMap = Object.fromEntries(agencies.map((agency) => [agency.id, agency]));
           }
@@ -232,7 +233,7 @@ export default function AdminWithdrawals() {
             .in("id", uniqueOwnerIds);
 
           if (ownersError) {
-            console.error("Error fetching owners for withdrawals:", ownersError);
+            recordAdminError({ kind: "rpc", label: "AdminWithdrawals.ErrorFetchingOwnersForWithdrawals", message: ownersError instanceof Error ? ownersError.message : "Error fetching owners for withdrawals" });
           } else if (owners) {
             ownersMap = Object.fromEntries(owners.map(o => [o.id, o]));
           }
@@ -253,7 +254,7 @@ export default function AdminWithdrawals() {
         setWithdrawals([]);
       }
     } catch (error) {
-      console.error("Error fetching withdrawals:", error);
+      recordAdminError({ kind: "rpc", label: "AdminWithdrawals.ErrorFetchingWithdrawals", message: error instanceof Error ? error.message : "Error fetching withdrawals" });
       toast.error("Failed to load withdrawals");
     } finally {
       setLoading(false);
@@ -318,7 +319,7 @@ export default function AdminWithdrawals() {
       fetchWithdrawals();
       fetchGlobalCounts();
     } catch (error) {
-      console.error("Error processing withdrawal:", error);
+      recordAdminError({ kind: "rpc", label: "AdminWithdrawals.ErrorProcessingWithdrawal", message: error instanceof Error ? error.message : "Error processing withdrawal" });
       toast.error("Failed to process withdrawal");
       // Rollback optimistic update
       fetchWithdrawals();

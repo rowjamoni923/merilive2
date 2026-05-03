@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { useToast } from "@/hooks/use-toast";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface PaymentMethod {
   id: string;
@@ -66,13 +67,13 @@ const AdminTopupPaymentMethods = () => {
         .order('display_order', { ascending: true });
 
       if (error) {
-        console.error('[AdminPaymentMethods] Load error:', error);
+        recordAdminError({ kind: "rpc", label: "AdminTopupPaymentMethods.AdminpaymentmethodsLoadError", message: error instanceof Error ? error.message : "[AdminPaymentMethods] Load error" });
         toast({ title: "Error loading methods", description: error.message, variant: "destructive" });
       } else {
         setMethods((data || []) as PaymentMethod[]);
       }
     } catch (err: any) {
-      console.error('[AdminPaymentMethods] Unexpected error:', err);
+      recordAdminError({ kind: "rpc", label: "AdminTopupPaymentMethods.AdminpaymentmethodsUnexpectedError", message: err instanceof Error ? err.message : "[AdminPaymentMethods] Unexpected error" });
     }
     setLoading(false);
   }, [toast]);
@@ -136,7 +137,7 @@ const AdminTopupPaymentMethods = () => {
       resetForm();
       await loadMethods();
     } catch (error: any) {
-      console.error('[AdminPaymentMethods] Save error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminTopupPaymentMethods.AdminpaymentmethodsSaveError", message: error instanceof Error ? error.message : "[AdminPaymentMethods] Save error" });
       toast({ title: "Save failed", description: error.message, variant: "destructive" });
     } finally {
       setSaving(false);
@@ -219,7 +220,7 @@ const AdminTopupPaymentMethods = () => {
       setFormData(prev => ({ ...prev, icon_url: pub.publicUrl }));
       toast({ title: "Logo uploaded ✅" });
     } catch (err: any) {
-      console.error('[AdminPaymentMethods] Logo upload error:', err);
+      recordAdminError({ kind: "rpc", label: "AdminTopupPaymentMethods.AdminpaymentmethodsLogoUploadError", message: err instanceof Error ? err.message : "[AdminPaymentMethods] Logo upload error" });
       toast({ title: "Upload failed", description: err.message, variant: "destructive" });
     } finally {
       setUploadingLogo(false);

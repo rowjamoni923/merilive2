@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from 'sonner';
 import { parseSettingValue, saveAppSetting } from '@/utils/adminSettingsStorage';
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface TransferSchedule {
   is_active: boolean;
@@ -101,7 +102,7 @@ const AdminTransferScheduler = () => {
         setSchedule(value);
       }
     } catch (error) {
-      console.error('Error fetching schedule:', error);
+      recordAdminError({ kind: "rpc", label: "AdminTransferScheduler.ErrorFetchingSchedule", message: error instanceof Error ? error.message : "Error fetching schedule" });
     } finally {
       setLoading(false);
     }
@@ -150,7 +151,7 @@ const AdminTransferScheduler = () => {
         setHistory(historyItems);
       }
     } catch (error) {
-      console.error('Error fetching history:', error);
+      recordAdminError({ kind: "rpc", label: "AdminTransferScheduler.ErrorFetchingHistory", message: error instanceof Error ? error.message : "Error fetching history" });
     }
   };
 
@@ -172,7 +173,7 @@ const AdminTransferScheduler = () => {
       if (error) throw error;
       setBatchDetails(prev => ({ ...prev, [batchKey]: data || [] }));
     } catch (error) {
-      console.error('Error fetching batch details:', error);
+      recordAdminError({ kind: "rpc", label: "AdminTransferScheduler.ErrorFetchingBatchDetails", message: error instanceof Error ? error.message : "Error fetching batch details" });
       toast.error('Failed to load details');
     } finally {
       setLoadingDetails(null);
@@ -216,7 +217,7 @@ const AdminTransferScheduler = () => {
       setSchedule(newSchedule);
       toast.success('Settings saved');
     } catch (error) {
-      console.error('Error saving schedule:', error);
+      recordAdminError({ kind: "rpc", label: "AdminTransferScheduler.ErrorSavingSchedule", message: error instanceof Error ? error.message : "Error saving schedule" });
       toast.error('Failed to save settings');
     } finally {
       setSaving(false);
@@ -288,7 +289,7 @@ const AdminTransferScheduler = () => {
 
       toast.success(`Transfer complete! ${data?.result?.total_transfers || 0} transfers processed`);
     } catch (error) {
-      console.error('Error processing transfer:', error);
+      recordAdminError({ kind: "rpc", label: "AdminTransferScheduler.ErrorProcessingTransfer", message: error instanceof Error ? error.message : "Error processing transfer" });
       toast.error('Transfer failed');
     } finally {
       setProcessing(false);

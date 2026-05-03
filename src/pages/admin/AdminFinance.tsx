@@ -12,6 +12,7 @@ import AdminBalanceDeduction from "./AdminBalanceDeduction";
 import AdminCoins from "./AdminCoins";
 import AdminHelperMessaging from "@/components/admin/AdminHelperMessaging";
 import AdminEpayWithdrawals from "@/components/admin/AdminEpayWithdrawals";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 const AdminFinance = () => {
   const [activeTab, setActiveTab] = useState("withdrawals");
@@ -38,7 +39,7 @@ const AdminFinance = () => {
         pendingEpay: r.pending_epay || 0,
       });
     } catch (e) {
-      console.error('[AdminFinance] stats error', e);
+      recordAdminError({ kind: "rpc", label: "AdminFinance.AdminfinanceStatsError", message: e instanceof Error ? e.message : "[AdminFinance] stats error" });
     }
   };
 

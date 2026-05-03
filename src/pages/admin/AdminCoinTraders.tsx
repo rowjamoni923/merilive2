@@ -30,6 +30,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
 import { adminSendNotification } from "@/utils/adminNotification";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 const AdminCoinTraders = () => {
   const navigate = useNavigate();
@@ -88,7 +89,7 @@ const AdminCoinTraders = () => {
         totalCoinsTraded: (data || []).reduce((sum: number, h: any) => sum + (h.total_bought || 0), 0),
         visibleTraders: (data || []).filter((h: any) => h.is_active && h.is_verified && h.trader_level !== 5 && (h.wallet_balance || 0) >= 100000).length,
       }));
-    } catch (error) { console.error(error); }
+    } catch (error) { recordAdminError({ kind: "rpc", label: "AdminCoinTraders", message: error instanceof Error ? error.message : String(error) }); }
     finally { setLoading(false); }
   };
 
@@ -100,7 +101,7 @@ const AdminCoinTraders = () => {
         .order('created_at', { ascending: false }).limit(100);
       setTransactions(data || []);
       setStats(prev => ({ ...prev, pendingTransactions: (data || []).filter((t: any) => t.status === 'pending').length }));
-    } catch (error) { console.error(error); }
+    } catch (error) { recordAdminError({ kind: "rpc", label: "AdminCoinTraders", message: error instanceof Error ? error.message : String(error) }); }
   };
 
   const searchUsers = async (query: string) => {
@@ -146,7 +147,7 @@ const AdminCoinTraders = () => {
     const { error: updateError } = await supabase.from('topup_helpers').update({ is_active: newStatus }).eq('id', helper.id);
 
     if (updateError) {
-      console.error('[CoinTraders] Failed to toggle helper:', updateError);
+      recordAdminError({ kind: "rpc", label: "AdminCoinTraders.CointradersFailedToToggleHelper", message: updateError instanceof Error ? updateError.message : "[CoinTraders] Failed to toggle helper" });
       toast({ title: "Error", description: `Failed to ${action} helper: ${updateError.message}`, variant: "destructive" });
       return;
     }
@@ -159,7 +160,7 @@ const AdminCoinTraders = () => {
       .maybeSingle();
 
     if (verifyData?.is_active !== newStatus) {
-      console.error('[CoinTraders] Toggle verification failed! Expected:', newStatus, 'Got:', verifyData?.is_active);
+      recordAdminError({ kind: "rpc", label: "AdminCoinTraders.ToggleVerify", message: `Toggle verification mismatch: expected ${newStatus}, got ${verifyData?.is_active}` });
       toast({ title: "Error", description: `Database update failed - status did not change.`, variant: "destructive" });
       return;
     }
@@ -253,7 +254,7 @@ const AdminCoinTraders = () => {
       fetchTransactions();
 
     } catch (error: any) {
-      console.error('Transfer error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminCoinTraders.TransferError", message: error instanceof Error ? error.message : "Transfer error" });
       toast({
         title: "Failed",
         description: error.message || "Transfer failed",
