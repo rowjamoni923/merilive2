@@ -53,6 +53,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import DeviceApprovalSection from "@/components/admin/DeviceApprovalSection";
 import OwnerAccessLinkGenerator from "@/components/admin/OwnerAccessLinkGenerator";
 import VaultPinManager from "@/components/admin/VaultPinManager";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface AdminUser {
   id: string;
@@ -140,6 +141,7 @@ const AdminSubAdmins = () => {
 
     if (error) {
       console.error("Error fetching admins:", error);
+      recordAdminError({ kind: "rpc", label: "AdminSubAdmins.fetchAdmins", message: error instanceof Error ? error.message : String(error) });
       return;
     }
     setAdmins(data || []);
@@ -155,6 +157,7 @@ const AdminSubAdmins = () => {
 
     if (error) {
       console.error("Error fetching sections:", error);
+      recordAdminError({ kind: "rpc", label: "AdminSubAdmins.fetchSections", message: error instanceof Error ? error.message : String(error) });
       return;
     }
     setSections(data || []);
@@ -168,6 +171,7 @@ const AdminSubAdmins = () => {
 
     if (error) {
       console.error("Error fetching permissions:", error);
+      recordAdminError({ kind: "rpc", label: "AdminSubAdmins.fetchAdminPermissions", message: error instanceof Error ? error.message : String(error) });
       return;
     }
 
@@ -209,6 +213,7 @@ const AdminSubAdmins = () => {
       fetchAdmins();
     } catch (error: any) {
       console.error("Error:", error);
+      recordAdminError({ kind: "rpc", label: "AdminSubAdmins.response", message: error instanceof Error ? error.message : String(error) });
       toast.error(error.message || "An error occurred");
     } finally {
       setIsCreating(false);
@@ -318,6 +323,7 @@ const AdminSubAdmins = () => {
       if (error) {
         toast.error("Failed to save permissions");
         console.error(error);
+        recordAdminError({ kind: "rpc", label: "AdminSubAdmins.permissionsToInsert", message: error });
         return;
       }
     }
@@ -396,6 +402,7 @@ const AdminSubAdmins = () => {
         }
       } catch (err) {
         console.error('Failed to fetch sub-admin token:', err);
+        recordAdminError({ kind: "rpc", label: "AdminSubAdmins.session", message: err instanceof Error ? err.message : String(err) });
       }
     };
     fetchToken();

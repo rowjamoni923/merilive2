@@ -22,6 +22,7 @@ import { format } from "date-fns";
 import AdminQuickLinks from "@/components/admin/AdminQuickLinks";
 
 import { adminSendNotification } from "@/utils/adminNotification";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface SupportTicket {
   id: string;
@@ -211,6 +212,7 @@ const AdminSupportTickets = () => {
       });
     } catch (e) {
       console.error('Error fetching global stats:', e);
+      recordAdminError({ kind: "rpc", label: "AdminSupportTickets.fetchGlobalStats", message: e instanceof Error ? e.message : String(e) });
     }
   }, []);
 
@@ -342,6 +344,7 @@ const AdminSupportTickets = () => {
             }
           } catch (e) {
             console.error('[AutoTranslate] Failed for msg:', msg.id, e);
+            recordAdminError({ kind: "rpc", label: "AdminSupportTickets.translatedText", message: msg.id instanceof Error ? msg.id.message : String(msg.id) });
           }
           return null;
         });
@@ -422,10 +425,12 @@ const AdminSupportTickets = () => {
           }
         } catch {
           console.error('[AI Suggestions] Failed to parse:', result);
+          recordAdminError({ kind: "rpc", label: "AdminSupportTickets.suggestions", message: result instanceof Error ? result.message : String(result) });
         }
       }
     } catch (error) {
       console.error('[AI Suggestions] Error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminSupportTickets.suggestions", message: error instanceof Error ? error.message : String(error) });
     } finally {
       setLoadingSuggestions(false);
     }
@@ -460,6 +465,7 @@ const AdminSupportTickets = () => {
           translatedContent = transData?.translatedText || "";
         } catch (e) {
           console.error("Translation error:", e);
+          recordAdminError({ kind: "rpc", label: "AdminSupportTickets.actionKey", message: e instanceof Error ? e.message : String(e) });
         } finally {
           setIsTranslating(false);
         }
@@ -691,6 +697,7 @@ const AdminSupportTickets = () => {
 
     recognition.onerror = (event: any) => {
       console.error('Speech recognition error:', event.error);
+      recordAdminError({ kind: "rpc", label: "AdminSupportTickets.recognition", message: event.error instanceof Error ? event.error.message : String(event.error) });
       setIsRecording(false);
     };
 

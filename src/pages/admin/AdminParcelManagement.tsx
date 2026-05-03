@@ -10,6 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from 'sonner';
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface ParcelTemplate {
   id: string;
@@ -118,6 +119,7 @@ const AdminParcelManagement = () => {
       }));
     } catch (error) {
       console.error('Error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminParcelManagement.fetchTemplates", message: error instanceof Error ? error.message : String(error) });
     } finally {
       setLoading(false);
     }

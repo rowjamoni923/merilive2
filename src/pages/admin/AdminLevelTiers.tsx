@@ -16,6 +16,7 @@ import { levelBadgeAnimations, LevelBadgeAnimation } from "@/data/levelBadgeAnim
 import { AnimationPickerModal, premiumLevelAnimations } from "@/components/admin/AnimationPickerModal";
 import Lottie from "lottie-react";
 import { LazyImage } from "@/components/LazyImage";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface LevelTier {
   id: string;
@@ -62,6 +63,7 @@ const AdminLevelTiers = () => {
     if (error) {
       toast.error("Failed to fetch level tiers");
       console.error(error);
+      recordAdminError({ kind: "rpc", label: "AdminLevelTiers.fetchTiers", message: error });
     } else if (data) {
       setUserTiers(data.filter(t => t.tier_type === 'user') as LevelTier[]);
       setHostTiers(data.filter(t => t.tier_type === 'host') as LevelTier[]);
@@ -164,6 +166,7 @@ const AdminLevelTiers = () => {
       if (error) {
         toast.error("Failed to save tier: " + error.message);
         console.error(error);
+        recordAdminError({ kind: "rpc", label: "AdminLevelTiers.result", message: error });
       } else {
         toast.success("Tier saved successfully! ✅");
         setIsDialogOpen(false);
@@ -188,6 +191,7 @@ const AdminLevelTiers = () => {
     if (error) {
       toast.error("Failed to delete tier");
       console.error(error);
+      recordAdminError({ kind: "rpc", label: "AdminLevelTiers.handleDelete", message: error });
     } else {
       toast.success("Tier deleted successfully");
       fetchTiers();

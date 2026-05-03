@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Edit, Trash2, Upload, RefreshCw, Eye, CreditCard } from "lucide-react";
 import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface NobleCardItem {
   id: string;
@@ -65,6 +66,7 @@ const AdminNobleCards = () => {
       setItems(mapped);
     } catch (error) {
       console.error('Error fetching noble cards:', error);
+      recordAdminError({ kind: "rpc", label: "AdminNobleCards.mapped", message: error instanceof Error ? error.message : String(error) });
       toast.error('Failed to load Noble Cards');
     } finally {
       setLoading(false);
@@ -120,6 +122,7 @@ const AdminNobleCards = () => {
       return urlData.publicUrl;
     } catch (error) {
       console.error('Upload error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminNobleCards.fileName", message: error instanceof Error ? error.message : String(error) });
       toast.error('File upload failed');
       return null;
     }
@@ -194,6 +197,7 @@ const AdminNobleCards = () => {
       fetchItems();
     } catch (error: any) {
       console.error('Save error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminNobleCards.payload", message: error instanceof Error ? error.message : String(error) });
       toast.error('Failed to save');
     } finally {
       setSaving(false);
@@ -209,6 +213,7 @@ const AdminNobleCards = () => {
       fetchItems();
     } catch (error) {
       console.error('Delete error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminNobleCards.handleDelete", message: error instanceof Error ? error.message : String(error) });
       toast.error('Failed to delete');
     }
   };
@@ -221,6 +226,7 @@ const AdminNobleCards = () => {
       fetchItems();
     } catch (error) {
       console.error('Toggle error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminNobleCards.handleToggleActive", message: error instanceof Error ? error.message : String(error) });
     }
   };
 
