@@ -48,7 +48,6 @@ import { useRefreshOnResume } from "@/hooks/useAppResumeHandler";
 // World languages - English names only (no native scripts)
 const worldLanguages = [
   { code: "auto", name: "Automatic", displayName: "Automatic", flag: "🌍" },
-  { code: "bn", name: "Bengali", displayName: "Bengali", flag: "🇧🇩", countries: ["BD"] },
   { code: "en", name: "English", displayName: "English", flag: "🇺🇸", countries: ["US", "GB", "AU", "CA"] },
   { code: "hi", name: "Hindi", displayName: "Hindi", flag: "🇮🇳", countries: ["IN"] },
   { code: "ar", name: "Arabic", displayName: "Arabic", flag: "🇸🇦", countries: ["SA", "AE", "QA", "KW", "OM", "BH", "EG"] },
