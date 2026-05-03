@@ -62,7 +62,7 @@ const AdminUserHub = () => {
         faceVerified: faceRes.count || 0,
       });
     } catch (error) {
-      console.error('Error fetching user stats:', error);
+      recordAdminError({ kind: "rpc", label: "AdminUserHub.fetchStats", message: error instanceof Error ? error.message : "Failed to fetch user stats" });
     }
   }, []);
 
