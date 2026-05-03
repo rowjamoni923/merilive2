@@ -2269,17 +2269,18 @@ const AgencyWithdrawal = () => {
       };
 
       console.log('[Withdrawal] Calling RPC with params:', {
-        _agency_id: agency.id,
-        _amount: Math.round(withdrawAmountBeans), // Total deduction = entered amount (fee is part of it)
-        _payment_method: paymentMethod,
-        _payment_details: paymentDetails
+        p_agency_id: agency.id,
+        p_amount: Math.round(withdrawAmountBeans),
+        p_payment_method: paymentMethod,
+        p_payment_details: paymentDetails
       });
 
       const { data, error } = await supabase.rpc('request_agency_withdrawal', {
-        _agency_id: agency.id,
-        _amount: Math.round(withdrawAmountBeans), // Total amount (fee already included)
-        _payment_method: paymentMethod,
-        _payment_details: paymentDetails
+        p_agency_id: agency.id,
+        p_amount: Math.round(withdrawAmountBeans), // Total amount (fee already included)
+        p_payment_method: paymentMethod,
+        p_payment_details: paymentDetails,
+        p_notes: null,
       });
 
       console.log('[Withdrawal] RPC response:', { data, error });
