@@ -1,6 +1,7 @@
 import * as React from 'npm:react@18.3.1'
 import { renderAsync } from 'npm:@react-email/components@0.0.22'
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import { sendLovableEmail } from 'npm:@lovable.dev/email-js'
 import { TEMPLATES } from '../_shared/transactional-email-templates/registry.ts'
 
 // Configuration baked in at scaffold time — do NOT change these manually.
@@ -120,6 +121,70 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     )
+  }
+
+  // OTP/security emails are auth-critical and must not depend on optional
+  // app-email suppression/unsubscribe queue tables. Send them immediately via
+  // the managed email API when this shared sender is called by OTP functions.
+  if (templateName === 'otp-code') {
+    const apiKey = Deno.env.get('LOVABLE_API_KEY')
+    if (!apiKey) {
+      console.error('Missing LOVABLE_API_KEY for OTP email send')
+      return new Response(
+        JSON.stringify({ error: 'Server configuration error' }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      )
+    }
+
+    const html = await renderAsync(
+      React.createElement(template.component, templateData)
+    )
+    const plainText = await renderAsync(
+      React.createElement(template.component, templateData),
+      { plainText: true }
+    )
+    const resolvedSubject =
+      typeof template.subject === 'function'
+        ? template.subject(templateData)
+        : template.subject
+
+    try {
+      await sendLovableEmail(
+        {
+          message_id: messageId,
+          to: effectiveRecipient,
+          from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
+          sender_domain: SENDER_DOMAIN,
+          subject: resolvedSubject,
+          html,
+          text: plainText,
+          purpose: 'transactional',
+          label: templateName,
+          idempotency_key: idempotencyKey,
+        },
+        { apiKey, idempotencyKey }
+      )
+      console.log('OTP email sent', { templateName, effectiveRecipient })
+      return new Response(
+        JSON.stringify({ success: true, sent: true }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      )
+    } catch (error) {
+      console.error('OTP email send failed', { error, templateName, effectiveRecipient })
+      return new Response(
+        JSON.stringify({ error: 'Failed to send email' }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      )
+    }
   }
 
   // Create Supabase client with service role (bypasses RLS)
