@@ -161,10 +161,12 @@ export default function AdminGiftTransactions() {
           </Button>
           <div>
             <h1 className="font-bold text-xl text-white">Today's Gift Activity</h1>
-            <p className="text-white/80 text-sm">All gift transactions today</p>
+            <p className="text-white/80 text-sm">
+              {lastRefresh ? `Updated ${format(lastRefresh, 'hh:mm:ss a')} • Auto-refresh 30s` : 'All gift transactions today'}
+            </p>
           </div>
           <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 ml-auto" onClick={fetchTransactions}>
-            <RefreshCw className="w-5 h-5" />
+            <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
           </Button>
         </div>
 
