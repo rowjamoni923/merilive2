@@ -2313,14 +2313,30 @@ export default function AdminLayout() {
         return;
       }
 
-      const { data: adminRecord, error } = await adminSupabase
+      // Hard 6s timeout — never let a slow/hung query keep the "Preparing
+      // admin console…" spinner alive. Session presence already grants access
+      // optimistically (instantAdminAccess); this call only refines metadata.
+      const queryPromise = adminSupabase
         .from('admin_users')
         .select('id, user_id, email, display_name, role, is_active, accepted_at')
         .eq('id', adminSession.admin_id)
         .eq('is_active', true)
         .maybeSingle();
+      const timeoutPromise = new Promise<{ data: null; error: Error }>((resolve) =>
+        setTimeout(() => resolve({ data: null, error: new Error('admin_users lookup timeout') }), 6000)
+      );
+      const { data: adminRecord, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
 
       if (error || !adminRecord) {
+        // Network/timeout: keep optimistic access alive (we already have a
+        // valid signed admin session token); just log and bail. Don't revoke
+        // because that would bounce the admin to /admin/login on every flaky
+        // request.
+        if (error?.message?.includes('timeout')) {
+          console.warn('[AdminLayout] admin_users lookup timed out — keeping optimistic access');
+          setIsAdmin(true);
+          return;
+        }
         console.warn('[AdminLayout] Dedicated admin session is invalid or inactive - revoking local access', error);
         revokeAdminAccess();
         setCurrentUser(null);
@@ -2340,8 +2356,12 @@ export default function AdminLayout() {
     } catch (error) {
       console.error('Admin check error:', error);
       recordAdminError({ kind: "rpc", label: "AdminLayout.hasFlagAccess", message: error instanceof Error ? error.message : String(error) });
-      setCurrentUser(null);
-      setIsAdmin(false);
+      // Don't blank the panel on a transient error if a session exists —
+      // keep optimistic access. Only clear if there's truly no session.
+      if (!getAdminSession()) {
+        setCurrentUser(null);
+        setIsAdmin(false);
+      }
     } finally {
       setIsLoading(false);
     }
