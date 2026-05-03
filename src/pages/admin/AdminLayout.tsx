@@ -1318,6 +1318,16 @@ export default function AdminLayout() {
     return () => clearTimeout(t);
   }, []);
 
+  // Safety net: never let "Preparing admin console…" spin past 7s.
+  useEffect(() => {
+    if (!isLoading) return;
+    const t = setTimeout(() => {
+      console.warn('[AdminLayout] Forcing isLoading=false after 7s safety timeout');
+      setIsLoading(false);
+    }, 7000);
+    return () => clearTimeout(t);
+  }, [isLoading]);
+
 
   // Debounced pending counts fetch
   const pendingCountsTimerRef = useRef<NodeJS.Timeout | null>(null);
