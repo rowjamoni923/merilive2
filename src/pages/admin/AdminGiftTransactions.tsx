@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { getAdminCache, setAdminCache } from "@/utils/adminDataCache";
-import useAdminRealtime from "@/hooks/useAdminRealtime";
+
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Gift, RefreshCw, Search, TrendingUp, Users, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -37,7 +37,7 @@ interface ReceiverSummary {
 }
 
 const PAGE_SIZE = 50;
-const AUTO_REFRESH_MS = 30000;
+
 
 export default function AdminGiftTransactions() {
   const navigate = useNavigate();
@@ -101,19 +101,7 @@ export default function AdminGiftTransactions() {
     void fetchTransactions();
   }, [fetchTransactions]);
 
-  // Auto-refresh every 30s when tab is visible
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (document.visibilityState === 'visible') {
-        void fetchTransactions();
-      }
-    }, AUTO_REFRESH_MS);
-    return () => clearInterval(interval);
-  }, [fetchTransactions]);
-
-  useAdminRealtime(['gift_transactions'], () => {
-    void fetchTransactions();
-  });
+  // Auto-refresh disabled per admin policy. Use the manual refresh button instead.
 
   // Aggregate by receiver
   const receiverSummaries: ReceiverSummary[] = (() => {
@@ -162,7 +150,7 @@ export default function AdminGiftTransactions() {
           <div>
             <h1 className="font-bold text-xl text-white">Today's Gift Activity</h1>
             <p className="text-white/80 text-sm">
-              {lastRefresh ? `Updated ${format(lastRefresh, 'hh:mm:ss a')} • Auto-refresh 30s` : 'All gift transactions today'}
+              {lastRefresh ? `Updated ${format(lastRefresh, 'hh:mm:ss a')} • Tap refresh to update` : 'All gift transactions today'}
             </p>
           </div>
           <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 ml-auto" onClick={fetchTransactions}>
