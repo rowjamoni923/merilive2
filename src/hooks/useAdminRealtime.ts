@@ -217,100 +217,56 @@ export const useAdminRealtime = (
   }, [isAdminRoute]);
 
   useEffect(() => {
-    // Admin route: ALWAYS subscribe to window events for tables in the
-    // global monitor set (Package 7 — global subscriber dispatches them).
-    // Direct postgres_changes only used for tables outside the global set
-    // or non-admin routes.
-    const eventTables = isOnAdminRoute
-      ? trackedTables.filter((t) => GLOBALLY_MONITORED_TABLES.has(t))
-      : [];
-    const directTables = isOnAdminRoute
-      ? trackedTables.filter((t) => !GLOBALLY_MONITORED_TABLES.has(t))
-      : trackedTables.filter((t) => !GLOBALLY_MONITORED_TABLES.has(t));
-
-    if (isOnAdminRoute && eventTables.length === 0 && directTables.length === 0) {
+    // 🔒 ADMIN MANUAL-REFRESH POLICY
+    // On /admin routes we DO NOT subscribe to postgres_changes, window events,
+    // visibility changes, or stale-fallback timers. Admin pages refresh data
+    // ONLY via the page's manual refresh button (which calls the same onUpdate
+    // callback). The auth-aware effect above still performs the initial load.
+    if (isOnAdminRoute) {
       return () => {
         if (debounceRef.current) clearTimeout(debounceRef.current);
       };
     }
 
-    let lastRealtimeTouch = Date.now();
-
-    // NO blind initial fetch — auth-aware effect above handles the first load
-    const initialRefreshTimer: ReturnType<typeof setTimeout> | null = null;
-
-    const handleGlobalEvent = (e: Event) => {
-      const detail = (e as CustomEvent<AdminTableUpdateEvent>).detail;
-      if (detail?.table === '*' || eventTables.includes(detail?.table)) {
-        lastRealtimeTouch = Date.now();
-        debouncedRefresh();
-      }
-    };
-
-    if (eventTables.length > 0) {
-      window.addEventListener(ADMIN_REALTIME_EVENT, handleGlobalEvent);
+    // Non-admin routes keep prior realtime behaviour for legacy callers.
+    const directTables = trackedTables.filter((t) => !GLOBALLY_MONITORED_TABLES.has(t));
+    if (directTables.length === 0) {
+      return () => {
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+      };
     }
 
-    // Direct channel for tables outside global monitoring (admin + non-admin routes)
-    let channel: ReturnType<typeof supabase.channel> | ReturnType<typeof adminSupabase.channel> | null = null;
-    if (directTables.length > 0) {
-      const realtimeClient = isOnAdminRoute ? adminSupabase : supabase;
-      const name = channelName || `rt-${directTables.join('-')}-${crypto.randomUUID()}`;
-      channel = realtimeClient.channel(name);
-      for (const table of directTables) {
-        channel = channel.on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table },
-          () => {
-            lastRealtimeTouch = Date.now();
-            debouncedRefresh();
-          }
-        );
-      }
-      channel.subscribe();
+    const name = channelName || `rt-${directTables.join('-')}-${crypto.randomUUID()}`;
+    let channel: ReturnType<typeof supabase.channel> = supabase.channel(name);
+    for (const table of directTables) {
+      channel = channel.on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table },
+        () => debouncedRefresh()
+      );
     }
-
-    // Optional stale fallback for exceptional cases only (disabled by default)
-    const healthInterval =
-        isOnAdminRoute && enableStaleFallback
-        ? window.setInterval(() => {
-            if (document.visibilityState !== 'visible') return;
-            if (Date.now() - lastRealtimeTouch > staleRefreshMs) {
-              onUpdateRef.current();
-            }
-          }, healthCheckIntervalMs)
-        : 0;
+    channel.subscribe();
 
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') debouncedRefresh();
     };
-
     if (enableVisibilityRefresh) {
       document.addEventListener('visibilitychange', handleVisibility);
     }
 
     return () => {
-      clearTimeout(initialRefreshTimer);
-      if (eventTables.length > 0) {
-        window.removeEventListener(ADMIN_REALTIME_EVENT, handleGlobalEvent);
-      }
-      if (channel) (isOnAdminRoute ? adminSupabase : supabase).removeChannel(channel as any);
-      if (healthInterval) clearInterval(healthInterval);
+      supabase.removeChannel(channel);
       if (enableVisibilityRefresh) {
         document.removeEventListener('visibilitychange', handleVisibility);
       }
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [
-      trackedTables.join('|'),
+    trackedTables.join('|'),
     debouncedRefresh,
     channelName,
-    enableRealtimeRefresh,
     enableVisibilityRefresh,
-    enableStaleFallback,
-    staleRefreshMs,
-    healthCheckIntervalMs,
-    isAdminRoute,
+    isOnAdminRoute,
   ]);
 };
 
