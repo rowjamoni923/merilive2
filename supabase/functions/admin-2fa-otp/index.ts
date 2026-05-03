@@ -30,8 +30,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const gmailUser = Deno.env.get("GMAIL_USER");
-    const gmailAppPassword = Deno.env.get("GMAIL_APP_PASSWORD");
+
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const { email, action, otp }: TwoFARequest = await req.json();
@@ -80,70 +79,23 @@ Deno.serve(async (req: Request): Promise<Response> => {
           expires_at: expiresAt.toISOString(),
         });
 
-      if (insertError) {
-        console.error("[admin-2fa-otp] Insert error:", insertError);
-        return new Response(
-          JSON.stringify({ error: "Failed to generate OTP" }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      // Send via Gmail SMTP only
+      // Send via Lovable Email (unlimited)
       let emailSent = false;
       let emailError: string | null = null;
-      let smtpDetail: string | null = null;
-      let usedProvider: string | null = null;
 
-      const subject = "Your MeriLive admin sign-in code";
-      const htmlBody = buildAdminOTPEmailHTML(otpCode);
-      const textBody = buildAdminOTPEmailText(otpCode);
-
-      if (gmailUser && gmailAppPassword) {
-        try {
-          const transporter = nodemailer.createTransport({
-            host: "smtp.gmail.com",
-            port: 465,
-            secure: true,
-            auth: { user: gmailUser, pass: gmailAppPassword },
-            tls: { rejectUnauthorized: true },
-          });
-          await transporter.verify();
-          const messageId = `<${crypto.randomUUID()}@merilive.app>`;
-          const info = await transporter.sendMail({
-            from: `MeriLive Admin <${gmailUser}>`,
-            to: normalizedEmail,
-            replyTo: gmailUser,
-            sender: gmailUser,
-            subject,
-            text: textBody,
-            html: htmlBody,
-            messageId,
-            date: new Date().toUTCString(),
-            headers: {
-              "List-Unsubscribe": `<mailto:${gmailUser}?subject=unsubscribe>`,
-              "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-              "X-Entity-Ref-ID": crypto.randomUUID(),
-              "X-Mailer": "MeriLive Transactional",
-              "Auto-Submitted": "auto-generated",
-              "Precedence": "transactional",
-            },
-          });
-          emailSent = (info.accepted?.length ?? 0) > 0;
-          if (emailSent) {
-            usedProvider = "gmail-smtp";
-            smtpDetail = `messageId=${info.messageId} response=${info.response}`;
-            console.log(`[admin-2fa-otp] ✅ Sent via Gmail to ${normalizedEmail}`);
-          }
-        } catch (emailErr: any) {
-          emailError = emailErr?.message || String(emailErr);
-          console.error("[admin-2fa-otp] ❌ Gmail send failed:", emailError);
-        }
+      const sendResult = await sendOtpEmail({
+        to: normalizedEmail,
+        otp: otpCode,
+        purpose: "admin",
+        expiryMinutes: 5,
+      });
+      emailSent = sendResult.success;
+      if (!emailSent) {
+        emailError = sendResult.error ?? "send failed";
+        console.error("[admin-2fa-otp] ❌ Lovable Email send failed:", emailError);
       } else {
-        emailError = "GMAIL_USER or GMAIL_APP_PASSWORD not configured";
-        console.error("[admin-2fa-otp] ❌", emailError);
+        console.log(`[admin-2fa-otp] ✅ Queued via Lovable Email to ${normalizedEmail}`);
       }
-
-      smtpDetail = smtpDetail || `provider=${usedProvider || "none"}`;
 
       return new Response(
         JSON.stringify({
@@ -153,10 +105,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
             ? "Verification code sent to your email"
             : "Email service unavailable. Please try again or contact support.",
           error_detail: emailError,
-          smtp_detail: smtpDetail,
         }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+
 
     } else if (action === "verify") {
       if (!otp || otp.length !== 6) {
