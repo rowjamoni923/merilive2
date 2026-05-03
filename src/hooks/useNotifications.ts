@@ -445,8 +445,8 @@ export const useNotifications = () => {
 
     const previousNotifications = notifications;
 
-    // Optimistic UI update
-    setNotifications(prev => prev.filter(n => n.id !== notificationId));
+    // Optimistic UI update — keep the item, just flag it as read
+    setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n));
     setUnreadCount(prev => Math.max(0, prev - 1));
     emitGlobalUnreadRefresh({ notificationsDecrement: 1 });
 
