@@ -45,9 +45,9 @@ const AdminAppSettingsHub = () => {
       });
     } catch (error) {
       recordAdminError({
-        source: "AdminAppSettingsHub.fetchStats",
+        kind: "other",
+        label: "AdminAppSettingsHub.fetchStats",
         message: error instanceof Error ? error.message : "Failed to load app settings hub stats",
-        level: "error",
       });
     } finally {
       setIsRefreshing(false);
