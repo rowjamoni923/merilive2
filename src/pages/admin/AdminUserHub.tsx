@@ -96,7 +96,7 @@ const AdminUserHub = () => {
       const sorted = Array.from(countryMap.values()).sort((a, b) => b.count - a.count);
       setCountryStats(sorted);
     } catch (error) {
-      console.error('Error fetching country stats:', error);
+      recordAdminError({ kind: "rpc", label: "AdminUserHub.fetchCountryStats", message: error instanceof Error ? error.message : "Failed to fetch country stats" });
     } finally {
       setIsLoadingCountries(false);
     }
