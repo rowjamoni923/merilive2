@@ -48,6 +48,7 @@ const DailyLoginPopup = lazy(lazyRetry(() => import("./components/rewards/DailyL
 const WelcomeOnboarding = lazy(lazyRetry(() => import("./components/onboarding/WelcomeOnboarding")));
 const RatingRewardPopup = lazy(lazyRetry(() => import("./components/rewards/RatingRewardPopup")));
 const LandingPage = lazy(lazyRetry(() => import("./pages/LandingPage")));
+const Unsubscribe = lazy(lazyRetry(() => import("./pages/Unsubscribe")));
 // =============================================
 // LAZY LOADED PAGES - Load on demand
 // =============================================
@@ -1001,6 +1002,7 @@ const App = () => {
                 <Route path="/auth" element={session ? <Navigate to="/" /> : <Auth />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/unsubscribe" element={<Unsubscribe />} />
                 <Route path="/smart-link" element={<SmartLink />} />
                 <Route path="/link" element={<SmartLink />} />
                 <Route path="/policies" element={<PublicPolicies />} />
