@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import nodemailer from "npm:nodemailer@6.9.12";
+import { buildOtpEmailHTML } from "../_shared/otp-email-template.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
