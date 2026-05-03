@@ -29,6 +29,7 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { supabase } from "@/integrations/supabase/client";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface UserProfile {
   id: string;
@@ -129,6 +130,7 @@ const HostApplication = () => {
       }
     } catch (error) {
       console.error('Search error:', error);
+      recordClientError({ label: "HostApplication.user", message: error instanceof Error ? error.message : String(error) });
       setUserNotFound(true);
     } finally {
       setSearchingUser(false);
@@ -174,6 +176,7 @@ const HostApplication = () => {
       setStep('verification');
     } catch (error: any) {
       console.error('Notification error:', error);
+      recordClientError({ label: "HostApplication.code", message: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Error",
         description: error.message || "Failed to send verification code",
@@ -236,6 +239,7 @@ const HostApplication = () => {
       setEmailCodeSent(true);
     } catch (error: any) {
       console.error('Email error:', error);
+      recordClientError({ label: "HostApplication.code", message: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Error",
         description: error.message || "Failed to send verification email",

@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Trophy, Crown, Medal, Award, Gem, Clock, Users, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Session } from "@supabase/supabase-js";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface Competition {
   id: string;
@@ -117,6 +118,7 @@ const PKLeaderboard = () => {
       setRewards((rwds as RewardTier[]) || []);
     } catch (err) {
       console.error("Error fetching PK data:", err);
+      recordClientError({ label: "PKLeaderboard.myEntry", message: err instanceof Error ? err.message : String(err) });
     } finally {
       setLoading(false);
     }

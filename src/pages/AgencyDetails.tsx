@@ -19,6 +19,7 @@ import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface AgencyDetails {
   id: string;
@@ -117,6 +118,7 @@ const AgencyDetailsPage = () => {
         }
       } catch (error) {
         console.error('[AgencyDetails] Error:', error);
+        recordClientError({ label: "AgencyDetails.user", message: error instanceof Error ? error.message : String(error) });
       } finally {
         setLoading(false);
       }

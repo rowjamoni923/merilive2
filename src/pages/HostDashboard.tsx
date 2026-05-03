@@ -28,6 +28,7 @@ import { toast } from "sonner";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { formatNumber as fmtNum } from "@/utils/formatNumber";
 import { parseCallRateSettings, resolveEffectiveCallRate } from "@/utils/callRateSettings";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface EarningStats {
   totalEarnings: number;
@@ -280,6 +281,7 @@ const HostDashboard = () => {
 
     } catch (error) {
       console.error('Error fetching dashboard:', error);
+      recordClientError({ label: "HostDashboard.allTransactions", message: error instanceof Error ? error.message : String(error) });
       toast.error('Failed to load data');
     } finally {
       setLoading(false);
@@ -312,6 +314,7 @@ const HostDashboard = () => {
       toast.success('Call rate saved!');
     } catch (error) {
       console.error('Error saving call rate:', error);
+      recordClientError({ label: "HostDashboard.saveCallRate", message: error instanceof Error ? error.message : String(error) });
       toast.error('Failed to save call rate');
     } finally {
       setSavingRate(false);

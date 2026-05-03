@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 const TICKET_CATEGORIES = [
   { key: "task_issue", label: "Task Issue", icon: "📋", color: "from-blue-500/20 to-cyan-500/10", border: "border-blue-500/25", selectedBorder: "border-blue-400/60" },
@@ -97,6 +98,7 @@ const GoogleLibraryOrderRules = () => {
       }, 2000);
     } catch (error: any) {
       console.error("Ticket error:", error);
+      recordClientError({ label: "GoogleLibraryOrderRules.handleSubmitTicket", message: error instanceof Error ? error.message : String(error) });
       toast.error("Failed to submit ticket");
     } finally {
       setSubmitting(false);

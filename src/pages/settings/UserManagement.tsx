@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface BlockedUser {
   id: string;
@@ -57,6 +58,7 @@ const UserManagement = () => {
       }
     } catch (error) {
       console.error("Error fetching blocked users:", error);
+      recordClientError({ label: "UserManagement.profileMap", message: error instanceof Error ? error.message : String(error) });
     } finally {
       setLoading(false);
     }

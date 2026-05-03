@@ -64,6 +64,7 @@ import TraderBadge from "@/components/common/TraderBadge";
 import { LevelBadge } from "@/components/common/LevelBadge";
 import { trackTaskProgress } from "@/hooks/useTaskProgress";
 import { ReportUserDialog } from "@/components/report/ReportUserDialog";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface Conversation {
   id: string;
@@ -305,12 +306,14 @@ const Chat = () => {
       
       if (response.error) {
         console.error('Inline translation error:', response.error);
+        recordClientError({ label: "Chat.response", message: response.error instanceof Error ? response.error.message : String(response.error) });
         return;
       }
       
       setInlineTranslation(response.data?.translatedText || "");
     } catch (error) {
       console.error('Inline translation error:', error);
+      recordClientError({ label: "Chat.response", message: error instanceof Error ? error.message : String(error) });
     } finally {
       setIsInlineTranslating(false);
     }
@@ -352,6 +355,7 @@ const Chat = () => {
       
       if (response.error) {
         console.error('Translation error:', response.error);
+        recordClientError({ label: "Chat.response", message: response.error instanceof Error ? response.error.message : String(response.error) });
         toast.error("Translation failed");
         return;
       }
@@ -359,6 +363,7 @@ const Chat = () => {
       setTranslatedResult(response.data?.translatedText || "");
     } catch (error) {
       console.error('Translation error:', error);
+      recordClientError({ label: "Chat.response", message: error instanceof Error ? error.message : String(error) });
       toast.error("Translation failed");
     } finally {
       setIsTranslating(false);
@@ -449,6 +454,7 @@ const Chat = () => {
         console.log('[Voice] Recorder stopped, chunks:', audioChunksRef.current.length);
         if (audioChunksRef.current.length === 0) {
           console.error('[Voice] No audio chunks recorded!');
+          recordClientError({ label: "Chat.recorder", message: '[Voice] No audio chunks recorded!' });
           toast.error('Recording failed. Please try again.');
           return;
         }
@@ -474,6 +480,7 @@ const Chat = () => {
       
     } catch (error) {
       console.error("Microphone access error:", error);
+      recordClientError({ label: "Chat.blob", message: error instanceof Error ? error.message : String(error) });
     }
   };
   
@@ -513,6 +520,7 @@ const Chat = () => {
     
     if (!audioBlob) {
       console.error('[Voice] No audio blob available!');
+      recordClientError({ label: "Chat.sendVoiceMessage", message: '[Voice] No audio blob available!' });
       toast.error('No audio recorded. Please record again.');
       return;
     }
@@ -537,6 +545,7 @@ const Chat = () => {
       
       if (uploadError) {
         console.error("Upload error:", uploadError);
+        recordClientError({ label: "Chat.fileName", message: uploadError instanceof Error ? uploadError.message : String(uploadError) });
         throw uploadError;
       }
       
@@ -596,6 +605,7 @@ const Chat = () => {
       toast.success('Voice message sent!');
     } catch (error: any) {
       console.error("[Voice] Upload error:", error);
+      recordClientError({ label: "Chat.recipientId", message: error instanceof Error ? error.message : String(error) });
       toast.error(error?.message || 'Failed to send voice message');
     } finally {
       setSendingVoice(false);
@@ -672,6 +682,7 @@ const Chat = () => {
         
         if (response.error) {
           console.error('[Chat Gift] Edge function error:', response.error);
+          recordClientError({ label: "Chat.response", message: response.error instanceof Error ? response.error.message : String(response.error) });
           // Refund on failure
           setUserCoins(prev => prev + totalCost);
           toast.error("Gift failed - diamonds refunded");
@@ -709,6 +720,7 @@ const Chat = () => {
         }
       } catch (error) {
         console.error('[Chat Gift] Background error:', error);
+        recordClientError({ label: "Chat.messageContent", message: error instanceof Error ? error.message : String(error) });
         // Refund on error
         setUserCoins(prev => prev + totalCost);
         toast.error("Gift failed - diamonds refunded");
@@ -987,6 +999,7 @@ const Chat = () => {
       }
     } catch (error) {
       console.error('[Chat] Error initializing:', error);
+      recordClientError({ label: "Chat.user", message: error instanceof Error ? error.message : String(error) });
     } finally {
       setLoading(false);
     }
@@ -1003,6 +1016,7 @@ const Chat = () => {
 
       if (error) {
         console.error('[Chat] Error fetching conversations:', error);
+        recordClientError({ label: "Chat.userId", message: error instanceof Error ? error.message : String(error) });
         // Fallback to basic query if RPC fails
         const { data: convs } = await supabase
           .from('conversations')
@@ -1043,6 +1057,7 @@ const Chat = () => {
       setConversations(formattedConversations);
     } catch (err) {
       console.error('[Chat] Error:', err);
+      recordClientError({ label: "Chat.formattedConversations", message: err instanceof Error ? err.message : String(err) });
     }
   };
 
@@ -1373,6 +1388,7 @@ const Chat = () => {
 
       if (error) {
         console.error('Phone detection error:', error);
+        recordClientError({ label: "Chat.checkPhoneNumber", message: error instanceof Error ? error.message : String(error) });
         return false;
       }
 
@@ -1401,6 +1417,7 @@ const Chat = () => {
       return false;
     } catch (err) {
       console.error('Phone detection failed:', err);
+      recordClientError({ label: "Chat.checkPhoneNumber", message: err instanceof Error ? err.message : String(err) });
       return false;
     }
   };
@@ -1604,6 +1621,7 @@ const Chat = () => {
       fetchGroups();
     } catch (error) {
       console.error('Create group error:', error);
+      recordClientError({ label: "Chat.path", message: error instanceof Error ? error.message : String(error) });
       toast.error("Failed to create group");
     } finally {
       setCreatingGroup(false);

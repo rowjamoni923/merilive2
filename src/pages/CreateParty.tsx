@@ -29,6 +29,7 @@ import { useFeatureLevelCheck } from "@/hooks/useFeatureLevelCheck";
 import { useRealtimeLevelProgress } from "@/hooks/useRealtimeLevel";
 import { resolveLevelFromTiers } from "@/utils/levelResolver";
 import { setPreparedHostPreviewStream } from "@/features/live/hostPreviewSession";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 type PartyMode = "video" | "audio" | "game";
 
@@ -148,6 +149,7 @@ const CreateParty = () => {
       }
     } catch (error: any) {
       console.error("Media access error:", error);
+      recordClientError({ label: "CreateParty.mediaStream", message: error instanceof Error ? error.message : String(error) });
       toast.error(error.message || "Camera access failed");
     }
   }, [getCameraStream, requestCameraPermission]);
@@ -299,6 +301,7 @@ const CreateParty = () => {
       navigate(`/party/${partyRoom.id}`);
     } catch (error) {
       console.error("Error creating party:", error);
+      recordClientError({ label: "CreateParty.defaultName", message: error instanceof Error ? error.message : String(error) });
       toast.error("Failed to create party");
     } finally {
       setIsCreating(false);
@@ -315,6 +318,7 @@ const CreateParty = () => {
       }
     } catch (e) {
       console.error("Error stopping tracks:", e);
+      recordClientError({ label: "CreateParty.handleClose", message: e instanceof Error ? e.message : String(e) });
     }
     navigate("/party-rooms");
   };
@@ -784,6 +788,7 @@ const CreateParty = () => {
               }
             } catch (error) {
               console.error("Camera switch error:", error);
+              recordClientError({ label: "CreateParty.newStream", message: error instanceof Error ? error.message : String(error) });
             }
           }
         }}

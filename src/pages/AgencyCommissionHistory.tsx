@@ -19,6 +19,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface CommissionRecord {
   id: string;
@@ -155,6 +156,7 @@ const AgencyCommissionHistory = () => {
 
     } catch (error) {
       console.error('Error fetching data:', error);
+      recordClientError({ label: "AgencyCommissionHistory.commissionDate", message: error instanceof Error ? error.message : String(error) });
       toast.error('Failed to load data');
     } finally {
       setLoading(false);

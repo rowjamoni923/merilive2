@@ -10,6 +10,7 @@ import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { useCall } from "@/components/call/CallProvider";
 import { toast } from "sonner";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 import {
   Sheet,
@@ -114,6 +115,7 @@ const SearchUsers = () => {
           setRecentSearches(JSON.parse(saved));
         } catch (e) {
           console.error('Failed to parse recent searches');
+          recordClientError({ label: "SearchUsers.saved", message: 'Failed to parse recent searches' });
         }
       }
     };
@@ -166,6 +168,7 @@ const SearchUsers = () => {
       setResults(searchResults.filter(u => u.id !== currentUserId));
     } catch (error) {
       console.error('Search error:', error);
+      recordClientError({ label: "SearchUsers.filteredTagResults", message: error instanceof Error ? error.message : String(error) });
       toast.error("Search failed");
     }
   }, [currentUserId]);
@@ -249,6 +252,7 @@ const SearchUsers = () => {
       }
     } catch (error) {
       console.error('Follow error:', error);
+      recordClientError({ label: "SearchUsers.newSet", message: error instanceof Error ? error.message : String(error) });
       toast.error("Action failed");
     }
   };
@@ -259,6 +263,7 @@ const SearchUsers = () => {
       await startCall(hostId);
     } catch (error) {
       console.error('Call error:', error);
+      recordClientError({ label: "SearchUsers.handleCall", message: error instanceof Error ? error.message : String(error) });
       toast.error("Failed to start call");
     }
   };

@@ -44,6 +44,7 @@ import { Camera as CapCamera } from "@capacitor/camera";
 import { Geolocation } from "@capacitor/geolocation";
 import { getAppInfo } from "@/utils/nativeUtils";
 import { useRefreshOnResume } from "@/hooks/useAppResumeHandler";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 // World languages - English names only (no native scripts)
 const worldLanguages = [
@@ -169,6 +170,7 @@ const Settings = () => {
       setPermissions(nextPermissions);
     } catch (error) {
       console.error('Error checking permissions:', error);
+      recordClientError({ label: "Settings.locPerm", message: error instanceof Error ? error.message : String(error) });
     }
   }, []);
   
@@ -255,6 +257,7 @@ const Settings = () => {
         }
       } catch (error) {
         console.error("Language detection error:", error);
+        recordClientError({ label: "Settings.matchingLang", message: error instanceof Error ? error.message : String(error) });
       }
     };
 
@@ -270,6 +273,7 @@ const Settings = () => {
         console.log('[Settings] App version:', info.version, 'Build:', info.build);
       } catch (error) {
         console.error('[Settings] Failed to get app version:', error);
+        recordClientError({ label: "Settings.info", message: error instanceof Error ? error.message : String(error) });
       }
     };
     fetchAppVersion();
@@ -364,6 +368,7 @@ const Settings = () => {
       }
     } catch (error) {
       console.error('Notification permission error:', error);
+      recordClientError({ label: "Settings.permission", message: error instanceof Error ? error.message : String(error) });
       toast({ title: "Error", description: "Failed to request notification permission.", variant: "destructive" });
     } finally {
       void refreshPermissions();
@@ -402,6 +407,7 @@ const Settings = () => {
       toast({ title: "Camera Enabled", description: "Camera access has been granted." });
     } catch (error: any) {
       console.error('Camera permission error:', error);
+      recordClientError({ label: "Settings.stream", message: error instanceof Error ? error.message : String(error) });
       if (error?.name === 'NotAllowedError' || error?.name === 'NotFoundError') {
         toast({ 
           title: "Camera Permission Needed", 
@@ -442,6 +448,7 @@ const Settings = () => {
       toast({ title: "Microphone Enabled", description: "Microphone access has been granted." });
     } catch (error: any) {
       console.error('Microphone permission error:', error);
+      recordClientError({ label: "Settings.stream", message: error instanceof Error ? error.message : String(error) });
       if (Capacitor.isNativePlatform() && error?.name === 'NotAllowedError') {
         toast({ 
           title: "Microphone Blocked", 
@@ -488,12 +495,14 @@ const Settings = () => {
           },
           (error) => {
             console.error('[Settings] Location error:', error);
+            recordClientError({ label: "Settings.result", message: error instanceof Error ? error.message : String(error) });
             toast({ title: "Permission Denied", description: "Please enable location in browser settings.", variant: "destructive" });
           }
         );
       }
     } catch (error) {
       console.error('Location permission error:', error);
+      recordClientError({ label: "Settings.result", message: error instanceof Error ? error.message : String(error) });
       toast({ title: "Error", description: "Failed to request location permission.", variant: "destructive" });
     } finally {
       void refreshPermissions();

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { recordClientError } from "@/utils/clientErrorLog";
 
  interface RechargeOrder {
   id: string;
@@ -159,6 +160,7 @@ const RechargeHistory = () => {
       setRechargeOrders(allOrders);
     } catch (error) {
       console.error('Error fetching recharge orders:', error);
+      recordClientError({ label: "RechargeHistory.allOrders", message: error instanceof Error ? error.message : String(error) });
     } finally {
       setLoading(false);
     }

@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { LevelBadge } from "@/components/common/LevelBadge";
 import { useFeatureLevelCheck } from "@/hooks/useFeatureLevelCheck";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface PartyRoom {
   id: string;
@@ -220,6 +221,7 @@ const Discover = () => {
       setLastUpdate(new Date());
     } catch (error) {
       console.error('Error fetching rooms:', error);
+      recordClientError({ label: "Discover.visibleRooms", message: error instanceof Error ? error.message : String(error) });
     } finally {
       if (!initialLoadComplete) {
         setInitialLoadComplete(true);

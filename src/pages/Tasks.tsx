@@ -13,6 +13,7 @@ import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { updateCachedBalance } from "@/hooks/useUserBalance";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 import { PLAY_STORE_URL } from "@/utils/shareLinks";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface DailyTask {
   id: string;
@@ -115,6 +116,7 @@ const Tasks = () => {
 
         if (ratingClaimsError) {
           console.error('Failed to check rating claim status:', ratingClaimsError);
+          recordClientError({ label: "Tasks.hostStatus", message: ratingClaimsError instanceof Error ? ratingClaimsError.message : String(ratingClaimsError) });
         } else if ((ratingClaims?.length ?? 0) > 0) {
           const claimStatus = ratingClaims![0].status;
           // Any existing claim (pending/approved/rejected) = hide task permanently
@@ -140,6 +142,7 @@ const Tasks = () => {
         await fetchTasks(eligible, hostStatus);
       } catch (error) {
         console.error('[Tasks] Init error:', error);
+        recordClientError({ label: "Tasks.claimStatus", message: error instanceof Error ? error.message : String(error) });
         setLoading(false);
       }
     };
@@ -228,6 +231,7 @@ const Tasks = () => {
       return true;
     } catch (error) {
       console.error('Error fetching new host bonus:', error);
+      recordClientError({ label: "Tasks.today", message: error instanceof Error ? error.message : String(error) });
       return false;
     }
   };
@@ -288,6 +292,7 @@ const Tasks = () => {
       }
     } catch (error) {
       console.error('Error fetching tasks:', error);
+      recordClientError({ label: "Tasks.progressMap", message: error instanceof Error ? error.message : String(error) });
     } finally {
       setLoading(false);
     }
@@ -341,6 +346,7 @@ const Tasks = () => {
       toast.success(`🎉 Reward claimed! +${earnedBeans} Beans, +${earnedCoins} Diamonds`);
     } catch (error) {
       console.error('Error claiming reward:', error);
+      recordClientError({ label: "Tasks.earnedCoins", message: error instanceof Error ? error.message : String(error) });
       toast.error("Failed to claim reward");
     } finally {
       setClaimingTask(null);
@@ -410,6 +416,7 @@ const Tasks = () => {
       toast.success('Screenshot submitted! Reward will be credited after admin approval.');
     } catch (err: any) {
       console.error('Rating upload error:', err);
+      recordClientError({ label: "Tasks.path", message: err instanceof Error ? err.message : String(err) });
       toast.error('Failed to upload screenshot');
     } finally {
       setRatingUploading(false);

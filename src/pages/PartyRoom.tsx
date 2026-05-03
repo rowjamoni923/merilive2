@@ -88,6 +88,7 @@ import { useFeatureLevelCheck } from "@/hooks/useFeatureLevelCheck";
 import { useDeepARBeauty } from "@/hooks/useDeepARBeauty";
 import { BeautyFilterPanel } from "@/components/live/BeautyFilterPanel";
 import StickerOverlay from "@/components/live/StickerOverlay";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface PartyRoom {
   id: string;
@@ -373,6 +374,7 @@ const PartyRoom = () => {
         }
       } catch (err) {
         console.error('[PartyRoom] Exception fetching settings:', err);
+        recordClientError({ label: "PartyRoom.limits", message: err instanceof Error ? err.message : String(err) });
       }
     };
     
@@ -438,6 +440,7 @@ const PartyRoom = () => {
         }
       } catch (err) {
         console.error('[PartyRoom] Error fetching background:', err);
+        recordClientError({ label: "PartyRoom.fetchBackground", message: err instanceof Error ? err.message : String(err) });
       }
     };
     
@@ -497,6 +500,7 @@ const PartyRoom = () => {
 
         if (error) {
           console.error('[PartyRoom] Error fetching beans:', error);
+          recordClientError({ label: "PartyRoom.fetchTotalBeans", message: error instanceof Error ? error.message : String(error) });
           return;
         }
 
@@ -521,6 +525,7 @@ const PartyRoom = () => {
         }
       } catch (err) {
         console.error('[PartyRoom] Exception fetching beans:', err);
+        recordClientError({ label: "PartyRoom.perUser", message: err instanceof Error ? err.message : String(err) });
       }
     };
 
@@ -614,6 +619,7 @@ const PartyRoom = () => {
       navigate('/');
     } catch (error) {
       console.error('[PartyRoom] Error auto-closing room:', error);
+      recordClientError({ label: "PartyRoom.handleSilenceTimeout", message: error instanceof Error ? error.message : String(error) });
     }
   }, [isHost, roomId, cleanupWebRTC, navigate]);
 
@@ -733,6 +739,7 @@ const PartyRoom = () => {
         if (isMountedRef.current) setLoading(false);
       } catch (error) {
         console.error('Error initializing room:', error);
+        recordClientError({ label: "PartyRoom.result", message: error instanceof Error ? error.message : String(error) });
         if (isMountedRef.current) navigate(-1);
       }
     };
@@ -1292,6 +1299,7 @@ const PartyRoom = () => {
         }
       } catch (err) {
         console.error('[PartyRoom] Poll error:', err);
+        recordClientError({ label: "PartyRoom.isHostNow", message: err instanceof Error ? err.message : String(err) });
       }
     };
     
@@ -1324,6 +1332,7 @@ const PartyRoom = () => {
 
     if (error) {
       console.error('[PartyRoom] ❌ Error fetching participants:', error);
+      recordClientError({ label: "PartyRoom.currentRoomId", message: error instanceof Error ? error.message : String(error) });
       return;
     }
 
@@ -1371,6 +1380,7 @@ const PartyRoom = () => {
 
     if (error) {
       console.error('[PartyRoom] ❌ Error fetching seat requests:', error);
+      recordClientError({ label: "PartyRoom.currentRoomId", message: error instanceof Error ? error.message : String(error) });
       return;
     }
 
@@ -1514,6 +1524,7 @@ const PartyRoom = () => {
       await fetchParticipants();
     } catch (error) {
       console.error('Error joining room:', error);
+      recordClientError({ label: "PartyRoom.joinBroadcastChannel", message: error instanceof Error ? error.message : String(error) });
     }
   };
 
@@ -1578,6 +1589,7 @@ const PartyRoom = () => {
         
         if (updateError) {
           console.error('[PartyRoom] Error setting is_active: false -', updateError);
+          recordClientError({ label: "PartyRoom.closeChannel", message: updateError instanceof Error ? updateError.message : String(updateError) });
         } else {
           console.log('[PartyRoom] Successfully set is_active: false for room:', roomId);
         }
@@ -1609,6 +1621,7 @@ const PartyRoom = () => {
         .eq('status', 'pending');
     } catch (error) {
       console.error('Error leaving room:', error);
+      recordClientError({ label: "PartyRoom.closeChannel", message: error instanceof Error ? error.message : String(error) });
     }
   };
 
@@ -1635,6 +1648,7 @@ const PartyRoom = () => {
 
         if (seatError) {
           console.error('[PartyRoom] Host seat assignment error:', seatError);
+          recordClientError({ label: "PartyRoom.seatTaken", message: seatError instanceof Error ? seatError.message : String(seatError) });
           toast.error("Failed to join seat");
           return;
         }
@@ -1652,6 +1666,7 @@ const PartyRoom = () => {
         return;
       } catch (error) {
         console.error('[PartyRoom] Host seat error:', error);
+        recordClientError({ label: "PartyRoom.seatTaken", message: error instanceof Error ? error.message : String(error) });
         toast.error("Failed to join seat");
         return;
       }
@@ -1685,6 +1700,7 @@ const PartyRoom = () => {
 
       if (error) {
         console.error('[PartyRoom] Seat request insert error:', error);
+        recordClientError({ label: "PartyRoom.seatTaken", message: error instanceof Error ? error.message : String(error) });
         toast.error("Failed to send seat request. Please try again.");
         return;
       }
@@ -1725,6 +1741,7 @@ const PartyRoom = () => {
       await fetchSeatRequests();
     } catch (error) {
       console.error('Error requesting seat:', error);
+      recordClientError({ label: "PartyRoom.broadcastChannel", message: error instanceof Error ? error.message : String(error) });
       toast.error("Failed to send seat request");
     }
   };
@@ -1784,6 +1801,7 @@ const PartyRoom = () => {
 
       if (seatError) {
         console.error('[PartyRoom] ❌ Error assigning seat:', seatError);
+        recordClientError({ label: "PartyRoom.approveSeatRequest", message: seatError instanceof Error ? seatError.message : String(seatError) });
         toast.error('Failed to assign seat');
         await fetchSeatRequests();
         await fetchParticipants();
@@ -1800,6 +1818,7 @@ const PartyRoom = () => {
 
       if (updateError) {
         console.error('[PartyRoom] ⚠️ Error updating seat request status (seat already assigned):', updateError);
+        recordClientError({ label: "PartyRoom.approveSeatRequest", message: updateError instanceof Error ? updateError.message : String(updateError) });
       }
 
       // STEP 3: Send INSTANT broadcast notification to the requester
@@ -1828,6 +1847,7 @@ const PartyRoom = () => {
 
     } catch (error) {
       console.error('Error approving seat:', error);
+      recordClientError({ label: "PartyRoom.broadcastChannel", message: error instanceof Error ? error.message : String(error) });
       // Revert on error
       await fetchSeatRequests();
       await fetchParticipants();
@@ -1852,6 +1872,7 @@ const PartyRoom = () => {
 
       if (error) {
         console.error('[PartyRoom] Error rejecting seat request:', error);
+        recordClientError({ label: "PartyRoom.rejectSeatRequest", message: error instanceof Error ? error.message : String(error) });
         await fetchSeatRequests();
         return;
       }
@@ -1877,6 +1898,7 @@ const PartyRoom = () => {
 
     } catch (error) {
       console.error('Error rejecting seat:', error);
+      recordClientError({ label: "PartyRoom.broadcastChannel", message: error instanceof Error ? error.message : String(error) });
       await fetchSeatRequests();
     }
   };
@@ -1902,6 +1924,7 @@ const PartyRoom = () => {
       setSelectedParticipant(null);
     } catch (error) {
       console.error('Error promoting user:', error);
+      recordClientError({ label: "PartyRoom.promoteToAdmin", message: error instanceof Error ? error.message : String(error) });
       toast.error("Failed to promote user");
     }
   };
@@ -1922,6 +1945,7 @@ const PartyRoom = () => {
       setSelectedParticipant(null);
     } catch (error) {
       console.error('Error demoting user:', error);
+      recordClientError({ label: "PartyRoom.demoteFromAdmin", message: error instanceof Error ? error.message : String(error) });
       toast.error("Failed to demote user");
     }
   };
@@ -1983,6 +2007,7 @@ const PartyRoom = () => {
       console.log('[PartyRoom] ✅ User kicked successfully');
     } catch (error) {
       console.error('Error kicking user:', error);
+      recordClientError({ label: "PartyRoom.rank", message: error instanceof Error ? error.message : String(error) });
       toast.error("Failed to remove user");
     }
   };
@@ -2405,6 +2430,7 @@ const PartyRoom = () => {
                   }
                 } catch (err) {
                   console.error('[PartyGift] Background processing error:', err);
+                  recordClientError({ label: "PartyRoom.giftChatMessage", message: err instanceof Error ? err.message : String(err) });
                   // Refund coins on complete failure
                   setUserCoins(prev => prev + totalCost);
                   toast.error("Gift failed - diamonds refunded");

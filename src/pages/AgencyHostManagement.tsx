@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface HostProfile {
   id: string;
@@ -145,6 +146,7 @@ const AgencyHostManagement = () => {
       setPendingHosts(allHosts.filter(h => h.status === 'pending'));
     } catch (error) {
       console.error('[AgencyHostManagement] Error fetching data:', error);
+      recordClientError({ label: "AgencyHostManagement.allHosts", message: error instanceof Error ? error.message : String(error) });
     } finally {
       setLoading(false);
     }

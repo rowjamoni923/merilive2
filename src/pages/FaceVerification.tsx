@@ -44,6 +44,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNativeCameraPermission } from "@/hooks/useNativeCameraPermission";
 import { hydrateProfileVerificationState } from "@/utils/profileVerification";
 import { useRefreshOnResume } from "@/hooks/useAppResumeHandler";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 const languages = [
   { code: "bn", name: "Bengali", flag: "🇧🇩" },
@@ -459,6 +460,7 @@ const FaceVerification = () => {
       
       if (error) {
         console.error('Face check error:', error);
+        recordClientError({ label: "FaceVerification.checkExistingFace", message: error instanceof Error ? error.message : String(error) });
         return false;
       }
       
@@ -477,6 +479,7 @@ const FaceVerification = () => {
       return false;
     } catch (err) {
       console.error('Error checking existing face:', err);
+      recordClientError({ label: "FaceVerification.checkExistingFace", message: err instanceof Error ? err.message : String(err) });
       return false;
     }
   };
@@ -492,6 +495,7 @@ const FaceVerification = () => {
       });
     } catch (banErr) {
       console.error('Duplicate face ban RPC failed:', banErr);
+      recordClientError({ label: "FaceVerification.enforceDuplicateFaceBan", message: banErr instanceof Error ? banErr.message : String(banErr) });
     }
 
     toast({
@@ -714,6 +718,7 @@ const FaceVerification = () => {
       
     } catch (error: any) {
       console.error('Recording error:', error);
+      recordClientError({ label: "FaceVerification.timer", message: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Camera access failed",
         description: error.message || "Please grant camera permission and try again",
@@ -753,6 +758,7 @@ const FaceVerification = () => {
       attachFacePreviewStream(stream);
     } catch (error: any) {
       console.error('Face camera error:', error);
+      recordClientError({ label: "FaceVerification.stream", message: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Camera access failed",
         description: error.message || "Please grant camera permission from settings.",
@@ -781,6 +787,7 @@ const FaceVerification = () => {
       };
     } catch (err) {
       console.error('[FaceVerify] Pose check error:', err);
+      recordClientError({ label: "FaceVerification.response", message: err instanceof Error ? err.message : String(err) });
       return null;
     }
   };
@@ -843,6 +850,7 @@ const FaceVerification = () => {
       
     } catch (error) {
       console.error('Face recording error:', error);
+      recordClientError({ label: "FaceVerification.allDone", message: error instanceof Error ? error.message : String(error) });
       toast({ title: "Recording failed", description: "Please try again", variant: "destructive" });
       setVerificationStarted(false);
       setVerificationRecording(false);
@@ -1014,6 +1022,7 @@ const FaceVerification = () => {
     
     if (error) {
       console.error('Upload error:', error);
+      recordClientError({ label: "FaceVerification.fileName", message: error instanceof Error ? error.message : String(error) });
       return null;
     }
     
@@ -1119,6 +1128,7 @@ const FaceVerification = () => {
         }
       } catch (err) {
         console.error('Face duplicate check error:', err);
+        recordClientError({ label: "FaceVerification.existingName", message: err instanceof Error ? err.message : String(err) });
       }
 
       // Save face hash to profile
@@ -1302,6 +1312,7 @@ const FaceVerification = () => {
         }
       } catch (err) {
         console.error('Face duplicate check error:', err);
+        recordClientError({ label: "FaceVerification.faceHash", message: err instanceof Error ? err.message : String(err) });
       }
       
       const profilePhotoUrl = photoFile ? await uploadFile(photoFile, 'photos') : null;

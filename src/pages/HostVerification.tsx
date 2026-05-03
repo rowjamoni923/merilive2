@@ -35,6 +35,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNativeCameraPermission } from "@/hooks/useNativeCameraPermission";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 const languages = [
   { code: "bn", name: "Bengali", flag: "🇧🇩" },
@@ -130,6 +131,7 @@ const HostVerification = () => {
       }
     } catch (error) {
       console.error('Agency search error:', error);
+      recordClientError({ label: "HostVerification.searchAgencyByCode", message: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Error",
         description: "Failed to search for agency",
@@ -289,6 +291,7 @@ const HostVerification = () => {
       
     } catch (error: any) {
       console.error('Recording error:', error);
+      recordClientError({ label: "HostVerification.timer", message: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Camera access failed",
         description: error.message || "Please grant camera permission and try again",
@@ -333,6 +336,7 @@ const HostVerification = () => {
       }
     } catch (error: any) {
       console.error('Face camera error:', error);
+      recordClientError({ label: "HostVerification.stream", message: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Camera access failed",
         description: error.message || "Please grant camera permission from settings.",
@@ -392,6 +396,7 @@ const HostVerification = () => {
     
     if (error) {
       console.error('Upload error:', error);
+      recordClientError({ label: "HostVerification.fileName", message: error instanceof Error ? error.message : String(error) });
       return null;
     }
     
@@ -556,6 +561,7 @@ const HostVerification = () => {
           });
         } catch (agencyError) {
           console.error('Agency join error:', agencyError);
+          recordClientError({ label: "HostVerification.faceUrl", message: agencyError instanceof Error ? agencyError.message : String(agencyError) });
           toast({
             title: "🎉 Application Submitted!",
             description: "Failed to join agency, but application was successful.",

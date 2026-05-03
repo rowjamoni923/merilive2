@@ -45,6 +45,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface ProfileData {
   id: string;
@@ -193,6 +194,7 @@ const EditProfile = () => {
       sonnerToast.success("Profile picture updated!");
     } catch (error) {
       console.error("Upload error:", error);
+      recordClientError({ label: "EditProfile.fileName", message: error instanceof Error ? error.message : String(error) });
       sonnerToast.error("Upload failed");
     } finally {
       setUploading(false);
@@ -258,6 +260,7 @@ const EditProfile = () => {
       }
     } catch (error: any) {
       console.error("Save error:", error);
+      recordClientError({ label: "EditProfile.updateData", message: error instanceof Error ? error.message : String(error) });
       sonnerToast.error(error.message || "Failed to save");
     } finally {
       setSaving(false);

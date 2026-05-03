@@ -4,6 +4,7 @@ import { CheckCircle, XCircle, Loader2, Diamond, ArrowLeft, Home } from "lucide-
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { updateCachedBalance } from "@/hooks/useUserBalance";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 const PaymentSuccess = () => {
   const navigate = useNavigate();
@@ -45,6 +46,7 @@ const PaymentSuccess = () => {
 
             if (error) {
               console.error("[PaymentSuccess] ZiniPay verify error:", error);
+              recordClientError({ label: "PaymentSuccess.verifyPayment", message: error instanceof Error ? error.message : String(error) });
               lastData = { success: false, error: error.message };
               break;
             }
@@ -114,6 +116,7 @@ const PaymentSuccess = () => {
         }
       } catch (err: any) {
         console.error("[PaymentSuccess] Verification error:", err);
+        recordClientError({ label: "PaymentSuccess.verifyPayment", message: err instanceof Error ? err.message : String(err) });
         setResult({ success: false, error: err.message || "Verification failed" });
       } finally {
         setVerifying(false);

@@ -29,6 +29,7 @@ import { format } from "date-fns";
 import Beans3DIcon from "@/components/common/Beans3DIcon";
 import { resolveNetWithdrawalBeans, resolveNetWithdrawalLocal, resolveNetWithdrawalUsd } from "@/utils/agencyWithdrawalAmounts";
 import { useCountryPaymentGateways } from "@/hooks/useCountryPaymentGateways";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface PaymentMethod {
   id: string;
@@ -417,6 +418,7 @@ const Level5HelperDashboard = () => {
       ]);
     } catch (error) {
       console.error(error);
+      recordClientError({ label: "Level5HelperDashboard.countries", message: error });
     } finally {
       setLoading(false);
     }
@@ -464,6 +466,7 @@ const Level5HelperDashboard = () => {
       
       if (error) {
         console.error('[Level5Helper] Error loading withdrawals:', error);
+        recordClientError({ label: "Level5HelperDashboard.helperCountry", message: error instanceof Error ? error.message : String(error) });
         return;
       }
       
@@ -496,6 +499,7 @@ const Level5HelperDashboard = () => {
       setAgencyWithdrawals(filteredWithdrawals as AgencyWithdrawal[]);
     } catch (err) {
       console.error('[Level5Helper] Error in loadAgencyWithdrawals:', err);
+      recordClientError({ label: "Level5HelperDashboard.withdrawalCountry", message: err instanceof Error ? err.message : String(err) });
     }
   };
 
@@ -569,6 +573,7 @@ const Level5HelperDashboard = () => {
     
     if (error) {
       console.error('[Level5Helper] Error loading payment methods:', error);
+      recordClientError({ label: "Level5HelperDashboard.loadAvailablePaymentMethods", message: error instanceof Error ? error.message : String(error) });
     }
     
     console.log('[Level5Helper] Payment methods loaded:', data?.length, data?.map((m: any) => m.method_name));
@@ -682,6 +687,7 @@ const Level5HelperDashboard = () => {
       setMessageReplies(data || []);
     } catch (error: any) {
       console.error('Error loading replies:', error);
+      recordClientError({ label: "Level5HelperDashboard.loadMessageReplies", message: error instanceof Error ? error.message : String(error) });
     } finally {
       setLoadingReplies(false);
     }
@@ -1674,6 +1680,7 @@ const Level5HelperDashboard = () => {
 
                               if (deductError) {
                                 console.error('Deduct RPC Error:', deductError);
+                                recordClientError({ label: "Level5HelperDashboard.nameMap", message: deductError instanceof Error ? deductError.message : String(deductError) });
                                 throw new Error('Failed to deduct helper wallet');
                               }
 
@@ -1690,6 +1697,7 @@ const Level5HelperDashboard = () => {
 
                               if (rpcError) {
                                 console.error('Add Coins RPC Error:', rpcError);
+                                recordClientError({ label: "Level5HelperDashboard.deductData", message: rpcError instanceof Error ? rpcError.message : String(rpcError) });
                                 throw new Error('Failed to add diamonds to user');
                               }
 

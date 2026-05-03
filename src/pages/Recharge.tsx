@@ -19,6 +19,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Capacitor } from "@capacitor/core";
 import playStoreBilling, { PLAY_STORE_PRODUCTS } from "@/sdk/PlayStoreBillingSDK";
 import { useUserBalance, updateCachedBalance } from "@/hooks/useUserBalance";
+import { recordClientError } from "@/utils/clientErrorLog";
 import {
   Dialog,
   DialogContent,
@@ -219,6 +220,7 @@ const Recharge = () => {
         }
       } catch (err) {
         console.error('[Recharge] Failed to fetch international rates:', err);
+        recordClientError({ label: "Recharge.data", message: err instanceof Error ? err.message : String(err) });
       }
     };
     fetchInternationalRates();
@@ -432,6 +434,7 @@ const Recharge = () => {
 
       if (legacyMethodsError) {
         console.error('[Recharge] Error fetching legacy payment methods:', legacyMethodsError);
+        recordClientError({ label: "Recharge.GLOBAL_METHOD_TYPES", message: legacyMethodsError instanceof Error ? legacyMethodsError.message : String(legacyMethodsError) });
       }
 
       // FETCH 2: helper_country_payment_methods using actual schema (include helper_id, account info, logo)
@@ -459,6 +462,7 @@ const Recharge = () => {
 
       if (countryMethodsError) {
         console.error('[Recharge] Error fetching country payment methods:', countryMethodsError);
+        recordClientError({ label: "Recharge.GLOBAL_METHOD_TYPES", message: countryMethodsError instanceof Error ? countryMethodsError.message : String(countryMethodsError) });
       }
 
       // FETCH 3: Global/Crypto methods from ALL countries (show everywhere)
@@ -481,6 +485,7 @@ const Recharge = () => {
 
       if (globalMethodsError) {
         console.error('[Recharge] Error fetching global payment methods:', globalMethodsError);
+        recordClientError({ label: "Recharge.GLOBAL_METHOD_TYPES", message: globalMethodsError instanceof Error ? globalMethodsError.message : String(globalMethodsError) });
       }
 
       // Combine both arrays - transform to common format
@@ -614,6 +619,7 @@ const Recharge = () => {
 
       if (helpersError) {
         console.error('[Recharge] Error fetching helpers:', helpersError);
+        recordClientError({ label: "Recharge.helperIds", message: helpersError instanceof Error ? helpersError.message : String(helpersError) });
         return;
       }
 
@@ -634,6 +640,7 @@ const Recharge = () => {
 
       if (profilesResult.error) {
         console.error('[Recharge] Error fetching profiles:', profilesResult.error);
+        recordClientError({ label: "Recharge.userIds", message: profilesResult.error instanceof Error ? profilesResult.error.message : String(profilesResult.error) });
       }
 
       // Create lookup maps
@@ -772,6 +779,7 @@ const Recharge = () => {
       setHelperPaymentMethods(shuffled as Level5HelperPaymentMethod[]);
     } catch (error) {
       console.error('Error fetching level 5 helper payment methods:', error);
+      recordClientError({ label: "Recharge.key", message: error instanceof Error ? error.message : String(error) });
     }
   }, [userCountryCode]);
 
@@ -792,6 +800,7 @@ const Recharge = () => {
 
       if (error) {
         console.error('[Recharge] Error fetching admin payment methods:', error);
+        recordClientError({ label: "Recharge.fetchAdminPaymentMethods", message: error instanceof Error ? error.message : String(error) });
         return;
       }
 
@@ -799,6 +808,7 @@ const Recharge = () => {
       setAdminPaymentMethods(data || []);
     } catch (error) {
       console.error('[Recharge] Error fetching admin payment methods:', error);
+      recordClientError({ label: "Recharge.fetchAdminPaymentMethods", message: error instanceof Error ? error.message : String(error) });
     }
   }, []);
 
@@ -848,6 +858,7 @@ const Recharge = () => {
         }
       }).catch(err => {
         console.error('[Recharge] ❌ Play Store Billing error:', err);
+        recordClientError({ label: "Recharge.errorMsg", message: err instanceof Error ? err.message : String(err) });
         const errorMsg = err?.message || err?.toString() || 'Unknown error';
         toast({
           title: "❌ Play Store Error",
@@ -889,6 +900,7 @@ const Recharge = () => {
 
       if (error) {
         console.error('Error fetching helpers:', error);
+        recordClientError({ label: "Recharge.fetchTopUpHelpers", message: error instanceof Error ? error.message : String(error) });
         return;
       }
 
@@ -966,6 +978,7 @@ const Recharge = () => {
       }
     } catch (error) {
       console.error('Error fetching helpers:', error);
+      recordClientError({ label: "Recharge.arr", message: error instanceof Error ? error.message : String(error) });
     }
   }, [userCountryCode]);
 
@@ -1188,6 +1201,7 @@ const Recharge = () => {
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
+      recordClientError({ label: "Recharge.user", message: error instanceof Error ? error.message : String(error) });
     } finally {
       setLoading(false);
     }
@@ -1220,6 +1234,7 @@ const Recharge = () => {
       setGateways(mappedGateways);
     } catch (error) {
       console.error('Error fetching gateways:', error);
+      recordClientError({ label: "Recharge.mappedGateways", message: error instanceof Error ? error.message : String(error) });
     }
   };
 
@@ -1314,6 +1329,7 @@ const Recharge = () => {
       });
     } catch (error: any) {
       console.error('Upload error:', error);
+      recordClientError({ label: "Recharge.filePath", message: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Upload Failed",
         description: "Could not upload payment proof. Try again.",
@@ -1371,6 +1387,7 @@ const Recharge = () => {
       }
     } catch (error: any) {
       console.error('[Recharge] Play Store purchase error:', error);
+      recordClientError({ label: "Recharge.result", message: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Purchase Error",
         description: error.message || "An error occurred during purchase",
@@ -1412,6 +1429,7 @@ const Recharge = () => {
       }
     } catch (error: any) {
       console.error("[Recharge] Stripe error:", error);
+      recordClientError({ label: "Recharge.handleStripePurchase", message: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Payment Error",
         description: error.message || "Could not start Stripe payment",
@@ -1566,6 +1584,7 @@ const Recharge = () => {
 
         if (deductError) {
           console.error('Failed to deduct from helper:', deductError);
+          recordClientError({ label: "Recharge.helper", message: deductError instanceof Error ? deductError.message : String(deductError) });
           throw new Error('Failed to deduct diamonds from merchant');
         }
 
@@ -1590,10 +1609,12 @@ const Recharge = () => {
 
         if (addError) {
           console.error('Failed to add to user:', addError);
+          recordClientError({ label: "Recharge.totalCoinsToAdd", message: addError instanceof Error ? addError.message : String(addError) });
         }
         const addData = addResult as any;
         if (addData && addData.success === false) {
           console.error('Add coins failed:', addData.error);
+          recordClientError({ label: "Recharge.addData", message: addData.error instanceof Error ? addData.error.message : String(addData.error) });
         }
 
         // If first recharge, record the claim
@@ -1690,6 +1711,7 @@ const Recharge = () => {
 
     } catch (error: any) {
       console.error('Payment error:', error);
+      recordClientError({ label: "Recharge.addData", message: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Payment Failed",
         description: error.message || "Could not process payment. Please try again.",
@@ -1738,6 +1760,7 @@ const Recharge = () => {
       });
     } catch (error: any) {
       console.error('Upload error:', error);
+      recordClientError({ label: "Recharge.filePath", message: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Upload Failed",
         description: "Could not upload payment proof. Try again.",
@@ -1886,6 +1909,7 @@ const Recharge = () => {
 
     } catch (error: any) {
       console.error('Helper payment error:', error);
+      recordClientError({ label: "Recharge.pollInterval", message: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Payment Failed",
         description: error.message || "Could not process payment. Please try again.",
@@ -2600,6 +2624,7 @@ const Recharge = () => {
                           setPlayStoreProcessing(false);
                         }).catch(err => {
                           console.error('[Recharge] Play Store purchase error:', err);
+                          recordClientError({ label: "Recharge.productId", message: err instanceof Error ? err.message : String(err) });
                           toast({
                             title: "Purchase Error",
                             description: err.message || "An error occurred during purchase",
@@ -2659,6 +2684,7 @@ const Recharge = () => {
                       setStripeProcessing(false);
                     }).catch(err => {
                       console.error('[Recharge] Stripe error:', err);
+                      recordClientError({ label: "Recharge.isAndroid", message: err instanceof Error ? err.message : String(err) });
                       toast({ title: "Payment Error", description: err.message, variant: "destructive" });
                       setStripeProcessing(false);
                     });
@@ -2709,6 +2735,7 @@ const Recharge = () => {
                             setStripeProcessing(false);
                           }).catch(err => {
                             console.error('[Recharge] Gateway payment error:', err);
+                            recordClientError({ label: "Recharge.edgeFn", message: err instanceof Error ? err.message : String(err) });
                             toast({ title: "Payment Error", description: err.message, variant: "destructive" });
                             setStripeProcessing(false);
                           });

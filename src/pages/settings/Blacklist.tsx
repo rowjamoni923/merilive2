@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { recordClientError } from "@/utils/clientErrorLog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -79,6 +80,7 @@ const Blacklist = () => {
       }
     } catch (error) {
       console.error("Error fetching blocked users:", error);
+      recordClientError({ label: "Blacklist.profileMap", message: error instanceof Error ? error.message : String(error) });
     } finally {
       setLoading(false);
     }

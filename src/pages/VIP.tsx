@@ -36,6 +36,7 @@ import { clearFrameCache } from "@/components/common/AvatarWithFrame";
 import useExpiredItemsRestorer from "@/hooks/useExpiredItemsRestorer";
 import { resolveLevelFromTiers } from "@/utils/levelResolver";
 import VipNobleSection from "@/components/vip/VipNobleSection";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface VIPTier {
   id: string;
@@ -697,6 +698,7 @@ const VIP = () => {
       setUserPrivileges(visiblePrivileges);
     } catch (error) {
       console.error("Error fetching VIP data:", error);
+      recordClientError({ label: "VIP.visiblePrivileges", message: error instanceof Error ? error.message : String(error) });
     } finally {
       setLoading(false);
     }
@@ -792,6 +794,7 @@ const VIP = () => {
       fetchData();
     } catch (error: any) {
       console.error("Error purchasing VIP:", error);
+      recordClientError({ label: "VIP.rpcResult", message: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Purchase Failed",
         description: error.message || "Failed to activate VIP. Please try again.",
@@ -812,6 +815,7 @@ const VIP = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         console.error('[VIP] No user found');
+        recordClientError({ label: "VIP.handleEquip", message: '[VIP] No user found' });
         return;
       }
 
@@ -869,6 +873,7 @@ const VIP = () => {
 
           if (unequipError) {
             console.error('[VIP] Error unequipping shop items:', unequipError);
+            recordClientError({ label: "VIP.pCategory", message: unequipError instanceof Error ? unequipError.message : String(unequipError) });
           }
         }
 
@@ -880,6 +885,7 @@ const VIP = () => {
 
         if (equipError) {
           console.error('[VIP] Error equipping shop item:', equipError);
+          recordClientError({ label: "VIP.pCategory", message: equipError instanceof Error ? equipError.message : String(equipError) });
         }
       }
 
@@ -892,6 +898,7 @@ const VIP = () => {
 
         if (unequipError) {
           console.error('[VIP] Error unequipping admin-assigned frames:', unequipError);
+          recordClientError({ label: "VIP.pCategory", message: unequipError instanceof Error ? unequipError.message : String(unequipError) });
         }
       }
 
@@ -905,6 +912,7 @@ const VIP = () => {
 
         if (equipError) {
           console.error('[VIP] Error equipping admin-assigned frame:', equipError);
+          recordClientError({ label: "VIP.pCategory", message: equipError instanceof Error ? equipError.message : String(equipError) });
         }
       }
 
@@ -946,6 +954,7 @@ const VIP = () => {
 
         if (profileError) {
           console.error('[VIP] Error updating profile:', profileError);
+          recordClientError({ label: "VIP.updateData", message: profileError instanceof Error ? profileError.message : String(profileError) });
           toast({
             title: "Failed to Equip",
             description: profileError.message,
@@ -983,6 +992,7 @@ const VIP = () => {
       void fetchData();
     } catch (error: any) {
       console.error("[VIP] Error equipping:", error);
+      recordClientError({ label: "VIP.updateData", message: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Failed to Equip",
         description: error.message,

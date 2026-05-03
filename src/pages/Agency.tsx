@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface CommissionTier {
   id: string;
@@ -130,6 +131,7 @@ const Agency = () => {
         }
       } catch (error) {
         console.error('[Agency] Error fetching data:', error);
+        recordClientError({ label: "Agency.user", message: error instanceof Error ? error.message : String(error) });
       } finally {
         setLoading(false);
       }

@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface AgencyInfo {
   id: string;
@@ -124,6 +125,7 @@ const JoinAgency = () => {
       }
     } catch (error) {
       console.error('[JoinAgency] Error checking user:', error);
+      recordClientError({ label: "JoinAgency.codeFromUrl", message: error instanceof Error ? error.message : String(error) });
     } finally {
       setLoading(false);
     }
@@ -169,6 +171,7 @@ const JoinAgency = () => {
       }
     } catch (error) {
       console.error("Search error:", error);
+      recordClientError({ label: "JoinAgency.agencyData", message: error instanceof Error ? error.message : String(error) });
       setAgencyNotFound(true);
     } finally {
       setSearching(false);

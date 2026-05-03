@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
 import { getPersistentDeviceId } from '@/utils/persistentDeviceId';
 import { Capacitor } from '@capacitor/core';
+import { recordClientError } from "@/utils/clientErrorLog";
 
 /**
  * OAuth Callback Handler
@@ -47,6 +48,7 @@ const AuthCallback = () => {
         
         if (sessionError) {
           console.error('Session error:', sessionError);
+          recordClientError({ label: "AuthCallback.error", message: sessionError instanceof Error ? sessionError.message : String(sessionError) });
           setStatus('error');
           setMessage('Failed to create session. Please try again.');
           setTimeout(() => navigate('/auth'), 2000);
@@ -90,6 +92,7 @@ const AuthCallback = () => {
                 });
               } catch (notifErr) {
                 console.error('[AuthCallback] Failed to create admin notice:', notifErr);
+                recordClientError({ label: "AuthCallback.error", message: notifErr instanceof Error ? notifErr.message : String(notifErr) });
               }
               
               localStorage.setItem('meri_manual_logout', 'true');
@@ -169,6 +172,7 @@ const AuthCallback = () => {
                   }
                 } catch (invErr) {
                   console.error('[AuthCallback] Error tracking invitation:', invErr);
+                  recordClientError({ label: "AuthCallback.inviterRef", message: invErr instanceof Error ? invErr.message : String(invErr) });
                 }
               }
 
@@ -184,6 +188,7 @@ const AuthCallback = () => {
               }
             } catch (e) {
               console.error('Error handling pending registration:', e);
+              recordClientError({ label: "AuthCallback.pendingReferral", message: e instanceof Error ? e.message : String(e) });
             }
           } else if (deviceId) {
             // Even without pending data, link device_id to existing profile if not set
@@ -225,6 +230,7 @@ const AuthCallback = () => {
         }
       } catch (err) {
         console.error('Auth callback error:', err);
+        recordClientError({ label: "AuthCallback.checkSession", message: err instanceof Error ? err.message : String(err) });
         setStatus('error');
         setMessage('Something went wrong. Please try again.');
         setTimeout(() => navigate('/auth'), 2000);

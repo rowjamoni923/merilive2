@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Users, Flame } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { preloadAllStreams, cleanupAllPreloaded, isStreamPreloaded } from "@/services/liveStreamPreloader";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface LiveStream {
   id: string;
@@ -117,6 +118,7 @@ const Live = () => {
       }
     } catch (error) {
       console.error('Error fetching live streams:', error);
+      recordClientError({ label: "Live.startPreload", message: error instanceof Error ? error.message : String(error) });
     } finally {
       setLoading(false);
     }

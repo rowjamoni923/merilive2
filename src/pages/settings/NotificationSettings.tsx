@@ -4,6 +4,7 @@ import { ArrowLeft, Bell, Gift, Phone, Users, Video, Coins, Award, Shield, Build
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface NotificationCategory {
   key: string;
@@ -97,6 +98,7 @@ export default function NotificationSettings() {
 
     if (error) {
       console.error('Failed to update preference:', error);
+      recordClientError({ label: "NotificationSettings.updated", message: error instanceof Error ? error.message : String(error) });
       toast({ title: 'Error', description: 'Failed to save preference', variant: 'destructive' });
     }
   };
@@ -119,6 +121,7 @@ export default function NotificationSettings() {
     const { error } = await supabase.from('notification_preferences').upsert(updates, { onConflict: 'user_id,category' });
     if (error) {
       console.error('Failed to update sound:', error);
+      recordClientError({ label: "NotificationSettings.updates", message: error instanceof Error ? error.message : String(error) });
     } else {
       setPrefs(prev => {
         const next = { ...prev };

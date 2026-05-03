@@ -68,6 +68,7 @@ import HelperApplicationForm from "@/components/helper/HelperApplicationForm";
 import SubAgentsPanel from "@/components/agency/SubAgentsPanel";
 import PayrollHelperWelcomeModal from "@/components/agency/PayrollHelperWelcomeModal";
 import { formatNumber as formatNum } from "@/utils/formatNumber";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 // Helper for formatting numbers with English numerals
 const fmtNum = (num: number | null | undefined) => formatNum(num);
@@ -295,6 +296,7 @@ const AgencyDashboard = () => {
 
         if (agencyError) {
           console.error('[AgencyDashboard] Error fetching agency:', agencyError);
+          recordClientError({ label: "AgencyDashboard.user", message: agencyError instanceof Error ? agencyError.message : String(agencyError) });
         }
         if (!agencyData) {
           navigate("/agency");
@@ -550,6 +552,7 @@ const AgencyDashboard = () => {
         setTotalAgencyCommission(totalCommission);
       } catch (error) {
         console.error('[AgencyDashboard] Error fetching data:', error);
+        recordClientError({ label: "AgencyDashboard.rate", message: error instanceof Error ? error.message : String(error) });
       } finally {
         setIsLoading(false);
       }

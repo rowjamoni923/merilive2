@@ -22,6 +22,7 @@ import { CallButton } from "@/features/call";
 import { toast } from "sonner";
 import { NativePullToRefresh } from "@/components/common/NativePullToRefresh";
 import { warmLiveKitToken } from "@/services/livekitService";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface Profile {
   id: string;
@@ -245,6 +246,7 @@ const Index = () => {
 
         if (missingLiveError) {
           console.error("[Index] Error fetching missing live host profiles:", missingLiveError);
+          recordClientError({ label: "Index.missingLiveHostIds", message: missingLiveError instanceof Error ? missingLiveError.message : String(missingLiveError) });
         } else if (missingLiveProfiles?.length) {
           profiles = [...baseProfiles, ...missingLiveProfiles];
         }
