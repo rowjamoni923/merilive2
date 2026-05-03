@@ -63,6 +63,7 @@ import Lottie from "lottie-react";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
 import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
 import { LazyImage } from "@/components/LazyImage";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface GiftItem {
   id: string;
@@ -167,7 +168,7 @@ export default function AdminGifts() {
       setGifts(sorted as unknown as GiftItem[]);
       setAdminCache('admin_gifts', sorted as unknown as GiftItem[]);
     } catch (error) {
-      console.error("Error fetching gifts:", error);
+      recordAdminError({ kind: "rpc", label: "AdminGifts.ErrorFetchingGifts", message: error instanceof Error ? error.message : "Error fetching gifts" });
       toast.error("Failed to load gifts");
     } finally {
       setLoading(false);
@@ -395,7 +396,7 @@ export default function AdminGifts() {
             if (xhr.status >= 200 && xhr.status < 300) {
               resolve(true);
             } else {
-              console.error(`[Upload] XHR failed: ${xhr.status} - ${xhr.responseText}`);
+              recordAdminError({ kind: "rpc", label: "AdminGifts.UploadXHR", message: `XHR failed: ${xhr.status} - ${xhr.responseText}` });
               reject(new Error(`Upload failed: ${xhr.status}`));
             }
           });
@@ -468,7 +469,7 @@ export default function AdminGifts() {
         toast.success(useR2 ? "Animation uploaded to R2!" : "Animation uploaded!");
       }
     } catch (error: any) {
-      console.error("[Upload] Final error:", error);
+      recordAdminError({ kind: "rpc", label: "AdminGifts.UploadFinalError", message: error instanceof Error ? error.message : "[Upload] Final error" });
       const errorMessage = error?.message || 'Unknown error';
       toast.error(`Upload failed: ${errorMessage}`);
     } finally {
@@ -615,7 +616,7 @@ export default function AdminGifts() {
           .select();
 
         if (error) {
-          console.error("Update error details:", error);
+          recordAdminError({ kind: "rpc", label: "AdminGifts.UpdateErrorDetails", message: error instanceof Error ? error.message : "Update error details" });
           throw error;
         }
         console.log("Gift updated:", data);
@@ -627,7 +628,7 @@ export default function AdminGifts() {
           .select();
 
         if (error) {
-          console.error("Insert error details:", error);
+          recordAdminError({ kind: "rpc", label: "AdminGifts.InsertErrorDetails", message: error instanceof Error ? error.message : "Insert error details" });
           throw error;
         }
         console.log("Gift created:", data);
@@ -637,7 +638,7 @@ export default function AdminGifts() {
       setShowEditDialog(false);
       fetchGifts();
     } catch (error: any) {
-      console.error("Error saving gift:", error);
+      recordAdminError({ kind: "rpc", label: "AdminGifts.ErrorSavingGift", message: error instanceof Error ? error.message : "Error saving gift" });
       if (error?.message?.includes("row-level security") || error?.code === "42501") {
         toast.error("Permission denied. Please logout and login again.");
       } else {
@@ -661,7 +662,7 @@ export default function AdminGifts() {
       toast.success("Gift deleted successfully");
       fetchGifts();
     } catch (error) {
-      console.error("Error deleting gift:", error);
+      recordAdminError({ kind: "rpc", label: "AdminGifts.ErrorDeletingGift", message: error instanceof Error ? error.message : "Error deleting gift" });
       toast.error("Failed to delete gift");
     }
   };
@@ -677,7 +678,7 @@ export default function AdminGifts() {
       toast.success(gift.is_active ? "Gift deactivated" : "Gift activated");
       fetchGifts();
     } catch (error) {
-      console.error("Error toggling gift:", error);
+      recordAdminError({ kind: "rpc", label: "AdminGifts.ErrorTogglingGift", message: error instanceof Error ? error.message : "Error toggling gift" });
     }
   };
 

@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface PopupBanner {
   id: string;
@@ -49,7 +50,7 @@ const AdminPopupBanners = () => {
       if (error) throw error;
       setBanners(data || []);
     } catch (error) {
-      console.error('Error fetching popup banners:', error);
+      recordAdminError({ kind: "rpc", label: "AdminPopupBanners.ErrorFetchingPopupBanners", message: error instanceof Error ? error.message : "Error fetching popup banners" });
       toast.error('Failed to load popup banners');
     } finally {
       setLoading(false);
@@ -106,7 +107,7 @@ const AdminPopupBanners = () => {
       setEditingBanner(null);
       resetForm();
     } catch (error) {
-      console.error('Error saving:', error);
+      recordAdminError({ kind: "rpc", label: "AdminPopupBanners.ErrorSaving", message: error instanceof Error ? error.message : "Error saving" });
       toast.error('Failed to save');
     } finally {
       setSaving(false);

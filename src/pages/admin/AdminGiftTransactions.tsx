@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { format } from "date-fns";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface GiftTransaction {
   id: string;
@@ -87,7 +88,7 @@ export default function AdminGiftTransactions() {
       setPage(pageNum);
       setLastRefresh(new Date());
     } catch (error) {
-      console.error('Error fetching gift transactions:', error);
+      recordAdminError({ kind: "rpc", label: "AdminGiftTransactions.ErrorFetchingGiftTransactions", message: error instanceof Error ? error.message : "Error fetching gift transactions" });
     } finally {
       setLoading(false);
       setLoadingMore(false);

@@ -10,6 +10,7 @@ import AdminEntryBanners from "./AdminEntryBanners";
 import AdminEntryBars from "./AdminEntryBars";
 import AdminEntryNameBars from "./AdminEntryNameBars";
 import AdminVehicleEntrances from "./AdminVehicleEntrances";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 const tabTriggerClass = "py-3 text-xs sm:text-sm text-[hsl(var(--admin-text-secondary))] data-[state=active]:bg-[linear-gradient(120deg,hsl(var(--primary)),hsl(var(--accent)))] data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_10px_26px_-14px_hsl(var(--admin-gold)/0.85)]";
 
@@ -28,7 +29,7 @@ const AdminEntryEffects = () => {
     // Pkg10: single RPC replaces 4 separate count queries
     const { data, error } = await supabase.rpc('admin_entry_effects_stats' as any);
     if (error || !data) {
-      console.error('admin_entry_effects_stats failed', error);
+      recordAdminError({ kind: "rpc", label: "AdminEntryEffects.AdminentryeffectsstatsFailed", message: error instanceof Error ? error.message : "admin_entry_effects_stats failed" });
       return;
     }
     const s: any = data;

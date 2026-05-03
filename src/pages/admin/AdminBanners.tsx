@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/select";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface Banner {
   id: string;
@@ -85,7 +86,7 @@ export default function AdminBanners() {
       const inactiveC = (data || []).filter(b => !b.is_active).length;
       setInactiveBannerCount(inactiveC);
     } catch (error) {
-      console.error("Error fetching banners:", error);
+      recordAdminError({ kind: "rpc", label: "AdminBanners.ErrorFetchingBanners", message: error instanceof Error ? error.message : "Error fetching banners" });
       toast.error("Failed to load banners");
     } finally {
       setLoading(false);
