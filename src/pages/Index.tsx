@@ -464,7 +464,9 @@ const Index = () => {
         <div className="relative aspect-[3/4]">
           {/* Show live thumbnail when host is streaming, otherwise avatar */}
           <img
-            src={(user.isLive && user.liveThumbnailUrl) ? user.liveThumbnailUrl : (user.avatar_url || DEFAULT_AVATAR)}
+            src={(user.isLive && user.liveThumbnailUrl)
+              ? user.liveThumbnailUrl
+              : resolveFeedAvatar(user.id, user.avatar_url, currentUserId, !!(user.is_host || user.gender === 'female'))}
             alt={user.display_name || 'User'}
             className="w-full h-full object-cover"
             loading={index < 6 ? "eager" : "lazy"}
