@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   getAdminErrorLog,
   clearAdminErrorLog,
+  ADMIN_ERROR_LOG_EVENT,
   type AdminErrorEntry,
 } from "@/utils/adminErrorLog";
 import { format } from "date-fns";
@@ -18,8 +19,9 @@ export default function AdminErrorLogPage() {
   const refresh = () => setEntries(getAdminErrorLog());
 
   useEffect(() => {
-    const id = window.setInterval(refresh, 2000);
-    return () => window.clearInterval(id);
+    // Push-only: re-render when a new admin error is recorded.
+    window.addEventListener(ADMIN_ERROR_LOG_EVENT, refresh);
+    return () => window.removeEventListener(ADMIN_ERROR_LOG_EVENT, refresh);
   }, []);
 
   return (

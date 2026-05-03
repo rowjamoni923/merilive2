@@ -73,9 +73,8 @@ export default function AdminAuth() {
       }
     };
 
-    // Immediate check + interval
+    // Immediate one-shot check; realtime subscription below handles instant updates.
     checkStatus();
-    const interval = setInterval(checkStatus, 4000);
 
     // Realtime subscription for instant approval
     const channel = adminSupabase
@@ -99,7 +98,6 @@ export default function AdminAuth() {
 
     return () => {
       cancelled = true;
-      clearInterval(interval);
       adminSupabase.removeChannel(channel);
     };
   }, [flow, pendingAdminId, pendingFingerprint]);
