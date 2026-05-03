@@ -495,7 +495,7 @@ export default function AdminRecordings() {
                   const videoEl = e.currentTarget;
                   if (videoEl.error) {
                     console.error("Video error code:", videoEl.error.code, "message:", videoEl.error.message);
-                    recordAdminError({ kind: "rpc", label: "AdminRecordings.videoEl", message: videoEl.error.code instanceof Error ? videoEl.error.code.message : String(videoEl.error.code) });
+                    recordAdminError({ kind: "rpc", label: "AdminRecordings.videoEl", message: `code=${videoEl.error.code} ${videoEl.error.message}` });
                   }
                 }}
               >

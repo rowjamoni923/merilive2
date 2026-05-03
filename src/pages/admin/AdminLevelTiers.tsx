@@ -63,7 +63,7 @@ const AdminLevelTiers = () => {
     if (error) {
       toast.error("Failed to fetch level tiers");
       console.error(error);
-      recordAdminError({ kind: "rpc", label: "AdminLevelTiers.fetchTiers", message: error });
+      recordAdminError({ kind: "rpc", label: "AdminLevelTiers.fetchTiers", message: error?.message ?? String(error) });
     } else if (data) {
       setUserTiers(data.filter(t => t.tier_type === 'user') as LevelTier[]);
       setHostTiers(data.filter(t => t.tier_type === 'host') as LevelTier[]);
@@ -191,7 +191,7 @@ const AdminLevelTiers = () => {
     if (error) {
       toast.error("Failed to delete tier");
       console.error(error);
-      recordAdminError({ kind: "rpc", label: "AdminLevelTiers.handleDelete", message: error });
+      recordAdminError({ kind: "rpc", label: "AdminLevelTiers.handleDelete", message: error?.message ?? String(error) });
     } else {
       toast.success("Tier deleted successfully");
       fetchTiers();
