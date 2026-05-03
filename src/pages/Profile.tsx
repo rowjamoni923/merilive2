@@ -156,10 +156,18 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
   const isWeakIdentityName = (value?: string | null) => {
     const normalized = value?.trim().toLowerCase() || "";
-    return !normalized || ["user", "owner", "unknown", "guest"].includes(normalized) || normalized.length <= 2;
+    if (!normalized) return true;
+    // Reject auto-generated guest/device-based names
+    if (normalized.startsWith("guest_") || normalized.startsWith("device_") || normalized.startsWith("user_")) return true;
+    if (["user", "owner", "unknown", "guest"].includes(normalized)) return true;
+    return false;
   };
 
   const resolvedProfileName = useMemo(() => {
+    // ALWAYS trust profile.display_name if user has explicitly set one (non-empty, not auto-generated)
+    const userSet = profile?.display_name?.trim();
+    if (userSet && !isWeakIdentityName(userSet)) return userSet;
+
     const candidates = [
       profile?.display_name,
       profile?.username,
