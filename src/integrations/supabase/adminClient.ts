@@ -14,6 +14,7 @@
  */
 import { createClient } from '@supabase/supabase-js';
 import { getAdminSessionToken } from '@/utils/adminSession';
+import { recordAdminError } from '@/utils/adminErrorLog';
 
 const SUPABASE_URL = "https://ayjdlvuurscxucatbbah.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5amRsdnV1cnNjeHVjYXRiYmFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNjQxMjMsImV4cCI6MjA5MDg0MDEyM30.5A53IMXcvGGnmXK9Dd96V7ceceh1JFuGmPom-hojWJc";
@@ -85,6 +86,33 @@ const adminFetch: typeof fetch = (input, init) => {
     url = applySafetyLimit(url);
   }
 
+  // Helper to detect+log failures uniformly
+  const logIfFailed = async (resp: Response): Promise<Response> => {
+    if (resp.ok || resp.status === 304) return resp;
+    // Skip noisy 401 from auth refresh probes
+    let bodyText = '';
+    try {
+      const clone = resp.clone();
+      bodyText = await clone.text();
+    } catch { /* ignore */ }
+    let parsedMsg = bodyText;
+    try {
+      const j = JSON.parse(bodyText);
+      parsedMsg = j.message || j.error || j.msg || bodyText;
+    } catch { /* not json */ }
+    const isRpc = url.includes('/rest/v1/rpc/');
+    const path = url.replace(SUPABASE_URL, '').split('?')[0];
+    recordAdminError({
+      kind: isRpc ? 'rpc' : 'rest',
+      label: `${method} ${path}`,
+      status: resp.status,
+      message: String(parsedMsg).slice(0, 300),
+      detail: bodyText.slice(0, 1000),
+      url,
+    });
+    return resp;
+  };
+
   // Dedupe identical in-flight reads (GET only, no body).
   if (method === 'GET') {
     const key = url + '|' + (headers.get('range') || '') + '|' + (headers.get('prefer') || '');
@@ -93,10 +121,9 @@ const adminFetch: typeof fetch = (input, init) => {
     if (hit && now - hit.t < DEDUPE_MS) {
       return hit.p.then((r) => r.clone());
     }
-    const p = fetch(url, opts);
+    const p = fetch(url, opts).then(logIfFailed);
     inflight.set(key, { p, t: now });
     p.finally(() => {
-      // Clear after slight grace so back-to-back identical calls hit dedupe window.
       setTimeout(() => {
         const cur = inflight.get(key);
         if (cur && cur.p === p) inflight.delete(key);
@@ -105,7 +132,7 @@ const adminFetch: typeof fetch = (input, init) => {
     return p.then((r) => r.clone());
   }
 
-  return fetch(url, opts);
+  return fetch(url, opts).then(logIfFailed);
 };
 
 /**
