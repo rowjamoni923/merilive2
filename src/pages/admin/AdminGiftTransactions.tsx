@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { getAdminCache, setAdminCache } from "@/utils/adminDataCache";
-import useAdminRealtime from "@/hooks/useAdminRealtime";
+
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Gift, RefreshCw, Search, TrendingUp, Users, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -37,7 +37,7 @@ interface ReceiverSummary {
 }
 
 const PAGE_SIZE = 50;
-const AUTO_REFRESH_MS = 30000;
+
 
 export default function AdminGiftTransactions() {
   const navigate = useNavigate();
