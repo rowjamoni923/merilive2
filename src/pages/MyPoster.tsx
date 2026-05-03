@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface PosterImage {
   id: string;
@@ -40,6 +41,7 @@ const MyPoster = () => {
 
       if (error) {
         console.error("Error fetching images:", error);
+        recordClientError({ label: "MyPoster.fetchImages", message: error instanceof Error ? error.message : String(error) });
       } else {
         setImages(data || []);
       }
@@ -104,6 +106,7 @@ const MyPoster = () => {
       toast({ title: "Image uploaded!" });
     } catch (error) {
       console.error("Upload error:", error);
+      recordClientError({ label: "MyPoster.fileName", message: error instanceof Error ? error.message : String(error) });
       toast({ title: "Upload failed", variant: "destructive" });
     } finally {
       setUploading(false);
@@ -133,6 +136,7 @@ const MyPoster = () => {
       toast({ title: "Image deleted" });
     } catch (error) {
       console.error("Delete error:", error);
+      recordClientError({ label: "MyPoster.urlParts", message: error instanceof Error ? error.message : String(error) });
       toast({ title: "Failed to delete", variant: "destructive" });
     }
   };

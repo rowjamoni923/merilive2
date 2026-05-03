@@ -69,6 +69,7 @@ import { useRealtimeLevelProgress } from "@/hooks/useRealtimeLevel";
 import { triggerLegacyProfileSync } from "@/utils/legacyProfileSync";
 import { parseCallRateSettings, resolveEffectiveCallRate, getEffectiveHostLevel } from "@/utils/callRateSettings";
 import { getCachedUser } from "@/utils/cachedAuth";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface ProfileStats {
   followersCount: number;
@@ -448,6 +449,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
           if (createProfileError) {
             console.error("[Profile] Failed to create fallback profile:", createProfileError);
+            recordClientError({ label: "Profile.appUid", message: createProfileError instanceof Error ? createProfileError.message : String(createProfileError) });
           } else {
             const { data: healedProfile } = await supabase
               .from("profiles")
@@ -620,6 +622,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         }
       } catch (error) {
         console.error("[Profile] Failed to load profile data:", error);
+        recordClientError({ label: "Profile.totalSpent", message: error instanceof Error ? error.message : String(error) });
       } finally {
         if (isInitialLoad && isMounted) {
           if (initialLoadSafetyTimer) {
@@ -775,6 +778,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       }
     } catch (error) {
       console.error('Follow error:', error);
+      recordClientError({ label: "Profile.handleFollow", message: error instanceof Error ? error.message : String(error) });
       toast({ title: "Action failed", variant: "destructive" });
     } finally {
       setFollowLoading(false);
@@ -788,6 +792,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       await startCall(profileId);
     } catch (error) {
       console.error('Call error:', error);
+      recordClientError({ label: "Profile.handleCall", message: error instanceof Error ? error.message : String(error) });
       toast({ title: "Failed to start call", variant: "destructive" });
     }
   };
@@ -1007,6 +1012,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       });
     } catch (err) {
       console.error('[LowBalance] Failed to store notification:', err);
+      recordClientError({ label: "Profile.warningBody", message: err instanceof Error ? err.message : String(err) });
     }
   };
 
@@ -1050,6 +1056,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       setShowTransferModal(false);
     } catch (error: any) {
       console.error('[SelfRecharge] Error:', error);
+      recordClientError({ label: "Profile.agencyDeducted", message: error instanceof Error ? error.message : String(error) });
       toast({ title: "Self Recharge Failed", description: error.message, variant: "destructive" });
     } finally {
       setSelfRechargeProcessing(false);
@@ -1120,6 +1127,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       setSearchedUser(null);
     } catch (error: any) {
       console.error('[Transfer] Error:', error);
+      recordClientError({ label: "Profile.currentWallet", message: error instanceof Error ? error.message : String(error) });
       toast({ title: "Transfer Failed", description: error.message, variant: "destructive" });
     } finally {
       setTransferProcessing(false);
@@ -1188,6 +1196,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       setSearchedAgency(null);
     } catch (error: any) {
       console.error('[Transfer Agency] Error:', error);
+      recordClientError({ label: "Profile.currentWallet", message: error instanceof Error ? error.message : String(error) });
       toast({ title: "Transfer Failed", description: error.message, variant: "destructive" });
     } finally {
       setTransferProcessing(false);
@@ -1261,6 +1270,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       setShowCallPriceModal(true);
     } catch (error) {
       console.error('Error fetching call rate settings:', error);
+      recordClientError({ label: "Profile.currentRate", message: error instanceof Error ? error.message : String(error) });
       toast({ title: "Failed to load settings", variant: "destructive" });
     }
   };
@@ -1308,6 +1318,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       toast({ title: "Call price updated!", description: `New rate: ${beansAmount} Beans/min` });
     } catch (error: any) {
       console.error('Error saving call rate:', error);
+      recordClientError({ label: "Profile.beansAmount", message: error instanceof Error ? error.message : String(error) });
       toast({ title: "Failed to save", description: error.message, variant: "destructive" });
     } finally {
       setSavingCallRate(false);
@@ -1585,11 +1596,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           }
         } else if (!cancelled) {
           console.error("[Profile] Retry profile creation failed:", error);
+          recordClientError({ label: "Profile.appUid", message: error instanceof Error ? error.message : String(error) });
           toast({ title: "Failed to create profile", description: error.message, variant: "destructive" });
         }
       } catch (e) {
         if (!cancelled) {
           console.error("[Profile] Retry error:", e);
+          recordClientError({ label: "Profile.appUid", message: e instanceof Error ? e.message : String(e) });
         }
       } finally {
         if (!cancelled) {
@@ -1930,6 +1943,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     }
                   } catch (error) {
                     console.error('Error fetching agency:', error);
+                    recordClientError({ label: "Profile.settingVal", message: error instanceof Error ? error.message : String(error) });
                     toast({ title: "Failed to load exchange", variant: "destructive" });
                   }
                 } 
@@ -1960,6 +1974,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     }
                   } catch (error) {
                     console.error('Error checking agency membership:', error);
+                    recordClientError({ label: "Profile.settingVal", message: error instanceof Error ? error.message : String(error) });
                   }
                 }
                  // Regular users (not host, not agency) get user beans exchange modal
@@ -2195,6 +2210,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     setTransferHistory(list);
                   } catch (err) {
                     console.error('[Profile] Failed to load transfer history:', err);
+                    recordClientError({ label: "Profile.otherId", message: err instanceof Error ? err.message : String(err) });
                   } finally {
                     setHistoryLoading(false);
                   }
@@ -2932,6 +2948,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   refetchBalance();
                 } catch (error: any) {
                   console.error('Exchange error:', error);
+                  recordClientError({ label: "Profile.newPersonalBeans", message: error instanceof Error ? error.message : String(error) });
                   toast({ title: "Exchange failed", description: error.message, variant: "destructive" });
                 } finally {
                   setExchangeProcessing(false);

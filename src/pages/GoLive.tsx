@@ -30,6 +30,7 @@ import { clearPreparedHostPreviewStream, setPreparedHostPreviewStream } from "@/
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 import { hydrateProfileVerificationState } from "@/utils/profileVerification";
 import { useRefreshOnResume } from "@/hooks/useAppResumeHandler";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 const GO_LIVE_PROFILE_FIELDS = "id, display_name, avatar_url, user_level, host_level, is_host, host_status, gender, is_face_verified, face_verification_image";
 
@@ -273,6 +274,7 @@ const GoLive = () => {
       return profile;
     } catch (error) {
       console.error('[GoLive] Failed to refresh verification state:', error);
+      recordClientError({ label: "GoLive.profile", message: error instanceof Error ? error.message : String(error) });
       return userProfile;
     }
   }, [currentUserId, loadUserProfile, userProfile]);
@@ -375,6 +377,7 @@ const GoLive = () => {
   } = useAgoraClient({
     onError: (error) => {
       console.error('Agora error:', error);
+      recordClientError({ label: "GoLive.handleBack", message: error instanceof Error ? error.message : String(error) });
       toast.error(`Agora error: ${error.message}`);
     },
   });
@@ -641,6 +644,7 @@ const GoLive = () => {
       }
     } catch (error) {
       console.error('[GoLive] Location error:', error);
+      recordClientError({ label: "GoLive.flag", message: error instanceof Error ? error.message : String(error) });
     }
 
     // 2. Request Camera & Microphone Permission with native API first
@@ -677,6 +681,7 @@ const GoLive = () => {
       const permResult = await requestCameraPermission();
       if (!permResult.granted) {
         console.error('[GoLive] Native camera permission denied:', permResult.error);
+        recordClientError({ label: "GoLive.permResult", message: permResult.error instanceof Error ? permResult.error.message : String(permResult.error) });
         toast.error(permResult.error || "Camera Access Failed - Please allow camera access in your device settings.");
         return;
       }
@@ -700,6 +705,7 @@ const GoLive = () => {
       attachWebPreviewStream(mediaStream);
     } catch (error: any) {
       console.error("[GoLive] Camera/Mic access error:", error.name, error.message);
+      recordClientError({ label: "GoLive.mediaStream", message: error.name instanceof Error ? error.name.message : String(error.name) });
       toast.error(error.message || "Camera Access Failed - Please allow camera access in your device settings and restart the app.");
     }
   };
@@ -725,6 +731,7 @@ const GoLive = () => {
       const permResult = await requestCameraPermission();
       if (!permResult.granted) {
         console.error('[GoLive] Camera permission denied');
+        recordClientError({ label: "GoLive.permResult", message: '[GoLive] Camera permission denied' });
         return;
       }
 
@@ -741,6 +748,7 @@ const GoLive = () => {
       attachWebPreviewStream(mediaStream);
     } catch (error: any) {
       console.error("[GoLive] Camera access error:", error);
+      recordClientError({ label: "GoLive.mediaStream", message: error instanceof Error ? error.message : String(error) });
     }
   };
 
@@ -795,6 +803,7 @@ const GoLive = () => {
       attachWebPreviewStream(mediaStream);
     } catch (error) {
       console.error("Camera switch error:", error);
+      recordClientError({ label: "GoLive.constraints", message: error instanceof Error ? error.message : String(error) });
     }
   };
 
@@ -959,6 +968,7 @@ const GoLive = () => {
       });
     } catch (error) {
       console.error("Error starting live:", error);
+      recordClientError({ label: "GoLive.createStreamPromise", message: error instanceof Error ? error.message : String(error) });
       toast.error("Failed to start live stream");
       setIsStarting(false);
     }

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface CallRecord {
   id: string;
@@ -94,10 +95,12 @@ const CallHistory = () => {
             setCommissionPercent(callRates.host_commission_percent);
           } else {
             console.error('CRITICAL: host_commission_percent not configured in Admin Panel!');
+            recordClientError({ label: "CallHistory.callRates", message: 'CRITICAL: host_commission_percent not configured in Admin Panel!' });
             setCommissionPercent(0); // Safe fallback until configured
           }
         } else {
           console.error('CRITICAL: call_rates not found in app_settings!');
+          recordClientError({ label: "CallHistory.callRates", message: 'CRITICAL: call_rates not found in app_settings!' });
           setCommissionPercent(0);
         }
 
@@ -142,6 +145,7 @@ const CallHistory = () => {
             commRate = callRates.host_commission_percent;
           } else {
             console.error('CRITICAL: host_commission_percent not set - host earnings will show 0');
+            recordClientError({ label: "CallHistory.callRates", message: 'CRITICAL: host_commission_percent not set - host earnings will show 0' });
           }
         }
 
@@ -165,6 +169,7 @@ const CallHistory = () => {
         setCalls(callsWithProfiles);
       } catch (error) {
         console.error('Error fetching call history:', error);
+        recordClientError({ label: "CallHistory.hostEarnings", message: error instanceof Error ? error.message : String(error) });
       } finally {
         setLoading(false);
       }

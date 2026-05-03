@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface Tag {
   name: string;
@@ -321,6 +322,7 @@ const Tags = () => {
       navigate(-1);
     } catch (error) {
       console.error("Save error:", error);
+      recordClientError({ label: "Tags.handleSave", message: error instanceof Error ? error.message : String(error) });
       toast({ title: "Failed to save", variant: "destructive" });
     } finally {
       setSaving(false);

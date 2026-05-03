@@ -94,6 +94,7 @@ import { consumePreparedHostPreviewStream } from "@/features/live/hostPreviewSes
 import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 import { Capacitor } from "@capacitor/core";
 import { consumePreloadedStream } from "@/services/liveStreamPreloader";
+import { recordClientError } from "@/utils/clientErrorLog";
 // ChatMessage = RoomChatMessage from src/features/shared/room/types.ts
 
 interface PKBattleState {
@@ -510,6 +511,7 @@ const LiveStream = () => {
     },
     onError: (error) => {
       console.error('❌ Agora error:', error);
+      recordClientError({ label: "LiveStream.deltaY", message: error instanceof Error ? error.message : String(error) });
     },
   });
 
@@ -637,6 +639,7 @@ const LiveStream = () => {
             .then(async ({ error }) => {
               if (error) {
                 console.error('[LiveStream] ❌ Viewer join upsert failed:', error);
+                recordClientError({ label: "LiveStream.selfProfile", message: error instanceof Error ? error.message : String(error) });
                 // Revert optimistic update on failure
                 setViewerCount(prev => Math.max(0, prev - 1));
                 return;
@@ -773,6 +776,7 @@ const LiveStream = () => {
         }
       } catch (err) {
         console.error('[LiveStream] Error fetching gift commission:', err);
+        recordClientError({ label: "LiveStream.settings", message: err instanceof Error ? err.message : String(err) });
       }
     };
     
@@ -1239,6 +1243,7 @@ const LiveStream = () => {
         }
       } catch (e) {
         console.error('[LiveStream] Stale check error:', e);
+        recordClientError({ label: "LiveStream.checkStaleStream", message: e instanceof Error ? e.message : String(e) });
       }
     };
 
@@ -1420,11 +1425,13 @@ const LiveStream = () => {
 
       if (streamViewersError) {
         console.error('[LiveStream] Error fetching recent viewers:', streamViewersError);
+        recordClientError({ label: "LiveStream.fetchRecentViewers", message: streamViewersError instanceof Error ? streamViewersError.message : String(streamViewersError) });
         return;
       }
 
       if (countError) {
         console.error('[LiveStream] Error fetching viewer count:', countError);
+        recordClientError({ label: "LiveStream.fetchRecentViewers", message: countError instanceof Error ? countError.message : String(countError) });
       }
 
       const viewerIds = (streamViewers || [])
@@ -1441,6 +1448,7 @@ const LiveStream = () => {
 
         if (profilesError) {
           console.error('[LiveStream] Error fetching recent viewer profiles:', profilesError);
+          recordClientError({ label: "LiveStream.profileMap", message: profilesError instanceof Error ? profilesError.message : String(profilesError) });
         }
 
         profiles?.forEach((profile: any) => {
@@ -1789,6 +1797,7 @@ const LiveStream = () => {
       console.log(`⚡ Connected in ${elapsed.toFixed(0)}ms${preloaded ? ' (PRELOADED!)' : ''}`);
     }).catch(err => {
       console.error('Join failed:', err);
+      recordClientError({ label: "LiveStream.elapsed", message: err instanceof Error ? err.message : String(err) });
       connectionInitiated.current = false;
     });
 
@@ -1874,6 +1883,7 @@ const LiveStream = () => {
     
     if (error) {
       console.error('Failed to send message:', error);
+      recordClientError({ label: "LiveStream.detection", message: error instanceof Error ? error.message : String(error) });
       setMessages(prev => prev.filter(m => m.id !== tempId));
     } else {
       trackTaskProgress('messages_sent', { increment: 1 });
@@ -1958,6 +1968,7 @@ const LiveStream = () => {
       }
     } catch (error) {
       console.error('[LiveStream] Error while ending stream stats flow:', error);
+      recordClientError({ label: "LiveStream.hostPercent", message: error instanceof Error ? error.message : String(error) });
     }
 
     const stats: LiveEndStats = {
@@ -2015,6 +2026,7 @@ const LiveStream = () => {
       }
     } catch (error: any) {
       console.error("Error starting call:", error);
+      recordClientError({ label: "LiveStream.callId", message: error instanceof Error ? error.message : String(error) });
       toast.error(error.message || "Failed to start call");
     }
   };
@@ -2081,6 +2093,7 @@ const LiveStream = () => {
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
+      recordClientError({ label: "LiveStream.handleProfileClick", message: error instanceof Error ? error.message : String(error) });
     }
   };
 
@@ -2109,6 +2122,7 @@ const LiveStream = () => {
       setSelectedProfile(prev => prev ? { ...prev, isFollowing: !prev.isFollowing } : null);
     } catch (error) {
       console.error("Error following:", error);
+      recordClientError({ label: "LiveStream.handleFollowFromCard", message: error instanceof Error ? error.message : String(error) });
     }
   };
 
@@ -2157,6 +2171,7 @@ const LiveStream = () => {
       }
     } catch (error) {
       console.error("Error following host:", error);
+      recordClientError({ label: "LiveStream.handleFollowHost", message: error instanceof Error ? error.message : String(error) });
     }
   };
 
@@ -3407,6 +3422,7 @@ const LiveStream = () => {
               }
             } catch (err) {
               console.error('[Gift] Background processing error:', err);
+              recordClientError({ label: "LiveStream.finalGiftMessage", message: err instanceof Error ? err.message : String(err) });
               // Refund coins on complete failure
               setUserCoins(prev => prev + totalCost);
               toast.error("Gift failed - diamonds refunded");

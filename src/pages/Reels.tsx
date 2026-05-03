@@ -20,6 +20,7 @@ import { GiftPanel, GiftData } from "@/components/live/GiftPanel";
 import { FlyingGiftAnimation } from "@/components/live/FlyingGiftAnimation";
 import { useFlyingGifts } from "@/hooks/useFlyingGifts";
 import { sendGift } from "@/features/shared/gifting/GiftingService";
+import { recordClientError } from "@/utils/clientErrorLog";
 interface Sound {
   id: string;
   title: string;
@@ -160,6 +161,7 @@ const Reels = () => {
     
     if (error) {
       console.error('Error fetching reels:', error);
+      recordClientError({ label: "Reels.category", message: error instanceof Error ? error.message : String(error) });
       setLoading(false);
       return;
     }
@@ -456,6 +458,7 @@ const Reels = () => {
       toast.success(`Sent ${count}x ${gift.name}!`);
     } catch (error) {
       console.error('Gift error:', error);
+      recordClientError({ label: "Reels.beansEarned", message: error instanceof Error ? error.message : String(error) });
       setUserCoins(previousCoins);
       updateCachedBalance(previousCoins);
       toast.error("Failed to send gift");

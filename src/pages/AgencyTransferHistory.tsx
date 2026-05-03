@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface Transfer {
   id: string;
@@ -147,6 +148,7 @@ const AgencyTransferHistory = () => {
       }
     } catch (error) {
       console.error('Error fetching data:', error);
+      recordClientError({ label: "AgencyTransferHistory.commHostIds", message: error instanceof Error ? error.message : String(error) });
       toast.error('Failed to load data');
     } finally {
       setLoading(false);

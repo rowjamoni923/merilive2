@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import BrowserAgencyForm from "@/components/agency/BrowserAgencyForm";
 import BrowserSubAgentForm from "@/components/agency/BrowserSubAgentForm";
 import { useEnableBrowserPageInteraction } from "@/hooks/useEnableBrowserPageInteraction";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 /**
  * Smart Link Landing Page
@@ -96,6 +97,7 @@ const SmartLink = () => {
         }
       } catch (error) {
         console.error("[SmartLink] Failed to resolve ref type:", error);
+        recordClientError({ label: "SmartLink.normalizedRef", message: error instanceof Error ? error.message : String(error) });
         if (!isCancelled) {
           setResolvedRefType("invitation");
         }

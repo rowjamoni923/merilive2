@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/input-otp";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface UserProfile {
   id: string;
@@ -207,6 +208,7 @@ const AgencySignup = () => {
       }
     } catch (error) {
       console.error('Search error:', error);
+      recordClientError({ label: "AgencySignup.user", message: error instanceof Error ? error.message : String(error) });
       setUserNotFound(true);
     } finally {
       setSearchingUser(false);
@@ -234,6 +236,7 @@ const AgencySignup = () => {
       setEmailOtpTimer(300); // 5 minutes
     } catch (error: any) {
       console.error('Email OTP error:', error);
+      recordClientError({ label: "AgencySignup.sendEmailOtp", message: error instanceof Error ? error.message : String(error) });
       toast({ title: "Error", description: error.message || "Failed to send email OTP", variant: "destructive" });
     } finally {
       setSendingEmailOtp(false);
@@ -324,6 +327,7 @@ const AgencySignup = () => {
 
       if (rpcError) {
         console.error('[AgencySignup] create_agency_for_user rpcError:', rpcError);
+        recordClientError({ label: "AgencySignup.chars", message: rpcError instanceof Error ? rpcError.message : String(rpcError) });
         throw rpcError;
       }
       

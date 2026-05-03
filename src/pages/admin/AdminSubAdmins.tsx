@@ -323,7 +323,7 @@ const AdminSubAdmins = () => {
       if (error) {
         toast.error("Failed to save permissions");
         console.error(error);
-        recordAdminError({ kind: "rpc", label: "AdminSubAdmins.permissionsToInsert", message: error });
+        recordAdminError({ kind: "rpc", label: "AdminSubAdmins.permissionsToInsert", message: error?.message ?? String(error) });
         return;
       }
     }

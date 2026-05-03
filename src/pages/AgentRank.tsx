@@ -19,6 +19,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
+import { recordClientError } from "@/utils/clientErrorLog";
 import {
   Drawer,
   DrawerContent,
@@ -76,6 +77,7 @@ const AgentRank = () => {
       if (!error && data) setRewards(data);
     } catch (err) {
       console.error('Error fetching rewards:', err);
+      recordClientError({ label: "AgentRank.fetchRewards", message: err instanceof Error ? err.message : String(err) });
     }
   }, [periodType]);
 
@@ -136,6 +138,7 @@ const AgentRank = () => {
       setRankings(mappedRankings);
     } catch (err) {
       console.error('Error fetching rankings:', err);
+      recordClientError({ label: "AgentRank.owner", message: err instanceof Error ? err.message : String(err) });
     } finally {
       setLoading(false);
       setIsRefreshing(false);

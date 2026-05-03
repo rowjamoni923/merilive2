@@ -24,6 +24,7 @@ import { useBruteForceProtection } from "@/hooks/useBruteForceProtection";
 import { detectCountryViaIP, getCountryFlag, countryNamesEnglish } from "@/hooks/useGeolocation";
 import { COUNTRY_CODES } from "@/data/countryCodes";
 import { triggerLegacyProfileSync } from "@/utils/legacyProfileSync";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 type Gender = "male" | "female" | null;
 type AuthStep = "gender" | "name" | "email" | "login" | "agency_code" | "otp_verify" | "email_otp" | "email_gender" | "email_password" | "phone_input" | "phone_otp" | "phone_password" | null;
@@ -85,6 +86,7 @@ const recoverAccountByDevice = async (deviceId: string): Promise<{
     };
   } catch (error) {
     console.error('Error checking device account:', error);
+    recordClientError({ label: "Auth.account", message: error instanceof Error ? error.message : String(error) });
     return null;
   }
 };
@@ -246,6 +248,7 @@ const Auth = () => {
       }
     } catch (error) {
       console.error("Error fetching agency:", error);
+      recordClientError({ label: "Auth.normalizedCode", message: error instanceof Error ? error.message : String(error) });
     }
   };
 
@@ -288,6 +291,7 @@ const Auth = () => {
       console.log('[Invitation] Tracked: inviter', inviter.id, '-> new user', newUserId);
     } catch (error) {
       console.error('[Invitation] Error tracking invitation:', error);
+      recordClientError({ label: "Auth.inviterRef", message: error instanceof Error ? error.message : String(error) });
     }
   };
 
@@ -356,6 +360,7 @@ const Auth = () => {
         console.log('[Auth] No valid session — showing auth UI');
       } catch (err) {
         console.error('[Auth] Session check error:', err);
+        recordClientError({ label: "Auth.checkExistingSession", message: err instanceof Error ? err.message : String(err) });
       } finally {
         setIsAutoRecovering(false);
       }
@@ -418,6 +423,7 @@ const Auth = () => {
         navigateAfterAuth();
       } catch (error) {
         console.error("Error completing registration:", error);
+        recordClientError({ label: "Auth.pendingSubagent", message: error instanceof Error ? error.message : String(error) });
       }
     };
 
@@ -457,6 +463,7 @@ const Auth = () => {
       
     } catch (error) {
       console.error("Start click error:", error);
+      recordClientError({ label: "Auth.handleStartClick", message: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",
@@ -513,6 +520,7 @@ const Auth = () => {
 
         if (syncError) {
           console.error("[Auth] legacy auth sync failed:", syncError);
+          recordClientError({ label: "Auth.normalizedEmail", message: syncError instanceof Error ? syncError.message : String(syncError) });
         }
 
         if (syncResult?.success) {
@@ -657,6 +665,7 @@ const Auth = () => {
       }
     } catch (err) {
       console.error('[Auth] Location detection error:', err);
+      recordClientError({ label: "Auth.i18n", message: err instanceof Error ? err.message : String(err) });
     }
   };
 
@@ -765,6 +774,7 @@ const Auth = () => {
       return data;
     } catch (error) {
       console.error("Error joining agency:", error);
+      recordClientError({ label: "Auth.normalizedCode", message: error instanceof Error ? error.message : String(error) });
       return false;
     }
   };
@@ -855,6 +865,7 @@ const Auth = () => {
         
         if (signInError) {
           console.error('[Auth] Both signup and signin failed:', signInError.message);
+          recordClientError({ label: "Auth.guestPassword", message: signInError.message instanceof Error ? signInError.message.message : String(signInError.message) });
           // Fallback to email registration
           toast({
             title: "Information Required",
@@ -944,6 +955,7 @@ const Auth = () => {
       }
     } catch (error: any) {
       console.error("Registration error:", error);
+      recordClientError({ label: "Auth.pendingReferral", message: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Error",
         description: "Registration failed. Please try with Email.",
@@ -1041,6 +1053,7 @@ const Auth = () => {
       setAuthStep("email_otp");
     } catch (error: any) {
       console.error("Email OTP error:", error);
+      recordClientError({ label: "Auth.emailRegex", message: error instanceof Error ? error.message : String(error) });
       const errorMessage = await getFunctionErrorMessage(error, "Failed to send verification code");
       toast({
         title: "Error",
@@ -1134,6 +1147,7 @@ const Auth = () => {
       navigateAfterAuth();
     } catch (error: any) {
       console.error("Email OTP verify error:", error);
+      recordClientError({ label: "Auth.readyProfile", message: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Invalid Code",
         description: error.message || "Invalid verification code",
@@ -1620,6 +1634,7 @@ const Auth = () => {
       
       if (emailError) {
         console.error("Email sending error:", emailError);
+        recordClientError({ label: "Auth.verificationCode", message: emailError instanceof Error ? emailError.message : String(emailError) });
         toast({
           title: "Error",
           description: "Failed to send verification code. Please try again.",

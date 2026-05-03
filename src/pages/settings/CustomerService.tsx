@@ -4,6 +4,7 @@ import { ArrowLeft, Bot, Mail, Clock, MessageCircle, Sparkles } from "lucide-rea
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import AISupportChat from "@/components/support/AISupportChat";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 const CustomerService = () => {
   const navigate = useNavigate();
@@ -36,6 +37,7 @@ const CustomerService = () => {
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
+        recordClientError({ label: "CustomerService.fetchUserData", message: error instanceof Error ? error.message : String(error) });
       } finally {
         setLoading(false);
       }

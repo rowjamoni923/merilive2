@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface Agency {
   id: string;
@@ -2187,6 +2188,7 @@ const AgencyWithdrawal = () => {
 
     } catch (error) {
       console.error('Error fetching data:', error);
+      recordClientError({ label: "AgencyWithdrawal.formattedWithdrawals", message: error instanceof Error ? error.message : String(error) });
       toast.error('Failed to load data');
     } finally {
       setLoading(false);
@@ -2284,6 +2286,7 @@ const AgencyWithdrawal = () => {
 
       if (error) {
         console.error('[Withdrawal] RPC error:', error);
+        recordClientError({ label: "AgencyWithdrawal.paymentDetails", message: error instanceof Error ? error.message : String(error) });
         throw error;
       }
 
@@ -2291,6 +2294,7 @@ const AgencyWithdrawal = () => {
       
       if (!result.success) {
         console.error('[Withdrawal] Failed:', result.error);
+        recordClientError({ label: "AgencyWithdrawal.result", message: result.error instanceof Error ? result.error.message : String(result.error) });
         toast.error(result.error || 'Withdrawal request failed');
         return;
       }
@@ -2324,6 +2328,7 @@ const AgencyWithdrawal = () => {
          }
        } catch (ownerNotifError) {
          console.error('Failed to send owner notification:', ownerNotifError);
+         recordClientError({ label: "AgencyWithdrawal.result", message: ownerNotifError instanceof Error ? ownerNotifError.message : String(ownerNotifError) });
        }
 
        toast.success('Withdrawal request submitted successfully!');
@@ -2341,6 +2346,7 @@ const AgencyWithdrawal = () => {
 
     } catch (error) {
       console.error('Withdrawal error:', error);
+      recordClientError({ label: "AgencyWithdrawal.result", message: error instanceof Error ? error.message : String(error) });
       toast.error('Withdrawal request failed');
     } finally {
       setSubmitting(false);

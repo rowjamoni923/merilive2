@@ -38,6 +38,7 @@ import Diamond3DIcon from "@/components/common/Diamond3DIcon";
 import Premium3DFrame from "@/components/common/Premium3DFrame";
 import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
 import { clearFrameCache } from "@/components/common/AvatarWithFrame";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 // Lazy load SVGAPlayerWithAudio for full-screen entry animation previews with sound
 const SVGAPlayerWithAudio = lazy(() => import("@/components/common/SVGAPlayerWithAudio"));
@@ -360,6 +361,7 @@ const Shop = () => {
       setPurchases(allPurchases);
     } catch (error) {
       console.error("Error fetching data:", error);
+      recordClientError({ label: "Shop.allPurchases", message: error instanceof Error ? error.message : String(error) });
     } finally {
       setLoading(false);
     }
@@ -393,6 +395,7 @@ const Shop = () => {
         const { error: bgPurchaseError } = await (supabase.from("user_purchased_backgrounds" as any).insert({ user_id: user.id, background_id: actualItemId, price_paid: item.price_diamonds }) as any);
         if (bgPurchaseError) {
           console.error('[Shop] Background purchase error:', bgPurchaseError);
+          recordClientError({ label: "Shop.purchaseItemType", message: bgPurchaseError instanceof Error ? bgPurchaseError.message : String(bgPurchaseError) });
           toast({ title: "Purchase Successful!", description: `You now own ${item.name}` });
           setUserDiamonds(prev => prev - item.price_diamonds);
           setPurchases(prev => [...prev, { id: crypto.randomUUID(), item_id: item.id, is_equipped: true, expires_at: null }]);

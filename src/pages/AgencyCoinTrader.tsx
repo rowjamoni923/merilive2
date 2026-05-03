@@ -25,6 +25,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { recordClientError } from "@/utils/clientErrorLog";
 import {
   Dialog,
   DialogContent,
@@ -180,6 +181,7 @@ const AgencyCoinTrader = () => {
 
     } catch (error) {
       console.error('Error loading data:', error);
+      recordClientError({ label: "AgencyCoinTrader.enrichedHistory", message: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Error",
         description: "Failed to load data",
@@ -208,6 +210,7 @@ const AgencyCoinTrader = () => {
       setSearchResults(data || []);
     } catch (error) {
       console.error('Search error:', error);
+      recordClientError({ label: "AgencyCoinTrader.searchUsers", message: error instanceof Error ? error.message : String(error) });
     } finally {
       setSearching(false);
     }
@@ -364,6 +367,7 @@ const AgencyCoinTrader = () => {
 
     } catch (error: any) {
       console.error('Trade error:', error);
+      recordClientError({ label: "AgencyCoinTrader.addUserData", message: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Error",
         description: error?.message || "Failed to process trade",
@@ -421,6 +425,7 @@ const AgencyCoinTrader = () => {
 
     } catch (error) {
       console.error('Order error:', error);
+      recordClientError({ label: "AgencyCoinTrader.dollarAmount", message: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Error",
         description: "Failed to submit order",

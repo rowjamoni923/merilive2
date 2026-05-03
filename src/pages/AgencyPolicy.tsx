@@ -30,6 +30,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import policyHeroBanner from "@/assets/banners/policy-hero-banner.jpg";
 import meriliveLogo from "@/assets/merilive-logo.png";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface PolicyData {
   exchange_rate?: {
@@ -189,6 +190,7 @@ const AgencyPolicy = () => {
       }
     } catch (error) {
       console.error('Error fetching policies:', error);
+      recordClientError({ label: "AgencyPolicy.dynamic", message: error instanceof Error ? error.message : String(error) });
     } finally {
       setLoading(false);
     }

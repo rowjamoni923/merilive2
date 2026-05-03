@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useRealtimeHelperLevelProgress } from "@/hooks/useRealtimeHelperLevel";
 import { HelperAcceptedMethodsCard } from "@/components/helper/HelperAcceptedMethodsCard";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface TraderLevel {
   level_number: number;
@@ -200,6 +201,7 @@ const HelperDashboard = () => {
 
     if (error) {
       console.error('[HelperDashboard] Error fetching trader levels:', error);
+      recordClientError({ label: "HelperDashboard.refetchTraderLevels", message: error instanceof Error ? error.message : String(error) });
       return;
     }
 
@@ -394,6 +396,7 @@ const HelperDashboard = () => {
       
       if (methodsError) {
         console.error('[HelperDashboard] Error loading payment methods:', methodsError);
+        recordClientError({ label: "HelperDashboard.next", message: methodsError instanceof Error ? methodsError.message : String(methodsError) });
       }
       
       if (methods) {
@@ -446,6 +449,7 @@ const HelperDashboard = () => {
 
     } catch (error) {
       console.error(error);
+      recordClientError({ label: "HelperDashboard.pricing", message: error });
     } finally {
       setLoading(false);
     }
@@ -506,6 +510,7 @@ const HelperDashboard = () => {
       }
     } catch (error) {
       console.error('Error loading transfer history:', error);
+      recordClientError({ label: "HelperDashboard.enrichedTransfers", message: error instanceof Error ? error.message : String(error) });
     }
   };
 
@@ -531,6 +536,7 @@ const HelperDashboard = () => {
       toast({ title: "✅ WhatsApp Number Saved", description: "Your WhatsApp number is now visible to users in the Recharge section." });
     } catch (err) {
       console.error('Error saving WhatsApp:', err);
+      recordClientError({ label: "HelperDashboard.updatedContactInfo", message: err instanceof Error ? err.message : String(err) });
       toast({ title: "Error", description: "Failed to save WhatsApp number", variant: "destructive" });
     } finally {
       setSavingWhatsapp(false);
@@ -555,6 +561,7 @@ const HelperDashboard = () => {
       return data.publicUrl;
     } catch (error) {
       console.error('Upload error:', error);
+      recordClientError({ label: "HelperDashboard.fileName", message: error instanceof Error ? error.message : String(error) });
       return null;
     }
   };

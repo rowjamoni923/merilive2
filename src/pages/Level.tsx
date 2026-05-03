@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchActiveLevelTiers, isFemaleHostProfile, resolveLevelFromTiers } from "@/utils/levelResolver";
 import PrivilegePreviewModal from "@/components/level/PrivilegePreviewModal";
 import { motion, AnimatePresence } from "framer-motion";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface LevelData {
   level: number;
@@ -340,6 +341,7 @@ const Level = () => {
       setSelectedLevelTab(resolved.levelType === 'host' ? resolved.level : Math.max(resolved.level, 1));
     } catch (error) {
       console.error('Error fetching user level:', error);
+      recordClientError({ label: "Level.resolved", message: error instanceof Error ? error.message : String(error) });
     } finally {
       setLoading(false);
     }

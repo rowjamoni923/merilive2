@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
+import { recordClientError } from "@/utils/clientErrorLog";
 import {
   Dialog,
   DialogContent,
@@ -274,6 +275,7 @@ const AgencyCoinExchange = () => {
       setRecentTransactions(transactionsData || []);
     } catch (error) {
       console.error("Error fetching data:", error);
+      recordClientError({ label: "AgencyCoinExchange.settings", message: error instanceof Error ? error.message : String(error) });
       toast({ title: "Error", description: "Failed to load data", variant: "destructive" });
     } finally {
       setIsLoading(false);
@@ -316,6 +318,7 @@ const AgencyCoinExchange = () => {
       setSearchResults(data || []);
     } catch (error) {
       console.error("Search error:", error);
+      recordClientError({ label: "AgencyCoinExchange.searchUsers", message: error instanceof Error ? error.message : String(error) });
     }
   };
 
@@ -396,6 +399,7 @@ const AgencyCoinExchange = () => {
       });
     } catch (error) {
       console.error("Agency search error:", error);
+      recordClientError({ label: "AgencyCoinExchange.searchAgencyByOwnerUID", message: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Search Error",
         description: "Failed to search agency",
@@ -519,6 +523,7 @@ const AgencyCoinExchange = () => {
 
         if (rpcError) {
           console.error('RPC error:', rpcError);
+          recordClientError({ label: "AgencyCoinExchange.beans", message: rpcError instanceof Error ? rpcError.message : String(rpcError) });
           toast({ title: "Exchange Failed", description: rpcError.message, variant: "destructive" });
           setIsProcessing(false);
           return;
@@ -667,6 +672,7 @@ const AgencyCoinExchange = () => {
       }
     } catch (error) {
       console.error("Transaction error:", error);
+      recordClientError({ label: "AgencyCoinExchange.rpcResult", message: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Transfer Failed",
         description: error instanceof Error ? error.message : "Failed to complete transaction",

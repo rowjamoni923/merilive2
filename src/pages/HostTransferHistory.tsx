@@ -4,6 +4,7 @@ import { ArrowLeft, Gift, Phone, TrendingUp, Calendar, Clock, Building2, Loader2
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface WeeklyEarning {
   id: string;
@@ -131,6 +132,7 @@ const HostTransferHistory = () => {
       });
     } catch (error) {
       console.error('Error fetching earnings:', error);
+      recordClientError({ label: "HostTransferHistory.thisMonthEarnings", message: error instanceof Error ? error.message : String(error) });
     } finally {
       setLoading(false);
     }

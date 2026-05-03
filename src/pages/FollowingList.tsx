@@ -9,6 +9,7 @@ import { BottomNavigation } from "@/components/layout/BottomNavigation";
 import { useCall } from "@/components/call/CallProvider";
 import { toast } from "sonner";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface UserProfile {
   id: string;
@@ -156,6 +157,7 @@ const FollowingList = () => {
       }
     } catch (error) {
       console.error('Error fetching follow data:', error);
+      recordClientError({ label: "FollowingList.friendsWithProfiles", message: error instanceof Error ? error.message : String(error) });
       toast.error("Failed to load data");
     } finally {
       setLoading(false);
@@ -179,6 +181,7 @@ const FollowingList = () => {
       toast.success("Unfollowed successfully");
     } catch (error) {
       console.error('Unfollow error:', error);
+      recordClientError({ label: "FollowingList.newSet", message: error instanceof Error ? error.message : String(error) });
       toast.error("Failed to unfollow");
     }
   };
@@ -219,6 +222,7 @@ const FollowingList = () => {
       toast.success("Followed successfully");
     } catch (error) {
       console.error('Follow error:', error);
+      recordClientError({ label: "FollowingList.newSet", message: error instanceof Error ? error.message : String(error) });
       toast.error("Failed to follow");
     }
   };
@@ -228,6 +232,7 @@ const FollowingList = () => {
       await startCall(hostId);
     } catch (error) {
       console.error('Call error:', error);
+      recordClientError({ label: "FollowingList.handleCall", message: error instanceof Error ? error.message : String(error) });
       toast.error("Failed to start call");
     }
   };

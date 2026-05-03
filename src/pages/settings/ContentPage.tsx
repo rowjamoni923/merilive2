@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface ContentPage {
   title: string;
@@ -42,6 +43,7 @@ const ContentPageView = () => {
         setPageData(data);
       } catch (error) {
         console.error("Error fetching content:", error);
+        recordClientError({ label: "ContentPage.data", message: error instanceof Error ? error.message : String(error) });
       } finally {
         setLoading(false);
       }

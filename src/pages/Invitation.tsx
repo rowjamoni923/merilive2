@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import defaultBanner from "@/assets/invitation-banner.jpg";
+import { recordClientError } from "@/utils/clientErrorLog";
 
 interface LeaderboardEntry {
   rank: number;
@@ -99,6 +100,7 @@ const Invitation = () => {
       }
     } catch (error) {
       console.error('Error fetching claims:', error);
+      recordClientError({ label: "Invitation.fetchClaimedTiers", message: error instanceof Error ? error.message : String(error) });
     }
   };
 
@@ -140,6 +142,7 @@ const Invitation = () => {
       setClaimedTierIds(prev => new Set([...prev, tier.id]));
     } catch (error: any) {
       console.error('Error claiming reward:', error);
+      recordClientError({ label: "Invitation.parts", message: error instanceof Error ? error.message : String(error) });
       toast.error('Failed to claim reward');
     } finally {
       setClaimingTierId(null);
@@ -159,6 +162,7 @@ const Invitation = () => {
       }
     } catch (error) {
       console.error('Error fetching banner:', error);
+      recordClientError({ label: "Invitation.url", message: error instanceof Error ? error.message : String(error) });
     }
   };
 
@@ -173,6 +177,7 @@ const Invitation = () => {
       setInvitationTiers(data || []);
     } catch (error) {
       console.error('Error fetching tiers:', error);
+      recordClientError({ label: "Invitation.fetchTiers", message: error instanceof Error ? error.message : String(error) });
     }
   };
 
@@ -279,6 +284,7 @@ const Invitation = () => {
       }
     } catch (error) {
       console.error('Error fetching data:', error);
+      recordClientError({ label: "Invitation.profile", message: error instanceof Error ? error.message : String(error) });
     } finally {
       setLoading(false);
     }
