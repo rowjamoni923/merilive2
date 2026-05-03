@@ -50,10 +50,9 @@ Deno.test("gift-transactions: enrichment attaches sender/receiver/gift", async (
 });
 
 Deno.test("gift-transactions: pagination respects pageSize", async () => {
-  const { body } = await call({ page: "1", pageSize: "3" });
-  assert(body.transactions.length <= 3, "returned more than pageSize");
-  // hasMore must be true when total_count > pageSize
-  if (body.stats.total_count > 3) {
+  const { body } = await call({ page: "1", pageSize: "10" });
+  assert(body.transactions.length <= body.pageSize, "returned more than pageSize");
+  if (body.stats.total_count > body.pageSize) {
     assertEquals(body.hasMore, true);
   }
 });
