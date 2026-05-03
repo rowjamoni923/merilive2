@@ -57,6 +57,28 @@ interface Profile {
 // Default placeholder for hosts without avatar
 const DEFAULT_AVATAR = "/placeholder.svg";
 
+import { getDisplayAvatar } from "@/utils/placeholderAvatar";
+
+/**
+ * Resolve the card avatar for the homepage feed.
+ * - If host has uploaded avatar → use it.
+ * - If viewer is the host themselves (own card) → show raw (no placeholder)
+ *   so they know to upload one.
+ * - Otherwise (other viewers, including main owner viewing other hosts) → use
+ *   stable AI placeholder so the card never appears blank.
+ */
+function resolveFeedAvatar(
+  hostId: string,
+  avatarUrl: string | null | undefined,
+  viewerId: string | null,
+  isHost: boolean
+): string {
+  if (avatarUrl && avatarUrl.trim().length > 0) return avatarUrl;
+  if (viewerId && viewerId === hostId) return DEFAULT_AVATAR;
+  if (isHost) return getDisplayAvatar(hostId, avatarUrl);
+  return DEFAULT_AVATAR;
+}
+
 type SubTab = "popular" | "live" | "new" | "following";
 
 const Index = () => {
@@ -442,7 +464,9 @@ const Index = () => {
         <div className="relative aspect-[3/4]">
           {/* Show live thumbnail when host is streaming, otherwise avatar */}
           <img
-            src={(user.isLive && user.liveThumbnailUrl) ? user.liveThumbnailUrl : (user.avatar_url || DEFAULT_AVATAR)}
+            src={(user.isLive && user.liveThumbnailUrl)
+              ? user.liveThumbnailUrl
+              : resolveFeedAvatar(user.id, user.avatar_url, currentUserId, !!(user.is_host || user.gender === 'female'))}
             alt={user.display_name || 'User'}
             className="w-full h-full object-cover"
             loading={index < 6 ? "eager" : "lazy"}
@@ -504,7 +528,7 @@ const Index = () => {
                 <div className="ring-1 ring-white/30 rounded-full">
                   <AvatarWithFrame
                     userId={user.id}
-                    src={user.avatar_url || DEFAULT_AVATAR}
+                    src={resolveFeedAvatar(user.id, user.avatar_url, currentUserId, !!(user.is_host || user.gender === 'female'))}
                     name={user.display_name || "U"}
                     level={displayLevel}
                     isHost={user.gender === 'female' || user.is_host || false}
