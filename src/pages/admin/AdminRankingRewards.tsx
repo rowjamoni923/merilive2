@@ -30,6 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { recordAdminError } from "@/utils/adminErrorLog";
 import {
   Dialog,
   DialogContent,
@@ -92,6 +93,7 @@ const AdminRankingRewards = () => {
       setRewards(data || []);
     } catch (err) {
       console.error('Error fetching rewards:', err);
+      recordAdminError({ kind: "rpc", label: "AdminRankingRewards.fetchRewards", message: err instanceof Error ? err.message : String(err) });
       toast.error('Failed to load rewards');
     } finally {
       setLoading(false);
@@ -125,6 +127,7 @@ const AdminRankingRewards = () => {
       resetForm();
     } catch (err: any) {
       console.error('Error adding reward:', err);
+      recordAdminError({ kind: "rpc", label: "AdminRankingRewards.handleAddReward", message: err instanceof Error ? err.message : String(err) });
       toast.error(err.message || 'Failed to add reward');
     } finally {
       setSaving(false);
@@ -152,6 +155,7 @@ const AdminRankingRewards = () => {
       resetForm();
     } catch (err: any) {
       console.error('Error updating reward:', err);
+      recordAdminError({ kind: "rpc", label: "AdminRankingRewards.handleUpdateReward", message: err instanceof Error ? err.message : String(err) });
       toast.error(err.message || 'Failed to update reward');
     } finally {
       setSaving(false);
@@ -171,6 +175,7 @@ const AdminRankingRewards = () => {
       toast.success('Reward deleted');
     } catch (err) {
       console.error('Error deleting reward:', err);
+      recordAdminError({ kind: "rpc", label: "AdminRankingRewards.handleDeleteReward", message: err instanceof Error ? err.message : String(err) });
       toast.error('Failed to delete reward');
     }
   };

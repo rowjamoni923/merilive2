@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface NotificationTemplate {
   id: string;
@@ -108,6 +109,7 @@ const AdminNotificationTemplates = () => {
 
       if (error) {
         console.error('[AdminNotificationTemplates] Update error:', error);
+        recordAdminError({ kind: "rpc", label: "AdminNotificationTemplates.handleSaveTemplate", message: error instanceof Error ? error.message : String(error) });
         throw error;
       }
 
@@ -122,6 +124,7 @@ const AdminNotificationTemplates = () => {
       await fetchTemplates();
     } catch (error: any) {
       console.error('[AdminNotificationTemplates] Error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminNotificationTemplates.handleSaveTemplate", message: error instanceof Error ? error.message : String(error) });
       toast({
         title: "Error",
         description: error.message || "Failed to save template",
