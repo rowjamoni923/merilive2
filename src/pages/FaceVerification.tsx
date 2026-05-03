@@ -61,18 +61,7 @@ const languages = [
 // Country-based localized face verification instructions
 const getLocalizedInstructions = (countryName?: string) => {
   const country = (countryName || '').toLowerCase();
-  
-  // Bengali (Bangladesh)
-  if (country.includes('bangladesh') || country.includes('বাংলাদেশ')) {
-    return [
-      { id: 'center', direction: 'সামনে তাকান', icon: ScanFace, description: 'আপনার মুখ সোজা ক্যামেরার দিকে রাখুন', checkPose: (p: {yaw:number,pitch:number}) => Math.abs(p.yaw) < 15 && Math.abs(p.pitch) < 15 },
-      { id: 'left', direction: 'বামে ঘুরুন', icon: ArrowLeftIcon, description: 'আস্তে আস্তে আপনার মাথা বামে ঘোরান', checkPose: (p: {yaw:number,pitch:number}) => p.yaw > 18 },
-      { id: 'right', direction: 'ডানে ঘুরুন', icon: ArrowRightIcon, description: 'আস্তে আস্তে আপনার মাথা ডানে ঘোরান', checkPose: (p: {yaw:number,pitch:number}) => p.yaw < -18 },
-      { id: 'up', direction: 'উপরে তাকান', icon: ArrowUp, description: 'আপনার মাথা সামান্য উপরে তুলুন', checkPose: (p: {yaw:number,pitch:number}) => p.pitch < -12 },
-      { id: 'down', direction: 'নিচে তাকান', icon: ArrowDown, description: 'আপনার মাথা সামান্য নিচে নামান', checkPose: (p: {yaw:number,pitch:number}) => p.pitch > 12 },
-    ];
-  }
-  
+
   // Hindi (India)
   if (country.includes('india') || country.includes('भारत')) {
     return [
@@ -130,22 +119,7 @@ const getLocalizedInstructions = (countryName?: string) => {
 // Localized failure/success messages
 const getLocalizedMessages = (countryName?: string) => {
   const country = (countryName || '').toLowerCase();
-  
-  if (country.includes('bangladesh')) {
-    return {
-      failed: 'যাচাইকরণ ব্যর্থ',
-      failedDesc: 'প্রতিটি নির্দেশনা সাবধানে অনুসরণ করুন। যেভাবে দেখানো হয়েছে সেভাবে আপনার মাথা নাড়ান।',
-      success: '✅ ফেস ভেরিফিকেশন সফল!',
-      successDesc: 'সব লাইভনেস চেক পাস হয়েছে।',
-      startScan: 'ফেস স্ক্যান শুরু করুন',
-      tryAgain: 'আবার চেষ্টা করুন',
-      recording: 'রেকর্ডিং',
-      tips: '💡 ভালো আলো নিশ্চিত করুন • চশমা/মাস্ক খুলুন • মুখ ওভালের মাঝখানে রাখুন',
-      beginCheck: 'লাইভনেস চেক শুরু করুন',
-      cancel: 'বাতিল করুন',
-      staticFace: 'স্থির মুখ সনাক্ত হয়েছে। ফটো নয়, সত্যিকারের ক্যামেরা ব্যবহার করুন।',
-    };
-  }
+
   if (country.includes('india')) {
     return {
       failed: 'सत्यापन विफल',

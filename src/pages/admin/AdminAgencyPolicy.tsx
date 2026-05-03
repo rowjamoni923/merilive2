@@ -803,7 +803,7 @@ const AdminAgencyPolicy = () => {
                 </div>
                 <div className="p-4 bg-muted rounded-lg">
                   <p className="text-sm">
-                    <strong>Preview:</strong> Minimum ${withdrawalMinUsd} = ৳{(withdrawalMinUsd * exchangeRate).toLocaleString()} | 
+                    <strong>Preview:</strong> Minimum ${withdrawalMinUsd} = Tk {(withdrawalMinUsd * exchangeRate).toLocaleString()} | 
                     Settlement: {settlementDay} at {settlementTimeIst} IST ({settlementTimeBd} BD)
                   </p>
                 </div>

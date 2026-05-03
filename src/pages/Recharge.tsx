@@ -1247,7 +1247,7 @@ const Recharge = () => {
   };
 
   const SYMBOL_FALLBACK: Record<string, string> = {
-    BDT: '৳', INR: '₹', PKR: '₨', EUR: '€', GBP: '£', USD: '$',
+    BDT: 'Tk ', INR: '₹', PKR: '₨', EUR: '€', GBP: '£', USD: '$',
     MYR: 'RM', TRY: '₺', SAR: 'ر.س', AED: 'د.إ', JPY: '¥', KRW: '₩',
     THB: '฿', VND: '₫', IDR: 'Rp', PHP: '₱', BRL: 'R$', EGP: 'E£',
     NGN: '₦', ZAR: 'R', CNY: '¥', SGD: 'S$', HKD: 'HK$', TWD: 'NT$',

@@ -503,7 +503,7 @@ const AdminPayrollOrders = () => {
                           {(order.coin_amount ?? 0).toLocaleString()} {order.order_type === 'agency_withdrawal' ? 'Beans' : '💎'}
                         </span>
                         <span className="text-sm text-slate-600">
-                          {order.currency_code === 'BDT' ? '৳' : '$'}{(order.amount_local ?? 0).toFixed(0)}
+                          {order.currency_code === 'BDT' ? 'Tk ' : '$'}{(order.amount_local ?? 0).toFixed(0)}
                         </span>
                         <Badge variant="outline" className="text-xs">{order.payment_method}</Badge>
                         {order.user_payment_proof && (
@@ -666,7 +666,7 @@ const AdminPayrollOrders = () => {
                     <div>
                       <p className="text-muted-foreground">Local Price</p>
                       <p className="font-semibold">
-                        {selectedOrder.currency_code === 'BDT' ? '৳' : selectedOrder.currency_code} 
+                        {selectedOrder.currency_code === 'BDT' ? 'Tk ' : selectedOrder.currency_code} 
                         {selectedOrder.amount_local.toFixed(0)}
                       </p>
                     </div>

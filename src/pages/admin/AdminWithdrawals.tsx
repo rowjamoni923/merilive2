@@ -102,7 +102,7 @@ interface Withdrawal {
 
 // Country/Currency info for display
 const CURRENCY_INFO: Record<string, { symbol: string; flag: string; name: string }> = {
-  BDT: { symbol: "৳", flag: "🇧🇩", name: "Bangladesh" },
+  BDT: { symbol: "Tk ", flag: "🇧🇩", name: "Bangladesh" },
   INR: { symbol: "₹", flag: "🇮🇳", name: "India" },
   PKR: { symbol: "Rs", flag: "🇵🇰", name: "Pakistan" },
   NPR: { symbol: "Rs", flag: "🇳🇵", name: "Nepal" },

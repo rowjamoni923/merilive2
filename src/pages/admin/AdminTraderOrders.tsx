@@ -315,7 +315,7 @@ const AdminTraderOrders = () => {
                       <div className="flex items-center gap-3 mt-2 flex-wrap">
                         <span className="text-lg font-bold text-emerald-600">{order.coin_amount.toLocaleString()} 💎</span>
                         <span className="text-sm text-slate-600">
-                          {order.currency_code === 'BDT' ? '৳' : '$'}{order.amount_local.toFixed(0)}
+                          {order.currency_code === 'BDT' ? 'Tk ' : '$'}{order.amount_local.toFixed(0)}
                         </span>
                         <Badge variant="outline" className="text-xs">{order.payment_method}</Badge>
                       </div>

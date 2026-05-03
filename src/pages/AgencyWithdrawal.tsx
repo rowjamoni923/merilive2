@@ -216,7 +216,7 @@ const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     name: "Bangladesh",
     flag: "🇧🇩",
     currency: "BDT",
-    currencySymbol: "৳",
+    currencySymbol: "Tk ",
     paymentMethods: [
       { value: "bkash", label: "bKash" },
       { value: "nagad", label: "Nagad" },

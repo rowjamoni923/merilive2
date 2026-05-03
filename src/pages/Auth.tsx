@@ -639,7 +639,7 @@ const Auth = () => {
       const savedLang = localStorage.getItem("meri_app_language");
       if (!savedLang || savedLang === "auto") {
         const countryToLang: Record<string, string> = {
-          BD: "bn", IN: "hi", PK: "ur", NP: "ne", LK: "si",
+          BD: "en", IN: "hi", PK: "ur", NP: "ne", LK: "si",
           SA: "ar", AE: "ar", QA: "ar", KW: "ar", OM: "ar", BH: "ar", EG: "ar",
           US: "en", GB: "en", AU: "en", CA: "en",
           CN: "zh", TW: "zh", HK: "zh", JP: "ja", KR: "ko",

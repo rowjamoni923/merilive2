@@ -103,7 +103,7 @@ export default function AdminCoins() {
 
   // International exchange rates (market rate - 5 for our app)
   const internationalRates: Record<string, { rate: number; symbol: string; name: string }> = {
-    'BD': { rate: 110.50, symbol: '৳', name: 'Bangladesh Taka' },
+    'BD': { rate: 110.50, symbol: 'Tk ', name: 'Bangladesh Taka' },
     'IN': { rate: 83.00, symbol: '₹', name: 'Indian Rupee' },
     'PK': { rate: 278.00, symbol: 'Rs', name: 'Pakistani Rupee' },
     'NP': { rate: 132.00, symbol: 'रू', name: 'Nepalese Rupee' },
@@ -745,7 +745,7 @@ export default function AdminCoins() {
                   <span className="text-white/80 text-sm">Exchange Rate</span>
                 </div>
                 <p className="text-lg font-bold">
-                  {beansToUsdRate.toLocaleString()} Beans = $1 | $1 = ৳{(currencies.find(c => c.country_code === 'BD')?.rate_to_usd ?? 110.5).toFixed(2)}
+                  {beansToUsdRate.toLocaleString()} Beans = $1 | $1 = Tk {(currencies.find(c => c.country_code === 'BD')?.rate_to_usd ?? 110.5).toFixed(2)}
                 </p>
               </div>
             </CardContent>
@@ -1229,7 +1229,7 @@ export default function AdminCoins() {
                 <Input
                   value={currencyForm.currency_symbol}
                   onChange={(e) => setCurrencyForm({ ...currencyForm, currency_symbol: e.target.value })}
-                  placeholder="৳"
+                  placeholder="Tk "
                 />
               </div>
               <div className="space-y-2">

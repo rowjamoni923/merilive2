@@ -315,7 +315,7 @@ function CampaignFloatingButton() {
     : 'Local Pay';
 
   const convertToLocalCurrency = (usdAmount: number) => {
-    if (userCountryCode === 'BD') return `৳${Math.round(usdAmount * 120)}`;
+    if (userCountryCode === 'BD') return `Tk ${Math.round(usdAmount * 120)}`;
     return `$${usdAmount.toFixed(2)}`;
   };
 
