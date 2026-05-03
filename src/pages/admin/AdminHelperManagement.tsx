@@ -33,6 +33,7 @@ import AdminHelperDiamondTopup from "@/components/admin/AdminHelperDiamondTopup"
 import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 
 import { adminSendNotification } from "@/utils/adminNotification";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 // Interfaces
 interface HelperApplication {
@@ -171,7 +172,7 @@ const AdminHelperManagement = () => {
         loadStats(),
       ]);
     } catch (error) {
-      console.error(error);
+      recordAdminError({ kind: "rpc", label: "AdminHelperManagement", message: error instanceof Error ? error.message : "Helper management error" });
     } finally {
       setLoading(false);
     }
@@ -379,7 +380,7 @@ const AdminHelperManagement = () => {
       setSelectedApp(null);
       setAdminNotes("");
     } catch (error: any) {
-      console.error("handleApproveApplication error:", error);
+      recordAdminError({ kind: "rpc", label: "AdminHelperManagement.HandleapproveapplicationError", message: error instanceof Error ? error.message : "handleApproveApplication error" });
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
       setProcessingIds(prev => {
@@ -440,7 +441,7 @@ const AdminHelperManagement = () => {
         .eq('id', req.id);
 
       if (updateError) {
-        console.error("Error updating upgrade request:", updateError);
+        recordAdminError({ kind: "rpc", label: "AdminHelperManagement.ErrorUpdatingUpgradeRequest", message: updateError instanceof Error ? updateError.message : "Error updating upgrade request" });
         throw updateError;
       }
 
@@ -450,13 +451,13 @@ const AdminHelperManagement = () => {
         .eq('id', req.helper_id);
 
       if (helperError) {
-        console.error("Error updating helper level:", helperError);
+        recordAdminError({ kind: "rpc", label: "AdminHelperManagement.ErrorUpdatingHelperLevel", message: helperError instanceof Error ? helperError.message : "Error updating helper level" });
         throw helperError;
       }
 
       toast({ title: "Approved!", description: `Upgraded to Level ${req.requested_level}` });
     } catch (error: any) {
-      console.error("handleApproveUpgrade error:", error);
+      recordAdminError({ kind: "rpc", label: "AdminHelperManagement.HandleapproveupgradeError", message: error instanceof Error ? error.message : "handleApproveUpgrade error" });
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
       setProcessingIds(prev => {
@@ -479,7 +480,7 @@ const AdminHelperManagement = () => {
         .eq('id', req.id);
 
       if (updateError) {
-        console.error("Error updating topup request:", updateError);
+        recordAdminError({ kind: "rpc", label: "AdminHelperManagement.ErrorUpdatingTopupRequest", message: updateError instanceof Error ? updateError.message : "Error updating topup request" });
         throw updateError;
       }
 
@@ -491,7 +492,7 @@ const AdminHelperManagement = () => {
         .single();
       
       if (helperFetchError) {
-        console.error("Error fetching helper:", helperFetchError);
+        recordAdminError({ kind: "rpc", label: "AdminHelperManagement.ErrorFetchingHelper", message: helperFetchError instanceof Error ? helperFetchError.message : "Error fetching helper" });
         throw helperFetchError;
       }
 
@@ -505,14 +506,14 @@ const AdminHelperManagement = () => {
           .eq('id', req.helper_id);
 
         if (helperUpdateError) {
-          console.error("Error updating helper wallet:", helperUpdateError);
+          recordAdminError({ kind: "rpc", label: "AdminHelperManagement.ErrorUpdatingHelperWallet", message: helperUpdateError instanceof Error ? helperUpdateError.message : "Error updating helper wallet" });
           throw helperUpdateError;
         }
       }
 
       toast({ title: "Approved!", description: "Topup added to wallet" });
     } catch (error: any) {
-      console.error("handleApproveTopup error:", error);
+      recordAdminError({ kind: "rpc", label: "AdminHelperManagement.HandleapprovetopupError", message: error instanceof Error ? error.message : "handleApproveTopup error" });
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
       setProcessingIds(prev => {

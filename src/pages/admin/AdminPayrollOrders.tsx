@@ -24,6 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
 import { adminSendNotification } from "@/utils/adminNotification";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface PaymentDetails {
   transaction_id?: string;
@@ -219,7 +220,7 @@ const AdminPayrollOrders = () => {
         todayTotal: s.todayTotal || 0
       });
     } catch (error) {
-      console.error(error);
+      recordAdminError({ kind: "rpc", label: "AdminPayrollOrders", message: error instanceof Error ? error.message : "Payroll orders error" });
     } finally {
       setLoading(false);
     }

@@ -63,6 +63,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import { format, formatDistanceToNow } from "date-fns";
 import { bn } from "date-fns/locale";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface Agency {
   id: string;
@@ -236,7 +237,7 @@ export default function AdminAgencyDetail() {
         }
       }
     } catch (error) {
-      console.error("Error fetching agency:", error);
+      recordAdminError({ kind: "rpc", label: "AdminAgencyDetail.ErrorFetchingAgency", message: error instanceof Error ? error.message : "Error fetching agency" });
       toast.error("Failed to load agency");
     } finally {
       setLoading(false);
@@ -262,7 +263,7 @@ export default function AdminAgencyDetail() {
       setRemoveReason("");
       fetchAgencyDetails();
     } catch (error) {
-      console.error("Error removing host:", error);
+      recordAdminError({ kind: "rpc", label: "AdminAgencyDetail.ErrorRemovingHost", message: error instanceof Error ? error.message : "Error removing host" });
       toast.error("Failed to remove host");
     } finally {
       setActionLoading(false);
@@ -288,7 +289,7 @@ export default function AdminAgencyDetail() {
       setCoinNote("");
       fetchAgencyDetails();
     } catch (error) {
-      console.error("Error adding coins:", error);
+      recordAdminError({ kind: "rpc", label: "AdminAgencyDetail.ErrorAddingCoins", message: error instanceof Error ? error.message : "Error adding coins" });
       toast.error("Failed to add diamonds");
     } finally {
       setActionLoading(false);
@@ -312,7 +313,7 @@ export default function AdminAgencyDetail() {
       setNewLevel("");
       fetchAgencyDetails();
     } catch (error) {
-      console.error("Error changing level:", error);
+      recordAdminError({ kind: "rpc", label: "AdminAgencyDetail.ErrorChangingLevel", message: error instanceof Error ? error.message : "Error changing level" });
       toast.error("Failed to update level");
     } finally {
       setActionLoading(false);
@@ -339,7 +340,7 @@ export default function AdminAgencyDetail() {
       setRemoveReason("");
       fetchAgencyDetails();
     } catch (error) {
-      console.error("Error removing all hosts:", error);
+      recordAdminError({ kind: "rpc", label: "AdminAgencyDetail.ErrorRemovingAllHosts", message: error instanceof Error ? error.message : "Error removing all hosts" });
       toast.error("Failed to remove hosts");
     } finally {
       setActionLoading(false);
@@ -390,7 +391,7 @@ export default function AdminAgencyDetail() {
       setTargetAgencyId("");
       fetchAgencyDetails();
     } catch (error) {
-      console.error("Error transferring host:", error);
+      recordAdminError({ kind: "rpc", label: "AdminAgencyDetail.ErrorTransferringHost", message: error instanceof Error ? error.message : "Error transferring host" });
       toast.error("Failed to transfer host");
     } finally {
       setActionLoading(false);
@@ -442,7 +443,7 @@ export default function AdminAgencyDetail() {
         toast.error("User not found");
       }
     } catch (error) {
-      console.error("Error searching user:", error);
+      recordAdminError({ kind: "rpc", label: "AdminAgencyDetail.ErrorSearchingUser", message: error instanceof Error ? error.message : "Error searching user" });
       toast.error("Failed to search user");
     } finally {
       setSearchingUser(false);
@@ -507,7 +508,7 @@ export default function AdminAgencyDetail() {
       setAddHostSearchQuery("");
       fetchAgencyDetails();
     } catch (error) {
-      console.error("Error adding host:", error);
+      recordAdminError({ kind: "rpc", label: "AdminAgencyDetail.ErrorAddingHost", message: error instanceof Error ? error.message : "Error adding host" });
       toast.error("Failed to add host");
     } finally {
       setAddingHost(false);

@@ -29,6 +29,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import { saveAppSetting } from "@/utils/adminSettingsStorage";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 const POLICY_SECTION_META: Record<string, { title: string; display_order: number }> = {
   exchange_rate: { title: 'Exchange Rate', display_order: 1 },
@@ -135,7 +136,7 @@ const AdminAgencyPolicy = () => {
         setCommissionTiers(data);
       }
     } catch (error) {
-      console.error('Error fetching commission tiers:', error);
+      recordAdminError({ kind: "rpc", label: "AdminAgencyPolicy.ErrorFetchingCommissionTiers", message: error instanceof Error ? error.message : "Error fetching commission tiers" });
     }
   };
 
@@ -195,7 +196,7 @@ const AdminAgencyPolicy = () => {
         }
       }
     } catch (error: any) {
-      console.error('Error fetching policies:', error);
+      recordAdminError({ kind: "rpc", label: "AdminAgencyPolicy.ErrorFetchingPolicies", message: error instanceof Error ? error.message : "Error fetching policies" });
       toast.error('Failed to load policy settings');
     } finally {
       setLoading(false);
@@ -252,7 +253,7 @@ const AdminAgencyPolicy = () => {
       if (error) throw error;
       return true;
     } catch (error: any) {
-      console.error(`Error saving ${sectionKey}:`, error);
+      recordAdminError({ kind: "rpc", label: `AdminAgencyPolicy.save.${sectionKey}`, message: error instanceof Error ? error.message : "Failed to save section" });
       throw error;
     }
   };
