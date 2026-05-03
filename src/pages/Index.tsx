@@ -57,6 +57,28 @@ interface Profile {
 // Default placeholder for hosts without avatar
 const DEFAULT_AVATAR = "/placeholder.svg";
 
+import { getDisplayAvatar } from "@/utils/placeholderAvatar";
+
+/**
+ * Resolve the card avatar for the homepage feed.
+ * - If host has uploaded avatar → use it.
+ * - If viewer is the host themselves (own card) → show raw (no placeholder)
+ *   so they know to upload one.
+ * - Otherwise (other viewers, including main owner viewing other hosts) → use
+ *   stable AI placeholder so the card never appears blank.
+ */
+function resolveFeedAvatar(
+  hostId: string,
+  avatarUrl: string | null | undefined,
+  viewerId: string | null,
+  isHost: boolean
+): string {
+  if (avatarUrl && avatarUrl.trim().length > 0) return avatarUrl;
+  if (viewerId && viewerId === hostId) return DEFAULT_AVATAR;
+  if (isHost) return getDisplayAvatar(hostId, avatarUrl);
+  return DEFAULT_AVATAR;
+}
+
 type SubTab = "popular" | "live" | "new" | "following";
 
 const Index = () => {
