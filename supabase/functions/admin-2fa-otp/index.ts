@@ -79,6 +79,15 @@ Deno.serve(async (req: Request): Promise<Response> => {
           expires_at: expiresAt.toISOString(),
         });
 
+      if (insertError) {
+        console.error("[admin-2fa-otp] Insert error:", insertError);
+        return new Response(
+          JSON.stringify({ error: "Failed to generate OTP" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+
       // Send via Lovable Email (unlimited)
       let emailSent = false;
       let emailError: string | null = null;
