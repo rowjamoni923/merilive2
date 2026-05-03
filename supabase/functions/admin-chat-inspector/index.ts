@@ -297,18 +297,46 @@ serve(async (req) => {
       case "gift-transactions": {
         // Support timezone offset from client (default UTC+6 for Bangladesh)
         const tzOffset = parseInt(url.searchParams.get("tzOffset") || "6");
+        const page = Math.max(1, parseInt(url.searchParams.get("page") || "1"));
+        const pageSize = Math.min(200, Math.max(10, parseInt(url.searchParams.get("pageSize") || "50")));
+        const offset = (page - 1) * pageSize;
+
         const now = new Date();
         const todayStart = new Date(now.getTime());
         todayStart.setUTCHours(-tzOffset, 0, 0, 0); // Start of day in client timezone
+        const fromIso = todayStart.toISOString();
 
-        // No FK constraint between gift_transactions and profiles — fetch separately
+        // 1) Lightweight aggregate query — stats are independent of pagination
+        const { data: aggRows, error: aggErr } = await supabase
+          .from("gift_transactions")
+          .select("coin_amount, sender_id, receiver_id")
+          .gte("created_at", fromIso)
+          .limit(10000);
+        if (aggErr) throw aggErr;
+
+        const stats = {
+          total_beans: 0,
+          total_count: aggRows?.length || 0,
+          unique_senders: 0,
+          unique_receivers: 0,
+        };
+        const senderSet = new Set<string>();
+        const receiverSet = new Set<string>();
+        (aggRows || []).forEach((r: any) => {
+          stats.total_beans += r.coin_amount || 0;
+          if (r.sender_id) senderSet.add(r.sender_id);
+          if (r.receiver_id) receiverSet.add(r.receiver_id);
+        });
+        stats.unique_senders = senderSet.size;
+        stats.unique_receivers = receiverSet.size;
+
+        // 2) Paginated rows with enrichment
         const { data: txns, error: txErr } = await supabase
           .from("gift_transactions")
           .select("*")
-          .gte("created_at", todayStart.toISOString())
+          .gte("created_at", fromIso)
           .order("created_at", { ascending: false })
-          .limit(1000);
-
+          .range(offset, offset + pageSize - 1);
         if (txErr) throw txErr;
 
         const userIds = new Set<string>();
@@ -340,9 +368,12 @@ serve(async (req) => {
           gift: giftMap[t.gift_id] || null,
         }));
 
-        return new Response(JSON.stringify({ transactions: enriched }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        const hasMore = offset + enriched.length < stats.total_count;
+
+        return new Response(
+          JSON.stringify({ transactions: enriched, stats, page, pageSize, hasMore }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
 
       case "phone-alerts": {
