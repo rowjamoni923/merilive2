@@ -681,7 +681,7 @@ const GoLive = () => {
       const permResult = await requestCameraPermission();
       if (!permResult.granted) {
         console.error('[GoLive] Native camera permission denied:', permResult.error);
-        recordClientError({ label: "GoLive.permResult", message: permResult.error instanceof Error ? permResult.error.message : String(permResult.error) });
+        recordClientError({ label: "GoLive.permResult", message: String(permResult.error ?? "unknown") });
         toast.error(permResult.error || "Camera Access Failed - Please allow camera access in your device settings.");
         return;
       }

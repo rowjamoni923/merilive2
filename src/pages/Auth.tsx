@@ -865,7 +865,7 @@ const Auth = () => {
         
         if (signInError) {
           console.error('[Auth] Both signup and signin failed:', signInError.message);
-          recordClientError({ label: "Auth.guestPassword", message: signInError.message instanceof Error ? signInError.message.message : String(signInError.message) });
+          recordClientError({ label: "Auth.guestPassword", message: String(signInError.message ?? "unknown") });
           // Fallback to email registration
           toast({
             title: "Information Required",

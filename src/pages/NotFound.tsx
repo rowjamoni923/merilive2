@@ -7,7 +7,7 @@ const NotFound = () => {
 
   useEffect(() => {
     console.error("404 Error: User attempted to access non-existent route:", location.pathname);
-    recordClientError({ label: "NotFound.location", message: location.pathname instanceof Error ? location.pathname.message : String(location.pathname) });
+    recordClientError({ label: "NotFound.location", message: String(location.pathname) });
   }, [location.pathname]);
 
   return (

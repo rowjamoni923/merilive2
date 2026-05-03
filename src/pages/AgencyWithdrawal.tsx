@@ -2295,7 +2295,7 @@ const AgencyWithdrawal = () => {
       
       if (!result.success) {
         console.error('[Withdrawal] Failed:', result.error);
-        recordClientError({ label: "AgencyWithdrawal.result", message: result.error instanceof Error ? result.error.message : String(result.error) });
+        recordClientError({ label: "AgencyWithdrawal.result", message: String(result.error ?? "unknown") });
         toast.error(result.error || 'Withdrawal request failed');
         return;
       }
