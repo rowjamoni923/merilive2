@@ -66,7 +66,7 @@ const Index = () => {
   
 
   const handlePullRefresh = useCallback(async () => {
-    await queryClient.invalidateQueries({ queryKey: ["index-hosts-v3"] });
+    await queryClient.invalidateQueries({ queryKey: ["index-hosts-v4"] });
   }, [queryClient]);
   // Dynamic country list from database
   const { data: dynamicCountries } = useQuery({
@@ -75,7 +75,7 @@ const Index = () => {
     gcTime: 1000 * 60 * 60,
     queryFn: async () => {
       const { data } = await supabase
-        .from("profiles")
+        .from("profiles_public")
         .select("country_code, country_flag")
         .eq("is_host", true)
         .eq("gender", "female")
@@ -154,7 +154,7 @@ const Index = () => {
 
   // Fetch hosts based on subTab - Optimized for speed
   const { data: hosts, isLoading } = useQuery({
-    queryKey: ["index-hosts-v3", selectedCountry, subTab, currentUserId],
+    queryKey: ["index-hosts-v4", selectedCountry, subTab, currentUserId],
     staleTime: 1000 * 30,
     gcTime: 1000 * 120,
     refetchOnMount: false,
@@ -205,8 +205,7 @@ const Index = () => {
           .eq("is_face_verified", true)
           .eq("is_online", true)
           .neq("host_availability", "offline")
-          .gte("last_seen_at", sixtyMinutesAgo)
-          .not("avatar_url", "is", null);
+          .gte("last_seen_at", sixtyMinutesAgo);
         if (selectedCountry !== "all") profileQuery = profileQuery.eq("country_code", selectedCountry);
         if (subTab === "following") {
           const followedIds = followingRes.data?.map((f: any) => f.following_id) || [];
