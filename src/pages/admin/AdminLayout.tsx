@@ -1217,7 +1217,10 @@ export default function AdminLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const instantAdminAccess = hasAdminAccessFlag() || hasOwnerAccessFlag();
+  // Treat an existing admin session token as instant access too — otherwise
+  // an admin who arrives via secret link (session present, flag missing) would
+  // see "Preparing admin console…" spin forever if the verification call stalls.
+  const instantAdminAccess = hasAdminAccessFlag() || hasOwnerAccessFlag() || !!getAdminSession();
   const [isAdmin, setIsAdmin] = useState(instantAdminAccess);
   const [isLoading, setIsLoading] = useState(!instantAdminAccess);
   const [expandedGroups, setExpandedGroups] = useState<string[]>(navGroups.map(g => g.title));
