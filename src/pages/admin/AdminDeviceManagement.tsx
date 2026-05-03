@@ -27,6 +27,7 @@ import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { getAdminSession } from "@/utils/adminSession";
 import { toast } from "sonner";
 import {
+import { recordAdminError } from "@/utils/adminErrorLog";
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -98,7 +99,7 @@ export default function AdminDeviceManagement() {
 
       setDevices(rows);
     } catch (error: any) {
-      console.error('Error loading devices:', error);
+      recordAdminError({ kind: "rpc", label: "AdminDeviceManagement.ErrorLoadingDevices", message: error instanceof Error ? error.message : "Error loading devices" });
       toast.error(error?.message || 'Failed to load devices');
     } finally {
       setLoading(false);
@@ -140,7 +141,7 @@ export default function AdminDeviceManagement() {
 
       await loadDevices();
     } catch (error: any) {
-      console.error('Error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminDeviceManagement.Error", message: error instanceof Error ? error.message : "Error" });
       toast.error(error?.message || 'Action failed');
     } finally {
       setActionLoading(false);

@@ -34,6 +34,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { bn } from "date-fns/locale";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface AdminLog {
   id: string;
@@ -106,7 +107,7 @@ export default function AdminLogs() {
       
       setLogs(formattedLogs);
     } catch (error) {
-      console.error("Error fetching logs:", error);
+      recordAdminError({ kind: "rpc", label: "AdminLogs.ErrorFetchingLogs", message: error instanceof Error ? error.message : "Error fetching logs" });
       toast.error("Failed to load logs");
     } finally {
       setLoading(false);

@@ -29,6 +29,7 @@ import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { getAdminSession } from "@/utils/adminSession";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface BlockedUser {
   id: string;
@@ -94,7 +95,7 @@ export default function AdminBlocked() {
       setBlockedAgencies(formattedAgencies);
       setAdminCache('admin_blocked_agencies', formattedAgencies);
     } catch (error) {
-      console.error("Error fetching blocked items:", error);
+      recordAdminError({ kind: "rpc", label: "AdminBlocked.ErrorFetchingBlockedItems", message: error instanceof Error ? error.message : "Error fetching blocked items" });
       toast.error("Failed to load data");
     } finally {
       setLoading(false);
@@ -129,7 +130,7 @@ export default function AdminBlocked() {
       toast.success("User unblocked successfully");
       fetchBlockedItems();
     } catch (error: any) {
-      console.error('Unblock error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminBlocked.UnblockError", message: error instanceof Error ? error.message : "Unblock error" });
       toast.error(error?.message || "Failed to unblock user");
     }
   };

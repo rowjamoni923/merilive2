@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface FaceViolation {
   id: string;
@@ -57,7 +58,7 @@ const AdminFaceViolations = () => {
       }));
       setViolations(enriched as FaceViolation[]);
     } catch (err) {
-      console.error('Error fetching violations:', err);
+      recordAdminError({ kind: "rpc", label: "AdminFaceViolations.ErrorFetchingViolations", message: err instanceof Error ? err.message : "Error fetching violations" });
       toast.error('Failed to load data');
     }
     setLoading(false);
@@ -78,7 +79,7 @@ const AdminFaceViolations = () => {
       toast.success('Host marked for live ban');
       fetchViolations();
     } catch (err) {
-      console.error('Ban error:', err);
+      recordAdminError({ kind: "rpc", label: "AdminFaceViolations.BanError", message: err instanceof Error ? err.message : "Ban error" });
       toast.error('Failed to ban host');
     }
   };

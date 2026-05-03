@@ -42,6 +42,7 @@ import { Label } from "@/components/ui/label";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import { saveAppSetting } from "@/utils/adminSettingsStorage";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface ModerationLog {
   id: string;
@@ -143,7 +144,7 @@ export default function AdminModeration() {
       setLogs(logsWithUsers);
       setTotalLogs(Number(payload.total || 0));
     } catch (error) {
-      console.error("Error fetching logs:", error);
+      recordAdminError({ kind: "rpc", label: "AdminModeration.ErrorFetchingLogs", message: error instanceof Error ? error.message : "Error fetching logs" });
       toast.error("Failed to load logs");
     } finally {
       setLoading(false);
@@ -167,7 +168,7 @@ export default function AdminModeration() {
       toast.success("Settings saved");
       setShowSettingsDialog(false);
     } catch (error) {
-      console.error("Error saving settings:", error);
+      recordAdminError({ kind: "rpc", label: "AdminModeration.ErrorSavingSettings", message: error instanceof Error ? error.message : "Error saving settings" });
       toast.error("Failed to save settings");
     } finally {
       setSavingSettings(false);
@@ -193,7 +194,7 @@ export default function AdminModeration() {
       toast.success("User unbanned");
       fetchLogs();
     } catch (error) {
-      console.error("Error unbanning user:", error);
+      recordAdminError({ kind: "rpc", label: "AdminModeration.ErrorUnbanningUser", message: error instanceof Error ? error.message : "Error unbanning user" });
       toast.error("Failed to unban user");
     }
   };
