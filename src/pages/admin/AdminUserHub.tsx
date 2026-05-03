@@ -9,6 +9,7 @@ import {
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import AdminLuxuryStatCard from "@/components/admin/AdminLuxuryStatCard";
 import AdminUserManagement from "./AdminUserManagement";
+import { recordAdminError } from "@/utils/adminErrorLog";
 import { cn } from "@/lib/utils";
 
 interface CountryData {
