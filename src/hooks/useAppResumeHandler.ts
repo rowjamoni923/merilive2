@@ -52,7 +52,7 @@ const triggerResumeCallbacks = () => {
  * Everything else only refreshes if cache is old, preventing refetch storms.
  */
 const CRITICAL_QUERY_KEYS = new Set([
-  'index-hosts-v3',
+  'index-hosts-v4',
   'live-stream',
   'active-streams',
   'party-rooms',
