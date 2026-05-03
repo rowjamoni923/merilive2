@@ -76,6 +76,7 @@ import { bn } from "date-fns/locale";
 import HelpersTabContent from "@/components/admin/agency/HelpersTabContent";
 
 import { adminSendNotification } from "@/utils/adminNotification";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface AgencyCommissionSettings {
   agency_commission_rate: number; // % of host earnings agency gets
@@ -279,7 +280,7 @@ export default function AdminAgencies() {
         })));
       }
     } catch (error) {
-      console.error('Error fetching level tiers:', error);
+      recordAdminError({ kind: "rpc", label: "AdminAgencies.ErrorFetchingLevelTiers", message: error instanceof Error ? error.message : "Error fetching level tiers" });
     }
   }, []);
 
@@ -332,7 +333,7 @@ export default function AdminAgencies() {
       await fetchLevelTiers(true);
       toast.success("Level settings saved");
     } catch (error: any) {
-      console.error("Error saving level tiers:", error);
+      recordAdminError({ kind: "rpc", label: "AdminAgencies.ErrorSavingLevelTiers", message: error instanceof Error ? error.message : "Error saving level tiers" });
       toast.error(error?.message || "Failed to save");
     } finally {
       setSavingLevels(false);
@@ -349,7 +350,7 @@ export default function AdminAgencies() {
       toast.success(`${(data as any)?.updated_count || 0} agency levels updated`);
       fetchAgencies();
     } catch (error) {
-      console.error("Error recalculating levels:", error);
+      recordAdminError({ kind: "rpc", label: "AdminAgencies.ErrorRecalculatingLevels", message: error instanceof Error ? error.message : "Error recalculating levels" });
       toast.error("Failed to update levels");
     }
   };
@@ -372,7 +373,7 @@ export default function AdminAgencies() {
         setCommissionSettings(data);
       }
     } catch (error) {
-      console.error("Error fetching commission settings:", error);
+      recordAdminError({ kind: "rpc", label: "AdminAgencies.ErrorFetchingCommissionSettings", message: error instanceof Error ? error.message : "Error fetching commission settings" });
     } finally {
       setSettingsLoading(false);
     }
@@ -390,7 +391,7 @@ export default function AdminAgencies() {
 
       toast.success("Commission settings saved successfully");
     } catch (error) {
-      console.error("Error saving commission settings:", error);
+      recordAdminError({ kind: "rpc", label: "AdminAgencies.ErrorSavingCommissionSettings", message: error instanceof Error ? error.message : "Error saving commission settings" });
       toast.error("Failed to save settings");
     } finally {
       setSavingSettings(false);
@@ -437,7 +438,7 @@ export default function AdminAgencies() {
         .range(from, to);
 
       if (error) {
-        console.error("Agency query error:", error);
+        recordAdminError({ kind: "rpc", label: "AdminAgencies.AgencyQueryError", message: error instanceof Error ? error.message : "Agency query error" });
         throw error;
       }
       
@@ -484,7 +485,7 @@ export default function AdminAgencies() {
         .eq("is_active", false);
       setInactiveCount(inactiveC || 0);
     } catch (error) {
-      console.error("Error fetching agencies:", error);
+      recordAdminError({ kind: "rpc", label: "AdminAgencies.ErrorFetchingAgencies", message: error instanceof Error ? error.message : "Error fetching agencies" });
       toast.error("Failed to load agencies");
     } finally {
       setLoading(false);
@@ -525,7 +526,7 @@ export default function AdminAgencies() {
       setCancelReason("");
       fetchAgencies();
     } catch (error) {
-      console.error("Error updating agency:", error);
+      recordAdminError({ kind: "rpc", label: "AdminAgencies.ErrorUpdatingAgency", message: error instanceof Error ? error.message : "Error updating agency" });
       toast.error((error as any)?.message || "Operation failed");
     } finally {
       setActionLoading(false);
@@ -545,7 +546,7 @@ export default function AdminAgencies() {
       toast.success("Agency level updated successfully");
       fetchAgencies();
     } catch (error) {
-      console.error("Error updating level:", error);
+      recordAdminError({ kind: "rpc", label: "AdminAgencies.ErrorUpdatingLevel", message: error instanceof Error ? error.message : "Error updating level" });
       toast.error("Update failed");
     } finally {
       guardEnd(`level-${agencyId}`);
@@ -640,7 +641,7 @@ export default function AdminAgencies() {
         setHostAgencyInfo(joinData);
       }
     } catch (error) {
-      console.error("Search error:", error);
+      recordAdminError({ kind: "rpc", label: "AdminAgencies.SearchError", message: error instanceof Error ? error.message : "Search error" });
       toast.error("Search failed");
     } finally {
       setHostSearchLoading(false);
@@ -723,7 +724,7 @@ export default function AdminAgencies() {
         setNewAgencyName(`${userData.display_name}'s Agency`);
       }
     } catch (error) {
-      console.error("Owner search error:", error);
+      recordAdminError({ kind: "rpc", label: "AdminAgencies.OwnerSearchError", message: error instanceof Error ? error.message : "Owner search error" });
       toast.error("Search failed");
     } finally {
       setOwnerSearchLoading(false);
@@ -784,7 +785,7 @@ export default function AdminAgencies() {
       // Refresh agencies list
       fetchAgencies();
     } catch (error: any) {
-      console.error("Error creating agency:", error);
+      recordAdminError({ kind: "rpc", label: "AdminAgencies.ErrorCreatingAgency", message: error instanceof Error ? error.message : "Error creating agency" });
       if (error.code === '23505' || error.message?.includes('code already exists')) {
         toast.error("Agency code duplicate, please try again");
       } else {
@@ -864,7 +865,7 @@ export default function AdminAgencies() {
       toast.success(`${ownerProfile?.display_name || "Owner"} is now a Payroll Helper`);
       setShowPayrollDialog(false);
     } catch (error) {
-      console.error("Error making payroll helper:", error);
+      recordAdminError({ kind: "rpc", label: "AdminAgencies.ErrorMakingPayrollHelper", message: error instanceof Error ? error.message : "Error making payroll helper" });
       toast.error("Failed to assign payroll helper role");
     } finally {
       setPayrollLoading(false);

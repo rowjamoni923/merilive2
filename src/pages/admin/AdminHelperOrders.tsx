@@ -38,6 +38,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface HelperOrder {
   id: string;
@@ -154,7 +155,7 @@ const AdminHelperOrders = () => {
 
       setOrders(normalizedOrders as HelperOrder[]);
     } catch (error) {
-      console.error('Error fetching orders:', error);
+      recordAdminError({ kind: "rpc", label: "AdminHelperOrders.ErrorFetchingOrders", message: error instanceof Error ? error.message : "Error fetching orders" });
       toast({
         title: "Error",
         description: "Failed to load orders",
@@ -183,7 +184,7 @@ const AdminHelperOrders = () => {
       });
       fetchOrders();
     } catch (error) {
-      console.error('Error updating order:', error);
+      recordAdminError({ kind: "rpc", label: "AdminHelperOrders.ErrorUpdatingOrder", message: error instanceof Error ? error.message : "Error updating order" });
       toast({
         title: "Error",
         description: "Failed to update order status",

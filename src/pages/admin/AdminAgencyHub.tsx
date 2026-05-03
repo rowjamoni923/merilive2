@@ -14,6 +14,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 // Cross-hub links are surfaced as quick-access buttons below.
 import AdminAgencies from "./AdminAgencies";
 import AdminAgencyPolicy from "./AdminAgencyPolicy";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 const AdminAgencyHub = () => {
   const navigate = useNavigate();
@@ -48,7 +49,7 @@ const AdminAgencyHub = () => {
         pendingWithdrawals: s.pendingWithdrawals || 0
       });
     } catch (error) {
-      console.error('Error fetching agency hub stats:', error);
+      recordAdminError({ kind: "rpc", label: "AdminAgencyHub.ErrorFetchingAgencyHubStats", message: error instanceof Error ? error.message : "Error fetching agency hub stats" });
     }
   };
 

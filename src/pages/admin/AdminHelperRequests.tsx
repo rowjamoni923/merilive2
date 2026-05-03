@@ -28,6 +28,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
 import { adminSendNotification } from "@/utils/adminNotification";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface UpgradeRequest {
   id: string;
@@ -147,7 +148,7 @@ const AdminHelperRequests = () => {
       setPendingTopupCount(s.pendingTopups || 0);
       
     } catch (error) {
-      console.error('Error loading requests:', error);
+      recordAdminError({ kind: "rpc", label: "AdminHelperRequests.ErrorLoadingRequests", message: error instanceof Error ? error.message : "Error loading requests" });
     } finally {
       setLoading(false);
     }
