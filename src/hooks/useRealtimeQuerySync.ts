@@ -18,12 +18,12 @@ import { clearAllFrameCaches } from '@/utils/frameCache';
 
 // Tables added to supabase_realtime publication for instant admin→app sync
 const TABLE_TO_QUERY_KEYS: Record<string, string[][]> = {
-  live_streams: [['index-hosts-v3'], ['live-stream'], ['active-streams']],
+  live_streams: [['index-hosts-v4'], ['live-stream'], ['active-streams']],
   conversations: [['conversations'], ['recent-chats']],
   messages: [['messages'], ['conversations']],
   gift_transactions: [['user-profile'], ['gift-history'], ['host-rankings-v2'], ['gifter-rankings-v2'], ['game-rankings-v2']],
-  party_rooms: [['party-rooms'], ['index-hosts-v3']],
-  private_calls: [['private-calls'], ['call-history'], ['index-hosts-v3'], ['host-rankings-v2']],
+  party_rooms: [['party-rooms'], ['index-hosts-v4']],
+  private_calls: [['private-calls'], ['call-history'], ['index-hosts-v4'], ['host-rankings-v2']],
   notifications: [['notifications']],
   app_settings: [['app-settings'], ['global-settings']],
   agencies: [['agencies'], ['agency-details']],
@@ -135,7 +135,7 @@ const DEFAULT_DEBOUNCE_MS = 160;
 
 // Heavy home query protection: prevent refetch storms from high-frequency realtime updates
 const QUERY_KEY_MIN_INVALIDATE_MS: Record<string, number> = {
-  'index-hosts-v3': 800,
+  'index-hosts-v4': 800,
   'live-stream': 3000,
   'active-streams': 3000,
 };
@@ -155,7 +155,7 @@ const FRAME_CACHE_TABLES = new Set(['avatar_frames', 'role_frames', 'user_role_f
 
 // Profiles handled separately
 const PROFILE_QUERY_KEYS: string[][] = [['user-profile'], ['host-profile']];
-const PROFILE_HOME_QUERY_KEYS: string[][] = [['index-hosts-v3'], ['host-countries']];
+const PROFILE_HOME_QUERY_KEYS: string[][] = [['index-hosts-v4'], ['host-countries']];
 const PROFILE_HOME_RELEVANT_FIELDS = [
   'is_host',
   'gender',
