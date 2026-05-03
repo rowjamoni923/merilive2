@@ -559,9 +559,9 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           syncBeansFromProfile(profileData);
         }
 
-        // Set call rate settings
+        // Set call rate settings (parse to ensure level_rates is always an array)
         if (callSettingsResult?.data?.setting_value) {
-          setCallRateSettings(callSettingsResult.data.setting_value);
+          setCallRateSettings(parseCallRateSettings(callSettingsResult.data.setting_value));
         }
 
         // Set consumption return
