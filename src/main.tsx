@@ -51,8 +51,8 @@ if (isNativeApp()) {
   // Don't await - let it run in background
   initializeNativeApp().catch(console.error);
   
-  // ❌ domainFallback সরানো হয়েছে — অ্যাপ local dist/ থেকে চলবে
-  // browser এ redirect করবে না। সব কিছু অ্যাপের ভিতরেই থাকবে।
+  // domainFallback removed — app runs from local dist/.
+  // No browser redirect. Everything stays inside the app.
 }
 
 // Prevent default touch behaviors for native feel
