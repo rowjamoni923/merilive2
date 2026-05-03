@@ -29,6 +29,7 @@ import AdminStreamViewer from "@/components/admin/AdminStreamViewer";
 import AdminRecordings from "@/components/admin/AdminRecordings";
 
 import { adminSendNotification } from "@/utils/adminNotification";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface LiveStream {
   id: string;
@@ -198,6 +199,7 @@ export default function AdminStreams() {
       calculateStatsFromStreams(formattedData);
     } catch (error) {
       console.error("Error fetching streams:", error);
+      recordAdminError({ kind: "rpc", label: "AdminStreams.formattedData", message: error instanceof Error ? error.message : String(error) });
       toast.error("Failed to load streams");
     } finally {
       setLoading(false);
@@ -231,6 +233,7 @@ export default function AdminStreams() {
       })));
     } catch (err) {
       console.error("Error fetching bans:", err);
+      recordAdminError({ kind: "rpc", label: "AdminStreams.userIds", message: err instanceof Error ? err.message : String(err) });
     } finally {
       setBansLoading(false);
     }
@@ -384,6 +387,7 @@ export default function AdminStreams() {
             }
           } catch (fetchErr) {
             console.error("[AdminStreams] Fallback ban also failed:", fetchErr);
+            recordAdminError({ kind: "rpc", label: "AdminStreams.fallbackData", message: fetchErr instanceof Error ? fetchErr.message : String(fetchErr) });
             toast.error("Stream stopped but ban failed to apply");
             setStopStreamDialog(null);
             await Promise.all([fetchStreams(), fetchActiveBans()]);
@@ -420,6 +424,7 @@ export default function AdminStreams() {
       await Promise.all([fetchStreams(), fetchActiveBans()]);
     } catch (error) {
       console.error("Error ending stream:", error);
+      recordAdminError({ kind: "rpc", label: "AdminStreams.banLabel", message: error instanceof Error ? error.message : String(error) });
       toast.error("Failed to end stream");
     } finally {
       setStopping(false);

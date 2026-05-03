@@ -10,6 +10,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import AdminPartyRooms from "./AdminPartyRooms";
 import AdminPartyBanners from "./AdminPartyBanners";
 import AdminPartyBackgrounds from "./AdminPartyBackgrounds";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 /**
  * UNIFIED PARTY MANAGEMENT PAGE
@@ -44,6 +45,7 @@ export default function AdminPartyManagement() {
       });
     } catch (e) {
       console.error('Error fetching party management stats:', e);
+      recordAdminError({ kind: "rpc", label: "AdminPartyManagement.s", message: e instanceof Error ? e.message : String(e) });
     }
   };
 
