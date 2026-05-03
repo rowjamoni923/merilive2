@@ -11,6 +11,7 @@ import { User, UserCheck, MessageCircle, RefreshCw, Loader2 } from "lucide-react
 import { format } from "date-fns";
 
 import { adminSendNotification } from "@/utils/adminNotification";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface ConversionRequest {
   id: string;
@@ -62,7 +63,7 @@ const AdminHostConversion = () => {
 
       setRequests(withProfiles);
     } catch (err) {
-      console.error('Load error:', err);
+      recordAdminError({ kind: "rpc", label: "AdminHostConversion.LoadError", message: err instanceof Error ? err.message : "Load error" });
     } finally {
       setLoading(false);
     }

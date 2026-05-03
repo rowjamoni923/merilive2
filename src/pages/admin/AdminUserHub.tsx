@@ -9,6 +9,7 @@ import {
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import AdminLuxuryStatCard from "@/components/admin/AdminLuxuryStatCard";
 import AdminUserManagement from "./AdminUserManagement";
+import { recordAdminError } from "@/utils/adminErrorLog";
 import { cn } from "@/lib/utils";
 
 interface CountryData {
@@ -61,7 +62,7 @@ const AdminUserHub = () => {
         faceVerified: faceRes.count || 0,
       });
     } catch (error) {
-      console.error('Error fetching user stats:', error);
+      recordAdminError({ kind: "rpc", label: "AdminUserHub.fetchStats", message: error instanceof Error ? error.message : "Failed to fetch user stats" });
     }
   }, []);
 
@@ -95,7 +96,7 @@ const AdminUserHub = () => {
       const sorted = Array.from(countryMap.values()).sort((a, b) => b.count - a.count);
       setCountryStats(sorted);
     } catch (error) {
-      console.error('Error fetching country stats:', error);
+      recordAdminError({ kind: "rpc", label: "AdminUserHub.fetchCountryStats", message: error instanceof Error ? error.message : "Failed to fetch country stats" });
     } finally {
       setIsLoadingCountries(false);
     }

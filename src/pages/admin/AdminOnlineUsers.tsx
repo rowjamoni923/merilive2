@@ -9,6 +9,7 @@ import { Eye, Search, RefreshCw, User, Star } from "lucide-react";
 import { motion } from "framer-motion";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import AdminPagination from "@/components/admin/AdminPagination";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface OnlineUser {
   id: string;
@@ -48,7 +49,7 @@ export default function AdminOnlineUsers() {
       setUsers((payload.rows || []) as OnlineUser[]);
       setTotal(Number(payload.total) || 0);
     } catch (e) {
-      console.error("Error fetching online users:", e);
+      recordAdminError({ kind: "rpc", label: "AdminOnlineUsers.ErrorFetchingOnlineUsers", message: e instanceof Error ? e.message : "Error fetching online users" });
     } finally {
       setLoading(false);
       setRefreshing(false);
