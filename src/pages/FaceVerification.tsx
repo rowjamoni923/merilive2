@@ -61,18 +61,7 @@ const languages = [
 // Country-based localized face verification instructions
 const getLocalizedInstructions = (countryName?: string) => {
   const country = (countryName || '').toLowerCase();
-  
-  // Bengali (Bangladesh)
-  if (country.includes('bangladesh') || country.includes('বাংলাদেশ')) {
-    return [
-      { id: 'center', direction: 'সামনে তাকান', icon: ScanFace, description: 'আপনার মুখ সোজা ক্যামেরার দিকে রাখুন', checkPose: (p: {yaw:number,pitch:number}) => Math.abs(p.yaw) < 15 && Math.abs(p.pitch) < 15 },
-      { id: 'left', direction: 'বামে ঘুরুন', icon: ArrowLeftIcon, description: 'আস্তে আস্তে আপনার মাথা বামে ঘোরান', checkPose: (p: {yaw:number,pitch:number}) => p.yaw > 18 },
-      { id: 'right', direction: 'ডানে ঘুরুন', icon: ArrowRightIcon, description: 'আস্তে আস্তে আপনার মাথা ডানে ঘোরান', checkPose: (p: {yaw:number,pitch:number}) => p.yaw < -18 },
-      { id: 'up', direction: 'উপরে তাকান', icon: ArrowUp, description: 'আপনার মাথা সামান্য উপরে তুলুন', checkPose: (p: {yaw:number,pitch:number}) => p.pitch < -12 },
-      { id: 'down', direction: 'নিচে তাকান', icon: ArrowDown, description: 'আপনার মাথা সামান্য নিচে নামান', checkPose: (p: {yaw:number,pitch:number}) => p.pitch > 12 },
-    ];
-  }
-  
+
   // Hindi (India)
   if (country.includes('india') || country.includes('भारत')) {
     return [
