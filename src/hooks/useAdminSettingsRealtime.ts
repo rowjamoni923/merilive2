@@ -169,35 +169,14 @@ const initializeRealtimeSubscription = () => {
 
   // On admin routes, AdminLayout already creates global channels for ALL tables.
   // We only listen to window events instead of creating duplicate postgres_changes channels.
+  // 🔒 ADMIN MANUAL-REFRESH POLICY
+  // On /admin routes we DO NOT subscribe to admin-table-update events.
+  // Settings pages re-fetch data when the user clicks their refresh button
+  // (or invalidates via direct refresh* call after their own mutation).
   if (adminMode) {
-    // Use event-based listening instead of creating a new channel
-    const handleAdminEvent = async (e: Event) => {
-      const detail = (e as CustomEvent).detail;
-      const table = detail?.table;
-      const refreshMap: Record<string, (() => Promise<void> | void)> = {
-        banners: refreshBanners,
-        gifts: refreshGifts,
-        coin_packages: refreshDiamondPackages,
-        currency_rates: refreshCurrencyRates,
-        branding_settings: refreshBranding,
-        game_settings: refreshGameSettings,
-        app_settings: refreshAppSettings,
-        topup_payment_methods: refreshPaymentMethods,
-      };
-      if (table && refreshMap[table]) {
-        await refreshMap[table]();
-        notifySubscribers();
-      }
-    };
-    window.addEventListener('admin-table-update', handleAdminEvent);
-    // Store cleanup ref on a global so we can remove it
-    (window as any).__adminSettingsEventCleanup = () => {
-      window.removeEventListener('admin-table-update', handleAdminEvent);
-    };
-    // Mark as initialized (use a sentinel instead of a channel)
     realtimeChannel = {} as any;
     realtimeMode = 'admin';
-    console.log('[AdminRealtime] Admin mode: using event-based sync (zero extra channels)');
+    console.log('[AdminRealtime] Admin mode: manual-refresh only (no event sync)');
     return;
   }
 
