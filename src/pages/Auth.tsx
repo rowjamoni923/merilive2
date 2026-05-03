@@ -454,13 +454,59 @@ const Auth = () => {
         return;
       }
 
-      // Go directly to device registration — no device recovery
-      console.log('[Auth] Start button clicked — proceeding to registration');
-      
-      // Go directly to gender+name form for new account creation
+      // STEP 1: Try to recover existing account for this device
+      console.log('[Auth] Start button clicked — checking device for existing account');
+      const deviceId = await generateDeviceId();
+      const existingForDevice = await recoverAccountByDevice(deviceId);
+
+      if (existingForDevice) {
+        console.log('[Auth] Existing device account found, auto-login');
+        const guestEmail = existingForDevice.recoveryEmail;
+        const guestPassword = existingForDevice.recoveryPassword;
+
+        // Try conversion (anonymous → guest) if applicable, ignore failure
+        try {
+          await supabase.functions.invoke('convert-anonymous-to-guest', { body: { deviceId } });
+        } catch (e) { /* ignore */ }
+
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: guestEmail,
+          password: guestPassword,
+        });
+
+        if (!signInError) {
+          await ensureProfileReady(
+            existingForDevice.userId,
+            {
+              display_name: existingForDevice.displayName,
+              device_id: deviceId,
+              gender: existingForDevice.gender || undefined,
+            },
+            { requireHost: existingForDevice.gender === 'female' }
+          );
+          localStorage.setItem("meri_device_account", JSON.stringify({
+            deviceId,
+            email: guestEmail,
+            password: guestPassword,
+            displayName: existingForDevice.displayName,
+            avatarUrl: existingForDevice.avatarUrl,
+            gender: existingForDevice.gender as Gender,
+          }));
+          localStorage.setItem("meri_device_id", deviceId);
+          toast({
+            title: "🎉 Welcome Back!",
+            description: `Logged in as ${existingForDevice.displayName}`,
+          });
+          navigateAfterAuth();
+          return;
+        }
+        console.warn('[Auth] Device recovery sign-in failed, falling back to registration:', signInError.message);
+      }
+
+      // STEP 2: No existing account → proceed to registration form
       setIsEmailFlow(false);
       setAuthStep("gender");
-      
+
     } catch (error) {
       console.error("Start click error:", error);
       recordClientError({ label: "Auth.handleStartClick", message: error instanceof Error ? error.message : String(error) });
