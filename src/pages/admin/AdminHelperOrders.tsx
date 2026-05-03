@@ -363,7 +363,7 @@ const AdminHelperOrders = () => {
                   {/* Order Details */}
                   <div className="grid grid-cols-3 gap-2 text-center bg-muted/30 rounded-lg p-2">
                     <div>
-                      <p className="text-lg font-bold text-primary">{order.coin_amount.toLocaleString()}</p>
+                      <p className="text-lg font-bold text-primary">{(order.coin_amount ?? 0).toLocaleString()}</p>
                       <p className="text-[10px] text-muted-foreground">Diamonds</p>
                     </div>
                     <div>
