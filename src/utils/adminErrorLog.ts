@@ -34,10 +34,17 @@ export function clearAdminErrorLog() {
   RING.length = 0;
 }
 
+export const ADMIN_ERROR_LOG_EVENT = 'admin-error-log-update';
+
 export function recordAdminError(entry: Omit<AdminErrorEntry, 'ts'>) {
   const full: AdminErrorEntry = { ...entry, ts: Date.now() };
   RING.push(full);
   if (RING.length > RING_MAX) RING.shift();
+
+  // Push event so UI updates instantly without polling.
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(ADMIN_ERROR_LOG_EVENT));
+  }
 
   // Console
   // eslint-disable-next-line no-console
