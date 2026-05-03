@@ -493,8 +493,8 @@ export const useNotifications = () => {
 
     const previousNotifications = notifications;
 
-    // Optimistic UI update
-    setNotifications([]);
+    // Optimistic UI update — keep the items, just flag all as read
+    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
     setUnreadCount(0);
     emitGlobalUnreadRefresh({ notificationsSetZero: true });
 
