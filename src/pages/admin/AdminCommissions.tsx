@@ -30,6 +30,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import { parseSettingValue, saveAppSetting } from "@/utils/adminSettingsStorage";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface CommissionTier {
   min_earnings: number;
@@ -169,6 +170,7 @@ export default function AdminCommissions() {
       });
     } catch (error) {
       console.error("Error fetching settings:", error);
+      recordAdminError({ kind: "rpc", label: "AdminCommissions.defaultAgencyCommission", message: error instanceof Error ? error.message : String(error) });
       toast.error("Failed to load settings");
     } finally {
       setLoading(false);
@@ -187,6 +189,7 @@ export default function AdminCommissions() {
       toast.success("Settings saved successfully!");
     } catch (error) {
       console.error("Error saving setting:", error);
+      recordAdminError({ kind: "rpc", label: "AdminCommissions.saveSetting", message: error instanceof Error ? error.message : String(error) });
       toast.error("Failed to save settings");
     } finally {
       setSaving(null);

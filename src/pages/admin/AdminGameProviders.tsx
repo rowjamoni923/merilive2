@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { recordAdminError } from "@/utils/adminErrorLog";
 import { 
   Gamepad2, 
   Plus, 
@@ -220,6 +221,7 @@ export default function AdminGameProviders() {
       }
     } catch (error) {
       console.error('Error fetching providers:', error);
+      recordAdminError({ kind: "rpc", label: "AdminGameProviders.fetchProviders", message: error instanceof Error ? error.message : String(error) });
       toast.error('Failed to load providers');
     } finally {
       setLoading(false);

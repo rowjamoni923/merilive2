@@ -13,6 +13,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { getCurrentAdminId } from "@/utils/adminSession";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface Reel {
   id: string;
@@ -169,6 +170,7 @@ const AdminReels = () => {
     
     if (error) {
       console.error("Delete reel error:", error);
+      recordAdminError({ kind: "rpc", label: "AdminReels.reel", message: error instanceof Error ? error.message : String(error) });
       toast.error("Failed to delete reel");
     } else {
       // Clean up storage files

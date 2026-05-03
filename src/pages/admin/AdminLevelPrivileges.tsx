@@ -15,6 +15,7 @@ import {
   Frame, Sticker, PartyPopper, Users, Award, Eye
 } from "lucide-react";
 import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface LevelPrivilege {
   id: string;
@@ -150,6 +151,7 @@ const AdminLevelPrivileges = () => {
       if (animationsRes.data) setAnimations(animationsRes.data);
     } catch (error) {
       console.error('Error fetching data:', error);
+      recordAdminError({ kind: "rpc", label: "AdminLevelPrivileges.fetchData", message: error instanceof Error ? error.message : String(error) });
       toast.error('Failed to load data');
     } finally {
       setLoading(false);
@@ -177,6 +179,7 @@ const AdminLevelPrivileges = () => {
       return publicUrl;
     } catch (error) {
       console.error('Upload error:', error);
+      recordAdminError({ kind: "rpc", label: "AdminLevelPrivileges.filePath", message: error instanceof Error ? error.message : String(error) });
       toast.error('Failed to upload file');
       return null;
     } finally {
@@ -223,6 +226,7 @@ const AdminLevelPrivileges = () => {
       fetchData();
     } catch (error) {
       console.error('Error saving privilege:', error);
+      recordAdminError({ kind: "rpc", label: "AdminLevelPrivileges.dataToSave", message: error instanceof Error ? error.message : String(error) });
       toast.error('Failed to save: ' + (error as Error).message);
     } finally {
       setSaving(false);
@@ -249,6 +253,7 @@ const AdminLevelPrivileges = () => {
       fetchData();
     } catch (error) {
       console.error('Error saving animation:', error);
+      recordAdminError({ kind: "rpc", label: "AdminLevelPrivileges.handleSaveAnimation", message: error instanceof Error ? error.message : String(error) });
       toast.error('Failed to save');
     } finally {
       setSaving(false);
@@ -270,6 +275,7 @@ const AdminLevelPrivileges = () => {
       fetchData();
     } catch (error) {
       console.error('Error deleting privilege:', error);
+      recordAdminError({ kind: "rpc", label: "AdminLevelPrivileges.handleDeletePrivilege", message: error instanceof Error ? error.message : String(error) });
       toast.error('Failed to delete');
     }
   };
@@ -287,6 +293,7 @@ const AdminLevelPrivileges = () => {
       fetchData();
     } catch (error) {
       console.error('Error toggling active:', error);
+      recordAdminError({ kind: "rpc", label: "AdminLevelPrivileges.handleToggleActive", message: error instanceof Error ? error.message : String(error) });
       toast.error('Failed to update');
     }
   };

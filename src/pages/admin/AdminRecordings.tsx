@@ -43,6 +43,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { getCurrentAdminId } from "@/utils/adminSession";
 import { toast } from "sonner";
 import { format, differenceInDays } from "date-fns";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface Recording {
   id: string;
@@ -133,6 +134,7 @@ export default function AdminRecordings() {
       });
     } catch (error) {
       console.error("Error fetching recordings:", error);
+      recordAdminError({ kind: "rpc", label: "AdminRecordings.expiresAt", message: error instanceof Error ? error.message : String(error) });
       toast.error("Failed to load recordings");
     } finally {
       setLoading(false);
@@ -488,10 +490,12 @@ export default function AdminRecordings() {
                 className="w-full h-full"
                 onError={(e) => {
                   console.error("Video playback error:", e);
+                  recordAdminError({ kind: "rpc", label: "AdminRecordings.adminId", message: e instanceof Error ? e.message : String(e) });
                   // Try opening in new tab as fallback
                   const videoEl = e.currentTarget;
                   if (videoEl.error) {
                     console.error("Video error code:", videoEl.error.code, "message:", videoEl.error.message);
+                    recordAdminError({ kind: "rpc", label: "AdminRecordings.videoEl", message: videoEl.error.code instanceof Error ? videoEl.error.code.message : String(videoEl.error.code) });
                   }
                 }}
               >
