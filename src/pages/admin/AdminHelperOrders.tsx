@@ -410,7 +410,7 @@ const AdminHelperOrders = () => {
                 </div>
                 <div>
                   <p className="text-muted-foreground">Diamonds</p>
-                  <p className="font-bold">{selectedOrder.coin_amount.toLocaleString()}</p>
+                  <p className="font-bold">{(selectedOrder.coin_amount ?? 0).toLocaleString()}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Amount</p>
