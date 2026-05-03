@@ -1,6 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import nodemailer from "npm:nodemailer@6.9.12";
-import { buildOtpEmailHTML, buildOtpEmailText } from "../_shared/otp-email-template.ts";
+import { sendOtpEmail } from "../_shared/send-otp-email.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -15,22 +14,13 @@ interface TwoFARequest {
 }
 
 const generateOTP = (): string => {
-  const digits = "0123456789";
   const arr = new Uint8Array(6);
   crypto.getRandomValues(arr);
   let otp = "";
-  for (let i = 0; i < 6; i++) otp += digits[arr[i] % 10];
+  for (let i = 0; i < 6; i++) otp += (arr[i] % 10).toString();
   return otp;
 };
 
-// Admin OTP email — uses shared luxurious premium template
-function buildAdminOTPEmailHTML(otp: string): string {
-  return buildOtpEmailHTML({ otp, purpose: "admin", expiryMinutes: 5 });
-}
-
-function buildAdminOTPEmailText(otp: string): string {
-  return buildOtpEmailText({ otp, purpose: "admin", expiryMinutes: 5 });
-}
 
 Deno.serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
