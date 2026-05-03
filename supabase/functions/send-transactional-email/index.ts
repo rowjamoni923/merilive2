@@ -164,6 +164,7 @@ Deno.serve(async (req) => {
           purpose: 'transactional',
           label: templateName,
           idempotency_key: idempotencyKey,
+          unsubscribe_token: generateToken(),
         },
         { apiKey, idempotencyKey }
       )
