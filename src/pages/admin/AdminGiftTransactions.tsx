@@ -36,23 +36,31 @@ interface ReceiverSummary {
   gift_count: number;
 }
 
+const PAGE_SIZE = 50;
+const AUTO_REFRESH_MS = 30000;
+
 export default function AdminGiftTransactions() {
   const navigate = useNavigate();
   const [transactions, setTransactions] = useState<GiftTransaction[]>(() => getAdminCache<GiftTransaction[]>('admin_gift_txns') || []);
   const [loading, setLoading] = useState(() => !getAdminCache('admin_gift_txns'));
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("receivers");
   const [todayTotal, setTodayTotal] = useState(0);
   const [todayCount, setTodayCount] = useState(0);
   const [uniqueSenders, setUniqueSenders] = useState(0);
   const [uniqueReceivers, setUniqueReceivers] = useState(0);
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
-  const fetchTransactions = useCallback(async () => {
-    if (transactions.length === 0) setLoading(true);
+  const fetchPage = useCallback(async (pageNum: number, append: boolean) => {
+    if (append) setLoadingMore(true);
+    else if (transactions.length === 0) setLoading(true);
     try {
       const tzOffset = Math.round(new Date().getTimezoneOffset() / -60);
       const resp = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-chat-inspector/gift-transactions?tzOffset=${tzOffset}`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-chat-inspector/gift-transactions?tzOffset=${tzOffset}&page=${pageNum}&pageSize=${PAGE_SIZE}`,
         {
           headers: {
             'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
@@ -64,22 +72,43 @@ export default function AdminGiftTransactions() {
       if (!resp.ok) throw new Error(data.error || 'Failed');
 
       const txns = data?.transactions || [];
-      setTransactions(txns);
+      setTransactions(prev => {
+        if (!append) return txns;
+        const seen = new Set(prev.map(t => t.id));
+        return [...prev, ...txns.filter((t: GiftTransaction) => !seen.has(t.id))];
+      });
 
-      const total = txns.reduce((sum: number, t: any) => sum + (t.coin_amount || 0), 0);
-      setTodayTotal(total);
-      setTodayCount(txns.length);
-      setUniqueSenders(new Set(txns.map((t: any) => t.sender_id)).size);
-      setUniqueReceivers(new Set(txns.map((t: any) => t.receiver_id)).size);
+      const stats = data?.stats || {};
+      setTodayTotal(stats.total_beans || 0);
+      setTodayCount(stats.total_count || 0);
+      setUniqueSenders(stats.unique_senders || 0);
+      setUniqueReceivers(stats.unique_receivers || 0);
+      setHasMore(!!data?.hasMore);
+      setPage(pageNum);
+      setLastRefresh(new Date());
     } catch (error) {
       console.error('Error fetching gift transactions:', error);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   }, []);
 
+  const fetchTransactions = useCallback(() => fetchPage(1, false), [fetchPage]);
+  const loadMore = useCallback(() => fetchPage(page + 1, true), [fetchPage, page]);
+
   useEffect(() => {
     void fetchTransactions();
+  }, [fetchTransactions]);
+
+  // Auto-refresh every 30s when tab is visible
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        void fetchTransactions();
+      }
+    }, AUTO_REFRESH_MS);
+    return () => clearInterval(interval);
   }, [fetchTransactions]);
 
   useAdminRealtime(['gift_transactions'], () => {
