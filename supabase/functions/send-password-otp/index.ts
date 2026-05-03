@@ -1,39 +1,11 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import nodemailer from "npm:nodemailer@6.9.12";
-import { buildOtpEmailHTML, buildOtpEmailSubject } from "../_shared/otp-email-template.ts";
+import { sendOtpEmail } from "../_shared/send-otp-email.ts";
 
-async function sendWithGmail(to: string, subject: string, html: string): Promise<{ success: boolean; error?: string }> {
-  const gmailUser = (Deno.env.get("GMAIL_USER") ?? "").trim();
-  const gmailPass = (Deno.env.get("GMAIL_APP_PASSWORD") ?? "").replace(/\s+/g, "");
-  if (!gmailUser || !gmailPass) {
-    return { success: false, error: "GMAIL credentials not configured" };
-  }
-  try {
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
-      auth: { user: gmailUser, pass: gmailPass },
-    });
-    await transporter.sendMail({
-      from: `"MeriLive" <${gmailUser}>`,
-      to,
-      subject,
-      html,
-    });
-    return { success: true };
-  } catch (e: any) {
-    return { success: false, error: e?.message || String(e) };
-  }
+async function sendOtpEmailWrapper(to: string, otp: string): Promise<{ success: boolean; error?: string }> {
+  return await sendOtpEmail({ to, otp, purpose: "password_reset", expiryMinutes: 10 });
 }
 
-// Gmail-only sender (no fallback providers)
-async function sendOtpEmail(to: string, subject: string, html: string): Promise<{ success: boolean; error?: string }> {
-  const gmail = await sendWithGmail(to, subject, html);
-  if (gmail.success) return { success: true };
-  return { success: false, error: gmail.error };
-}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -141,19 +113,15 @@ serve(async (req: Request): Promise<Response> => {
         );
       }
 
-      // Send OTP via Gmail SMTP using shared luxurious template
-      const html = buildOtpEmailHTML({ otp: otpCode, purpose: "password_reset", expiryMinutes: 10 });
-      const sendResult = await sendOtpEmail(
-        email.toLowerCase(),
-        buildOtpEmailSubject("password_reset"),
-        html
-      );
+      // Send OTP via Lovable Email (unlimited)
+      const sendResult = await sendOtpEmailWrapper(email.toLowerCase(), otpCode);
       const emailSent = sendResult.success;
       if (!emailSent) {
-        console.error("Gmail SMTP failed:", sendResult.error);
+        console.error("Lovable Email send failed:", sendResult.error);
       } else {
-        console.log(`OTP email sent successfully to ${email}`);
+        console.log(`OTP email queued for ${email}`);
       }
+
 
       // Also store in-app notification (without OTP in message for security)
       await supabase
