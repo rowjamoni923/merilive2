@@ -40,7 +40,7 @@ export const formatNumber = (
 /**
  * Format a number as currency
  * @param amount - The amount to format
- * @param currencySymbol - Currency symbol (e.g., '$', '৳', '₹')
+ * @param currencySymbol - Currency symbol (e.g., '$', 'Tk', 'Rs')
  * @param decimals - Number of decimal places (default: 2)
  */
 export const formatCurrency = (
