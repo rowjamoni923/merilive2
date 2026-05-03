@@ -113,19 +113,15 @@ serve(async (req: Request): Promise<Response> => {
         );
       }
 
-      // Send OTP via Gmail SMTP using shared luxurious template
-      const html = buildOtpEmailHTML({ otp: otpCode, purpose: "password_reset", expiryMinutes: 10 });
-      const sendResult = await sendOtpEmail(
-        email.toLowerCase(),
-        buildOtpEmailSubject("password_reset"),
-        html
-      );
+      // Send OTP via Lovable Email (unlimited)
+      const sendResult = await sendOtpEmailWrapper(email.toLowerCase(), otpCode);
       const emailSent = sendResult.success;
       if (!emailSent) {
-        console.error("Gmail SMTP failed:", sendResult.error);
+        console.error("Lovable Email send failed:", sendResult.error);
       } else {
-        console.log(`OTP email sent successfully to ${email}`);
+        console.log(`OTP email queued for ${email}`);
       }
+
 
       // Also store in-app notification (without OTP in message for security)
       await supabase
