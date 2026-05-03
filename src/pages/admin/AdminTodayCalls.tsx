@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Phone, Search, RefreshCw, Clock, Coins } from "lucide-react";
 import { motion } from "framer-motion";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 interface CallRecord {
   id: string;
@@ -107,6 +108,7 @@ export default function AdminTodayCalls() {
       setCalls(enriched);
     } catch (e) {
       console.error("Error fetching calls:", e);
+      recordAdminError({ kind: "rpc", label: "AdminTodayCalls.enriched", message: e instanceof Error ? e.message : String(e) });
     } finally {
       setLoading(false);
     }
