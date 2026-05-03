@@ -301,21 +301,46 @@ serve(async (req) => {
         const todayStart = new Date(now.getTime());
         todayStart.setUTCHours(-tzOffset, 0, 0, 0); // Start of day in client timezone
 
+        // No FK constraint between gift_transactions and profiles — fetch separately
         const { data: txns, error: txErr } = await supabase
           .from("gift_transactions")
-          .select(`
-            *,
-            sender:profiles!gift_transactions_sender_id_fkey(display_name, avatar_url, app_uid),
-            receiver:profiles!gift_transactions_receiver_id_fkey(display_name, avatar_url, app_uid),
-            gift:gifts!gift_transactions_gift_id_fkey(name, icon_url)
-          `)
+          .select("*")
           .gte("created_at", todayStart.toISOString())
           .order("created_at", { ascending: false })
           .limit(1000);
 
         if (txErr) throw txErr;
 
-        return new Response(JSON.stringify({ transactions: txns || [] }), {
+        const userIds = new Set<string>();
+        const giftIds = new Set<string>();
+        (txns || []).forEach((t: any) => {
+          if (t.sender_id) userIds.add(t.sender_id);
+          if (t.receiver_id) userIds.add(t.receiver_id);
+          if (t.gift_id) giftIds.add(t.gift_id);
+        });
+
+        const [profilesRes, giftsRes] = await Promise.all([
+          userIds.size > 0
+            ? supabase.from("profiles").select("id, display_name, avatar_url, app_uid").in("id", Array.from(userIds))
+            : Promise.resolve({ data: [] as any[] }),
+          giftIds.size > 0
+            ? supabase.from("gifts").select("id, name, icon_url").in("id", Array.from(giftIds))
+            : Promise.resolve({ data: [] as any[] }),
+        ]);
+
+        const profileMap: Record<string, any> = {};
+        (profilesRes.data || []).forEach((p: any) => { profileMap[p.id] = p; });
+        const giftMap: Record<string, any> = {};
+        (giftsRes.data || []).forEach((g: any) => { giftMap[g.id] = g; });
+
+        const enriched = (txns || []).map((t: any) => ({
+          ...t,
+          sender: profileMap[t.sender_id] || null,
+          receiver: profileMap[t.receiver_id] || null,
+          gift: giftMap[t.gift_id] || null,
+        }));
+
+        return new Response(JSON.stringify({ transactions: enriched }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
