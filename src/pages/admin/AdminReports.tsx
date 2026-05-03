@@ -38,6 +38,7 @@ import {
 } from "recharts";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 export default function AdminReports() {
   const [period, setPeriod] = useState("week");
@@ -99,7 +100,7 @@ export default function AdminReports() {
       ];
       setGiftData(giftDistribution);
     } catch (error) {
-      console.error("Error fetching report data:", error);
+      recordAdminError({ kind: "rpc", label: "AdminReports.ErrorFetchingReportData", message: error instanceof Error ? error.message : "Error fetching report data" });
       toast.error("Failed to load report data");
     } finally {
       setLoading(false);

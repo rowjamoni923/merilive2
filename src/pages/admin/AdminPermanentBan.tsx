@@ -18,6 +18,7 @@ import {
 import { format } from "date-fns";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { cn } from "@/lib/utils";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 type Severity = "medium" | "high" | "urgent";
 
@@ -109,7 +110,7 @@ export default function AdminPermanentBan() {
       if (error) throw error;
       setBans((data as any[]) || []);
     } catch (e: any) {
-      console.error(e);
+      recordAdminError({ kind: "rpc", label: "AdminPermanentBan", message: e instanceof Error ? e.message : String(e) });
       toast.error("Failed to load bans");
     } finally {
       setLoading(false);

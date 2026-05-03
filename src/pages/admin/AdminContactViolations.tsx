@@ -55,6 +55,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+import { recordAdminError } from "@/utils/adminErrorLog";
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -191,7 +192,7 @@ export default function AdminContactViolations({ onViewChat }: AdminContactViola
 
       setStats({ total: totalRes.count || 0, pending, banned, thisWeek: thisWeekRes.count || 0 });
     } catch (error) {
-      console.error("Error fetching violations:", error);
+      recordAdminError({ kind: "rpc", label: "AdminContactViolations.ErrorFetchingViolations", message: error instanceof Error ? error.message : "Error fetching violations" });
       toast.error("Failed to load data");
     } finally {
       setLoading(false);
@@ -247,7 +248,7 @@ export default function AdminContactViolations({ onViewChat }: AdminContactViola
       toast.success("Host banned successfully");
       fetchViolations();
     } catch (error) {
-      console.error("Ban error:", error);
+      recordAdminError({ kind: "rpc", label: "AdminContactViolations.BanError", message: error instanceof Error ? error.message : "Ban error" });
       toast.error("Failed to ban host");
     } finally {
       setBanningHost(null);
@@ -273,7 +274,7 @@ export default function AdminContactViolations({ onViewChat }: AdminContactViola
       toast.success("Review complete");
       fetchViolations();
     } catch (error) {
-      console.error("Review error:", error);
+      recordAdminError({ kind: "rpc", label: "AdminContactViolations.ReviewError", message: error instanceof Error ? error.message : "Review error" });
       toast.error("Failed to review");
     }
   };

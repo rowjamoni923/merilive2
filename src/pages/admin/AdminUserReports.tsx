@@ -22,6 +22,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { getCurrentAdminId } from "@/utils/adminSession";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 const CATEGORY_LABELS: Record<string, { label: string; color: string }> = {
   sexual_content: { label: "Sexual Content", color: "bg-pink-600" },
@@ -97,7 +98,7 @@ export default function AdminUserReports() {
       }));
       setReports(formatted as Report[]);
     } catch (error) {
-      console.error("Error fetching reports:", error);
+      recordAdminError({ kind: "rpc", label: "AdminUserReports.ErrorFetchingReports", message: error instanceof Error ? error.message : "Error fetching reports" });
       toast.error("Failed to load reports");
     } finally {
       setLoading(false);

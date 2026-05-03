@@ -22,6 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 import AdminNumberSharing from "./AdminNumberSharing";
 import AdminContactViolations from "./AdminContactViolations";
 import AdminLiveBans from "./AdminLiveBans";
+import { recordAdminError } from "@/utils/adminErrorLog";
 
 const EDGE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-chat-inspector`;
 
@@ -261,7 +262,7 @@ const AdminChatInspector = () => {
       }
       setShowBanDialog(false);
     } catch (err) {
-      console.error("Ban error:", err);
+      recordAdminError({ kind: "rpc", label: "AdminChatInspector.BanError", message: err instanceof Error ? err.message : "Ban error" });
       toast({ title: "Ban Failed", variant: "destructive" });
     } finally {
       setBanning(false);
@@ -280,7 +281,7 @@ const AdminChatInspector = () => {
       const data = await res.json();
       setSearchResults(data.users || []);
     } catch (e) {
-      console.error("Search failed:", e);
+      recordAdminError({ kind: "rpc", label: "AdminChatInspector.SearchFailed", message: e instanceof Error ? e.message : "Search failed" });
     } finally {
       setSearching(false);
     }
@@ -301,7 +302,7 @@ const AdminChatInspector = () => {
       const data = await res.json();
       setConversations(data.conversations || []);
     } catch (e) {
-      console.error("Load conversations failed:", e);
+      recordAdminError({ kind: "rpc", label: "AdminChatInspector.LoadConversationsFailed", message: e instanceof Error ? e.message : "Load conversations failed" });
     } finally {
       setLoadingConversations(false);
     }
@@ -315,7 +316,7 @@ const AdminChatInspector = () => {
       const data = await res.json();
       setMessages(data.messages || []);
     } catch (e) {
-      console.error("Load messages failed:", e);
+      recordAdminError({ kind: "rpc", label: "AdminChatInspector.LoadMessagesFailed", message: e instanceof Error ? e.message : "Load messages failed" });
     } finally {
       setLoadingMessages(false);
     }
@@ -347,7 +348,7 @@ const AdminChatInspector = () => {
         setNewAlertCount(0);
       }
     } catch (e) {
-      console.error("Load alerts failed:", e);
+      recordAdminError({ kind: "rpc", label: "AdminChatInspector.LoadAlertsFailed", message: e instanceof Error ? e.message : "Load alerts failed" });
     } finally {
       setLoadingAlerts(false);
     }

@@ -17,6 +17,7 @@ import { getAdminSession } from "@/utils/adminSession";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { 
+import { recordAdminError } from "@/utils/adminErrorLog";
   Shield, 
   Ban, 
   Clock, 
@@ -142,7 +143,7 @@ export default function AdminLiveBans() {
 
       setBans(bansWithProfiles as unknown as LiveBan[]);
     } catch (error: any) {
-      console.error('Error fetching bans:', error);
+      recordAdminError({ kind: "rpc", label: "AdminLiveBans.ErrorFetchingBans", message: error instanceof Error ? error.message : "Error fetching bans" });
       // Fallback: when admin SECURITY DEFINER RPC is unavailable (e.g. transient
       // missing x-admin-token header right after page reload), try the direct
       // table read which is also covered by the "Admin session full access"
@@ -176,7 +177,7 @@ export default function AdminLiveBans() {
         }));
         setBans(mapped as unknown as LiveBan[]);
       } catch (fallbackErr: any) {
-        console.error('Fallback live_bans fetch also failed:', fallbackErr);
+        recordAdminError({ kind: "rpc", label: "AdminLiveBans.FallbackLivebansFetchAlsoFailed", message: fallbackErr instanceof Error ? fallbackErr.message : "Fallback live_bans fetch also failed" });
         const msg = (error?.message || fallbackErr?.message || '').toString();
         toast.error(msg ? `Failed to load bans: ${msg}` : 'Failed to load bans');
       }
@@ -216,7 +217,7 @@ export default function AdminLiveBans() {
         }
       });
     } catch (error) {
-      console.error('Error fetching settings:', error);
+      recordAdminError({ kind: "rpc", label: "AdminLiveBans.ErrorFetchingSettings", message: error instanceof Error ? error.message : "Error fetching settings" });
     }
   };
 
@@ -232,7 +233,7 @@ export default function AdminLiveBans() {
         total: Number(s.total) || 0,
       });
     } catch (e) {
-      console.error('Failed to load live ban stats:', e);
+      recordAdminError({ kind: "rpc", label: "AdminLiveBans.FailedToLoadLiveBanStats", message: e instanceof Error ? e.message : "Failed to load live ban stats" });
     }
   };
 
@@ -288,7 +289,7 @@ export default function AdminLiveBans() {
       setNewBanReason('');
       fetchBans();
     } catch (error) {
-      console.error('Error creating ban:', error);
+      recordAdminError({ kind: "rpc", label: "AdminLiveBans.ErrorCreatingBan", message: error instanceof Error ? error.message : "Error creating ban" });
       toast.error('Failed to create ban');
     }
   };
@@ -326,7 +327,7 @@ export default function AdminLiveBans() {
       setUnbanReason('');
       fetchBans();
     } catch (error: any) {
-      console.error('Error unbanning user:', error);
+      recordAdminError({ kind: "rpc", label: "AdminLiveBans.ErrorUnbanningUser", message: error instanceof Error ? error.message : "Error unbanning user" });
       toast.error(error?.message || 'Failed to unban user');
     }
   };
@@ -344,7 +345,7 @@ export default function AdminLiveBans() {
       if (error) throw error;
       toast.success('Setting updated');
     } catch (error) {
-      console.error('Error updating setting:', error);
+      recordAdminError({ kind: "rpc", label: "AdminLiveBans.ErrorUpdatingSetting", message: error instanceof Error ? error.message : "Error updating setting" });
       toast.error('Failed to update setting');
     }
   };
@@ -655,7 +656,7 @@ export default function AdminLiveBans() {
                                           toast.success(`${ban.profiles?.display_name || 'User'} has been unbanned`);
                                           fetchBans();
                                         } catch (error) {
-                                          console.error('Error unbanning:', error);
+                                          recordAdminError({ kind: "rpc", label: "AdminLiveBans.ErrorUnbanning", message: error instanceof Error ? error.message : "Error unbanning" });
                                           toast.error('Failed to unban user');
                                         }
                                       }}
