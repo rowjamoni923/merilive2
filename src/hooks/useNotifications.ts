@@ -211,15 +211,14 @@ export const useNotifications = () => {
   const fetchNotifications = useCallback(async () => {
     if (!currentUserId) return;
 
-     // Fetch regular notifications (excluding admin-only types)
+     // Fetch ALL notifications (read + unread) so history persists in the list
      const { data: regularData, error: regularError } = await supabase
       .from('notifications')
       .select('*')
       .eq('user_id', currentUserId)
-      .eq('is_read', false)
       .not('type', 'in', `(${ADMIN_ONLY_TYPES.join(',')})`)
       .order('created_at', { ascending: false })
-      .limit(50);
+      .limit(100);
 
      let allNotifications: Notification[] = [];
 
@@ -233,9 +232,8 @@ export const useNotifications = () => {
          .from('helper_notifications')
          .select('*')
          .eq('helper_id', helperId)
-          .eq('is_read', false)
          .order('created_at', { ascending: false })
-         .limit(50);
+         .limit(100);
 
        if (!helperError && helperData) {
          const helperNotifications: Notification[] = helperData.map((n: any) => ({
@@ -262,7 +260,7 @@ export const useNotifications = () => {
      });
 
       setNotifications(allNotifications);
-      setUnreadCount(allNotifications.length);
+      setUnreadCount(allNotifications.filter(n => !n.is_read).length);
     setLoading(false);
    }, [currentUserId, helperId]);
 
@@ -447,8 +445,8 @@ export const useNotifications = () => {
 
     const previousNotifications = notifications;
 
-    // Optimistic UI update
-    setNotifications(prev => prev.filter(n => n.id !== notificationId));
+    // Optimistic UI update — keep the item, just flag it as read
+    setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n));
     setUnreadCount(prev => Math.max(0, prev - 1));
     emitGlobalUnreadRefresh({ notificationsDecrement: 1 });
 
@@ -495,8 +493,8 @@ export const useNotifications = () => {
 
     const previousNotifications = notifications;
 
-    // Optimistic UI update
-    setNotifications([]);
+    // Optimistic UI update — keep the items, just flag all as read
+    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
     setUnreadCount(0);
     emitGlobalUnreadRefresh({ notificationsSetZero: true });
 
@@ -526,7 +524,7 @@ export const useNotifications = () => {
     } catch (error) {
       console.error('Failed to mark all notifications as read:', error);
       setNotifications(previousNotifications);
-      setUnreadCount(previousNotifications.length);
+      setUnreadCount(previousNotifications.filter(n => !n.is_read).length);
       emitGlobalUnreadRefresh();
       fetchNotifications();
     }
