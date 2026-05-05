@@ -419,14 +419,14 @@ const refreshPaymentMethods = async () => {
 const initializeData = async () => {
   console.log('[AdminRealtime] Loading initial data...');
   await Promise.all([
-    refreshBanners(),
-    refreshGifts(),
-    refreshDiamondPackages(),
-    refreshCurrencyRates(),
-    refreshBranding(),
-    refreshGameSettings(),
-    refreshAppSettings(),
-    refreshPaymentMethods()
+    guardedRefresh('banners', refreshBanners),
+    guardedRefresh('gifts', refreshGifts),
+    guardedRefresh('coin packages', refreshDiamondPackages),
+    guardedRefresh('currency rates', refreshCurrencyRates),
+    guardedRefresh('branding', refreshBranding),
+    guardedRefresh('game settings', refreshGameSettings),
+    guardedRefresh('app settings', refreshAppSettings),
+    guardedRefresh('payment methods', refreshPaymentMethods)
   ]);
   console.log('[AdminRealtime] Initial data loaded');
   notifySubscribers();
