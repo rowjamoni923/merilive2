@@ -130,6 +130,18 @@ let realtimeMode: 'admin' | 'public' | null = null;
 const isAdminRoute = () => typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
 const getSettingsClient = () => (isAdminRoute() ? adminSupabase : supabase);
 
+const logSettingsLoadError = (scope: string, error: unknown) => {
+  console.warn(`[AdminRealtime] ${scope} load skipped, keeping cached data:`, error);
+};
+
+const guardedRefresh = async (scope: string, refresh: () => Promise<void>) => {
+  try {
+    await refresh();
+  } catch (error) {
+    logSettingsLoadError(scope, error);
+  }
+};
+
 const subscribeTableChange = (
   channel: ReturnType<typeof supabase.channel> | ReturnType<typeof adminSupabase.channel>,
   table: string,
@@ -184,7 +196,7 @@ const initializeRealtimeSubscription = () => {
         topup_payment_methods: refreshPaymentMethods,
       };
       if (table && refreshMap[table]) {
-        await refreshMap[table]();
+        await guardedRefresh(table, async () => { await refreshMap[table](); });
         notifySubscribers();
       }
     };
@@ -209,11 +221,7 @@ const initializeRealtimeSubscription = () => {
 
   // Initial fetch for ALL settings (both realtime and polled)
   const fetchAllSettings = async () => {
-    await Promise.all([
-      refreshBanners(), refreshGifts(), refreshDiamondPackages(),
-      refreshCurrencyRates(), refreshBranding(), refreshGameSettings(),
-      refreshAppSettings(), refreshPaymentMethods(),
-    ]);
+    await initializeData();
     notifySubscribers();
   };
   void fetchAllSettings();
@@ -234,8 +242,8 @@ const initializeRealtimeSubscription = () => {
       app_settings: refreshAppSettings,
       topup_payment_methods: refreshPaymentMethods,
     };
-    if (table && refreshMap[table]) {
-      await refreshMap[table]();
+      if (table && refreshMap[table]) {
+        await guardedRefresh(table, async () => { await refreshMap[table](); });
       notifySubscribers();
     }
   };
@@ -258,8 +266,12 @@ const initializeRealtimeSubscription = () => {
       realtimeMode = 'public';
       console.log('[AdminRealtime] Public settings subscription:', status);
       if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-        console.warn('[AdminRealtime] ⚠️ Channel error, retrying in 5s...');
-        setTimeout(() => createPublicChannel(), 5000);
+        console.warn('[AdminRealtime] ⚠️ Realtime unavailable; cached REST data remains active.');
+        try { getSettingsClient().removeChannel(channel as RealtimeChannel); } catch {}
+        if (realtimeChannel === channel) {
+          realtimeChannel = null;
+          realtimeMode = null;
+        }
       }
     });
   };
@@ -403,14 +415,14 @@ const refreshPaymentMethods = async () => {
 const initializeData = async () => {
   console.log('[AdminRealtime] Loading initial data...');
   await Promise.all([
-    refreshBanners(),
-    refreshGifts(),
-    refreshDiamondPackages(),
-    refreshCurrencyRates(),
-    refreshBranding(),
-    refreshGameSettings(),
-    refreshAppSettings(),
-    refreshPaymentMethods()
+    guardedRefresh('banners', refreshBanners),
+    guardedRefresh('gifts', refreshGifts),
+    guardedRefresh('coin packages', refreshDiamondPackages),
+    guardedRefresh('currency rates', refreshCurrencyRates),
+    guardedRefresh('branding', refreshBranding),
+    guardedRefresh('game settings', refreshGameSettings),
+    guardedRefresh('app settings', refreshAppSettings),
+    guardedRefresh('payment methods', refreshPaymentMethods)
   ]);
   console.log('[AdminRealtime] Initial data loaded');
   notifySubscribers();
@@ -425,7 +437,7 @@ export const useBannersRealtime = () => {
     initializeRealtimeSubscription();
     
     if (globalBanners.length === 0) {
-      refreshBanners().then(() => {
+      guardedRefresh('banners', refreshBanners).then(() => {
         setBanners(globalBanners);
         setLoading(false);
       });
@@ -453,7 +465,7 @@ export const useGiftsRealtime = () => {
     initializeRealtimeSubscription();
     
     if (globalGifts.length === 0) {
-      refreshGifts().then(() => {
+      guardedRefresh('gifts', refreshGifts).then(() => {
         setGifts(globalGifts);
         setLoading(false);
       });
@@ -481,7 +493,7 @@ export const useDiamondPackagesRealtime = () => {
     initializeRealtimeSubscription();
     
     if (globalDiamondPackages.length === 0) {
-      refreshDiamondPackages().then(() => {
+      guardedRefresh('coin packages', refreshDiamondPackages).then(() => {
         setPackages(globalDiamondPackages);
         setLoading(false);
       });
@@ -509,7 +521,7 @@ export const useCurrencyRatesRealtime = () => {
     initializeRealtimeSubscription();
     
     if (globalCurrencyRates.length === 0) {
-      refreshCurrencyRates().then(() => {
+      guardedRefresh('currency rates', refreshCurrencyRates).then(() => {
         setRates(globalCurrencyRates);
         setLoading(false);
       });
@@ -575,7 +587,7 @@ export const useBrandingRealtime = () => {
     initializeRealtimeSubscription();
     
     if (!globalBranding) {
-      refreshBranding().then(() => {
+      guardedRefresh('branding', refreshBranding).then(() => {
         setBranding(globalBranding);
         setLoading(false);
       });
@@ -603,7 +615,7 @@ export const useGameSettingsRealtime = () => {
     initializeRealtimeSubscription();
     
     if (globalGameSettings.length === 0) {
-      refreshGameSettings().then(() => {
+      guardedRefresh('game settings', refreshGameSettings).then(() => {
         setGames(globalGameSettings);
         setLoading(false);
       });
@@ -631,7 +643,7 @@ export const useAppSettingsRealtime = () => {
     initializeRealtimeSubscription();
     
     if (globalAppSettings.size === 0) {
-      refreshAppSettings().then(() => {
+      guardedRefresh('app settings', refreshAppSettings).then(() => {
         setSettings(new Map(globalAppSettings));
         setLoading(false);
       });
@@ -663,7 +675,7 @@ export const usePaymentMethodsRealtime = () => {
     initializeRealtimeSubscription();
     
     if (globalPaymentMethods.length === 0) {
-      refreshPaymentMethods().then(() => {
+      guardedRefresh('payment methods', refreshPaymentMethods).then(() => {
         setMethods(globalPaymentMethods);
         setLoading(false);
       });
