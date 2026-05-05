@@ -391,9 +391,16 @@ const Auth = () => {
   useEffect(() => {
     const checkExistingSession = async () => {
       setIsAutoRecovering(true);
+      let recoveryTimeout: ReturnType<typeof setTimeout> | null = null;
       try {
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          recoveryTimeout = setTimeout(() => reject(new Error('auth_session_check_timeout')), 4500);
+        });
         // Only check if user already has an active Supabase session
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await Promise.race([
+          supabase.auth.getSession(),
+          timeoutPromise,
+        ]);
         if (session?.user) {
           // Verify user still exists in profiles
           const { data: profile } = await supabase
@@ -431,6 +438,7 @@ const Auth = () => {
         console.error('[Auth] Session check error:', err);
         recordClientError({ label: "Auth.checkExistingSession", message: err instanceof Error ? err.message : String(err) });
       } finally {
+        if (recoveryTimeout) clearTimeout(recoveryTimeout);
         setIsAutoRecovering(false);
       }
     };
