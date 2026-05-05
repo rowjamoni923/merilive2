@@ -16,6 +16,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.decodeFromJsonElement
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -62,9 +64,13 @@ class AdminSyncManager @Inject constructor(
 
     private suspend fun fetchBranding() {
         try {
-            val data = postgrest.from("branding_settings")
-                .select { limit(1) }
-                .decodeSingleOrNull<BrandingData>()
+            val row = postgrest.from("branding_settings")
+                .select {
+                    filter { eq("setting_key", "default") }
+                    limit(1)
+                }
+                .decodeSingleOrNull<BrandingSettingsRow>()
+            val data = row?.setting_value?.let { json.decodeFromJsonElement<BrandingData>(it) }
             _branding.value = data
             data?.let { prefs.edit().putString("branding", json.encodeToString(BrandingData.serializer(), it)).apply() }
         } catch (_: Exception) {}
@@ -132,6 +138,13 @@ data class BrandingData(
     val background_url: String? = null,
     val background_type: String? = null,
     val tagline: String? = null,
+)
+
+@Serializable
+data class BrandingSettingsRow(
+    val id: String? = null,
+    val setting_key: String? = null,
+    val setting_value: JsonElement? = null,
 )
 
 @Serializable
