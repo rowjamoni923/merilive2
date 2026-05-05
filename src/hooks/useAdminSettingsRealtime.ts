@@ -221,11 +221,7 @@ const initializeRealtimeSubscription = () => {
 
   // Initial fetch for ALL settings (both realtime and polled)
   const fetchAllSettings = async () => {
-    await Promise.all([
-      refreshBanners(), refreshGifts(), refreshDiamondPackages(),
-      refreshCurrencyRates(), refreshBranding(), refreshGameSettings(),
-      refreshAppSettings(), refreshPaymentMethods(),
-    ]);
+    await initializeData();
     notifySubscribers();
   };
   void fetchAllSettings();
@@ -246,8 +242,8 @@ const initializeRealtimeSubscription = () => {
       app_settings: refreshAppSettings,
       topup_payment_methods: refreshPaymentMethods,
     };
-    if (table && refreshMap[table]) {
-      await refreshMap[table]();
+      if (table && refreshMap[table]) {
+        await guardedRefresh(table, async () => { await refreshMap[table](); });
       notifySubscribers();
     }
   };
