@@ -9,6 +9,7 @@ const TRANSIENT_STATUS_CODES = new Set([408, 425, 429, 500, 502, 503, 504]);
 const READ_METHODS = new Set(['GET', 'HEAD']);
 const MUTATION_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 const ADMIN_REALTIME_EVENT = 'admin-table-update';
+const POSTGREST_PATH_MARKER = '/rest/v1/';
 
 type RouteCircuitState = {
   failures: number;
@@ -323,12 +324,22 @@ const withTimeoutSignal = (timeoutMs: number, init?: RequestInit) => {
 export const createSupabaseFetchGuard = (baseFetch: typeof fetch = fetch): typeof fetch => {
   return async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = toUrlString(input);
+
+    // Only PostgREST table/RPC traffic should be throttled, deduped, cached, or
+    // circuit-broken here. Auth, Edge Functions, Storage, Realtime sockets, and
+    // static media must use the native fetch path; otherwise one transient REST
+    // failure can poison login/session refresh, LiveKit token calls, gift/media
+    // loading, and live stream startup with `AuthRetryableFetchError: Failed to fetch`.
+    if (!url.includes(POSTGREST_PATH_MARKER)) {
+      return baseFetch(input, init);
+    }
+
     const method = toMethod(input, init);
     const headers = mergeHeaders(input, init);
     const routeKey = getRouteKey(url);
     const requestKey = getRequestKey(url, method, headers);
     const isReadRequest = READ_METHODS.has(method);
-    const mutationTable = !isReadRequest && url.includes('/rest/v1/') ? extractSupabaseMutationTable(url) : null;
+    const mutationTable = !isReadRequest ? extractSupabaseMutationTable(url) : null;
 
     if (mutationTable) {
       lockAdminRealtimeTables([mutationTable]);
@@ -387,7 +398,7 @@ export const createSupabaseFetchGuard = (baseFetch: typeof fetch = fetch): typeo
                 setCachedResponse(requestKey, response);
               }
 
-              if (!isReadRequest && response.ok && url.includes('/rest/v1/')) {
+    if (!isReadRequest && response.ok) {
                 clearReadCaches();
                 if (mutationTable) {
                   lockAdminRealtimeTables([mutationTable]);
