@@ -34,36 +34,25 @@ const isAdminRoute = () =>
 // ============= Speed Test (lightweight) =============
 const measureLatency = async (): Promise<number> => {
   const start = performance.now();
-  const { healthProbeTimeoutMs } = getAdaptiveNetworkProfile();
-
-  try {
-    // Ping Supabase Auth health endpoint — lightweight and returns 200 with the anon key.
-    // Avoid /rest/v1/ HEAD because PostgREST root returns 401 and creates noisy false failures.
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), healthProbeTimeoutMs);
-
-    try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/auth/v1/health`, {
-        method: 'GET',
-        signal: controller.signal,
-        cache: 'no-store',
-        headers: {
-          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-        },
-      });
-
-      if (!response.ok) throw new Error(`Supabase health check failed: ${response.status}`);
-      return performance.now() - start;
-    } finally {
-      clearTimeout(timeout);
-    }
-  } catch {
-    // On weak networks a probe timeout should be treated as slow, not hard-offline.
-    if (typeof navigator !== 'undefined' && navigator.onLine) {
-      return healthProbeTimeoutMs + 1200;
-    }
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
     return 9999;
   }
+
+  // Do not ping Supabase for health checks. Preview/native fetch proxies can fail
+  // synthetic health probes while normal REST/storage data requests still work,
+  // which creates global "Failed to fetch" noise and false offline states.
+  const connection = (typeof navigator !== 'undefined'
+    ? (navigator as Navigator & { connection?: { rtt?: number; downlink?: number } }).connection
+    : undefined);
+
+  if (typeof connection?.rtt === 'number' && connection.rtt > 0) return connection.rtt;
+  if (typeof connection?.downlink === 'number') {
+    if (connection.downlink <= 0.8) return 2600;
+    if (connection.downlink <= 1.8) return 1500;
+    if (connection.downlink <= 12) return 700;
+  }
+
+  return performance.now() - start;
 };
 
 const classifyQuality = (latencyMs: number): ConnectionQuality => {
