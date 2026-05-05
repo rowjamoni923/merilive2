@@ -43,7 +43,10 @@ export const GenderSelectionModal = ({ isOpen, userId, onComplete }: GenderSelec
         .update(updateData)
         .eq('id', userId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('[GenderSelection] update error:', error);
+        throw error;
+      }
 
       localStorage.setItem(`gender_selected_${userId}`, 'true');
 
