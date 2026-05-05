@@ -29,6 +29,11 @@ import { recordClientError } from "@/utils/clientErrorLog";
 type Gender = "male" | "female" | null;
 type AuthStep = "gender" | "name" | "email" | "login" | "agency_code" | "otp_verify" | "email_otp" | "email_gender" | "email_password" | "phone_input" | "phone_otp" | "phone_password" | null;
 
+type AuthBranding = {
+  background_type: 'image' | 'video' | 'gif' | 'gradient';
+  background_url: string;
+};
+
 interface DeviceAccount {
   deviceId: string;
   email: string;
@@ -103,6 +108,70 @@ const getReturnUrl = (): string => {
     return returnTo;
   }
   return '/';
+};
+
+const AuthBackground = ({ branding }: { branding: AuthBranding }) => {
+  const [mediaReady, setMediaReady] = useState(false);
+  const [mediaFailed, setMediaFailed] = useState(false);
+  const showMedia = Boolean(branding.background_url && !mediaFailed);
+
+  useEffect(() => {
+    setMediaReady(false);
+    setMediaFailed(false);
+  }, [branding.background_url, branding.background_type]);
+
+  return (
+    <>
+      <div 
+        className="absolute inset-0"
+        style={{
+          background: 'linear-gradient(135deg, #0f0c29 0%, #302b63 40%, #24243e 70%, #0f0c29 100%)',
+        }}
+      />
+      {showMedia && branding.background_type === 'video' ? (
+        <video
+          src={branding.background_url}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${mediaReady ? 'opacity-100' : 'opacity-0'}`}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          disablePictureInPicture
+          onCanPlay={() => setMediaReady(true)}
+          onLoadedData={() => setMediaReady(true)}
+          onError={() => setMediaFailed(true)}
+          ref={(el) => { if (el) el.playbackRate = 0.6; }}
+          style={{
+            imageRendering: 'auto',
+            transform: 'translateZ(0)',
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
+            willChange: 'transform',
+            filter: 'contrast(1.05) saturate(1.08)',
+          }}
+        />
+      ) : showMedia && (branding.background_type === 'image' || branding.background_type === 'gif') ? (
+        <img
+          src={branding.background_url}
+          alt="MeriLive background"
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${mediaReady ? 'opacity-100' : 'opacity-0'}`}
+          decoding="async"
+          fetchPriority="high"
+          onLoad={() => setMediaReady(true)}
+          onError={() => setMediaFailed(true)}
+          style={{
+            imageRendering: 'auto',
+            transform: 'translateZ(0)',
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
+            willChange: 'transform',
+            filter: 'contrast(1.05) saturate(1.08)',
+          }}
+        />
+      ) : null}
+    </>
+  );
 };
 
 const Auth = () => {
@@ -1912,42 +1981,7 @@ const Auth = () => {
   if (isAutoRecovering) {
     return (
         <div className="fixed inset-0 overflow-hidden">
-        {branding.background_type === 'video' && branding.background_url ? (
-          <video
-            src={branding.background_url}
-            className="absolute inset-0 w-full h-full object-cover"
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="auto"
-            disablePictureInPicture
-            ref={(el) => { if (el) el.playbackRate = 0.6; }}
-            style={{
-              imageRendering: 'auto',
-              transform: 'translateZ(0)',
-              backfaceVisibility: 'hidden',
-              WebkitBackfaceVisibility: 'hidden',
-              willChange: 'transform',
-              filter: 'contrast(1.05) saturate(1.08)',
-            }}
-          />
-        ) : (branding.background_type === 'image' || branding.background_type === 'gif') && branding.background_url ? (
-          <div
-            className="absolute inset-0 bg-cover bg-center"
-            style={{
-              backgroundImage: `url('${branding.background_url}')`,
-              imageRendering: 'auto' as any,
-              transform: 'translateZ(0)',
-              backfaceVisibility: 'hidden',
-              WebkitBackfaceVisibility: 'hidden',
-              willChange: 'transform',
-              filter: 'contrast(1.05) saturate(1.08)',
-            }}
-          />
-        ) : (
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #0f0c29 0%, #302b63 40%, #24243e 70%, #0f0c29 100%)' }} />
-        )}
+        <AuthBackground branding={branding} />
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/50" />
         <div className="relative z-10 min-h-screen flex flex-col items-center justify-center gap-4">
           <div className="w-10 h-10 border-3 border-white/30 border-t-white rounded-full animate-spin" />
@@ -1960,47 +1994,9 @@ const Auth = () => {
   return (
     <div className="fixed inset-0 overflow-hidden">
       {/* Background - Video, Image, or Premium Gradient */}
-      {branding.background_type === 'video' && branding.background_url ? (
-        <video
-          src={branding.background_url}
-          className="absolute inset-0 w-full h-full object-cover"
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          disablePictureInPicture
-          ref={(el) => { if (el) el.playbackRate = 0.6; }}
-          style={{
-            imageRendering: 'auto',
-            transform: 'translateZ(0)',
-            backfaceVisibility: 'hidden',
-            WebkitBackfaceVisibility: 'hidden',
-            willChange: 'transform',
-            filter: 'contrast(1.05) saturate(1.08)',
-          }}
-        />
-      ) : (branding.background_type === 'image' || branding.background_type === 'gif') && branding.background_url ? (
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage: `url('${branding.background_url}')`,
-            imageRendering: 'auto' as any,
-            transform: 'translateZ(0)',
-            backfaceVisibility: 'hidden',
-            WebkitBackfaceVisibility: 'hidden',
-            willChange: 'transform',
-            filter: 'contrast(1.05) saturate(1.08)',
-          }}
-        />
-      ) : (
-        /* Premium Ultra-Luxury Gradient Background */
-        <div 
-          className="absolute inset-0"
-          style={{
-            background: 'linear-gradient(135deg, #0f0c29 0%, #302b63 40%, #24243e 70%, #0f0c29 100%)',
-          }}
-        >
+      <AuthBackground branding={branding} />
+      {(!branding.background_url || branding.background_type === 'gradient') && (
+        <div className="absolute inset-0">
           {/* Animated glow orbs */}
           <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full opacity-20" style={{
             background: 'radial-gradient(circle, #9b87f5 0%, transparent 70%)',
