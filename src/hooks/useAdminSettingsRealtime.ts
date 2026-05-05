@@ -196,7 +196,7 @@ const initializeRealtimeSubscription = () => {
         topup_payment_methods: refreshPaymentMethods,
       };
       if (table && refreshMap[table]) {
-        await refreshMap[table]();
+        await guardedRefresh(table, async () => { await refreshMap[table](); });
         notifySubscribers();
       }
     };
