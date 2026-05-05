@@ -339,7 +339,7 @@ const refreshBranding = async () => {
   const { data } = await getSettingsClient()
     .from('branding_settings')
     .select('*')
-    .limit(1)
+    .eq('setting_key', 'default')
     .maybeSingle();
 
   // branding_settings stores data as JSON in setting_value.
