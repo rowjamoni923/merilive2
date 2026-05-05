@@ -441,7 +441,7 @@ export const useBannersRealtime = () => {
     initializeRealtimeSubscription();
     
     if (globalBanners.length === 0) {
-      refreshBanners().then(() => {
+      guardedRefresh('banners', refreshBanners).then(() => {
         setBanners(globalBanners);
         setLoading(false);
       });
@@ -469,7 +469,7 @@ export const useGiftsRealtime = () => {
     initializeRealtimeSubscription();
     
     if (globalGifts.length === 0) {
-      refreshGifts().then(() => {
+      guardedRefresh('gifts', refreshGifts).then(() => {
         setGifts(globalGifts);
         setLoading(false);
       });
@@ -497,7 +497,7 @@ export const useDiamondPackagesRealtime = () => {
     initializeRealtimeSubscription();
     
     if (globalDiamondPackages.length === 0) {
-      refreshDiamondPackages().then(() => {
+      guardedRefresh('coin packages', refreshDiamondPackages).then(() => {
         setPackages(globalDiamondPackages);
         setLoading(false);
       });
