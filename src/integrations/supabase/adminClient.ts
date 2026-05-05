@@ -15,11 +15,9 @@
 import { createClient } from '@supabase/supabase-js';
 import { getAdminSessionToken } from '@/utils/adminSession';
 import { recordAdminError } from '@/utils/adminErrorLog';
-import { createSupabaseFetchGuard } from '@/utils/supabaseFetchGuard';
 
 const SUPABASE_URL = "https://ayjdlvuurscxucatbbah.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5amRsdnV1cnNjeHVjYXRiYmFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNjQxMjMsImV4cCI6MjA5MDg0MDEyM30.5A53IMXcvGGnmXK9Dd96V7ceceh1JFuGmPom-hojWJc";
-const guardedBaseFetch = createSupabaseFetchGuard(fetch);
 
 // Custom storage adapter scoped to admin panel — uses a different key prefix
 // so it never collides with the regular user-app supabase client.
