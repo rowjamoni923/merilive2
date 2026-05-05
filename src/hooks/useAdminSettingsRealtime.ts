@@ -525,7 +525,7 @@ export const useCurrencyRatesRealtime = () => {
     initializeRealtimeSubscription();
     
     if (globalCurrencyRates.length === 0) {
-      refreshCurrencyRates().then(() => {
+      guardedRefresh('currency rates', refreshCurrencyRates).then(() => {
         setRates(globalCurrencyRates);
         setLoading(false);
       });
@@ -591,7 +591,7 @@ export const useBrandingRealtime = () => {
     initializeRealtimeSubscription();
     
     if (!globalBranding) {
-      refreshBranding().then(() => {
+      guardedRefresh('branding', refreshBranding).then(() => {
         setBranding(globalBranding);
         setLoading(false);
       });
@@ -619,7 +619,7 @@ export const useGameSettingsRealtime = () => {
     initializeRealtimeSubscription();
     
     if (globalGameSettings.length === 0) {
-      refreshGameSettings().then(() => {
+      guardedRefresh('game settings', refreshGameSettings).then(() => {
         setGames(globalGameSettings);
         setLoading(false);
       });
