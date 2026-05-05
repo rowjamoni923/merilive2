@@ -38,6 +38,14 @@ const adminStorage = {
   },
 };
 
+const authLockQueue = new Map<string, Promise<unknown>>();
+const inProcessAuthLock = async <R,>(name: string, _acquireTimeout: number, fn: () => Promise<R>): Promise<R> => {
+  const previous = authLockQueue.get(name) ?? Promise.resolve();
+  const run = previous.catch(() => undefined).then(fn);
+  authLockQueue.set(name, run.catch(() => undefined));
+  return run;
+};
+
 /**
  * Performance: cap unbounded SELECTs and dedupe identical in-flight reads.
  *
@@ -150,5 +158,6 @@ export const adminSupabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY
     persistSession: false, // We manage admin session manually via adminSession.ts
     autoRefreshToken: false,
     detectSessionInUrl: false,
+    lock: inProcessAuthLock,
   },
 });

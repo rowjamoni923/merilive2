@@ -1771,13 +1771,18 @@ export type Database = {
           changelog: string | null
           created_at: string | null
           current_version: string
+          current_version_code: number | null
+          current_version_name: string | null
           force_update: boolean | null
           id: string
           is_maintenance: boolean | null
           maintenance_end_time: string | null
           maintenance_message: string | null
+          min_version_code: number | null
           minimum_version: string
           platform: string
+          play_store_url: string | null
+          update_message: string | null
           update_url: string | null
           updated_at: string | null
         }
@@ -1785,13 +1790,18 @@ export type Database = {
           changelog?: string | null
           created_at?: string | null
           current_version: string
+          current_version_code?: number | null
+          current_version_name?: string | null
           force_update?: boolean | null
           id?: string
           is_maintenance?: boolean | null
           maintenance_end_time?: string | null
           maintenance_message?: string | null
+          min_version_code?: number | null
           minimum_version: string
           platform: string
+          play_store_url?: string | null
+          update_message?: string | null
           update_url?: string | null
           updated_at?: string | null
         }
@@ -1799,13 +1809,18 @@ export type Database = {
           changelog?: string | null
           created_at?: string | null
           current_version?: string
+          current_version_code?: number | null
+          current_version_name?: string | null
           force_update?: boolean | null
           id?: string
           is_maintenance?: boolean | null
           maintenance_end_time?: string | null
           maintenance_message?: string | null
+          min_version_code?: number | null
           minimum_version?: string
           platform?: string
+          play_store_url?: string | null
+          update_message?: string | null
           update_url?: string | null
           updated_at?: string | null
         }
