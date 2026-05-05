@@ -58,9 +58,9 @@ export const GenderSelectionModal = ({ isOpen, userId, onComplete }: GenderSelec
       
       setSaving(false);
       onComplete();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving gender:', error);
-      toast.error("Failed to save. Please try again.");
+      toast.error(error?.message || error?.details || "Failed to save. Please try again.");
       setSaving(false);
     }
   };
