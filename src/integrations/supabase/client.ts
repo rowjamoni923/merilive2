@@ -7,6 +7,14 @@ const SUPABASE_URL = "https://ayjdlvuurscxucatbbah.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5amRsdnV1cnNjeHVjYXRiYmFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNjQxMjMsImV4cCI6MjA5MDg0MDEyM30.5A53IMXcvGGnmXK9Dd96V7ceceh1JFuGmPom-hojWJc";
 const guardedFetch = createSupabaseFetchGuard(fetch);
 
+const authLockQueue = new Map<string, Promise<unknown>>();
+const inProcessAuthLock = async <R,>(name: string, _acquireTimeout: number, fn: () => Promise<R>): Promise<R> => {
+  const previous = authLockQueue.get(name) ?? Promise.resolve();
+  const run = previous.catch(() => undefined).then(fn);
+  authLockQueue.set(name, run.catch(() => undefined));
+  return run;
+};
+
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
@@ -21,5 +29,6 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
+    lock: inProcessAuthLock,
   }
 });
