@@ -357,8 +357,6 @@ export const createSupabaseFetchGuard = (baseFetch: typeof fetch = fetch): typeo
 
       try {
         await waitForRequestGap();
-        const timed = withTimeoutSignal(getAdaptiveNetworkProfile().requestTimeoutMs, init);
-
         let lastError: unknown;
         const maxAttempts = isReadRequest ? READ_NETWORK_RETRY_ATTEMPTS + 1 : 1;
 
