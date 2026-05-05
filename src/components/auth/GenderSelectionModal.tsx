@@ -43,7 +43,10 @@ export const GenderSelectionModal = ({ isOpen, userId, onComplete }: GenderSelec
         .update(updateData)
         .eq('id', userId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('[GenderSelection] update error:', error);
+        throw error;
+      }
 
       localStorage.setItem(`gender_selected_${userId}`, 'true');
 
@@ -55,9 +58,9 @@ export const GenderSelectionModal = ({ isOpen, userId, onComplete }: GenderSelec
       
       setSaving(false);
       onComplete();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving gender:', error);
-      toast.error("Failed to save. Please try again.");
+      toast.error(error?.message || error?.details || "Failed to save. Please try again.");
       setSaving(false);
     }
   };
