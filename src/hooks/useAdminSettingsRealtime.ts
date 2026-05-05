@@ -130,6 +130,18 @@ let realtimeMode: 'admin' | 'public' | null = null;
 const isAdminRoute = () => typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
 const getSettingsClient = () => (isAdminRoute() ? adminSupabase : supabase);
 
+const logSettingsLoadError = (scope: string, error: unknown) => {
+  console.warn(`[AdminRealtime] ${scope} load skipped, keeping cached data:`, error);
+};
+
+const guardedRefresh = async (scope: string, refresh: () => Promise<void>) => {
+  try {
+    await refresh();
+  } catch (error) {
+    logSettingsLoadError(scope, error);
+  }
+};
+
 const subscribeTableChange = (
   channel: ReturnType<typeof supabase.channel> | ReturnType<typeof adminSupabase.channel>,
   table: string,
@@ -258,8 +270,12 @@ const initializeRealtimeSubscription = () => {
       realtimeMode = 'public';
       console.log('[AdminRealtime] Public settings subscription:', status);
       if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-        console.warn('[AdminRealtime] ⚠️ Channel error, retrying in 5s...');
-        setTimeout(() => createPublicChannel(), 5000);
+        console.warn('[AdminRealtime] ⚠️ Realtime unavailable; cached REST data remains active.');
+        try { getSettingsClient().removeChannel(channel as RealtimeChannel); } catch {}
+        if (realtimeChannel === channel) {
+          realtimeChannel = null;
+          realtimeMode = null;
+        }
       }
     });
   };
