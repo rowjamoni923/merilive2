@@ -19,7 +19,9 @@ import io.github.jan.supabase.postgrest.Postgrest
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
@@ -64,13 +66,18 @@ class AuthActivity : AppCompatActivity() {
     private fun loadBranding() {
         lifecycleScope.launch {
             try {
-                val result = postgrest.from("branding_settings").select()
-                val items = result.decodeAs<List<Map<String, kotlinx.serialization.json.JsonElement>>>()
-                if (items.isNotEmpty()) {
-                    val branding = items.first()
+                val result = postgrest.from("branding_settings").select {
+                    filter { eq("setting_key", "default") }
+                    limit(1)
+                }
+                val items = result.decodeAs<List<BrandingSettingsRow>>()
+                val branding = items.firstOrNull()?.setting_value?.let {
+                    json.decodeFromJsonElement<BrandingData>(it)
+                }
 
+                if (branding != null) {
                     // Load background image
-                    val bgUrl = branding["background_url"]?.jsonPrimitive?.content
+                    val bgUrl = branding.background_url
                     if (!bgUrl.isNullOrBlank()) {
                         binding.ivBackground.load(bgUrl) {
                             crossfade(true)
@@ -79,7 +86,7 @@ class AuthActivity : AppCompatActivity() {
                     }
 
                     // Load logo image if available
-                    val logoUrl = branding["logo_image_url"]?.jsonPrimitive?.content
+                    val logoUrl = branding.logo_image_url
                     if (!logoUrl.isNullOrBlank()) {
                         binding.ivLogo.visibility = View.VISIBLE
                         binding.tvAppName.visibility = View.GONE
@@ -93,14 +100,14 @@ class AuthActivity : AppCompatActivity() {
                         binding.tvAppName.visibility = View.VISIBLE
 
                         // Use logo_text_primary if available
-                        val logoText = branding["logo_text_primary"]?.jsonPrimitive?.content
+                        val logoText = branding.logo_text_primary
                         if (!logoText.isNullOrBlank()) {
                             binding.tvAppName.text = logoText
                         }
                     }
 
                     // Show tagline if available
-                    val tagline = branding["tagline"]?.jsonPrimitive?.content
+                    val tagline = branding.tagline
                     if (!tagline.isNullOrBlank()) {
                         binding.tvTagline.text = tagline
                         binding.tvTagline.visibility = View.VISIBLE
@@ -437,4 +444,21 @@ data class OtpVerifyResponse(
     val refresh_token: String? = null,
     val user_id: String? = null,
     val error: String? = null,
+)
+
+@Serializable
+data class BrandingSettingsRow(
+    val id: String? = null,
+    val setting_key: String? = null,
+    val setting_value: JsonElement? = null,
+)
+
+@Serializable
+data class BrandingData(
+    val logo_text_primary: String? = null,
+    val logo_text_secondary: String? = null,
+    val tagline: String? = null,
+    val logo_image_url: String? = null,
+    val background_type: String? = null,
+    val background_url: String? = null,
 )
