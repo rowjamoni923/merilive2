@@ -51,7 +51,9 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
       const hasFlag = hasAdminAccessFlag() || hasOwnerAccessFlag();
       const accessToken = getAccessTokenFromURL();
       if (!mounted) return;
-      if (session) {
+      if (isLoginRoute()) {
+        setIsAuthorized(true);
+      } else if (session) {
         setIsAuthorized(true);
       } else if (hasFlag || accessToken) {
         // Allow login page render; token will be validated in background.
