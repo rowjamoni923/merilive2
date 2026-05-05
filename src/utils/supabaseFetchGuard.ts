@@ -3,6 +3,7 @@ import { lockAdminRealtimeTables } from './adminRealtimeMutationGuard';
 
 const BASE_BACKOFF_MS = 300;
 const MAX_CACHE_ENTRIES = 300;
+const READ_NETWORK_RETRY_ATTEMPTS = 2;
 
 const TRANSIENT_STATUS_CODES = new Set([408, 425, 429, 500, 502, 503, 504]);
 const READ_METHODS = new Set(['GET', 'HEAD']);
@@ -355,38 +356,69 @@ export const createSupabaseFetchGuard = (baseFetch: typeof fetch = fetch): typeo
         await waitForRequestGap();
         const timed = withTimeoutSignal(getAdaptiveNetworkProfile().requestTimeoutMs, init);
 
-        try {
-          const response = await baseFetch(input, timed.init);
+        let lastError: unknown;
+        const maxAttempts = isReadRequest ? READ_NETWORK_RETRY_ATTEMPTS + 1 : 1;
 
-          if (TRANSIENT_STATUS_CODES.has(response.status)) {
-            markTransientFailure();
-            markRouteFailure(routeKey);
+        for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+          const timed = withTimeoutSignal(getAdaptiveNetworkProfile().requestTimeoutMs, init);
 
-            if (isReadRequest) {
-              const stale = getStaleCachedResponse(requestKey);
-              if (stale) return stale;
-            }
-          } else {
-            markHealthy();
-            markRouteHealthy(routeKey);
+          try {
+            const response = await baseFetch(input, timed.init);
 
-            if (isReadRequest && response.ok) {
-              setCachedResponse(requestKey, response);
-            }
+            if (TRANSIENT_STATUS_CODES.has(response.status)) {
+              markTransientFailure();
+              markRouteFailure(routeKey);
 
-            if (!isReadRequest && response.ok && url.includes('/rest/v1/')) {
-              clearReadCaches();
-              if (mutationTable) {
-                lockAdminRealtimeTables([mutationTable]);
+              if (isReadRequest && attempt < maxAttempts - 1) {
+                await sleep(BASE_BACKOFF_MS * (attempt + 1));
+                continue;
               }
-              broadcastAdminMutation(url, method);
-            }
-          }
 
-          return response;
-        } finally {
-          timed.cleanup();
+              if (isReadRequest) {
+                const stale = getStaleCachedResponse(requestKey);
+                if (stale) return stale;
+              }
+            } else {
+              markHealthy();
+              markRouteHealthy(routeKey);
+
+              if (isReadRequest && response.ok) {
+                setCachedResponse(requestKey, response);
+              }
+
+              if (!isReadRequest && response.ok && url.includes('/rest/v1/')) {
+                clearReadCaches();
+                if (mutationTable) {
+                  lockAdminRealtimeTables([mutationTable]);
+                }
+                broadcastAdminMutation(url, method);
+              }
+            }
+
+            return response;
+          } catch (error) {
+            lastError = error;
+            if (isAbortOrNetworkError(error)) {
+              markTransientFailure();
+              markRouteFailure(routeKey);
+
+              if (isReadRequest && attempt < maxAttempts - 1) {
+                await sleep(BASE_BACKOFF_MS * (attempt + 1));
+                continue;
+              }
+
+              if (isReadRequest) {
+                const stale = getStaleCachedResponse(requestKey);
+                if (stale) return stale;
+              }
+            }
+            throw error;
+          } finally {
+            timed.cleanup();
+          }
         }
+
+        throw lastError;
       } catch (error) {
         if (isAbortOrNetworkError(error)) {
           markTransientFailure();
