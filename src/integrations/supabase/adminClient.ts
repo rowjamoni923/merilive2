@@ -131,7 +131,7 @@ const adminFetch: typeof fetch = (input, init) => {
     if (hit && now - hit.t < DEDUPE_MS) {
       return hit.p.then((r) => r.clone());
     }
-    const p = fetch(url, opts).then(logIfFailed);
+    const p = guardedBaseFetch(url, opts).then(logIfFailed);
     inflight.set(key, { p, t: now });
     p.finally(() => {
       setTimeout(() => {
@@ -142,7 +142,7 @@ const adminFetch: typeof fetch = (input, init) => {
     return p.then((r) => r.clone());
   }
 
-  return fetch(url, opts).then(logIfFailed);
+  return guardedBaseFetch(url, opts).then(logIfFailed);
 };
 
 /**
