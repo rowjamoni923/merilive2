@@ -45,6 +45,11 @@ const getAppVersion = async (): Promise<{ versionCode: number; versionName: stri
   }
 };
 
+const versionNameToCode = (version: string | null | undefined): number => {
+  const parts = String(version || '0').split('.').map((part) => parseInt(part.replace(/\D/g, ''), 10) || 0);
+  return (parts[0] || 0) * 10000 + (parts[1] || 0) * 100 + (parts[2] || 0);
+};
+
 export const useAppUpdate = () => {
   const [updateInfo, setUpdateInfo] = useState<AppUpdateInfo | null>(null);
   const [isChecking, setIsChecking] = useState(false);
@@ -125,7 +130,7 @@ export const useAppUpdate = () => {
         .from('app_version_settings')
         .select('*')
         .eq('platform', 'android')
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('[AppUpdate] Database error:', error);
@@ -139,26 +144,30 @@ export const useAppUpdate = () => {
         return;
       }
 
-      console.log('[AppUpdate] Server version:', data.current_version_name, '(', data.current_version_code, ')');
+      const serverVersionName = data.current_version_name || data.current_version || '1.0.0';
+      const serverVersionCode = Number(data.current_version_code) || versionNameToCode(serverVersionName);
+      const minimumVersionCode = Number(data.min_version_code) || versionNameToCode(data.minimum_version || serverVersionName);
+      console.log('[AppUpdate] Server version:', serverVersionName, '(', serverVersionCode, ')');
 
-      const updateAvailable = data.current_version_code > CURRENT_VERSION_CODE;
-      const isForceUpdate = data.force_update && data.min_version_code > CURRENT_VERSION_CODE;
+      const currentComparableCode = Math.max(CURRENT_VERSION_CODE, versionNameToCode(CURRENT_VERSION_NAME));
+      const updateAvailable = serverVersionCode > currentComparableCode;
+      const isForceUpdate = data.force_update && minimumVersionCode > currentComparableCode;
 
       const info: AppUpdateInfo = {
         updateAvailable,
         forceUpdate: isForceUpdate,
         currentVersion: CURRENT_VERSION_NAME,
-        availableVersion: data.current_version_name,
+        availableVersion: serverVersionName,
         currentVersionCode: CURRENT_VERSION_CODE,
-        availableVersionCode: data.current_version_code,
-        updateMessage: data.update_message || 'New update available!',
-        playStoreUrl: data.play_store_url || 'https://play.google.com/store/apps/details?id=com.merilive.app',
+        availableVersionCode: serverVersionCode,
+        updateMessage: data.update_message || data.changelog || 'New update available!',
+        playStoreUrl: data.play_store_url || data.update_url || 'https://play.google.com/store/apps/details?id=com.merilive.app',
       };
 
       setUpdateInfo(info);
 
       // Check if this version was already dismissed (only for non-force updates)
-      if (updateAvailable && !isForceUpdate && isDismissedVersion(data.current_version_code)) {
+      if (updateAvailable && !isForceUpdate && isDismissedVersion(serverVersionCode)) {
         console.log('[AppUpdate] This version was already dismissed by user');
         return;
       }
