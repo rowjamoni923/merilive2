@@ -191,7 +191,10 @@ const broadcastAdminMutation = (url: string, method: string) => {
 
 const getRequestKey = (url: string, method: string, headers: Headers) => {
   const auth = headers.get('authorization') ?? 'anon';
-  return `${method}::${url}::${auth}`;
+  const adminToken = headers.get('x-admin-token') ?? 'no-admin';
+  const prefer = headers.get('prefer') ?? '';
+  const range = headers.get('range') ?? '';
+  return `${method}::${url}::${auth}::${adminToken}::${prefer}::${range}`;
 };
 
 const getCachedResponse = (requestKey: string, allowStale = false) => {
