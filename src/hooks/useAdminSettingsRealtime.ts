@@ -647,7 +647,7 @@ export const useAppSettingsRealtime = () => {
     initializeRealtimeSubscription();
     
     if (globalAppSettings.size === 0) {
-      refreshAppSettings().then(() => {
+      guardedRefresh('app settings', refreshAppSettings).then(() => {
         setSettings(new Map(globalAppSettings));
         setLoading(false);
       });
@@ -679,7 +679,7 @@ export const usePaymentMethodsRealtime = () => {
     initializeRealtimeSubscription();
     
     if (globalPaymentMethods.length === 0) {
-      refreshPaymentMethods().then(() => {
+      guardedRefresh('payment methods', refreshPaymentMethods).then(() => {
         setMethods(globalPaymentMethods);
         setLoading(false);
       });
