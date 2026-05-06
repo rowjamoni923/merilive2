@@ -603,34 +603,28 @@ const Settings = () => {
   };
 
   const handleLogout = async () => {
-    setLoading(true);
+    // INSTANT logout — no awaits before navigating
     try {
-      // Set persistent flag FIRST so auto-recovery NEVER brings back old account
+      // Persistent flag so auto-recovery NEVER restores old account
       localStorage.setItem('meri_manual_logout', 'true');
       localStorage.removeItem('meri_device_account');
-      
-      // Navigate IMMEDIATELY for instant feedback
-      navigate("/auth", { replace: true });
-      setShowLogoutDialog(false);
-      
-      // Sign out and clear native session in parallel (non-blocking)
-      const signOutPromise = supabase.auth.signOut({ scope: 'local' });
-      const clearNativePromise = import('@/utils/nativeSessionStorage')
-        .then(({ clearNativeSession }) => clearNativeSession())
-        .catch(() => {});
-      
-      await Promise.allSettled([signOutPromise, clearNativePromise]);
-      
-      toast({
-        title: "Logged Out",
-        description: "You have successfully logged out.",
-      });
-    } catch (error: any) {
-      // Even on error, stay on auth page — don't revert
-      console.warn('[Logout] Error during cleanup:', error);
-    } finally {
-      setLoading(false);
-    }
+    } catch {}
+
+    // Close dialog + navigate IMMEDIATELY
+    setShowLogoutDialog(false);
+    navigate("/auth", { replace: true });
+
+    // Show success right away — cleanup happens in background
+    toast({
+      title: "Logged Out",
+      description: "You have successfully logged out.",
+    });
+
+    // Fire-and-forget cleanup; do NOT block the UI
+    void supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+    void import('@/utils/nativeSessionStorage')
+      .then(({ clearNativeSession }) => clearNativeSession())
+      .catch(() => {});
   };
 
   const handleClearCache = () => {
