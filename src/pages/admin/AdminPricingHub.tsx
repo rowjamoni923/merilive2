@@ -310,12 +310,24 @@ export default function AdminPricingHub() {
                         onChange={(e) => setCallRates({ ...callRates, max_rate: inputNumber(e.target.value) })}
                       />
                     </Field>
-                    <Field label="Host commission %" hint="Company gets the remainder. Strict 21s rule applies on settlement.">
+                    <Field label="Host receives %" hint="Beans credited = floor(charge × host_% / 100). Strict 21s rule applies.">
                       <Input
                         type="number"
                         value={NUM(callRates.host_commission_percent)}
                         onChange={(e) =>
                           setCallRates({ ...callRates, host_commission_percent: inputNumber(e.target.value) })
+                        }
+                      />
+                    </Field>
+                    <Field label="Company keeps %" hint="Auto = 100 − host %. Read-only.">
+                      <Input
+                        type="number"
+                        readOnly
+                        className="bg-muted/40"
+                        value={
+                          callRates.host_commission_percent === "" || callRates.host_commission_percent == null
+                            ? ""
+                            : Math.max(0, 100 - Number(callRates.host_commission_percent))
                         }
                       />
                     </Field>
@@ -338,6 +350,16 @@ export default function AdminPricingHub() {
                       />
                     </Field>
                   </div>
+
+                  {callRates.host_commission_percent !== "" && callRates.default_rate !== "" && Number(callRates.default_rate) > 0 && (
+                    <div className="rounded-md border border-primary/20 bg-primary/5 p-3 text-xs space-y-1">
+                      <div className="font-semibold text-primary">Live Calculation Preview (5-minute call)</div>
+                      <div>• Charged to caller: <strong>{Number(callRates.default_rate) * 5} diamonds</strong></div>
+                      <div>• Host earns: <strong>{Math.floor(Number(callRates.default_rate) * 5 * Number(callRates.host_commission_percent) / 100)} beans</strong> ({callRates.host_commission_percent}%)</div>
+                      <div>• Company keeps: <strong>{Math.max(0, 100 - Number(callRates.host_commission_percent))}%</strong> = {Number(callRates.default_rate) * 5 - Math.floor(Number(callRates.default_rate) * 5 * Number(callRates.host_commission_percent) / 100)} diamonds</div>
+                      <div className="text-muted-foreground">If call &lt; {callRates.first_minute_grace_seconds || 21}s → host earns 0, company keeps full coins_per_minute.</div>
+                    </div>
+                  )}
 
                   <Separator />
 
