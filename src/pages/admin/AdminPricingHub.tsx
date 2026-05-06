@@ -451,16 +451,28 @@ export default function AdminPricingHub() {
                     }
                   />
                 </Field>
-                <Field label="Company keeps %">
+                <Field label="Company keeps %" hint="Auto = 100 − host %. Read-only.">
                   <Input
                     type="number"
-                    value={NUM(giftCommission.company_percent)}
-                    onChange={(e) =>
-                      setGiftCommission({ ...giftCommission, company_percent: inputNumber(e.target.value) })
+                    readOnly
+                    className="bg-muted/40"
+                    value={
+                      giftCommission.host_percent === "" || giftCommission.host_percent == null
+                        ? ""
+                        : Math.max(0, 100 - Number(giftCommission.host_percent))
                     }
                   />
                 </Field>
               </div>
+
+              {giftCommission.host_percent !== "" && (
+                <div className="rounded-md border border-primary/20 bg-primary/5 p-3 text-xs space-y-1">
+                  <div className="font-semibold text-primary">Live Calculation Preview</div>
+                  <div>Example: 1,000-diamond gift sent to a host</div>
+                  <div>• Host earns: <strong>{Math.floor(1000 * Number(giftCommission.host_percent) / 100)} beans</strong> ({giftCommission.host_percent}%)</div>
+                  <div>• Company keeps: <strong>{1000 - Math.floor(1000 * Number(giftCommission.host_percent) / 100)} diamonds</strong> ({Math.max(0, 100 - Number(giftCommission.host_percent))}%)</div>
+                </div>
+              )}
               <Button
                 onClick={() =>
                   saveSection(
