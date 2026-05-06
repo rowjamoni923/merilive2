@@ -265,6 +265,58 @@ export default function AdminPricingHub() {
         </AlertDescription>
       </Alert>
 
+      {/* Fee Summary — at-a-glance overview of every active fee/commission */}
+      <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Percent className="h-4 w-4 text-primary" /> Fee & Commission Summary
+          </CardTitle>
+          <CardDescription className="text-xs">Live values currently driving the app. Edit any below to update instantly.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+          <div className="rounded border border-border/40 p-2">
+            <div className="text-muted-foreground">Call → Host</div>
+            <div className="text-base font-bold text-primary">{callRates?.host_commission_percent ?? "—"}%</div>
+            <div className="text-[10px] text-muted-foreground">Company keeps {callRates?.host_commission_percent != null && callRates?.host_commission_percent !== "" ? Math.max(0, 100 - Number(callRates.host_commission_percent)) : "—"}%</div>
+          </div>
+          <div className="rounded border border-border/40 p-2">
+            <div className="text-muted-foreground">Gift → Host</div>
+            <div className="text-base font-bold text-primary">{giftCommission.host_percent || "—"}%</div>
+            <div className="text-[10px] text-muted-foreground">Company keeps {giftCommission.host_percent !== "" ? Math.max(0, 100 - Number(giftCommission.host_percent)) : "—"}%</div>
+          </div>
+          <div className="rounded border border-border/40 p-2">
+            <div className="text-muted-foreground">Agency Withdrawal Fee</div>
+            <div className="text-base font-bold text-primary">{agencyWithdrawalFee !== "" ? `${agencyWithdrawalFee}%` : "—"}</div>
+            <div className="text-[10px] text-muted-foreground">Deducted before payout</div>
+          </div>
+          <div className="rounded border border-border/40 p-2">
+            <div className="text-muted-foreground">Helper Diamond %</div>
+            <div className="text-base font-bold text-primary">{helperDiamondCommission !== "" ? `${helperDiamondCommission}%` : "—"}</div>
+            <div className="text-[10px] text-muted-foreground">Helper top-up commission</div>
+          </div>
+          <div className="rounded border border-border/40 p-2">
+            <div className="text-muted-foreground">Level-5 Helper Fee</div>
+            <div className="text-base font-bold text-primary">{helperFeeSettings.platform_fee_percent !== "" ? `${helperFeeSettings.platform_fee_percent}%` : "—"}</div>
+            <div className="text-[10px] text-muted-foreground">Helper gets {helperFeeSettings.helper_receives_percent !== "" ? `${helperFeeSettings.helper_receives_percent}%` : "—"}</div>
+          </div>
+          <div className="rounded border border-border/40 p-2">
+            <div className="text-muted-foreground">Beans → USD</div>
+            <div className="text-base font-bold text-primary">{withdrawal?.coins_to_dollar_rate || "—"}</div>
+            <div className="text-[10px] text-muted-foreground">beans per $1</div>
+          </div>
+          <div className="rounded border border-border/40 p-2">
+            <div className="text-muted-foreground">Exchange Fee</div>
+            <div className="text-base font-bold text-primary">{coinExchange?.exchange_fee_percent != null ? `${coinExchange.exchange_fee_percent}%` : "—"}</div>
+            <div className="text-[10px] text-muted-foreground">Beans → Diamonds</div>
+          </div>
+          <div className="rounded border border-border/40 p-2">
+            <div className="text-muted-foreground">Agency Tiers</div>
+            <div className="text-base font-bold text-primary">{tiers.filter((t) => t.is_active).length}</div>
+            <div className="text-[10px] text-muted-foreground">active levels</div>
+          </div>
+        </CardContent>
+      </Card>
+
       <Tabs defaultValue="call" className="w-full">
         <TabsList className="grid w-full grid-cols-3 md:grid-cols-6">
           <TabsTrigger value="call"><Phone className="h-4 w-4 mr-1" />Call</TabsTrigger>
