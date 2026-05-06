@@ -2048,23 +2048,21 @@ const Auth = () => {
                  className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-pink-200 to-pink-400 text-center tracking-wide"
                  style={{ 
                    fontFamily: "'Pacifico', cursive",
-                   textShadow: '0 4px 30px rgba(236, 72, 153, 0.5), 0 2px 10px rgba(255, 255, 255, 0.3)',
                    WebkitTextStroke: '0.5px rgba(255, 255, 255, 0.2)',
                  }}
                >
                    {branding.logo_text_primary}
                  </h1>
-               </div>
+                </div>
              
              {/* LIVE badge with elegant underline */}
              <div className="flex items-center gap-3 mt-1">
                <div className="h-px w-10 bg-gradient-to-r from-transparent via-white/60 to-transparent" />
                <h2 
-                 className="text-3xl font-bold text-white uppercase drop-shadow-lg"
+                 className="text-3xl font-bold text-white uppercase"
                  style={{ 
                    fontFamily: "'Montserrat', sans-serif",
                    letterSpacing: '0.5em',
-                   textShadow: '0 2px 20px rgba(255, 255, 255, 0.4)',
                  }}
                >
                   {branding.logo_text_secondary}
