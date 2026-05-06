@@ -399,15 +399,33 @@ const Settings = () => {
     if (permissions.camera) {
       toast({
         title: "Already Enabled",
-        description: "To disable, go to device Settings → Apps → MeriLive → Permissions → Camera.",
+        description: Capacitor.isNativePlatform()
+          ? "To disable, go to device Settings → Apps → MeriLive → Permissions → Camera."
+          : "To disable, change it from your browser site settings.",
       });
       return;
     }
+
+    if (!Capacitor.isNativePlatform() && navigator.permissions) {
+      try {
+        const p = await navigator.permissions.query({ name: 'camera' as PermissionName });
+        if (p.state === 'denied') {
+          toast({
+            title: "Camera Blocked",
+            description: isInIframe
+              ? "Open the app on your device or in a full browser tab to enable the camera."
+              : browserSettingsHint('Camera'),
+            variant: "destructive",
+          });
+          return;
+        }
+      } catch {}
+    }
+
     try {
       if (Capacitor.isNativePlatform()) {
         try {
           const result = await CapCamera.requestPermissions({ permissions: ['camera'] });
-          console.log('[Settings] Native camera result:', result);
           if (result.camera === 'granted') {
             setPermissions(prev => ({ ...prev, camera: true }));
             toast({ title: "Camera Enabled", description: "Camera access has been granted." });
@@ -418,7 +436,10 @@ const Settings = () => {
         }
       }
 
-      console.log('[Settings] Requesting camera via getUserMedia...');
+      if (!navigator.mediaDevices?.getUserMedia) {
+        toast({ title: "Not Supported", description: "Camera is not available in this browser.", variant: "destructive" });
+        return;
+      }
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       stream.getTracks().forEach(track => track.stop());
       setPermissions(prev => ({ ...prev, camera: true }));
@@ -426,11 +447,17 @@ const Settings = () => {
     } catch (error: any) {
       console.error('Camera permission error:', error);
       recordClientError({ label: "Settings.stream", message: error instanceof Error ? error.message : String(error) });
-      if (error?.name === 'NotAllowedError' || error?.name === 'NotFoundError') {
-        toast({ 
-          title: "Camera Permission Needed", 
-          description: "Please go to your device Settings > Apps > MeriLive > Permissions and enable Camera.", 
-          variant: "destructive" 
+      const denied = error?.name === 'NotAllowedError' || error?.name === 'SecurityError';
+      const notFound = error?.name === 'NotFoundError';
+      if (notFound) {
+        toast({ title: "No Camera Found", description: "No camera device detected on this device.", variant: "destructive" });
+      } else if (denied) {
+        toast({
+          title: "Camera Permission Needed",
+          description: Capacitor.isNativePlatform()
+            ? "Open device Settings → Apps → MeriLive → Permissions → Camera → Allow."
+            : (isInIframe ? "Open the app on your device or in a full browser tab to enable the camera." : browserSettingsHint('Camera')),
+          variant: "destructive",
         });
       } else {
         toast({ title: "Error", description: "Failed to request camera permission.", variant: "destructive" });
@@ -446,19 +473,33 @@ const Settings = () => {
     if (permissions.microphone) {
       toast({
         title: "Already Enabled",
-        description: "To disable, go to device Settings → Apps → MeriLive → Permissions → Microphone.",
+        description: Capacitor.isNativePlatform()
+          ? "To disable, go to device Settings → Apps → MeriLive → Permissions → Microphone."
+          : "To disable, change it from your browser site settings.",
       });
       return;
     }
-    try {
-      if (Capacitor.isNativePlatform()) {
-        console.log('[Settings] Native: requesting RECORD_AUDIO via Camera plugin first...');
-        try {
-          const result = await CapCamera.requestPermissions({ permissions: ['camera'] });
-          console.log('[Settings] Native camera/mic permission result:', result);
-        } catch (e) {
-          console.log('[Settings] Camera plugin permission request failed, continuing...', e);
+
+    if (!Capacitor.isNativePlatform() && navigator.permissions) {
+      try {
+        const p = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+        if (p.state === 'denied') {
+          toast({
+            title: "Microphone Blocked",
+            description: isInIframe
+              ? "Open the app on your device or in a full browser tab to enable the microphone."
+              : browserSettingsHint('Microphone'),
+            variant: "destructive",
+          });
+          return;
         }
+      } catch {}
+    }
+
+    try {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        toast({ title: "Not Supported", description: "Microphone is not available in this browser.", variant: "destructive" });
+        return;
       }
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       stream.getTracks().forEach(track => track.stop());
@@ -467,17 +508,17 @@ const Settings = () => {
     } catch (error: any) {
       console.error('Microphone permission error:', error);
       recordClientError({ label: "Settings.stream", message: error instanceof Error ? error.message : String(error) });
-      if (Capacitor.isNativePlatform() && error?.name === 'NotAllowedError') {
-        toast({ 
-          title: "Microphone Blocked", 
-          description: "Please go to your phone Settings → Apps → MeriLive → Permissions → Microphone → Allow.", 
-          variant: "destructive" 
+      const denied = error?.name === 'NotAllowedError' || error?.name === 'SecurityError';
+      if (denied) {
+        toast({
+          title: "Microphone Blocked",
+          description: Capacitor.isNativePlatform()
+            ? "Open device Settings → Apps → MeriLive → Permissions → Microphone → Allow."
+            : (isInIframe ? "Open the app on your device or in a full browser tab to enable the microphone." : browserSettingsHint('Microphone')),
+          variant: "destructive",
         });
       } else {
-        const message = error?.name === 'NotAllowedError' 
-          ? "Please enable microphone in browser/device settings." 
-          : "Failed to request microphone permission.";
-        toast({ title: "Error", description: message, variant: "destructive" });
+        toast({ title: "Error", description: "Failed to request microphone permission.", variant: "destructive" });
       }
     } finally {
       void refreshPermissions();
@@ -490,34 +531,68 @@ const Settings = () => {
     if (permissions.location) {
       toast({
         title: "Already Enabled",
-        description: "To disable, go to device Settings → Apps → MeriLive → Permissions → Location.",
+        description: Capacitor.isNativePlatform()
+          ? "To disable, go to device Settings → Apps → MeriLive → Permissions → Location."
+          : "To disable, change it from your browser site settings.",
       });
       return;
     }
+
+    if (!Capacitor.isNativePlatform() && navigator.permissions) {
+      try {
+        const p = await navigator.permissions.query({ name: 'geolocation' as PermissionName });
+        if (p.state === 'denied') {
+          toast({
+            title: "Location Blocked",
+            description: isInIframe
+              ? "Open the app on your device or in a full browser tab to share location."
+              : browserSettingsHint('Location'),
+            variant: "destructive",
+          });
+          return;
+        }
+      } catch {}
+    }
+
     try {
       if (Capacitor.isNativePlatform()) {
         const result = await Geolocation.requestPermissions();
-        console.log('[Settings] Native location result:', result);
-        if (result.location === 'granted') {
+        if (result.location === 'granted' || result.coarseLocation === 'granted') {
           setPermissions(prev => ({ ...prev, location: true }));
           toast({ title: "Location Enabled", description: "Location access has been granted." });
         } else {
-          toast({ title: "Permission Denied", description: "Please enable location in device settings.", variant: "destructive" });
+          toast({ title: "Permission Denied", description: "Open device Settings → Apps → MeriLive → Permissions → Location → Allow.", variant: "destructive" });
         }
-      } else {
-        console.log('[Settings] Web location via getCurrentPosition...');
+        return;
+      }
+
+      if (!navigator.geolocation) {
+        toast({ title: "Not Supported", description: "Location is not available in this browser.", variant: "destructive" });
+        return;
+      }
+
+      await new Promise<void>((resolve) => {
         navigator.geolocation.getCurrentPosition(
           () => {
             setPermissions(prev => ({ ...prev, location: true }));
             toast({ title: "Location Enabled", description: "Location access has been granted." });
+            resolve();
           },
           (error) => {
             console.error('[Settings] Location error:', error);
-            recordClientError({ label: "Settings.result", message: error instanceof Error ? error.message : String(error) });
-            toast({ title: "Permission Denied", description: "Please enable location in browser settings.", variant: "destructive" });
-          }
+            recordClientError({ label: "Settings.result", message: error.message });
+            toast({
+              title: "Location Blocked",
+              description: isInIframe
+                ? "Open the app on your device or in a full browser tab to share location."
+                : browserSettingsHint('Location'),
+              variant: "destructive",
+            });
+            resolve();
+          },
+          { timeout: 10000, maximumAge: 60000 }
         );
-      }
+      });
     } catch (error) {
       console.error('Location permission error:', error);
       recordClientError({ label: "Settings.result", message: error instanceof Error ? error.message : String(error) });
