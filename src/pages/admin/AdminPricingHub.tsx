@@ -474,17 +474,19 @@ export default function AdminPricingHub() {
                 </div>
               )}
               <Button
-                onClick={() =>
+                onClick={() => {
+                  const hp = giftCommission.host_percent;
+                  const cp = hp === "" || hp == null ? "" : Math.max(0, 100 - Number(hp));
                   saveSection(
                     "gift_commission",
                     {
-                      host_percent: giftCommission.host_percent,
-                      company_percent: giftCommission.company_percent,
-                      description: `Company takes ${giftCommission.company_percent}%, Host receives ${giftCommission.host_percent}%`,
+                      host_percent: hp,
+                      company_percent: cp,
+                      description: `Company takes ${cp}%, Host receives ${hp}%`,
                     },
                     "Gift commission"
-                  )
-                }
+                  );
+                }}
                 disabled={saving === "gift_commission"}
               >
                 <Save className="h-4 w-4 mr-2" />
