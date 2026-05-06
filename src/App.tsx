@@ -402,16 +402,16 @@ const PageLoader = memo(({ message = "Loading MeriLive..." }: { message?: string
 // MAIN APP COMPONENT
 // =============================================
 // Deferred bridge - loads hooks dynamically after first paint
-const RealtimeQuerySyncBridge = lazy(() => import("./hooks/useRealtimeQuerySync").then(m => {
+const RealtimeQuerySyncBridge = lazy(lazyRetry(() => import("./hooks/useRealtimeQuerySync").then(m => {
   const Bridge = () => { m.useRealtimeQuerySync(); return null; };
   return { default: Bridge };
-}));
+})));
 
 // Android system UI integration (status bar, navigation bar)
-const NativeSystemUIBridge = lazy(() => import("./hooks/useNativeSystemUI").then(m => {
+const NativeSystemUIBridge = lazy(lazyRetry(() => import("./hooks/useNativeSystemUI").then(m => {
   const Bridge = () => { m.useNativeSystemUI(); return null; };
   return { default: Bridge };
-}));
+})));
 
 const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: string | null; hasSession: boolean }) => {
   const location = useLocation();
