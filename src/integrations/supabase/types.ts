@@ -5471,6 +5471,7 @@ export type Database = {
           is_active: boolean | null
           media_url: string | null
           section_key: string
+          section_type: string
           subtitle: string | null
           title: string
           updated_at: string | null
@@ -5483,6 +5484,7 @@ export type Database = {
           is_active?: boolean | null
           media_url?: string | null
           section_key: string
+          section_type?: string
           subtitle?: string | null
           title: string
           updated_at?: string | null
@@ -5495,6 +5497,7 @@ export type Database = {
           is_active?: boolean | null
           media_url?: string | null
           section_key?: string
+          section_type?: string
           subtitle?: string | null
           title?: string
           updated_at?: string | null
