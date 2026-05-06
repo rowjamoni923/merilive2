@@ -679,14 +679,14 @@ export default function AdminPricingHub() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Withdrawal & Helper Fees</CardTitle>
+              <CardTitle className="text-base">Agency Withdrawal Fee</CardTitle>
               <CardDescription>
-                Percentage fees applied during withdrawal processing. Treated as 0 if blank.
+                Percentage deducted from withdrawal beans before USD conversion. Treated as 0 if blank.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Field label="Agency withdrawal fee %" hint="Deducted from withdrawal beans before USD conversion">
+                <Field label="Agency withdrawal fee %" hint="e.g. 5 = 5% of beans deducted on withdrawal">
                   <Input
                     type="number"
                     step="0.1"
@@ -694,49 +694,24 @@ export default function AdminPricingHub() {
                     onChange={(e) => setAgencyWithdrawalFee(e.target.value === "" ? "" : Number(e.target.value))}
                   />
                 </Field>
-                <Field label="Helper diamond commission %">
-                  <Input
-                    type="number"
-                    step="0.1"
-                    value={NUM(helperDiamondCommission)}
-                    onChange={(e) =>
-                      setHelperDiamondCommission(e.target.value === "" ? "" : Number(e.target.value))
-                    }
-                  />
-                </Field>
               </div>
-              <div className="flex gap-2">
-                <Button
-                  onClick={() =>
-                    saveSection(
-                      "agency_withdrawal_fee",
-                      { rate: agencyWithdrawalFee },
-                      "Agency withdrawal fee"
-                    )
-                  }
-                  disabled={saving === "agency_withdrawal_fee"}
-                  variant="outline"
-                  size="sm"
-                >
-                  <Save className="h-3 w-3 mr-1" />
-                  Save Withdrawal Fee
-                </Button>
-                <Button
-                  onClick={() =>
-                    saveSection(
-                      "helper_diamond_commission",
-                      { rate: helperDiamondCommission },
-                      "Helper diamond commission"
-                    )
-                  }
-                  disabled={saving === "helper_diamond_commission"}
-                  variant="outline"
-                  size="sm"
-                >
-                  <Save className="h-3 w-3 mr-1" />
-                  Save Helper Commission
-                </Button>
-              </div>
+              {agencyWithdrawalFee !== "" && Number(agencyWithdrawalFee) > 0 && (
+                <div className="rounded-md border border-primary/20 bg-primary/5 p-3 text-xs space-y-1">
+                  <div className="font-semibold text-primary">Live Calculation Preview</div>
+                  <div>Example: 100,000 beans withdrawal request</div>
+                  <div>• Fee deducted: <strong>{Math.floor(100000 * Number(agencyWithdrawalFee) / 100).toLocaleString()} beans</strong> ({agencyWithdrawalFee}%)</div>
+                  <div>• Net beans paid out: <strong>{(100000 - Math.floor(100000 * Number(agencyWithdrawalFee) / 100)).toLocaleString()} beans</strong></div>
+                </div>
+              )}
+              <Button
+                onClick={() =>
+                  saveSection("agency_withdrawal_fee", { rate: agencyWithdrawalFee }, "Agency withdrawal fee")
+                }
+                disabled={saving === "agency_withdrawal_fee"}
+              >
+                <Save className="h-4 w-4 mr-2" />
+                {saving === "agency_withdrawal_fee" ? "Saving..." : "Save Withdrawal Fee"}
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>
