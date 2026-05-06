@@ -39,7 +39,23 @@ export interface AdminSession {
 export const getAdminSessionToken = (): string => {
   if (!hasWindow()) return '';
   try {
-    return window.localStorage.getItem(ADMIN_TOKEN_KEY) || '';
+    const direct = window.localStorage.getItem(ADMIN_TOKEN_KEY);
+    if (direct && direct.length >= 16) return direct;
+    // Recovery: older sessions stored the server token only inside the session blob.
+    // Hydrate the dedicated token key so the x-admin-token header is sent on every request.
+    const raw =
+      window.sessionStorage.getItem(ADMIN_SESSION_KEY) ||
+      window.localStorage.getItem(ADMIN_SESSION_KEY);
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw) as AdminSession;
+        if (parsed?.session_token && parsed.session_token.length >= 16) {
+          window.localStorage.setItem(ADMIN_TOKEN_KEY, parsed.session_token);
+          return parsed.session_token;
+        }
+      } catch { /* ignore */ }
+    }
+    return '';
   } catch {
     return '';
   }

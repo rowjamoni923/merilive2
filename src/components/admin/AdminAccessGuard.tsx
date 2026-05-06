@@ -2,7 +2,7 @@ import { useState, useEffect, ReactNode } from "react";
 import { Loader2 } from "lucide-react";
 import BlogPage from "@/pages/BlogPage";
 import { Navigate, useLocation } from "react-router-dom";
-import { getAdminSession } from "@/utils/adminSession";
+import { getAdminSession, getAdminSessionToken, clearAdminSession } from "@/utils/adminSession";
 import { hasAdminAccessFlag, hasOwnerAccessFlag, grantAdminAccess, setAdminLinkToken } from "@/utils/adminAccessStorage";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 
@@ -54,9 +54,15 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
       if (isLoginRoute()) {
         setIsAuthorized(true);
       } else if (session) {
-        setIsAuthorized(true);
+        // Session present but no usable header token → broken state, force re-login.
+        const token = getAdminSessionToken();
+        if (!token) {
+          clearAdminSession();
+          setIsAuthorized(false);
+        } else {
+          setIsAuthorized(true);
+        }
       } else if (hasFlag || accessToken) {
-        // Allow login page render; token will be validated in background.
         setIsAuthorized(true);
       } else {
         setIsAuthorized(false);
