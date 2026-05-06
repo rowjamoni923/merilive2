@@ -82,14 +82,6 @@ export const saveAppSetting = async (
 };
 
 export const saveBrandingSettings = async (value: Record<string, unknown>, id?: string) => {
-  const { data: existing, error: checkError } = await adminSupabase
-    .from("branding_settings")
-    .select("id")
-    .eq("setting_key", "default")
-    .maybeSingle();
-
-  if (checkError) throw checkError;
-
   const payload = {
     setting_key: "default",
     setting_value: JSON.stringify(value),
@@ -97,29 +89,13 @@ export const saveBrandingSettings = async (value: Record<string, unknown>, id?: 
     updated_at: new Date().toISOString(),
   };
 
-  if (existing) {
-    const { error } = await adminSupabase
-      .from("branding_settings")
-      .update({
-        setting_value: payload.setting_value,
-        description: payload.description,
-        updated_at: payload.updated_at,
-      })
-      .eq("id", existing.id);
-
-    if (error) throw error;
-    return existing.id;
-  }
-
+  // Single round-trip upsert — instant save, no SELECT-then-UPDATE
   const { data, error } = await adminSupabase
     .from("branding_settings")
-    .insert({
-      ...(id ? { id } : {}),
-      setting_key: payload.setting_key,
-      setting_value: payload.setting_value,
-      description: payload.description,
-      updated_at: payload.updated_at,
-    })
+    .upsert(
+      { ...(id ? { id } : {}), ...payload },
+      { onConflict: "setting_key" }
+    )
     .select("id")
     .single();
 
