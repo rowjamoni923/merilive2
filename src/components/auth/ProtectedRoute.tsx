@@ -168,12 +168,7 @@ const ProtectedRoute = ({ children, session }: ProtectedRouteProps) => {
 
   // Wait briefly for background session recovery before redirecting to auth
   if (!effectiveSession && !waitedForRecovery) {
-    return (
-      <MeriLiveLoader
-        message="Restoring session"
-        subMessage="Please wait a moment..."
-      />
-    );
+    return <MeriLiveLoader />;
   }
 
   if (!effectiveSession) {
