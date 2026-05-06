@@ -330,41 +330,59 @@ const Settings = () => {
     void refreshPermissions();
   });
 
+  // Helpers ─────────────────────────────────────────────
+  const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
+  const browserSettingsHint = (perm: string) =>
+    `Tap the lock/info icon in the address bar → Site settings → ${perm} → Allow, then refresh.`;
+
   // Request notification permission
   const requestNotificationPermission = async () => {
     console.log('[Settings] Requesting notification permission...');
-    // If already granted, instruct user how to disable
     if (permissions.notifications) {
       toast({
         title: "Already Enabled",
-        description: "To disable, go to device Settings → Apps → MeriLive → Permissions.",
+        description: Capacitor.isNativePlatform()
+          ? "To disable, go to device Settings → Apps → MeriLive → Permissions."
+          : "To disable, change it from your browser site settings.",
       });
       return;
     }
     try {
       if (Capacitor.isNativePlatform()) {
         const result = await PushNotifications.requestPermissions();
-        console.log('[Settings] Native notification result:', result);
         if (result.receive === 'granted') {
           await PushNotifications.register();
           setPermissions(prev => ({ ...prev, notifications: true }));
           toast({ title: "Notifications Enabled", description: "You will now receive push notifications." });
         } else {
-          toast({ title: "Permission Denied", description: "Please enable notifications from device Settings → Apps → MeriLive → Permissions.", variant: "destructive" });
+          toast({ title: "Permission Denied", description: "Open device Settings → Apps → MeriLive → Notifications → Allow.", variant: "destructive" });
         }
+        return;
+      }
+
+      if (!('Notification' in window)) {
+        toast({ title: "Not Supported", description: "Notifications are not supported in this browser.", variant: "destructive" });
+        return;
+      }
+
+      // Already denied — browser will NOT re-prompt; user must reset manually
+      if (Notification.permission === 'denied') {
+        toast({
+          title: "Notifications Blocked",
+          description: isInIframe
+            ? "Open the app on your device or in a full browser tab to enable notifications."
+            : browserSettingsHint('Notifications'),
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const permission = await Notification.requestPermission();
+      setPermissions(prev => ({ ...prev, notifications: permission === 'granted' }));
+      if (permission === 'granted') {
+        toast({ title: "Notifications Enabled", description: "You will now receive notifications." });
       } else {
-        if ('Notification' in window) {
-          const permission = await Notification.requestPermission();
-          console.log('[Settings] Web notification result:', permission);
-          setPermissions(prev => ({ ...prev, notifications: permission === 'granted' }));
-          if (permission === 'granted') {
-            toast({ title: "Notifications Enabled", description: "You will now receive notifications." });
-          } else {
-            toast({ title: "Permission Denied", description: "Please enable notifications in browser settings.", variant: "destructive" });
-          }
-        } else {
-          toast({ title: "Not Supported", description: "Notifications are not supported in this browser.", variant: "destructive" });
-        }
+        toast({ title: "Permission Denied", description: browserSettingsHint('Notifications'), variant: "destructive" });
       }
     } catch (error) {
       console.error('Notification permission error:', error);
