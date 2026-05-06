@@ -775,16 +775,16 @@ export default function AdminPricingHub() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <Crown className="h-4 w-4 text-primary" /> Helper / Agency-Recharge Fee Split
+                <Crown className="h-4 w-4 text-primary" /> Level-5 Helper Recharge Fee Split
               </CardTitle>
               <CardDescription>
-                Used when an agency helper tops-up a host's diamond balance via the Helper Recharge
-                flow (`helper_fee_settings`).
+                Used when an agency Level-5 helper tops-up a host's diamond balance via the Helper
+                Recharge flow (`helper_fee_settings`).
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Field label="Platform fee %">
+                <Field label="Platform fee %" hint="Company keeps this % of recharge value">
                   <Input
                     type="number"
                     step="0.1"
@@ -797,7 +797,7 @@ export default function AdminPricingHub() {
                     }
                   />
                 </Field>
-                <Field label="Helper receives %">
+                <Field label="Helper receives %" hint="Helper earns this % as commission">
                   <Input
                     type="number"
                     step="0.1"
@@ -811,6 +811,14 @@ export default function AdminPricingHub() {
                   />
                 </Field>
               </div>
+              {helperFeeSettings.platform_fee_percent !== "" && helperFeeSettings.helper_receives_percent !== "" && (
+                <div className="rounded-md border border-primary/20 bg-primary/5 p-3 text-xs space-y-1">
+                  <div className="font-semibold text-primary">Live Calculation Preview</div>
+                  <div>Example: 10,000-diamond helper recharge</div>
+                  <div>• Platform fee: <strong>{Math.floor(10000 * Number(helperFeeSettings.platform_fee_percent) / 100).toLocaleString()} diamonds</strong> ({helperFeeSettings.platform_fee_percent}%)</div>
+                  <div>• Helper earns: <strong>{Math.floor(10000 * Number(helperFeeSettings.helper_receives_percent) / 100).toLocaleString()} diamonds</strong> ({helperFeeSettings.helper_receives_percent}%)</div>
+                </div>
+              )}
               <Button
                 onClick={() =>
                   saveSection(
@@ -826,6 +834,43 @@ export default function AdminPricingHub() {
               >
                 <Save className="h-4 w-4 mr-2" />
                 {saving === "helper_fee_settings" ? "Saving..." : "Save Helper Fee"}
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Helper Diamond Commission</CardTitle>
+              <CardDescription>
+                Percentage commission the helper earns on every diamond top-up they fulfil.
+                Treated as 0 if blank.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Field label="Helper diamond commission %" hint="e.g. 3 = helper earns 3% on every diamond sold">
+                  <Input
+                    type="number"
+                    step="0.1"
+                    value={NUM(helperDiamondCommission)}
+                    onChange={(e) =>
+                      setHelperDiamondCommission(e.target.value === "" ? "" : Number(e.target.value))
+                    }
+                  />
+                </Field>
+              </div>
+              <Button
+                onClick={() =>
+                  saveSection(
+                    "helper_diamond_commission",
+                    { rate: helperDiamondCommission },
+                    "Helper diamond commission"
+                  )
+                }
+                disabled={saving === "helper_diamond_commission"}
+              >
+                <Save className="h-4 w-4 mr-2" />
+                {saving === "helper_diamond_commission" ? "Saving..." : "Save Helper Commission"}
               </Button>
             </CardContent>
           </Card>
