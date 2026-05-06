@@ -265,6 +265,58 @@ export default function AdminPricingHub() {
         </AlertDescription>
       </Alert>
 
+      {/* Fee Summary — at-a-glance overview of every active fee/commission */}
+      <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Percent className="h-4 w-4 text-primary" /> Fee & Commission Summary
+          </CardTitle>
+          <CardDescription className="text-xs">Live values currently driving the app. Edit any below to update instantly.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+          <div className="rounded border border-border/40 p-2">
+            <div className="text-muted-foreground">Call → Host</div>
+            <div className="text-base font-bold text-primary">{callRates?.host_commission_percent ?? "—"}%</div>
+            <div className="text-[10px] text-muted-foreground">Company keeps {callRates?.host_commission_percent != null && callRates?.host_commission_percent !== "" ? Math.max(0, 100 - Number(callRates.host_commission_percent)) : "—"}%</div>
+          </div>
+          <div className="rounded border border-border/40 p-2">
+            <div className="text-muted-foreground">Gift → Host</div>
+            <div className="text-base font-bold text-primary">{giftCommission.host_percent || "—"}%</div>
+            <div className="text-[10px] text-muted-foreground">Company keeps {giftCommission.host_percent !== "" ? Math.max(0, 100 - Number(giftCommission.host_percent)) : "—"}%</div>
+          </div>
+          <div className="rounded border border-border/40 p-2">
+            <div className="text-muted-foreground">Agency Withdrawal Fee</div>
+            <div className="text-base font-bold text-primary">{agencyWithdrawalFee !== "" ? `${agencyWithdrawalFee}%` : "—"}</div>
+            <div className="text-[10px] text-muted-foreground">Deducted before payout</div>
+          </div>
+          <div className="rounded border border-border/40 p-2">
+            <div className="text-muted-foreground">Helper Diamond %</div>
+            <div className="text-base font-bold text-primary">{helperDiamondCommission !== "" ? `${helperDiamondCommission}%` : "—"}</div>
+            <div className="text-[10px] text-muted-foreground">Helper top-up commission</div>
+          </div>
+          <div className="rounded border border-border/40 p-2">
+            <div className="text-muted-foreground">Level-5 Helper Fee</div>
+            <div className="text-base font-bold text-primary">{helperFeeSettings.platform_fee_percent !== "" ? `${helperFeeSettings.platform_fee_percent}%` : "—"}</div>
+            <div className="text-[10px] text-muted-foreground">Helper gets {helperFeeSettings.helper_receives_percent !== "" ? `${helperFeeSettings.helper_receives_percent}%` : "—"}</div>
+          </div>
+          <div className="rounded border border-border/40 p-2">
+            <div className="text-muted-foreground">Beans → USD</div>
+            <div className="text-base font-bold text-primary">{withdrawal?.coins_to_dollar_rate || "—"}</div>
+            <div className="text-[10px] text-muted-foreground">beans per $1</div>
+          </div>
+          <div className="rounded border border-border/40 p-2">
+            <div className="text-muted-foreground">Exchange Fee</div>
+            <div className="text-base font-bold text-primary">{coinExchange?.exchange_fee_percent != null ? `${coinExchange.exchange_fee_percent}%` : "—"}</div>
+            <div className="text-[10px] text-muted-foreground">Beans → Diamonds</div>
+          </div>
+          <div className="rounded border border-border/40 p-2">
+            <div className="text-muted-foreground">Agency Tiers</div>
+            <div className="text-base font-bold text-primary">{tiers.filter((t) => t.is_active).length}</div>
+            <div className="text-[10px] text-muted-foreground">active levels</div>
+          </div>
+        </CardContent>
+      </Card>
+
       <Tabs defaultValue="call" className="w-full">
         <TabsList className="grid w-full grid-cols-3 md:grid-cols-6">
           <TabsTrigger value="call"><Phone className="h-4 w-4 mr-1" />Call</TabsTrigger>
@@ -310,12 +362,24 @@ export default function AdminPricingHub() {
                         onChange={(e) => setCallRates({ ...callRates, max_rate: inputNumber(e.target.value) })}
                       />
                     </Field>
-                    <Field label="Host commission %" hint="Company gets the remainder. Strict 21s rule applies on settlement.">
+                    <Field label="Host receives %" hint="Beans credited = floor(charge × host_% / 100). Strict 21s rule applies.">
                       <Input
                         type="number"
                         value={NUM(callRates.host_commission_percent)}
                         onChange={(e) =>
                           setCallRates({ ...callRates, host_commission_percent: inputNumber(e.target.value) })
+                        }
+                      />
+                    </Field>
+                    <Field label="Company keeps %" hint="Auto = 100 − host %. Read-only.">
+                      <Input
+                        type="number"
+                        readOnly
+                        className="bg-muted/40"
+                        value={
+                          callRates.host_commission_percent === "" || callRates.host_commission_percent == null
+                            ? ""
+                            : Math.max(0, 100 - Number(callRates.host_commission_percent))
                         }
                       />
                     </Field>
@@ -338,6 +402,16 @@ export default function AdminPricingHub() {
                       />
                     </Field>
                   </div>
+
+                  {callRates.host_commission_percent !== "" && callRates.default_rate !== "" && Number(callRates.default_rate) > 0 && (
+                    <div className="rounded-md border border-primary/20 bg-primary/5 p-3 text-xs space-y-1">
+                      <div className="font-semibold text-primary">Live Calculation Preview (5-minute call)</div>
+                      <div>• Charged to caller: <strong>{Number(callRates.default_rate) * 5} diamonds</strong></div>
+                      <div>• Host earns: <strong>{Math.floor(Number(callRates.default_rate) * 5 * Number(callRates.host_commission_percent) / 100)} beans</strong> ({callRates.host_commission_percent}%)</div>
+                      <div>• Company keeps: <strong>{Math.max(0, 100 - Number(callRates.host_commission_percent))}%</strong> = {Number(callRates.default_rate) * 5 - Math.floor(Number(callRates.default_rate) * 5 * Number(callRates.host_commission_percent) / 100)} diamonds</div>
+                      <div className="text-muted-foreground">If call &lt; {callRates.first_minute_grace_seconds || 21}s → host earns 0, company keeps full coins_per_minute.</div>
+                    </div>
+                  )}
 
                   <Separator />
 
@@ -429,28 +503,42 @@ export default function AdminPricingHub() {
                     }
                   />
                 </Field>
-                <Field label="Company keeps %">
+                <Field label="Company keeps %" hint="Auto = 100 − host %. Read-only.">
                   <Input
                     type="number"
-                    value={NUM(giftCommission.company_percent)}
-                    onChange={(e) =>
-                      setGiftCommission({ ...giftCommission, company_percent: inputNumber(e.target.value) })
+                    readOnly
+                    className="bg-muted/40"
+                    value={
+                      giftCommission.host_percent === "" || giftCommission.host_percent == null
+                        ? ""
+                        : Math.max(0, 100 - Number(giftCommission.host_percent))
                     }
                   />
                 </Field>
               </div>
+
+              {giftCommission.host_percent !== "" && (
+                <div className="rounded-md border border-primary/20 bg-primary/5 p-3 text-xs space-y-1">
+                  <div className="font-semibold text-primary">Live Calculation Preview</div>
+                  <div>Example: 1,000-diamond gift sent to a host</div>
+                  <div>• Host earns: <strong>{Math.floor(1000 * Number(giftCommission.host_percent) / 100)} beans</strong> ({giftCommission.host_percent}%)</div>
+                  <div>• Company keeps: <strong>{1000 - Math.floor(1000 * Number(giftCommission.host_percent) / 100)} diamonds</strong> ({Math.max(0, 100 - Number(giftCommission.host_percent))}%)</div>
+                </div>
+              )}
               <Button
-                onClick={() =>
+                onClick={() => {
+                  const hp = giftCommission.host_percent;
+                  const cp = hp === "" || hp == null ? "" : Math.max(0, 100 - Number(hp));
                   saveSection(
                     "gift_commission",
                     {
-                      host_percent: giftCommission.host_percent,
-                      company_percent: giftCommission.company_percent,
-                      description: `Company takes ${giftCommission.company_percent}%, Host receives ${giftCommission.host_percent}%`,
+                      host_percent: hp,
+                      company_percent: cp,
+                      description: `Company takes ${cp}%, Host receives ${hp}%`,
                     },
                     "Gift commission"
-                  )
-                }
+                  );
+                }}
                 disabled={saving === "gift_commission"}
               >
                 <Save className="h-4 w-4 mr-2" />
@@ -643,14 +731,14 @@ export default function AdminPricingHub() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Withdrawal & Helper Fees</CardTitle>
+              <CardTitle className="text-base">Agency Withdrawal Fee</CardTitle>
               <CardDescription>
-                Percentage fees applied during withdrawal processing. Treated as 0 if blank.
+                Percentage deducted from withdrawal beans before USD conversion. Treated as 0 if blank.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Field label="Agency withdrawal fee %" hint="Deducted from withdrawal beans before USD conversion">
+                <Field label="Agency withdrawal fee %" hint="e.g. 5 = 5% of beans deducted on withdrawal">
                   <Input
                     type="number"
                     step="0.1"
@@ -658,49 +746,24 @@ export default function AdminPricingHub() {
                     onChange={(e) => setAgencyWithdrawalFee(e.target.value === "" ? "" : Number(e.target.value))}
                   />
                 </Field>
-                <Field label="Helper diamond commission %">
-                  <Input
-                    type="number"
-                    step="0.1"
-                    value={NUM(helperDiamondCommission)}
-                    onChange={(e) =>
-                      setHelperDiamondCommission(e.target.value === "" ? "" : Number(e.target.value))
-                    }
-                  />
-                </Field>
               </div>
-              <div className="flex gap-2">
-                <Button
-                  onClick={() =>
-                    saveSection(
-                      "agency_withdrawal_fee",
-                      { rate: agencyWithdrawalFee },
-                      "Agency withdrawal fee"
-                    )
-                  }
-                  disabled={saving === "agency_withdrawal_fee"}
-                  variant="outline"
-                  size="sm"
-                >
-                  <Save className="h-3 w-3 mr-1" />
-                  Save Withdrawal Fee
-                </Button>
-                <Button
-                  onClick={() =>
-                    saveSection(
-                      "helper_diamond_commission",
-                      { rate: helperDiamondCommission },
-                      "Helper diamond commission"
-                    )
-                  }
-                  disabled={saving === "helper_diamond_commission"}
-                  variant="outline"
-                  size="sm"
-                >
-                  <Save className="h-3 w-3 mr-1" />
-                  Save Helper Commission
-                </Button>
-              </div>
+              {agencyWithdrawalFee !== "" && Number(agencyWithdrawalFee) > 0 && (
+                <div className="rounded-md border border-primary/20 bg-primary/5 p-3 text-xs space-y-1">
+                  <div className="font-semibold text-primary">Live Calculation Preview</div>
+                  <div>Example: 100,000 beans withdrawal request</div>
+                  <div>• Fee deducted: <strong>{Math.floor(100000 * Number(agencyWithdrawalFee) / 100).toLocaleString()} beans</strong> ({agencyWithdrawalFee}%)</div>
+                  <div>• Net beans paid out: <strong>{(100000 - Math.floor(100000 * Number(agencyWithdrawalFee) / 100)).toLocaleString()} beans</strong></div>
+                </div>
+              )}
+              <Button
+                onClick={() =>
+                  saveSection("agency_withdrawal_fee", { rate: agencyWithdrawalFee }, "Agency withdrawal fee")
+                }
+                disabled={saving === "agency_withdrawal_fee"}
+              >
+                <Save className="h-4 w-4 mr-2" />
+                {saving === "agency_withdrawal_fee" ? "Saving..." : "Save Withdrawal Fee"}
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -764,16 +827,16 @@ export default function AdminPricingHub() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <Crown className="h-4 w-4 text-primary" /> Helper / Agency-Recharge Fee Split
+                <Crown className="h-4 w-4 text-primary" /> Level-5 Helper Recharge Fee Split
               </CardTitle>
               <CardDescription>
-                Used when an agency helper tops-up a host's diamond balance via the Helper Recharge
-                flow (`helper_fee_settings`).
+                Used when an agency Level-5 helper tops-up a host's diamond balance via the Helper
+                Recharge flow (`helper_fee_settings`).
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Field label="Platform fee %">
+                <Field label="Platform fee %" hint="Company keeps this % of recharge value">
                   <Input
                     type="number"
                     step="0.1"
@@ -786,7 +849,7 @@ export default function AdminPricingHub() {
                     }
                   />
                 </Field>
-                <Field label="Helper receives %">
+                <Field label="Helper receives %" hint="Helper earns this % as commission">
                   <Input
                     type="number"
                     step="0.1"
@@ -800,6 +863,14 @@ export default function AdminPricingHub() {
                   />
                 </Field>
               </div>
+              {helperFeeSettings.platform_fee_percent !== "" && helperFeeSettings.helper_receives_percent !== "" && (
+                <div className="rounded-md border border-primary/20 bg-primary/5 p-3 text-xs space-y-1">
+                  <div className="font-semibold text-primary">Live Calculation Preview</div>
+                  <div>Example: 10,000-diamond helper recharge</div>
+                  <div>• Platform fee: <strong>{Math.floor(10000 * Number(helperFeeSettings.platform_fee_percent) / 100).toLocaleString()} diamonds</strong> ({helperFeeSettings.platform_fee_percent}%)</div>
+                  <div>• Helper earns: <strong>{Math.floor(10000 * Number(helperFeeSettings.helper_receives_percent) / 100).toLocaleString()} diamonds</strong> ({helperFeeSettings.helper_receives_percent}%)</div>
+                </div>
+              )}
               <Button
                 onClick={() =>
                   saveSection(
@@ -815,6 +886,43 @@ export default function AdminPricingHub() {
               >
                 <Save className="h-4 w-4 mr-2" />
                 {saving === "helper_fee_settings" ? "Saving..." : "Save Helper Fee"}
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Helper Diamond Commission</CardTitle>
+              <CardDescription>
+                Percentage commission the helper earns on every diamond top-up they fulfil.
+                Treated as 0 if blank.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Field label="Helper diamond commission %" hint="e.g. 3 = helper earns 3% on every diamond sold">
+                  <Input
+                    type="number"
+                    step="0.1"
+                    value={NUM(helperDiamondCommission)}
+                    onChange={(e) =>
+                      setHelperDiamondCommission(e.target.value === "" ? "" : Number(e.target.value))
+                    }
+                  />
+                </Field>
+              </div>
+              <Button
+                onClick={() =>
+                  saveSection(
+                    "helper_diamond_commission",
+                    { rate: helperDiamondCommission },
+                    "Helper diamond commission"
+                  )
+                }
+                disabled={saving === "helper_diamond_commission"}
+              >
+                <Save className="h-4 w-4 mr-2" />
+                {saving === "helper_diamond_commission" ? "Saving..." : "Save Helper Commission"}
               </Button>
             </CardContent>
           </Card>
