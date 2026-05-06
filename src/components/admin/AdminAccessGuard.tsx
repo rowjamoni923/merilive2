@@ -54,9 +54,15 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
       if (isLoginRoute()) {
         setIsAuthorized(true);
       } else if (session) {
-        setIsAuthorized(true);
+        // Session present but no usable header token → broken state, force re-login.
+        const token = getAdminSessionToken();
+        if (!token) {
+          clearAdminSession();
+          setIsAuthorized(false);
+        } else {
+          setIsAuthorized(true);
+        }
       } else if (hasFlag || accessToken) {
-        // Allow login page render; token will be validated in background.
         setIsAuthorized(true);
       } else {
         setIsAuthorized(false);
