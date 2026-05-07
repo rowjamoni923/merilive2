@@ -37,7 +37,7 @@ const config: CapacitorConfig = {
       // Supabase backend
       '*.supabase.co',
       '*.supabase.com',
-      'pppcwawjjpwwrmvezcdy.supabase.co',
+      'ayjdlvuurscxucatbbah.supabase.co',
       // Payment gateways
       '*.bkash.com',
       '*.nagad.com.bd',
