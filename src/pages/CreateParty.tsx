@@ -828,56 +828,19 @@ const CreateParty = () => {
         )}
       </AnimatePresence>
 
-      {/* Level Restriction Modal */}
-      <AnimatePresence>
-        {showLevelRestricted && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-6 max-w-sm w-full border border-purple-500/30 shadow-2xl"
-            >
-              <div className="flex flex-col items-center text-center">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center mb-4">
-                  <Lock className="w-10 h-10 text-purple-400" />
-                </div>
-                <h3 className="text-xl font-bold text-white mb-2">Level Required</h3>
-                <p className="text-slate-400 mb-4">
-                  You need to reach <span className="text-amber-400 font-bold">Level {requiredLevel}</span> to create a party room.
-                </p>
-                <p className="text-sm text-slate-500 mb-6">
-                  Your current level: <span className="text-primary font-semibold">
-                    {currentUser?.profile?.is_host || currentUser?.profile?.gender === 'female' 
-                      ? currentUser?.profile?.host_level || 0 
-                      : currentUser?.profile?.user_level || 0}
-                  </span>
-                </p>
-                <div className="flex gap-3 w-full">
-                  <Button
-                    variant="outline"
-                    onClick={() => navigate(-1)}
-                    className="flex-1"
-                  >
-                    Go Back
-                  </Button>
-                  <Button
-                    onClick={() => navigate('/level')}
-                    className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500"
-                  >
-                    Level Up
-                  </Button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Level Restriction Modal — premium shared component */}
+      <LevelLockModal
+        open={showLevelRestricted}
+        onClose={() => navigate(-1)}
+        featureName="Create Party"
+        requiredLevel={requiredLevel}
+        currentLevel={
+          (currentUser?.profile?.is_host || currentUser?.profile?.gender === 'female')
+            ? (currentUser?.profile?.host_level || 0)
+            : (currentUser?.profile?.user_level || 0)
+        }
+        isHost={Boolean(currentUser?.profile?.is_host) || currentUser?.profile?.gender === 'female'}
+      />
 
       {/* Twinkle Animation Style */}
       <style>{`
