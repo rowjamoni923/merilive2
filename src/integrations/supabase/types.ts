@@ -14313,6 +14313,7 @@ export type Database = {
         Args: { _agency_id: string }
         Returns: number
       }
+      rewrite_helper_payment_logo_urls: { Args: never; Returns: number }
       roulette_complete_session: {
         Args: { p_session_id: string }
         Returns: undefined

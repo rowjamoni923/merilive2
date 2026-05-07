@@ -1,17 +1,4 @@
 project_id = "ayjdlvuurscxucatbbah"
 
-[functions]
-  [functions.auth-email-hook]
-    verify_jwt = false
-  [functions.process-face-verification-v3]
-    verify_jwt = true
-  [functions.slotslaunch-games]
-    verify_jwt = false
-  [functions.send-transactional-email]
-    verify_jwt = false
-  [functions.preview-transactional-email]
-    verify_jwt = false
-  [functions.handle-email-unsubscribe]
-    verify_jwt = false
-  [functions.handle-email-suppression]
-    verify_jwt = false
+[functions.migrate-helper-payment-logos]
+verify_jwt = false
