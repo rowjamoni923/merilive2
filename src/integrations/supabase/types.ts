@@ -14617,6 +14617,7 @@ export type Database = {
         }
         Returns: Json
       }
+      set_user_offline: { Args: { p_user_id: string }; Returns: undefined }
       settle_private_call: { Args: { p_call_id: string }; Returns: Json }
       start_private_call:
         | { Args: { _host_id: string; _stream_id?: string }; Returns: string }
