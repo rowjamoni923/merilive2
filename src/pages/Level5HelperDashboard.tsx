@@ -910,20 +910,28 @@ const Level5HelperDashboard = () => {
       const isGateway = isGatewayType;
       const isLegacyGateway = ['sslcommerz', 'aamarpay', 'zinipay'].includes(paymentType);
 
-      if (isGateway && (!gatewayDisplayMethod || !gatewayDisplayNumber)) {
+      const gatewayDisplayMethodValue = gatewayDisplayMethod.trim();
+      const gatewayDisplayNumberValue = gatewayDisplayNumber.trim();
+      const gatewayPrimaryCredential = accountName.trim();
+      const gatewaySecretCredential = accountNumber.trim();
+
+      if (isGateway && (!gatewayDisplayMethodValue || !gatewayDisplayNumberValue)) {
         toast({ title: "Error", description: "Please select display method and enter display number", variant: "destructive" });
         setProcessing(false);
         return;
       }
 
-      if (isGateway && (!accountName || !accountNumber)) {
-        toast({ title: "Error", description: "Please enter gateway credentials (API key / Store ID + secret)", variant: "destructive" });
+      if (isGateway && (!gatewayPrimaryCredential || !gatewaySecretCredential)) {
+        const credentialLabel = paymentType === 'zinipay'
+          ? 'ZiniPay API Key and Secret ID'
+          : 'gateway credentials (API key / Store ID + secret)';
+        toast({ title: "Error", description: `Please enter ${credentialLabel}`, variant: "destructive" });
         setProcessing(false);
         return;
       }
 
       const countryName = selectedCountry;
-      const methodName = isGateway ? gatewayDisplayMethod : paymentType;
+      const methodName = isGateway ? gatewayDisplayMethodValue : paymentType;
       const { error } = await supabase
         .from('helper_country_payment_methods')
         .insert({
@@ -933,8 +941,8 @@ const Level5HelperDashboard = () => {
           payment_method_name: methodName,
           method_name: methodName,
           method_type: isGateway ? 'auto_gateway' : paymentType,
-          account_name: isGateway ? (paymentType === 'zinipay' ? gatewayDisplayMethod : accountName) : accountName,
-          account_number: isGateway ? gatewayDisplayNumber : accountNumber,
+          account_name: isGateway ? (paymentType === 'zinipay' ? gatewayDisplayMethodValue : gatewayPrimaryCredential) : accountName,
+          account_number: isGateway ? gatewayDisplayNumberValue : accountNumber,
           bank_name: bankName || null,
           instructions: methodInstructions || null,
           logo_url: logoUrl || matchedIntegratedGateway?.logo_url || null,
@@ -942,17 +950,17 @@ const Level5HelperDashboard = () => {
             gateway_type: paymentType,
             gateway_name: matchedIntegratedGateway?.name || paymentType,
             // Legacy specific shapes (kept for backward compatibility with existing edge functions)
-            ...(paymentType === 'sslcommerz' ? { store_id: accountName, store_password: accountNumber, is_sandbox: false } : {}),
-            ...(paymentType === 'aamarpay' ? { store_id: accountName, signature_key: accountNumber, is_sandbox: false } : {}),
-            ...(paymentType === 'zinipay' ? { zinipay_api_key: accountName } : {}),
+            ...(paymentType === 'sslcommerz' ? { store_id: gatewayPrimaryCredential, store_password: gatewaySecretCredential, is_sandbox: false } : {}),
+            ...(paymentType === 'aamarpay' ? { store_id: gatewayPrimaryCredential, signature_key: gatewaySecretCredential, is_sandbox: false } : {}),
+            ...(paymentType === 'zinipay' ? { zinipay_api_key: gatewayPrimaryCredential, zinipay_secret_id: gatewaySecretCredential } : {}),
             // Generic credential shape for ALL other integrated gateways (PhonePe, GCash, MoMo, etc.)
             ...(!isLegacyGateway ? {
-              api_key: accountName,
-              api_secret: accountNumber,
+              api_key: gatewayPrimaryCredential,
+              api_secret: gatewaySecretCredential,
               is_sandbox: false,
             } : {}),
-            display_method: gatewayDisplayMethod,
-            display_number: gatewayDisplayNumber,
+            display_method: gatewayDisplayMethodValue,
+            display_number: gatewayDisplayNumberValue,
             merchant_number: merchantNumber || null,
             is_merchant: true,
           } : {
@@ -2998,9 +3006,19 @@ const Level5HelperDashboard = () => {
                     type="password"
                   />
                 </div>
+                <div>
+                  <Label className="text-slate-300 text-xs">ZiniPay Secret ID *</Label>
+                  <Input
+                    value={accountNumber}
+                    onChange={(e) => setAccountNumber(e.target.value)}
+                    placeholder="Enter ZiniPay Secret ID"
+                    className="bg-slate-800 border-emerald-500/30 text-white mt-1"
+                    type="password"
+                  />
+                </div>
                 <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-2">
                   <p className="text-[10px] text-yellow-300">
-                    ⚠️ Create an account on zinipay.com, then go to Dashboard → Brand → copy API Key. Add this number to your ZiniPay dashboard too!
+                    ⚠️ Create an account on zinipay.com, then go to Dashboard → Brand → copy API Key and Secret ID. Add this number to your ZiniPay dashboard too!
                   </p>
                 </div>
               </div>
@@ -3232,7 +3250,7 @@ const Level5HelperDashboard = () => {
             </Button>
             <Button 
               onClick={handleAddCountryPaymentMethod}
-              disabled={processing || !selectedCountry || (!['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType) && (!accountName || !accountNumber))}
+              disabled={processing || !selectedCountry || !accountName.trim() || !accountNumber.trim()}
               className="bg-emerald-500 hover:bg-emerald-600"
             >
               {processing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
