@@ -422,6 +422,8 @@ const refreshBranding = async () => {
   } else {
     globalBranding = null;
   }
+  writeBrandingCache(globalBranding);
+  preloadBrandingAssets(globalBranding);
 };
 
 const refreshGameSettings = async () => {
