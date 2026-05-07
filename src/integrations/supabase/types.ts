@@ -8312,6 +8312,7 @@ export type Database = {
           beans_balance: number | null
           beauty_presets: Json | null
           bio: string | null
+          birthday: string | null
           blocked_at: string | null
           blocked_reason: string | null
           call_rate_per_minute: number | null
@@ -8361,6 +8362,7 @@ export type Database = {
           is_in_call: boolean | null
           is_online: boolean | null
           is_verified: boolean | null
+          language: string | null
           last_active_at: string | null
           last_device_id: string | null
           last_login_at: string | null
@@ -8419,6 +8421,7 @@ export type Database = {
           beans_balance?: number | null
           beauty_presets?: Json | null
           bio?: string | null
+          birthday?: string | null
           blocked_at?: string | null
           blocked_reason?: string | null
           call_rate_per_minute?: number | null
@@ -8468,6 +8471,7 @@ export type Database = {
           is_in_call?: boolean | null
           is_online?: boolean | null
           is_verified?: boolean | null
+          language?: string | null
           last_active_at?: string | null
           last_device_id?: string | null
           last_login_at?: string | null
@@ -8526,6 +8530,7 @@ export type Database = {
           beans_balance?: number | null
           beauty_presets?: Json | null
           bio?: string | null
+          birthday?: string | null
           blocked_at?: string | null
           blocked_reason?: string | null
           call_rate_per_minute?: number | null
@@ -8575,6 +8580,7 @@ export type Database = {
           is_in_call?: boolean | null
           is_online?: boolean | null
           is_verified?: boolean | null
+          language?: string | null
           last_active_at?: string | null
           last_device_id?: string | null
           last_login_at?: string | null
@@ -14466,6 +14472,7 @@ export type Database = {
           beans_balance: number | null
           beauty_presets: Json | null
           bio: string | null
+          birthday: string | null
           blocked_at: string | null
           blocked_reason: string | null
           call_rate_per_minute: number | null
@@ -14515,6 +14522,7 @@ export type Database = {
           is_in_call: boolean | null
           is_online: boolean | null
           is_verified: boolean | null
+          language: string | null
           last_active_at: string | null
           last_device_id: string | null
           last_login_at: string | null
@@ -15336,6 +15344,7 @@ export type Database = {
         Args: { _device_id: string; _new_status: string; _notes?: string }
         Returns: undefined
       }
+      update_avatar: { Args: { p_public_url: string }; Returns: Json }
       update_host_call_rate: { Args: { p_rate: number }; Returns: Json }
       update_host_earnings_only: {
         Args: {
@@ -15354,6 +15363,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      update_profile: { Args: { p_patch: Json }; Returns: Json }
       update_stream_heartbeat: {
         Args: { _stream_id: string }
         Returns: undefined
