@@ -1892,6 +1892,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           display_order: number | null
+          duration_days: number | null
           frame_type: string | null
           frame_url: string | null
           id: string
@@ -1900,6 +1901,7 @@ export type Database = {
           is_free: boolean | null
           is_premium: boolean | null
           level_required: number | null
+          lottie_url: string | null
           min_level: number | null
           name: string
           preview_url: string | null
@@ -1907,6 +1909,7 @@ export type Database = {
           price_diamonds: number | null
           sound_duration_ms: number | null
           sound_url: string | null
+          svga_url: string | null
           target_type: string | null
           updated_at: string | null
         }
@@ -1917,6 +1920,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           display_order?: number | null
+          duration_days?: number | null
           frame_type?: string | null
           frame_url?: string | null
           id?: string
@@ -1925,6 +1929,7 @@ export type Database = {
           is_free?: boolean | null
           is_premium?: boolean | null
           level_required?: number | null
+          lottie_url?: string | null
           min_level?: number | null
           name: string
           preview_url?: string | null
@@ -1932,6 +1937,7 @@ export type Database = {
           price_diamonds?: number | null
           sound_duration_ms?: number | null
           sound_url?: string | null
+          svga_url?: string | null
           target_type?: string | null
           updated_at?: string | null
         }
@@ -1942,6 +1948,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           display_order?: number | null
+          duration_days?: number | null
           frame_type?: string | null
           frame_url?: string | null
           id?: string
@@ -1950,6 +1957,7 @@ export type Database = {
           is_free?: boolean | null
           is_premium?: boolean | null
           level_required?: number | null
+          lottie_url?: string | null
           min_level?: number | null
           name?: string
           preview_url?: string | null
@@ -1957,6 +1965,7 @@ export type Database = {
           price_diamonds?: number | null
           sound_duration_ms?: number | null
           sound_url?: string | null
+          svga_url?: string | null
           target_type?: string | null
           updated_at?: string | null
         }
@@ -2448,6 +2457,51 @@ export type Database = {
           name?: string
           stream_url?: string | null
           viewer_count?: number | null
+        }
+        Relationships: []
+      }
+      chat_bubbles: {
+        Row: {
+          created_at: string
+          display_order: number
+          duration_days: number | null
+          id: string
+          is_active: boolean
+          lottie_url: string | null
+          min_level: number
+          name: string
+          preview_url: string | null
+          price_diamonds: number
+          svga_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          duration_days?: number | null
+          id?: string
+          is_active?: boolean
+          lottie_url?: string | null
+          min_level?: number
+          name: string
+          preview_url?: string | null
+          price_diamonds?: number
+          svga_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          duration_days?: number | null
+          id?: string
+          is_active?: boolean
+          lottie_url?: string | null
+          min_level?: number
+          name?: string
+          preview_url?: string | null
+          price_diamonds?: number
+          svga_url?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -3224,6 +3278,51 @@ export type Database = {
           price_diamonds?: number | null
           sound_url?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      entry_effects: {
+        Row: {
+          created_at: string
+          display_order: number
+          duration_days: number | null
+          id: string
+          is_active: boolean
+          lottie_url: string | null
+          min_level: number
+          name: string
+          preview_url: string | null
+          price_diamonds: number
+          svga_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          duration_days?: number | null
+          id?: string
+          is_active?: boolean
+          lottie_url?: string | null
+          min_level?: number
+          name: string
+          preview_url?: string | null
+          price_diamonds?: number
+          svga_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          duration_days?: number | null
+          id?: string
+          is_active?: boolean
+          lottie_url?: string | null
+          min_level?: number
+          name?: string
+          preview_url?: string | null
+          price_diamonds?: number
+          svga_url?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -4238,6 +4337,13 @@ export type Database = {
             foreignKeyName: "gift_transactions_gift_id_fkey"
             columns: ["gift_id"]
             isOneToOne: false
+            referencedRelation: "gift_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gift_transactions_gift_id_fkey"
+            columns: ["gift_id"]
+            isOneToOne: false
             referencedRelation: "gifts"
             referencedColumns: ["id"]
           },
@@ -4281,17 +4387,22 @@ export type Database = {
           coin_value: number
           created_at: string | null
           display_order: number | null
+          duration_days: number | null
           icon_url: string | null
           id: string
           is_active: boolean | null
           is_full_screen: boolean | null
           is_lucky: boolean | null
+          lottie_url: string | null
           min_level: number | null
           name: string
+          preview_url: string | null
+          price_diamonds: number | null
           receiver_beans: number | null
           sound_duration_ms: number | null
           sound_url: string | null
           svga_url: string | null
+          tier: number
         }
         Insert: {
           animation_type?: string | null
@@ -4302,17 +4413,22 @@ export type Database = {
           coin_value: number
           created_at?: string | null
           display_order?: number | null
+          duration_days?: number | null
           icon_url?: string | null
           id?: string
           is_active?: boolean | null
           is_full_screen?: boolean | null
           is_lucky?: boolean | null
+          lottie_url?: string | null
           min_level?: number | null
           name: string
+          preview_url?: string | null
+          price_diamonds?: number | null
           receiver_beans?: number | null
           sound_duration_ms?: number | null
           sound_url?: string | null
           svga_url?: string | null
+          tier?: number
         }
         Update: {
           animation_type?: string | null
@@ -4323,17 +4439,22 @@ export type Database = {
           coin_value?: number
           created_at?: string | null
           display_order?: number | null
+          duration_days?: number | null
           icon_url?: string | null
           id?: string
           is_active?: boolean | null
           is_full_screen?: boolean | null
           is_lucky?: boolean | null
+          lottie_url?: string | null
           min_level?: number | null
           name?: string
+          preview_url?: string | null
+          price_diamonds?: number | null
           receiver_beans?: number | null
           sound_duration_ms?: number | null
           sound_url?: string | null
           svga_url?: string | null
+          tier?: number
         }
         Relationships: []
       }
@@ -6383,6 +6504,13 @@ export type Database = {
             foreignKeyName: "lucky_gift_config_gift_id_fkey"
             columns: ["gift_id"]
             isOneToOne: false
+            referencedRelation: "gift_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lucky_gift_config_gift_id_fkey"
+            columns: ["gift_id"]
+            isOneToOne: false
             referencedRelation: "gifts"
             referencedColumns: ["id"]
           },
@@ -6417,6 +6545,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "lucky_gift_results_gift_id_fkey"
+            columns: ["gift_id"]
+            isOneToOne: false
+            referencedRelation: "gift_items"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "lucky_gift_results_gift_id_fkey"
             columns: ["gift_id"]
@@ -9225,42 +9360,54 @@ export type Database = {
           created_at: string | null
           description: string | null
           display_order: number | null
+          duration_days: number | null
           frame_url: string
           id: string
           is_active: boolean | null
           is_default: boolean | null
+          lottie_url: string | null
           min_level: number | null
           name: string
           preview_url: string | null
+          price_diamonds: number | null
           role_type: string
+          svga_url: string | null
         }
         Insert: {
           animation_type?: string | null
           created_at?: string | null
           description?: string | null
           display_order?: number | null
+          duration_days?: number | null
           frame_url: string
           id?: string
           is_active?: boolean | null
           is_default?: boolean | null
+          lottie_url?: string | null
           min_level?: number | null
           name: string
           preview_url?: string | null
+          price_diamonds?: number | null
           role_type: string
+          svga_url?: string | null
         }
         Update: {
           animation_type?: string | null
           created_at?: string | null
           description?: string | null
           display_order?: number | null
+          duration_days?: number | null
           frame_url?: string
           id?: string
           is_active?: boolean | null
           is_default?: boolean | null
+          lottie_url?: string | null
           min_level?: number | null
           name?: string
           preview_url?: string | null
+          price_diamonds?: number | null
           role_type?: string
+          svga_url?: string | null
         }
         Relationships: []
       }
@@ -10706,6 +10853,55 @@ export type Database = {
           },
         ]
       }
+      user_chat_bubbles: {
+        Row: {
+          bubble_id: string
+          expires_at: string | null
+          id: string
+          is_equipped: boolean
+          purchased_at: string
+          user_id: string
+        }
+        Insert: {
+          bubble_id: string
+          expires_at?: string | null
+          id?: string
+          is_equipped?: boolean
+          purchased_at?: string
+          user_id: string
+        }
+        Update: {
+          bubble_id?: string
+          expires_at?: string | null
+          id?: string
+          is_equipped?: boolean
+          purchased_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_chat_bubbles_bubble_id_fkey"
+            columns: ["bubble_id"]
+            isOneToOne: false
+            referencedRelation: "chat_bubbles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_chat_bubbles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_chat_bubbles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_entry_banners: {
         Row: {
           entry_banner_id: string
@@ -10732,6 +10928,108 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_entry_effects: {
+        Row: {
+          effect_id: string
+          expires_at: string | null
+          id: string
+          is_equipped: boolean
+          purchased_at: string
+          user_id: string
+        }
+        Insert: {
+          effect_id: string
+          expires_at?: string | null
+          id?: string
+          is_equipped?: boolean
+          purchased_at?: string
+          user_id: string
+        }
+        Update: {
+          effect_id?: string
+          expires_at?: string | null
+          id?: string
+          is_equipped?: boolean
+          purchased_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_entry_effects_effect_id_fkey"
+            columns: ["effect_id"]
+            isOneToOne: false
+            referencedRelation: "entry_effects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_entry_effects_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_entry_effects_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_gift_shop_entitlements: {
+        Row: {
+          expires_at: string | null
+          gift_id: string
+          id: string
+          purchased_at: string
+          user_id: string
+        }
+        Insert: {
+          expires_at?: string | null
+          gift_id: string
+          id?: string
+          purchased_at?: string
+          user_id: string
+        }
+        Update: {
+          expires_at?: string | null
+          gift_id?: string
+          id?: string
+          purchased_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_gift_shop_entitlements_gift_id_fkey"
+            columns: ["gift_id"]
+            isOneToOne: false
+            referencedRelation: "gift_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_gift_shop_entitlements_gift_id_fkey"
+            columns: ["gift_id"]
+            isOneToOne: false
+            referencedRelation: "gifts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_gift_shop_entitlements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_gift_shop_entitlements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_invitations: {
         Row: {
@@ -12158,6 +12456,87 @@ export type Database = {
         }
         Relationships: []
       }
+      gift_items: {
+        Row: {
+          animation_type: string | null
+          animation_url: string | null
+          category: string | null
+          category_id: string | null
+          coin_price: number | null
+          coin_value: number | null
+          created_at: string | null
+          display_order: number | null
+          duration_days: number | null
+          icon_url: string | null
+          id: string | null
+          is_active: boolean | null
+          is_full_screen: boolean | null
+          is_lucky: boolean | null
+          lottie_url: string | null
+          min_level: number | null
+          name: string | null
+          preview_url: string | null
+          price_diamonds: number | null
+          receiver_beans: number | null
+          sound_duration_ms: number | null
+          sound_url: string | null
+          svga_url: string | null
+          tier: number | null
+        }
+        Insert: {
+          animation_type?: string | null
+          animation_url?: string | null
+          category?: string | null
+          category_id?: string | null
+          coin_price?: number | null
+          coin_value?: number | null
+          created_at?: string | null
+          display_order?: number | null
+          duration_days?: number | null
+          icon_url?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          is_full_screen?: boolean | null
+          is_lucky?: boolean | null
+          lottie_url?: string | null
+          min_level?: number | null
+          name?: string | null
+          preview_url?: string | null
+          price_diamonds?: number | null
+          receiver_beans?: number | null
+          sound_duration_ms?: number | null
+          sound_url?: string | null
+          svga_url?: string | null
+          tier?: number | null
+        }
+        Update: {
+          animation_type?: string | null
+          animation_url?: string | null
+          category?: string | null
+          category_id?: string | null
+          coin_price?: number | null
+          coin_value?: number | null
+          created_at?: string | null
+          display_order?: number | null
+          duration_days?: number | null
+          icon_url?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          is_full_screen?: boolean | null
+          is_lucky?: boolean | null
+          lottie_url?: string | null
+          min_level?: number | null
+          name?: string | null
+          preview_url?: string | null
+          price_diamonds?: number | null
+          receiver_beans?: number | null
+          sound_duration_ms?: number | null
+          sound_url?: string | null
+          svga_url?: string | null
+          tier?: number | null
+        }
+        Relationships: []
+      }
       profiles_public: {
         Row: {
           age: number | null
@@ -12779,6 +13158,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           display_order: number | null
+          duration_days: number | null
           frame_type: string | null
           frame_url: string | null
           id: string
@@ -12787,6 +13167,7 @@ export type Database = {
           is_free: boolean | null
           is_premium: boolean | null
           level_required: number | null
+          lottie_url: string | null
           min_level: number | null
           name: string
           preview_url: string | null
@@ -12794,6 +13175,7 @@ export type Database = {
           price_diamonds: number | null
           sound_duration_ms: number | null
           sound_url: string | null
+          svga_url: string | null
           target_type: string | null
           updated_at: string | null
         }[]
@@ -12925,17 +13307,22 @@ export type Database = {
           coin_value: number
           created_at: string | null
           display_order: number | null
+          duration_days: number | null
           icon_url: string | null
           id: string
           is_active: boolean | null
           is_full_screen: boolean | null
           is_lucky: boolean | null
+          lottie_url: string | null
           min_level: number | null
           name: string
+          preview_url: string | null
+          price_diamonds: number | null
           receiver_beans: number | null
           sound_duration_ms: number | null
           sound_url: string | null
           svga_url: string | null
+          tier: number
         }[]
         SetofOptions: {
           from: "*"
@@ -13240,14 +13627,18 @@ export type Database = {
           created_at: string | null
           description: string | null
           display_order: number | null
+          duration_days: number | null
           frame_url: string
           id: string
           is_active: boolean | null
           is_default: boolean | null
+          lottie_url: string | null
           min_level: number | null
           name: string
           preview_url: string | null
+          price_diamonds: number | null
           role_type: string
+          svga_url: string | null
         }[]
         SetofOptions: {
           from: "*"
@@ -14648,6 +15039,14 @@ export type Database = {
       profile_follow_stats: { Args: { uid: string }; Returns: Json }
       purchase_noble_card: {
         Args: { _auto_renew?: boolean; _noble_card_id: string }
+        Returns: Json
+      }
+      purchase_shop_item: {
+        Args: {
+          p_duration_days?: number
+          p_item_id: string
+          p_item_type: string
+        }
         Returns: Json
       }
       purchase_vip_tier: {
