@@ -652,6 +652,8 @@ const Auth = () => {
             password,
           });
           error = retry.error;
+        } else if (syncResult?.reason === "weak_password") {
+          throw new Error(syncResult.error || "Password too weak. Please choose a stronger password.");
         }
       }
 
