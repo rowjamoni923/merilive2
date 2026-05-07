@@ -12137,6 +12137,57 @@ export type Database = {
           },
         ]
       }
+      recharge_packages: {
+        Row: {
+          bonus_coins: number | null
+          coins_amount: number | null
+          created_at: string | null
+          description: string | null
+          discount_percent: number | null
+          display_order: number | null
+          icon_url: string | null
+          id: string | null
+          is_active: boolean | null
+          is_popular: boolean | null
+          name: string | null
+          price_usd: number | null
+          product_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          bonus_coins?: number | null
+          coins_amount?: number | null
+          created_at?: string | null
+          description?: string | null
+          discount_percent?: number | null
+          display_order?: number | null
+          icon_url?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          is_popular?: boolean | null
+          name?: string | null
+          price_usd?: number | null
+          product_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          bonus_coins?: number | null
+          coins_amount?: number | null
+          created_at?: string | null
+          description?: string | null
+          discount_percent?: number | null
+          display_order?: number | null
+          icon_url?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          is_popular?: boolean | null
+          name?: string | null
+          price_usd?: number | null
+          product_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       _internal_add_beans: {
@@ -14206,7 +14257,9 @@ export type Database = {
         Args: { p_result?: string; p_round_id: string; p_winning_value: string }
         Returns: Json
       }
+      process_user_beans_exchange: { Args: { p_amount: number }; Returns: Json }
       process_weekly_agency_transfers: { Args: never; Returns: Json }
+      profile_follow_stats: { Args: { uid: string }; Returns: Json }
       purchase_noble_card: {
         Args: { _auto_renew?: boolean; _noble_card_id: string }
         Returns: Json
