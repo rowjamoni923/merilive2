@@ -921,11 +921,13 @@ const Level5HelperDashboard = () => {
         return;
       }
 
-      if (isGateway && (!gatewayPrimaryCredential || !gatewaySecretCredential)) {
-        const credentialLabel = paymentType === 'zinipay'
-          ? 'ZiniPay API Key and Secret ID'
-          : 'gateway credentials (API key / Store ID + secret)';
-        toast({ title: "Error", description: `Please enter ${credentialLabel}`, variant: "destructive" });
+      if (isGateway && !gatewayPrimaryCredential) {
+        toast({ title: "Error", description: "Please enter gateway credentials", variant: "destructive" });
+        setProcessing(false);
+        return;
+      }
+      if (isGateway && paymentType !== 'zinipay' && !gatewaySecretCredential) {
+        toast({ title: "Error", description: "Please enter gateway secret", variant: "destructive" });
         setProcessing(false);
         return;
       }
