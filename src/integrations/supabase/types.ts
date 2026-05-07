@@ -8303,6 +8303,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          active_device_id: string | null
           active_session_id: string | null
           age: number | null
           agency_id: string | null
@@ -8333,6 +8334,7 @@ export type Database = {
           diamonds: number | null
           display_name: string | null
           email: string | null
+          email_notifications: boolean | null
           equipped_bubble_id: string | null
           equipped_entrance_id: string | null
           equipped_entry_banner_id: string | null
@@ -8353,6 +8355,7 @@ export type Database = {
           host_status: string | null
           host_verified_at: string | null
           id: string
+          incoming_call_sound: string | null
           is_agency_owner: boolean | null
           is_banned: boolean
           is_blocked: boolean | null
@@ -8372,6 +8375,7 @@ export type Database = {
           last_seen: string
           last_seen_at: string | null
           max_user_level: number | null
+          notification_vibrate: boolean | null
           pending_earnings: number | null
           phone_number: string | null
           phone_verified: boolean | null
@@ -8410,8 +8414,11 @@ export type Database = {
           vip_tier: number | null
           weekly_earnings: number | null
           weekly_reset_at: string | null
+          who_can_call_me: string | null
+          who_can_message_me: string | null
         }
         Insert: {
+          active_device_id?: string | null
           active_session_id?: string | null
           age?: number | null
           agency_id?: string | null
@@ -8442,6 +8449,7 @@ export type Database = {
           diamonds?: number | null
           display_name?: string | null
           email?: string | null
+          email_notifications?: boolean | null
           equipped_bubble_id?: string | null
           equipped_entrance_id?: string | null
           equipped_entry_banner_id?: string | null
@@ -8462,6 +8470,7 @@ export type Database = {
           host_status?: string | null
           host_verified_at?: string | null
           id: string
+          incoming_call_sound?: string | null
           is_agency_owner?: boolean | null
           is_banned?: boolean
           is_blocked?: boolean | null
@@ -8481,6 +8490,7 @@ export type Database = {
           last_seen?: string
           last_seen_at?: string | null
           max_user_level?: number | null
+          notification_vibrate?: boolean | null
           pending_earnings?: number | null
           phone_number?: string | null
           phone_verified?: boolean | null
@@ -8519,8 +8529,11 @@ export type Database = {
           vip_tier?: number | null
           weekly_earnings?: number | null
           weekly_reset_at?: string | null
+          who_can_call_me?: string | null
+          who_can_message_me?: string | null
         }
         Update: {
+          active_device_id?: string | null
           active_session_id?: string | null
           age?: number | null
           agency_id?: string | null
@@ -8551,6 +8564,7 @@ export type Database = {
           diamonds?: number | null
           display_name?: string | null
           email?: string | null
+          email_notifications?: boolean | null
           equipped_bubble_id?: string | null
           equipped_entrance_id?: string | null
           equipped_entry_banner_id?: string | null
@@ -8571,6 +8585,7 @@ export type Database = {
           host_status?: string | null
           host_verified_at?: string | null
           id?: string
+          incoming_call_sound?: string | null
           is_agency_owner?: boolean | null
           is_banned?: boolean
           is_blocked?: boolean | null
@@ -8590,6 +8605,7 @@ export type Database = {
           last_seen?: string
           last_seen_at?: string | null
           max_user_level?: number | null
+          notification_vibrate?: boolean | null
           pending_earnings?: number | null
           phone_number?: string | null
           phone_verified?: boolean | null
@@ -8628,6 +8644,8 @@ export type Database = {
           vip_tier?: number | null
           weekly_earnings?: number | null
           weekly_reset_at?: string | null
+          who_can_call_me?: string | null
+          who_can_message_me?: string | null
         }
         Relationships: [
           {
@@ -14463,6 +14481,7 @@ export type Database = {
       ensure_profile_row_from_auth: {
         Args: { _email?: string; _raw_user_meta_data?: Json; _user_id: string }
         Returns: {
+          active_device_id: string | null
           active_session_id: string | null
           age: number | null
           agency_id: string | null
@@ -14493,6 +14512,7 @@ export type Database = {
           diamonds: number | null
           display_name: string | null
           email: string | null
+          email_notifications: boolean | null
           equipped_bubble_id: string | null
           equipped_entrance_id: string | null
           equipped_entry_banner_id: string | null
@@ -14513,6 +14533,7 @@ export type Database = {
           host_status: string | null
           host_verified_at: string | null
           id: string
+          incoming_call_sound: string | null
           is_agency_owner: boolean | null
           is_banned: boolean
           is_blocked: boolean | null
@@ -14532,6 +14553,7 @@ export type Database = {
           last_seen: string
           last_seen_at: string | null
           max_user_level: number | null
+          notification_vibrate: boolean | null
           pending_earnings: number | null
           phone_number: string | null
           phone_verified: boolean | null
@@ -14570,6 +14592,8 @@ export type Database = {
           vip_tier: number | null
           weekly_earnings: number | null
           weekly_reset_at: string | null
+          who_can_call_me: string | null
+          who_can_message_me: string | null
         }
         SetofOptions: {
           from: "*"
