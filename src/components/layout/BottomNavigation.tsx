@@ -11,6 +11,7 @@ import { useRealtimeLevelProgress } from "@/hooks/useRealtimeLevel";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { lazyRetry } from "@/utils/lazyRetry";
+import { LevelLockModal } from "@/components/level/LevelLockModal";
 const CampaignFloatingButton = lazy(lazyRetry(() => import("@/components/campaign/CampaignFloatingButton")));
 interface NavItem {
   icon: React.ElementType;
@@ -46,6 +47,13 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
   const [userProfile, setUserProfile] = useState<any>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const { level: resolvedUserLevel, loading: resolvedLevelLoading } = useRealtimeLevelProgress(currentUserId);
+  const [lockModal, setLockModal] = useState<{ open: boolean; featureName: string; requiredLevel: number; currentLevel: number; isHost: boolean }>({
+    open: false,
+    featureName: "",
+    requiredLevel: 0,
+    currentLevel: 0,
+    isHost: false,
+  });
 
   // Load user profile for level checks
   useEffect(() => {
@@ -122,8 +130,12 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
       const result = checkFeatureAccess(featureKey, currentLevel, isHost);
 
       if (!result.canAccess) {
-        toast.error(`Level ${result.requiredLevel} required`, {
-          description: `Your current level is ${currentLevel}. Level up to unlock this feature!`,
+        setLockModal({
+          open: true,
+          featureName: featureKey === 'go_live' ? 'Go Live' : 'Create Party',
+          requiredLevel: result.requiredLevel,
+          currentLevel,
+          isHost,
         });
         setShowActionMenu(false);
         return;
