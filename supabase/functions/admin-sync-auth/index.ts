@@ -149,9 +149,17 @@ Deno.serve(async (req) => {
 
       if (updateAuthError) {
         console.error("[admin-sync-auth] Failed to update auth user:", updateAuthError);
+        const msg = (updateAuthError.message || "").toLowerCase();
+        const isWeak = msg.includes("weak") || msg.includes("pwned") || msg.includes("known to be");
         return new Response(
-          JSON.stringify({ success: false, reason: "update_failed", error: updateAuthError.message }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({
+            success: false,
+            reason: isWeak ? "weak_password" : "update_failed",
+            error: isWeak
+              ? "This password is too common or has appeared in known data leaks. Please choose a stronger password (mix of uppercase, lowercase, numbers, and symbols)."
+              : updateAuthError.message,
+          }),
+          { status: isWeak ? 400 : 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
@@ -176,9 +184,17 @@ Deno.serve(async (req) => {
 
       if (createError) {
         console.error("[admin-sync-auth] Failed to create user:", createError);
+        const msg = (createError.message || "").toLowerCase();
+        const isWeak = msg.includes("weak") || msg.includes("pwned") || msg.includes("known to be");
         return new Response(
-          JSON.stringify({ success: false, reason: "create_failed", error: createError.message }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({
+            success: false,
+            reason: isWeak ? "weak_password" : "create_failed",
+            error: isWeak
+              ? "This password is too common or has appeared in known data leaks. Please choose a stronger password (mix of uppercase, lowercase, numbers, and symbols)."
+              : createError.message,
+          }),
+          { status: isWeak ? 400 : 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
