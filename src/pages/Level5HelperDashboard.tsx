@@ -118,6 +118,7 @@ interface TopupPaymentMethod {
   account_name: string;
   account_number: string;
   instructions: string | null;
+  icon_url?: string | null;
 }
 
 interface CurrencyRate {
