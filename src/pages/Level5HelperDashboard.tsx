@@ -3008,19 +3008,9 @@ const Level5HelperDashboard = () => {
                     type="password"
                   />
                 </div>
-                <div>
-                  <Label className="text-slate-300 text-xs">ZiniPay Secret ID *</Label>
-                  <Input
-                    value={accountNumber}
-                    onChange={(e) => setAccountNumber(e.target.value)}
-                    placeholder="Enter ZiniPay Secret ID"
-                    className="bg-slate-800 border-emerald-500/30 text-white mt-1"
-                    type="password"
-                  />
-                </div>
                 <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-2">
                   <p className="text-[10px] text-yellow-300">
-                    ⚠️ Create an account on zinipay.com, then go to Dashboard → Brand → copy API Key and Secret ID. Add this number to your ZiniPay dashboard too!
+                    ⚠️ Create an account on zinipay.com, then go to Dashboard → Brands → copy the Brand Key/API Key. Add this number to your ZiniPay dashboard too!
                   </p>
                 </div>
               </div>
