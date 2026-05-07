@@ -14663,6 +14663,7 @@ export type Database = {
         Args: { _device_id: string; _new_status: string; _notes?: string }
         Returns: undefined
       }
+      update_host_call_rate: { Args: { p_rate: number }; Returns: Json }
       update_host_earnings_only: {
         Args: {
           p_beans_to_add: number
