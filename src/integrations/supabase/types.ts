@@ -1467,6 +1467,13 @@ export type Database = {
             foreignKeyName: "agency_withdrawals_assigned_helper_id_fkey"
             columns: ["assigned_helper_id"]
             isOneToOne: false
+            referencedRelation: "coin_traders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_withdrawals_assigned_helper_id_fkey"
+            columns: ["assigned_helper_id"]
+            isOneToOne: false
             referencedRelation: "topup_helpers"
             referencedColumns: ["id"]
           },
@@ -2533,6 +2540,68 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      coin_trader_transfers: {
+        Row: {
+          amount: number
+          counterparty_agency_id: string | null
+          counterparty_user_id: string | null
+          created_at: string
+          id: string
+          status: string
+          transfer_type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          counterparty_agency_id?: string | null
+          counterparty_user_id?: string | null
+          created_at?: string
+          id?: string
+          status?: string
+          transfer_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          counterparty_agency_id?: string | null
+          counterparty_user_id?: string | null
+          created_at?: string
+          id?: string
+          status?: string
+          transfer_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coin_trader_transfers_counterparty_agency_id_fkey"
+            columns: ["counterparty_agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coin_trader_transfers_counterparty_agency_id_fkey"
+            columns: ["counterparty_agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coin_trader_transfers_counterparty_user_id_fkey"
+            columns: ["counterparty_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coin_trader_transfers_counterparty_user_id_fkey"
+            columns: ["counterparty_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       coin_transactions: {
         Row: {
@@ -4382,6 +4451,13 @@ export type Database = {
             foreignKeyName: "helper_accepted_payment_methods_helper_id_fkey"
             columns: ["helper_id"]
             isOneToOne: false
+            referencedRelation: "coin_traders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "helper_accepted_payment_methods_helper_id_fkey"
+            columns: ["helper_id"]
+            isOneToOne: false
             referencedRelation: "topup_helpers"
             referencedColumns: ["id"]
           },
@@ -4419,6 +4495,13 @@ export type Database = {
           sender_type?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "helper_admin_messages_helper_id_fkey"
+            columns: ["helper_id"]
+            isOneToOne: false
+            referencedRelation: "coin_traders"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "helper_admin_messages_helper_id_fkey"
             columns: ["helper_id"]
@@ -4571,6 +4654,13 @@ export type Database = {
           payment_type?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "helper_country_payment_methods_helper_id_fkey"
+            columns: ["helper_id"]
+            isOneToOne: false
+            referencedRelation: "coin_traders"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "helper_country_payment_methods_helper_id_fkey"
             columns: ["helper_id"]
@@ -4817,6 +4907,13 @@ export type Database = {
             foreignKeyName: "helper_orders_helper_id_fkey"
             columns: ["helper_id"]
             isOneToOne: false
+            referencedRelation: "coin_traders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "helper_orders_helper_id_fkey"
+            columns: ["helper_id"]
+            isOneToOne: false
             referencedRelation: "topup_helpers"
             referencedColumns: ["id"]
           },
@@ -4956,6 +5053,13 @@ export type Database = {
             foreignKeyName: "helper_transactions_helper_id_fkey"
             columns: ["helper_id"]
             isOneToOne: false
+            referencedRelation: "coin_traders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "helper_transactions_helper_id_fkey"
+            columns: ["helper_id"]
+            isOneToOne: false
             referencedRelation: "topup_helpers"
             referencedColumns: ["id"]
           },
@@ -5052,6 +5156,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "helper_withdrawal_requests_helper_id_fkey"
+            columns: ["helper_id"]
+            isOneToOne: false
+            referencedRelation: "coin_traders"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "helper_withdrawal_requests_helper_id_fkey"
             columns: ["helper_id"]
@@ -11875,6 +11986,7 @@ export type Database = {
         Row: {
           agency_code: string | null
           created_at: string | null
+          diamond_balance: number | null
           id: string | null
           is_active: boolean | null
           level: string | null
@@ -11887,6 +11999,7 @@ export type Database = {
         Insert: {
           agency_code?: string | null
           created_at?: string | null
+          diamond_balance?: number | null
           id?: string | null
           is_active?: boolean | null
           level?: string | null
@@ -11899,6 +12012,7 @@ export type Database = {
         Update: {
           agency_code?: string | null
           created_at?: string | null
+          diamond_balance?: number | null
           id?: string | null
           is_active?: boolean | null
           level?: string | null
@@ -11909,6 +12023,48 @@ export type Database = {
           total_hosts?: number | null
         }
         Relationships: []
+      }
+      coin_traders: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+          wallet_balance: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          status?: never
+          updated_at?: string | null
+          user_id?: string | null
+          wallet_balance?: never
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          status?: never
+          updated_at?: string | null
+          user_id?: string | null
+          wallet_balance?: never
+        }
+        Relationships: [
+          {
+            foreignKeyName: "topup_helpers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "topup_helpers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       game_rounds_stats: {
         Row: {
@@ -13499,6 +13655,15 @@ export type Database = {
       cleanup_stale_online_users: { Args: never; Returns: undefined }
       cleanup_stale_party_participants: { Args: never; Returns: undefined }
       cleanup_stuck_calls: { Args: never; Returns: undefined }
+      coin_trader_self_recharge: { Args: { amount: number }; Returns: Json }
+      coin_trader_transfer_to_agency: {
+        Args: { amount: number; target_agency_id: string }
+        Returns: Json
+      }
+      coin_trader_transfer_to_user: {
+        Args: { amount: number; recipient_uid: string }
+        Returns: Json
+      }
       complete_agency_withdrawal: {
         Args: { _proof: Json; _withdrawal_id: string }
         Returns: Json
