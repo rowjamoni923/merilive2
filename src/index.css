@@ -2648,3 +2648,97 @@ body > [data-radix-popper-content-wrapper] [role="option"]:focus {
     padding: 10px !important;
   }
 }
+
+/* ============================================
+   PREMIUM NATIVE DISGUISE — App-wide polish
+   Applies to every screen so the app never feels
+   like a website. Mirrors Bigo / Chamet feel.
+   ============================================ */
+
+/* 1. Kill the last bits of "browser feel" everywhere
+   (pull-to-refresh bounce, double-tap zoom, link drag) */
+html, body {
+  overscroll-behavior: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+a, img, button {
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+}
+
+/* 2. Native press feedback on every interactive surface
+   (matches Material Ripple compression timing) */
+button, [role="button"], a[href] {
+  transition:
+    transform 140ms cubic-bezier(0.2, 0, 0, 1),
+    filter 140ms cubic-bezier(0.2, 0, 0, 1),
+    box-shadow 200ms cubic-bezier(0.2, 0, 0, 1);
+}
+button:active, [role="button"]:active, a[href]:active {
+  transform: scale(0.97);
+  filter: brightness(0.92);
+}
+
+/* 3. Premium page-enter animation applied to ALL routes
+   via React Router's outlet wrapper — but works as a
+   utility on any container too. */
+@keyframes premium-page-in {
+  0%   { opacity: 0; transform: translateY(8px) scale(0.995); }
+  100% { opacity: 1; transform: translateY(0)   scale(1); }
+}
+main, [data-page-root] {
+  animation: premium-page-in 280ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* 4. Bottom-sheet grab handle (auto-applied to bottom sheets) */
+[data-state="open"][class*="slide-in-from-bottom"]::before {
+  content: "";
+  position: absolute;
+  top: 8px; left: 50%;
+  width: 40px; height: 4px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.18);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+/* 5. Shimmer for skeletons — luxury feel */
+@keyframes premium-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton, [data-skeleton] {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.04) 0%,
+    rgba(255,255,255,0.10) 50%,
+    rgba(255,255,255,0.04) 100%
+  );
+  background-size: 200% 100%;
+  animation: premium-shimmer 1.6s ease-in-out infinite;
+  border-radius: 12px;
+}
+
+/* 6. Premium focus ring (gold, subtle) */
+*:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px rgba(251, 191, 36, 0.4);
+  border-radius: inherit;
+}
+input:focus-visible, textarea:focus-visible {
+  box-shadow: none;
+}
+
+/* 7. Reduced-motion respect */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* 8. iOS rubber-band lock on root — keep video/feed feel */
+#root {
+  overscroll-behavior-y: none;
+}
