@@ -37,9 +37,9 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 
 // Configuration
 const SITE_NAME = "merilive2"
-const SENDER_DOMAIN = "notify.send.merilive.top"
-const ROOT_DOMAIN = "send.merilive.top"
-const FROM_DOMAIN = "send.merilive.top" // Domain shown in From address (may be root or sender subdomain)
+const SENDER_DOMAIN = "notify.merilive.com"
+const ROOT_DOMAIN = "merilive.com"
+const FROM_DOMAIN = "merilive.com" // Domain shown in From address (may be root or sender subdomain)
 
 // Sample data for preview mode ONLY (not used in actual email sending).
 // URLs are baked in at scaffold time from the project's real data.
