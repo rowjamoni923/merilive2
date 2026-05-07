@@ -82,13 +82,16 @@ serve(async (req) => {
 
     if (invoiceId) {
       let zinipayApiKey = Deno.env.get("ZINIPAY_API_KEY");
+      let zinipaySecretId = Deno.env.get("ZINIPAY_SECRET_ID");
       if (!zinipayApiKey && pmId) {
         const { data: pm } = await supabaseAdmin
           .from("helper_country_payment_methods")
           .select("additional_info")
           .eq("id", pmId)
           .single();
-        zinipayApiKey = (pm?.additional_info as any)?.zinipay_api_key;
+        const gatewayInfo = pm?.additional_info as any;
+        zinipayApiKey = gatewayInfo?.zinipay_api_key;
+        zinipaySecretId = gatewayInfo?.zinipay_secret_id || zinipaySecretId;
       }
 
       if (zinipayApiKey) {
@@ -97,9 +100,10 @@ serve(async (req) => {
             method: "POST",
             headers: {
               "zini-api-key": zinipayApiKey,
+              ...(zinipaySecretId ? { "zini-secret-key": zinipaySecretId, "zini-secret-id": zinipaySecretId } : {}),
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ invoiceId, apiKey: zinipayApiKey }),
+            body: JSON.stringify({ invoiceId, apiKey: zinipayApiKey, secretId: zinipaySecretId }),
           });
           const verifyData = await verifyRes.json();
           console.log("[ZiniPay IPN] Verify response:", JSON.stringify(verifyData));
