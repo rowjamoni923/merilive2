@@ -4590,6 +4590,39 @@ export type Database = {
         }
         Relationships: []
       }
+      help_articles: {
+        Row: {
+          body: string
+          category_slug: string
+          created_at: string
+          display_order: number
+          id: string
+          is_published: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          category_slug: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_published?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          category_slug?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_published?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       helper_accepted_payment_methods: {
         Row: {
           created_at: string
@@ -10327,6 +10360,36 @@ export type Database = {
           is_popular?: boolean | null
           name?: string
           price?: number
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      support_categories: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          label: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          label: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          label?: string
           slug?: string
           updated_at?: string
         }
