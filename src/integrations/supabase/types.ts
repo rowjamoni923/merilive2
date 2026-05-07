@@ -13042,7 +13042,9 @@ export type Database = {
         }
         Returns: Json
       }
-      admin_agency_overview_stats: { Args: never; Returns: Json }
+      admin_agency_overview_stats:
+        | { Args: never; Returns: Json }
+        | { Args: { p_agency_id: string }; Returns: Json }
       admin_apply_severity_ban: {
         Args: {
           _duration_value: number
@@ -14107,6 +14109,16 @@ export type Database = {
       admin_user_stats: { Args: never; Returns: Json }
       admin_visual_assets_stats: { Args: never; Returns: Json }
       admin_withdrawal_stats: { Args: never; Returns: Json }
+      agency_dashboard_charts: { Args: { p_agency_id: string }; Returns: Json }
+      agency_dashboard_list_hosts: {
+        Args: {
+          p_agency_id: string
+          p_limit?: number
+          p_offset?: number
+          p_search?: string
+        }
+        Returns: Json
+      }
       agency_send_diamonds_to_agency: {
         Args: {
           _amount: number
