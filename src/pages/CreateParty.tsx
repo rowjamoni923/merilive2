@@ -30,6 +30,7 @@ import { useRealtimeLevelProgress } from "@/hooks/useRealtimeLevel";
 import { resolveLevelFromTiers } from "@/utils/levelResolver";
 import { setPreparedHostPreviewStream } from "@/features/live/hostPreviewSession";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { LevelLockModal } from "@/components/level/LevelLockModal";
 
 type PartyMode = "video" | "audio" | "game";
 
