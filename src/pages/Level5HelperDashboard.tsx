@@ -3250,7 +3250,7 @@ const Level5HelperDashboard = () => {
             </Button>
             <Button 
               onClick={handleAddCountryPaymentMethod}
-              disabled={processing || !selectedCountry || (!['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType) && (!accountName || !accountNumber))}
+              disabled={processing || !selectedCountry || !accountName.trim() || !accountNumber.trim()}
               className="bg-emerald-500 hover:bg-emerald-600"
             >
               {processing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
