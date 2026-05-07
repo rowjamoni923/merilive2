@@ -10,11 +10,11 @@ const SITE_NAME = "merilive2"
 // SENDER_DOMAIN is the verified sender subdomain FQDN (e.g., "notify.example.com").
 // It MUST match the subdomain delegated to Lovable's nameservers — never the root domain.
 // The email API looks up this exact domain; a mismatch causes "No email domain record found".
-const SENDER_DOMAIN = "notify.send.merilive.top"
+const SENDER_DOMAIN = "notify.merilive.com"
 // FROM_DOMAIN is the domain shown in the From: header (e.g., "example.com").
 // When display_from_root is enabled, this can be the root domain for cleaner branding,
 // even though actual sending uses the subdomain above.
-const FROM_DOMAIN = "send.merilive.top"
+const FROM_DOMAIN = "merilive.com"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -123,33 +123,22 @@ Deno.serve(async (req) => {
     )
   }
 
-  // OTP/security emails are auth-critical and must not depend on optional
-  // app-email suppression/unsubscribe queue tables. Send them immediately via
-  // the managed email API when this shared sender is called by OTP functions.
   if (templateName === 'otp-code') {
     const apiKey = Deno.env.get('LOVABLE_API_KEY')
     if (!apiKey) {
       console.error('Missing LOVABLE_API_KEY for OTP email send')
-      return new Response(
-        JSON.stringify({ error: 'Server configuration error' }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      )
+      return new Response(JSON.stringify({ error: 'Server configuration error' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
 
-    const html = await renderAsync(
-      React.createElement(template.component, templateData)
-    )
-    const plainText = await renderAsync(
-      React.createElement(template.component, templateData),
-      { plainText: true }
-    )
+    const html = await renderAsync(React.createElement(template.component, templateData))
+    const text = await renderAsync(React.createElement(template.component, templateData), {
+      plainText: true,
+    })
     const resolvedSubject =
-      typeof template.subject === 'function'
-        ? template.subject(templateData)
-        : template.subject
+      typeof template.subject === 'function' ? template.subject(templateData) : template.subject
 
     try {
       await sendLovableEmail(
@@ -160,31 +149,25 @@ Deno.serve(async (req) => {
           sender_domain: SENDER_DOMAIN,
           subject: resolvedSubject,
           html,
-          text: plainText,
+          text,
           purpose: 'transactional',
           label: templateName,
           idempotency_key: idempotencyKey,
           unsubscribe_token: generateToken(),
         },
-        { apiKey, idempotencyKey }
+        { apiKey, idempotencyKey },
       )
       console.log('OTP email sent', { templateName, effectiveRecipient })
-      return new Response(
-        JSON.stringify({ success: true, sent: true }),
-        {
-          status: 200,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      )
+      return new Response(JSON.stringify({ success: true, sent: true }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     } catch (error) {
       console.error('OTP email send failed', { error, templateName, effectiveRecipient })
-      return new Response(
-        JSON.stringify({ error: 'Failed to send email' }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      )
+      return new Response(JSON.stringify({ error: 'Failed to send email' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
   }
 

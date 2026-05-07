@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+const SUPABASE_URL = 'https://ayjdlvuurscxucatbbah.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5amRsdnV1cnNjeHVjYXRiYmFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNjQxMjMsImV4cCI6MjA5MDg0MDEyM30.5A53IMXcvGGnmXK9Dd96V7ceceh1JFuGmPom-hojWJc';
 
 type State = 'loading' | 'valid' | 'already' | 'invalid' | 'submitting' | 'success' | 'error';
 
@@ -22,7 +23,7 @@ export default function Unsubscribe() {
         );
         const data = await res.json().catch(() => ({}));
         if (!res.ok) { setState('invalid'); setError(data?.error || 'Invalid link'); return; }
-        if (data?.alreadyUnsubscribed || data?.used) { setState('already'); return; }
+        if (data?.reason === 'already_unsubscribed' || data?.alreadyUnsubscribed || data?.used) { setState('already'); return; }
         setState('valid');
       } catch (e: any) {
         setState('invalid');
@@ -34,14 +35,11 @@ export default function Unsubscribe() {
   const onConfirm = async () => {
     setState('submitting');
     try {
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/handle-email-unsubscribe`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON_KEY },
-        body: JSON.stringify({ token }),
+      const { data, error } = await supabase.functions.invoke('handle-email-unsubscribe', {
+        body: { token },
       });
-      if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        setError(d?.error || 'Failed to unsubscribe');
+      if (error || data?.error) {
+        setError(data?.error || error?.message || 'Failed to unsubscribe');
         setState('error');
         return;
       }
@@ -75,7 +73,7 @@ export default function Unsubscribe() {
         {state === 'submitting' && <p className="text-foreground">Processing…</p>}
 
         {state === 'success' && (
-          <p className="text-foreground">You have been unsubscribed. You will no longer receive marketing emails from MeriLive.</p>
+          <p className="text-foreground">You have been unsubscribed. You will no longer receive app emails from MeriLive.</p>
         )}
 
         {state === 'already' && (
