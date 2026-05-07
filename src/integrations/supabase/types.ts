@@ -3076,6 +3076,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           min_level: number | null
+          mission_bucket: string
           required_count: number | null
           requirement_type: string | null
           requirement_value: number | null
@@ -3097,6 +3098,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           min_level?: number | null
+          mission_bucket?: string
           required_count?: number | null
           requirement_type?: string | null
           requirement_value?: number | null
@@ -3118,6 +3120,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           min_level?: number | null
+          mission_bucket?: string
           required_count?: number | null
           requirement_type?: string | null
           requirement_value?: number | null
@@ -14286,7 +14289,7 @@ export type Database = {
       }
       claim_parcel_reward: { Args: { p_parcel_id: string }; Returns: Json }
       claim_task_reward: {
-        Args: { _task_id: string; _user_id: string }
+        Args: { _task_date?: string; _task_id: string; _user_id: string }
         Returns: Json
       }
       claim_vip_daily_reward: { Args: never; Returns: Json }
@@ -14815,8 +14818,10 @@ export type Database = {
         }[]
       }
       get_rate_for_numeric_level: { Args: { _level: number }; Returns: number }
+      get_task_center_calendar: { Args: never; Returns: Json }
       get_task_program_day: { Args: { _host_id: string }; Returns: number }
       get_task_reset_date: { Args: never; Returns: string }
+      get_task_week_reset_date: { Args: never; Returns: string }
       get_top_gifters_leaderboard: {
         Args: { p_period_type?: string }
         Returns: {
@@ -14891,6 +14896,7 @@ export type Database = {
         Returns: Json
       }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
+      has_unclaimed_task_reward: { Args: { uid: string }; Returns: boolean }
       hash_admin_pin: { Args: { _pin: string }; Returns: string }
       helper_add_coins_to_user: {
         Args: { _amount: number; _user_id: string }
