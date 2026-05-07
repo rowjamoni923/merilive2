@@ -1111,6 +1111,62 @@ export type Database = {
         }
         Relationships: []
       }
+      agency_host_requests: {
+        Row: {
+          agency_id: string
+          created_at: string
+          host_id: string
+          id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          host_id: string
+          id?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          host_id?: string
+          id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agency_host_requests_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_host_requests_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_host_requests_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_host_requests_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agency_hosts: {
         Row: {
           agency_id: string
@@ -14209,6 +14265,10 @@ export type Database = {
         }
         Returns: Json
       }
+      agency_host_management_stats: {
+        Args: { p_agency_id: string }
+        Returns: Json
+      }
       agency_send_diamonds_to_agency: {
         Args: {
           _amount: number
@@ -14243,10 +14303,12 @@ export type Database = {
         Args: { _withdrawal_id: string }
         Returns: Json
       }
-      approve_host_request: {
-        Args: { _admin_id: string; _agency_id: string; _request_id: string }
-        Returns: boolean
-      }
+      approve_host_request:
+        | {
+            Args: { _agency_id: string; _approver_id: string; _host_id: string }
+            Returns: boolean
+          }
+        | { Args: { p_request_id: string }; Returns: boolean }
       approve_rating_reward: {
         Args: { _admin_id: string; _reward_id: string }
         Returns: Json
@@ -14495,6 +14557,7 @@ export type Database = {
           step: string
         }[]
       }
+      decline_host_request: { Args: { p_request_id: string }; Returns: boolean }
       decline_private_call: { Args: { _call_id: string }; Returns: boolean }
       deduct_agency_wallet: {
         Args: { p_agency_id: string; p_amount: number }
