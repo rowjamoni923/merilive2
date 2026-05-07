@@ -1,0 +1,1 @@
+GRANT SELECT ON public.vip_perks TO anon, authenticated;
