@@ -111,7 +111,48 @@ let globalBanners: Banner[] = [];
 let globalGifts: Gift[] = [];
 let globalDiamondPackages: DiamondPackage[] = [];
 let globalCurrencyRates: CurrencyRate[] = [];
-let globalBranding: BrandingSettings | null = null;
+// Hydrate branding instantly from localStorage so logo/background show with ZERO delay
+const BRANDING_CACHE_KEY = 'merilive_branding_cache_v1';
+const readBrandingCache = (): BrandingSettings | null => {
+  try {
+    if (typeof window === 'undefined') return null;
+    const raw = window.localStorage.getItem(BRANDING_CACHE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as BrandingSettings;
+  } catch { return null; }
+};
+const writeBrandingCache = (b: BrandingSettings | null) => {
+  try {
+    if (typeof window === 'undefined') return;
+    if (b) window.localStorage.setItem(BRANDING_CACHE_KEY, JSON.stringify(b));
+    else window.localStorage.removeItem(BRANDING_CACHE_KEY);
+  } catch {}
+};
+const preloadBrandingAssets = (b: BrandingSettings | null) => {
+  if (!b || typeof document === 'undefined') return;
+  const urls = [b.logo_image_url, b.background_url].filter(Boolean) as string[];
+  urls.forEach((url) => {
+    // <link rel="preload"> for fastest decode
+    const id = `meri-preload-${btoa(url).slice(0, 24)}`;
+    if (document.getElementById(id)) return;
+    const link = document.createElement('link');
+    link.id = id;
+    link.rel = 'preload';
+    link.as = b.background_type === 'video' && url === b.background_url ? 'video' : 'image';
+    link.href = url;
+    (link as any).fetchPriority = 'high';
+    document.head.appendChild(link);
+    // Also kick off an Image() decode for instant paint
+    if (link.as === 'image') {
+      const img = new Image();
+      (img as any).fetchPriority = 'high';
+      img.decoding = 'async';
+      img.src = url;
+    }
+  });
+};
+let globalBranding: BrandingSettings | null = readBrandingCache();
+if (typeof window !== 'undefined') preloadBrandingAssets(globalBranding);
 let globalGameSettings: GameSetting[] = [];
 let globalAppSettings: Map<string, any> = new Map();
 let globalPaymentMethods: TopupPaymentMethod[] = [];
@@ -381,6 +422,8 @@ const refreshBranding = async () => {
   } else {
     globalBranding = null;
   }
+  writeBrandingCache(globalBranding);
+  preloadBrandingAssets(globalBranding);
 };
 
 const refreshGameSettings = async () => {
