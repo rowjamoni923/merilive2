@@ -580,8 +580,9 @@ const App = () => {
     let mounted = true;
 
     // Handle deep links for OAuth callback in native apps
+    let appUrlOpenListenerPromise: ReturnType<typeof CapApp.addListener> | null = null;
     if (Capacitor.isNativePlatform()) {
-      CapApp.addListener('appUrlOpen', async ({ url }) => {
+      appUrlOpenListenerPromise = CapApp.addListener('appUrlOpen', async ({ url }) => {
         console.log('Deep link received:', url);
         
         if (url.includes('auth/callback') || url.includes('access_token') || url.includes('code=')) {
@@ -899,7 +900,7 @@ const App = () => {
       supabase.removeChannel(appReentryChannel);
       cleanupLinkGuard?.();
       if (Capacitor.isNativePlatform()) {
-        CapApp.removeAllListeners();
+        void appUrlOpenListenerPromise?.then((listener) => listener.remove()).catch(() => {});
       }
     };
   }, []);
