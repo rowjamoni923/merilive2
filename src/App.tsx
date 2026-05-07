@@ -928,7 +928,9 @@ const App = () => {
   const isBrowserAllowedRoute = BROWSER_ALLOWED_ROUTES.some(route => currentPath.startsWith(route));
 
   if (loading) {
-    return <PageLoader message="Checking your session..." />;
+    // No full-screen "Checking your session…" loader — render nothing so the
+    // app feels instant. Auth-gated routes already handle their own redirect.
+    return null;
   }
 
   // 🔒 BROWSER GUARD: Block public browser access to protected app routes
