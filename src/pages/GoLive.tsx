@@ -31,6 +31,7 @@ import { hardenVideoElementForNative } from "@/utils/videoNativeHardening";
 import { hydrateProfileVerificationState } from "@/utils/profileVerification";
 import { useRefreshOnResume } from "@/hooks/useAppResumeHandler";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { LevelLockModal } from "@/components/level/LevelLockModal";
 
 const GO_LIVE_PROFILE_FIELDS = "id, display_name, avatar_url, user_level, host_level, is_host, host_status, gender, is_face_verified, face_verification_image";
 
@@ -1752,56 +1753,19 @@ const GoLive = () => {
         onClose={() => setShowGamePanel(false)}
       />
 
-      {/* Level Restriction Modal */}
-      <AnimatePresence>
-        {showLevelRestricted && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-6 max-w-sm w-full border border-red-500/30 shadow-2xl"
-            >
-              <div className="flex flex-col items-center text-center">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-red-500/20 to-orange-500/20 flex items-center justify-center mb-4">
-                  <Lock className="w-10 h-10 text-red-400" />
-                </div>
-                <h3 className="text-xl font-bold text-white mb-2">Level Required</h3>
-                <p className="text-slate-400 mb-4">
-                  You need to reach <span className="text-amber-400 font-bold">Level {requiredLevel}</span> to start live streaming.
-                </p>
-                <p className="text-sm text-slate-500 mb-6">
-                  Your current level: <span className="text-primary font-semibold">
-                    {userProfile?.is_host || userProfile?.gender === 'female' 
-                      ? userProfile?.host_level || 0 
-                      : userProfile?.user_level || 0}
-                  </span>
-                </p>
-                <div className="flex gap-3 w-full">
-                  <Button
-                    variant="outline"
-                    onClick={() => navigate(-1)}
-                    className="flex-1"
-                  >
-                    Go Back
-                  </Button>
-                  <Button
-                    onClick={() => navigate('/level')}
-                    className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500"
-                  >
-                    Level Up
-                  </Button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Level Restriction Modal — premium shared component */}
+      <LevelLockModal
+        open={showLevelRestricted}
+        onClose={() => navigate(-1)}
+        featureName="Go Live"
+        requiredLevel={requiredLevel}
+        currentLevel={
+          (userProfile?.is_host || userProfile?.gender === 'female')
+            ? (userProfile?.host_level || 0)
+            : (userProfile?.user_level || 0)
+        }
+        isHost={Boolean(userProfile?.is_host) || userProfile?.gender === 'female'}
+      />
 
       {/* Live Ban Overlay with Countdown */}
       <AnimatePresence>
