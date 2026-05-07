@@ -12356,6 +12356,7 @@ export type Database = {
           level: string | null
           logo_url: string | null
           name: string | null
+          owner_id: string | null
           parent_agency_id: string | null
           total_agents: number | null
           total_hosts: number | null
@@ -12369,6 +12370,7 @@ export type Database = {
           level?: string | null
           logo_url?: string | null
           name?: string | null
+          owner_id?: string | null
           parent_agency_id?: string | null
           total_agents?: number | null
           total_hosts?: number | null
@@ -12382,6 +12384,7 @@ export type Database = {
           level?: string | null
           logo_url?: string | null
           name?: string | null
+          owner_id?: string | null
           parent_agency_id?: string | null
           total_agents?: number | null
           total_hosts?: number | null
@@ -14086,6 +14089,10 @@ export type Database = {
         Args: { _agency_id: string; _amount: number; _user_id: string }
         Returns: boolean
       }
+      agency_weekly_total_income: {
+        Args: { _agency_id: string }
+        Returns: number
+      }
       apply_as_topup_helper: { Args: { _data: Json }; Returns: Json }
       apply_multi_level_ban: {
         Args: {
@@ -14890,6 +14897,7 @@ export type Database = {
         Args: { _amount: number; _user_id: string }
         Returns: Json
       }
+      host_weekly_contribution: { Args: { _uid?: string }; Returns: number }
       increment_reel_view: { Args: { reel_uuid: string }; Returns: undefined }
       is_active_admin_session: { Args: never; Returns: boolean }
       is_admin:
@@ -14919,6 +14927,7 @@ export type Database = {
         Args: { _agency_code: string; _host_id: string; _joined_via?: string }
         Returns: boolean
       }
+      leave_agency: { Args: never; Returns: Json }
       log_admin_action: {
         Args: {
           _action_type: string
