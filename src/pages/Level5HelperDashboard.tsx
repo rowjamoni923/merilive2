@@ -565,19 +565,32 @@ const Level5HelperDashboard = () => {
 
   const loadAvailablePaymentMethods = async () => {
     console.log('[Level5Helper] Loading payment methods...');
+    // topup_payment_methods canonical columns: name, method_type, payment_number,
+    // payment_instructions, icon_url. (No method_name / account_name / instructions cols.)
     const { data, error } = await supabase
       .from('topup_payment_methods')
-      .select('id, method_name, method_type, account_name, account_number, instructions')
+      .select('id, name, method_type, payment_number, payment_instructions, icon_url')
       .eq('is_active', true)
       .order('display_order', { ascending: true });
-    
+
     if (error) {
       console.error('[Level5Helper] Error loading payment methods:', error);
       recordClientError({ label: "Level5HelperDashboard.loadAvailablePaymentMethods", message: error instanceof Error ? error.message : String(error) });
     }
-    
-    console.log('[Level5Helper] Payment methods loaded:', data?.length, data?.map((m: any) => m.method_name));
-    setAvailablePaymentMethods((data || []) as TopupPaymentMethod[]);
+
+    // Normalize to the dashboard's TopupPaymentMethod shape so existing UI keeps working.
+    const normalized = (data || []).map((m: any) => ({
+      id: m.id,
+      method_name: m.name,
+      method_type: m.method_type,
+      account_name: '',
+      account_number: m.payment_number || '',
+      instructions: m.payment_instructions || null,
+      icon_url: m.icon_url || null,
+    }));
+
+    console.log('[Level5Helper] Payment methods loaded:', normalized.length, normalized.map((m: any) => m.method_name));
+    setAvailablePaymentMethods(normalized as TopupPaymentMethod[]);
   };
 
   const loadCurrencyRates = async () => {
@@ -889,18 +902,19 @@ const Level5HelperDashboard = () => {
     try {
       let logoUrl: string | null = null;
       
-      // Upload logo if selected
+      // Upload logo if selected — MUST go to the PUBLIC `payment-logos` bucket
+      // so the recharge page can render it. The `payment-proofs` bucket is private.
       if (paymentLogoFile) {
         setUploadingLogo(true);
         const fileName = `payment-logo-${helperData.id}-${Date.now()}.${paymentLogoFile.name.split('.').pop()}`;
         const { error: uploadError } = await supabase.storage
-          .from('payment-proofs')
+          .from('payment-logos')
           .upload(fileName, paymentLogoFile);
 
         if (uploadError) throw uploadError;
 
         const { data } = supabase.storage
-          .from('payment-proofs')
+          .from('payment-logos')
           .getPublicUrl(fileName);
         
         logoUrl = data.publicUrl;
