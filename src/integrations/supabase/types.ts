@@ -836,6 +836,7 @@ export type Database = {
           name: string
           owner_id: string | null
           parent_agency_id: string | null
+          registration_meta: Json | null
           total_agents: number | null
           total_hosts: number | null
           updated_at: string | null
@@ -859,6 +860,7 @@ export type Database = {
           name: string
           owner_id?: string | null
           parent_agency_id?: string | null
+          registration_meta?: Json | null
           total_agents?: number | null
           total_hosts?: number | null
           updated_at?: string | null
@@ -882,6 +884,7 @@ export type Database = {
           name?: string
           owner_id?: string | null
           parent_agency_id?: string | null
+          registration_meta?: Json | null
           total_agents?: number | null
           total_hosts?: number | null
           updated_at?: string | null
@@ -1080,6 +1083,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      agency_faqs: {
+        Row: {
+          answer: string
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          question: string
+        }
+        Insert: {
+          answer: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          question: string
+        }
+        Update: {
+          answer?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          question?: string
+        }
+        Relationships: []
       }
       agency_hosts: {
         Row: {
@@ -14291,6 +14321,18 @@ export type Database = {
           _name: string
           _owner_id: string
           _whatsapp?: string
+        }
+        Returns: Json
+      }
+      create_agency_with_owner: {
+        Args: {
+          p_agency_code: string
+          p_agency_name: string
+          p_country?: string
+          p_description?: string
+          p_level?: string
+          p_owner_phone?: string
+          p_payment?: Json
         }
         Returns: Json
       }
