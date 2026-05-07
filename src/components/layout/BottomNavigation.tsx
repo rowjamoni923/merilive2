@@ -301,6 +301,14 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
       <Suspense fallback={null}>
         <CampaignFloatingButton />
       </Suspense>
+      <LevelLockModal
+        open={lockModal.open}
+        onClose={() => setLockModal((s) => ({ ...s, open: false }))}
+        featureName={lockModal.featureName}
+        requiredLevel={lockModal.requiredLevel}
+        currentLevel={lockModal.currentLevel}
+        isHost={lockModal.isHost}
+      />
     </>
   );
 };
