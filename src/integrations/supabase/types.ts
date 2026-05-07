@@ -14279,9 +14279,10 @@ export type Database = {
             }
             Returns: Json
           }
-      helper_transfer_diamonds_to_self:
-        | { Args: { _amount: number; _user_id: string }; Returns: Json }
-        | { Args: { _amount: number; _user_id: string }; Returns: Json }
+      helper_transfer_diamonds_to_self: {
+        Args: { _amount: number; _user_id: string }
+        Returns: Json
+      }
       increment_reel_view: { Args: { reel_uuid: string }; Returns: undefined }
       is_active_admin_session: { Args: never; Returns: boolean }
       is_admin:
