@@ -921,11 +921,13 @@ const Level5HelperDashboard = () => {
         return;
       }
 
-      if (isGateway && (!gatewayPrimaryCredential || !gatewaySecretCredential)) {
-        const credentialLabel = paymentType === 'zinipay'
-          ? 'ZiniPay API Key and Secret ID'
-          : 'gateway credentials (API key / Store ID + secret)';
-        toast({ title: "Error", description: `Please enter ${credentialLabel}`, variant: "destructive" });
+      if (isGateway && !gatewayPrimaryCredential) {
+        toast({ title: "Error", description: "Please enter gateway credentials", variant: "destructive" });
+        setProcessing(false);
+        return;
+      }
+      if (isGateway && paymentType !== 'zinipay' && !gatewaySecretCredential) {
+        toast({ title: "Error", description: "Please enter gateway secret", variant: "destructive" });
         setProcessing(false);
         return;
       }
@@ -952,7 +954,7 @@ const Level5HelperDashboard = () => {
             // Legacy specific shapes (kept for backward compatibility with existing edge functions)
             ...(paymentType === 'sslcommerz' ? { store_id: gatewayPrimaryCredential, store_password: gatewaySecretCredential, is_sandbox: false } : {}),
             ...(paymentType === 'aamarpay' ? { store_id: gatewayPrimaryCredential, signature_key: gatewaySecretCredential, is_sandbox: false } : {}),
-            ...(paymentType === 'zinipay' ? { zinipay_api_key: gatewayPrimaryCredential, zinipay_secret_id: gatewaySecretCredential } : {}),
+            ...(paymentType === 'zinipay' ? { zinipay_api_key: gatewayPrimaryCredential } : {}),
             // Generic credential shape for ALL other integrated gateways (PhonePe, GCash, MoMo, etc.)
             ...(!isLegacyGateway ? {
               api_key: gatewayPrimaryCredential,
@@ -3006,19 +3008,9 @@ const Level5HelperDashboard = () => {
                     type="password"
                   />
                 </div>
-                <div>
-                  <Label className="text-slate-300 text-xs">ZiniPay Secret ID *</Label>
-                  <Input
-                    value={accountNumber}
-                    onChange={(e) => setAccountNumber(e.target.value)}
-                    placeholder="Enter ZiniPay Secret ID"
-                    className="bg-slate-800 border-emerald-500/30 text-white mt-1"
-                    type="password"
-                  />
-                </div>
                 <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-2">
                   <p className="text-[10px] text-yellow-300">
-                    ⚠️ Create an account on zinipay.com, then go to Dashboard → Brand → copy API Key and Secret ID. Add this number to your ZiniPay dashboard too!
+                    ⚠️ Create an account on zinipay.com, then go to Dashboard → Brands → copy the Brand Key/API Key. Add this number to your ZiniPay dashboard too!
                   </p>
                 </div>
               </div>
