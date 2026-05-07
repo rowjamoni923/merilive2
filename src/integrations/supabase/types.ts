@@ -3324,6 +3324,7 @@ export type Database = {
           ai_analysis: Json | null
           confidence_score: number | null
           created_at: string | null
+          device_id: string | null
           duplicate_face_avatar: string | null
           duplicate_face_name: string | null
           duplicate_face_uid: string | null
@@ -3331,11 +3332,14 @@ export type Database = {
           duplicate_of_user_id: string | null
           face_image_url: string | null
           face_rekognition_id: string | null
+          front_url: string | null
           full_name: string | null
           host_photos: string[] | null
           id: string
+          ip_hash: string | null
           is_duplicate_face: boolean | null
           language: string | null
+          left_url: string | null
           match_confidence: number | null
           notes: string | null
           profile_photo_url: string | null
@@ -3344,6 +3348,7 @@ export type Database = {
           rekognition_external_id: string | null
           reviewed_at: string | null
           reviewed_by: string | null
+          right_url: string | null
           selfie_url: string
           status: string | null
           user_id: string
@@ -3357,6 +3362,7 @@ export type Database = {
           ai_analysis?: Json | null
           confidence_score?: number | null
           created_at?: string | null
+          device_id?: string | null
           duplicate_face_avatar?: string | null
           duplicate_face_name?: string | null
           duplicate_face_uid?: string | null
@@ -3364,11 +3370,14 @@ export type Database = {
           duplicate_of_user_id?: string | null
           face_image_url?: string | null
           face_rekognition_id?: string | null
+          front_url?: string | null
           full_name?: string | null
           host_photos?: string[] | null
           id?: string
+          ip_hash?: string | null
           is_duplicate_face?: boolean | null
           language?: string | null
+          left_url?: string | null
           match_confidence?: number | null
           notes?: string | null
           profile_photo_url?: string | null
@@ -3377,6 +3386,7 @@ export type Database = {
           rekognition_external_id?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          right_url?: string | null
           selfie_url: string
           status?: string | null
           user_id: string
@@ -3390,6 +3400,7 @@ export type Database = {
           ai_analysis?: Json | null
           confidence_score?: number | null
           created_at?: string | null
+          device_id?: string | null
           duplicate_face_avatar?: string | null
           duplicate_face_name?: string | null
           duplicate_face_uid?: string | null
@@ -3397,11 +3408,14 @@ export type Database = {
           duplicate_of_user_id?: string | null
           face_image_url?: string | null
           face_rekognition_id?: string | null
+          front_url?: string | null
           full_name?: string | null
           host_photos?: string[] | null
           id?: string
+          ip_hash?: string | null
           is_duplicate_face?: boolean | null
           language?: string | null
+          left_url?: string | null
           match_confidence?: number | null
           notes?: string | null
           profile_photo_url?: string | null
@@ -3410,6 +3424,7 @@ export type Database = {
           rekognition_external_id?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          right_url?: string | null
           selfie_url?: string
           status?: string | null
           user_id?: string
