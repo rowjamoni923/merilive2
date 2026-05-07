@@ -954,7 +954,7 @@ const Level5HelperDashboard = () => {
             // Legacy specific shapes (kept for backward compatibility with existing edge functions)
             ...(paymentType === 'sslcommerz' ? { store_id: gatewayPrimaryCredential, store_password: gatewaySecretCredential, is_sandbox: false } : {}),
             ...(paymentType === 'aamarpay' ? { store_id: gatewayPrimaryCredential, signature_key: gatewaySecretCredential, is_sandbox: false } : {}),
-            ...(paymentType === 'zinipay' ? { zinipay_api_key: gatewayPrimaryCredential, zinipay_secret_id: gatewaySecretCredential } : {}),
+            ...(paymentType === 'zinipay' ? { zinipay_api_key: gatewayPrimaryCredential } : {}),
             // Generic credential shape for ALL other integrated gateways (PhonePe, GCash, MoMo, etc.)
             ...(!isLegacyGateway ? {
               api_key: gatewayPrimaryCredential,
