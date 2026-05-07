@@ -50,9 +50,10 @@ serve(async (req) => {
       paymentMethod.account_number || gatewayInfo?.display_number || gatewayInfo?.account_number || ""
     ).trim();
 
-    // Get ZiniPay API key
+    // Get ZiniPay credentials
     const zinipayApiKey = gatewayInfo.zinipay_api_key || Deno.env.get("ZINIPAY_API_KEY");
     if (!zinipayApiKey) throw new Error("ZiniPay API key not configured");
+    const zinipaySecretId = gatewayInfo.zinipay_secret_id || Deno.env.get("ZINIPAY_SECRET_ID");
 
     // Fetch package
     const { data: pkg, error: pkgError } = await supabaseClient
@@ -170,6 +171,7 @@ serve(async (req) => {
       method: "POST",
       headers: {
         "zini-api-key": zinipayApiKey,
+        ...(zinipaySecretId ? { "zini-secret-key": zinipaySecretId, "zini-secret-id": zinipaySecretId } : {}),
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
