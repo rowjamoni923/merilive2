@@ -13,7 +13,7 @@
  * The user app login/logout will NEVER affect admin panel session and vice-versa.
  */
 import { createClient } from '@supabase/supabase-js';
-import { getAdminSessionToken } from '@/utils/adminSession';
+import { getAdminSession, getAdminSessionToken } from '@/utils/adminSession';
 import { recordAdminError } from '@/utils/adminErrorLog';
 
 const SUPABASE_URL = "https://ayjdlvuurscxucatbbah.supabase.co";
@@ -160,4 +160,52 @@ export const adminSupabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY
     detectSessionInUrl: false,
     lock: inProcessAuthLock,
   },
+});
+
+const getSyntheticAdminUser = () => {
+  const session = getAdminSession();
+  if (!session) return null;
+
+  return {
+    id: session.admin_id,
+    email: session.email,
+    role: 'authenticated',
+    app_metadata: {
+      provider: 'admin-session',
+      providers: ['admin-session'],
+      admin_role: session.role,
+      is_owner: session.is_owner,
+    },
+    user_metadata: {
+      display_name: session.display_name,
+      admin_role: session.role,
+      is_owner: session.is_owner,
+    },
+    aud: 'authenticated',
+  } as any;
+};
+
+const getSyntheticAdminSession = () => {
+  const session = getAdminSession();
+  const user = getSyntheticAdminUser();
+  if (!session || !user) return null;
+
+  return {
+    access_token: SUPABASE_PUBLISHABLE_KEY,
+    refresh_token: '',
+    token_type: 'bearer',
+    expires_in: 60 * 60 * 24 * 7,
+    expires_at: Math.floor((session.signed_in_at + 7 * 24 * 60 * 60 * 1000) / 1000),
+    user,
+  } as any;
+};
+
+(adminSupabase.auth as any).getUser = async () => ({
+  data: { user: getSyntheticAdminUser() },
+  error: null,
+});
+
+(adminSupabase.auth as any).getSession = async () => ({
+  data: { session: getSyntheticAdminSession() },
+  error: null,
 });
