@@ -15118,6 +15118,7 @@ export type Database = {
       host_weekly_contribution: { Args: { _uid?: string }; Returns: number }
       increment_reel_view: { Args: { reel_uuid: string }; Returns: undefined }
       is_active_admin_session: { Args: never; Returns: boolean }
+      is_active_owner_session: { Args: never; Returns: boolean }
       is_admin:
         | { Args: never; Returns: boolean }
         | { Args: { _user_id: string }; Returns: boolean }
@@ -15132,6 +15133,8 @@ export type Database = {
         Args: { _agency_id: string; _user_id: string }
         Returns: boolean
       }
+      is_caller_admin: { Args: never; Returns: boolean }
+      is_caller_owner: { Args: never; Returns: boolean }
       is_conversation_participant: {
         Args: { _conversation_id: string; _user_id: string }
         Returns: boolean
