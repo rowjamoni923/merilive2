@@ -206,6 +206,11 @@ export const requestAllPermissions = async (): Promise<{
   return { camera, microphone, location, notifications };
 };
 
+export const openNativeAppPermissionSettings = async (): Promise<void> => {
+  if (!isNativeApp()) return;
+  await MeriPermissions.openAppSettings();
+};
+
 // =====================================================
 // GET CURRENT LOCATION - Native GPS
 // =====================================================
