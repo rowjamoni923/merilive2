@@ -904,6 +904,20 @@ const Settings = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-4">
+            {isInIframe && (
+              <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
+                <p className="font-semibold mb-1">⚠️ Preview Mode Limitation</p>
+                <p className="text-amber-200/80 mb-2">
+                  Camera, Microphone & Location can't be granted inside this preview frame. Open the app in a full browser tab or in the installed Android app to enable them.
+                </p>
+                <button
+                  onClick={() => window.open(window.location.href, '_blank', 'noopener,noreferrer')}
+                  className="w-full h-9 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-semibold"
+                >
+                  Open in Full Tab
+                </button>
+              </div>
+            )}
             {/* Notifications */}
           <button 
             onClick={() => requestNotificationPermission()}
