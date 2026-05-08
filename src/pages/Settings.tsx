@@ -905,6 +905,16 @@ const Settings = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-4">
+            {isNativeApp() && (
+              <button
+                type="button"
+                onClick={openPermissionSettings}
+                className="w-full rounded-2xl border border-white/10 bg-slate-800/70 p-3 text-left text-xs text-white/70 active:scale-[0.98] transition-transform"
+              >
+                <p className="font-semibold text-white mb-1">App Permission Settings</p>
+                <p>Open Android app settings if a permission was blocked before.</p>
+              </button>
+            )}
             {isInIframe && (
               <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
                 <p className="font-semibold mb-1">⚠️ Preview Mode Limitation</p>
