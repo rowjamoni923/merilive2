@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.WindowManager;
 import com.getcapacitor.BridgeActivity;
-import com.merilive.app.util.PermissionHelper;
 import com.merilive.app.util.NotificationHelper;
 
 public class MainActivity extends BridgeActivity {
@@ -24,9 +23,6 @@ public class MainActivity extends BridgeActivity {
 
         // Setup notification channels
         NotificationHelper.createNotificationChannels(this);
-
-        // Request runtime permissions
-        PermissionHelper.requestAllPermissions(this);
 
         // Handle notification route on cold start
         handleNotificationRoute(getIntent());
