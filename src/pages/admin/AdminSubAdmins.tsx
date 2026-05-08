@@ -54,6 +54,7 @@ import DeviceApprovalSection from "@/components/admin/DeviceApprovalSection";
 import OwnerAccessLinkGenerator from "@/components/admin/OwnerAccessLinkGenerator";
 import VaultPinManager from "@/components/admin/VaultPinManager";
 import { recordAdminError } from "@/utils/adminErrorLog";
+import { getAdminActorId } from "@/utils/adminActionMeta";
 
 interface AdminUser {
   id: string;
@@ -187,8 +188,6 @@ const AdminSubAdmins = () => {
     setIsCreating(true);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
       const response = await supabase.functions.invoke("create-sub-admin", {
         body: {
           email: newEmail.trim().toLowerCase(),
@@ -294,14 +293,13 @@ const AdminSubAdmins = () => {
 
   const handleSavePermissions = async () => {
     if (!selectedAdmin) return;
+    const adminActorId = getAdminActorId();
 
     // Delete existing permissions
     await supabase
       .from("admin_section_permissions")
       .delete()
       .eq("admin_user_id", selectedAdmin.id);
-
-    const { data: { user } } = await supabase.auth.getUser();
 
     // Insert new permissions
     const permissionsToInsert = selectedSections
@@ -312,7 +310,7 @@ const AdminSubAdmins = () => {
         can_view: s.can_view,
         can_edit: s.can_edit,
         can_delete: s.can_delete,
-        granted_by: user?.id,
+        granted_by: adminActorId,
       }));
 
     if (permissionsToInsert.length > 0) {

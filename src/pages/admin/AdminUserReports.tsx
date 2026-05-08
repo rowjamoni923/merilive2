@@ -127,10 +127,13 @@ export default function AdminUserReports() {
   };
 
   const handleBlockUser = async (userId: string) => {
+    const adminId = getCurrentAdminId();
+    if (!adminId) { toast.error("Not signed in as admin"); return; }
     try {
       const { error } = await supabase.rpc("admin_block_user", {
         _user_id: userId,
         _block: true,
+        _admin_id: adminId,
       });
       if (error) throw error;
       toast.success("User blocked");
