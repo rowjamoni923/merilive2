@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase } from "@/integrations/supabase/adminClient";
 
 /**
  * Returns true if there's an active auth session.
@@ -6,6 +6,6 @@ import { supabase } from "@/integrations/supabase/client";
  * RLS-rejected queries before auth is ready.
  */
 export async function isAdminSessionReady(): Promise<boolean> {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await adminSupabase.auth.getSession();
   return !!session?.user;
 }
