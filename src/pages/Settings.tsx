@@ -38,13 +38,17 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Capacitor } from "@capacitor/core";
-import { PushNotifications } from "@capacitor/push-notifications";
-import { Camera as CapCamera } from "@capacitor/camera";
-import { Geolocation } from "@capacitor/geolocation";
 import { getAppInfo } from "@/utils/nativeUtils";
 import { useRefreshOnResume } from "@/hooks/useAppResumeHandler";
 import { recordClientError } from "@/utils/clientErrorLog";
+import {
+  checkPermissionStatus,
+  openNativeAppPermissionSettings,
+  requestCameraPermission as requestNativeCameraPermission,
+  requestLocationPermission as requestNativeLocationPermission,
+  requestMicrophonePermission as requestNativeMicrophonePermission,
+  requestNotificationPermission as requestNativeNotificationPermission,
+} from "@/utils/nativePermissions";
 
 // World languages - English names only (no native scripts)
 const worldLanguages = [
@@ -129,24 +133,8 @@ const Settings = () => {
         location: false,
       };
 
-      if (Capacitor.isNativePlatform()) {
-        const [notifStatus, camStatus, locStatus] = await Promise.all([
-          PushNotifications.checkPermissions().catch(() => null),
-          CapCamera.checkPermissions().catch(() => null),
-          Geolocation.checkPermissions().catch(() => null),
-        ]);
-
-        nextPermissions.notifications = notifStatus?.receive === 'granted';
-        nextPermissions.camera = camStatus?.camera === 'granted';
-        nextPermissions.location = locStatus?.location === 'granted' || locStatus?.coarseLocation === 'granted';
-
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          stream.getTracks().forEach(track => track.stop());
-          nextPermissions.microphone = true;
-        } catch {
-          nextPermissions.microphone = false;
-        }
+      if (isNativeApp()) {
+        Object.assign(nextPermissions, await checkPermissionStatus());
       } else {
         if ('Notification' in window) {
           nextPermissions.notifications = Notification.permission === 'granted';
@@ -334,6 +322,11 @@ const Settings = () => {
   const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
   const browserSettingsHint = (perm: string) =>
     `Tap the lock/info icon in the address bar → Site settings → ${perm} → Allow, then refresh.`;
+  const nativeSettingsHint = (perm: string) =>
+    `Open device Settings → Apps → MeriLive → Permissions → ${perm} → Allow.`;
+  const openPermissionSettings = () => {
+    void openNativeAppPermissionSettings().catch(() => undefined);
+  };
 
   // Request notification permission
   const requestNotificationPermission = async () => {
@@ -341,17 +334,16 @@ const Settings = () => {
     if (permissions.notifications) {
       toast({
         title: "Already Enabled",
-        description: Capacitor.isNativePlatform()
+        description: isNativeApp()
           ? "To disable, go to device Settings → Apps → MeriLive → Permissions."
           : "To disable, change it from your browser site settings.",
       });
       return;
     }
     try {
-      if (Capacitor.isNativePlatform()) {
-        const result = await PushNotifications.requestPermissions();
-        if (result.receive === 'granted') {
-          await PushNotifications.register();
+      if (isNativeApp()) {
+        const granted = await requestNativeNotificationPermission();
+        if (granted) {
           setPermissions(prev => ({ ...prev, notifications: true }));
           toast({ title: "Notifications Enabled", description: "You will now receive push notifications." });
         } else {
@@ -399,14 +391,14 @@ const Settings = () => {
     if (permissions.camera) {
       toast({
         title: "Already Enabled",
-        description: Capacitor.isNativePlatform()
+        description: isNativeApp()
           ? "To disable, go to device Settings → Apps → MeriLive → Permissions → Camera."
           : "To disable, change it from your browser site settings.",
       });
       return;
     }
 
-    if (!Capacitor.isNativePlatform() && navigator.permissions) {
+    if (!isNativeApp() && navigator.permissions) {
       try {
         const p = await navigator.permissions.query({ name: 'camera' as PermissionName });
         if (p.state === 'denied') {
@@ -423,17 +415,15 @@ const Settings = () => {
     }
 
     try {
-      if (Capacitor.isNativePlatform()) {
-        try {
-          const result = await CapCamera.requestPermissions({ permissions: ['camera'] });
-          if (result.camera === 'granted') {
-            setPermissions(prev => ({ ...prev, camera: true }));
-            toast({ title: "Camera Enabled", description: "Camera access has been granted." });
-            return;
-          }
-        } catch (e) {
-          console.log('[Settings] Native camera plugin failed, trying getUserMedia...', e);
+      if (isNativeApp()) {
+        const granted = await requestNativeCameraPermission();
+        if (granted) {
+          setPermissions(prev => ({ ...prev, camera: true }));
+          toast({ title: "Camera Enabled", description: "Camera access has been granted." });
+        } else {
+          toast({ title: "Camera Permission Needed", description: nativeSettingsHint('Camera'), variant: "destructive" });
         }
+        return;
       }
 
       if (!navigator.mediaDevices?.getUserMedia) {
@@ -454,8 +444,8 @@ const Settings = () => {
       } else if (denied) {
         toast({
           title: "Camera Permission Needed",
-          description: Capacitor.isNativePlatform()
-            ? "Open device Settings → Apps → MeriLive → Permissions → Camera → Allow."
+          description: isNativeApp()
+            ? nativeSettingsHint('Camera')
             : (isInIframe ? "Open the app on your device or in a full browser tab to enable the camera." : browserSettingsHint('Camera')),
           variant: "destructive",
         });
@@ -473,14 +463,14 @@ const Settings = () => {
     if (permissions.microphone) {
       toast({
         title: "Already Enabled",
-        description: Capacitor.isNativePlatform()
+        description: isNativeApp()
           ? "To disable, go to device Settings → Apps → MeriLive → Permissions → Microphone."
           : "To disable, change it from your browser site settings.",
       });
       return;
     }
 
-    if (!Capacitor.isNativePlatform() && navigator.permissions) {
+    if (!isNativeApp() && navigator.permissions) {
       try {
         const p = await navigator.permissions.query({ name: 'microphone' as PermissionName });
         if (p.state === 'denied') {
@@ -497,6 +487,17 @@ const Settings = () => {
     }
 
     try {
+      if (isNativeApp()) {
+        const granted = await requestNativeMicrophonePermission();
+        if (granted) {
+          setPermissions(prev => ({ ...prev, microphone: true }));
+          toast({ title: "Microphone Enabled", description: "Microphone access has been granted." });
+        } else {
+          toast({ title: "Microphone Blocked", description: nativeSettingsHint('Microphone'), variant: "destructive" });
+        }
+        return;
+      }
+
       if (!navigator.mediaDevices?.getUserMedia) {
         toast({ title: "Not Supported", description: "Microphone is not available in this browser.", variant: "destructive" });
         return;
@@ -512,8 +513,8 @@ const Settings = () => {
       if (denied) {
         toast({
           title: "Microphone Blocked",
-          description: Capacitor.isNativePlatform()
-            ? "Open device Settings → Apps → MeriLive → Permissions → Microphone → Allow."
+          description: isNativeApp()
+            ? nativeSettingsHint('Microphone')
             : (isInIframe ? "Open the app on your device or in a full browser tab to enable the microphone." : browserSettingsHint('Microphone')),
           variant: "destructive",
         });
@@ -531,14 +532,14 @@ const Settings = () => {
     if (permissions.location) {
       toast({
         title: "Already Enabled",
-        description: Capacitor.isNativePlatform()
+        description: isNativeApp()
           ? "To disable, go to device Settings → Apps → MeriLive → Permissions → Location."
           : "To disable, change it from your browser site settings.",
       });
       return;
     }
 
-    if (!Capacitor.isNativePlatform() && navigator.permissions) {
+    if (!isNativeApp() && navigator.permissions) {
       try {
         const p = await navigator.permissions.query({ name: 'geolocation' as PermissionName });
         if (p.state === 'denied') {
@@ -555,13 +556,13 @@ const Settings = () => {
     }
 
     try {
-      if (Capacitor.isNativePlatform()) {
-        const result = await Geolocation.requestPermissions();
-        if (result.location === 'granted' || result.coarseLocation === 'granted') {
+      if (isNativeApp()) {
+        const granted = await requestNativeLocationPermission();
+        if (granted) {
           setPermissions(prev => ({ ...prev, location: true }));
           toast({ title: "Location Enabled", description: "Location access has been granted." });
         } else {
-          toast({ title: "Permission Denied", description: "Open device Settings → Apps → MeriLive → Permissions → Location → Allow.", variant: "destructive" });
+          toast({ title: "Permission Denied", description: nativeSettingsHint('Location'), variant: "destructive" });
         }
         return;
       }
@@ -904,6 +905,16 @@ const Settings = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-4">
+            {isNativeApp() && (
+              <button
+                type="button"
+                onClick={openPermissionSettings}
+                className="w-full rounded-2xl border border-white/10 bg-slate-800/70 p-3 text-left text-xs text-white/70 active:scale-[0.98] transition-transform"
+              >
+                <p className="font-semibold text-white mb-1">App Permission Settings</p>
+                <p>Open Android app settings if a permission was blocked before.</p>
+              </button>
+            )}
             {isInIframe && (
               <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
                 <p className="font-semibold mb-1">⚠️ Preview Mode Limitation</p>

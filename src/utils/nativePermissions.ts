@@ -3,7 +3,26 @@
  * All permissions are handled natively within the app - NO external browser
  */
 
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
+
+interface MeriPermissionsStatus {
+  camera: boolean;
+  microphone: boolean;
+  location: boolean;
+  notifications: boolean;
+}
+
+interface MeriPermissionsPlugin {
+  checkAllPermissions(): Promise<MeriPermissionsStatus>;
+  requestCamera(): Promise<MeriPermissionsStatus>;
+  requestMicrophone(): Promise<MeriPermissionsStatus>;
+  requestLocation(): Promise<MeriPermissionsStatus>;
+  requestNotifications(): Promise<MeriPermissionsStatus>;
+  requestAll(): Promise<MeriPermissionsStatus>;
+  openAppSettings(): Promise<void>;
+}
+
+const MeriPermissions = registerPlugin<MeriPermissionsPlugin>('MeriPermissions');
 
 export const isNativeApp = (): boolean => {
   return Capacitor.isNativePlatform();
@@ -15,9 +34,8 @@ export const isNativeApp = (): boolean => {
 export const requestCameraPermission = async (): Promise<boolean> => {
   if (isNativeApp()) {
     try {
-      const { Camera } = await import('@capacitor/camera');
-      const permission = await Camera.requestPermissions({ permissions: ['camera'] });
-      return permission.camera === 'granted';
+      const permission = await MeriPermissions.requestCamera();
+      return permission.camera;
     } catch (error) {
       console.error('Native camera permission error:', error);
       return false;
@@ -40,13 +58,8 @@ export const requestCameraPermission = async (): Promise<boolean> => {
 export const requestMicrophonePermission = async (): Promise<boolean> => {
   if (isNativeApp()) {
     try {
-      const { Camera } = await import('@capacitor/camera');
-      // Camera plugin handles microphone as well on mobile
-      const permission = await Camera.requestPermissions({ permissions: ['camera'] });
-      // Also request via browser API to ensure audio
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      stream.getTracks().forEach(track => track.stop());
-      return permission.camera === 'granted';
+      const permission = await MeriPermissions.requestMicrophone();
+      return permission.microphone;
     } catch (error) {
       console.error('Native microphone permission error:', error);
       return false;
@@ -68,9 +81,8 @@ export const requestMicrophonePermission = async (): Promise<boolean> => {
 export const requestLocationPermission = async (): Promise<boolean> => {
   if (isNativeApp()) {
     try {
-      const { Geolocation } = await import('@capacitor/geolocation');
-      const permission = await Geolocation.requestPermissions();
-      return permission.location === 'granted' || permission.coarseLocation === 'granted';
+      const permission = await MeriPermissions.requestLocation();
+      return permission.location;
     } catch (error) {
       console.error('Native location permission error:', error);
       return false;
@@ -93,9 +105,9 @@ export const requestLocationPermission = async (): Promise<boolean> => {
 export const requestNotificationPermission = async (): Promise<boolean> => {
   if (isNativeApp()) {
     try {
-      const { PushNotifications } = await import('@capacitor/push-notifications');
-      const permission = await PushNotifications.requestPermissions();
-      if (permission.receive === 'granted') {
+      const permission = await MeriPermissions.requestNotifications();
+      if (permission.notifications) {
+        const { PushNotifications } = await import('@capacitor/push-notifications');
         await PushNotifications.register();
         return true;
       }
@@ -132,29 +144,7 @@ export const checkPermissionStatus = async (): Promise<{
 
   if (isNativeApp()) {
     try {
-      // Camera
-      const { Camera } = await import('@capacitor/camera');
-      const camPerm = await Camera.checkPermissions();
-      status.camera = camPerm.camera === 'granted';
-      
-      // Location
-      const { Geolocation } = await import('@capacitor/geolocation');
-      const locPerm = await Geolocation.checkPermissions();
-      status.location = locPerm.location === 'granted' || locPerm.coarseLocation === 'granted';
-      
-      // Notifications
-      const { PushNotifications } = await import('@capacitor/push-notifications');
-      const notifPerm = await PushNotifications.checkPermissions();
-      status.notifications = notifPerm.receive === 'granted';
-      
-      // Microphone (check via media devices)
-      try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const hasMic = devices.some(d => d.kind === 'audioinput' && d.label);
-        status.microphone = hasMic;
-      } catch {
-        status.microphone = false;
-      }
+      return await MeriPermissions.checkAllPermissions();
     } catch (error) {
       console.error('Error checking permissions:', error);
     }
@@ -191,6 +181,18 @@ export const requestAllPermissions = async (): Promise<{
   notifications: boolean;
 }> => {
   console.log('📱 Requesting all native permissions...');
+  if (isNativeApp()) {
+    try {
+      const permissions = await MeriPermissions.requestAll();
+      if (permissions.notifications) {
+        const { PushNotifications } = await import('@capacitor/push-notifications');
+        await PushNotifications.register().catch(() => undefined);
+      }
+      return permissions;
+    } catch (error) {
+      console.error('Native permission request-all error:', error);
+    }
+  }
   
   const [camera, microphone, location, notifications] = await Promise.all([
     requestCameraPermission(),
@@ -202,6 +204,11 @@ export const requestAllPermissions = async (): Promise<{
   console.log('✅ Permissions result:', { camera, microphone, location, notifications });
   
   return { camera, microphone, location, notifications };
+};
+
+export const openNativeAppPermissionSettings = async (): Promise<void> => {
+  if (!isNativeApp()) return;
+  await MeriPermissions.openAppSettings();
 };
 
 // =====================================================
