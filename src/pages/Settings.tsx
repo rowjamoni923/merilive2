@@ -38,7 +38,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Capacitor } from "@capacitor/core";
 import { getAppInfo } from "@/utils/nativeUtils";
 import { useRefreshOnResume } from "@/hooks/useAppResumeHandler";
 import { recordClientError } from "@/utils/clientErrorLog";
@@ -323,6 +322,11 @@ const Settings = () => {
   const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
   const browserSettingsHint = (perm: string) =>
     `Tap the lock/info icon in the address bar → Site settings → ${perm} → Allow, then refresh.`;
+  const nativeSettingsHint = (perm: string) =>
+    `Open device Settings → Apps → MeriLive → Permissions → ${perm} → Allow.`;
+  const openPermissionSettings = () => {
+    void openNativeAppPermissionSettings().catch(() => undefined);
+  };
 
   // Request notification permission
   const requestNotificationPermission = async () => {
@@ -330,7 +334,7 @@ const Settings = () => {
     if (permissions.notifications) {
       toast({
         title: "Already Enabled",
-        description: Capacitor.isNativePlatform()
+        description: isNativeApp()
           ? "To disable, go to device Settings → Apps → MeriLive → Permissions."
           : "To disable, change it from your browser site settings.",
       });
@@ -387,14 +391,14 @@ const Settings = () => {
     if (permissions.camera) {
       toast({
         title: "Already Enabled",
-        description: Capacitor.isNativePlatform()
+        description: isNativeApp()
           ? "To disable, go to device Settings → Apps → MeriLive → Permissions → Camera."
           : "To disable, change it from your browser site settings.",
       });
       return;
     }
 
-    if (!Capacitor.isNativePlatform() && navigator.permissions) {
+    if (!isNativeApp() && navigator.permissions) {
       try {
         const p = await navigator.permissions.query({ name: 'camera' as PermissionName });
         if (p.state === 'denied') {
@@ -417,7 +421,7 @@ const Settings = () => {
           setPermissions(prev => ({ ...prev, camera: true }));
           toast({ title: "Camera Enabled", description: "Camera access has been granted." });
         } else {
-          toast({ title: "Camera Permission Needed", description: "Open device Settings → Apps → MeriLive → Permissions → Camera → Allow.", variant: "destructive" });
+          toast({ title: "Camera Permission Needed", description: nativeSettingsHint('Camera'), variant: "destructive" });
         }
         return;
       }
@@ -440,8 +444,8 @@ const Settings = () => {
       } else if (denied) {
         toast({
           title: "Camera Permission Needed",
-          description: Capacitor.isNativePlatform()
-            ? "Open device Settings → Apps → MeriLive → Permissions → Camera → Allow."
+          description: isNativeApp()
+            ? nativeSettingsHint('Camera')
             : (isInIframe ? "Open the app on your device or in a full browser tab to enable the camera." : browserSettingsHint('Camera')),
           variant: "destructive",
         });
@@ -459,14 +463,14 @@ const Settings = () => {
     if (permissions.microphone) {
       toast({
         title: "Already Enabled",
-        description: Capacitor.isNativePlatform()
+        description: isNativeApp()
           ? "To disable, go to device Settings → Apps → MeriLive → Permissions → Microphone."
           : "To disable, change it from your browser site settings.",
       });
       return;
     }
 
-    if (!Capacitor.isNativePlatform() && navigator.permissions) {
+    if (!isNativeApp() && navigator.permissions) {
       try {
         const p = await navigator.permissions.query({ name: 'microphone' as PermissionName });
         if (p.state === 'denied') {
@@ -489,7 +493,7 @@ const Settings = () => {
           setPermissions(prev => ({ ...prev, microphone: true }));
           toast({ title: "Microphone Enabled", description: "Microphone access has been granted." });
         } else {
-          toast({ title: "Microphone Blocked", description: "Open device Settings → Apps → MeriLive → Permissions → Microphone → Allow.", variant: "destructive" });
+          toast({ title: "Microphone Blocked", description: nativeSettingsHint('Microphone'), variant: "destructive" });
         }
         return;
       }
@@ -509,8 +513,8 @@ const Settings = () => {
       if (denied) {
         toast({
           title: "Microphone Blocked",
-          description: Capacitor.isNativePlatform()
-            ? "Open device Settings → Apps → MeriLive → Permissions → Microphone → Allow."
+          description: isNativeApp()
+            ? nativeSettingsHint('Microphone')
             : (isInIframe ? "Open the app on your device or in a full browser tab to enable the microphone." : browserSettingsHint('Microphone')),
           variant: "destructive",
         });
@@ -528,14 +532,14 @@ const Settings = () => {
     if (permissions.location) {
       toast({
         title: "Already Enabled",
-        description: Capacitor.isNativePlatform()
+        description: isNativeApp()
           ? "To disable, go to device Settings → Apps → MeriLive → Permissions → Location."
           : "To disable, change it from your browser site settings.",
       });
       return;
     }
 
-    if (!Capacitor.isNativePlatform() && navigator.permissions) {
+    if (!isNativeApp() && navigator.permissions) {
       try {
         const p = await navigator.permissions.query({ name: 'geolocation' as PermissionName });
         if (p.state === 'denied') {
@@ -558,7 +562,7 @@ const Settings = () => {
           setPermissions(prev => ({ ...prev, location: true }));
           toast({ title: "Location Enabled", description: "Location access has been granted." });
         } else {
-          toast({ title: "Permission Denied", description: "Open device Settings → Apps → MeriLive → Permissions → Location → Allow.", variant: "destructive" });
+          toast({ title: "Permission Denied", description: nativeSettingsHint('Location'), variant: "destructive" });
         }
         return;
       }
