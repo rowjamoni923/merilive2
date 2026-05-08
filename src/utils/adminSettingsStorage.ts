@@ -1,4 +1,3 @@
-import { supabase } from "@/integrations/supabase/client";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 
 type Primitive = string | number | boolean | null;
@@ -37,7 +36,7 @@ export const parseSettingValue = <T = unknown>(value: unknown): T | null => {
 };
 
 export const loadAppSetting = async <T = unknown>(key: string): Promise<T | null> => {
-  const { data, error } = await supabase
+  const { data, error } = await adminSupabase
     .from("app_settings")
     .select("setting_value")
     .eq("setting_key", key)
@@ -49,7 +48,7 @@ export const loadAppSetting = async <T = unknown>(key: string): Promise<T | null
 };
 
 export const loadAppSettingsByPrefix = async <T = unknown>(prefix: string) => {
-  const { data, error } = await supabase
+  const { data, error } = await adminSupabase
     .from("app_settings")
     .select("id, setting_key, setting_value, description, updated_at")
     .like("setting_key", `${prefix}%`);

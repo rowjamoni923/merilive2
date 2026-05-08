@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { adminSupabase } from "@/integrations/supabase/adminClient";
 
 /**
  * Send notification to a user from admin panel.
@@ -11,7 +11,7 @@ export async function adminSendNotification(
   type: string = 'system',
   data?: Record<string, unknown>
 ): Promise<string | null> {
-  const { data: notifId, error } = await supabase.rpc('admin_send_notification' as any, {
+  const { data: notifId, error } = await adminSupabase.rpc('admin_send_notification' as any, {
     _user_id: userId,
     _title: title,
     _message: message,
