@@ -337,10 +337,9 @@ const Settings = () => {
       return;
     }
     try {
-      if (Capacitor.isNativePlatform()) {
-        const result = await PushNotifications.requestPermissions();
-        if (result.receive === 'granted') {
-          await PushNotifications.register();
+      if (isNativeApp()) {
+        const granted = await requestNativeNotificationPermission();
+        if (granted) {
           setPermissions(prev => ({ ...prev, notifications: true }));
           toast({ title: "Notifications Enabled", description: "You will now receive push notifications." });
         } else {
@@ -412,17 +411,15 @@ const Settings = () => {
     }
 
     try {
-      if (Capacitor.isNativePlatform()) {
-        try {
-          const result = await CapCamera.requestPermissions({ permissions: ['camera'] });
-          if (result.camera === 'granted') {
-            setPermissions(prev => ({ ...prev, camera: true }));
-            toast({ title: "Camera Enabled", description: "Camera access has been granted." });
-            return;
-          }
-        } catch (e) {
-          console.log('[Settings] Native camera plugin failed, trying getUserMedia...', e);
+      if (isNativeApp()) {
+        const granted = await requestNativeCameraPermission();
+        if (granted) {
+          setPermissions(prev => ({ ...prev, camera: true }));
+          toast({ title: "Camera Enabled", description: "Camera access has been granted." });
+        } else {
+          toast({ title: "Camera Permission Needed", description: "Open device Settings → Apps → MeriLive → Permissions → Camera → Allow.", variant: "destructive" });
         }
+        return;
       }
 
       if (!navigator.mediaDevices?.getUserMedia) {
@@ -486,6 +483,17 @@ const Settings = () => {
     }
 
     try {
+      if (isNativeApp()) {
+        const granted = await requestNativeMicrophonePermission();
+        if (granted) {
+          setPermissions(prev => ({ ...prev, microphone: true }));
+          toast({ title: "Microphone Enabled", description: "Microphone access has been granted." });
+        } else {
+          toast({ title: "Microphone Blocked", description: "Open device Settings → Apps → MeriLive → Permissions → Microphone → Allow.", variant: "destructive" });
+        }
+        return;
+      }
+
       if (!navigator.mediaDevices?.getUserMedia) {
         toast({ title: "Not Supported", description: "Microphone is not available in this browser.", variant: "destructive" });
         return;
@@ -544,9 +552,9 @@ const Settings = () => {
     }
 
     try {
-      if (Capacitor.isNativePlatform()) {
-        const result = await Geolocation.requestPermissions();
-        if (result.location === 'granted' || result.coarseLocation === 'granted') {
+      if (isNativeApp()) {
+        const granted = await requestNativeLocationPermission();
+        if (granted) {
           setPermissions(prev => ({ ...prev, location: true }));
           toast({ title: "Location Enabled", description: "Location access has been granted." });
         } else {
