@@ -39,12 +39,17 @@ import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Capacitor } from "@capacitor/core";
-import { PushNotifications } from "@capacitor/push-notifications";
-import { Camera as CapCamera } from "@capacitor/camera";
-import { Geolocation } from "@capacitor/geolocation";
 import { getAppInfo } from "@/utils/nativeUtils";
 import { useRefreshOnResume } from "@/hooks/useAppResumeHandler";
 import { recordClientError } from "@/utils/clientErrorLog";
+import {
+  checkPermissionStatus,
+  openNativeAppPermissionSettings,
+  requestCameraPermission as requestNativeCameraPermission,
+  requestLocationPermission as requestNativeLocationPermission,
+  requestMicrophonePermission as requestNativeMicrophonePermission,
+  requestNotificationPermission as requestNativeNotificationPermission,
+} from "@/utils/nativePermissions";
 
 // World languages - English names only (no native scripts)
 const worldLanguages = [
@@ -129,24 +134,8 @@ const Settings = () => {
         location: false,
       };
 
-      if (Capacitor.isNativePlatform()) {
-        const [notifStatus, camStatus, locStatus] = await Promise.all([
-          PushNotifications.checkPermissions().catch(() => null),
-          CapCamera.checkPermissions().catch(() => null),
-          Geolocation.checkPermissions().catch(() => null),
-        ]);
-
-        nextPermissions.notifications = notifStatus?.receive === 'granted';
-        nextPermissions.camera = camStatus?.camera === 'granted';
-        nextPermissions.location = locStatus?.location === 'granted' || locStatus?.coarseLocation === 'granted';
-
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          stream.getTracks().forEach(track => track.stop());
-          nextPermissions.microphone = true;
-        } catch {
-          nextPermissions.microphone = false;
-        }
+      if (isNativeApp()) {
+        Object.assign(nextPermissions, await checkPermissionStatus());
       } else {
         if ('Notification' in window) {
           nextPermissions.notifications = Notification.permission === 'granted';
