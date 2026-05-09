@@ -1111,13 +1111,6 @@ const navGroups: NavGroup[] = [
         description: "One-click apply operational policy modes (Default / Peak / Abuse) with snapshot, verify and rollback. AI advisor recommends presets from a situation prompt.",
       },
       {
-        label: "💳 Payment Gateway Method Config",
-        icon: Settings,
-        path: "/admin/payment-gateway-method-config",
-        hubKey: "settings-hub",
-        description: "L5 helper country payment methods, manual/auto routing, fraud controls and Diamond store logo policy.",
-      },
-      {
         label: "General Settings",
         icon: Settings,
         path: "/admin/settings",
