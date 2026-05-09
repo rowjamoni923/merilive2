@@ -16,9 +16,16 @@ interface PromoBanner {
 }
 
 // Premium luxury rating + giveaway banners (Users win 10,000 Diamonds, Hosts win 10,000 Beans)
-// Rotated each time the rating popup is eligible to show.
-const RATING_BANNER_VARIANTS = [bannerRatingRewardV2, bannerRatingRewardV3, bannerRatingRewardV4];
-const pickRatingVariant = () => RATING_BANNER_VARIANTS[Math.floor(Math.random() * RATING_BANNER_VARIANTS.length)];
+// Admin-managed banners from `rating_banners` are loaded at runtime; bundled assets are used
+// only as a fallback when no active admin banners exist.
+const FALLBACK_RATING_BANNERS = [bannerRatingRewardV2, bannerRatingRewardV3, bannerRatingRewardV4];
+let CACHED_ADMIN_RATING_BANNERS: string[] | null = null;
+const pickRatingVariant = () => {
+  const pool = (CACHED_ADMIN_RATING_BANNERS && CACHED_ADMIN_RATING_BANNERS.length > 0)
+    ? CACHED_ADMIN_RATING_BANNERS
+    : FALLBACK_RATING_BANNERS;
+  return pool[Math.floor(Math.random() * pool.length)];
+};
 
 const PROMO_BANNERS: PromoBanner[] = [
   { id: "rating", image: pickRatingVariant(), alt: "Rate us & win giveaway", fullScreen: false },
@@ -72,20 +79,37 @@ export function FullScreenPromoBanners() {
     return (existingClaims?.length ?? 0) === 0;
   }, []);
 
+  const loadAdminRatingBanners = useCallback(async () => {
+    try {
+      const { data } = await supabase
+        .from("rating_banners")
+        .select("image_url")
+        .eq("is_active", true)
+        .order("display_order", { ascending: true });
+      const urls = (data || []).map((r: any) => r.image_url).filter(Boolean);
+      CACHED_ADMIN_RATING_BANNERS = urls;
+    } catch {
+      CACHED_ADMIN_RATING_BANNERS = [];
+    }
+  }, []);
+
   const resolveNextBanner = useCallback(async (): Promise<{ banner: PromoBanner; index: number } | null> => {
     const startIndex = getRotationIndex();
 
     for (let offset = 0; offset < PROMO_BANNERS.length; offset += 1) {
       const candidateIndex = (startIndex + offset) % PROMO_BANNERS.length;
-      const candidateBanner = PROMO_BANNERS[candidateIndex];
+      const baseBanner = PROMO_BANNERS[candidateIndex];
 
-      if (candidateBanner.id !== "rating" || await isRatingBannerEligible()) {
-        return { banner: candidateBanner, index: candidateIndex };
+      if (baseBanner.id === "rating") {
+        if (!(await isRatingBannerEligible())) continue;
+        await loadAdminRatingBanners();
+        return { banner: { ...baseBanner, image: pickRatingVariant() }, index: candidateIndex };
       }
+      return { banner: baseBanner, index: candidateIndex };
     }
 
     return null;
-  }, [getRotationIndex, isRatingBannerEligible]);
+  }, [getRotationIndex, isRatingBannerEligible, loadAdminRatingBanners]);
 
   const closeBanner = useCallback(() => {
     advanceRotation(rotationIndex);
