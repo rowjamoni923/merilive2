@@ -231,16 +231,36 @@ const AdminPaymentGateways = () => {
     try {
       const { data, error } = await supabase
         .from('payment_transactions')
-        .select(`
-          *,
-          gateway:payment_gateways(id, name, gateway_code),
-          user:profiles(display_name, avatar_url, app_uid)
-        `)
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(100);
 
       if (error) throw error;
-      setTransactions(data || []);
+      const txns = data || [];
+
+      // Resolve gateway + user via separate queries (no FK relationship in schema)
+      const gatewayIds = Array.from(new Set(txns.map((t: any) => t.gateway_id).filter(Boolean)));
+      const userIds = Array.from(new Set(txns.map((t: any) => t.user_id).filter(Boolean)));
+
+      const [gwRes, userRes] = await Promise.all([
+        gatewayIds.length
+          ? supabase.from('payment_gateways').select('id, name, gateway_code').in('id', gatewayIds)
+          : Promise.resolve({ data: [] as any[] }),
+        userIds.length
+          ? supabase.from('profiles').select('id, display_name, avatar_url, app_uid').in('id', userIds)
+          : Promise.resolve({ data: [] as any[] }),
+      ]);
+
+      const gwMap = new Map((gwRes.data || []).map((g: any) => [g.id, g]));
+      const userMap = new Map((userRes.data || []).map((u: any) => [u.id, u]));
+
+      setTransactions(
+        txns.map((t: any) => ({
+          ...t,
+          gateway: gwMap.get(t.gateway_id) || null,
+          user: userMap.get(t.user_id) || null,
+        }))
+      );
     } catch (error) {
       recordAdminError({ kind: "rpc", label: "AdminPaymentGateways.ErrorFetchingTransactions", message: error instanceof Error ? error.message : "Error fetching transactions" });
     }
