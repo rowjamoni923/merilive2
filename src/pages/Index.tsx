@@ -22,7 +22,6 @@ import { CallButton } from "@/features/call";
 import { toast } from "sonner";
 import { NativePullToRefresh } from "@/components/common/NativePullToRefresh";
 import { warmLiveKitToken } from "@/services/livekitService";
-import { recordClientError } from "@/utils/clientErrorLog";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 
 interface Profile {
