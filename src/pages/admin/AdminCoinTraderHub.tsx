@@ -359,8 +359,11 @@ export default function AdminDiamondTraderHub() {
                 </Badge>
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent className="p-0 space-y-6">
               <AdminHelperPaymentMethods />
+              <div className="border-t border-slate-800 pt-6">
+                <AdminPaymentGatewayMethodConfig />
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
