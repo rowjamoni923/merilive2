@@ -4,7 +4,9 @@ import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PLAY_STORE_URL } from "@/utils/shareLinks";
 
-import bannerRatingReward from "@/assets/banners/banner-rating-reward.jpg";
+import bannerRatingRewardV2 from "@/assets/banners/banner-rating-reward-v2.jpg";
+import bannerRatingRewardV3 from "@/assets/banners/banner-rating-reward-v3.jpg";
+import bannerRatingRewardV4 from "@/assets/banners/banner-rating-reward-v4.jpg";
 
 interface PromoBanner {
   id: string;
@@ -13,8 +15,13 @@ interface PromoBanner {
   fullScreen: boolean;
 }
 
+// Premium luxury rating + giveaway banners (Users win 10,000 Diamonds, Hosts win 10,000 Beans)
+// Rotated each time the rating popup is eligible to show.
+const RATING_BANNER_VARIANTS = [bannerRatingRewardV2, bannerRatingRewardV3, bannerRatingRewardV4];
+const pickRatingVariant = () => RATING_BANNER_VARIANTS[Math.floor(Math.random() * RATING_BANNER_VARIANTS.length)];
+
 const PROMO_BANNERS: PromoBanner[] = [
-  { id: "rating", image: bannerRatingReward, alt: "Rate us reward", fullScreen: false },
+  { id: "rating", image: pickRatingVariant(), alt: "Rate us & win giveaway", fullScreen: false },
 ];
 
 const SKIP_DELAY_MS = 3000;
