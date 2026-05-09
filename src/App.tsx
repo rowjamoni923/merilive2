@@ -292,6 +292,7 @@ const AdminContentManagement = lazy(lazyRetry(() => import("./pages/admin/AdminC
 const AdminAgencyHub = lazy(lazyRetry(() => import("./pages/admin/AdminAgencyHub")));
 const AdminAppSettingsHub = lazy(lazyRetry(() => import("./pages/admin/AdminAppSettingsHub")));
 const AdminHostFeedRanking = lazy(lazyRetry(() => import("./pages/admin/AdminHostFeedRanking")));
+const AdminPartyDiscoveryRanking = lazy(lazyRetry(() => import("./pages/admin/AdminPartyDiscoveryRanking")));
 const AdminVisualAssetsHub = lazy(lazyRetry(() => import("./pages/admin/AdminVisualAssetsHub")));
 const AdminUserHub = lazy(lazyRetry(() => import("./pages/admin/AdminUserHub")));
 const AdminSupportTickets = lazy(lazyRetry(() => import("./pages/admin/AdminSupportTickets")));
@@ -1206,6 +1207,7 @@ const App = () => {
                   <Route path="agency-hub" element={<AdminRouteGuard routeSegment="agency-hub"><AdminAgencyHub /></AdminRouteGuard>} />
                   <Route path="app-settings-hub" element={<AdminRouteGuard routeSegment="app-settings-hub"><AdminAppSettingsHub /></AdminRouteGuard>} />
                   <Route path="host-feed-ranking" element={<AdminRouteGuard routeSegment="host-feed-ranking"><AdminHostFeedRanking /></AdminRouteGuard>} />
+                  <Route path="party-discovery-ranking" element={<AdminRouteGuard routeSegment="party-discovery-ranking"><AdminPartyDiscoveryRanking /></AdminRouteGuard>} />
                   <Route path="visual-assets" element={<AdminRouteGuard routeSegment="visual-assets"><AdminVisualAssetsHub /></AdminRouteGuard>} />
                   <Route path="user-hub" element={<AdminRouteGuard routeSegment="user-hub"><AdminUserHub /></AdminRouteGuard>} />
                   <Route path="helper-orders" element={<AdminRouteGuard routeSegment="helper-orders"><AdminHelperOrders /></AdminRouteGuard>} />
