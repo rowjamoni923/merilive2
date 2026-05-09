@@ -1104,6 +1104,13 @@ const navGroups: NavGroup[] = [
         description: "Control participant weight, recency, growth and peak-hour boosts for the party room discovery feed.",
       },
       {
+        label: "🤖 Ranking Automation (AI)",
+        icon: Settings,
+        path: "/admin/ranking-automation",
+        hubKey: "settings-hub",
+        description: "One-click apply operational policy modes (Default / Peak / Abuse) with snapshot, verify and rollback. AI advisor recommends presets from a situation prompt.",
+      },
+      {
         label: "General Settings",
         icon: Settings,
         path: "/admin/settings",
