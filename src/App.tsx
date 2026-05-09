@@ -33,6 +33,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { CallProvider } from "./components/call/CallProvider";
 import { PresenceProvider } from "./components/common/PresenceProvider";
 import { RealtimeProvider } from "./components/common/RealtimeProvider";
+import DeferredAppHooks from "./components/common/DeferredAppHooks";
+import AppUpdateChecker from "@/components/common/AppUpdateChecker";
+import PushNotificationInitializer from "@/components/common/PushNotificationInitializer";
 const Level5HelperDashboard = lazy(() => import("./pages/Level5HelperDashboard"));
 // =============================================
 // ALL PAGES - Lazy loaded for fast initial paint
@@ -42,7 +45,6 @@ const Auth = lazy(lazyRetry(() => import("./pages/Auth")));
 const DeepLinkHandler = lazy(lazyRetry(() => import("./components/common/DeepLinkHandler")));
 import ErrorBoundary from "./components/ErrorBoundary";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
-const DeferredAppHooks = lazy(lazyRetry(() => import("./components/common/DeferredAppHooks")));
 const EventPopupBanner = lazy(lazyRetry(() => import("./components/common/EventPopupBanner")));
 const DailyLoginPopup = lazy(lazyRetry(() => import("./components/rewards/DailyLoginPopup")));
 const WelcomeOnboarding = lazy(lazyRetry(() => import("./components/onboarding/WelcomeOnboarding")));
@@ -349,9 +351,7 @@ const UserManagement = lazy(() => import("./pages/settings/UserManagement"));
 const GenderSelectionModal = lazy(() => import("@/components/auth/GenderSelectionModal").then(m => ({ default: m.GenderSelectionModal })));
 
 // DEFERRED IMPORTS - Non-critical UI components (use lazyRetry for chunk resilience)
-const AppUpdateChecker = lazy(lazyRetry(() => import("@/components/common/AppUpdateChecker")));
 const NetworkStatusBar = lazy(lazyRetry(() => import("@/components/common/NetworkStatusBar")));
-const PushNotificationInitializer = lazy(lazyRetry(() => import("@/components/common/PushNotificationInitializer")));
 
 const NotificationSettings = lazy(lazyRetry(() => import("./pages/settings/NotificationSettings")));
 const GlobalScreenSecurity = lazy(lazyRetry(() => import("@/components/common/GlobalScreenSecurity")));
