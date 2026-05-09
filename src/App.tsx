@@ -351,9 +351,7 @@ const UserManagement = lazy(() => import("./pages/settings/UserManagement"));
 const GenderSelectionModal = lazy(() => import("@/components/auth/GenderSelectionModal").then(m => ({ default: m.GenderSelectionModal })));
 
 // DEFERRED IMPORTS - Non-critical UI components (use lazyRetry for chunk resilience)
-const AppUpdateChecker = lazy(lazyRetry(() => import("@/components/common/AppUpdateChecker")));
 const NetworkStatusBar = lazy(lazyRetry(() => import("@/components/common/NetworkStatusBar")));
-const PushNotificationInitializer = lazy(lazyRetry(() => import("@/components/common/PushNotificationInitializer")));
 
 const NotificationSettings = lazy(lazyRetry(() => import("./pages/settings/NotificationSettings")));
 const GlobalScreenSecurity = lazy(lazyRetry(() => import("@/components/common/GlobalScreenSecurity")));
