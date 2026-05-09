@@ -107,9 +107,10 @@ const AdminRewardClaimsHistory = () => {
       const userIds = [...new Set(taskData.map(t => t.user_id))];
 
       // Fetch task details and user profiles in parallel
+      // Use profiles_public view (admin-safe; profiles table has no public SELECT policy)
       const [tasksRes, profilesRes] = await Promise.all([
         supabase.from('daily_tasks').select('id, title, reward_beans, reward_coins, target_audience').in('id', taskIds),
-        supabase.from('profiles').select('id, display_name, avatar_url, app_uid').in('id', userIds),
+        supabase.from('profiles_public').select('id, display_name, avatar_url, app_uid').in('id', userIds),
       ]);
 
       const tasksMap = new Map((tasksRes.data || []).map(t => [t.id, t]));
