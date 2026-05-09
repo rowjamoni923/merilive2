@@ -121,6 +121,7 @@ const ROUTE_HUB_MAP: Record<string, string | string[]> = {
   // Content
   'content-management': 'content-hub',
   'banners': 'content-hub',
+  'campaign-banner-hub': 'content-hub',
   'content': 'content-hub',
   'streams': 'content-hub',
   'recordings': 'content-hub',

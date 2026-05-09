@@ -224,6 +224,7 @@ const AdminGifts = lazy(lazyRetry(() => import("./pages/admin/AdminGifts")));
 const AdminGiftTransactions = lazy(lazyRetry(() => import("./pages/admin/AdminGiftTransactions")));
 const AdminErrorLog = lazy(lazyRetry(() => import("./pages/admin/AdminErrorLog")));
 const AdminBanners = lazy(lazyRetry(() => import("./pages/admin/AdminBanners")));
+const AdminCampaignBannerHub = lazy(lazyRetry(() => import("./pages/admin/AdminCampaignBannerHub")));
 const AdminPopupBanners = lazy(lazyRetry(() => import("./pages/admin/AdminPopupBanners")));
 const AdminOnboardingSlides = lazy(lazyRetry(() => import("./pages/admin/AdminOnboardingSlides")));
 const AdminContent = lazy(lazyRetry(() => import("./pages/admin/AdminContent")));
@@ -1147,6 +1148,7 @@ const App = () => {
                   <Route path="gift-transactions" element={<AdminRouteGuard routeSegment="gift-transactions"><AdminGiftTransactions /></AdminRouteGuard>} />
                   <Route path="error-log" element={<AdminRouteGuard routeSegment="error-log"><AdminErrorLog /></AdminRouteGuard>} />
                   <Route path="banners" element={<AdminRouteGuard routeSegment="banners"><AdminBanners /></AdminRouteGuard>} />
+                  <Route path="campaign-banner-hub" element={<AdminRouteGuard routeSegment="campaign-banner-hub"><AdminCampaignBannerHub /></AdminRouteGuard>} />
                   <Route path="popup-banners" element={<AdminRouteGuard routeSegment="popup-banners"><AdminPopupBanners /></AdminRouteGuard>} />
                   <Route path="onboarding-slides" element={<AdminRouteGuard routeSegment="onboarding-slides"><AdminOnboardingSlides /></AdminRouteGuard>} />
                   <Route path="content" element={<AdminRouteGuard routeSegment="content"><AdminContent /></AdminRouteGuard>} />

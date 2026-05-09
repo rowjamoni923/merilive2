@@ -833,6 +833,13 @@ const navGroups: NavGroup[] = [
     hubKey: "content-hub",
     items: [
       {
+        label: "🎯 Campaign Banner Hub",
+        icon: Image,
+        path: "/admin/campaign-banner-hub",
+        hubKey: "content-hub",
+        description: "ONE place for every banner: Home, Recharge, Rating, Invitation, Event Popups, Party, Entry. Single source of truth flowing to every screen.",
+      },
+      {
         label: "Content Management",
         icon: Video,
         path: "/admin/content-management",
