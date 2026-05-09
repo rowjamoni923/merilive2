@@ -164,6 +164,7 @@ const ROUTE_HUB_MAP: Record<string, string | string[]> = {
   'host-feed-ranking': 'settings-hub',
   'party-discovery-ranking': 'settings-hub',
   'ranking-automation': 'settings-hub',
+  'payment-gateway-method-config': 'settings-hub',
   'settings': 'settings-hub',
   'branding': 'settings-hub',
   'invitation-settings': 'settings-hub',
