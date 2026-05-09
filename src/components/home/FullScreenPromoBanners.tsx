@@ -271,7 +271,7 @@ export function FullScreenPromoBanners() {
           {currentBanner.id === "rating" && (
             <div className="absolute inset-x-0 bottom-4 flex justify-center px-4 pointer-events-none">
               <div className="rounded-full border border-white/15 bg-black/55 px-4 py-2 backdrop-blur-md">
-                <span className="text-xs font-semibold tracking-wide text-white">Tap banner to rate on Play Store</span>
+                <span className="text-xs font-semibold tracking-wide text-white">Tap banner to claim your reward</span>
               </div>
             </div>
           )}
