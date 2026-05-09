@@ -91,21 +91,18 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
   useEffect(() => {
     if (!isEnabled || alreadyClaimed) return;
 
-    const handleOpenBanner = () => {
-      setStep('banner');
-      setShowDialog(false);
-      setShowBanner(true);
-    };
-
+    // The old in-component "rate us" banner is fully retired.
+    // The ONLY rating banner shown to users now comes from the admin-managed
+    // `rating_banners` table via <FullScreenPromoBanners />. That banner
+    // dispatches "open-rating-proof-popup" when tapped, which opens the
+    // proof / claim flow below. Same behaviour on web and native Android.
     const handleOpenProof = () => {
       openProofDialog();
     };
 
-    window.addEventListener('open-rating-banner', handleOpenBanner);
     window.addEventListener('open-rating-proof-popup', handleOpenProof);
 
     return () => {
-      window.removeEventListener('open-rating-banner', handleOpenBanner);
       window.removeEventListener('open-rating-proof-popup', handleOpenProof);
     };
   }, [alreadyClaimed, isEnabled, openProofDialog]);
