@@ -293,6 +293,7 @@ const AdminAgencyHub = lazy(lazyRetry(() => import("./pages/admin/AdminAgencyHub
 const AdminAppSettingsHub = lazy(lazyRetry(() => import("./pages/admin/AdminAppSettingsHub")));
 const AdminHostFeedRanking = lazy(lazyRetry(() => import("./pages/admin/AdminHostFeedRanking")));
 const AdminPartyDiscoveryRanking = lazy(lazyRetry(() => import("./pages/admin/AdminPartyDiscoveryRanking")));
+const AdminPaymentGatewayMethodConfig = lazy(lazyRetry(() => import("./pages/admin/AdminPaymentGatewayMethodConfig")));
 const AdminRankingAutomation = lazy(lazyRetry(() => import("./pages/admin/AdminRankingAutomation")));
 const AdminVisualAssetsHub = lazy(lazyRetry(() => import("./pages/admin/AdminVisualAssetsHub")));
 const AdminUserHub = lazy(lazyRetry(() => import("./pages/admin/AdminUserHub")));
