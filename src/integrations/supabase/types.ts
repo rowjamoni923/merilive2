@@ -2818,29 +2818,47 @@ export type Database = {
       consumption_return_config: {
         Row: {
           created_at: string | null
+          display_order: number
           id: string
           is_active: boolean | null
           max_consumption: number | null
+          max_return_coins: number | null
+          max_spend: number | null
           min_consumption: number
+          min_spend: number
+          period_type: string
           return_percentage: number
+          tier_name: string
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
+          display_order?: number
           id?: string
           is_active?: boolean | null
           max_consumption?: number | null
+          max_return_coins?: number | null
+          max_spend?: number | null
           min_consumption?: number
+          min_spend?: number
+          period_type?: string
           return_percentage?: number
+          tier_name?: string
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
+          display_order?: number
           id?: string
           is_active?: boolean | null
           max_consumption?: number | null
+          max_return_coins?: number | null
+          max_spend?: number | null
           min_consumption?: number
+          min_spend?: number
+          period_type?: string
           return_percentage?: number
+          tier_name?: string
           updated_at?: string | null
         }
         Relationships: []
