@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "setting_key": "payment_gateway_method_config",
+  "description": "Admin AI preset for L5 helper country payment methods, auto/manual routing, and logo-safe availability.",
+  "defaults": {
+    "min_methods_per_country": 3,
+    "max_methods_per_country": 4,
+    "enforce_admin_allowlist": true,
+    "require_logo_for_recommended": true,
+    "allow_manual_fallback_on_auto": true,
+    "fraud_controls": {
+      "require_unique_gateway_txn_id": true,
+      "require_signed_webhook_for_auto_verify": true,
+      "block_credit_without_provider_verify": true,
+      "max_failed_verify_attempts": 3
+    }
+  },
+  "countries": {
+    "BD": {
+      "currency": "BDT",
+      "gateways": [
+        { "method_name": "bKash",  "route_type": "manual", "gateway_type": "manual",   "logo_url": "https://cdn.example.com/payments/bkash.png",   "enabled": true },
+        { "method_name": "Nagad",  "route_type": "manual", "gateway_type": "manual",   "logo_url": "https://cdn.example.com/payments/nagad.png",   "enabled": true },
+        { "method_name": "Rocket", "route_type": "manual", "gateway_type": "manual",   "logo_url": "https://cdn.example.com/payments/rocket.png",  "enabled": true },
+        { "method_name": "bKash",  "route_type": "auto",   "gateway_type": "zinipay",  "logo_url": "https://cdn.example.com/payments/zinipay.png", "enabled": true, "webhook_verification": "required" }
+      ]
+    },
+    "IN": {
+      "currency": "INR",
+      "gateways": [
+        { "method_name": "UPI",     "route_type": "manual", "gateway_type": "manual",   "logo_url": "https://cdn.example.com/payments/upi.png",      "enabled": true },
+        { "method_name": "PhonePe", "route_type": "manual", "gateway_type": "manual",   "logo_url": "https://cdn.example.com/payments/phonepe.png",  "enabled": true },
+        { "method_name": "Paytm",   "route_type": "manual", "gateway_type": "manual",   "logo_url": "https://cdn.example.com/payments/paytm.png",    "enabled": true },
+        { "method_name": "UPI",     "route_type": "auto",   "gateway_type": "razorpay", "logo_url": "https://cdn.example.com/payments/razorpay.png", "enabled": true, "webhook_verification": "required" }
+      ]
+    }
+  },
+  "auto_credit_policy": {
+    "credit_after": "provider_verified",
+    "reject_on_verify_timeout_seconds": 600,
+    "notify_admin_on_risk": true,
+    "notify_helper_on_auto_credit": true
+  },
+  "diamond_store_recommended": {
+    "logo_source_priority": [
+      "helper_country_payment_methods.logo_url",
+      "topup_payment_methods.icon_url",
+      "payment_gateways.logo_url"
+    ],
+    "hide_methods_without_logo": true
+  }
+}
