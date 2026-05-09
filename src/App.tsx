@@ -291,6 +291,7 @@ const AdminCoinTraderHub = lazy(lazyRetry(() => import("./pages/admin/AdminCoinT
 const AdminContentManagement = lazy(lazyRetry(() => import("./pages/admin/AdminContentManagement")));
 const AdminAgencyHub = lazy(lazyRetry(() => import("./pages/admin/AdminAgencyHub")));
 const AdminAppSettingsHub = lazy(lazyRetry(() => import("./pages/admin/AdminAppSettingsHub")));
+const AdminHostFeedRanking = lazy(lazyRetry(() => import("./pages/admin/AdminHostFeedRanking")));
 const AdminVisualAssetsHub = lazy(lazyRetry(() => import("./pages/admin/AdminVisualAssetsHub")));
 const AdminUserHub = lazy(lazyRetry(() => import("./pages/admin/AdminUserHub")));
 const AdminSupportTickets = lazy(lazyRetry(() => import("./pages/admin/AdminSupportTickets")));
