@@ -224,6 +224,7 @@ const AdminGifts = lazy(lazyRetry(() => import("./pages/admin/AdminGifts")));
 const AdminGiftTransactions = lazy(lazyRetry(() => import("./pages/admin/AdminGiftTransactions")));
 const AdminErrorLog = lazy(lazyRetry(() => import("./pages/admin/AdminErrorLog")));
 const AdminBanners = lazy(lazyRetry(() => import("./pages/admin/AdminBanners")));
+const AdminCampaignBannerHub = lazy(lazyRetry(() => import("./pages/admin/AdminCampaignBannerHub")));
 const AdminPopupBanners = lazy(lazyRetry(() => import("./pages/admin/AdminPopupBanners")));
 const AdminOnboardingSlides = lazy(lazyRetry(() => import("./pages/admin/AdminOnboardingSlides")));
 const AdminContent = lazy(lazyRetry(() => import("./pages/admin/AdminContent")));
