@@ -16,6 +16,7 @@ import AdminCoins from "./AdminCoins";
 import AdminTopupSystem from "./AdminTopupSystem";
 import AdminPaymentGateways from "./AdminPaymentGateways";
 import AdminHelperPaymentMethods from "@/components/admin/AdminHelperPaymentMethods";
+import AdminPaymentGatewayMethodConfig from "./AdminPaymentGatewayMethodConfig";
  import AdminUserBeansExchange from "./AdminUserBeansExchange";
 
 /**
