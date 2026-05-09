@@ -11078,6 +11078,63 @@ export type Database = {
           },
         ]
       }
+      user_contact_violations: {
+        Row: {
+          coins_deducted: number
+          created_at: string
+          detected_content: string | null
+          detected_pattern: string | null
+          id: string
+          is_auto_detected: boolean
+          source_id: string | null
+          source_type: string | null
+          user_id: string
+          violation_number: number
+          violation_type: string
+        }
+        Insert: {
+          coins_deducted?: number
+          created_at?: string
+          detected_content?: string | null
+          detected_pattern?: string | null
+          id?: string
+          is_auto_detected?: boolean
+          source_id?: string | null
+          source_type?: string | null
+          user_id: string
+          violation_number: number
+          violation_type?: string
+        }
+        Update: {
+          coins_deducted?: number
+          created_at?: string
+          detected_content?: string | null
+          detected_pattern?: string | null
+          id?: string
+          is_auto_detected?: boolean
+          source_id?: string | null
+          source_type?: string | null
+          user_id?: string
+          violation_number?: number
+          violation_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_contact_violations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_contact_violations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_entry_banners: {
         Row: {
           entry_banner_id: string
@@ -15189,6 +15246,14 @@ export type Database = {
             }
             Returns: Json
           }
+        | {
+            Args: {
+              p_bet_amount: number
+              p_game_type: string
+              p_user_id: string
+            }
+            Returns: Json
+          }
       place_live_game_bet: {
         Args: {
           p_bet_amount: number
@@ -15196,6 +15261,16 @@ export type Database = {
           p_bet_value?: string
           p_round_id: string
           p_user_id: string
+        }
+        Returns: Json
+      }
+      process_contact_violation: {
+        Args: {
+          p_detected_content: string
+          p_detected_pattern: string
+          p_host_id: string
+          p_source_id?: string
+          p_source_type: string
         }
         Returns: Json
       }
@@ -15222,6 +15297,17 @@ export type Database = {
         Returns: Json
       }
       process_game_win:
+        | {
+            Args: {
+              p_amount: number
+              p_game_id: string
+              p_game_name: string
+              p_is_jackpot?: boolean
+              p_multiplier?: number
+              p_user_id: string
+            }
+            Returns: Json
+          }
         | {
             Args: { p_amount: number; p_game_type?: string; p_user_id: string }
             Returns: Json
