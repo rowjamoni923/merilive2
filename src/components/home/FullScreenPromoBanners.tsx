@@ -79,20 +79,37 @@ export function FullScreenPromoBanners() {
     return (existingClaims?.length ?? 0) === 0;
   }, []);
 
+  const loadAdminRatingBanners = useCallback(async () => {
+    try {
+      const { data } = await supabase
+        .from("rating_banners")
+        .select("image_url")
+        .eq("is_active", true)
+        .order("display_order", { ascending: true });
+      const urls = (data || []).map((r: any) => r.image_url).filter(Boolean);
+      CACHED_ADMIN_RATING_BANNERS = urls;
+    } catch {
+      CACHED_ADMIN_RATING_BANNERS = [];
+    }
+  }, []);
+
   const resolveNextBanner = useCallback(async (): Promise<{ banner: PromoBanner; index: number } | null> => {
     const startIndex = getRotationIndex();
 
     for (let offset = 0; offset < PROMO_BANNERS.length; offset += 1) {
       const candidateIndex = (startIndex + offset) % PROMO_BANNERS.length;
-      const candidateBanner = PROMO_BANNERS[candidateIndex];
+      const baseBanner = PROMO_BANNERS[candidateIndex];
 
-      if (candidateBanner.id !== "rating" || await isRatingBannerEligible()) {
-        return { banner: candidateBanner, index: candidateIndex };
+      if (baseBanner.id === "rating") {
+        if (!(await isRatingBannerEligible())) continue;
+        await loadAdminRatingBanners();
+        return { banner: { ...baseBanner, image: pickRatingVariant() }, index: candidateIndex };
       }
+      return { banner: baseBanner, index: candidateIndex };
     }
 
     return null;
-  }, [getRotationIndex, isRatingBannerEligible]);
+  }, [getRotationIndex, isRatingBannerEligible, loadAdminRatingBanners]);
 
   const closeBanner = useCallback(() => {
     advanceRotation(rotationIndex);
