@@ -23,6 +23,7 @@ const TABLE_TO_QUERY_KEYS: Record<string, string[][]> = {
   messages: [['messages'], ['conversations']],
   gift_transactions: [['user-profile'], ['gift-history'], ['host-rankings-v2'], ['gifter-rankings-v2'], ['game-rankings-v2']],
   party_rooms: [['party-rooms'], ['index-hosts-v4']],
+  party_room_participants: [['party-rooms'], ['index-hosts-v4']],
   private_calls: [['private-calls'], ['call-history'], ['index-hosts-v4'], ['host-rankings-v2']],
   notifications: [['notifications']],
   app_settings: [['app-settings'], ['global-settings']],
@@ -123,6 +124,31 @@ const TABLE_TO_QUERY_KEYS: Record<string, string[][]> = {
   user_reports: [['user-reports']],
 };
 
+// Keep the global bridge scoped to tables that are actually in the Supabase
+// realtime publication. Binding every cache-mapped table was pushing the
+// realtime guard into pressure mode and could prevent the home host feed from
+// receiving profile online/offline events reliably.
+const REALTIME_PUBLICATION_TABLES = new Set([
+  'messages',
+  'conversations',
+  'live_streams',
+  'party_rooms',
+  'party_room_participants',
+  'notifications',
+  'profiles',
+  'gift_transactions',
+  'private_calls',
+  'app_settings',
+  'agencies',
+  'agency_withdrawals',
+  'support_tickets',
+  'support_messages',
+  'stream_chat',
+  'stream_viewers',
+  'rating_reward_claims',
+  'face_verification_submissions',
+]);
+
 // Table-specific debounce tuning for near-instant cache sync
 const TABLE_DEBOUNCE_MS: Record<string, number> = {
   profiles: 500,
@@ -164,7 +190,9 @@ const PROFILE_HOME_QUERY_KEYS: string[][] = [['index-hosts-v4'], ['host-countrie
 const shouldInvalidateHomeForProfileChange = (_payload: any) => true;
 
 // All tables we want to sync — MUST match publication
-const SYNCED_TABLES = [...Object.keys(TABLE_TO_QUERY_KEYS), 'profiles'];
+const SYNCED_TABLES = Array.from(
+  new Set([...Object.keys(TABLE_TO_QUERY_KEYS), 'profiles'])
+).filter((table) => REALTIME_PUBLICATION_TABLES.has(table));
 
 export const useRealtimeQuerySync = () => {
   const queryClient = useQueryClient();

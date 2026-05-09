@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import { NativePullToRefresh } from "@/components/common/NativePullToRefresh";
 import { warmLiveKitToken } from "@/services/livekitService";
 import { recordClientError } from "@/utils/clientErrorLog";
+import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 
 interface Profile {
   id: string;
@@ -410,8 +411,30 @@ const Index = () => {
     return () => window.clearTimeout(timeoutId);
   }, [hosts]);
 
-  // Home realtime refetch is now centralized in useRealtimeQuerySync
-  // to avoid duplicate refetch/invalidate storms.
+  // Route-local safety net: keep the home host feed live even if the global
+  // bridge is delayed by lazy loading or reconnect pressure.
+  useEffect(() => {
+    let invalidateTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const queueHomeInvalidate = () => {
+      if (invalidateTimer) clearTimeout(invalidateTimer);
+      invalidateTimer = setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["index-hosts-v4"], refetchType: "active" });
+        queryClient.invalidateQueries({ queryKey: ["host-countries"], refetchType: "active" });
+      }, 200);
+    };
+
+    const unsubscribe = subscribeToTables(
+      `home-hosts-${Date.now()}`,
+      ["profiles", "live_streams", "private_calls", "party_rooms", "party_room_participants"],
+      queueHomeInvalidate
+    );
+
+    return () => {
+      if (invalidateTimer) clearTimeout(invalidateTimer);
+      unsubscribe();
+    };
+  }, [queryClient]);
 
   const handleTabChange = (path: string) => {
     setActiveTab(path);
