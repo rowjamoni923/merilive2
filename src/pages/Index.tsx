@@ -198,32 +198,7 @@ const Index = () => {
 
       if (profilesRes.error) throw profilesRes.error;
       const baseProfiles = (profilesRes.data || []) as any[];
-
-      let profiles = baseProfiles;
-      const baseProfileIds = new Set(baseProfiles.map((profile: any) => profile.id));
-      const missingLiveHostIds = liveHostIds.filter((hostId) => !baseProfileIds.has(hostId));
-
-      if (missingLiveHostIds.length > 0) {
-        let missingLiveQuery = supabase
-          .from("profiles_public")
-          .select(HOST_FIELDS)
-          .in("id", missingLiveHostIds)
-          .eq("host_status", "approved")
-          .eq("is_face_verified", true);
-
-        if (selectedCountry !== "all") {
-          missingLiveQuery = missingLiveQuery.eq("country_code", selectedCountry);
-        }
-
-        const { data: missingLiveProfiles, error: missingLiveError } = await missingLiveQuery;
-
-        if (missingLiveError) {
-          console.error("[Index] Error fetching missing live host profiles:", missingLiveError);
-          recordClientError({ label: "Index.missingLiveHostIds", message: missingLiveError instanceof Error ? missingLiveError.message : String(missingLiveError) });
-        } else if (missingLiveProfiles?.length) {
-          profiles = [...baseProfiles, ...missingLiveProfiles];
-        }
-      }
+      const profiles = baseProfiles;
 
       let activeBusyIds = new Set<string>();
       const candidateHostIds = profiles.map((p: any) => p.id).filter(Boolean);
