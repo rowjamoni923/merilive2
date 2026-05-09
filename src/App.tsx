@@ -1205,6 +1205,7 @@ const App = () => {
                   <Route path="content-management" element={<AdminRouteGuard routeSegment="content-management"><AdminContentManagement /></AdminRouteGuard>} />
                   <Route path="agency-hub" element={<AdminRouteGuard routeSegment="agency-hub"><AdminAgencyHub /></AdminRouteGuard>} />
                   <Route path="app-settings-hub" element={<AdminRouteGuard routeSegment="app-settings-hub"><AdminAppSettingsHub /></AdminRouteGuard>} />
+                  <Route path="host-feed-ranking" element={<AdminRouteGuard routeSegment="host-feed-ranking"><AdminHostFeedRanking /></AdminRouteGuard>} />
                   <Route path="visual-assets" element={<AdminRouteGuard routeSegment="visual-assets"><AdminVisualAssetsHub /></AdminRouteGuard>} />
                   <Route path="user-hub" element={<AdminRouteGuard routeSegment="user-hub"><AdminUserHub /></AdminRouteGuard>} />
                   <Route path="helper-orders" element={<AdminRouteGuard routeSegment="helper-orders"><AdminHelperOrders /></AdminRouteGuard>} />
