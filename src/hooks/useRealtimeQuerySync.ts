@@ -156,30 +156,12 @@ const FRAME_CACHE_TABLES = new Set(['avatar_frames', 'role_frames', 'user_role_f
 // Profiles handled separately
 const PROFILE_QUERY_KEYS: string[][] = [['user-profile'], ['host-profile']];
 const PROFILE_HOME_QUERY_KEYS: string[][] = [['index-hosts-v4'], ['host-countries']];
-const PROFILE_HOME_RELEVANT_FIELDS = [
-  'is_host',
-  'gender',
-  'host_status',
-  'is_face_verified',
-  'is_verified',
-  'host_availability',
-  'avatar_url',
-  'display_name',
-  'username',
-  'country_code',
-  'country_flag',
-  'is_online',
-  'is_in_call',
-  'last_seen_at',
-  'frame_id',
-];
 
-const shouldInvalidateHomeForProfileChange = (payload: any) => {
-  const next = payload?.new ?? {};
-  const prev = payload?.old ?? {};
-
-  return PROFILE_HOME_RELEVANT_FIELDS.some((field) => next?.[field] !== prev?.[field]);
-};
+// NOTE: Universal realtime flattens the payload to just `new` (or `old` for DELETE),
+// so we cannot reliably diff field-by-field. The home query is throttled to 800ms
+// in QUERY_KEY_MIN_INVALIDATE_MS, so always invalidating on any profile change is safe
+// and necessary for is_online / host_availability toggles to appear without refresh.
+const shouldInvalidateHomeForProfileChange = (_payload: any) => true;
 
 // All tables we want to sync — MUST match publication
 const SYNCED_TABLES = [...Object.keys(TABLE_TO_QUERY_KEYS), 'profiles'];
