@@ -15463,6 +15463,10 @@ export type Database = {
         }
         Returns: Json
       }
+      reset_host_weekly_policy_after_withdrawal: {
+        Args: { p_host_id: string }
+        Returns: Json
+      }
       reset_my_call_status: { Args: never; Returns: undefined }
       resolve_agency_commission_rate: {
         Args: { _agency_id: string }
