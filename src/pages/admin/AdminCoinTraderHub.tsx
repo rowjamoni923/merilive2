@@ -16,7 +16,6 @@ import AdminCoins from "./AdminCoins";
 import AdminTopupSystem from "./AdminTopupSystem";
 import AdminPaymentGateways from "./AdminPaymentGateways";
 import AdminHelperPaymentMethods from "@/components/admin/AdminHelperPaymentMethods";
-import AdminPaymentGatewayMethodConfig from "./AdminPaymentGatewayMethodConfig";
  import AdminUserBeansExchange from "./AdminUserBeansExchange";
 
 /**
@@ -359,11 +358,8 @@ export default function AdminDiamondTraderHub() {
                 </Badge>
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-0 space-y-6">
+            <CardContent className="p-0">
               <AdminHelperPaymentMethods />
-              <div className="border-t border-slate-800 pt-6">
-                <AdminPaymentGatewayMethodConfig />
-              </div>
             </CardContent>
           </Card>
         </TabsContent>

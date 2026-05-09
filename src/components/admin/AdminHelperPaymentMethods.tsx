@@ -46,6 +46,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import AdminPaymentGatewayMethodConfig from "@/pages/admin/AdminPaymentGatewayMethodConfig";
 
 interface HelperPaymentMethod {
   id: string;
@@ -414,6 +415,11 @@ export default function AdminHelperPaymentMethods() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Payment Gateway Method Config (from Android team JSON preset) */}
+      <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-4">
+        <AdminPaymentGatewayMethodConfig />
+      </div>
 
       {/* Methods Table */}
       <Card className="bg-slate-900/50 border-slate-800">
