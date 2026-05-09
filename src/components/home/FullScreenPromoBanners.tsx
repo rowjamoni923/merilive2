@@ -196,17 +196,12 @@ export function FullScreenPromoBanners() {
     closeBanner();
   }, [canSkip, closeBanner]);
 
-  const handleRatingClick = useCallback(async () => {
+  const handleRatingClick = useCallback(() => {
     sessionStorage.setItem("rating_popup_dismissed", "true");
-    localStorage.setItem(RATING_PENDING_KEY, "true");
     closeBanner();
-
-    try {
-      const { openInApp } = await import("@/utils/inAppNavigation");
-      await openInApp(PLAY_STORE_URL);
-    } catch {
-      window.location.href = PLAY_STORE_URL;
-    }
+    // Open the in-app rating reward page (proof / claim flow) directly.
+    // Works on web AND native Android — no external browser, no Play Store hop.
+    window.dispatchEvent(new CustomEvent("open-rating-proof-popup"));
   }, [closeBanner]);
 
   const handleBannerClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
