@@ -587,7 +587,7 @@ export default function AdminUserManagement() {
           id, display_name, avatar_url, is_verified, is_blocked,
           host_level, host_status, call_rate_per_minute, total_earnings,
           total_call_minutes, total_calls_received, agency_id, created_at,
-          agencies(name, agency_code)
+          agencies!profiles_agency_id_fkey(name, agency_code)
         `)
         .eq("is_host", true)
         .order("total_earnings", { ascending: false });
@@ -1198,7 +1198,7 @@ export default function AdminUserManagement() {
       // Fetch agency info
       const { data: agencyHost } = await supabase
         .from('agency_hosts')
-        .select('agency_id, agencies(id, name, agency_code)')
+        .select('agency_id, agencies!agency_hosts_agency_id_fkey(id, name, agency_code)')
         .eq('host_id', userId)
         .eq('status', 'active')
         .maybeSingle();
