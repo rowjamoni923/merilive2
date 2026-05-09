@@ -1,0 +1,45 @@
+{
+  "setting_key": "home_host_feed_ranking",
+  "notes": "Put one of these objects into app_settings.setting_value for automatic host traffic/ranking control.",
+  "presets": {
+    "balanced_default": {
+      "reject_penalty_threshold": 2,
+      "reject_penalty_strong_threshold": 5,
+      "reject_penalty_amount": 55,
+      "reject_penalty_strong_amount": 120,
+      "reject_penalty_per_extra_reject": 12,
+      "reject_auto_scale_enabled": true,
+      "viewer_weight": 9,
+      "host_level_weight": 3,
+      "live_boost": 80,
+      "online_boost": 40,
+      "busy_boost": 24
+    },
+    "strict_quality": {
+      "reject_penalty_threshold": 2,
+      "reject_penalty_strong_threshold": 4,
+      "reject_penalty_amount": 80,
+      "reject_penalty_strong_amount": 180,
+      "reject_penalty_per_extra_reject": 20,
+      "reject_auto_scale_enabled": true,
+      "viewer_weight": 8,
+      "host_level_weight": 2,
+      "live_boost": 70,
+      "online_boost": 35,
+      "busy_boost": 20
+    },
+    "growth_mode": {
+      "reject_penalty_threshold": 3,
+      "reject_penalty_strong_threshold": 6,
+      "reject_penalty_amount": 35,
+      "reject_penalty_strong_amount": 90,
+      "reject_penalty_per_extra_reject": 8,
+      "reject_auto_scale_enabled": true,
+      "viewer_weight": 10,
+      "host_level_weight": 4,
+      "live_boost": 90,
+      "online_boost": 45,
+      "busy_boost": 28
+    }
+  }
+}
