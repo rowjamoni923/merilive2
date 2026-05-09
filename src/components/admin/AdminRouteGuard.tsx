@@ -161,6 +161,7 @@ const ROUTE_HUB_MAP: Record<string, string | string[]> = {
   'email-broadcast': 'settings-hub',
   'notification-templates': 'settings-hub',
   'app-settings-hub': 'settings-hub',
+  'host-feed-ranking': 'settings-hub',
   'settings': 'settings-hub',
   'branding': 'settings-hub',
   'invitation-settings': 'settings-hub',
