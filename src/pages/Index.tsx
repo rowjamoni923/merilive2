@@ -22,7 +22,6 @@ import { CallButton } from "@/features/call";
 import { toast } from "sonner";
 import { NativePullToRefresh } from "@/components/common/NativePullToRefresh";
 import { warmLiveKitToken } from "@/services/livekitService";
-import { recordClientError } from "@/utils/clientErrorLog";
 import { subscribeToTables } from "@/hooks/useUniversalRealtime";
 
 interface Profile {
@@ -75,7 +74,6 @@ function resolveFeedAvatar(
   isHost: boolean
 ): string {
   if (avatarUrl && avatarUrl.trim().length > 0) return avatarUrl;
-  if (viewerId && viewerId === hostId) return DEFAULT_AVATAR;
   if (isHost) return getDisplayAvatar(hostId, avatarUrl);
   return DEFAULT_AVATAR;
 }
@@ -97,15 +95,7 @@ const Index = () => {
     staleTime: 1000 * 60 * 15, // 15 minutes cache - country list rarely changes
     gcTime: 1000 * 60 * 60,
     queryFn: async () => {
-      const { data } = await supabase
-        .from("profiles_public")
-        .select("country_code, country_flag")
-        .eq("is_host", true)
-        .eq("gender", "female")
-        .eq("host_status", "approved")
-        .eq("is_face_verified", true)
-        .not("country_code", "is", null)
-        .not("country_flag", "is", null);
+      const { data } = await supabase.rpc('get_public_host_countries_v1' as any);
       
       if (!data) return [];
       
@@ -186,93 +176,28 @@ const Index = () => {
       const sixtyMinutesAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
 
       // ⚡ PARALLEL FETCH: All independent queries at once
-      const [liveStreamsRes, followingRes] = await Promise.all([
-        supabase
-          .from("live_streams")
-          .select("id, host_id, title, viewer_count, thumbnail_url, started_at")
-          .eq("is_active", true),
-        // Only fetch following if needed
-        (subTab === "following" && currentUserId)
-          ? supabase.from("followers").select("following_id").eq("follower_id", currentUserId)
-          : Promise.resolve({ data: null }),
-      ]);
+      const liveStreamsRes = await supabase
+        .from("live_streams")
+        .select("id, host_id, title, viewer_count, thumbnail_url, started_at")
+        .eq("is_active", true);
 
       const liveStreamMap = new Map(liveStreamsRes.data?.map(s => [s.host_id, s]) || []);
       const liveHostIds = Array.from(liveStreamMap.keys());
 
-      if (subTab === "following") {
-        const followedIds = followingRes.data?.map((f: any) => f.following_id) || [];
-        if (followedIds.length === 0) return [];
-      }
+      if (subTab === "live" && liveHostIds.length === 0) return [];
 
-      // Build profile query based on tab
-      let profileQuery;
-      const HOST_FIELDS = "id, display_name, username, avatar_url, bio, country_code, country_flag, user_level, host_level, is_online, is_in_call, is_host, gender, call_rate_per_minute, is_verified, is_face_verified, created_at, frame_id, last_seen_at, host_status, host_availability";
-
-      if (subTab === "live") {
-        if (liveHostIds.length === 0) return [];
-        profileQuery = supabase
-          .from("profiles_public")
-          .select(HOST_FIELDS)
-          .in("id", liveHostIds)
-          .eq("host_status", "approved")
-          .eq("is_face_verified", true);
-        if (selectedCountry !== "all") profileQuery = profileQuery.eq("country_code", selectedCountry);
-      } else {
-        profileQuery = supabase
-          .from("profiles_public")
-          .select(HOST_FIELDS)
-          .eq("is_host", true)
-          .eq("gender", "female")
-          .eq("host_status", "approved")
-          .eq("is_face_verified", true)
-          .eq("is_online", true)
-          .neq("host_availability", "offline")
-          .gte("last_seen_at", sixtyMinutesAgo);
-        if (selectedCountry !== "all") profileQuery = profileQuery.eq("country_code", selectedCountry);
-        if (subTab === "following") {
-          const followedIds = followingRes.data?.map((f: any) => f.following_id) || [];
-          if (followedIds.length > 0) profileQuery = profileQuery.in("id", followedIds);
-        }
-        if (subTab === "new") {
-          const sevenDaysAgo = new Date();
-          sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-          profileQuery = profileQuery.gte("created_at", sevenDaysAgo.toISOString());
-        }
-        profileQuery = profileQuery.order("last_seen_at", { ascending: false }).limit(100);
-      }
-
-      // ⚡ Fetch profiles first, then scope busy-call lookup to only visible hosts
-      const profilesRes = await profileQuery;
+      // Fetch public-safe host rows through SECURITY DEFINER RPC.
+      // profiles_public is security_invoker, so normal users cannot see other
+      // users' base profile rows after public SELECT was correctly removed.
+      const profilesRes = await supabase.rpc('get_public_home_hosts_v1' as any, {
+        p_selected_country: selectedCountry,
+        p_sub_tab: subTab,
+        p_current_user_id: currentUserId,
+      });
 
       if (profilesRes.error) throw profilesRes.error;
       const baseProfiles = (profilesRes.data || []) as any[];
-
-      let profiles = baseProfiles;
-      const baseProfileIds = new Set(baseProfiles.map((profile: any) => profile.id));
-      const missingLiveHostIds = liveHostIds.filter((hostId) => !baseProfileIds.has(hostId));
-
-      if (missingLiveHostIds.length > 0) {
-        let missingLiveQuery = supabase
-          .from("profiles_public")
-          .select(HOST_FIELDS)
-          .in("id", missingLiveHostIds)
-          .eq("host_status", "approved")
-          .eq("is_face_verified", true);
-
-        if (selectedCountry !== "all") {
-          missingLiveQuery = missingLiveQuery.eq("country_code", selectedCountry);
-        }
-
-        const { data: missingLiveProfiles, error: missingLiveError } = await missingLiveQuery;
-
-        if (missingLiveError) {
-          console.error("[Index] Error fetching missing live host profiles:", missingLiveError);
-          recordClientError({ label: "Index.missingLiveHostIds", message: missingLiveError instanceof Error ? missingLiveError.message : String(missingLiveError) });
-        } else if (missingLiveProfiles?.length) {
-          profiles = [...baseProfiles, ...missingLiveProfiles];
-        }
-      }
+      const profiles = baseProfiles;
 
       let activeBusyIds = new Set<string>();
       const candidateHostIds = profiles.map((p: any) => p.id).filter(Boolean);

@@ -15033,6 +15033,43 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_public_home_hosts_v1: {
+        Args: {
+          p_current_user_id?: string
+          p_selected_country?: string
+          p_sub_tab?: string
+        }
+        Returns: {
+          avatar_url: string
+          bio: string
+          call_rate_per_minute: number
+          country_code: string
+          country_flag: string
+          created_at: string
+          display_name: string
+          frame_id: string
+          gender: string
+          host_availability: string
+          host_level: number
+          host_status: string
+          id: string
+          is_face_verified: boolean
+          is_host: boolean
+          is_in_call: boolean
+          is_online: boolean
+          is_verified: boolean
+          last_seen_at: string
+          user_level: number
+          username: string
+        }[]
+      }
+      get_public_host_countries_v1: {
+        Args: never
+        Returns: {
+          country_code: string
+          country_flag: string
+        }[]
+      }
       get_rate_for_numeric_level: { Args: { _level: number }; Returns: number }
       get_task_center_calendar: { Args: never; Returns: Json }
       get_task_program_day: { Args: { _host_id: string }; Returns: number }
