@@ -1148,6 +1148,7 @@ const App = () => {
                   <Route path="gift-transactions" element={<AdminRouteGuard routeSegment="gift-transactions"><AdminGiftTransactions /></AdminRouteGuard>} />
                   <Route path="error-log" element={<AdminRouteGuard routeSegment="error-log"><AdminErrorLog /></AdminRouteGuard>} />
                   <Route path="banners" element={<AdminRouteGuard routeSegment="banners"><AdminBanners /></AdminRouteGuard>} />
+                  <Route path="campaign-banner-hub" element={<AdminRouteGuard routeSegment="campaign-banner-hub"><AdminCampaignBannerHub /></AdminRouteGuard>} />
                   <Route path="popup-banners" element={<AdminRouteGuard routeSegment="popup-banners"><AdminPopupBanners /></AdminRouteGuard>} />
                   <Route path="onboarding-slides" element={<AdminRouteGuard routeSegment="onboarding-slides"><AdminOnboardingSlides /></AdminRouteGuard>} />
                   <Route path="content" element={<AdminRouteGuard routeSegment="content"><AdminContent /></AdminRouteGuard>} />
