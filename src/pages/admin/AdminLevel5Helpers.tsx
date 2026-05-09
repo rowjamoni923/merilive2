@@ -218,7 +218,6 @@ const AdminLevel5Helpers = () => {
           user_id, country_code,
           user:profiles!topup_helpers_user_id_fkey(display_name, avatar_url)
         ),
-        agency:agencies(name, agency_code),
         host:profiles!helper_withdrawal_requests_host_id_fkey(display_name)
       `)
       .order('created_at', { ascending: false });

@@ -123,8 +123,7 @@ const AdminHelperApplications = () => {
         .from('helper_applications')
         .select(`
           *,
-          user:profiles!helper_applications_user_id_fkey(display_name, avatar_url, app_uid),
-          agency:agencies(name, agency_code)
+          user:profiles!helper_applications_user_id_fkey(display_name, avatar_url, app_uid)
         `)
         .order('created_at', { ascending: false });
 
@@ -142,10 +141,7 @@ const AdminHelperApplications = () => {
       // Fetch payroll requests (still needed as a list, not just stats)
       const { data: payrollData } = await supabase
         .from('payroll_requests')
-        .select(`
-          *,
-          agency:agencies(name, agency_code)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       setPayrollRequests((payrollData || []) as PayrollRequest[]);

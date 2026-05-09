@@ -189,8 +189,7 @@ const AdminHelperManagement = () => {
       .from('helper_applications')
       .select(`
         *,
-        user:profiles!helper_applications_user_id_fkey(display_name, avatar_url, app_uid, country_code, country_flag, country_name),
-        agency:agencies(name, agency_code)
+        user:profiles!helper_applications_user_id_fkey(display_name, avatar_url, app_uid, country_code, country_flag, country_name)
       `)
       .order('created_at', { ascending: false });
     setApplications((data || []) as HelperApplication[]);
