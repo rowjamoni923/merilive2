@@ -1097,6 +1097,13 @@ const navGroups: NavGroup[] = [
         description: "Control reject penalties, viewer/level weights and live/online/busy boosts for the home host feed.",
       },
       {
+        label: "🎉 Party Discovery Ranking",
+        icon: Settings,
+        path: "/admin/party-discovery-ranking",
+        hubKey: "settings-hub",
+        description: "Control participant weight, recency, growth and peak-hour boosts for the party room discovery feed.",
+      },
+      {
         label: "General Settings",
         icon: Settings,
         path: "/admin/settings",
