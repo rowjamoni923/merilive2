@@ -16,9 +16,16 @@ interface PromoBanner {
 }
 
 // Premium luxury rating + giveaway banners (Users win 10,000 Diamonds, Hosts win 10,000 Beans)
-// Rotated each time the rating popup is eligible to show.
-const RATING_BANNER_VARIANTS = [bannerRatingRewardV2, bannerRatingRewardV3, bannerRatingRewardV4];
-const pickRatingVariant = () => RATING_BANNER_VARIANTS[Math.floor(Math.random() * RATING_BANNER_VARIANTS.length)];
+// Admin-managed banners from `rating_banners` are loaded at runtime; bundled assets are used
+// only as a fallback when no active admin banners exist.
+const FALLBACK_RATING_BANNERS = [bannerRatingRewardV2, bannerRatingRewardV3, bannerRatingRewardV4];
+let CACHED_ADMIN_RATING_BANNERS: string[] | null = null;
+const pickRatingVariant = () => {
+  const pool = (CACHED_ADMIN_RATING_BANNERS && CACHED_ADMIN_RATING_BANNERS.length > 0)
+    ? CACHED_ADMIN_RATING_BANNERS
+    : FALLBACK_RATING_BANNERS;
+  return pool[Math.floor(Math.random() * pool.length)];
+};
 
 const PROMO_BANNERS: PromoBanner[] = [
   { id: "rating", image: pickRatingVariant(), alt: "Rate us & win giveaway", fullScreen: false },
