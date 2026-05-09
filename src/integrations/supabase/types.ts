@@ -9459,6 +9459,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "reel_reports_reel_id_fkey"
+            columns: ["reel_id"]
+            isOneToOne: false
+            referencedRelation: "reels"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "reel_reports_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -11909,6 +11916,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "user_role_frames_frame_id_fkey"
+            columns: ["frame_id"]
+            isOneToOne: false
+            referencedRelation: "role_frames"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "user_role_frames_user_id_fkey"
             columns: ["user_id"]
