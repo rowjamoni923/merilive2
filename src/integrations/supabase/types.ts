@@ -891,7 +891,22 @@ export type Database = {
           wallet_balance?: number | null
           whatsapp_number?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "agencies_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agencies_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       agency_commission_history: {
         Row: {
@@ -5285,7 +5300,22 @@ export type Database = {
           status?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "helper_topup_requests_helper_id_fkey"
+            columns: ["helper_id"]
+            isOneToOne: false
+            referencedRelation: "coin_traders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "helper_topup_requests_helper_id_fkey"
+            columns: ["helper_id"]
+            isOneToOne: false
+            referencedRelation: "topup_helpers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       helper_transactions: {
         Row: {
@@ -5389,7 +5419,22 @@ export type Database = {
           reviewed_by?: string | null
           status?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "helper_upgrade_requests_helper_id_fkey"
+            columns: ["helper_id"]
+            isOneToOne: false
+            referencedRelation: "coin_traders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "helper_upgrade_requests_helper_id_fkey"
+            columns: ["helper_id"]
+            isOneToOne: false
+            referencedRelation: "topup_helpers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       helper_withdrawal_requests: {
         Row: {
@@ -5550,7 +5595,22 @@ export type Database = {
           video_duration_seconds?: number | null
           video_url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "host_applications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "host_applications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       host_contact_violations: {
         Row: {
@@ -12707,7 +12767,22 @@ export type Database = {
           total_agents?: number | null
           total_hosts?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "agencies_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agencies_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       coin_traders: {
         Row: {
