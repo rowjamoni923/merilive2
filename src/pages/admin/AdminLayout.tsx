@@ -1090,6 +1090,13 @@ const navGroups: NavGroup[] = [
         description: "Landing page for the Settings hub — quick links to every settings page below.",
       },
       {
+        label: "🏠 Host Feed Ranking",
+        icon: Settings,
+        path: "/admin/host-feed-ranking",
+        hubKey: "settings-hub",
+        description: "Control reject penalties, viewer/level weights and live/online/busy boosts for the home host feed.",
+      },
+      {
         label: "General Settings",
         icon: Settings,
         path: "/admin/settings",
