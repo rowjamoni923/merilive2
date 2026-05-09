@@ -145,7 +145,7 @@ const AdminTraderOrders = () => {
         // Get current helper data with user info
         const { data: helperData } = await supabase
           .from('topup_helpers')
-          .select('wallet_balance, total_sold, user:user_id(display_name, avatar_url)')
+          .select('wallet_balance, total_sold, user:profiles!topup_helpers_user_id_fkey(display_name, avatar_url)')
           .eq('id', order.helper_id)
           .maybeSingle();
 
