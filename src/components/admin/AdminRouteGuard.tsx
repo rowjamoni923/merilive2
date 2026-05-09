@@ -163,6 +163,7 @@ const ROUTE_HUB_MAP: Record<string, string | string[]> = {
   'app-settings-hub': 'settings-hub',
   'host-feed-ranking': 'settings-hub',
   'party-discovery-ranking': 'settings-hub',
+  'ranking-automation': 'settings-hub',
   'settings': 'settings-hub',
   'branding': 'settings-hub',
   'invitation-settings': 'settings-hub',
