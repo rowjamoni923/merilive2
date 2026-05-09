@@ -13,12 +13,14 @@ const AdminPartyBackgrounds = lazy(() => import("./AdminPartyBackgrounds"));
 const AdminEntryBanners = lazy(() => import("./AdminEntryBanners"));
 const AdminInvitationSettings = lazy(() => import("./AdminInvitationSettings"));
 const AdminRewardsManagement = lazy(() => import("./AdminRewardsManagement"));
+const AdminRatingBanners = lazy(() => import("./AdminRatingBanners"));
 
 const TABS: Array<{ value: string; label: string; Component: React.LazyExoticComponent<any>; hint: string }> = [
   { value: "home", label: "🏠 Home Banners", Component: AdminBanners, hint: "Home-page promo carousel banners." },
   { value: "popup", label: "🪟 Popup / Event Banners", Component: AdminPopupBanners, hint: "Modal popups on app launch (event teaser, recharge promo)." },
   { value: "recharge", label: "💎 Recharge Banner & Campaigns", Component: AdminRechargeCampaigns, hint: "Fast-recharge banner shown on the Diamond Store / Recharge page + bonus campaigns." },
-  { value: "rating", label: "⭐ Rating Reward Banner", Component: AdminRewardsManagement, hint: "Rating-popup banner + first-recharge banner (configured inside Rewards Management)." },
+  { value: "rating", label: "⭐ Rating Reward Banner", Component: AdminRatingBanners, hint: "Premium half-screen rating + giveaway banners. Active ones rotate randomly in the popup." },
+  { value: "rating-rewards-config", label: "🎁 Rating Rewards Config", Component: AdminRewardsManagement, hint: "Rating reward amounts, screenshot review settings, first-recharge bonus." },
   { value: "invitation", label: "🤝 Invitation Banner", Component: AdminInvitationSettings, hint: "Invitation page tier banners and rewards." },
   { value: "entry", label: "🚪 Entry Banners", Component: AdminEntryBanners, hint: "User-entry name graphics shown when entering live rooms." },
   { value: "party-banner", label: "🎉 Party Banners", Component: AdminPartyBanners, hint: "Promo banners shown inside the Party tab." },

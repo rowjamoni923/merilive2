@@ -1154,6 +1154,13 @@ const navGroups: NavGroup[] = [
         description: "Modal popups shown on app launch (event teaser, recharge promo) with sequential rotation.",
       },
       {
+        label: "Rating Reward Banners",
+        icon: Image,
+        path: "/admin/rating-banners",
+        hubKey: "settings-hub",
+        description: "Premium half-screen banners shown in the rating + giveaway popup. Active banners rotate randomly.",
+      },
+      {
         label: "Onboarding Slides",
         icon: Image,
         path: "/admin/onboarding-slides",
