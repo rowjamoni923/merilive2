@@ -7529,6 +7529,7 @@ export type Database = {
           is_active: boolean | null
           is_free: boolean | null
           is_premium: boolean | null
+          min_level: number
           name: string
           price_coins: number | null
           price_diamonds: number | null
@@ -7545,6 +7546,7 @@ export type Database = {
           is_active?: boolean | null
           is_free?: boolean | null
           is_premium?: boolean | null
+          min_level?: number
           name: string
           price_coins?: number | null
           price_diamonds?: number | null
@@ -7561,6 +7563,7 @@ export type Database = {
           is_active?: boolean | null
           is_free?: boolean | null
           is_premium?: boolean | null
+          min_level?: number
           name?: string
           price_coins?: number | null
           price_diamonds?: number | null
@@ -14039,6 +14042,7 @@ export type Database = {
           is_active: boolean | null
           is_free: boolean | null
           is_premium: boolean | null
+          min_level: number
           name: string
           price_coins: number | null
           price_diamonds: number | null
@@ -14561,42 +14565,82 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      admin_upsert_party_background: {
-        Args: {
-          _admin_id: string
-          _category: string
-          _display_order: number
-          _gradient_css: string
-          _id: string
-          _image_url: string
-          _is_active: boolean
-          _is_premium: boolean
-          _name: string
-          _price_diamonds: number
-        }
-        Returns: {
-          category: string | null
-          created_at: string | null
-          display_order: number | null
-          gradient_css: string | null
-          id: string
-          image_url: string
-          is_active: boolean | null
-          is_free: boolean | null
-          is_premium: boolean | null
-          name: string
-          price_coins: number | null
-          price_diamonds: number | null
-          thumbnail_url: string | null
-          updated_at: string | null
-        }
-        SetofOptions: {
-          from: "*"
-          to: "party_room_backgrounds"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
+      admin_upsert_party_background:
+        | {
+            Args: {
+              _admin_id: string
+              _category: string
+              _display_order: number
+              _gradient_css: string
+              _id: string
+              _image_url: string
+              _is_active: boolean
+              _is_premium: boolean
+              _name: string
+              _price_diamonds: number
+            }
+            Returns: {
+              category: string | null
+              created_at: string | null
+              display_order: number | null
+              gradient_css: string | null
+              id: string
+              image_url: string
+              is_active: boolean | null
+              is_free: boolean | null
+              is_premium: boolean | null
+              min_level: number
+              name: string
+              price_coins: number | null
+              price_diamonds: number | null
+              thumbnail_url: string | null
+              updated_at: string | null
+            }
+            SetofOptions: {
+              from: "*"
+              to: "party_room_backgrounds"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: {
+              _admin_id: string
+              _category: string
+              _display_order: number
+              _gradient_css: string
+              _id: string
+              _image_url: string
+              _is_active: boolean
+              _is_premium: boolean
+              _min_level?: number
+              _name: string
+              _price_diamonds: number
+            }
+            Returns: {
+              category: string | null
+              created_at: string | null
+              display_order: number | null
+              gradient_css: string | null
+              id: string
+              image_url: string
+              is_active: boolean | null
+              is_free: boolean | null
+              is_premium: boolean | null
+              min_level: number
+              name: string
+              price_coins: number | null
+              price_diamonds: number | null
+              thumbnail_url: string | null
+              updated_at: string | null
+            }
+            SetofOptions: {
+              from: "*"
+              to: "party_room_backgrounds"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
       admin_user_stats: { Args: never; Returns: Json }
       admin_visual_assets_stats: { Args: never; Returns: Json }
       admin_withdrawal_stats: { Args: never; Returns: Json }
