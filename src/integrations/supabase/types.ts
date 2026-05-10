@@ -8534,6 +8534,7 @@ export type Database = {
           equipped_vehicle_id: string | null
           face_hash: string | null
           face_verification_image: string | null
+          face_verification_status: string | null
           face_verified_at: string | null
           frame_id: string | null
           gender: string | null
@@ -8649,6 +8650,7 @@ export type Database = {
           equipped_vehicle_id?: string | null
           face_hash?: string | null
           face_verification_image?: string | null
+          face_verification_status?: string | null
           face_verified_at?: string | null
           frame_id?: string | null
           gender?: string | null
@@ -8764,6 +8766,7 @@ export type Database = {
           equipped_vehicle_id?: string | null
           face_hash?: string | null
           face_verification_image?: string | null
+          face_verification_status?: string | null
           face_verified_at?: string | null
           frame_id?: string | null
           gender?: string | null
@@ -12973,6 +12976,7 @@ export type Database = {
           equipped_medal_id: string | null
           equipped_noble_card_id: string | null
           equipped_vehicle_id: string | null
+          face_verification_status: string | null
           face_verified_at: string | null
           frame_id: string | null
           gender: string | null
@@ -13034,6 +13038,7 @@ export type Database = {
           equipped_medal_id?: string | null
           equipped_noble_card_id?: string | null
           equipped_vehicle_id?: string | null
+          face_verification_status?: string | null
           face_verified_at?: string | null
           frame_id?: string | null
           gender?: string | null
@@ -13095,6 +13100,7 @@ export type Database = {
           equipped_medal_id?: string | null
           equipped_noble_card_id?: string | null
           equipped_vehicle_id?: string | null
+          face_verification_status?: string | null
           face_verified_at?: string | null
           frame_id?: string | null
           gender?: string | null
@@ -13466,6 +13472,7 @@ export type Database = {
         Args: { _admin_id: string; _device_fingerprint: string }
         Returns: Json
       }
+      admin_check_live_ban: { Args: { p_user_id: string }; Returns: boolean }
       admin_clear_frame_references: {
         Args: { frame_id_to_clear: string }
         Returns: undefined
@@ -14882,6 +14889,7 @@ export type Database = {
           equipped_vehicle_id: string | null
           face_hash: string | null
           face_verification_image: string | null
+          face_verification_status: string | null
           face_verified_at: string | null
           frame_id: string | null
           gender: string | null
