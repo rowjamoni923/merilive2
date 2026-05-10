@@ -134,7 +134,7 @@ export function BackgroundPickerPanel({
     try {
       const { error } = await supabase
         .from('party_rooms')
-        .update({ background_id: bg.id } as any)
+        .update({ background_url: bg.image_url || null } as any)
         .eq('id', roomId);
 
       if (error) throw error;
