@@ -15437,6 +15437,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      mark_live_stream_live: { Args: { p_stream_id: string }; Returns: Json }
       mark_messages_delivered: {
         Args: { p_conversation_id: string; p_recipient_id: string }
         Returns: number
