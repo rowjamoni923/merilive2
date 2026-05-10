@@ -106,12 +106,7 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
   if (isNativeApp()) {
     try {
       const permission = await MeriPermissions.requestNotifications();
-      if (permission.notifications) {
-        const { PushNotifications } = await import('@capacitor/push-notifications');
-        await PushNotifications.register();
-        return true;
-      }
-      return false;
+      return permission.notifications;
     } catch (error) {
       console.error('Native notification permission error:', error);
       return false;
