@@ -97,6 +97,33 @@ const worldLanguages = [
   { code: "am", name: "Amharic", displayName: "Amharic", flag: "🇪🇹", countries: ["ET"] },
 ];
 
+type PermissionKey = 'notifications' | 'camera' | 'microphone' | 'location';
+
+const DEFAULT_PERMISSIONS: Record<PermissionKey, boolean> = {
+  notifications: false,
+  camera: false,
+  microphone: false,
+  location: false,
+};
+
+const PERMISSION_CACHE_KEY = 'meri_settings_permissions_v1';
+
+const readCachedPermissions = (): Record<PermissionKey, boolean> => {
+  if (typeof window === 'undefined') return { ...DEFAULT_PERMISSIONS };
+  try {
+    return { ...DEFAULT_PERMISSIONS, ...JSON.parse(localStorage.getItem(PERMISSION_CACHE_KEY) || '{}') };
+  } catch {
+    return { ...DEFAULT_PERMISSIONS };
+  }
+};
+
+const writeCachedPermissions = (next: Record<PermissionKey, boolean>) => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(PERMISSION_CACHE_KEY, JSON.stringify(next));
+  } catch {}
+};
+
 const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -117,12 +144,7 @@ const Settings = () => {
   const [userId, setUserId] = useState<string | null>(null);
   
   // Permission states
-  const [permissions, setPermissions] = useState({
-    notifications: false,
-    camera: false,
-    microphone: false,
-    location: false,
-  });
+  const [permissions, setPermissions] = useState<Record<PermissionKey, boolean>>(() => readCachedPermissions());
 
   const refreshPermissions = useCallback(async () => {
     try {
