@@ -516,7 +516,7 @@ const Settings = () => {
       if (isNativeApp()) {
         const granted = await requestNativeMicrophonePermission();
         if (granted) {
-          setPermissions(prev => ({ ...prev, microphone: true }));
+          updatePermissions({ microphone: true });
           toast({ title: "Microphone Enabled", description: "Microphone access has been granted." });
         } else {
           toast({ title: "Microphone Blocked", description: nativeSettingsHint('Microphone'), variant: "destructive" });
@@ -530,7 +530,7 @@ const Settings = () => {
       }
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       stream.getTracks().forEach(track => track.stop());
-      setPermissions(prev => ({ ...prev, microphone: true }));
+      updatePermissions({ microphone: true });
       toast({ title: "Microphone Enabled", description: "Microphone access has been granted." });
     } catch (error: any) {
       console.error('Microphone permission error:', error);
@@ -585,7 +585,7 @@ const Settings = () => {
       if (isNativeApp()) {
         const granted = await requestNativeLocationPermission();
         if (granted) {
-          setPermissions(prev => ({ ...prev, location: true }));
+          updatePermissions({ location: true });
           toast({ title: "Location Enabled", description: "Location access has been granted." });
         } else {
           toast({ title: "Permission Denied", description: nativeSettingsHint('Location'), variant: "destructive" });
@@ -601,7 +601,7 @@ const Settings = () => {
       await new Promise<void>((resolve) => {
         navigator.geolocation.getCurrentPosition(
           () => {
-            setPermissions(prev => ({ ...prev, location: true }));
+            updatePermissions({ location: true });
             toast({ title: "Location Enabled", description: "Location access has been granted." });
             resolve();
           },
