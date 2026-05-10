@@ -92,7 +92,7 @@ const AdminRewardClaimsHistory = () => {
         .eq('is_claimed', true)
         .gte('reset_date', startDate)
         .lte('reset_date', endDate)
-        .order('claimed_at', { ascending: false })
+        .order('updated_at', { ascending: false })
         .limit(500);
 
       if (taskError) throw taskError;
