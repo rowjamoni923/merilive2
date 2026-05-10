@@ -81,11 +81,8 @@ export async function registerFCMToken(userId: string): Promise<string | null> {
     }
 
     if (permission === 'default') {
-      permission = await Notification.requestPermission();
-      if (permission !== 'granted') {
-        console.warn('[FCM] Notification permission not granted');
-        return null;
-      }
+      console.warn('[FCM] Waiting for user-initiated notification permission request');
+      return null;
     }
 
     const msg = await getMessagingInstance();
