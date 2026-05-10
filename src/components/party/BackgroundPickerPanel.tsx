@@ -14,6 +14,7 @@ interface Background {
   category: string;
   price_diamonds: number;
   is_premium: boolean;
+  min_level?: number;
 }
 
 interface BackgroundPickerPanelProps {
