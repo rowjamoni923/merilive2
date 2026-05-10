@@ -134,7 +134,7 @@ export function BackgroundPickerPanel({
     try {
       const { error } = await supabase
         .from('party_rooms')
-        .update({ background_id: bg.id } as any)
+        .update({ background_url: bg.image_url || null } as any)
         .eq('id', roomId);
 
       if (error) throw error;
@@ -142,9 +142,9 @@ export function BackgroundPickerPanel({
       onSelectBackground(bg);
       toast.success("Background updated!");
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating background:', error);
-      toast.error("Failed to update background");
+      toast.error(error?.message || "Failed to update background");
     } finally {
       setUpdating(false);
     }
