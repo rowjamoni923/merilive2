@@ -177,7 +177,8 @@ const AdminPartyBackgrounds = () => {
       is_premium: false,
       is_active: true,
       price_diamonds: 0,
-      display_order: backgrounds.length + 1
+      display_order: backgrounds.length + 1,
+      min_level: 0
     });
     setShowAddDialog(true);
   };
