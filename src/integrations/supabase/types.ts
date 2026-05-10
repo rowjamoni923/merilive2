@@ -14832,6 +14832,7 @@ export type Database = {
         Args: { p_competition_id: string }
         Returns: number
       }
+      end_live_stream: { Args: { p_stream_id: string }; Returns: Json }
       end_private_call: {
         Args: { _call_id: string; _end_reason?: string }
         Returns: boolean
@@ -15775,6 +15776,14 @@ export type Database = {
       }
       set_user_offline: { Args: { p_user_id: string }; Returns: undefined }
       settle_private_call: { Args: { p_call_id: string }; Returns: Json }
+      start_live_stream: {
+        Args: {
+          p_display_name?: string
+          p_thumbnail_url?: string
+          p_title?: string
+        }
+        Returns: Json
+      }
       start_private_call:
         | { Args: { _host_id: string; _stream_id?: string }; Returns: string }
         | {
