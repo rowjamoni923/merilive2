@@ -57,6 +57,7 @@ interface PartyBackground {
   is_active: boolean;
   price_diamonds: number; // DB uses diamonds not coins
   display_order: number;
+  min_level?: number; // Minimum user level required (0 = no restriction)
   created_at: string;
 }
 
@@ -108,7 +109,8 @@ const AdminPartyBackgrounds = () => {
     is_premium: false,
     is_active: true,
     price_diamonds: 0,
-    display_order: 1
+    display_order: 1,
+    min_level: 0
   });
 
   const fetchBackgrounds = useCallback(async () => {
@@ -142,6 +144,7 @@ const AdminPartyBackgrounds = () => {
         is_active: bg.is_active ?? true,
         price_diamonds: bg.price_diamonds || 0,
         display_order: bg.display_order || 1,
+        min_level: bg.min_level ?? 0,
         created_at: bg.created_at
       })));
     } catch (err) {
@@ -175,7 +178,8 @@ const AdminPartyBackgrounds = () => {
       is_premium: false,
       is_active: true,
       price_diamonds: 0,
-      display_order: backgrounds.length + 1
+      display_order: backgrounds.length + 1,
+      min_level: 0
     });
     setShowAddDialog(true);
   };
@@ -190,7 +194,8 @@ const AdminPartyBackgrounds = () => {
       is_premium: bg.is_premium,
       is_active: bg.is_active,
       price_diamonds: bg.price_diamonds,
-      display_order: bg.display_order
+      display_order: bg.display_order,
+      min_level: bg.min_level ?? 0
     });
     setShowEditDialog(true);
   };
@@ -218,6 +223,7 @@ const AdminPartyBackgrounds = () => {
         _is_active: formData.is_active,
         _price_diamonds: formData.price_diamonds,
         _display_order: formData.display_order,
+        _min_level: formData.min_level,
       });
       if (error) throw error;
       if (data) {
@@ -258,6 +264,7 @@ const AdminPartyBackgrounds = () => {
         _is_active: formData.is_active,
         _price_diamonds: formData.price_diamonds,
         _display_order: formData.display_order,
+        _min_level: formData.min_level,
       });
       if (error) throw error;
 
@@ -324,6 +331,7 @@ const AdminPartyBackgrounds = () => {
         _is_active: !bg.is_active,
         _price_diamonds: bg.price_diamonds,
         _display_order: bg.display_order,
+        _min_level: bg.min_level ?? 0,
       });
       if (error) throw error;
       setBackgrounds(prev => prev.map(b =>
@@ -611,6 +619,11 @@ const AdminPartyBackgrounds = () => {
                       Hidden
                     </Badge>
                   )}
+                  {(bg.min_level ?? 0) > 0 && (
+                    <Badge className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-0 text-[10px]">
+                      Lvl {bg.min_level}+
+                    </Badge>
+                  )}
                 </div>
 
                 {/* Price */}
@@ -692,6 +705,11 @@ const AdminPartyBackgrounds = () => {
                       {bg.is_premium && (
                         <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0 text-[10px]">
                           VIP
+                        </Badge>
+                      )}
+                      {(bg.min_level ?? 0) > 0 && (
+                        <Badge className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-0 text-[10px]">
+                          Lvl {bg.min_level}+
                         </Badge>
                       )}
                     </div>
@@ -870,6 +888,19 @@ const AdminPartyBackgrounds = () => {
                 onCheckedChange={(v) => setFormData(prev => ({ ...prev, is_active: v }))}
               />
             </div>
+            <div>
+              <Label>Minimum User Level (0 = no restriction)</Label>
+              <Input
+                type="number"
+                min={0}
+                value={formData.min_level}
+                onChange={(e) => setFormData(prev => ({ ...prev, min_level: Math.max(0, parseInt(e.target.value) || 0) }))}
+                placeholder="e.g. 6 to require Level 6+"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Only users at or above this level will see this background in the party room picker.
+              </p>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddDialog(false)}>Cancel</Button>
@@ -1001,6 +1032,19 @@ const AdminPartyBackgrounds = () => {
                 checked={formData.is_active}
                 onCheckedChange={(v) => setFormData(prev => ({ ...prev, is_active: v }))}
               />
+            </div>
+            <div>
+              <Label>Minimum User Level (0 = no restriction)</Label>
+              <Input
+                type="number"
+                min={0}
+                value={formData.min_level}
+                onChange={(e) => setFormData(prev => ({ ...prev, min_level: Math.max(0, parseInt(e.target.value) || 0) }))}
+                placeholder="e.g. 6 to require Level 6+"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Only users at or above this level will see this background in the party room picker.
+              </p>
             </div>
           </div>
           <DialogFooter>

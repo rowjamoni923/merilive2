@@ -14,6 +14,7 @@ interface Background {
   category: string;
   price_diamonds: number;
   is_premium: boolean;
+  min_level?: number;
 }
 
 interface BackgroundPickerPanelProps {
@@ -37,6 +38,7 @@ export function BackgroundPickerPanel({
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(currentBackgroundId || null);
   const [userDiamonds, setUserDiamonds] = useState(0);
+  const [userLevel, setUserLevel] = useState(0);
   const [purchasedBgs, setPurchasedBgs] = useState<string[]>([]);
   const [updating, setUpdating] = useState(false);
 
@@ -78,12 +80,13 @@ export function BackgroundPickerPanel({
     if (user) {
       const { data } = await supabase
         .from('profiles')
-        .select('coins')
+        .select('coins, user_level')
         .eq('id', user.id)
         .single();
       
       if (data) {
-        setUserDiamonds(data.coins || 0);
+        setUserDiamonds((data as any).coins || 0);
+        setUserLevel((data as any).user_level || 0);
       }
       
       // Fetch purchased backgrounds
@@ -102,6 +105,13 @@ export function BackgroundPickerPanel({
   const handleSelect = async (bg: Background) => {
     if (!isHost) {
       toast.error("Only host can change background");
+      return;
+    }
+
+    // Level gate
+    const required = bg.min_level ?? 0;
+    if (required > 0 && userLevel < required) {
+      toast.error(`Requires Level ${required}+ (you are Level ${userLevel})`);
       return;
     }
 
@@ -217,7 +227,14 @@ export function BackgroundPickerPanel({
                             <div className={cn("absolute inset-0", bg.gradient_css)} />
                           )}
 
-                          {/* Selected check */}
+                          {/* Level lock overlay */}
+                          {(bg.min_level ?? 0) > 0 && userLevel < (bg.min_level ?? 0) && (
+                            <div className="absolute inset-0 bg-black/55 flex flex-col items-center justify-center gap-1">
+                              <Lock className="w-4 h-4 text-white" />
+                              <span className="text-white text-[10px] font-bold">Lvl {bg.min_level}+</span>
+                            </div>
+                          )}
+
                           {selectedId === bg.id && (
                             <motion.div
                               initial={{ scale: 0 }}
@@ -271,6 +288,14 @@ export function BackgroundPickerPanel({
                                 />
                               ) : (
                                 <div className={cn("absolute inset-0", bg.gradient_css)} />
+                              )}
+
+                              {/* Level lock overlay */}
+                              {(bg.min_level ?? 0) > 0 && userLevel < (bg.min_level ?? 0) && (
+                                <div className="absolute inset-0 bg-black/55 flex flex-col items-center justify-center gap-1 z-10">
+                                  <Lock className="w-4 h-4 text-white" />
+                                  <span className="text-white text-[10px] font-bold">Lvl {bg.min_level}+</span>
+                                </div>
                               )}
 
                               {/* Premium Overlay */}
