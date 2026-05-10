@@ -38,6 +38,7 @@ export function BackgroundPickerPanel({
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(currentBackgroundId || null);
   const [userDiamonds, setUserDiamonds] = useState(0);
+  const [userLevel, setUserLevel] = useState(0);
   const [purchasedBgs, setPurchasedBgs] = useState<string[]>([]);
   const [updating, setUpdating] = useState(false);
 
