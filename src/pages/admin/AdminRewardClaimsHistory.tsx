@@ -16,7 +16,7 @@ interface ClaimRecord {
   id: string;
   user_id: string;
   task_id: string;
-  claimed_at: string;
+  claimed_at: string | null;
   current_progress: number;
   task_title: string;
   reward_beans: number;
@@ -88,7 +88,7 @@ const AdminRewardClaimsHistory = () => {
       // Use reset_date column for accurate per-day filtering (avoids timezone overlap)
       const { data: taskData, error: taskError } = await supabase
         .from('user_task_progress')
-        .select('id, user_id, task_id, claimed_at, current_progress, reset_date')
+        .select('id, user_id, task_id, completed_at, updated_at, current_progress, reset_date')
         .eq('is_claimed', true)
         .gte('reset_date', startDate)
         .lte('reset_date', endDate)
@@ -123,7 +123,7 @@ const AdminRewardClaimsHistory = () => {
           id: claim.id,
           user_id: claim.user_id,
           task_id: claim.task_id,
-          claimed_at: claim.claimed_at,
+          claimed_at: claim.completed_at || claim.updated_at || null,
           current_progress: claim.current_progress,
           task_title: task?.title || 'Unknown Task',
           reward_beans: task?.reward_beans || 0,
