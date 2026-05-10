@@ -146,14 +146,18 @@ const Settings = () => {
   // Permission states
   const [permissions, setPermissions] = useState<Record<PermissionKey, boolean>>(() => readCachedPermissions());
 
+  const updatePermissions = useCallback((patch: Partial<Record<PermissionKey, boolean>>) => {
+    setPermissions(prev => {
+      const next = { ...prev, ...patch };
+      writeCachedPermissions(next);
+      return next;
+    });
+  }, []);
+
   const refreshPermissions = useCallback(async () => {
     try {
-      const nextPermissions = {
-        notifications: false,
-        camera: false,
-        microphone: false,
-        location: false,
-      };
+      const cachedPermissions = readCachedPermissions();
+      const nextPermissions = { ...cachedPermissions };
 
       if (isNativeApp()) {
         Object.assign(nextPermissions, await checkPermissionStatus());
@@ -177,12 +181,12 @@ const Settings = () => {
         }
       }
 
-      setPermissions(nextPermissions);
+      updatePermissions(nextPermissions);
     } catch (error) {
       console.error('Error checking permissions:', error);
       recordClientError({ label: "Settings.locPerm", message: error instanceof Error ? error.message : String(error) });
     }
-  }, []);
+  }, [updatePermissions]);
   
   // App version state
   const [appVersion, setAppVersion] = useState<{ version: string; build: string }>({ version: "1.0.0", build: "1" });
