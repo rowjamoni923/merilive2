@@ -426,7 +426,7 @@ const AdminSupportTickets = () => {
           }
         } catch {
           console.error('[AI Suggestions] Failed to parse:', result);
-          recordAdminError({ kind: "rpc", label: "AdminSupportTickets.suggestions", message: result instanceof Error ? result.message : String(result) });
+          recordAdminError({ kind: "rpc", label: "AdminSupportTickets.suggestions", message: formatAdminError(result)});
         }
       }
     } catch (error) {

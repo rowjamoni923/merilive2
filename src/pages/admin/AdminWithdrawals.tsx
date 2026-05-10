@@ -218,7 +218,7 @@ export default function AdminWithdrawals() {
             .in("id", uniqueAgencyIds);
 
           if (agenciesError) {
-            recordAdminError({ kind: "rpc", label: "AdminWithdrawals.ErrorFetchingAgenciesForWithdrawals", message: agenciesError instanceof Error ? agenciesError.message : "Error fetching agencies for withdrawals" });
+            recordAdminError({ kind: "rpc", label: "AdminWithdrawals.ErrorFetchingAgenciesForWithdrawals", message: formatAdminError(agenciesError)});
           } else if (agencies) {
             agenciesMap = Object.fromEntries(agencies.map((agency) => [agency.id, agency]));
           }
@@ -234,7 +234,7 @@ export default function AdminWithdrawals() {
             .in("id", uniqueOwnerIds);
 
           if (ownersError) {
-            recordAdminError({ kind: "rpc", label: "AdminWithdrawals.ErrorFetchingOwnersForWithdrawals", message: ownersError instanceof Error ? ownersError.message : "Error fetching owners for withdrawals" });
+            recordAdminError({ kind: "rpc", label: "AdminWithdrawals.ErrorFetchingOwnersForWithdrawals", message: formatAdminError(ownersError)});
           } else if (owners) {
             ownersMap = Object.fromEntries(owners.map(o => [o.id, o]));
           }

@@ -441,7 +441,7 @@ const AdminHelperManagement = () => {
         .eq('id', req.id);
 
       if (updateError) {
-        recordAdminError({ kind: "rpc", label: "AdminHelperManagement.ErrorUpdatingUpgradeRequest", message: updateError instanceof Error ? updateError.message : "Error updating upgrade request" });
+        recordAdminError({ kind: "rpc", label: "AdminHelperManagement.ErrorUpdatingUpgradeRequest", message: formatAdminError(updateError)});
         throw updateError;
       }
 
@@ -451,7 +451,7 @@ const AdminHelperManagement = () => {
         .eq('id', req.helper_id);
 
       if (helperError) {
-        recordAdminError({ kind: "rpc", label: "AdminHelperManagement.ErrorUpdatingHelperLevel", message: helperError instanceof Error ? helperError.message : "Error updating helper level" });
+        recordAdminError({ kind: "rpc", label: "AdminHelperManagement.ErrorUpdatingHelperLevel", message: formatAdminError(helperError)});
         throw helperError;
       }
 
@@ -480,7 +480,7 @@ const AdminHelperManagement = () => {
         .eq('id', req.id);
 
       if (updateError) {
-        recordAdminError({ kind: "rpc", label: "AdminHelperManagement.ErrorUpdatingTopupRequest", message: updateError instanceof Error ? updateError.message : "Error updating topup request" });
+        recordAdminError({ kind: "rpc", label: "AdminHelperManagement.ErrorUpdatingTopupRequest", message: formatAdminError(updateError)});
         throw updateError;
       }
 
@@ -492,7 +492,7 @@ const AdminHelperManagement = () => {
         .single();
       
       if (helperFetchError) {
-        recordAdminError({ kind: "rpc", label: "AdminHelperManagement.ErrorFetchingHelper", message: helperFetchError instanceof Error ? helperFetchError.message : "Error fetching helper" });
+        recordAdminError({ kind: "rpc", label: "AdminHelperManagement.ErrorFetchingHelper", message: formatAdminError(helperFetchError)});
         throw helperFetchError;
       }
 
@@ -506,7 +506,7 @@ const AdminHelperManagement = () => {
           .eq('id', req.helper_id);
 
         if (helperUpdateError) {
-          recordAdminError({ kind: "rpc", label: "AdminHelperManagement.ErrorUpdatingHelperWallet", message: helperUpdateError instanceof Error ? helperUpdateError.message : "Error updating helper wallet" });
+          recordAdminError({ kind: "rpc", label: "AdminHelperManagement.ErrorUpdatingHelperWallet", message: formatAdminError(helperUpdateError)});
           throw helperUpdateError;
         }
       }

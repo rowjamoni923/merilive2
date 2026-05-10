@@ -139,7 +139,7 @@ const AdminTraderOrders = () => {
          });
          
          if (rpcError) {
-           recordAdminError({ kind: "rpc", label: "AdminTraderOrders.RpcError", message: rpcError instanceof Error ? rpcError.message : "RPC Error" });
+           recordAdminError({ kind: "rpc", label: "AdminTraderOrders.RpcError", message: formatAdminError(rpcError)});
            throw new Error('Failed to add coins to user');
          }
 

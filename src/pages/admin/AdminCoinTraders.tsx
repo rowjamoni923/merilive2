@@ -148,7 +148,7 @@ const AdminCoinTraders = () => {
     const { error: updateError } = await supabase.from('topup_helpers').update({ is_active: newStatus }).eq('id', helper.id);
 
     if (updateError) {
-      recordAdminError({ kind: "rpc", label: "AdminCoinTraders.CointradersFailedToToggleHelper", message: updateError instanceof Error ? updateError.message : "[CoinTraders] Failed to toggle helper" });
+      recordAdminError({ kind: "rpc", label: "AdminCoinTraders.CointradersFailedToToggleHelper", message: formatAdminError(updateError)});
       toast({ title: "Error", description: `Failed to ${action} helper: ${updateError.message}`, variant: "destructive" });
       return;
     }

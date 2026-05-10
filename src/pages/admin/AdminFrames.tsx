@@ -193,7 +193,7 @@ const AdminFrames = () => {
           detectedType = 'png';
           toast.success('✅ Black background removed successfully!');
         } catch (bgError) {
-          recordAdminError({ kind: "rpc", label: "AdminFrames.BackgroundRemovalFailed", message: bgError instanceof Error ? bgError.message : "Background removal failed" });
+          recordAdminError({ kind: "rpc", label: "AdminFrames.BackgroundRemovalFailed", message: formatAdminError(bgError)});
           toast.warning('Background removal failed, uploading original file...');
         } finally {
           setProcessingBackground(false);
@@ -332,7 +332,7 @@ const AdminFrames = () => {
       });
       
       if (clearError) {
-        recordAdminError({ kind: "rpc", label: "AdminFrames.ClearFrameReferencesError", message: clearError instanceof Error ? clearError.message : "Clear frame references error" });
+        recordAdminError({ kind: "rpc", label: "AdminFrames.ClearFrameReferencesError", message: formatAdminError(clearError)});
         toast.error(`Failed to clear frame references: ${clearError.message}`);
         return;
       }

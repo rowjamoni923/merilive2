@@ -178,7 +178,7 @@ export default function AdminLiveBans() {
         }));
         setBans(mapped as unknown as LiveBan[]);
       } catch (fallbackErr: any) {
-        recordAdminError({ kind: "rpc", label: "AdminLiveBans.FallbackLivebansFetchAlsoFailed", message: fallbackErr instanceof Error ? fallbackErr.message : "Fallback live_bans fetch also failed" });
+        recordAdminError({ kind: "rpc", label: "AdminLiveBans.FallbackLivebansFetchAlsoFailed", message: formatAdminError(fallbackErr)});
         const msg = (error?.message || fallbackErr?.message || '').toString();
         toast.error(msg ? `Failed to load bans: ${msg}` : 'Failed to load bans');
       }

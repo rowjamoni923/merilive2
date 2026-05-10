@@ -512,7 +512,7 @@ const AdminTopupSystem = () => {
     }).eq('id', helper.id);
 
     if (updateError) {
-      recordAdminError({ kind: "rpc", label: "AdminTopupSystem.AdminFailedToToggleHelper", message: updateError instanceof Error ? updateError.message : "[Admin] Failed to toggle helper" });
+      recordAdminError({ kind: "rpc", label: "AdminTopupSystem.AdminFailedToToggleHelper", message: formatAdminError(updateError)});
       toast({ title: "Error", description: `Failed to ${action} helper: ${updateError.message}`, variant: "destructive" });
       return;
     }
@@ -681,7 +681,7 @@ const AdminTopupSystem = () => {
          });
          
          if (rpcError) {
-           recordAdminError({ kind: "rpc", label: "AdminTopupSystem.RpcError", message: rpcError instanceof Error ? rpcError.message : "RPC Error" });
+           recordAdminError({ kind: "rpc", label: "AdminTopupSystem.RpcError", message: formatAdminError(rpcError)});
            throw new Error('Failed to add coins to user');
          }
          

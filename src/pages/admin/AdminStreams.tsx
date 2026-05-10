@@ -388,7 +388,7 @@ export default function AdminStreams() {
             }
           } catch (fetchErr) {
             console.error("[AdminStreams] Fallback ban also failed:", fetchErr);
-            recordAdminError({ kind: "rpc", label: "AdminStreams.fallbackData", message: fetchErr instanceof Error ? fetchErr.message : String(fetchErr) });
+            recordAdminError({ kind: "rpc", label: "AdminStreams.fallbackData", message: formatAdminError(fetchErr)});
             toast.error("Stream stopped but ban failed to apply");
             setStopStreamDialog(null);
             await Promise.all([fetchStreams(), fetchActiveBans()]);
