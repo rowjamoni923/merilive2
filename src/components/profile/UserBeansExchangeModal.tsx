@@ -1,4 +1,4 @@
-import { useState, useEffect, forwardRef } from "react";
+import { useState, useEffect, forwardRef, useMemo } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,10 +8,19 @@ import Beans3DIcon from "@/components/common/Beans3DIcon";
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
 import { sendNotification } from "@/services/notificationService";
 
+/**
+ * Tier shape matches the current `user_beans_exchange_tiers` schema:
+ *   min_beans, max_beans (nullable = no upper limit),
+ *   exchange_rate (diamonds per 1 bean),
+ *   bonus_percent (0–100 added on top).
+ */
 interface ExchangeTier {
   id: string;
-  beans_amount: number;
-  diamonds_reward: number;
+  tier_name: string | null;
+  min_beans: number;
+  max_beans: number | null;
+  exchange_rate: number;
+  bonus_percent: number | null;
   display_order: number;
 }
 
@@ -23,12 +32,18 @@ interface UserBeansExchangeModalProps {
   onExchangeComplete: () => void;
 }
 
+function diamondsFor(tier: ExchangeTier, beans: number): number {
+  if (!tier || beans <= 0) return 0;
+  const bonus = 1 + (Number(tier.bonus_percent) || 0) / 100;
+  return Math.floor(beans * Number(tier.exchange_rate) * bonus);
+}
+
 const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModalProps>(function UserBeansExchangeModal({
   open,
   onOpenChange,
   currentBeans,
   userId,
-  onExchangeComplete
+  onExchangeComplete,
 }, ref) {
   const { toast } = useToast();
   const [tiers, setTiers] = useState<ExchangeTier[]>([]);
@@ -49,31 +64,48 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
 
   const fetchTiers = async () => {
     setLoading(true);
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('user_beans_exchange_tiers')
-      .select('*')
+      .select('id, tier_name, min_beans, max_beans, exchange_rate, bonus_percent, display_order')
       .eq('is_active', true)
       .order('display_order', { ascending: true });
-    if (data) setTiers(data);
+    if (error) {
+      toast({ title: 'Failed to load exchange tiers', description: error.message, variant: 'destructive' });
+    }
+    setTiers((data as ExchangeTier[]) || []);
     setLoading(false);
   };
 
-  // Calculate diamonds for custom input based on the best matching tier ratio
-  const getCustomDiamonds = (beans: number): number => {
-    if (!tiers.length || beans <= 0) return 0;
-    // Use the ratio from the first tier as the base conversion rate
-    const ratio = tiers[0].diamonds_reward / tiers[0].beans_amount;
-    return Math.floor(beans * ratio);
-  };
-
+  // For custom mode, pick the tier whose [min,max] covers the typed amount.
   const customBeansNum = parseInt(customBeans) || 0;
-  const customDiamonds = getCustomDiamonds(customBeansNum);
-  const canAffordCustom = customBeansNum > 0 && currentBeans >= customBeansNum;
+  const customTier = useMemo(() => {
+    if (!customBeansNum) return null;
+    return (
+      tiers.find(t => customBeansNum >= t.min_beans && (t.max_beans == null || customBeansNum <= t.max_beans)) || null
+    );
+  }, [customBeansNum, tiers]);
+  const customDiamonds = customTier ? diamondsFor(customTier, customBeansNum) : 0;
+  const canAffordCustom = customBeansNum > 0 && currentBeans >= customBeansNum && !!customTier;
 
   const handleExchange = async () => {
-    const beansToExchange = useCustom ? customBeansNum : selectedTier?.beans_amount;
-    const diamondsToReceive = useCustom ? customDiamonds : selectedTier?.diamonds_reward;
-    const tierId = useCustom ? tiers[0]?.id : selectedTier?.id;
+    let beansToExchange: number | undefined;
+    let diamondsToReceive: number | undefined;
+    let tierId: string | undefined;
+
+    if (useCustom) {
+      if (!customTier) {
+        toast({ title: 'No tier matches that amount', variant: 'destructive' });
+        return;
+      }
+      beansToExchange = customBeansNum;
+      diamondsToReceive = customDiamonds;
+      tierId = customTier.id;
+    } else if (selectedTier) {
+      // Quick-select uses tier's min_beans as the exchange amount.
+      beansToExchange = selectedTier.min_beans;
+      diamondsToReceive = diamondsFor(selectedTier, selectedTier.min_beans);
+      tierId = selectedTier.id;
+    }
 
     if (!beansToExchange || !diamondsToReceive || !tierId || !userId) return;
 
@@ -84,13 +116,17 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
 
     setProcessing(true);
     try {
-      const { error } = await supabase.rpc('exchange_user_beans_to_diamonds', {
+      const { data, error } = await supabase.rpc('exchange_user_beans_to_diamonds', {
         _user_id: userId,
         _beans_amount: beansToExchange,
         _diamonds_reward: diamondsToReceive,
-        _tier_id: tierId
+        _tier_id: tierId,
       });
       if (error) throw error;
+      const result = data as { success?: boolean; error?: string } | null;
+      if (result && result.success === false) {
+        throw new Error(result.error || 'Exchange failed');
+      }
 
       toast({ title: "Exchange Successful! 🎉", description: `Converted ${beansToExchange.toLocaleString()} beans to ${diamondsToReceive.toLocaleString()} diamonds` });
       onExchangeComplete();
@@ -98,7 +134,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
         userId, type: 'beans_exchanged',
         title: '💎 Beans Exchanged Successfully!',
         message: `You exchanged ${beansToExchange.toLocaleString()} Beans and received ${diamondsToReceive.toLocaleString()} Diamonds`,
-        data: { beans_deducted: beansToExchange, diamonds_received: diamondsToReceive, exchange_type: 'beans_to_diamonds' }
+        data: { beans_deducted: beansToExchange, diamonds_received: diamondsToReceive, exchange_type: 'beans_to_diamonds' },
       });
       onOpenChange(false);
       setSelectedTier(null);
@@ -111,16 +147,16 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
     }
   };
 
+  const selectedDiamonds = selectedTier ? diamondsFor(selectedTier, selectedTier.min_beans) : 0;
   const isReady = useCustom ? canAffordCustom : !!selectedTier;
   const exchangeLabel = useCustom
     ? `Exchange ${customBeansNum.toLocaleString()} Beans`
-    : selectedTier ? `Exchange ${selectedTier.beans_amount.toLocaleString()} Beans` : "";
-  const diamondLabel = useCustom ? customDiamonds : selectedTier?.diamonds_reward;
+    : selectedTier ? `Exchange ${selectedTier.min_beans.toLocaleString()} Beans` : "";
+  const diamondLabel = useCustom ? customDiamonds : selectedDiamonds;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-[#0a0e1a] border border-amber-500/15 max-w-md mx-4 rounded-3xl p-0 overflow-hidden [&>button]:hidden shadow-[0_0_80px_-20px_rgba(245,158,11,0.15)]">
-        {/* Header with animated gradient border */}
         <div className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-amber-600/20 via-yellow-500/10 to-amber-600/20" />
           <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
@@ -141,7 +177,6 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
         </div>
 
         <div className="p-5 space-y-5">
-          {/* Balance Card */}
           <div className="relative overflow-hidden rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 via-transparent to-orange-500/5 p-4">
             <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
             <div className="relative flex items-center justify-center gap-3">
@@ -155,7 +190,6 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
             </div>
           </div>
 
-          {/* Mode Toggle */}
           <div className="flex gap-2">
             <button
               onClick={() => { setUseCustom(false); setCustomBeans(""); }}
@@ -180,13 +214,15 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
             </button>
           </div>
 
-          {/* Content */}
           {loading ? (
             <div className="flex items-center justify-center py-10">
               <div className="w-8 h-8 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
             </div>
+          ) : tiers.length === 0 ? (
+            <div className="py-10 text-center text-white/50 text-sm">
+              No exchange tiers available right now.
+            </div>
           ) : useCustom ? (
-            /* Custom Input Mode */
             <div className="space-y-4">
               <div className="relative">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2">
@@ -200,8 +236,8 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
                   className="w-full h-14 pl-12 pr-4 rounded-2xl bg-white/5 border border-white/10 text-white text-lg font-semibold placeholder:text-white/20 focus:outline-none focus:border-cyan-500/50 focus:bg-cyan-500/5 transition-all"
                 />
               </div>
-              
-              {customBeansNum > 0 && (
+
+              {customBeansNum > 0 && customTier && (
                 <div className="flex items-center justify-center gap-3 py-3 px-4 rounded-2xl bg-gradient-to-r from-cyan-500/5 to-blue-500/5 border border-cyan-500/15">
                   <div className="flex items-center gap-1.5">
                     <Beans3DIcon size={18} />
@@ -215,19 +251,25 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
                 </div>
               )}
 
-              {customBeansNum > 0 && !canAffordCustom && (
+              {customBeansNum > 0 && !customTier && (
+                <p className="text-amber-400/80 text-xs text-center">
+                  Amount doesn't match any active tier range.
+                </p>
+              )}
+              {customBeansNum > 0 && customTier && currentBeans < customBeansNum && (
                 <p className="text-red-400/80 text-xs text-center">
                   Insufficient beans. You need {(customBeansNum - currentBeans).toLocaleString()} more.
                 </p>
               )}
             </div>
           ) : (
-            /* Quick Select Tiers */
             <div className="grid grid-cols-2 gap-2.5">
               {tiers.map((tier) => {
-                const canAfford = currentBeans >= tier.beans_amount;
+                const tierBeans = tier.min_beans;
+                const tierDiamonds = diamondsFor(tier, tierBeans);
+                const canAfford = currentBeans >= tierBeans;
                 const isSelected = selectedTier?.id === tier.id;
-                
+
                 return (
                   <button
                     key={tier.id}
@@ -246,19 +288,25 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
                         <CheckCircle2 className="w-3.5 h-3.5 text-white" />
                       </div>
                     )}
-                    
+
                     <div className="text-center space-y-1.5">
+                      {tier.tier_name && (
+                        <p className="text-[10px] uppercase tracking-wide text-white/40">{tier.tier_name}</p>
+                      )}
                       <div className="flex items-center justify-center gap-1.5">
                         <Beans3DIcon size={18} />
-                        <span className="text-amber-400 font-bold text-base">{tier.beans_amount.toLocaleString()}</span>
+                        <span className="text-amber-400 font-bold text-base">{tierBeans.toLocaleString()}</span>
                       </div>
-                      
+
                       <div className="text-white/20 text-[10px]">→</div>
-                      
+
                       <div className="flex items-center justify-center gap-1.5">
                         <Diamond3DIcon size={18} />
-                        <span className="text-cyan-400 font-bold text-base">{tier.diamonds_reward.toLocaleString()}</span>
+                        <span className="text-cyan-400 font-bold text-base">{tierDiamonds.toLocaleString()}</span>
                       </div>
+                      {(tier.bonus_percent ?? 0) > 0 && (
+                        <p className="text-[10px] text-emerald-400">+{tier.bonus_percent}% bonus</p>
+                      )}
                     </div>
                   </button>
                 );
@@ -266,7 +314,6 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
             </div>
           )}
 
-          {/* Exchange Button */}
           <Button
             onClick={handleExchange}
             disabled={!isReady || processing}
