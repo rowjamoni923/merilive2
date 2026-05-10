@@ -222,6 +222,7 @@ const AdminPartyBackgrounds = () => {
         _is_active: formData.is_active,
         _price_diamonds: formData.price_diamonds,
         _display_order: formData.display_order,
+        _min_level: formData.min_level,
       });
       if (error) throw error;
       if (data) {
