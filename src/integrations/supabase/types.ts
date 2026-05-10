@@ -5440,41 +5440,74 @@ export type Database = {
         Row: {
           admin_notes: string | null
           amount: number
+          approved_at: string | null
+          beans_amount: number | null
           created_at: string | null
+          currency_code: string
+          diamond_reward: number
           helper_id: string
+          helper_net_reward: number
+          helper_notes: string | null
           host_id: string | null
           id: string
+          local_amount: number
+          payment_details: Json
           payment_method_id: string | null
+          payment_screenshot_url: string | null
+          platform_fee_amount: number
           processed_at: string | null
           processed_by: string | null
           status: string | null
           updated_at: string | null
+          usd_amount: number
         }
         Insert: {
           admin_notes?: string | null
           amount: number
+          approved_at?: string | null
+          beans_amount?: number | null
           created_at?: string | null
+          currency_code?: string
+          diamond_reward?: number
           helper_id: string
+          helper_net_reward?: number
+          helper_notes?: string | null
           host_id?: string | null
           id?: string
+          local_amount?: number
+          payment_details?: Json
           payment_method_id?: string | null
+          payment_screenshot_url?: string | null
+          platform_fee_amount?: number
           processed_at?: string | null
           processed_by?: string | null
           status?: string | null
           updated_at?: string | null
+          usd_amount?: number
         }
         Update: {
           admin_notes?: string | null
           amount?: number
+          approved_at?: string | null
+          beans_amount?: number | null
           created_at?: string | null
+          currency_code?: string
+          diamond_reward?: number
           helper_id?: string
+          helper_net_reward?: number
+          helper_notes?: string | null
           host_id?: string | null
           id?: string
+          local_amount?: number
+          payment_details?: Json
           payment_method_id?: string | null
+          payment_screenshot_url?: string | null
+          platform_fee_amount?: number
           processed_at?: string | null
           processed_by?: string | null
           status?: string | null
           updated_at?: string | null
+          usd_amount?: number
         }
         Relationships: [
           {
@@ -13754,14 +13787,21 @@ export type Database = {
         Args: { _admin_id?: string; _limit?: number }
         Returns: {
           action_taken: string
+          admin_reviewed: boolean
           app_uid: string
+          auto_closed: boolean
           avatar_url: string
           confidence: number
+          countdown_duration: number
           created_at: string
+          detected_at: string
           display_name: string
           frame_url: string
           host_id: string
           id: string
+          notes: string
+          reviewed_at: string
+          reviewed_by: string
           status: string
           stream_id: string
           violation_type: string
@@ -13938,20 +13978,7 @@ export type Database = {
           _search?: string
           _status?: string
         }
-        Returns: {
-          agency_id: string
-          app_uid: string
-          avatar_url: string
-          beans: number
-          created_at: string
-          display_name: string
-          gender: string
-          host_status: string
-          id: string
-          is_face_verified: boolean
-          total_count: number
-          total_earnings: number
-        }[]
+        Returns: Json
       }
       admin_list_live_bans: {
         Args: { _limit?: number; _only_active?: boolean }
@@ -14685,7 +14712,6 @@ export type Database = {
       cancel_account_deletion: { Args: { _user_id: string }; Returns: boolean }
       cancel_agency_request: { Args: { _host_id: string }; Returns: boolean }
       check_ban_on_login:
-        | { Args: { _user_id: string }; Returns: Json }
         | { Args: { _device_id?: string; _user_id: string }; Returns: Json }
         | {
             Args: {
@@ -14695,6 +14721,7 @@ export type Database = {
             }
             Returns: Json
           }
+        | { Args: { p_user_id: string }; Returns: Json }
       check_brute_force: {
         Args: {
           p_action_type: string
