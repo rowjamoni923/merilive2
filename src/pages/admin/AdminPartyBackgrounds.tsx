@@ -618,6 +618,11 @@ const AdminPartyBackgrounds = () => {
                       Hidden
                     </Badge>
                   )}
+                  {(bg.min_level ?? 0) > 0 && (
+                    <Badge className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-0 text-[10px]">
+                      Lvl {bg.min_level}+
+                    </Badge>
+                  )}
                 </div>
 
                 {/* Price */}
