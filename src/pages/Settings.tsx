@@ -38,6 +38,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { registerFCMToken } from "@/services/firebaseMessaging";
 import { getAppInfo } from "@/utils/nativeUtils";
 import { useRefreshOnResume } from "@/hooks/useAppResumeHandler";
 import { recordClientError } from "@/utils/clientErrorLog";
@@ -353,6 +354,12 @@ const Settings = () => {
   const openPermissionSettings = () => {
     void openNativeAppPermissionSettings().catch(() => undefined);
   };
+  const registerNotificationToken = useCallback(() => {
+    if (!userId) return;
+    void registerFCMToken(userId).catch(error => {
+      console.warn('[Settings] Notification token registration skipped:', error);
+    });
+  }, [userId]);
 
   // Request notification permission
   const requestNotificationPermission = async () => {
@@ -371,6 +378,7 @@ const Settings = () => {
         const granted = await requestNativeNotificationPermission();
         if (granted) {
           updatePermissions({ notifications: true });
+          registerNotificationToken();
           toast({ title: "Notifications Enabled", description: "You will now receive push notifications." });
         } else {
           toast({ title: "Permission Denied", description: "Open device Settings → Apps → MeriLive → Notifications → Allow.", variant: "destructive" });
@@ -398,6 +406,7 @@ const Settings = () => {
       const permission = await Notification.requestPermission();
       updatePermissions({ notifications: permission === 'granted' });
       if (permission === 'granted') {
+        registerNotificationToken();
         toast({ title: "Notifications Enabled", description: "You will now receive notifications." });
       } else {
         toast({ title: "Permission Denied", description: browserSettingsHint('Notifications'), variant: "destructive" });
