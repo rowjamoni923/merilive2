@@ -6338,6 +6338,33 @@ export type Database = {
         }
         Relationships: []
       }
+      live_categories: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          label: string
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label: string
+          slug: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       live_face_violations: {
         Row: {
           action_taken: string | null
@@ -6514,6 +6541,7 @@ export type Database = {
       }
       live_streams: {
         Row: {
+          category_id: string | null
           created_at: string | null
           current_music_title: string | null
           current_music_url: string | null
@@ -6523,6 +6551,8 @@ export type Database = {
           id: string
           is_active: boolean | null
           last_heartbeat: string | null
+          live_password_hash: string | null
+          live_privacy: string
           music_playing: boolean | null
           music_started_at: string | null
           room_id: string | null
@@ -6536,6 +6566,7 @@ export type Database = {
           viewer_count: number | null
         }
         Insert: {
+          category_id?: string | null
           created_at?: string | null
           current_music_title?: string | null
           current_music_url?: string | null
@@ -6545,6 +6576,8 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           last_heartbeat?: string | null
+          live_password_hash?: string | null
+          live_privacy?: string
           music_playing?: boolean | null
           music_started_at?: string | null
           room_id?: string | null
@@ -6558,6 +6591,7 @@ export type Database = {
           viewer_count?: number | null
         }
         Update: {
+          category_id?: string | null
           created_at?: string | null
           current_music_title?: string | null
           current_music_url?: string | null
@@ -6567,6 +6601,8 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           last_heartbeat?: string | null
+          live_password_hash?: string | null
+          live_privacy?: string
           music_playing?: boolean | null
           music_started_at?: string | null
           room_id?: string | null
@@ -6580,6 +6616,13 @@ export type Database = {
           viewer_count?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "live_streams_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "live_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "live_streams_host_id_fkey"
             columns: ["host_id"]
@@ -14129,6 +14172,7 @@ export type Database = {
       admin_list_streams: {
         Args: { _admin_id: string; _limit?: number }
         Returns: {
+          category_id: string | null
           created_at: string | null
           current_music_title: string | null
           current_music_url: string | null
@@ -14138,6 +14182,8 @@ export type Database = {
           id: string
           is_active: boolean | null
           last_heartbeat: string | null
+          live_password_hash: string | null
+          live_privacy: string
           music_playing: boolean | null
           music_started_at: string | null
           room_id: string | null
@@ -15446,6 +15492,10 @@ export type Database = {
         Args: { _reminder_type: string; _subscription_id: string }
         Returns: undefined
       }
+      moderate_text: {
+        Args: { p_context?: string; p_text: string }
+        Returns: Json
+      }
       place_game_bet:
         | {
             Args: { p_amount: number; p_game_type?: string; p_user_id: string }
@@ -15787,7 +15837,10 @@ export type Database = {
       settle_private_call: { Args: { p_call_id: string }; Returns: Json }
       start_live_stream: {
         Args: {
+          p_category_id?: string
           p_display_name?: string
+          p_live_privacy?: string
+          p_password?: string
           p_thumbnail_url?: string
           p_title?: string
         }
