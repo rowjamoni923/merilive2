@@ -108,6 +108,13 @@ export function BackgroundPickerPanel({
       return;
     }
 
+    // Level gate
+    const required = bg.min_level ?? 0;
+    if (required > 0 && userLevel < required) {
+      toast.error(`Requires Level ${required}+ (you are Level ${userLevel})`);
+      return;
+    }
+
     // Check if premium and not purchased
     if (bg.is_premium && !purchasedBgs.includes(bg.id)) {
       // Show purchase dialog
