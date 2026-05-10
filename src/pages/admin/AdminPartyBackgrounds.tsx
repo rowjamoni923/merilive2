@@ -193,7 +193,8 @@ const AdminPartyBackgrounds = () => {
       is_premium: bg.is_premium,
       is_active: bg.is_active,
       price_diamonds: bg.price_diamonds,
-      display_order: bg.display_order
+      display_order: bg.display_order,
+      min_level: bg.min_level ?? 0
     });
     setShowEditDialog(true);
   };
