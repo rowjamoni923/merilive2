@@ -56,6 +56,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface HostSubmission {
   id: string;
   user_id: string;
@@ -147,7 +148,7 @@ export default function AdminHostApplications() {
         rejected: Number(s.rejected || 0),
       });
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminHostApplications.ErrorFetchingStatusCounts", message: error instanceof Error ? error.message : "Error fetching status counts" });
+      recordAdminError({ kind: "rpc", label: "AdminHostApplications.ErrorFetchingStatusCounts", message: formatAdminError(error)});
     }
   };
 
@@ -174,7 +175,7 @@ export default function AdminHostApplications() {
       setPendingHosts(noSubmission);
       setPendingHostsCount(noSubmission.length);
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminHostApplications.ErrorFetchingPendingHosts", message: error instanceof Error ? error.message : "Error fetching pending hosts" });
+      recordAdminError({ kind: "rpc", label: "AdminHostApplications.ErrorFetchingPendingHosts", message: formatAdminError(error)});
     }
   };
 
@@ -229,7 +230,7 @@ export default function AdminHostApplications() {
       setApplications(femaleOnly as HostSubmission[]);
       setTotalApplications(femaleOnly.length);
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminHostApplications.ErrorFetchingHostApplications", message: error instanceof Error ? error.message : "Error fetching host applications" });
+      recordAdminError({ kind: "rpc", label: "AdminHostApplications.ErrorFetchingHostApplications", message: formatAdminError(error)});
       toast.error("Failed to load applications");
     } finally {
       setLoading(false);
@@ -268,7 +269,7 @@ export default function AdminHostApplications() {
       setAdminNotes("");
       fetchApplications();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminHostApplications.ErrorApproving", message: error instanceof Error ? error.message : "Error approving" });
+      recordAdminError({ kind: "rpc", label: "AdminHostApplications.ErrorApproving", message: formatAdminError(error)});
       toast.error((error as any)?.message || "Operation failed");
     } finally {
       setActionLoading(false);

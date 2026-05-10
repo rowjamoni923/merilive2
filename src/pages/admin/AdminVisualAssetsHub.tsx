@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Palette, Image, MessageSquare, Gift, ShoppingBag, UserCog, Zap, Wand2 } from "lucide-react";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 // Import existing components as tab content
 import AdminFrames from "./AdminFrames";
 import AdminRoleFrames from "./AdminRoleFrames";
@@ -33,7 +34,7 @@ const AdminVisualAssetsHub = () => {
     // Pkg10: single RPC replaces 6 separate count queries
     const { data, error } = await supabase.rpc('admin_visual_assets_stats' as any);
     if (error || !data) {
-      recordAdminError({ kind: "rpc", label: "AdminVisualAssetsHub.AdminvisualassetsstatsFailed", message: error instanceof Error ? error.message : "admin_visual_assets_stats failed" });
+      recordAdminError({ kind: "rpc", label: "AdminVisualAssetsHub.AdminvisualassetsstatsFailed", message: formatAdminError(error)});
       return;
     }
     const s: any = data;

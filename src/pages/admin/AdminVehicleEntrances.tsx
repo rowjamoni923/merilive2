@@ -13,6 +13,7 @@ import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlay
 import { useR2Upload } from "@/hooks/useR2Upload";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface VehicleEntranceItem {
   id: string;
   level: number;
@@ -66,7 +67,7 @@ const AdminVehicleEntrances = () => {
 
       setItems(mapped);
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminVehicleEntrances.ErrorFetchingVehicleEntrances", message: error instanceof Error ? error.message : "Error fetching vehicle entrances" });
+      recordAdminError({ kind: "rpc", label: "AdminVehicleEntrances.ErrorFetchingVehicleEntrances", message: formatAdminError(error)});
       toast.error('Failed to load Vehicle Entrances');
     } finally {
       setLoading(false);
@@ -90,7 +91,7 @@ const AdminVehicleEntrances = () => {
       }
       return null;
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminVehicleEntrances.UploadError", message: error instanceof Error ? error.message : "Upload error" });
+      recordAdminError({ kind: "rpc", label: "AdminVehicleEntrances.UploadError", message: formatAdminError(error)});
       toast.error('File upload failed');
       return null;
     }
@@ -184,7 +185,7 @@ const AdminVehicleEntrances = () => {
       setDialogOpen(false);
       fetchItems();
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminVehicleEntrances.SaveError", message: error instanceof Error ? error.message : "Save error" });
+      recordAdminError({ kind: "rpc", label: "AdminVehicleEntrances.SaveError", message: formatAdminError(error)});
       toast.error('Failed to save');
     } finally {
       setSaving(false);
@@ -204,7 +205,7 @@ const AdminVehicleEntrances = () => {
       toast.success('Vehicle Entrance deleted');
       fetchItems();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminVehicleEntrances.DeleteError", message: error instanceof Error ? error.message : "Delete error" });
+      recordAdminError({ kind: "rpc", label: "AdminVehicleEntrances.DeleteError", message: formatAdminError(error)});
       toast.error('Failed to delete');
     }
   };
@@ -220,7 +221,7 @@ const AdminVehicleEntrances = () => {
       toast.success(item.is_active ? 'Deactivated' : 'Activated');
       fetchItems();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminVehicleEntrances.ToggleError", message: error instanceof Error ? error.message : "Toggle error" });
+      recordAdminError({ kind: "rpc", label: "AdminVehicleEntrances.ToggleError", message: formatAdminError(error)});
     }
   };
 

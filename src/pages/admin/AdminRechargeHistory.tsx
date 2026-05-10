@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface RechargeRecord {
   id: string;
   user_id: string;
@@ -419,7 +420,7 @@ const AdminRechargeHistory = () => {
         setRecords(enriched);
       }
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminRechargeHistory.FetchError", message: error instanceof Error ? error.message : "Fetch error" });
+      recordAdminError({ kind: "rpc", label: "AdminRechargeHistory.FetchError", message: formatAdminError(error)});
       toast.error('Failed to load recharge history');
     } finally {
       setLoading(false);

@@ -30,6 +30,7 @@ import { cn } from "@/lib/utils";
 import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface UpgradeRequest {
   id: string;
   user_id: string;
@@ -148,7 +149,7 @@ const AdminHelperRequests = () => {
       setPendingTopupCount(s.pendingTopups || 0);
       
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminHelperRequests.ErrorLoadingRequests", message: error instanceof Error ? error.message : "Error loading requests" });
+      recordAdminError({ kind: "rpc", label: "AdminHelperRequests.ErrorLoadingRequests", message: formatAdminError(error)});
     } finally {
       setLoading(false);
     }

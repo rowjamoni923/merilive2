@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import { parseSettingValue, saveAppSetting } from '@/utils/adminSettingsStorage';
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface TransferSchedule {
   is_active: boolean;
   interval_days: number;
@@ -102,7 +103,7 @@ const AdminTransferScheduler = () => {
         setSchedule(value);
       }
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminTransferScheduler.ErrorFetchingSchedule", message: error instanceof Error ? error.message : "Error fetching schedule" });
+      recordAdminError({ kind: "rpc", label: "AdminTransferScheduler.ErrorFetchingSchedule", message: formatAdminError(error)});
     } finally {
       setLoading(false);
     }
@@ -151,7 +152,7 @@ const AdminTransferScheduler = () => {
         setHistory(historyItems);
       }
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminTransferScheduler.ErrorFetchingHistory", message: error instanceof Error ? error.message : "Error fetching history" });
+      recordAdminError({ kind: "rpc", label: "AdminTransferScheduler.ErrorFetchingHistory", message: formatAdminError(error)});
     }
   };
 
@@ -173,7 +174,7 @@ const AdminTransferScheduler = () => {
       if (error) throw error;
       setBatchDetails(prev => ({ ...prev, [batchKey]: data || [] }));
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminTransferScheduler.ErrorFetchingBatchDetails", message: error instanceof Error ? error.message : "Error fetching batch details" });
+      recordAdminError({ kind: "rpc", label: "AdminTransferScheduler.ErrorFetchingBatchDetails", message: formatAdminError(error)});
       toast.error('Failed to load details');
     } finally {
       setLoadingDetails(null);
@@ -217,7 +218,7 @@ const AdminTransferScheduler = () => {
       setSchedule(newSchedule);
       toast.success('Settings saved');
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminTransferScheduler.ErrorSavingSchedule", message: error instanceof Error ? error.message : "Error saving schedule" });
+      recordAdminError({ kind: "rpc", label: "AdminTransferScheduler.ErrorSavingSchedule", message: formatAdminError(error)});
       toast.error('Failed to save settings');
     } finally {
       setSaving(false);
@@ -289,7 +290,7 @@ const AdminTransferScheduler = () => {
 
       toast.success(`Transfer complete! ${data?.result?.total_transfers || 0} transfers processed`);
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminTransferScheduler.ErrorProcessingTransfer", message: error instanceof Error ? error.message : "Error processing transfer" });
+      recordAdminError({ kind: "rpc", label: "AdminTransferScheduler.ErrorProcessingTransfer", message: formatAdminError(error)});
       toast.error('Transfer failed');
     } finally {
       setProcessing(false);

@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { loadAppSetting, saveAppSetting } from "@/utils/adminSettingsStorage";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface CommissionSettings {
   gift_commission: {
     company_percent: number;
@@ -77,7 +78,7 @@ const AdminCommissionCalculator = () => {
       }
     } catch (error) {
       console.error('Error fetching settings:', error);
-      recordAdminError({ kind: "rpc", label: "AdminCommissionCalculator.value", message: error instanceof Error ? error.message : String(error) });
+      recordAdminError({ kind: "rpc", label: "AdminCommissionCalculator.value", message: formatAdminError(error) });
     } finally {
       setLoading(false);
     }

@@ -14,6 +14,7 @@ import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlay
 import { useR2Upload } from "@/hooks/useR2Upload";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface EntryBarItem {
   id: string;
   level: number;
@@ -77,7 +78,7 @@ const AdminEntryBars = () => {
 
       setEntryBars(mapped);
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminEntryBars.ErrorFetchingEntryBars", message: error instanceof Error ? error.message : "Error fetching entry bars" });
+      recordAdminError({ kind: "rpc", label: "AdminEntryBars.ErrorFetchingEntryBars", message: formatAdminError(error)});
       toast.error('Failed to load Entry Bars');
     } finally {
       setLoading(false);
@@ -102,7 +103,7 @@ const AdminEntryBars = () => {
       }
       return null;
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminEntryBars.UploadError", message: error instanceof Error ? error.message : "Upload error" });
+      recordAdminError({ kind: "rpc", label: "AdminEntryBars.UploadError", message: formatAdminError(error)});
       toast.error('File upload failed');
       return null;
     }
@@ -222,7 +223,7 @@ const AdminEntryBars = () => {
       setDialogOpen(false);
       fetchEntryBars();
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminEntryBars.SaveError", message: error instanceof Error ? error.message : "Save error" });
+      recordAdminError({ kind: "rpc", label: "AdminEntryBars.SaveError", message: formatAdminError(error)});
       toast.error('Failed to save: ' + (error?.message || 'Unknown error'));
     } finally {
       setSaving(false);
@@ -242,7 +243,7 @@ const AdminEntryBars = () => {
       toast.success('Entry Bar deleted');
       fetchEntryBars();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminEntryBars.DeleteError", message: error instanceof Error ? error.message : "Delete error" });
+      recordAdminError({ kind: "rpc", label: "AdminEntryBars.DeleteError", message: formatAdminError(error)});
       toast.error('Failed to delete');
     }
   };
@@ -258,7 +259,7 @@ const AdminEntryBars = () => {
       toast.success(currentState ? 'Deactivated' : 'Activated');
       fetchEntryBars();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminEntryBars.ToggleError", message: error instanceof Error ? error.message : "Toggle error" });
+      recordAdminError({ kind: "rpc", label: "AdminEntryBars.ToggleError", message: formatAdminError(error)});
       toast.error('Failed to update status');
     }
   };

@@ -12,6 +12,7 @@ import { loadAppSetting, saveAppSetting } from "@/utils/adminSettingsStorage";
 import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 const SETTING_KEY = "party_discovery_ranking";
 
 type PresetKey = "balanced_default" | "strict_competitive" | "new_room_friendly" | "custom";
@@ -141,7 +142,7 @@ const AdminPartyDiscoveryRanking = () => {
       recordAdminError({
         kind: "other",
         label: "AdminPartyDiscoveryRanking.fetchConfig",
-        message: error instanceof Error ? error.message : "Failed to load",
+        message: formatAdminError(error),
       });
       toast.error("Failed to load discovery ranking");
     } finally {
@@ -188,7 +189,7 @@ const AdminPartyDiscoveryRanking = () => {
       recordAdminError({
         kind: "other",
         label: "AdminPartyDiscoveryRanking.save",
-        message: error instanceof Error ? error.message : "Failed to save",
+        message: formatAdminError(error),
       });
       toast.error("Failed to save");
     } finally {

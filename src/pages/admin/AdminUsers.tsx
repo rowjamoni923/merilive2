@@ -58,6 +58,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface UserProfile {
   id: string;
   display_name: string | null;
@@ -144,7 +145,7 @@ export default function AdminUsers() {
       const s = (statsData || {}) as { blocked?: number };
       setBlockedCount(Number(s.blocked || 0));
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminUsers.ErrorFetchingUsers", message: error instanceof Error ? error.message : "Error fetching users" });
+      recordAdminError({ kind: "rpc", label: "AdminUsers.ErrorFetchingUsers", message: formatAdminError(error)});
       toast.error("Failed to load users");
     } finally {
       setLoading(false);
@@ -180,7 +181,7 @@ export default function AdminUsers() {
       setBanDevice(false);
       fetchUsers();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminUsers.ErrorBlockingUser", message: error instanceof Error ? error.message : "Error blocking user" });
+      recordAdminError({ kind: "rpc", label: "AdminUsers.ErrorBlockingUser", message: formatAdminError(error)});
       toast.error((error as any)?.message || "Operation failed");
     } finally {
       setActionLoading(false);
@@ -199,7 +200,7 @@ export default function AdminUsers() {
       toast.success(isHost ? "Converted to User (Male)" : "Converted to Host (Female)");
       fetchUsers();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminUsers.ErrorUpdatingHostStatus", message: error instanceof Error ? error.message : "Error updating host status" });
+      recordAdminError({ kind: "rpc", label: "AdminUsers.ErrorUpdatingHostStatus", message: formatAdminError(error)});
       toast.error((error as any)?.message || "Operation failed");
     }
   };
@@ -215,7 +216,7 @@ export default function AdminUsers() {
       toast.success(isVerified ? "Verification removed" : "User verified");
       fetchUsers();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminUsers.ErrorVerifyingUser", message: error instanceof Error ? error.message : "Error verifying user" });
+      recordAdminError({ kind: "rpc", label: "AdminUsers.ErrorVerifyingUser", message: formatAdminError(error)});
       toast.error((error as any)?.message || "Operation failed");
     }
   };

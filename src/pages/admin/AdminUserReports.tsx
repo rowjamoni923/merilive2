@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 const CATEGORY_LABELS: Record<string, { label: string; color: string }> = {
   sexual_content: { label: "Sexual Content", color: "bg-pink-600" },
   harassment_bullying: { label: "Harassment", color: "bg-red-600" },
@@ -98,7 +99,7 @@ export default function AdminUserReports() {
       }));
       setReports(formatted as Report[]);
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminUserReports.ErrorFetchingReports", message: error instanceof Error ? error.message : "Error fetching reports" });
+      recordAdminError({ kind: "rpc", label: "AdminUserReports.ErrorFetchingReports", message: formatAdminError(error)});
       toast.error("Failed to load reports");
     } finally {
       setLoading(false);

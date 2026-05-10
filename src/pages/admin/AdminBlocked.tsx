@@ -31,6 +31,7 @@ import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface BlockedUser {
   id: string;
   display_name: string;
@@ -95,7 +96,7 @@ export default function AdminBlocked() {
       setBlockedAgencies(formattedAgencies);
       setAdminCache('admin_blocked_agencies', formattedAgencies);
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminBlocked.ErrorFetchingBlockedItems", message: error instanceof Error ? error.message : "Error fetching blocked items" });
+      recordAdminError({ kind: "rpc", label: "AdminBlocked.ErrorFetchingBlockedItems", message: formatAdminError(error)});
       toast.error("Failed to load data");
     } finally {
       setLoading(false);
@@ -130,7 +131,7 @@ export default function AdminBlocked() {
       toast.success("User unblocked successfully");
       fetchBlockedItems();
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminBlocked.UnblockError", message: error instanceof Error ? error.message : "Unblock error" });
+      recordAdminError({ kind: "rpc", label: "AdminBlocked.UnblockError", message: formatAdminError(error)});
       toast.error(error?.message || "Failed to unblock user");
     }
   };

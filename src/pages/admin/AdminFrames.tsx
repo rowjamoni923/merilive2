@@ -33,6 +33,7 @@ import UniversalFramePlayer from "@/components/common/UniversalFramePlayer";
 import { removeBlackBackground, needsBackgroundRemoval } from "@/utils/removeBlackBackground";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface Frame {
   id: string;
   name: string;
@@ -114,7 +115,7 @@ const AdminFrames = () => {
 
       if (error) {
         toast.error("Failed to load frames");
-        recordAdminError({ kind: "rpc", label: "AdminFrames", message: error instanceof Error ? error.message : String(error) });
+        recordAdminError({ kind: "rpc", label: "AdminFrames", message: formatAdminError(error) });
       } else {
         const sorted = ((data as any[]) || []).slice().sort((a, b) => {
           const al = a.min_level ?? 0, bl = b.min_level ?? 0;
@@ -192,7 +193,7 @@ const AdminFrames = () => {
           detectedType = 'png';
           toast.success('✅ Black background removed successfully!');
         } catch (bgError) {
-          recordAdminError({ kind: "rpc", label: "AdminFrames.BackgroundRemovalFailed", message: bgError instanceof Error ? bgError.message : "Background removal failed" });
+          recordAdminError({ kind: "rpc", label: "AdminFrames.BackgroundRemovalFailed", message: formatAdminError(bgError)});
           toast.warning('Background removal failed, uploading original file...');
         } finally {
           setProcessingBackground(false);
@@ -248,7 +249,7 @@ const AdminFrames = () => {
 
       toast.success(`${detectedType.toUpperCase()} file uploaded successfully!`);
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminFrames.UploadError", message: error instanceof Error ? error.message : "Upload error" });
+      recordAdminError({ kind: "rpc", label: "AdminFrames.UploadError", message: formatAdminError(error)});
       toast.error(error.message || "Failed to upload file");
     } finally {
       setUploading(false);
@@ -290,7 +291,7 @@ const AdminFrames = () => {
           .eq("id", editingFrame.id);
           
         if (error) {
-          recordAdminError({ kind: "rpc", label: "AdminFrames.UpdateError", message: error instanceof Error ? error.message : "Update error" });
+          recordAdminError({ kind: "rpc", label: "AdminFrames.UpdateError", message: formatAdminError(error)});
           toast.error(`Update failed: ${error.message}`);
           return;
         }
@@ -304,7 +305,7 @@ const AdminFrames = () => {
           });
           
         if (error) {
-          recordAdminError({ kind: "rpc", label: "AdminFrames.InsertError", message: error instanceof Error ? error.message : "Insert error" });
+          recordAdminError({ kind: "rpc", label: "AdminFrames.InsertError", message: formatAdminError(error)});
           toast.error(`Insert failed: ${error.message}`);
           return;
         }
@@ -315,7 +316,7 @@ const AdminFrames = () => {
       resetForm();
       fetchFrames();
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminFrames.SaveError", message: error instanceof Error ? error.message : "Save error" });
+      recordAdminError({ kind: "rpc", label: "AdminFrames.SaveError", message: formatAdminError(error)});
       toast.error(`Error: ${error.message}`);
     }
   };
@@ -331,7 +332,7 @@ const AdminFrames = () => {
       });
       
       if (clearError) {
-        recordAdminError({ kind: "rpc", label: "AdminFrames.ClearFrameReferencesError", message: clearError instanceof Error ? clearError.message : "Clear frame references error" });
+        recordAdminError({ kind: "rpc", label: "AdminFrames.ClearFrameReferencesError", message: formatAdminError(clearError)});
         toast.error(`Failed to clear frame references: ${clearError.message}`);
         return;
       }
@@ -343,14 +344,14 @@ const AdminFrames = () => {
         .eq("id", id);
         
       if (error) {
-        recordAdminError({ kind: "rpc", label: "AdminFrames.DeleteError", message: error instanceof Error ? error.message : "Delete error" });
+        recordAdminError({ kind: "rpc", label: "AdminFrames.DeleteError", message: formatAdminError(error)});
         toast.error(`Delete failed: ${error.message}`);
         return;
       }
       toast.success("Frame deleted! User frames have been removed.");
       fetchFrames();
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminFrames.DeleteError", message: error instanceof Error ? error.message : "Delete error" });
+      recordAdminError({ kind: "rpc", label: "AdminFrames.DeleteError", message: formatAdminError(error)});
       toast.error(`Delete error: ${error.message}`);
     }
   };
@@ -363,13 +364,13 @@ const AdminFrames = () => {
         .eq("id", frame.id);
         
       if (error) {
-        recordAdminError({ kind: "rpc", label: "AdminFrames.ToggleError", message: error instanceof Error ? error.message : "Toggle error" });
+        recordAdminError({ kind: "rpc", label: "AdminFrames.ToggleError", message: formatAdminError(error)});
         toast.error(`Status change failed: ${error.message}`);
         return;
       }
       fetchFrames();
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminFrames.ToggleError", message: error instanceof Error ? error.message : "Toggle error" });
+      recordAdminError({ kind: "rpc", label: "AdminFrames.ToggleError", message: formatAdminError(error)});
     }
   };
 

@@ -13,6 +13,7 @@ import { Plus, Edit, Trash2, Upload, RefreshCw, Play, Eye, MessageCircle } from 
 import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface ChatBubbleItem {
   id: string;
   level: number;
@@ -63,7 +64,7 @@ const AdminChatBubbles = () => {
 
       setItems(mapped);
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminChatBubbles.ErrorFetchingChatBubbles", message: error instanceof Error ? error.message : "Error fetching chat bubbles" });
+      recordAdminError({ kind: "rpc", label: "AdminChatBubbles.ErrorFetchingChatBubbles", message: formatAdminError(error)});
       toast.error('Failed to load Chat Bubbles');
     } finally {
       setLoading(false);
@@ -121,7 +122,7 @@ const AdminChatBubbles = () => {
 
       return urlData.publicUrl;
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminChatBubbles.UploadError", message: error instanceof Error ? error.message : "Upload error" });
+      recordAdminError({ kind: "rpc", label: "AdminChatBubbles.UploadError", message: formatAdminError(error)});
       toast.error('File upload failed');
       return null;
     }
@@ -221,7 +222,7 @@ const AdminChatBubbles = () => {
       setDialogOpen(false);
       fetchItems();
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminChatBubbles.SaveError", message: error instanceof Error ? error.message : "Save error" });
+      recordAdminError({ kind: "rpc", label: "AdminChatBubbles.SaveError", message: formatAdminError(error)});
       toast.error('Failed to save');
     } finally {
       setSaving(false);
@@ -241,7 +242,7 @@ const AdminChatBubbles = () => {
       toast.success('Chat Bubble deleted');
       fetchItems();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminChatBubbles.DeleteError", message: error instanceof Error ? error.message : "Delete error" });
+      recordAdminError({ kind: "rpc", label: "AdminChatBubbles.DeleteError", message: formatAdminError(error)});
       toast.error('Failed to delete');
     }
   };
@@ -257,7 +258,7 @@ const AdminChatBubbles = () => {
       toast.success(item.is_active ? 'Deactivated' : 'Activated');
       fetchItems();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminChatBubbles.ToggleError", message: error instanceof Error ? error.message : "Toggle error" });
+      recordAdminError({ kind: "rpc", label: "AdminChatBubbles.ToggleError", message: formatAdminError(error)});
     }
   };
 

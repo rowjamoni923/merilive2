@@ -12,6 +12,7 @@ import AdminUserManagement from "./AdminUserManagement";
 import { recordAdminError } from "@/utils/adminErrorLog";
 import { cn } from "@/lib/utils";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface CountryData {
   country_name: string | null;
   country_code: string | null;
@@ -62,7 +63,7 @@ const AdminUserHub = () => {
         faceVerified: faceRes.count || 0,
       });
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminUserHub.fetchStats", message: error instanceof Error ? error.message : "Failed to fetch user stats" });
+      recordAdminError({ kind: "rpc", label: "AdminUserHub.fetchStats", message: formatAdminError(error)});
     }
   }, []);
 
@@ -96,7 +97,7 @@ const AdminUserHub = () => {
       const sorted = Array.from(countryMap.values()).sort((a, b) => b.count - a.count);
       setCountryStats(sorted);
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminUserHub.fetchCountryStats", message: error instanceof Error ? error.message : "Failed to fetch country stats" });
+      recordAdminError({ kind: "rpc", label: "AdminUserHub.fetchCountryStats", message: formatAdminError(error)});
     } finally {
       setIsLoadingCountries(false);
     }

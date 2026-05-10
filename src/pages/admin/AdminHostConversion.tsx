@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface ConversionRequest {
   id: string;
   user_id: string;
@@ -63,7 +64,7 @@ const AdminHostConversion = () => {
 
       setRequests(withProfiles);
     } catch (err) {
-      recordAdminError({ kind: "rpc", label: "AdminHostConversion.LoadError", message: err instanceof Error ? err.message : "Load error" });
+      recordAdminError({ kind: "rpc", label: "AdminHostConversion.LoadError", message: formatAdminError(err)});
     } finally {
       setLoading(false);
     }

@@ -88,6 +88,7 @@ import { saveAppSetting } from "@/utils/adminSettingsStorage";
 import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 // Helper to parse verification details from admin_notes
 function parseVerificationDetails(adminNotes: string | null) {
   if (!adminNotes) return null;
@@ -447,7 +448,7 @@ export default function AdminUserManagement() {
       setUsers(data || []);
       setTotalUsers(count || 0);
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorFetchingUsers", message: error instanceof Error ? error.message : "Error fetching users" });
+      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorFetchingUsers", message: formatAdminError(error)});
       toast.error("Failed to load users");
     } finally {
       setLoading(false);
@@ -473,7 +474,7 @@ export default function AdminUserManagement() {
       setBlockReason("");
       fetchUsers();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorBlockingUser", message: error instanceof Error ? error.message : "Error blocking user" });
+      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorBlockingUser", message: formatAdminError(error)});
       toast.error((error as any)?.message || "Operation failed");
     } finally {
       setActionLoading(false);
@@ -501,7 +502,7 @@ export default function AdminUserManagement() {
       toast.success(isHost ? "Converted to User (Male)" : "Converted to Host (Female)");
       fetchUsers();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorUpdatingHostStatus", message: error instanceof Error ? error.message : "Error updating host status" });
+      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorUpdatingHostStatus", message: formatAdminError(error)});
       toast.error((error as any)?.message || "Operation failed");
     } finally {
       setActionLoading(false);
@@ -538,7 +539,7 @@ export default function AdminUserManagement() {
       toast.success(toHost ? '🎤 Converted to Host!' : '👤 Converted to User!');
       fetchFaceSubmissions();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorConverting", message: error instanceof Error ? error.message : "Error converting" });
+      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorConverting", message: formatAdminError(error)});
       toast.error((error as any)?.message || "Operation failed");
     } finally {
       setActionLoading(false);
@@ -569,7 +570,7 @@ export default function AdminUserManagement() {
       toast.success(isVerified ? "Verification removed (face + profile)" : "User fully verified");
       fetchUsers();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorVerifyingUser", message: error instanceof Error ? error.message : "Error verifying user" });
+      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorVerifyingUser", message: formatAdminError(error)});
       toast.error((error as any)?.message || "Operation failed");
     } finally {
       setActionLoading(false);
@@ -600,7 +601,7 @@ export default function AdminUserManagement() {
       if (error) throw error;
       setHosts((data as unknown as Host[]) || []);
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorFetchingHosts", message: error instanceof Error ? error.message : "Error fetching hosts" });
+      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorFetchingHosts", message: formatAdminError(error)});
       toast.error("Failed to load hosts");
     } finally {
       setLoading(false);
@@ -624,7 +625,7 @@ export default function AdminUserManagement() {
         });
       }
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorFetchingStats", message: error instanceof Error ? error.message : "Error fetching stats" });
+      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorFetchingStats", message: formatAdminError(error)});
     }
   };
 
@@ -765,7 +766,7 @@ export default function AdminUserManagement() {
       
       setApplications(appsWithAgency as HostApplication[]);
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorFetchingApplications", message: error instanceof Error ? error.message : "Error fetching applications" });
+      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorFetchingApplications", message: formatAdminError(error)});
       toast.error("Failed to load applications");
     } finally {
       setLoading(false);
@@ -817,7 +818,7 @@ export default function AdminUserManagement() {
       setAdminNotes("");
       fetchApplications();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorApproving", message: error instanceof Error ? error.message : "Error approving" });
+      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorApproving", message: formatAdminError(error)});
       toast.error((error as any)?.message || "Operation failed");
     } finally {
       setActionLoading(false);
@@ -855,7 +856,7 @@ export default function AdminUserManagement() {
       setAdminNotes("");
       fetchApplications();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorRejecting", message: error instanceof Error ? error.message : "Error rejecting" });
+      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorRejecting", message: formatAdminError(error)});
       toast.error((error as any)?.message || "Operation failed");
     } finally {
       setActionLoading(false);
@@ -928,7 +929,7 @@ export default function AdminUserManagement() {
 
       setFaceSubmissions(enriched);
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorFetchingSubmissions", message: error instanceof Error ? error.message : "Error fetching submissions" });
+      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorFetchingSubmissions", message: formatAdminError(error)});
       toast.error("Failed to load submissions");
     } finally {
       setLoading(false);
@@ -974,7 +975,7 @@ export default function AdminUserManagement() {
       fetchFaceSubmissions();
     } catch (error: any) {
       setFaceSubmissions(previousFaceSubmissions);
-      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorProcessingSubmission", message: error instanceof Error ? error.message : "Error processing submission" });
+      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorProcessingSubmission", message: formatAdminError(error)});
       toast.error(error.message || "Failed to process");
     } finally {
       setActionLoading(false);
@@ -1022,7 +1023,7 @@ export default function AdminUserManagement() {
       
       setTotalLogs(count || 0);
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorFetchingLogs", message: error instanceof Error ? error.message : "Error fetching logs" });
+      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorFetchingLogs", message: formatAdminError(error)});
       toast.error("Failed to load logs");
     } finally {
       setLoading(false);
@@ -1070,7 +1071,7 @@ export default function AdminUserManagement() {
       toast.success("Settings saved");
       setShowSettingsDialog(false);
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorSavingSettings", message: error instanceof Error ? error.message : "Error saving settings" });
+      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorSavingSettings", message: formatAdminError(error)});
       toast.error("Failed to save settings");
     } finally {
       setSavingSettings(false);
@@ -1096,7 +1097,7 @@ export default function AdminUserManagement() {
       toast.success("User unbanned");
       fetchModerationLogs();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorUnbanningUser", message: error instanceof Error ? error.message : "Error unbanning user" });
+      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorUnbanningUser", message: formatAdminError(error)});
       toast.error("Failed to unban user");
     }
   };
@@ -1142,7 +1143,7 @@ export default function AdminUserManagement() {
       
       setBlockedAgencies(formattedAgencies);
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorFetchingBlockedItems", message: error instanceof Error ? error.message : "Error fetching blocked items" });
+      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorFetchingBlockedItems", message: formatAdminError(error)});
       toast.error("Failed to load data");
     } finally {
       setLoading(false);
@@ -1252,7 +1253,7 @@ export default function AdminUserManagement() {
       setSelectedBlockedUser(result);
       setShowBlockedUserDetailDialog(true);
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorFetchingUserDetails", message: error instanceof Error ? error.message : "Error fetching user details" });
+      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorFetchingUserDetails", message: formatAdminError(error)});
       toast.error("Failed to load details");
     } finally {
       setLoadingUserDetails(false);
@@ -1274,7 +1275,7 @@ export default function AdminUserManagement() {
       setShowBlockedUserDetailDialog(false);
       fetchBlockedItems();
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorDeletingUser", message: error instanceof Error ? error.message : "Error deleting user" });
+      recordAdminError({ kind: "rpc", label: "AdminUserManagement.ErrorDeletingUser", message: formatAdminError(error)});
       toast.error(error.message || "Failed to delete account");
     } finally {
       setDeletingUser(false);

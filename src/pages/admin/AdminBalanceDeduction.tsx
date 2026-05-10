@@ -37,6 +37,7 @@ import { adminStyles, gradients, iconBgColors } from "@/styles/adminStyles";
 import { motion, AnimatePresence } from "framer-motion";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface SearchResult {
   type: 'user' | 'host' | 'agency' | 'helper';
   id: string;
@@ -448,7 +449,7 @@ export default function AdminBalanceDeduction() {
         toast.info("No results found");
       }
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminBalanceDeduction.SearchError", message: error instanceof Error ? error.message : "Search error" });
+      recordAdminError({ kind: "rpc", label: "AdminBalanceDeduction.SearchError", message: formatAdminError(error)});
       toast.error("Search failed");
     } finally {
       setIsSearching(false);
@@ -674,7 +675,7 @@ export default function AdminBalanceDeduction() {
       // Refresh search results
       handleSearch();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminBalanceDeduction.AddError", message: error instanceof Error ? error.message : "Add error" });
+      recordAdminError({ kind: "rpc", label: "AdminBalanceDeduction.AddError", message: formatAdminError(error)});
       toast.error("Failed to add amount");
     } finally {
       setIsAdding(false);
@@ -835,7 +836,7 @@ export default function AdminBalanceDeduction() {
       // Refresh search results
       handleSearch();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminBalanceDeduction.DeductionError", message: error instanceof Error ? error.message : "Deduction error" });
+      recordAdminError({ kind: "rpc", label: "AdminBalanceDeduction.DeductionError", message: formatAdminError(error)});
       toast.error("Failed to deduct amount");
     } finally {
       setIsDeducting(false);
@@ -905,7 +906,7 @@ export default function AdminBalanceDeduction() {
       // Refresh search results
       handleSearch();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminBalanceDeduction.BlockError", message: error instanceof Error ? error.message : "Block error" });
+      recordAdminError({ kind: "rpc", label: "AdminBalanceDeduction.BlockError", message: formatAdminError(error)});
       toast.error("Failed to block");
     } finally {
       setIsBlocking(false);

@@ -9,6 +9,7 @@ import { motion } from "framer-motion";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface CallRecord {
   id: string;
   caller_id: string;
@@ -108,7 +109,7 @@ export default function AdminTodayCalls() {
       setCalls(enriched);
     } catch (e) {
       console.error("Error fetching calls:", e);
-      recordAdminError({ kind: "rpc", label: "AdminTodayCalls.enriched", message: e instanceof Error ? e.message : String(e) });
+      recordAdminError({ kind: "rpc", label: "AdminTodayCalls.enriched", message: formatAdminError(e) });
     } finally {
       setLoading(false);
     }

@@ -31,6 +31,7 @@ import { format } from "date-fns";
 import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface HelperApplication {
   id: string;
   user_id: string;
@@ -154,7 +155,7 @@ const AdminHelperApplications = () => {
       });
 
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminHelperApplications", message: error instanceof Error ? error.message : "Helper applications error" });
+      recordAdminError({ kind: "rpc", label: "AdminHelperApplications", message: formatAdminError(error)});
     } finally {
       setLoading(false);
     }

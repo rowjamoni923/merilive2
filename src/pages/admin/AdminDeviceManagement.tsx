@@ -38,6 +38,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface DeviceRecord {
   id: string;
   admin_user_id: string;
@@ -99,7 +100,7 @@ export default function AdminDeviceManagement() {
 
       setDevices(rows);
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminDeviceManagement.ErrorLoadingDevices", message: error instanceof Error ? error.message : "Error loading devices" });
+      recordAdminError({ kind: "rpc", label: "AdminDeviceManagement.ErrorLoadingDevices", message: formatAdminError(error)});
       toast.error(error?.message || 'Failed to load devices');
     } finally {
       setLoading(false);
@@ -141,7 +142,7 @@ export default function AdminDeviceManagement() {
 
       await loadDevices();
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminDeviceManagement.Error", message: error instanceof Error ? error.message : "Error" });
+      recordAdminError({ kind: "rpc", label: "AdminDeviceManagement.Error", message: formatAdminError(error)});
       toast.error(error?.message || 'Action failed');
     } finally {
       setActionLoading(false);

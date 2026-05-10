@@ -14,6 +14,7 @@ import AdminHelperMessaging from "@/components/admin/AdminHelperMessaging";
 import AdminEpayWithdrawals from "@/components/admin/AdminEpayWithdrawals";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 const AdminFinance = () => {
   const [activeTab, setActiveTab] = useState("withdrawals");
   const [stats, setStats] = useState({
@@ -39,7 +40,7 @@ const AdminFinance = () => {
         pendingEpay: r.pending_epay || 0,
       });
     } catch (e) {
-      recordAdminError({ kind: "rpc", label: "AdminFinance.AdminfinanceStatsError", message: e instanceof Error ? e.message : "[AdminFinance] stats error" });
+      recordAdminError({ kind: "rpc", label: "AdminFinance.AdminfinanceStatsError", message: formatAdminError(e)});
     }
   };
 

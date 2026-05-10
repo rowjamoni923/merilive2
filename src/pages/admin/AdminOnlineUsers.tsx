@@ -11,6 +11,7 @@ import useAdminRealtime from "@/hooks/useAdminRealtime";
 import AdminPagination from "@/components/admin/AdminPagination";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface OnlineUser {
   id: string;
   display_name: string | null;
@@ -49,7 +50,7 @@ export default function AdminOnlineUsers() {
       setUsers((payload.rows || []) as OnlineUser[]);
       setTotal(Number(payload.total) || 0);
     } catch (e) {
-      recordAdminError({ kind: "rpc", label: "AdminOnlineUsers.ErrorFetchingOnlineUsers", message: e instanceof Error ? e.message : "Error fetching online users" });
+      recordAdminError({ kind: "rpc", label: "AdminOnlineUsers.ErrorFetchingOnlineUsers", message: formatAdminError(e)});
     } finally {
       setLoading(false);
       setRefreshing(false);

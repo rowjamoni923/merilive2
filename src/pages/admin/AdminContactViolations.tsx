@@ -66,6 +66,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface Violation {
   id: string;
   host_id: string;
@@ -192,7 +193,7 @@ export default function AdminContactViolations({ onViewChat }: AdminContactViola
 
       setStats({ total: totalRes.count || 0, pending, banned, thisWeek: thisWeekRes.count || 0 });
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminContactViolations.ErrorFetchingViolations", message: error instanceof Error ? error.message : "Error fetching violations" });
+      recordAdminError({ kind: "rpc", label: "AdminContactViolations.ErrorFetchingViolations", message: formatAdminError(error)});
       toast.error("Failed to load data");
     } finally {
       setLoading(false);
@@ -248,7 +249,7 @@ export default function AdminContactViolations({ onViewChat }: AdminContactViola
       toast.success("Host banned successfully");
       fetchViolations();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminContactViolations.BanError", message: error instanceof Error ? error.message : "Ban error" });
+      recordAdminError({ kind: "rpc", label: "AdminContactViolations.BanError", message: formatAdminError(error)});
       toast.error("Failed to ban host");
     } finally {
       setBanningHost(null);
@@ -274,7 +275,7 @@ export default function AdminContactViolations({ onViewChat }: AdminContactViola
       toast.success("Review complete");
       fetchViolations();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminContactViolations.ReviewError", message: error instanceof Error ? error.message : "Review error" });
+      recordAdminError({ kind: "rpc", label: "AdminContactViolations.ReviewError", message: formatAdminError(error)});
       toast.error("Failed to review");
     }
   };

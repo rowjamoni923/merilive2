@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 // Import existing components
 import AdminPartyRooms from "./AdminPartyRooms";
 import AdminPartyBanners from "./AdminPartyBanners";
@@ -45,7 +46,7 @@ export default function AdminPartyManagement() {
       });
     } catch (e) {
       console.error('Error fetching party management stats:', e);
-      recordAdminError({ kind: "rpc", label: "AdminPartyManagement.s", message: e instanceof Error ? e.message : String(e) });
+      recordAdminError({ kind: "rpc", label: "AdminPartyManagement.s", message: formatAdminError(e) });
     }
   };
 

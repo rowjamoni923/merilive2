@@ -18,6 +18,7 @@ import { format, formatDistanceToNow } from "date-fns";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { useToast } from "@/hooks/use-toast";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 // Import sub-sections as tab content
 import AdminNumberSharing from "./AdminNumberSharing";
 import AdminContactViolations from "./AdminContactViolations";
@@ -262,7 +263,7 @@ const AdminChatInspector = () => {
       }
       setShowBanDialog(false);
     } catch (err) {
-      recordAdminError({ kind: "rpc", label: "AdminChatInspector.BanError", message: err instanceof Error ? err.message : "Ban error" });
+      recordAdminError({ kind: "rpc", label: "AdminChatInspector.BanError", message: formatAdminError(err)});
       toast({ title: "Ban Failed", variant: "destructive" });
     } finally {
       setBanning(false);
@@ -281,7 +282,7 @@ const AdminChatInspector = () => {
       const data = await res.json();
       setSearchResults(data.users || []);
     } catch (e) {
-      recordAdminError({ kind: "rpc", label: "AdminChatInspector.SearchFailed", message: e instanceof Error ? e.message : "Search failed" });
+      recordAdminError({ kind: "rpc", label: "AdminChatInspector.SearchFailed", message: formatAdminError(e)});
     } finally {
       setSearching(false);
     }
@@ -302,7 +303,7 @@ const AdminChatInspector = () => {
       const data = await res.json();
       setConversations(data.conversations || []);
     } catch (e) {
-      recordAdminError({ kind: "rpc", label: "AdminChatInspector.LoadConversationsFailed", message: e instanceof Error ? e.message : "Load conversations failed" });
+      recordAdminError({ kind: "rpc", label: "AdminChatInspector.LoadConversationsFailed", message: formatAdminError(e)});
     } finally {
       setLoadingConversations(false);
     }
@@ -316,7 +317,7 @@ const AdminChatInspector = () => {
       const data = await res.json();
       setMessages(data.messages || []);
     } catch (e) {
-      recordAdminError({ kind: "rpc", label: "AdminChatInspector.LoadMessagesFailed", message: e instanceof Error ? e.message : "Load messages failed" });
+      recordAdminError({ kind: "rpc", label: "AdminChatInspector.LoadMessagesFailed", message: formatAdminError(e)});
     } finally {
       setLoadingMessages(false);
     }
@@ -348,7 +349,7 @@ const AdminChatInspector = () => {
         setNewAlertCount(0);
       }
     } catch (e) {
-      recordAdminError({ kind: "rpc", label: "AdminChatInspector.LoadAlertsFailed", message: e instanceof Error ? e.message : "Load alerts failed" });
+      recordAdminError({ kind: "rpc", label: "AdminChatInspector.LoadAlertsFailed", message: formatAdminError(e)});
     } finally {
       setLoadingAlerts(false);
     }

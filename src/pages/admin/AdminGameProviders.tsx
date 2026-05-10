@@ -40,6 +40,7 @@ import {
   Users
 } from "lucide-react";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 // Popular Game Provider Presets
 const GAME_PROVIDER_PRESETS = [
   {
@@ -221,7 +222,7 @@ export default function AdminGameProviders() {
       }
     } catch (error) {
       console.error('Error fetching providers:', error);
-      recordAdminError({ kind: "rpc", label: "AdminGameProviders.fetchProviders", message: error instanceof Error ? error.message : String(error) });
+      recordAdminError({ kind: "rpc", label: "AdminGameProviders.fetchProviders", message: formatAdminError(error) });
       toast.error('Failed to load providers');
     } finally {
       setLoading(false);

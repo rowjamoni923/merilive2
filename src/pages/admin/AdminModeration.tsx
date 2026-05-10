@@ -44,6 +44,7 @@ import { toast } from "sonner";
 import { saveAppSetting } from "@/utils/adminSettingsStorage";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface ModerationLog {
   id: string;
   user_id: string;
@@ -144,7 +145,7 @@ export default function AdminModeration() {
       setLogs(logsWithUsers);
       setTotalLogs(Number(payload.total || 0));
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminModeration.ErrorFetchingLogs", message: error instanceof Error ? error.message : "Error fetching logs" });
+      recordAdminError({ kind: "rpc", label: "AdminModeration.ErrorFetchingLogs", message: formatAdminError(error)});
       toast.error("Failed to load logs");
     } finally {
       setLoading(false);
@@ -168,7 +169,7 @@ export default function AdminModeration() {
       toast.success("Settings saved");
       setShowSettingsDialog(false);
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminModeration.ErrorSavingSettings", message: error instanceof Error ? error.message : "Error saving settings" });
+      recordAdminError({ kind: "rpc", label: "AdminModeration.ErrorSavingSettings", message: formatAdminError(error)});
       toast.error("Failed to save settings");
     } finally {
       setSavingSettings(false);
@@ -194,7 +195,7 @@ export default function AdminModeration() {
       toast.success("User unbanned");
       fetchLogs();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminModeration.ErrorUnbanningUser", message: error instanceof Error ? error.message : "Error unbanning user" });
+      recordAdminError({ kind: "rpc", label: "AdminModeration.ErrorUnbanningUser", message: formatAdminError(error)});
       toast.error("Failed to unban user");
     }
   };

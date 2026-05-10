@@ -58,6 +58,7 @@ import { bn } from "date-fns/locale";
 import { resolveNetWithdrawalBeans, resolveNetWithdrawalLocal, resolveNetWithdrawalUsd } from "@/utils/agencyWithdrawalAmounts";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface PaymentDetails {
   country_code?: string;
   currency_code?: string;
@@ -156,7 +157,7 @@ export default function AdminWithdrawals() {
         approved: r.approved || 0,
         totalPendingAmount: Number(r.total_pending_amount) || 0,
       });
-    } catch (e) { recordAdminError({ kind: "rpc", label: "AdminWithdrawals.ErrorFetchingWithdrawalCounts", message: e instanceof Error ? e.message : "Error fetching withdrawal counts" }); }
+    } catch (e) { recordAdminError({ kind: "rpc", label: "AdminWithdrawals.ErrorFetchingWithdrawalCounts", message: formatAdminError(e)}); }
   };
 
   const fetchSettings = async () => {
@@ -217,7 +218,7 @@ export default function AdminWithdrawals() {
             .in("id", uniqueAgencyIds);
 
           if (agenciesError) {
-            recordAdminError({ kind: "rpc", label: "AdminWithdrawals.ErrorFetchingAgenciesForWithdrawals", message: agenciesError instanceof Error ? agenciesError.message : "Error fetching agencies for withdrawals" });
+            recordAdminError({ kind: "rpc", label: "AdminWithdrawals.ErrorFetchingAgenciesForWithdrawals", message: formatAdminError(agenciesError)});
           } else if (agencies) {
             agenciesMap = Object.fromEntries(agencies.map((agency) => [agency.id, agency]));
           }
@@ -233,7 +234,7 @@ export default function AdminWithdrawals() {
             .in("id", uniqueOwnerIds);
 
           if (ownersError) {
-            recordAdminError({ kind: "rpc", label: "AdminWithdrawals.ErrorFetchingOwnersForWithdrawals", message: ownersError instanceof Error ? ownersError.message : "Error fetching owners for withdrawals" });
+            recordAdminError({ kind: "rpc", label: "AdminWithdrawals.ErrorFetchingOwnersForWithdrawals", message: formatAdminError(ownersError)});
           } else if (owners) {
             ownersMap = Object.fromEntries(owners.map(o => [o.id, o]));
           }
@@ -254,7 +255,7 @@ export default function AdminWithdrawals() {
         setWithdrawals([]);
       }
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminWithdrawals.ErrorFetchingWithdrawals", message: error instanceof Error ? error.message : "Error fetching withdrawals" });
+      recordAdminError({ kind: "rpc", label: "AdminWithdrawals.ErrorFetchingWithdrawals", message: formatAdminError(error)});
       toast.error("Failed to load withdrawals");
     } finally {
       setLoading(false);
@@ -319,7 +320,7 @@ export default function AdminWithdrawals() {
       fetchWithdrawals();
       fetchGlobalCounts();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminWithdrawals.ErrorProcessingWithdrawal", message: error instanceof Error ? error.message : "Error processing withdrawal" });
+      recordAdminError({ kind: "rpc", label: "AdminWithdrawals.ErrorProcessingWithdrawal", message: formatAdminError(error)});
       toast.error("Failed to process withdrawal");
       // Rollback optimistic update
       fetchWithdrawals();

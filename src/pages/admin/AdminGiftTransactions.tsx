@@ -13,6 +13,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { format } from "date-fns";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface GiftTransaction {
   id: string;
   sender_id: string;
@@ -88,7 +89,7 @@ export default function AdminGiftTransactions() {
       setPage(pageNum);
       setLastRefresh(new Date());
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminGiftTransactions.ErrorFetchingGiftTransactions", message: error instanceof Error ? error.message : "Error fetching gift transactions" });
+      recordAdminError({ kind: "rpc", label: "AdminGiftTransactions.ErrorFetchingGiftTransactions", message: formatAdminError(error)});
     } finally {
       setLoading(false);
       setLoadingMore(false);

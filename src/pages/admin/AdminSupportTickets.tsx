@@ -24,6 +24,7 @@ import AdminQuickLinks from "@/components/admin/AdminQuickLinks";
 import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface SupportTicket {
   id: string;
   ticket_number: string;
@@ -212,7 +213,7 @@ const AdminSupportTickets = () => {
       });
     } catch (e) {
       console.error('Error fetching global stats:', e);
-      recordAdminError({ kind: "rpc", label: "AdminSupportTickets.fetchGlobalStats", message: e instanceof Error ? e.message : String(e) });
+      recordAdminError({ kind: "rpc", label: "AdminSupportTickets.fetchGlobalStats", message: formatAdminError(e) });
     }
   }, []);
 
@@ -425,12 +426,12 @@ const AdminSupportTickets = () => {
           }
         } catch {
           console.error('[AI Suggestions] Failed to parse:', result);
-          recordAdminError({ kind: "rpc", label: "AdminSupportTickets.suggestions", message: result instanceof Error ? result.message : String(result) });
+          recordAdminError({ kind: "rpc", label: "AdminSupportTickets.suggestions", message: formatAdminError(result)});
         }
       }
     } catch (error) {
       console.error('[AI Suggestions] Error:', error);
-      recordAdminError({ kind: "rpc", label: "AdminSupportTickets.suggestions", message: error instanceof Error ? error.message : String(error) });
+      recordAdminError({ kind: "rpc", label: "AdminSupportTickets.suggestions", message: formatAdminError(error) });
     } finally {
       setLoadingSuggestions(false);
     }
@@ -465,7 +466,7 @@ const AdminSupportTickets = () => {
           translatedContent = transData?.translatedText || "";
         } catch (e) {
           console.error("Translation error:", e);
-          recordAdminError({ kind: "rpc", label: "AdminSupportTickets.actionKey", message: e instanceof Error ? e.message : String(e) });
+          recordAdminError({ kind: "rpc", label: "AdminSupportTickets.actionKey", message: formatAdminError(e) });
         } finally {
           setIsTranslating(false);
         }
