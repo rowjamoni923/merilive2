@@ -144,6 +144,7 @@ const AdminPartyBackgrounds = () => {
         is_active: bg.is_active ?? true,
         price_diamonds: bg.price_diamonds || 0,
         display_order: bg.display_order || 1,
+        min_level: bg.min_level ?? 0,
         created_at: bg.created_at
       })));
     } catch (err) {
