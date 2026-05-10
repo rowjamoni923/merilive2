@@ -1011,6 +1011,21 @@ const AdminPartyBackgrounds = () => {
                 </SelectContent>
               </Select>
             </div>
+            <div className="rounded-lg border-2 border-indigo-500/40 bg-indigo-500/5 p-3 space-y-1">
+              <Label className="flex items-center gap-2 text-indigo-300">
+                🔒 Minimum User Level Required
+              </Label>
+              <Input
+                type="number"
+                min={0}
+                value={formData.min_level}
+                onChange={(e) => setFormData(prev => ({ ...prev, min_level: Math.max(0, parseInt(e.target.value) || 0) }))}
+                placeholder="0 = everyone, 6 = Level 6+ only"
+              />
+              <p className="text-xs text-muted-foreground">
+                Only users at or above this level will see this background in the party room picker. Set to 6 (or higher) to restrict.
+              </p>
+            </div>
             <div className="flex items-center justify-between">
               <Label>Premium (VIP)</Label>
               <Switch
@@ -1034,19 +1049,6 @@ const AdminPartyBackgrounds = () => {
                 checked={formData.is_active}
                 onCheckedChange={(v) => setFormData(prev => ({ ...prev, is_active: v }))}
               />
-            </div>
-            <div>
-              <Label>Minimum User Level (0 = no restriction)</Label>
-              <Input
-                type="number"
-                min={0}
-                value={formData.min_level}
-                onChange={(e) => setFormData(prev => ({ ...prev, min_level: Math.max(0, parseInt(e.target.value) || 0) }))}
-                placeholder="e.g. 6 to require Level 6+"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Only users at or above this level will see this background in the party room picker.
-              </p>
             </div>
           </div>
           <DialogFooter>
