@@ -139,25 +139,36 @@ async function registerNativePushToken(userId: string): Promise<string | null> {
       return null;
     }
 
-    // Register for push notifications
-    await PushNotifications.register();
+    return await new Promise<string | null>(async (resolve) => {
+      let settled = false;
+      let registrationListener: { remove: () => Promise<void> } | null = null;
+      let errorListener: { remove: () => Promise<void> } | null = null;
 
-    // Listen for token
-    return new Promise((resolve) => {
-      PushNotifications.addListener('registration', async (registrationToken) => {
+      const finish = async (value: string | null) => {
+        if (settled) return;
+        settled = true;
+        await registrationListener?.remove().catch(() => undefined);
+        await errorListener?.remove().catch(() => undefined);
+        resolve(value);
+      };
+
+      registrationListener = await PushNotifications.addListener('registration', async (registrationToken) => {
         const token = registrationToken.value;
         console.log('[FCM Native] Token:', token.substring(0, 20) + '...');
         
         const platform = Capacitor.getPlatform() === 'ios' ? 'ios' : 'android';
         await saveTokenToDatabase(userId, token, platform);
         tokenRegistered = true;
-        resolve(token);
+        await finish(token);
       });
 
-      PushNotifications.addListener('registrationError', (error) => {
+      errorListener = await PushNotifications.addListener('registrationError', async (error) => {
         console.error('[FCM Native] Registration error:', error);
-        resolve(null);
+        await finish(null);
       });
+
+      await PushNotifications.register();
+      window.setTimeout(() => void finish(null), 15000);
     });
   } catch (error) {
     console.error('[FCM Native] Failed:', error);
