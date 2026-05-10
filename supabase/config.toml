@@ -18,3 +18,6 @@ verify_jwt = false
 [functions.ranking-ai-advisor]
 verify_jwt = false
 
+[functions.aws-credentials-check]
+verify_jwt = false
+
