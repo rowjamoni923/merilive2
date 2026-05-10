@@ -330,6 +330,7 @@ const AdminPartyBackgrounds = () => {
         _is_active: !bg.is_active,
         _price_diamonds: bg.price_diamonds,
         _display_order: bg.display_order,
+        _min_level: bg.min_level ?? 0,
       });
       if (error) throw error;
       setBackgrounds(prev => prev.map(b =>
