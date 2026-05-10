@@ -13447,7 +13447,7 @@ export type Database = {
       }
       admin_add_agency_coins: {
         Args: { _agency_id: string; _amount: number; _note?: string }
-        Returns: boolean
+        Returns: Json
       }
       admin_add_owner: {
         Args: { _admin_id: string; _display_name?: string; _new_email: string }
@@ -13468,14 +13468,12 @@ export type Database = {
         }
         Returns: Json
       }
-      admin_agency_overview_stats:
-        | { Args: never; Returns: Json }
-        | { Args: { p_agency_id: string }; Returns: Json }
+      admin_agency_overview_stats: { Args: never; Returns: Json }
       admin_apply_severity_ban: {
         Args: {
-          _duration_value: number
+          _duration_value?: number
           _evidence?: Json
-          _reason: string
+          _reason?: string
           _severity: string
           _target_user_id: string
         }
@@ -13492,7 +13490,7 @@ export type Database = {
       }
       admin_block_agency: {
         Args: { _agency_id: string; _block: boolean; _reason?: string }
-        Returns: boolean
+        Returns: Json
       }
       admin_block_user: {
         Args: {
@@ -13518,7 +13516,7 @@ export type Database = {
       admin_check_live_ban: { Args: { p_user_id: string }; Returns: boolean }
       admin_clear_frame_references: {
         Args: { frame_id_to_clear: string }
-        Returns: undefined
+        Returns: Json
       }
       admin_convert_user_role: {
         Args: { _to_host: boolean; _user_id: string }
@@ -13563,7 +13561,7 @@ export type Database = {
         Args: { _admin_id: string; _reel_id: string }
         Returns: undefined
       }
-      admin_delete_user: { Args: { _user_id: string }; Returns: boolean }
+      admin_delete_user: { Args: { _user_id: string }; Returns: Json }
       admin_end_stream: {
         Args: { _admin_id: string; _stream_id: string }
         Returns: undefined
@@ -13753,17 +13751,17 @@ export type Database = {
         Returns: Json
       }
       admin_list_face_violations: {
-        Args: { _admin_id: string; _limit?: number }
+        Args: { _admin_id?: string; _limit?: number }
         Returns: {
           action_taken: string
           app_uid: string
+          avatar_url: string
           confidence: number
           created_at: string
           display_name: string
           frame_url: string
           host_id: string
           id: string
-          reviewed_at: string
           status: string
           stream_id: string
           violation_type: string
@@ -13940,27 +13938,54 @@ export type Database = {
           _search?: string
           _status?: string
         }
-        Returns: Json
+        Returns: {
+          agency_id: string
+          app_uid: string
+          avatar_url: string
+          beans: number
+          created_at: string
+          display_name: string
+          gender: string
+          host_status: string
+          id: string
+          is_face_verified: boolean
+          total_count: number
+          total_earnings: number
+        }[]
       }
       admin_list_live_bans: {
         Args: { _limit?: number; _only_active?: boolean }
         Returns: {
-          app_uid: string
-          auto_banned: boolean
-          avatar_url: string
-          ban_duration_hours: number
-          ban_end: string
-          ban_reason: string
-          ban_start: string
-          display_name: string
+          auto_banned: boolean | null
+          ban_duration_hours: number | null
+          ban_end: string | null
+          ban_reason: string | null
+          ban_start: string | null
+          ban_type: string | null
+          banned_by: string | null
+          created_at: string | null
+          device_banned: boolean | null
+          expires_at: string | null
+          face_hash_banned: boolean | null
           id: string
-          is_active: boolean
-          unbanned_at: string
-          unbanned_by: string
+          ip_banned: boolean | null
+          is_active: boolean | null
+          reason: string | null
+          severity: string | null
+          stream_id: string | null
+          unban_reason: string | null
+          unbanned_at: string | null
+          unbanned_by: string | null
           user_id: string
-          violation_type: string
-          warning_count: number
+          violation_type: string | null
+          warning_count: number | null
         }[]
+        SetofOptions: {
+          from: "*"
+          to: "live_bans"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       admin_list_online_users: {
         Args: { _limit?: number; _offset?: number; _search?: string }
@@ -14121,21 +14146,19 @@ export type Database = {
         }
       }
       admin_list_severity_bans: {
-        Args: { _limit?: number; _severity?: string }
+        Args: { _limit?: number; _severity: string }
         Returns: {
           app_uid: string
           avatar_url: string
-          ban_end: string
-          ban_reason: string
-          ban_start: string
-          device_banned: boolean
+          created_at: string
           display_name: string
-          face_hash_banned: boolean
+          duration_value: number
+          evidence: Json
           id: string
-          ip_banned: boolean
-          is_active: boolean
+          reason: string
           severity: string
-          user_id: string
+          status: string
+          target_user_id: string
         }[]
       }
       admin_list_shop_items_all: {
@@ -14331,7 +14354,7 @@ export type Database = {
           _set_gender?: string
           _submission_id: string
         }
-        Returns: boolean
+        Returns: Json
       }
       admin_process_helper_transaction: {
         Args: { _action: string; _transaction_id: string }
@@ -14351,7 +14374,7 @@ export type Database = {
       }
       admin_remove_face_verification: {
         Args: { _user_id: string }
-        Returns: boolean
+        Returns: Json
       }
       admin_remove_host_from_agency: {
         Args: { _host_id: string; _reason?: string }
@@ -14418,15 +14441,15 @@ export type Database = {
       }
       admin_toggle_face_verification: {
         Args: { _user_id: string; _verified: boolean }
-        Returns: boolean
+        Returns: Json
       }
       admin_update_agency_level: {
-        Args: { _agency_id: string; _level: string }
-        Returns: boolean
+        Args: { _agency_id: string; _level: number }
+        Returns: Json
       }
       admin_update_face_violation: {
         Args: { _admin_id: string; _status: string; _violation_id: string }
-        Returns: undefined
+        Returns: Json
       }
       admin_update_helper_application: {
         Args: {
@@ -14456,7 +14479,7 @@ export type Database = {
       }
       admin_update_user_gender: {
         Args: { _gender: string; _user_id: string }
-        Returns: boolean
+        Returns: Json
       }
       admin_update_user_report: {
         Args: {
