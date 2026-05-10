@@ -81,8 +81,8 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
       const { data, error } = await supabase
         .from("host_contact_violations")
         .select(`
-          id, host_id, violation_number, detected_content, detected_pattern,
-          source_type, beans_deducted, created_at
+          id, user_id, violation_type, detected_content, severity,
+          action_taken, created_at
         `)
         .order("created_at", { ascending: false })
         .limit(200);
@@ -90,18 +90,23 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
       if (error) throw error;
 
       // Fetch profiles for all hosts
-      const hostIds = [...new Set((data || []).map((v: any) => v.host_id))];
+      const hostIds = [...new Set((data || []).map((v: any) => v.user_id).filter(Boolean))];
       const { data: profiles } = await supabase
-        .from("profiles")
+        .from("profiles_public")
         .select("id, display_name, avatar_url, app_uid, is_host, is_blocked, country_flag")
         .in("id", hostIds);
 
       const profileMap: Record<string, any> = {};
       (profiles || []).forEach((p: any) => { profileMap[p.id] = p; });
 
-      const enriched = (data || []).map((v: any) => ({
+      const enriched = (data || []).map((v: any, index: number) => ({
         ...v,
-        host: profileMap[v.host_id] || null,
+        host_id: v.user_id,
+        violation_number: index + 1,
+        detected_pattern: v.violation_type,
+        source_type: v.action_taken,
+        beans_deducted: v.action_taken === "beans_deducted_2000" ? 2000 : 0,
+        host: profileMap[v.user_id] || null,
       }));
 
       setViolations(enriched);
