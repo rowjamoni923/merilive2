@@ -111,7 +111,7 @@ const AdminTraderOrders = () => {
         todayTotal: todayOrders.reduce((sum, o) => sum + o.amount_usd, 0)
       });
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminTraderOrders", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminTraderOrders", message: formatAdminError(error) });
     } finally {
       setLoading(false);
     }

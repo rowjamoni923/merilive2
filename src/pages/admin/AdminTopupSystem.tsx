@@ -422,7 +422,7 @@ const AdminTopupSystem = () => {
         setStats(prev => ({ ...prev, totalManualTopups: logsWithUsers.length }));
       }
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminTopupSystem", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminTopupSystem", message: formatAdminError(error) });
     }
   };
 
@@ -471,7 +471,7 @@ const AdminTopupSystem = () => {
         totalCoinsTraded: (data || []).reduce((sum: number, h: any) => sum + (h.total_bought || 0), 0),
       }));
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminTopupSystem", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminTopupSystem", message: formatAdminError(error) });
     }
   };
 
@@ -649,7 +649,7 @@ const AdminTopupSystem = () => {
       setOrders(data || []);
       setStats(prev => ({ ...prev, pendingOrders: (data || []).filter((o: any) => o.status === 'pending').length }));
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminTopupSystem", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminTopupSystem", message: formatAdminError(error) });
     } finally {
       setOrdersLoading(false);
     }
@@ -665,7 +665,7 @@ const AdminTopupSystem = () => {
         .limit(100);
       setTransactions(data || []);
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminTopupSystem", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminTopupSystem", message: formatAdminError(error) });
     } finally {
       setTransactionsLoading(false);
     }

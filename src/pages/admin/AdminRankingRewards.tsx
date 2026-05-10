@@ -94,7 +94,7 @@ const AdminRankingRewards = () => {
       setRewards(data || []);
     } catch (err) {
       console.error('Error fetching rewards:', err);
-      recordAdminError({ kind: "rpc", label: "AdminRankingRewards.fetchRewards", message: formatAdminError(err)) });
+      recordAdminError({ kind: "rpc", label: "AdminRankingRewards.fetchRewards", message: formatAdminError(err) });
       toast.error('Failed to load rewards');
     } finally {
       setLoading(false);
@@ -128,7 +128,7 @@ const AdminRankingRewards = () => {
       resetForm();
     } catch (err: any) {
       console.error('Error adding reward:', err);
-      recordAdminError({ kind: "rpc", label: "AdminRankingRewards.handleAddReward", message: formatAdminError(err)) });
+      recordAdminError({ kind: "rpc", label: "AdminRankingRewards.handleAddReward", message: formatAdminError(err) });
       toast.error(err.message || 'Failed to add reward');
     } finally {
       setSaving(false);
@@ -156,7 +156,7 @@ const AdminRankingRewards = () => {
       resetForm();
     } catch (err: any) {
       console.error('Error updating reward:', err);
-      recordAdminError({ kind: "rpc", label: "AdminRankingRewards.handleUpdateReward", message: formatAdminError(err)) });
+      recordAdminError({ kind: "rpc", label: "AdminRankingRewards.handleUpdateReward", message: formatAdminError(err) });
       toast.error(err.message || 'Failed to update reward');
     } finally {
       setSaving(false);
@@ -176,7 +176,7 @@ const AdminRankingRewards = () => {
       toast.success('Reward deleted');
     } catch (err) {
       console.error('Error deleting reward:', err);
-      recordAdminError({ kind: "rpc", label: "AdminRankingRewards.handleDeleteReward", message: formatAdminError(err)) });
+      recordAdminError({ kind: "rpc", label: "AdminRankingRewards.handleDeleteReward", message: formatAdminError(err) });
       toast.error('Failed to delete reward');
     }
   };

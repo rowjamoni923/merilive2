@@ -310,7 +310,7 @@ export default function AdminGameLeaderboard() {
       toast.success(`🎁 ${sent} rewards sent successfully!`);
     } catch (error) {
       console.error('Send rewards error:', error);
-      recordAdminError({ kind: "rpc", label: "AdminGameLeaderboard.rewardParts", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminGameLeaderboard.rewardParts", message: formatAdminError(error) });
       toast.error('Failed to send some rewards');
     } finally {
       setSendingAll(false);

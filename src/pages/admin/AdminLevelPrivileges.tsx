@@ -152,7 +152,7 @@ const AdminLevelPrivileges = () => {
       if (animationsRes.data) setAnimations(animationsRes.data);
     } catch (error) {
       console.error('Error fetching data:', error);
-      recordAdminError({ kind: "rpc", label: "AdminLevelPrivileges.fetchData", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminLevelPrivileges.fetchData", message: formatAdminError(error) });
       toast.error('Failed to load data');
     } finally {
       setLoading(false);
@@ -180,7 +180,7 @@ const AdminLevelPrivileges = () => {
       return publicUrl;
     } catch (error) {
       console.error('Upload error:', error);
-      recordAdminError({ kind: "rpc", label: "AdminLevelPrivileges.filePath", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminLevelPrivileges.filePath", message: formatAdminError(error) });
       toast.error('Failed to upload file');
       return null;
     } finally {
@@ -227,7 +227,7 @@ const AdminLevelPrivileges = () => {
       fetchData();
     } catch (error) {
       console.error('Error saving privilege:', error);
-      recordAdminError({ kind: "rpc", label: "AdminLevelPrivileges.dataToSave", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminLevelPrivileges.dataToSave", message: formatAdminError(error) });
       toast.error('Failed to save: ' + (error as Error).message);
     } finally {
       setSaving(false);
@@ -254,7 +254,7 @@ const AdminLevelPrivileges = () => {
       fetchData();
     } catch (error) {
       console.error('Error saving animation:', error);
-      recordAdminError({ kind: "rpc", label: "AdminLevelPrivileges.handleSaveAnimation", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminLevelPrivileges.handleSaveAnimation", message: formatAdminError(error) });
       toast.error('Failed to save');
     } finally {
       setSaving(false);
@@ -276,7 +276,7 @@ const AdminLevelPrivileges = () => {
       fetchData();
     } catch (error) {
       console.error('Error deleting privilege:', error);
-      recordAdminError({ kind: "rpc", label: "AdminLevelPrivileges.handleDeletePrivilege", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminLevelPrivileges.handleDeletePrivilege", message: formatAdminError(error) });
       toast.error('Failed to delete');
     }
   };
@@ -294,7 +294,7 @@ const AdminLevelPrivileges = () => {
       fetchData();
     } catch (error) {
       console.error('Error toggling active:', error);
-      recordAdminError({ kind: "rpc", label: "AdminLevelPrivileges.handleToggleActive", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminLevelPrivileges.handleToggleActive", message: formatAdminError(error) });
       toast.error('Failed to update');
     }
   };

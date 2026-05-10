@@ -222,7 +222,7 @@ export default function AdminGameProviders() {
       }
     } catch (error) {
       console.error('Error fetching providers:', error);
-      recordAdminError({ kind: "rpc", label: "AdminGameProviders.fetchProviders", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminGameProviders.fetchProviders", message: formatAdminError(error) });
       toast.error('Failed to load providers');
     } finally {
       setLoading(false);

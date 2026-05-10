@@ -125,7 +125,7 @@ export default function AdminRatingRewards() {
       }
     } catch (err) {
       console.error('Fetch claims error:', err);
-      recordAdminError({ kind: "rpc", label: "AdminRatingRewards.enriched", message: formatAdminError(err)) });
+      recordAdminError({ kind: "rpc", label: "AdminRatingRewards.enriched", message: formatAdminError(err) });
       toast.error('Failed to load claims');
     } finally {
       setLoading(false);
@@ -170,7 +170,7 @@ export default function AdminRatingRewards() {
       }
     } catch (err) {
       console.error('Fetch transaction history error:', err);
-      recordAdminError({ kind: "rpc", label: "AdminRatingRewards.reviewerMap", message: formatAdminError(err)) });
+      recordAdminError({ kind: "rpc", label: "AdminRatingRewards.reviewerMap", message: formatAdminError(err) });
     } finally {
       setHistoryLoading(false);
     }
@@ -216,7 +216,7 @@ export default function AdminRatingRewards() {
       toast.success(`Approved! ${result.reward_type === 'beans' ? '🫘 10,000 Beans' : '💎 5,000 Diamonds'} sent to user`);
     } catch (err: any) {
       console.error('Approve error:', err);
-      recordAdminError({ kind: "rpc", label: "AdminRatingRewards.result", message: formatAdminError(err)) });
+      recordAdminError({ kind: "rpc", label: "AdminRatingRewards.result", message: formatAdminError(err) });
       toast.error(err.message || 'Failed to approve');
     } finally {
       setProcessingId(null);

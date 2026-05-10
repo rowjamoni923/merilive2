@@ -179,7 +179,7 @@ const AdminManualTopup = () => {
         setRecentTopups(logsWithUsers);
       }
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminManualTopup", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminManualTopup", message: formatAdminError(error) });
     }
   };
 

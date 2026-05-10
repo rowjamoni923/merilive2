@@ -120,7 +120,7 @@ const AdminParcelManagement = () => {
       }));
     } catch (error) {
       console.error('Error:', error);
-      recordAdminError({ kind: "rpc", label: "AdminParcelManagement.fetchTemplates", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminParcelManagement.fetchTemplates", message: formatAdminError(error) });
     } finally {
       setLoading(false);
     }

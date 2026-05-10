@@ -171,7 +171,7 @@ const AdminReels = () => {
     
     if (error) {
       console.error("Delete reel error:", error);
-      recordAdminError({ kind: "rpc", label: "AdminReels.reel", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminReels.reel", message: formatAdminError(error) });
       toast.error("Failed to delete reel");
     } else {
       // Clean up storage files

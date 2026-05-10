@@ -111,7 +111,7 @@ export default function AdminPermanentBan() {
       if (error) throw error;
       setBans((data as any[]) || []);
     } catch (e: any) {
-      recordAdminError({ kind: "rpc", label: "AdminPermanentBan", message: formatAdminError(e)) });
+      recordAdminError({ kind: "rpc", label: "AdminPermanentBan", message: formatAdminError(e) });
       toast.error("Failed to load bans");
     } finally {
       setLoading(false);

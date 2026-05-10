@@ -59,7 +59,7 @@ const AdminAppVersion = () => {
       setIosSettings(ios ? normalizeVersionSettings(ios) : null);
     } catch (error) {
       console.error('Error fetching version settings:', error);
-      recordAdminError({ kind: "rpc", label: "AdminAppVersion.ios", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminAppVersion.ios", message: formatAdminError(error) });
       toast.error('Failed to load version settings');
     } finally {
       setLoading(false);
@@ -92,7 +92,7 @@ const AdminAppVersion = () => {
       fetchVersionSettings();
     } catch (error) {
       console.error('Error saving settings:', error);
-      recordAdminError({ kind: "rpc", label: "AdminAppVersion.saveSettings", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminAppVersion.saveSettings", message: formatAdminError(error) });
       toast.error('Failed to save settings');
     } finally {
       setSaving(false);

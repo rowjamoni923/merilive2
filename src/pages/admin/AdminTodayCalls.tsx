@@ -109,7 +109,7 @@ export default function AdminTodayCalls() {
       setCalls(enriched);
     } catch (e) {
       console.error("Error fetching calls:", e);
-      recordAdminError({ kind: "rpc", label: "AdminTodayCalls.enriched", message: formatAdminError(e)) });
+      recordAdminError({ kind: "rpc", label: "AdminTodayCalls.enriched", message: formatAdminError(e) });
     } finally {
       setLoading(false);
     }

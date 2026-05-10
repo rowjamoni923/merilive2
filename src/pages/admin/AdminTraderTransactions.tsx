@@ -82,7 +82,7 @@ const AdminTraderTransactions = () => {
         pendingValue: (data || []).filter(t => t.status === 'pending').reduce((s, t) => s + t.usd_amount, 0)
       });
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminTraderTransactions", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminTraderTransactions", message: formatAdminError(error) });
     } finally {
       setLoading(false);
     }

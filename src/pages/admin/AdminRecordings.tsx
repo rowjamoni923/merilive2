@@ -135,7 +135,7 @@ export default function AdminRecordings() {
       });
     } catch (error) {
       console.error("Error fetching recordings:", error);
-      recordAdminError({ kind: "rpc", label: "AdminRecordings.expiresAt", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminRecordings.expiresAt", message: formatAdminError(error) });
       toast.error("Failed to load recordings");
     } finally {
       setLoading(false);
@@ -491,7 +491,7 @@ export default function AdminRecordings() {
                 className="w-full h-full"
                 onError={(e) => {
                   console.error("Video playback error:", e);
-                  recordAdminError({ kind: "rpc", label: "AdminRecordings.adminId", message: formatAdminError(e)) });
+                  recordAdminError({ kind: "rpc", label: "AdminRecordings.adminId", message: formatAdminError(e) });
                   // Try opening in new tab as fallback
                   const videoEl = e.currentTarget;
                   if (videoEl.error) {

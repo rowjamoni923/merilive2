@@ -139,7 +139,7 @@ const AdminRewardClaimsHistory = () => {
       setClaims(enriched);
     } catch (error) {
       console.error('Failed to fetch claims:', error);
-      recordAdminError({ kind: "rpc", label: "AdminRewardClaimsHistory.profile", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminRewardClaimsHistory.profile", message: formatAdminError(error) });
     } finally {
       setLoading(false);
     }

@@ -213,7 +213,7 @@ const AdminSupportTickets = () => {
       });
     } catch (e) {
       console.error('Error fetching global stats:', e);
-      recordAdminError({ kind: "rpc", label: "AdminSupportTickets.fetchGlobalStats", message: formatAdminError(e)) });
+      recordAdminError({ kind: "rpc", label: "AdminSupportTickets.fetchGlobalStats", message: formatAdminError(e) });
     }
   }, []);
 
@@ -431,7 +431,7 @@ const AdminSupportTickets = () => {
       }
     } catch (error) {
       console.error('[AI Suggestions] Error:', error);
-      recordAdminError({ kind: "rpc", label: "AdminSupportTickets.suggestions", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminSupportTickets.suggestions", message: formatAdminError(error) });
     } finally {
       setLoadingSuggestions(false);
     }
@@ -466,7 +466,7 @@ const AdminSupportTickets = () => {
           translatedContent = transData?.translatedText || "";
         } catch (e) {
           console.error("Translation error:", e);
-          recordAdminError({ kind: "rpc", label: "AdminSupportTickets.actionKey", message: formatAdminError(e)) });
+          recordAdminError({ kind: "rpc", label: "AdminSupportTickets.actionKey", message: formatAdminError(e) });
         } finally {
           setIsTranslating(false);
         }

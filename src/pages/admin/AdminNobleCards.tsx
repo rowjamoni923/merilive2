@@ -67,7 +67,7 @@ const AdminNobleCards = () => {
       setItems(mapped);
     } catch (error) {
       console.error('Error fetching noble cards:', error);
-      recordAdminError({ kind: "rpc", label: "AdminNobleCards.mapped", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminNobleCards.mapped", message: formatAdminError(error) });
       toast.error('Failed to load Noble Cards');
     } finally {
       setLoading(false);
@@ -123,7 +123,7 @@ const AdminNobleCards = () => {
       return urlData.publicUrl;
     } catch (error) {
       console.error('Upload error:', error);
-      recordAdminError({ kind: "rpc", label: "AdminNobleCards.fileName", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminNobleCards.fileName", message: formatAdminError(error) });
       toast.error('File upload failed');
       return null;
     }
@@ -198,7 +198,7 @@ const AdminNobleCards = () => {
       fetchItems();
     } catch (error: any) {
       console.error('Save error:', error);
-      recordAdminError({ kind: "rpc", label: "AdminNobleCards.payload", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminNobleCards.payload", message: formatAdminError(error) });
       toast.error('Failed to save');
     } finally {
       setSaving(false);
@@ -214,7 +214,7 @@ const AdminNobleCards = () => {
       fetchItems();
     } catch (error) {
       console.error('Delete error:', error);
-      recordAdminError({ kind: "rpc", label: "AdminNobleCards.handleDelete", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminNobleCards.handleDelete", message: formatAdminError(error) });
       toast.error('Failed to delete');
     }
   };
@@ -227,7 +227,7 @@ const AdminNobleCards = () => {
       fetchItems();
     } catch (error) {
       console.error('Toggle error:', error);
-      recordAdminError({ kind: "rpc", label: "AdminNobleCards.handleToggleActive", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminNobleCards.handleToggleActive", message: formatAdminError(error) });
     }
   };
 

@@ -276,7 +276,7 @@ const AdminShop = () => {
 
     if (error) {
       toast.error("Failed to load shop items");
-      recordAdminError({ kind: "rpc", label: "AdminShop", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminShop", message: formatAdminError(error) });
     } else {
       const sorted = ((data as any[]) || []).slice().sort((a, b) => {
         const c = String(a.category || '').localeCompare(String(b.category || ''));

@@ -110,7 +110,7 @@ const AdminNotificationTemplates = () => {
 
       if (error) {
         console.error('[AdminNotificationTemplates] Update error:', error);
-        recordAdminError({ kind: "rpc", label: "AdminNotificationTemplates.handleSaveTemplate", message: formatAdminError(error)) });
+        recordAdminError({ kind: "rpc", label: "AdminNotificationTemplates.handleSaveTemplate", message: formatAdminError(error) });
         throw error;
       }
 
@@ -125,7 +125,7 @@ const AdminNotificationTemplates = () => {
       await fetchTemplates();
     } catch (error: any) {
       console.error('[AdminNotificationTemplates] Error:', error);
-      recordAdminError({ kind: "rpc", label: "AdminNotificationTemplates.handleSaveTemplate", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminNotificationTemplates.handleSaveTemplate", message: formatAdminError(error) });
       toast({
         title: "Error",
         description: error.message || "Failed to save template",

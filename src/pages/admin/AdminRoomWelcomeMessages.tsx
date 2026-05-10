@@ -72,7 +72,7 @@ export default function AdminRoomWelcomeMessages() {
       setMessages(data || []);
     } catch (error) {
       console.error("Error fetching messages:", error);
-      recordAdminError({ kind: "rpc", label: "AdminRoomWelcomeMessages.fetchMessages", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminRoomWelcomeMessages.fetchMessages", message: formatAdminError(error) });
       toast.error("Failed to load welcome messages");
     } finally {
       setLoading(false);
@@ -100,7 +100,7 @@ export default function AdminRoomWelcomeMessages() {
       toast.success("Welcome message updated");
     } catch (error) {
       console.error("Error updating message:", error);
-      recordAdminError({ kind: "rpc", label: "AdminRoomWelcomeMessages.handleUpdateMessage", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminRoomWelcomeMessages.handleUpdateMessage", message: formatAdminError(error) });
       toast.error("Failed to update message");
     } finally {
       setSaving(null);

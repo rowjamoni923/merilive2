@@ -42,7 +42,7 @@ export default function AdminRatingBanners() {
       if (error) throw error;
       setBanners(data || []);
     } catch (e) {
-      recordAdminError({ kind: "rest", label: "AdminRatingBanners.fetch", message: formatAdminError(e)) });
+      recordAdminError({ kind: "rest", label: "AdminRatingBanners.fetch", message: formatAdminError(e) });
       toast.error("Failed to load rating banners");
     } finally {
       setLoading(false);

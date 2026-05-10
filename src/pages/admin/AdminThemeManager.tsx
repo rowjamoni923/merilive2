@@ -444,7 +444,7 @@ const AdminThemeManager = () => {
       await fetchThemes();
     } catch (err) {
       console.error("Toggle theme error:", err);
-      recordAdminError({ kind: "rpc", label: "AdminThemeManager.countryLabel", message: formatAdminError(err)) });
+      recordAdminError({ kind: "rpc", label: "AdminThemeManager.countryLabel", message: formatAdminError(err) });
       toast.error("Failed to update theme");
     } finally {
       setSaving(null);

@@ -212,7 +212,7 @@ export default function AdminAuth() {
       }
     } catch (err: any) {
       console.error('[AdminAuth] login error', err);
-      recordAdminError({ kind: "rpc", label: "AdminAuth.device", message: formatAdminError(err)) });
+      recordAdminError({ kind: "rpc", label: "AdminAuth.device", message: formatAdminError(err) });
       toast.error(err?.message || 'Login failed');
     } finally {
       setLoading(false);

@@ -90,7 +90,7 @@ export default function AdminBranding() {
       }
     } catch (error) {
       console.error("Error fetching branding settings:", error);
-      recordAdminError({ kind: "rpc", label: "AdminBranding.parsed", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminBranding.parsed", message: formatAdminError(error) });
       toast.error("Failed to load settings");
     } finally {
       setLoading(false);
@@ -155,7 +155,7 @@ export default function AdminBranding() {
       toast.success("Upload successful");
     } catch (error) {
       console.error("Upload error:", error);
-      recordAdminError({ kind: "rpc", label: "AdminBranding.fileName", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminBranding.fileName", message: formatAdminError(error) });
       toast.error("Upload failed");
     } finally {
       setUploading(null);
@@ -186,7 +186,7 @@ export default function AdminBranding() {
       toast.success("Settings saved!");
     } catch (error) {
       console.error("Save error:", error);
-      recordAdminError({ kind: "rpc", label: "AdminBranding.savedId", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminBranding.savedId", message: formatAdminError(error) });
       toast.error("Failed to save settings");
     } finally {
       setSaving(false);

@@ -78,7 +78,7 @@ const AdminCommissionCalculator = () => {
       }
     } catch (error) {
       console.error('Error fetching settings:', error);
-      recordAdminError({ kind: "rpc", label: "AdminCommissionCalculator.value", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminCommissionCalculator.value", message: formatAdminError(error) });
     } finally {
       setLoading(false);
     }

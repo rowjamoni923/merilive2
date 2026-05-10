@@ -46,7 +46,7 @@ export default function AdminPartyManagement() {
       });
     } catch (e) {
       console.error('Error fetching party management stats:', e);
-      recordAdminError({ kind: "rpc", label: "AdminPartyManagement.s", message: formatAdminError(e)) });
+      recordAdminError({ kind: "rpc", label: "AdminPartyManagement.s", message: formatAdminError(e) });
     }
   };
 

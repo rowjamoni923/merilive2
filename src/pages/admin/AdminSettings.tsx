@@ -122,7 +122,7 @@ export default function AdminSettings() {
       });
     } catch (error) {
       console.error("Error fetching settings:", error);
-      recordAdminError({ kind: "rpc", label: "AdminSettings.settingsMap", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminSettings.settingsMap", message: formatAdminError(error) });
       toast.error("Failed to load settings");
     } finally {
       setLoading(false);
@@ -138,7 +138,7 @@ export default function AdminSettings() {
       await fetchSettings();
     } catch (error) {
       console.error("Error saving setting:", error);
-      recordAdminError({ kind: "rpc", label: "AdminSettings.saveSetting", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminSettings.saveSetting", message: formatAdminError(error) });
       toast.error("Failed to save settings");
     } finally {
       setSaving(false);

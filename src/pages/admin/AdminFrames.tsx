@@ -115,7 +115,7 @@ const AdminFrames = () => {
 
       if (error) {
         toast.error("Failed to load frames");
-        recordAdminError({ kind: "rpc", label: "AdminFrames", message: formatAdminError(error)) });
+        recordAdminError({ kind: "rpc", label: "AdminFrames", message: formatAdminError(error) });
       } else {
         const sorted = ((data as any[]) || []).slice().sort((a, b) => {
           const al = a.min_level ?? 0, bl = b.min_level ?? 0;

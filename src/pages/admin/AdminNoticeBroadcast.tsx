@@ -135,7 +135,7 @@ const AdminNoticeBroadcast = () => {
       setNotices((data as AdminNotice[]) || []);
     } catch (error: any) {
       console.error("Error fetching notices:", error);
-      recordAdminError({ kind: "rpc", label: "AdminNoticeBroadcast.fetchNotices", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminNoticeBroadcast.fetchNotices", message: formatAdminError(error) });
     } finally {
       setLoadingNotices(false);
     }

@@ -143,7 +143,7 @@ const AdminSubAdmins = () => {
 
     if (error) {
       console.error("Error fetching admins:", error);
-      recordAdminError({ kind: "rpc", label: "AdminSubAdmins.fetchAdmins", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminSubAdmins.fetchAdmins", message: formatAdminError(error) });
       return;
     }
     setAdmins(data || []);
@@ -159,7 +159,7 @@ const AdminSubAdmins = () => {
 
     if (error) {
       console.error("Error fetching sections:", error);
-      recordAdminError({ kind: "rpc", label: "AdminSubAdmins.fetchSections", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminSubAdmins.fetchSections", message: formatAdminError(error) });
       return;
     }
     setSections(data || []);
@@ -173,7 +173,7 @@ const AdminSubAdmins = () => {
 
     if (error) {
       console.error("Error fetching permissions:", error);
-      recordAdminError({ kind: "rpc", label: "AdminSubAdmins.fetchAdminPermissions", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminSubAdmins.fetchAdminPermissions", message: formatAdminError(error) });
       return;
     }
 
@@ -213,7 +213,7 @@ const AdminSubAdmins = () => {
       fetchAdmins();
     } catch (error: any) {
       console.error("Error:", error);
-      recordAdminError({ kind: "rpc", label: "AdminSubAdmins.response", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminSubAdmins.response", message: formatAdminError(error) });
       toast.error(error.message || "An error occurred");
     } finally {
       setIsCreating(false);
@@ -401,7 +401,7 @@ const AdminSubAdmins = () => {
         }
       } catch (err) {
         console.error('Failed to fetch sub-admin token:', err);
-        recordAdminError({ kind: "rpc", label: "AdminSubAdmins.session", message: formatAdminError(err)) });
+        recordAdminError({ kind: "rpc", label: "AdminSubAdmins.session", message: formatAdminError(err) });
       }
     };
     fetchToken();

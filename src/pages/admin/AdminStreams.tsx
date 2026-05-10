@@ -200,7 +200,7 @@ export default function AdminStreams() {
       calculateStatsFromStreams(formattedData);
     } catch (error) {
       console.error("Error fetching streams:", error);
-      recordAdminError({ kind: "rpc", label: "AdminStreams.formattedData", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminStreams.formattedData", message: formatAdminError(error) });
       toast.error("Failed to load streams");
     } finally {
       setLoading(false);
@@ -234,7 +234,7 @@ export default function AdminStreams() {
       })));
     } catch (err) {
       console.error("Error fetching bans:", err);
-      recordAdminError({ kind: "rpc", label: "AdminStreams.userIds", message: formatAdminError(err)) });
+      recordAdminError({ kind: "rpc", label: "AdminStreams.userIds", message: formatAdminError(err) });
     } finally {
       setBansLoading(false);
     }
@@ -425,7 +425,7 @@ export default function AdminStreams() {
       await Promise.all([fetchStreams(), fetchActiveBans()]);
     } catch (error) {
       console.error("Error ending stream:", error);
-      recordAdminError({ kind: "rpc", label: "AdminStreams.banLabel", message: formatAdminError(error)) });
+      recordAdminError({ kind: "rpc", label: "AdminStreams.banLabel", message: formatAdminError(error) });
       toast.error("Failed to end stream");
     } finally {
       setStopping(false);
