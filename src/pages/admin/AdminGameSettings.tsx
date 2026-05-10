@@ -200,15 +200,12 @@ export default function AdminGameSettings() {
   );
 
   const fetchStats = async () => {
-    const today = new Date().toISOString().split('T')[0];
-    const { data, error } = await supabase
-      .from('game_stats')
-      .select('*')
-      .filter('stat_date', 'gte', today)
-      .filter('stat_date', 'lte', today);
+    const { data, error } = await supabase.rpc('admin_game_today_stats');
     
     if (!error && data) {
-      setStats(data);
+      setStats(data as GameStats[]);
+    } else if (error) {
+      recordAdminError({ kind: "rpc", label: "AdminGameSettings.admin_game_today_stats", message: error.message });
     }
   };
 

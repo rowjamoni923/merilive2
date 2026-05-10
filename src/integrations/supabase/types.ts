@@ -13580,6 +13580,17 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_game_today_stats: {
+        Args: never
+        Returns: {
+          game_id: string
+          house_profit: number
+          total_bet_amount: number
+          total_bets: number
+          total_win_amount: number
+          total_wins: number
+        }[]
+      }
       admin_get_user_full_details: { Args: { _user_id: string }; Returns: Json }
       admin_gift_frame_to_user: {
         Args: {
