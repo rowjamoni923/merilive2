@@ -38,6 +38,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { registerFCMToken } from "@/services/firebaseMessaging";
 import { getAppInfo } from "@/utils/nativeUtils";
 import { useRefreshOnResume } from "@/hooks/useAppResumeHandler";
 import { recordClientError } from "@/utils/clientErrorLog";
@@ -97,6 +98,33 @@ const worldLanguages = [
   { code: "am", name: "Amharic", displayName: "Amharic", flag: "🇪🇹", countries: ["ET"] },
 ];
 
+type PermissionKey = 'notifications' | 'camera' | 'microphone' | 'location';
+
+const DEFAULT_PERMISSIONS: Record<PermissionKey, boolean> = {
+  notifications: false,
+  camera: false,
+  microphone: false,
+  location: false,
+};
+
+const PERMISSION_CACHE_KEY = 'meri_settings_permissions_v1';
+
+const readCachedPermissions = (): Record<PermissionKey, boolean> => {
+  if (typeof window === 'undefined') return { ...DEFAULT_PERMISSIONS };
+  try {
+    return { ...DEFAULT_PERMISSIONS, ...JSON.parse(localStorage.getItem(PERMISSION_CACHE_KEY) || '{}') };
+  } catch {
+    return { ...DEFAULT_PERMISSIONS };
+  }
+};
+
+const writeCachedPermissions = (next: Record<PermissionKey, boolean>) => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(PERMISSION_CACHE_KEY, JSON.stringify(next));
+  } catch {}
+};
+
 const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -117,21 +145,20 @@ const Settings = () => {
   const [userId, setUserId] = useState<string | null>(null);
   
   // Permission states
-  const [permissions, setPermissions] = useState({
-    notifications: false,
-    camera: false,
-    microphone: false,
-    location: false,
-  });
+  const [permissions, setPermissions] = useState<Record<PermissionKey, boolean>>(() => readCachedPermissions());
+
+  const updatePermissions = useCallback((patch: Partial<Record<PermissionKey, boolean>>) => {
+    setPermissions(prev => {
+      const next = { ...prev, ...patch };
+      writeCachedPermissions(next);
+      return next;
+    });
+  }, []);
 
   const refreshPermissions = useCallback(async () => {
     try {
-      const nextPermissions = {
-        notifications: false,
-        camera: false,
-        microphone: false,
-        location: false,
-      };
+      const cachedPermissions = readCachedPermissions();
+      const nextPermissions = { ...cachedPermissions };
 
       if (isNativeApp()) {
         Object.assign(nextPermissions, await checkPermissionStatus());
@@ -155,12 +182,12 @@ const Settings = () => {
         }
       }
 
-      setPermissions(nextPermissions);
+      updatePermissions(nextPermissions);
     } catch (error) {
       console.error('Error checking permissions:', error);
       recordClientError({ label: "Settings.locPerm", message: error instanceof Error ? error.message : String(error) });
     }
-  }, []);
+  }, [updatePermissions]);
   
   // App version state
   const [appVersion, setAppVersion] = useState<{ version: string; build: string }>({ version: "1.0.0", build: "1" });
@@ -327,6 +354,12 @@ const Settings = () => {
   const openPermissionSettings = () => {
     void openNativeAppPermissionSettings().catch(() => undefined);
   };
+  const registerNotificationToken = useCallback(() => {
+    if (!userId) return;
+    void registerFCMToken(userId).catch(error => {
+      console.warn('[Settings] Notification token registration skipped:', error);
+    });
+  }, [userId]);
 
   // Request notification permission
   const requestNotificationPermission = async () => {
@@ -344,7 +377,8 @@ const Settings = () => {
       if (isNativeApp()) {
         const granted = await requestNativeNotificationPermission();
         if (granted) {
-          setPermissions(prev => ({ ...prev, notifications: true }));
+          updatePermissions({ notifications: true });
+          registerNotificationToken();
           toast({ title: "Notifications Enabled", description: "You will now receive push notifications." });
         } else {
           toast({ title: "Permission Denied", description: "Open device Settings → Apps → MeriLive → Notifications → Allow.", variant: "destructive" });
@@ -370,8 +404,9 @@ const Settings = () => {
       }
 
       const permission = await Notification.requestPermission();
-      setPermissions(prev => ({ ...prev, notifications: permission === 'granted' }));
+      updatePermissions({ notifications: permission === 'granted' });
       if (permission === 'granted') {
+        registerNotificationToken();
         toast({ title: "Notifications Enabled", description: "You will now receive notifications." });
       } else {
         toast({ title: "Permission Denied", description: browserSettingsHint('Notifications'), variant: "destructive" });
@@ -418,7 +453,7 @@ const Settings = () => {
       if (isNativeApp()) {
         const granted = await requestNativeCameraPermission();
         if (granted) {
-          setPermissions(prev => ({ ...prev, camera: true }));
+          updatePermissions({ camera: true });
           toast({ title: "Camera Enabled", description: "Camera access has been granted." });
         } else {
           toast({ title: "Camera Permission Needed", description: nativeSettingsHint('Camera'), variant: "destructive" });
@@ -432,7 +467,7 @@ const Settings = () => {
       }
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       stream.getTracks().forEach(track => track.stop());
-      setPermissions(prev => ({ ...prev, camera: true }));
+      updatePermissions({ camera: true });
       toast({ title: "Camera Enabled", description: "Camera access has been granted." });
     } catch (error: any) {
       console.error('Camera permission error:', error);
@@ -490,7 +525,7 @@ const Settings = () => {
       if (isNativeApp()) {
         const granted = await requestNativeMicrophonePermission();
         if (granted) {
-          setPermissions(prev => ({ ...prev, microphone: true }));
+          updatePermissions({ microphone: true });
           toast({ title: "Microphone Enabled", description: "Microphone access has been granted." });
         } else {
           toast({ title: "Microphone Blocked", description: nativeSettingsHint('Microphone'), variant: "destructive" });
@@ -504,7 +539,7 @@ const Settings = () => {
       }
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       stream.getTracks().forEach(track => track.stop());
-      setPermissions(prev => ({ ...prev, microphone: true }));
+      updatePermissions({ microphone: true });
       toast({ title: "Microphone Enabled", description: "Microphone access has been granted." });
     } catch (error: any) {
       console.error('Microphone permission error:', error);
@@ -559,7 +594,7 @@ const Settings = () => {
       if (isNativeApp()) {
         const granted = await requestNativeLocationPermission();
         if (granted) {
-          setPermissions(prev => ({ ...prev, location: true }));
+          updatePermissions({ location: true });
           toast({ title: "Location Enabled", description: "Location access has been granted." });
         } else {
           toast({ title: "Permission Denied", description: nativeSettingsHint('Location'), variant: "destructive" });
@@ -575,7 +610,7 @@ const Settings = () => {
       await new Promise<void>((resolve) => {
         navigator.geolocation.getCurrentPosition(
           () => {
-            setPermissions(prev => ({ ...prev, location: true }));
+            updatePermissions({ location: true });
             toast({ title: "Location Enabled", description: "Location access has been granted." });
             resolve();
           },

@@ -81,11 +81,8 @@ export async function registerFCMToken(userId: string): Promise<string | null> {
     }
 
     if (permission === 'default') {
-      permission = await Notification.requestPermission();
-      if (permission !== 'granted') {
-        console.warn('[FCM] Notification permission not granted');
-        return null;
-      }
+      console.warn('[FCM] Waiting for user-initiated notification permission request');
+      return null;
     }
 
     const msg = await getMessagingInstance();
@@ -135,32 +132,43 @@ async function registerNativePushToken(userId: string): Promise<string | null> {
   try {
     const { PushNotifications } = await import('@capacitor/push-notifications');
 
-    // Request permission
-    const permResult = await PushNotifications.requestPermissions();
+    // Do not auto-prompt on app start. Permission must be enabled from Settings by user action.
+    const permResult = await PushNotifications.checkPermissions();
     if (permResult.receive !== 'granted') {
-      console.warn('[FCM Native] Permission not granted');
+      console.warn('[FCM Native] Waiting for user-initiated notification permission request');
       return null;
     }
 
-    // Register for push notifications
-    await PushNotifications.register();
+    return await new Promise<string | null>(async (resolve) => {
+      let settled = false;
+      let registrationListener: { remove: () => Promise<void> } | null = null;
+      let errorListener: { remove: () => Promise<void> } | null = null;
 
-    // Listen for token
-    return new Promise((resolve) => {
-      PushNotifications.addListener('registration', async (registrationToken) => {
+      const finish = async (value: string | null) => {
+        if (settled) return;
+        settled = true;
+        await registrationListener?.remove().catch(() => undefined);
+        await errorListener?.remove().catch(() => undefined);
+        resolve(value);
+      };
+
+      registrationListener = await PushNotifications.addListener('registration', async (registrationToken) => {
         const token = registrationToken.value;
         console.log('[FCM Native] Token:', token.substring(0, 20) + '...');
         
         const platform = Capacitor.getPlatform() === 'ios' ? 'ios' : 'android';
         await saveTokenToDatabase(userId, token, platform);
         tokenRegistered = true;
-        resolve(token);
+        await finish(token);
       });
 
-      PushNotifications.addListener('registrationError', (error) => {
+      errorListener = await PushNotifications.addListener('registrationError', async (error) => {
         console.error('[FCM Native] Registration error:', error);
-        resolve(null);
+        await finish(null);
       });
+
+      await PushNotifications.register();
+      window.setTimeout(() => void finish(null), 15000);
     });
   } catch (error) {
     console.error('[FCM Native] Failed:', error);
