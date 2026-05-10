@@ -3566,7 +3566,12 @@ export type Database = {
           profile_photo_url: string | null
           reference_image_url: string | null
           rejection_reason: string | null
+          rekognition_confidence: number | null
           rekognition_external_id: string | null
+          rekognition_external_image_id: string | null
+          rekognition_face_id: string | null
+          rekognition_indexed_at: string | null
+          rekognition_shard_id: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           right_url: string | null
@@ -3604,7 +3609,12 @@ export type Database = {
           profile_photo_url?: string | null
           reference_image_url?: string | null
           rejection_reason?: string | null
+          rekognition_confidence?: number | null
           rekognition_external_id?: string | null
+          rekognition_external_image_id?: string | null
+          rekognition_face_id?: string | null
+          rekognition_indexed_at?: string | null
+          rekognition_shard_id?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           right_url?: string | null
@@ -3642,7 +3652,12 @@ export type Database = {
           profile_photo_url?: string | null
           reference_image_url?: string | null
           rejection_reason?: string | null
+          rekognition_confidence?: number | null
           rekognition_external_id?: string | null
+          rekognition_external_image_id?: string | null
+          rekognition_face_id?: string | null
+          rekognition_indexed_at?: string | null
+          rekognition_shard_id?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           right_url?: string | null
@@ -6439,6 +6454,54 @@ export type Database = {
           violation_type?: string
         }
         Relationships: []
+      }
+      live_face_warnings: {
+        Row: {
+          device_info: Json
+          duration_seconds: number
+          event: string
+          host_id: string
+          id: string
+          occurred_at: string
+          session_type: string
+          stream_id: string
+        }
+        Insert: {
+          device_info?: Json
+          duration_seconds?: number
+          event: string
+          host_id: string
+          id?: string
+          occurred_at?: string
+          session_type?: string
+          stream_id: string
+        }
+        Update: {
+          device_info?: Json
+          duration_seconds?: number
+          event?: string
+          host_id?: string
+          id?: string
+          occurred_at?: string
+          session_type?: string
+          stream_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_face_warnings_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "live_face_warnings_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       live_game_bets: {
         Row: {
@@ -9716,6 +9779,36 @@ export type Database = {
           granted_at?: string | null
           id?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      rekognition_shards: {
+        Row: {
+          capacity: number
+          created_at: string
+          face_count: number
+          is_active: boolean
+          shard_id: string
+          shard_index: number
+          updated_at: string
+        }
+        Insert: {
+          capacity?: number
+          created_at?: string
+          face_count?: number
+          is_active?: boolean
+          shard_id: string
+          shard_index: number
+          updated_at?: string
+        }
+        Update: {
+          capacity?: number
+          created_at?: string
+          face_count?: number
+          is_active?: boolean
+          shard_id?: string
+          shard_index?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -14017,6 +14110,15 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      admin_list_live_face_warnings_paginated: {
+        Args: {
+          p_event?: string
+          p_host_id?: string
+          p_page?: number
+          p_page_size?: number
+        }
+        Returns: Json
+      }
       admin_list_online_users: {
         Args: { _limit?: number; _offset?: number; _search?: string }
         Returns: Json
@@ -14332,6 +14434,10 @@ export type Database = {
         }
       }
       admin_live_ban_stats: { Args: never; Returns: Json }
+      admin_live_face_warnings_stats: {
+        Args: { p_days?: number }
+        Returns: Json
+      }
       admin_logout: { Args: { _token: string }; Returns: undefined }
       admin_moderation_overview_stats: { Args: never; Returns: Json }
       admin_party_management_stats: { Args: never; Returns: Json }
@@ -14403,6 +14509,7 @@ export type Database = {
         Args: { _notes?: string; _status: string; _withdrawal_id: string }
         Returns: Json
       }
+      admin_rekognition_shard_stats: { Args: never; Returns: Json }
       admin_remove_face_verification: {
         Args: { _user_id: string }
         Returns: Json
@@ -15357,6 +15464,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_next_available_shard: { Args: never; Returns: string }
       get_noble_subscriptions_needing_reminder: {
         Args: never
         Returns: {
@@ -15826,6 +15934,16 @@ export type Database = {
         Returns: Json
       }
       release_expired_withdrawal_locks: { Args: never; Returns: undefined }
+      report_live_face_event: {
+        Args: {
+          p_device_info?: Json
+          p_duration_seconds: number
+          p_event: string
+          p_session_type: string
+          p_stream_id: string
+        }
+        Returns: string
+      }
       request_account_deletion: {
         Args: { user_id_param: string }
         Returns: undefined
