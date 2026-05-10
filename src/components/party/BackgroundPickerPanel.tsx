@@ -142,9 +142,9 @@ export function BackgroundPickerPanel({
       onSelectBackground(bg);
       toast.success("Background updated!");
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating background:', error);
-      toast.error("Failed to update background");
+      toast.error(error?.message || "Failed to update background");
     } finally {
       setUpdating(false);
     }
