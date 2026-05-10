@@ -877,6 +877,19 @@ const AdminPartyBackgrounds = () => {
                 onCheckedChange={(v) => setFormData(prev => ({ ...prev, is_active: v }))}
               />
             </div>
+            <div>
+              <Label>Minimum User Level (0 = no restriction)</Label>
+              <Input
+                type="number"
+                min={0}
+                value={formData.min_level}
+                onChange={(e) => setFormData(prev => ({ ...prev, min_level: Math.max(0, parseInt(e.target.value) || 0) }))}
+                placeholder="e.g. 6 to require Level 6+"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Only users at or above this level will see this background in the party room picker.
+              </p>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddDialog(false)}>Cancel</Button>
