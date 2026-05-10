@@ -1,8 +1,7 @@
-import { formatAdminError } from "@/utils/formatAdminError";
 /**
  * Formats ANY thrown value (Error, Supabase PostgrestError, fetch error, plain object, string)
  * into a useful single-line message. Replaces the broken
- * `formatAdminError(err))` pattern that was producing
+ * `err instanceof Error ? err.message : String(err)` pattern that was producing
  * "[object Object]" toasts across the admin panel.
  */
 export function formatAdminError(err: unknown, fallback = "Unknown error"): string {
