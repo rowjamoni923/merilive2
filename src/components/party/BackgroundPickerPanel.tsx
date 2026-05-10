@@ -227,7 +227,14 @@ export function BackgroundPickerPanel({
                             <div className={cn("absolute inset-0", bg.gradient_css)} />
                           )}
 
-                          {/* Selected check */}
+                          {/* Level lock overlay */}
+                          {(bg.min_level ?? 0) > 0 && userLevel < (bg.min_level ?? 0) && (
+                            <div className="absolute inset-0 bg-black/55 flex flex-col items-center justify-center gap-1">
+                              <Lock className="w-4 h-4 text-white" />
+                              <span className="text-white text-[10px] font-bold">Lvl {bg.min_level}+</span>
+                            </div>
+                          )}
+
                           {selectedId === bg.id && (
                             <motion.div
                               initial={{ scale: 0 }}
