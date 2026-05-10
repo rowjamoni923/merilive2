@@ -40,6 +40,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface HelperOrder {
   id: string;
   helper_id: string;
@@ -155,7 +156,7 @@ const AdminHelperOrders = () => {
 
       setOrders(normalizedOrders as HelperOrder[]);
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminHelperOrders.ErrorFetchingOrders", message: error instanceof Error ? error.message : "Error fetching orders" });
+      recordAdminError({ kind: "rpc", label: "AdminHelperOrders.ErrorFetchingOrders", message: formatAdminError(error)});
       toast({
         title: "Error",
         description: "Failed to load orders",
@@ -184,7 +185,7 @@ const AdminHelperOrders = () => {
       });
       fetchOrders();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminHelperOrders.ErrorUpdatingOrder", message: error instanceof Error ? error.message : "Error updating order" });
+      recordAdminError({ kind: "rpc", label: "AdminHelperOrders.ErrorUpdatingOrder", message: formatAdminError(error)});
       toast({
         title: "Error",
         description: "Failed to update order status",

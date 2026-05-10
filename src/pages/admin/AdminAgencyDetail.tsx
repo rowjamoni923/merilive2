@@ -65,6 +65,7 @@ import { format, formatDistanceToNow } from "date-fns";
 import { bn } from "date-fns/locale";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface Agency {
   id: string;
   name: string;
@@ -237,7 +238,7 @@ export default function AdminAgencyDetail() {
         }
       }
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminAgencyDetail.ErrorFetchingAgency", message: error instanceof Error ? error.message : "Error fetching agency" });
+      recordAdminError({ kind: "rpc", label: "AdminAgencyDetail.ErrorFetchingAgency", message: formatAdminError(error)});
       toast.error("Failed to load agency");
     } finally {
       setLoading(false);
@@ -263,7 +264,7 @@ export default function AdminAgencyDetail() {
       setRemoveReason("");
       fetchAgencyDetails();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminAgencyDetail.ErrorRemovingHost", message: error instanceof Error ? error.message : "Error removing host" });
+      recordAdminError({ kind: "rpc", label: "AdminAgencyDetail.ErrorRemovingHost", message: formatAdminError(error)});
       toast.error("Failed to remove host");
     } finally {
       setActionLoading(false);
@@ -289,7 +290,7 @@ export default function AdminAgencyDetail() {
       setCoinNote("");
       fetchAgencyDetails();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminAgencyDetail.ErrorAddingCoins", message: error instanceof Error ? error.message : "Error adding coins" });
+      recordAdminError({ kind: "rpc", label: "AdminAgencyDetail.ErrorAddingCoins", message: formatAdminError(error)});
       toast.error("Failed to add diamonds");
     } finally {
       setActionLoading(false);
@@ -313,7 +314,7 @@ export default function AdminAgencyDetail() {
       setNewLevel("");
       fetchAgencyDetails();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminAgencyDetail.ErrorChangingLevel", message: error instanceof Error ? error.message : "Error changing level" });
+      recordAdminError({ kind: "rpc", label: "AdminAgencyDetail.ErrorChangingLevel", message: formatAdminError(error)});
       toast.error("Failed to update level");
     } finally {
       setActionLoading(false);
@@ -340,7 +341,7 @@ export default function AdminAgencyDetail() {
       setRemoveReason("");
       fetchAgencyDetails();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminAgencyDetail.ErrorRemovingAllHosts", message: error instanceof Error ? error.message : "Error removing all hosts" });
+      recordAdminError({ kind: "rpc", label: "AdminAgencyDetail.ErrorRemovingAllHosts", message: formatAdminError(error)});
       toast.error("Failed to remove hosts");
     } finally {
       setActionLoading(false);
@@ -391,7 +392,7 @@ export default function AdminAgencyDetail() {
       setTargetAgencyId("");
       fetchAgencyDetails();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminAgencyDetail.ErrorTransferringHost", message: error instanceof Error ? error.message : "Error transferring host" });
+      recordAdminError({ kind: "rpc", label: "AdminAgencyDetail.ErrorTransferringHost", message: formatAdminError(error)});
       toast.error("Failed to transfer host");
     } finally {
       setActionLoading(false);
@@ -443,7 +444,7 @@ export default function AdminAgencyDetail() {
         toast.error("User not found");
       }
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminAgencyDetail.ErrorSearchingUser", message: error instanceof Error ? error.message : "Error searching user" });
+      recordAdminError({ kind: "rpc", label: "AdminAgencyDetail.ErrorSearchingUser", message: formatAdminError(error)});
       toast.error("Failed to search user");
     } finally {
       setSearchingUser(false);
@@ -508,7 +509,7 @@ export default function AdminAgencyDetail() {
       setAddHostSearchQuery("");
       fetchAgencyDetails();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminAgencyDetail.ErrorAddingHost", message: error instanceof Error ? error.message : "Error adding host" });
+      recordAdminError({ kind: "rpc", label: "AdminAgencyDetail.ErrorAddingHost", message: formatAdminError(error)});
       toast.error("Failed to add host");
     } finally {
       setAddingHost(false);

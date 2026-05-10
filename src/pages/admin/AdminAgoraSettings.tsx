@@ -22,6 +22,7 @@ import {
 import { saveAppSetting } from "@/utils/adminSettingsStorage";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 export default function AdminAgoraSettings() {
   const [appId, setAppId] = useState("");
   const [appCertificate, setAppCertificate] = useState("");
@@ -50,7 +51,7 @@ export default function AdminAgoraSettings() {
       setActiveStreamCount(count || 0);
     } catch (e) {
       console.error("Error fetching active stream count:", e);
-      recordAdminError({ kind: "rpc", label: "AdminAgoraSettings.fetchActiveStreamCount", message: e instanceof Error ? e.message : String(e) });
+      recordAdminError({ kind: "rpc", label: "AdminAgoraSettings.fetchActiveStreamCount", message: formatAdminError(e)) });
     }
   };
 
@@ -74,7 +75,7 @@ export default function AdminAgoraSettings() {
       });
     } catch (err) {
       console.error("Error fetching Agora settings:", err);
-      recordAdminError({ kind: "rpc", label: "AdminAgoraSettings.fetchSettings", message: err instanceof Error ? err.message : String(err) });
+      recordAdminError({ kind: "rpc", label: "AdminAgoraSettings.fetchSettings", message: formatAdminError(err)) });
     } finally {
       setLoading(false);
     }
@@ -101,7 +102,7 @@ export default function AdminAgoraSettings() {
       toast.success("✅ Agora credentials saved! Live streams, calls, and party rooms will use the new credentials.");
     } catch (err: any) {
       console.error("Error saving Agora settings:", err);
-      recordAdminError({ kind: "rpc", label: "AdminAgoraSettings.settings", message: err instanceof Error ? err.message : String(err) });
+      recordAdminError({ kind: "rpc", label: "AdminAgoraSettings.settings", message: formatAdminError(err)) });
       toast.error("Failed to save: " + (err.message || "Unknown error"));
     } finally {
       setSaving(false);
@@ -163,7 +164,7 @@ export default function AdminAgoraSettings() {
       toast.success("✅ All live streams have been stopped! All users will auto-reload.");
     } catch (err: any) {
       console.error("Force stop error:", err);
-      recordAdminError({ kind: "rpc", label: "AdminAgoraSettings.now", message: err instanceof Error ? err.message : String(err) });
+      recordAdminError({ kind: "rpc", label: "AdminAgoraSettings.now", message: formatAdminError(err)) });
       toast.error("Failed: " + (err.message || "Unknown error"));
     } finally {
       setForceStoppingAll(false);

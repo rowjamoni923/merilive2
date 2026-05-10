@@ -14,6 +14,7 @@ import AdminSettings from "./AdminSettings";
 import AdminAllowedLinks from "./AdminAllowedLinks";
 import AdminTencentBeautySettings from "@/components/admin/AdminTencentBeautySettings";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 const tabTriggerClass = "flex-shrink-0 gap-1.5 py-3 text-xs sm:text-sm text-[hsl(var(--admin-text-secondary))] data-[state=active]:bg-[linear-gradient(120deg,hsl(var(--primary)),hsl(var(--accent)))] data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_10px_26px_-14px_hsl(var(--admin-gold)/0.85)]";
 
 const AdminAppSettingsHub = () => {
@@ -47,7 +48,7 @@ const AdminAppSettingsHub = () => {
       recordAdminError({
         kind: "other",
         label: "AdminAppSettingsHub.fetchStats",
-        message: error instanceof Error ? error.message : "Failed to load app settings hub stats",
+        message: formatAdminError(error),
       });
     } finally {
       setIsRefreshing(false);

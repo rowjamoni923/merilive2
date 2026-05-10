@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
@@ -211,7 +212,7 @@ export default function AdminAuth() {
       }
     } catch (err: any) {
       console.error('[AdminAuth] login error', err);
-      recordAdminError({ kind: "rpc", label: "AdminAuth.device", message: err instanceof Error ? err.message : String(err) });
+      recordAdminError({ kind: "rpc", label: "AdminAuth.device", message: formatAdminError(err)) });
       toast.error(err?.message || 'Login failed');
     } finally {
       setLoading(false);

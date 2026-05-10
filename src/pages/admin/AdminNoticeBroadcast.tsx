@@ -60,6 +60,7 @@ import { formatDistanceToNow } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface AdminNotice {
   id: string;
   title: string;
@@ -134,7 +135,7 @@ const AdminNoticeBroadcast = () => {
       setNotices((data as AdminNotice[]) || []);
     } catch (error: any) {
       console.error("Error fetching notices:", error);
-      recordAdminError({ kind: "rpc", label: "AdminNoticeBroadcast.fetchNotices", message: error instanceof Error ? error.message : String(error) });
+      recordAdminError({ kind: "rpc", label: "AdminNoticeBroadcast.fetchNotices", message: formatAdminError(error)) });
     } finally {
       setLoadingNotices(false);
     }

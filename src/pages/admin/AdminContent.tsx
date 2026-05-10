@@ -19,6 +19,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface ContentPage {
   id: string;
   page_key: string;
@@ -52,7 +53,7 @@ export default function AdminContent() {
       if (error) throw error;
       setPages(data || []);
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminContent.ErrorFetchingPages", message: error instanceof Error ? error.message : "Error fetching pages" });
+      recordAdminError({ kind: "rpc", label: "AdminContent.ErrorFetchingPages", message: formatAdminError(error)});
       toast.error("Failed to load pages");
     } finally {
       setLoading(false);

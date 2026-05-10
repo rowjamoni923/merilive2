@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface UserProfile {
   id: string;
   display_name: string;
@@ -141,7 +142,7 @@ const AdminManualTopup = () => {
       console.log('[AdminManualTopup] Partial results:', partialMatch?.length || 0, 'users found');
       setSearchResults(partialMatch || []);
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminManualTopup.AdminmanualtopupSearchException", message: error instanceof Error ? error.message : "[AdminManualTopup] Search exception" });
+      recordAdminError({ kind: "rpc", label: "AdminManualTopup.AdminmanualtopupSearchException", message: formatAdminError(error)});
       setSearchResults([]);
     } finally {
       setSearching(false);
@@ -178,7 +179,7 @@ const AdminManualTopup = () => {
         setRecentTopups(logsWithUsers);
       }
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminManualTopup", message: error instanceof Error ? error.message : String(error) });
+      recordAdminError({ kind: "rpc", label: "AdminManualTopup", message: formatAdminError(error)) });
     }
   };
 

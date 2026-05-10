@@ -62,6 +62,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { formatAdminError } from "@/utils/formatAdminError";
 // supabase user-app client removed — admin layout uses adminSupabase exclusively
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
@@ -1328,7 +1329,7 @@ export default function AdminLayout() {
       setLiveStreamsCount(liveRes.count || 0);
     } catch (e) {
       console.error('Error fetching header stats:', e);
-      recordAdminError({ kind: "rpc", label: "AdminLayout.fetchHeaderStats", message: e instanceof Error ? e.message : String(e) });
+      recordAdminError({ kind: "rpc", label: "AdminLayout.fetchHeaderStats", message: formatAdminError(e)) });
     }
   }, []);
 
@@ -1485,7 +1486,7 @@ export default function AdminLayout() {
       });
     } catch (error) {
       console.error('Error fetching pending counts:', error);
-      recordAdminError({ kind: "rpc", label: "AdminLayout.contentCount", message: error instanceof Error ? error.message : String(error) });
+      recordAdminError({ kind: "rpc", label: "AdminLayout.contentCount", message: formatAdminError(error)) });
     }
   };
 
@@ -1528,7 +1529,7 @@ export default function AdminLayout() {
       }
     } catch (error) {
       console.error('Error fetching notifications:', error);
-      recordAdminError({ kind: "rpc", label: "AdminLayout.resolvedPath", message: error instanceof Error ? error.message : String(error) });
+      recordAdminError({ kind: "rpc", label: "AdminLayout.resolvedPath", message: formatAdminError(error)) });
     }
   };
 
@@ -2400,7 +2401,7 @@ export default function AdminLayout() {
       setIsAdmin(true);
     } catch (error) {
       console.error('Admin check error:', error);
-      recordAdminError({ kind: "rpc", label: "AdminLayout.hasFlagAccess", message: error instanceof Error ? error.message : String(error) });
+      recordAdminError({ kind: "rpc", label: "AdminLayout.hasFlagAccess", message: formatAdminError(error)) });
       // Don't blank the panel on a transient error if a session exists —
       // keep optimistic access. Only clear if there's truly no session.
       if (!getAdminSession()) {

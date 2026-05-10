@@ -36,6 +36,7 @@ import { formatDistanceToNow } from "date-fns";
 import { bn } from "date-fns/locale";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface AdminLog {
   id: string;
   admin_id: string;
@@ -107,7 +108,7 @@ export default function AdminLogs() {
       
       setLogs(formattedLogs);
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminLogs.ErrorFetchingLogs", message: error instanceof Error ? error.message : "Error fetching logs" });
+      recordAdminError({ kind: "rpc", label: "AdminLogs.ErrorFetchingLogs", message: formatAdminError(error)});
       toast.error("Failed to load logs");
     } finally {
       setLoading(false);

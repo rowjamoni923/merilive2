@@ -24,6 +24,7 @@ import { format, formatDistanceToNow, startOfDay, endOfDay, subDays } from "date
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { useToast } from "@/hooks/use-toast";
 import { recordAdminError } from "@/utils/adminErrorLog";
+import { formatAdminError } from "@/utils/formatAdminError";
 // useNavigate removed - using onViewChat callback instead
 
 interface ViolationRecord {
@@ -140,7 +141,7 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
       setTotalToday(todayCount);
       setTotalWeek(weekCount);
     } catch (err) {
-      recordAdminError({ kind: "rpc", label: "AdminNumberSharing.FetchViolationsError", message: err instanceof Error ? err.message : "Fetch violations error" });
+      recordAdminError({ kind: "rpc", label: "AdminNumberSharing.FetchViolationsError", message: formatAdminError(err)});
     } finally {
       setLoading(false);
     }
@@ -186,7 +187,7 @@ const AdminNumberSharing = ({ onViewChat, onBanUser }: AdminNumberSharingProps =
       toast({ title: "✅ Live Ban Successful", description: `Banned for ${hours} hours` });
       setShowBanDialog(false);
     } catch (err) {
-      recordAdminError({ kind: "rpc", label: "AdminNumberSharing.BanError", message: err instanceof Error ? err.message : "Ban error" });
+      recordAdminError({ kind: "rpc", label: "AdminNumberSharing.BanError", message: formatAdminError(err)});
       toast({ title: "Ban Failed", variant: "destructive" });
     } finally {
       setBanning(false);

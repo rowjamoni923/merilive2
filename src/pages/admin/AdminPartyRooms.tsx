@@ -51,6 +51,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface PartyRoom {
   id: string;
   name: string;
@@ -144,7 +145,7 @@ export default function AdminPartyRooms() {
       setInactiveRoomCount(inactiveC || 0);
     } catch (error) {
       console.error("Error fetching rooms:", error);
-      recordAdminError({ kind: "rpc", label: "AdminPartyRooms.to", message: error instanceof Error ? error.message : String(error) });
+      recordAdminError({ kind: "rpc", label: "AdminPartyRooms.to", message: formatAdminError(error)) });
       toast.error("Failed to load party rooms");
     } finally {
       setLoading(false);
@@ -197,7 +198,7 @@ export default function AdminPartyRooms() {
       fetchRooms();
     } catch (error) {
       console.error("Error ending room:", error);
-      recordAdminError({ kind: "rpc", label: "AdminPartyRooms.closeChannel", message: error instanceof Error ? error.message : String(error) });
+      recordAdminError({ kind: "rpc", label: "AdminPartyRooms.closeChannel", message: formatAdminError(error)) });
       toast.error((error as any)?.message || "Operation failed");
     } finally {
       setActionLoading(false);

@@ -22,6 +22,7 @@ import { loadAppSetting, saveAppSetting } from "@/utils/adminSettingsStorage";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 const HOME_KEY = "home_host_feed_ranking";
 const PARTY_KEY = "party_discovery_ranking";
 const SNAPSHOT_LS_KEY = "admin.rankingAutomation.snapshot.v1";
@@ -225,7 +226,7 @@ const AdminRankingAutomation = () => {
       recordAdminError({
         kind: "other",
         label: "AdminRankingAutomation.fetchAll",
-        message: e instanceof Error ? e.message : "Failed to load",
+        message: formatAdminError(e),
       });
       toast.error("Failed to load current ranking settings");
     } finally {
@@ -345,7 +346,7 @@ const AdminRankingAutomation = () => {
         recordAdminError({
           kind: "other",
           label: "AdminRankingAutomation.applyPresets",
-          message: e instanceof Error ? e.message : "Failed to apply presets",
+          message: formatAdminError(e),
         });
         toast.error("Failed to apply ranking presets");
       } finally {
@@ -400,7 +401,7 @@ const AdminRankingAutomation = () => {
       setAdvice(payload);
       toast.success("AI recommendation ready");
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Advisor failed";
+      const msg = formatAdminError(e)
       toast.error(msg);
     } finally {
       setAdvisorLoading(false);

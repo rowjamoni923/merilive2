@@ -27,6 +27,7 @@ import { format } from "date-fns";
 import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface HelperOrder {
   id: string;
   helper_id: string;
@@ -110,7 +111,7 @@ const AdminTraderOrders = () => {
         todayTotal: todayOrders.reduce((sum, o) => sum + o.amount_usd, 0)
       });
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminTraderOrders", message: error instanceof Error ? error.message : String(error) });
+      recordAdminError({ kind: "rpc", label: "AdminTraderOrders", message: formatAdminError(error)) });
     } finally {
       setLoading(false);
     }

@@ -12,6 +12,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from 'sonner';
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface ParcelTemplate {
   id: string;
   name: string;
@@ -119,7 +120,7 @@ const AdminParcelManagement = () => {
       }));
     } catch (error) {
       console.error('Error:', error);
-      recordAdminError({ kind: "rpc", label: "AdminParcelManagement.fetchTemplates", message: error instanceof Error ? error.message : String(error) });
+      recordAdminError({ kind: "rpc", label: "AdminParcelManagement.fetchTemplates", message: formatAdminError(error)) });
     } finally {
       setLoading(false);
     }

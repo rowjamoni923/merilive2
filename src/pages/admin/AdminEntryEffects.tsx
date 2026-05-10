@@ -5,6 +5,7 @@ import { Zap, Sparkles, Type, Car, PartyPopper } from "lucide-react";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import AdminLuxuryStatCard from "@/components/admin/AdminLuxuryStatCard";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 // Import existing components as tab content
 import AdminEntryBanners from "./AdminEntryBanners";
 import AdminEntryBars from "./AdminEntryBars";
@@ -29,7 +30,7 @@ const AdminEntryEffects = () => {
     // Pkg10: single RPC replaces 4 separate count queries
     const { data, error } = await supabase.rpc('admin_entry_effects_stats' as any);
     if (error || !data) {
-      recordAdminError({ kind: "rpc", label: "AdminEntryEffects.AdminentryeffectsstatsFailed", message: error instanceof Error ? error.message : "admin_entry_effects_stats failed" });
+      recordAdminError({ kind: "rpc", label: "AdminEntryEffects.AdminentryeffectsstatsFailed", message: formatAdminError(error)});
       return;
     }
     const s: any = data;

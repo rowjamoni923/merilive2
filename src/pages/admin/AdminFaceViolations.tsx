@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface FaceViolation {
   id: string;
   host_id: string;
@@ -58,7 +59,7 @@ const AdminFaceViolations = () => {
       }));
       setViolations(enriched as FaceViolation[]);
     } catch (err) {
-      recordAdminError({ kind: "rpc", label: "AdminFaceViolations.ErrorFetchingViolations", message: err instanceof Error ? err.message : "Error fetching violations" });
+      recordAdminError({ kind: "rpc", label: "AdminFaceViolations.ErrorFetchingViolations", message: formatAdminError(err)});
       toast.error('Failed to load data');
     }
     setLoading(false);
@@ -79,7 +80,7 @@ const AdminFaceViolations = () => {
       toast.success('Host marked for live ban');
       fetchViolations();
     } catch (err) {
-      recordAdminError({ kind: "rpc", label: "AdminFaceViolations.BanError", message: err instanceof Error ? err.message : "Ban error" });
+      recordAdminError({ kind: "rpc", label: "AdminFaceViolations.BanError", message: formatAdminError(err)});
       toast.error('Failed to ban host');
     }
   };

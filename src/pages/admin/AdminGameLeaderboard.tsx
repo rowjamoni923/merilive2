@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 type PeriodType = 'daily' | 'weekly' | 'monthly';
 type CategoryType = 'host_earnings' | 'game_winners' | 'agency_performance' | 'pk_reward';
 
@@ -309,7 +310,7 @@ export default function AdminGameLeaderboard() {
       toast.success(`🎁 ${sent} rewards sent successfully!`);
     } catch (error) {
       console.error('Send rewards error:', error);
-      recordAdminError({ kind: "rpc", label: "AdminGameLeaderboard.rewardParts", message: error instanceof Error ? error.message : String(error) });
+      recordAdminError({ kind: "rpc", label: "AdminGameLeaderboard.rewardParts", message: formatAdminError(error)) });
       toast.error('Failed to send some rewards');
     } finally {
       setSendingAll(false);

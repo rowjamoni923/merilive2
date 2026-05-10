@@ -45,6 +45,7 @@ import { toast } from "sonner";
 import { format, differenceInDays } from "date-fns";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface Recording {
   id: string;
   stream_id: string;
@@ -134,7 +135,7 @@ export default function AdminRecordings() {
       });
     } catch (error) {
       console.error("Error fetching recordings:", error);
-      recordAdminError({ kind: "rpc", label: "AdminRecordings.expiresAt", message: error instanceof Error ? error.message : String(error) });
+      recordAdminError({ kind: "rpc", label: "AdminRecordings.expiresAt", message: formatAdminError(error)) });
       toast.error("Failed to load recordings");
     } finally {
       setLoading(false);
@@ -490,7 +491,7 @@ export default function AdminRecordings() {
                 className="w-full h-full"
                 onError={(e) => {
                   console.error("Video playback error:", e);
-                  recordAdminError({ kind: "rpc", label: "AdminRecordings.adminId", message: e instanceof Error ? e.message : String(e) });
+                  recordAdminError({ kind: "rpc", label: "AdminRecordings.adminId", message: formatAdminError(e)) });
                   // Try opening in new tab as fallback
                   const videoEl = e.currentTarget;
                   if (videoEl.error) {

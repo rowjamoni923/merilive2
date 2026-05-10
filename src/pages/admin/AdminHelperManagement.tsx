@@ -35,6 +35,7 @@ import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 // Interfaces
 interface HelperApplication {
   id: string;
@@ -172,7 +173,7 @@ const AdminHelperManagement = () => {
         loadStats(),
       ]);
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminHelperManagement", message: error instanceof Error ? error.message : "Helper management error" });
+      recordAdminError({ kind: "rpc", label: "AdminHelperManagement", message: formatAdminError(error)});
     } finally {
       setLoading(false);
     }
@@ -379,7 +380,7 @@ const AdminHelperManagement = () => {
       setSelectedApp(null);
       setAdminNotes("");
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminHelperManagement.HandleapproveapplicationError", message: error instanceof Error ? error.message : "handleApproveApplication error" });
+      recordAdminError({ kind: "rpc", label: "AdminHelperManagement.HandleapproveapplicationError", message: formatAdminError(error)});
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
       setProcessingIds(prev => {
@@ -456,7 +457,7 @@ const AdminHelperManagement = () => {
 
       toast({ title: "Approved!", description: `Upgraded to Level ${req.requested_level}` });
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminHelperManagement.HandleapproveupgradeError", message: error instanceof Error ? error.message : "handleApproveUpgrade error" });
+      recordAdminError({ kind: "rpc", label: "AdminHelperManagement.HandleapproveupgradeError", message: formatAdminError(error)});
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
       setProcessingIds(prev => {
@@ -512,7 +513,7 @@ const AdminHelperManagement = () => {
 
       toast({ title: "Approved!", description: "Topup added to wallet" });
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminHelperManagement.HandleapprovetopupError", message: error instanceof Error ? error.message : "handleApproveTopup error" });
+      recordAdminError({ kind: "rpc", label: "AdminHelperManagement.HandleapprovetopupError", message: formatAdminError(error)});
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
       setProcessingIds(prev => {

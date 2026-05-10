@@ -29,6 +29,7 @@ import { toast } from "sonner";
 import { parseSettingValue, saveAppSetting } from "@/utils/adminSettingsStorage";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 // DiamondPackage interface removed - managed in AdminCoins
 
 interface WithdrawalFee {
@@ -121,7 +122,7 @@ export default function AdminSettings() {
       });
     } catch (error) {
       console.error("Error fetching settings:", error);
-      recordAdminError({ kind: "rpc", label: "AdminSettings.settingsMap", message: error instanceof Error ? error.message : String(error) });
+      recordAdminError({ kind: "rpc", label: "AdminSettings.settingsMap", message: formatAdminError(error)) });
       toast.error("Failed to load settings");
     } finally {
       setLoading(false);
@@ -137,7 +138,7 @@ export default function AdminSettings() {
       await fetchSettings();
     } catch (error) {
       console.error("Error saving setting:", error);
-      recordAdminError({ kind: "rpc", label: "AdminSettings.saveSetting", message: error instanceof Error ? error.message : String(error) });
+      recordAdminError({ kind: "rpc", label: "AdminSettings.saveSetting", message: formatAdminError(error)) });
       toast.error("Failed to save settings");
     } finally {
       setSaving(false);

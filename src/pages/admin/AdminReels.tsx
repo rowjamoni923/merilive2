@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface Reel {
   id: string;
   user_id: string;
@@ -170,7 +171,7 @@ const AdminReels = () => {
     
     if (error) {
       console.error("Delete reel error:", error);
-      recordAdminError({ kind: "rpc", label: "AdminReels.reel", message: error instanceof Error ? error.message : String(error) });
+      recordAdminError({ kind: "rpc", label: "AdminReels.reel", message: formatAdminError(error)) });
       toast.error("Failed to delete reel");
     } else {
       // Clean up storage files

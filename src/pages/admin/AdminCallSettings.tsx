@@ -30,6 +30,7 @@ import { parseSettingValue, saveAppSetting } from "@/utils/adminSettingsStorage"
 import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface LevelRate {
   level: number;
   rate: number;
@@ -144,7 +145,7 @@ export default function AdminCallSettings() {
       }
     } catch (error) {
       console.error("Error fetching settings:", error);
-      recordAdminError({ kind: "rpc", label: "AdminCallSettings.rates", message: error instanceof Error ? error.message : String(error) });
+      recordAdminError({ kind: "rpc", label: "AdminCallSettings.rates", message: formatAdminError(error)) });
       toast.error("Failed to load settings");
     } finally {
       setLoading(false);
@@ -181,7 +182,7 @@ export default function AdminCallSettings() {
       setStats({ total_calls: totalRes.count || 0, active_calls: activeRes.count || 0, total_minutes: totalMinutes, total_earnings: totalEarnings });
     } catch (error) {
       console.error("Error fetching stats:", error);
-      recordAdminError({ kind: "rpc", label: "AdminCallSettings.totalEarnings", message: error instanceof Error ? error.message : String(error) });
+      recordAdminError({ kind: "rpc", label: "AdminCallSettings.totalEarnings", message: formatAdminError(error)) });
     }
   };
 
@@ -193,7 +194,7 @@ export default function AdminCallSettings() {
       toast.success("Call settings saved!");
     } catch (error) {
       console.error("Error saving settings:", error);
-      recordAdminError({ kind: "rpc", label: "AdminCallSettings.handleSave", message: error instanceof Error ? error.message : String(error) });
+      recordAdminError({ kind: "rpc", label: "AdminCallSettings.handleSave", message: formatAdminError(error)) });
       toast.error("Failed to save settings");
     } finally {
       setSaving(false);

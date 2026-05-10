@@ -13,6 +13,7 @@ import { Plus, Edit, Trash2, Upload, RefreshCw, Eye, Medal } from "lucide-react"
 import UniversalAnimationPlayer from "@/components/common/UniversalAnimationPlayer";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface VIPMedalItem {
   id: string;
   level: number;
@@ -66,7 +67,7 @@ const AdminVIPMedals = () => {
 
       setItems(mapped);
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminVIPMedals.ErrorFetchingVipMedals", message: error instanceof Error ? error.message : "Error fetching VIP medals" });
+      recordAdminError({ kind: "rpc", label: "AdminVIPMedals.ErrorFetchingVipMedals", message: formatAdminError(error)});
       toast.error('Failed to load VIP Medals');
     } finally {
       setLoading(false);
@@ -124,7 +125,7 @@ const AdminVIPMedals = () => {
 
       return urlData.publicUrl;
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminVIPMedals.UploadError", message: error instanceof Error ? error.message : "Upload error" });
+      recordAdminError({ kind: "rpc", label: "AdminVIPMedals.UploadError", message: formatAdminError(error)});
       toast.error('File upload failed');
       return null;
     }
@@ -224,7 +225,7 @@ const AdminVIPMedals = () => {
       setDialogOpen(false);
       fetchItems();
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminVIPMedals.SaveError", message: error instanceof Error ? error.message : "Save error" });
+      recordAdminError({ kind: "rpc", label: "AdminVIPMedals.SaveError", message: formatAdminError(error)});
       toast.error('Failed to save');
     } finally {
       setSaving(false);
@@ -244,7 +245,7 @@ const AdminVIPMedals = () => {
       toast.success('VIP Medal deleted');
       fetchItems();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminVIPMedals.DeleteError", message: error instanceof Error ? error.message : "Delete error" });
+      recordAdminError({ kind: "rpc", label: "AdminVIPMedals.DeleteError", message: formatAdminError(error)});
       toast.error('Failed to delete');
     }
   };
@@ -260,7 +261,7 @@ const AdminVIPMedals = () => {
       toast.success(item.is_active ? 'Deactivated' : 'Activated');
       fetchItems();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminVIPMedals.ToggleError", message: error instanceof Error ? error.message : "Toggle error" });
+      recordAdminError({ kind: "rpc", label: "AdminVIPMedals.ToggleError", message: formatAdminError(error)});
     }
   };
 

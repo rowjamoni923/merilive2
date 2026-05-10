@@ -39,6 +39,7 @@ import { toast } from "sonner";
 import { loadAppSetting, saveAppSetting } from "@/utils/adminSettingsStorage";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface DiamondPackage {
   id: string;
   coins: number; // DB column - represents diamonds
@@ -181,7 +182,7 @@ export default function AdminCoins() {
         }
       }
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminCoins.ErrorFetchingData", message: error instanceof Error ? error.message : "Error fetching data" });
+      recordAdminError({ kind: "rpc", label: "AdminCoins.ErrorFetchingData", message: formatAdminError(error)});
       toast.error("Failed to load data");
     } finally {
       setLoading(false);
@@ -199,7 +200,7 @@ export default function AdminCoins() {
       
       toast.success("Beans to USD rate saved!");
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminCoins.ErrorSavingRate", message: error instanceof Error ? error.message : "Error saving rate" });
+      recordAdminError({ kind: "rpc", label: "AdminCoins.ErrorSavingRate", message: formatAdminError(error)});
       toast.error(error.message || "Failed to save rate");
     } finally {
       setSavingExchangeRate(false);
@@ -223,7 +224,7 @@ export default function AdminCoins() {
         throw new Error(data?.error || "Failed to fetch rates");
       }
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminCoins.ErrorFetchingLiveRates", message: error instanceof Error ? error.message : "Error fetching live rates" });
+      recordAdminError({ kind: "rpc", label: "AdminCoins.ErrorFetchingLiveRates", message: formatAdminError(error)});
       toast.error(error.message || "Failed to fetch live rates");
     } finally {
       setUpdatingRates(false);
@@ -276,7 +277,7 @@ export default function AdminCoins() {
       fetchData();
       setLiveRates([]); // Clear after saving
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminCoins.ErrorSavingRates", message: error instanceof Error ? error.message : "Error saving rates" });
+      recordAdminError({ kind: "rpc", label: "AdminCoins.ErrorSavingRates", message: formatAdminError(error)});
       toast.error(error.message || "Failed to save rates");
     } finally {
       setUpdatingRates(false);
@@ -321,7 +322,7 @@ export default function AdminCoins() {
       toast.success("All currency rates updated!");
       fetchData();
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminCoins.ErrorUpdatingRates", message: error instanceof Error ? error.message : "Error updating rates" });
+      recordAdminError({ kind: "rpc", label: "AdminCoins.ErrorUpdatingRates", message: formatAdminError(error)});
       toast.error(error.message || "Failed to update rates");
     } finally {
       setUpdatingRates(false);
@@ -396,7 +397,7 @@ export default function AdminCoins() {
       setShowPackageDialog(false);
       fetchData();
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminCoins.ErrorSavingPackage", message: error instanceof Error ? error.message : "Error saving package" });
+      recordAdminError({ kind: "rpc", label: "AdminCoins.ErrorSavingPackage", message: formatAdminError(error)});
       toast.error(error.message || "Failed to save package");
     } finally {
       setSaving(false);
@@ -413,7 +414,7 @@ export default function AdminCoins() {
       toast.success("Package deleted");
       fetchData();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminCoins.ErrorDeletingPackage", message: error instanceof Error ? error.message : "Error deleting package" });
+      recordAdminError({ kind: "rpc", label: "AdminCoins.ErrorDeletingPackage", message: formatAdminError(error)});
       toast.error("Failed to delete");
     }
   };
@@ -427,7 +428,7 @@ export default function AdminCoins() {
       if (error) throw error;
       fetchData();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminCoins.ErrorTogglingPackage", message: error instanceof Error ? error.message : "Error toggling package" });
+      recordAdminError({ kind: "rpc", label: "AdminCoins.ErrorTogglingPackage", message: formatAdminError(error)});
     }
   };
 
@@ -476,7 +477,7 @@ export default function AdminCoins() {
       setShowCurrencyDialog(false);
       fetchData();
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminCoins.ErrorSavingCurrency", message: error instanceof Error ? error.message : "Error saving currency" });
+      recordAdminError({ kind: "rpc", label: "AdminCoins.ErrorSavingCurrency", message: formatAdminError(error)});
       toast.error(error.message || "Failed to save currency");
     } finally {
       setSaving(false);
@@ -493,7 +494,7 @@ export default function AdminCoins() {
       toast.success("Currency deleted");
       fetchData();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminCoins.ErrorDeletingCurrency", message: error instanceof Error ? error.message : "Error deleting currency" });
+      recordAdminError({ kind: "rpc", label: "AdminCoins.ErrorDeletingCurrency", message: formatAdminError(error)});
       toast.error("Failed to delete");
     }
   };

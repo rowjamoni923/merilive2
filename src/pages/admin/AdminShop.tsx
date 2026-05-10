@@ -50,6 +50,7 @@ import { useR2Upload } from "@/hooks/useR2Upload";
 import { LazyImage } from "@/components/LazyImage";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 const adminCardStyles = "bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/10";
 const adminButtonStyles = { primary: "bg-gradient-to-r from-purple-500 to-pink-500 text-white" };
 const adminInputStyles = "bg-white/10 border-white/20 text-white";
@@ -275,7 +276,7 @@ const AdminShop = () => {
 
     if (error) {
       toast.error("Failed to load shop items");
-      recordAdminError({ kind: "rpc", label: "AdminShop", message: error instanceof Error ? error.message : String(error) });
+      recordAdminError({ kind: "rpc", label: "AdminShop", message: formatAdminError(error)) });
     } else {
       const sorted = ((data as any[]) || []).slice().sort((a, b) => {
         const c = String(a.category || '').localeCompare(String(b.category || ''));

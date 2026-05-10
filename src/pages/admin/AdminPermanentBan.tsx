@@ -20,6 +20,7 @@ import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { cn } from "@/lib/utils";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 type Severity = "medium" | "high" | "urgent";
 
 interface SeverityBan {
@@ -110,7 +111,7 @@ export default function AdminPermanentBan() {
       if (error) throw error;
       setBans((data as any[]) || []);
     } catch (e: any) {
-      recordAdminError({ kind: "rpc", label: "AdminPermanentBan", message: e instanceof Error ? e.message : String(e) });
+      recordAdminError({ kind: "rpc", label: "AdminPermanentBan", message: formatAdminError(e)) });
       toast.error("Failed to load bans");
     } finally {
       setLoading(false);

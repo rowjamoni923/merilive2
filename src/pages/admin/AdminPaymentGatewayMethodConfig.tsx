@@ -13,6 +13,7 @@ import { loadAppSetting, saveAppSetting } from "@/utils/adminSettingsStorage";
 import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 const SETTING_KEY = "payment_gateway_method_config";
 
 type RouteType = "manual" | "auto";
@@ -157,7 +158,7 @@ const AdminPaymentGatewayMethodConfig = () => {
       recordAdminError({
         kind: "other",
         label: "AdminPaymentGatewayMethodConfig.fetchConfig",
-        message: error instanceof Error ? error.message : "Failed to load",
+        message: formatAdminError(error),
       });
       toast.error("Failed to load payment gateway method config");
     } finally {
@@ -191,7 +192,7 @@ const AdminPaymentGatewayMethodConfig = () => {
       recordAdminError({
         kind: "other",
         label: "AdminPaymentGatewayMethodConfig.save",
-        message: error instanceof Error ? error.message : "Failed to save",
+        message: formatAdminError(error),
       });
       toast.error("Failed to save");
     } finally {

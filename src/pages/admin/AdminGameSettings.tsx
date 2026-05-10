@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface BetMultiplier {
   bet_type: string;
   label: string;
@@ -161,7 +162,7 @@ export default function AdminGameSettings() {
     } catch (error: any) {
       toast.error("Failed to upload logo");
       console.error("Upload error:", error);
-      recordAdminError({ kind: "rpc", label: "AdminGameSettings.filePath", message: error instanceof Error ? error.message : String(error) });
+      recordAdminError({ kind: "rpc", label: "AdminGameSettings.filePath", message: formatAdminError(error)) });
     } finally {
       setUploading(false);
     }

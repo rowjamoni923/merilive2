@@ -33,6 +33,7 @@ import {
   Heart
 } from "lucide-react";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface LiveBan {
   id: string;
   user_id: string;
@@ -143,7 +144,7 @@ export default function AdminLiveBans() {
 
       setBans(bansWithProfiles as unknown as LiveBan[]);
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminLiveBans.ErrorFetchingBans", message: error instanceof Error ? error.message : "Error fetching bans" });
+      recordAdminError({ kind: "rpc", label: "AdminLiveBans.ErrorFetchingBans", message: formatAdminError(error)});
       // Fallback: when admin SECURITY DEFINER RPC is unavailable (e.g. transient
       // missing x-admin-token header right after page reload), try the direct
       // table read which is also covered by the "Admin session full access"
@@ -217,7 +218,7 @@ export default function AdminLiveBans() {
         }
       });
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminLiveBans.ErrorFetchingSettings", message: error instanceof Error ? error.message : "Error fetching settings" });
+      recordAdminError({ kind: "rpc", label: "AdminLiveBans.ErrorFetchingSettings", message: formatAdminError(error)});
     }
   };
 
@@ -233,7 +234,7 @@ export default function AdminLiveBans() {
         total: Number(s.total) || 0,
       });
     } catch (e) {
-      recordAdminError({ kind: "rpc", label: "AdminLiveBans.FailedToLoadLiveBanStats", message: e instanceof Error ? e.message : "Failed to load live ban stats" });
+      recordAdminError({ kind: "rpc", label: "AdminLiveBans.FailedToLoadLiveBanStats", message: formatAdminError(e)});
     }
   };
 
@@ -289,7 +290,7 @@ export default function AdminLiveBans() {
       setNewBanReason('');
       fetchBans();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminLiveBans.ErrorCreatingBan", message: error instanceof Error ? error.message : "Error creating ban" });
+      recordAdminError({ kind: "rpc", label: "AdminLiveBans.ErrorCreatingBan", message: formatAdminError(error)});
       toast.error('Failed to create ban');
     }
   };
@@ -327,7 +328,7 @@ export default function AdminLiveBans() {
       setUnbanReason('');
       fetchBans();
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminLiveBans.ErrorUnbanningUser", message: error instanceof Error ? error.message : "Error unbanning user" });
+      recordAdminError({ kind: "rpc", label: "AdminLiveBans.ErrorUnbanningUser", message: formatAdminError(error)});
       toast.error(error?.message || 'Failed to unban user');
     }
   };
@@ -345,7 +346,7 @@ export default function AdminLiveBans() {
       if (error) throw error;
       toast.success('Setting updated');
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminLiveBans.ErrorUpdatingSetting", message: error instanceof Error ? error.message : "Error updating setting" });
+      recordAdminError({ kind: "rpc", label: "AdminLiveBans.ErrorUpdatingSetting", message: formatAdminError(error)});
       toast.error('Failed to update setting');
     }
   };
@@ -656,7 +657,7 @@ export default function AdminLiveBans() {
                                           toast.success(`${ban.profiles?.display_name || 'User'} has been unbanned`);
                                           fetchBans();
                                         } catch (error) {
-                                          recordAdminError({ kind: "rpc", label: "AdminLiveBans.ErrorUnbanning", message: error instanceof Error ? error.message : "Error unbanning" });
+                                          recordAdminError({ kind: "rpc", label: "AdminLiveBans.ErrorUnbanning", message: formatAdminError(error)});
                                           toast.error('Failed to unban user');
                                         }
                                       }}

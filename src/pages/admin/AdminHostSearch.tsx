@@ -28,6 +28,7 @@ import { format, formatDistanceToNow } from "date-fns";
 import { enUS } from "date-fns/locale";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface HostResult {
   id: string;
   display_name: string | null;
@@ -176,7 +177,7 @@ export default function AdminHostSearch() {
         setAgencyHostInfo(joinData);
       }
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminHostSearch.SearchError", message: error instanceof Error ? error.message : "Search error" });
+      recordAdminError({ kind: "rpc", label: "AdminHostSearch.SearchError", message: formatAdminError(error)});
       toast.error("Search failed");
     } finally {
       setLoading(false);

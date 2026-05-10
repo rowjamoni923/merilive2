@@ -26,6 +26,7 @@ import { format } from "date-fns";
 import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface PaymentDetails {
   transaction_id?: string;
   method_type?: string;
@@ -220,7 +221,7 @@ const AdminPayrollOrders = () => {
         todayTotal: s.todayTotal || 0
       });
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminPayrollOrders", message: error instanceof Error ? error.message : "Payroll orders error" });
+      recordAdminError({ kind: "rpc", label: "AdminPayrollOrders", message: formatAdminError(error)});
     } finally {
       setLoading(false);
     }

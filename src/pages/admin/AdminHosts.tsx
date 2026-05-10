@@ -56,6 +56,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface Host {
   id: string;
   display_name: string;
@@ -144,7 +145,7 @@ export default function AdminHosts() {
       setTotalCount(Number(payload.total || 0));
       setAdminCache('admin_hosts_list', rows);
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminHosts.ErrorFetchingHosts", message: error instanceof Error ? error.message : "Error fetching hosts" });
+      recordAdminError({ kind: "rpc", label: "AdminHosts.ErrorFetchingHosts", message: formatAdminError(error)});
       toast.error("Failed to load hosts");
     } finally {
       setLoading(false);
@@ -164,7 +165,7 @@ export default function AdminHosts() {
         setDefaultRate(val.default_rate || 0);
       }
     } catch (e) {
-      recordAdminError({ kind: "rpc", label: "AdminHosts.ErrorFetchingCallRates", message: e instanceof Error ? e.message : "Error fetching call rates" });
+      recordAdminError({ kind: "rpc", label: "AdminHosts.ErrorFetchingCallRates", message: formatAdminError(e)});
     }
   };
 
@@ -199,7 +200,7 @@ export default function AdminHosts() {
         totalEarnings: Number(s.total_earnings || 0),
       });
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminHosts.ErrorFetchingHostStats", message: error instanceof Error ? error.message : "Error fetching host stats" });
+      recordAdminError({ kind: "rpc", label: "AdminHosts.ErrorFetchingHostStats", message: formatAdminError(error)});
     }
   };
 
@@ -248,8 +249,8 @@ export default function AdminHosts() {
       fetchHosts();
       fetchStats();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminHosts.ErrorBlockingHost", message: error instanceof Error ? error.message : "Error blocking host" });
-      toast.error(error instanceof Error ? error.message : "Operation failed");
+      recordAdminError({ kind: "rpc", label: "AdminHosts.ErrorBlockingHost", message: formatAdminError(error)});
+      toast.error(formatAdminError(error));
     }
   };
 

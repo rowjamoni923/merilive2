@@ -46,6 +46,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface Submission {
   id: string;
   user_id: string;
@@ -174,7 +175,7 @@ const AdminFaceVerification = () => {
         } catch {}
       }
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminFaceVerification.ErrorFetchingSubmissions", message: error instanceof Error ? error.message : "Error fetching submissions" });
+      recordAdminError({ kind: "rpc", label: "AdminFaceVerification.ErrorFetchingSubmissions", message: formatAdminError(error)});
       toast({ title: "Error", description: "Failed to load submissions", variant: "destructive" });
     } finally {
       if (fastTimeoutId) window.clearTimeout(fastTimeoutId);

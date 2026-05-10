@@ -12,6 +12,7 @@ import { loadAppSetting, saveAppSetting } from "@/utils/adminSettingsStorage";
 import { useAdminRealtime } from "@/hooks/useAdminRealtime";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 const SETTING_KEY = "home_host_feed_ranking";
 
 type PresetKey = "balanced_default" | "strict_quality" | "growth_mode" | "custom";
@@ -148,7 +149,7 @@ const AdminHostFeedRanking = () => {
       recordAdminError({
         kind: "other",
         label: "AdminHostFeedRanking.fetchConfig",
-        message: error instanceof Error ? error.message : "Failed to load ranking config",
+        message: formatAdminError(error),
       });
       toast.error("Failed to load ranking config");
     } finally {
@@ -186,7 +187,7 @@ const AdminHostFeedRanking = () => {
       recordAdminError({
         kind: "other",
         label: "AdminHostFeedRanking.save",
-        message: error instanceof Error ? error.message : "Failed to save",
+        message: formatAdminError(error),
       });
       toast.error("Failed to save ranking config");
     } finally {

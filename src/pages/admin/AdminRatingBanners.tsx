@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { recordAdminError } from "@/utils/adminErrorLog";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface RatingBanner {
   id: string;
   title: string;
@@ -41,7 +42,7 @@ export default function AdminRatingBanners() {
       if (error) throw error;
       setBanners(data || []);
     } catch (e) {
-      recordAdminError({ kind: "rest", label: "AdminRatingBanners.fetch", message: e instanceof Error ? e.message : String(e) });
+      recordAdminError({ kind: "rest", label: "AdminRatingBanners.fetch", message: formatAdminError(e)) });
       toast.error("Failed to load rating banners");
     } finally {
       setLoading(false);

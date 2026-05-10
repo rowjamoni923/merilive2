@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Building2, FileText, Users, Crown, Star, Clock, History, ExternalLink } from "lucide-react";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 // Agency Hub now owns ONLY agency-specific sections (Agencies + Policy).
 // Helper Management, Level 5 Helpers → Trader Hub
 // Transfer Scheduler, Transfer History → Finance Hub
@@ -49,7 +50,7 @@ const AdminAgencyHub = () => {
         pendingWithdrawals: s.pendingWithdrawals || 0
       });
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminAgencyHub.ErrorFetchingAgencyHubStats", message: error instanceof Error ? error.message : "Error fetching agency hub stats" });
+      recordAdminError({ kind: "rpc", label: "AdminAgencyHub.ErrorFetchingAgencyHubStats", message: formatAdminError(error)});
     }
   };
 

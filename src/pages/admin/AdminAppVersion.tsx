@@ -12,6 +12,7 @@ import { Loader2, Save, RefreshCw, Smartphone, Apple, Download, AlertTriangle } 
 import { parseSettingValue } from "@/utils/adminSettingsStorage";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface VersionSettings {
   id: string;
   platform: string;
@@ -58,7 +59,7 @@ const AdminAppVersion = () => {
       setIosSettings(ios ? normalizeVersionSettings(ios) : null);
     } catch (error) {
       console.error('Error fetching version settings:', error);
-      recordAdminError({ kind: "rpc", label: "AdminAppVersion.ios", message: error instanceof Error ? error.message : String(error) });
+      recordAdminError({ kind: "rpc", label: "AdminAppVersion.ios", message: formatAdminError(error)) });
       toast.error('Failed to load version settings');
     } finally {
       setLoading(false);
@@ -91,7 +92,7 @@ const AdminAppVersion = () => {
       fetchVersionSettings();
     } catch (error) {
       console.error('Error saving settings:', error);
-      recordAdminError({ kind: "rpc", label: "AdminAppVersion.saveSettings", message: error instanceof Error ? error.message : String(error) });
+      recordAdminError({ kind: "rpc", label: "AdminAppVersion.saveSettings", message: formatAdminError(error)) });
       toast.error('Failed to save settings');
     } finally {
       setSaving(false);

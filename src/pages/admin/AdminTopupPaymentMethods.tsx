@@ -16,6 +16,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { useToast } from "@/hooks/use-toast";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface PaymentMethod {
   id: string;
   name: string;
@@ -67,13 +68,13 @@ const AdminTopupPaymentMethods = () => {
         .order('display_order', { ascending: true });
 
       if (error) {
-        recordAdminError({ kind: "rpc", label: "AdminTopupPaymentMethods.AdminpaymentmethodsLoadError", message: error instanceof Error ? error.message : "[AdminPaymentMethods] Load error" });
+        recordAdminError({ kind: "rpc", label: "AdminTopupPaymentMethods.AdminpaymentmethodsLoadError", message: formatAdminError(error)});
         toast({ title: "Error loading methods", description: error.message, variant: "destructive" });
       } else {
         setMethods((data || []) as PaymentMethod[]);
       }
     } catch (err: any) {
-      recordAdminError({ kind: "rpc", label: "AdminTopupPaymentMethods.AdminpaymentmethodsUnexpectedError", message: err instanceof Error ? err.message : "[AdminPaymentMethods] Unexpected error" });
+      recordAdminError({ kind: "rpc", label: "AdminTopupPaymentMethods.AdminpaymentmethodsUnexpectedError", message: formatAdminError(err)});
     }
     setLoading(false);
   }, [toast]);
@@ -137,7 +138,7 @@ const AdminTopupPaymentMethods = () => {
       resetForm();
       await loadMethods();
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminTopupPaymentMethods.AdminpaymentmethodsSaveError", message: error instanceof Error ? error.message : "[AdminPaymentMethods] Save error" });
+      recordAdminError({ kind: "rpc", label: "AdminTopupPaymentMethods.AdminpaymentmethodsSaveError", message: formatAdminError(error)});
       toast({ title: "Save failed", description: error.message, variant: "destructive" });
     } finally {
       setSaving(false);
@@ -220,7 +221,7 @@ const AdminTopupPaymentMethods = () => {
       setFormData(prev => ({ ...prev, icon_url: pub.publicUrl }));
       toast({ title: "Logo uploaded ✅" });
     } catch (err: any) {
-      recordAdminError({ kind: "rpc", label: "AdminTopupPaymentMethods.AdminpaymentmethodsLogoUploadError", message: err instanceof Error ? err.message : "[AdminPaymentMethods] Logo upload error" });
+      recordAdminError({ kind: "rpc", label: "AdminTopupPaymentMethods.AdminpaymentmethodsLogoUploadError", message: formatAdminError(err)});
       toast({ title: "Upload failed", description: err.message, variant: "destructive" });
     } finally {
       setUploadingLogo(false);

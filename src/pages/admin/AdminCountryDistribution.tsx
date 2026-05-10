@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface CountryData {
   country_name: string | null;
   country_code: string | null;
@@ -42,7 +43,7 @@ const AdminCountryDistribution = () => {
       recordAdminError({
         kind: "rpc",
         label: "admin_country_distribution",
-        message: error instanceof Error ? error.message : "Failed to fetch country distribution",
+        message: formatAdminError(error),
       });
     } finally {
       setIsLoading(false);

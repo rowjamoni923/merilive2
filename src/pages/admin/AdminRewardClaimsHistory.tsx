@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface ClaimRecord {
   id: string;
   user_id: string;
@@ -138,7 +139,7 @@ const AdminRewardClaimsHistory = () => {
       setClaims(enriched);
     } catch (error) {
       console.error('Failed to fetch claims:', error);
-      recordAdminError({ kind: "rpc", label: "AdminRewardClaimsHistory.profile", message: error instanceof Error ? error.message : String(error) });
+      recordAdminError({ kind: "rpc", label: "AdminRewardClaimsHistory.profile", message: formatAdminError(error)) });
     } finally {
       setLoading(false);
     }

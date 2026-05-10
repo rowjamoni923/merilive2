@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface PopupBanner {
   id: string;
   title: string;
@@ -50,7 +51,7 @@ const AdminPopupBanners = () => {
       if (error) throw error;
       setBanners(data || []);
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminPopupBanners.ErrorFetchingPopupBanners", message: error instanceof Error ? error.message : "Error fetching popup banners" });
+      recordAdminError({ kind: "rpc", label: "AdminPopupBanners.ErrorFetchingPopupBanners", message: formatAdminError(error)});
       toast.error('Failed to load popup banners');
     } finally {
       setLoading(false);
@@ -107,7 +108,7 @@ const AdminPopupBanners = () => {
       setEditingBanner(null);
       resetForm();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminPopupBanners.ErrorSaving", message: error instanceof Error ? error.message : "Error saving" });
+      recordAdminError({ kind: "rpc", label: "AdminPopupBanners.ErrorSaving", message: formatAdminError(error)});
       toast.error('Failed to save');
     } finally {
       setSaving(false);

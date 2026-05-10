@@ -21,6 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface Transaction {
   id: string;
   helper_id: string;
@@ -81,7 +82,7 @@ const AdminTraderTransactions = () => {
         pendingValue: (data || []).filter(t => t.status === 'pending').reduce((s, t) => s + t.usd_amount, 0)
       });
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminTraderTransactions", message: error instanceof Error ? error.message : String(error) });
+      recordAdminError({ kind: "rpc", label: "AdminTraderTransactions", message: formatAdminError(error)) });
     } finally {
       setLoading(false);
     }

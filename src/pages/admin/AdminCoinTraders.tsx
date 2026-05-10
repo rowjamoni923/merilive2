@@ -32,6 +32,7 @@ import { format } from "date-fns";
 import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 const AdminCoinTraders = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -89,7 +90,7 @@ const AdminCoinTraders = () => {
         totalCoinsTraded: (data || []).reduce((sum: number, h: any) => sum + (h.total_bought || 0), 0),
         visibleTraders: (data || []).filter((h: any) => h.is_active && h.is_verified && h.trader_level !== 5 && (h.wallet_balance || 0) >= 100000).length,
       }));
-    } catch (error) { recordAdminError({ kind: "rpc", label: "AdminCoinTraders", message: error instanceof Error ? error.message : String(error) }); }
+    } catch (error) { recordAdminError({ kind: "rpc", label: "AdminCoinTraders", message: formatAdminError(error)) }); }
     finally { setLoading(false); }
   };
 
@@ -101,7 +102,7 @@ const AdminCoinTraders = () => {
         .order('created_at', { ascending: false }).limit(100);
       setTransactions(data || []);
       setStats(prev => ({ ...prev, pendingTransactions: (data || []).filter((t: any) => t.status === 'pending').length }));
-    } catch (error) { recordAdminError({ kind: "rpc", label: "AdminCoinTraders", message: error instanceof Error ? error.message : String(error) }); }
+    } catch (error) { recordAdminError({ kind: "rpc", label: "AdminCoinTraders", message: formatAdminError(error)) }); }
   };
 
   const searchUsers = async (query: string) => {
@@ -254,7 +255,7 @@ const AdminCoinTraders = () => {
       fetchTransactions();
 
     } catch (error: any) {
-      recordAdminError({ kind: "rpc", label: "AdminCoinTraders.TransferError", message: error instanceof Error ? error.message : "Transfer error" });
+      recordAdminError({ kind: "rpc", label: "AdminCoinTraders.TransferError", message: formatAdminError(error)});
       toast({
         title: "Failed",
         description: error.message || "Transfer failed",

@@ -5,6 +5,7 @@ import html2canvas from "html2canvas";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 const BLUEPRINT_HTML = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -163,7 +164,7 @@ export default function AdminBlueprint() {
       recordAdminError({
         kind: "other",
         label: "AdminBlueprint.handleDownloadPNG",
-        message: err instanceof Error ? err.message : "PNG capture failed",
+        message: formatAdminError(err),
       });
     } finally {
       setIsCapturing(false);

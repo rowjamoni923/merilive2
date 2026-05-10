@@ -25,6 +25,7 @@ import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
+import { formatAdminError } from "@/utils/formatAdminError";
 interface PartyBanner {
   id: string;
   banner_type: string;
@@ -97,7 +98,7 @@ export default function AdminPartyBanners() {
       if (error) throw error;
       setBanners(data || []);
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminPartyBanners.ErrorFetchingBanners", message: error instanceof Error ? error.message : "Error fetching banners" });
+      recordAdminError({ kind: "rpc", label: "AdminPartyBanners.ErrorFetchingBanners", message: formatAdminError(error)});
       toast.error('Failed to load banners');
     } finally {
       setLoading(false);
@@ -116,7 +117,7 @@ export default function AdminPartyBanners() {
       resetForm();
       fetchBanners();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminPartyBanners.ErrorCreatingBanner", message: error instanceof Error ? error.message : "Error creating banner" });
+      recordAdminError({ kind: "rpc", label: "AdminPartyBanners.ErrorCreatingBanner", message: formatAdminError(error)});
       toast.error('Failed to create banner');
     }
   };
@@ -136,7 +137,7 @@ export default function AdminPartyBanners() {
       resetForm();
       fetchBanners();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminPartyBanners.ErrorUpdatingBanner", message: error instanceof Error ? error.message : "Error updating banner" });
+      recordAdminError({ kind: "rpc", label: "AdminPartyBanners.ErrorUpdatingBanner", message: formatAdminError(error)});
       toast.error('Failed to update banner');
     }
   };
@@ -154,7 +155,7 @@ export default function AdminPartyBanners() {
       toast.success('Banner deleted successfully');
       fetchBanners();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminPartyBanners.ErrorDeletingBanner", message: error instanceof Error ? error.message : "Error deleting banner" });
+      recordAdminError({ kind: "rpc", label: "AdminPartyBanners.ErrorDeletingBanner", message: formatAdminError(error)});
       toast.error('Failed to delete banner');
     }
   };
@@ -170,7 +171,7 @@ export default function AdminPartyBanners() {
       toast.success(`Banner ${!banner.is_active ? 'enabled' : 'disabled'}`);
       fetchBanners();
     } catch (error) {
-      recordAdminError({ kind: "rpc", label: "AdminPartyBanners.ErrorTogglingBanner", message: error instanceof Error ? error.message : "Error toggling banner" });
+      recordAdminError({ kind: "rpc", label: "AdminPartyBanners.ErrorTogglingBanner", message: formatAdminError(error)});
       toast.error('Failed to toggle banner');
     }
   };
