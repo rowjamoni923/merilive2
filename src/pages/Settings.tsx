@@ -370,7 +370,7 @@ const Settings = () => {
       if (isNativeApp()) {
         const granted = await requestNativeNotificationPermission();
         if (granted) {
-          setPermissions(prev => ({ ...prev, notifications: true }));
+          updatePermissions({ notifications: true });
           toast({ title: "Notifications Enabled", description: "You will now receive push notifications." });
         } else {
           toast({ title: "Permission Denied", description: "Open device Settings → Apps → MeriLive → Notifications → Allow.", variant: "destructive" });
@@ -396,7 +396,7 @@ const Settings = () => {
       }
 
       const permission = await Notification.requestPermission();
-      setPermissions(prev => ({ ...prev, notifications: permission === 'granted' }));
+      updatePermissions({ notifications: permission === 'granted' });
       if (permission === 'granted') {
         toast({ title: "Notifications Enabled", description: "You will now receive notifications." });
       } else {
@@ -444,7 +444,7 @@ const Settings = () => {
       if (isNativeApp()) {
         const granted = await requestNativeCameraPermission();
         if (granted) {
-          setPermissions(prev => ({ ...prev, camera: true }));
+          updatePermissions({ camera: true });
           toast({ title: "Camera Enabled", description: "Camera access has been granted." });
         } else {
           toast({ title: "Camera Permission Needed", description: nativeSettingsHint('Camera'), variant: "destructive" });
@@ -458,7 +458,7 @@ const Settings = () => {
       }
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       stream.getTracks().forEach(track => track.stop());
-      setPermissions(prev => ({ ...prev, camera: true }));
+      updatePermissions({ camera: true });
       toast({ title: "Camera Enabled", description: "Camera access has been granted." });
     } catch (error: any) {
       console.error('Camera permission error:', error);
