@@ -132,10 +132,10 @@ async function registerNativePushToken(userId: string): Promise<string | null> {
   try {
     const { PushNotifications } = await import('@capacitor/push-notifications');
 
-    // Request permission
-    const permResult = await PushNotifications.requestPermissions();
+    // Do not auto-prompt on app start. Permission must be enabled from Settings by user action.
+    const permResult = await PushNotifications.checkPermissions();
     if (permResult.receive !== 'granted') {
-      console.warn('[FCM Native] Permission not granted');
+      console.warn('[FCM Native] Waiting for user-initiated notification permission request');
       return null;
     }
 
