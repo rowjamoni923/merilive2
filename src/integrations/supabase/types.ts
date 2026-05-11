@@ -13585,6 +13585,10 @@ export type Database = {
       _internal_add_diamonds:
         | { Args: { _amount: number; _user_id: string }; Returns: undefined }
         | { Args: { _amount: number; _user_id: string }; Returns: undefined }
+      _resolve_private_call_coins_per_minute: {
+        Args: { p_host_id: string }
+        Returns: number
+      }
       accept_private_call: { Args: { _call_id: string }; Returns: boolean }
       add_beans_to_host: {
         Args: {
@@ -14903,6 +14907,10 @@ export type Database = {
       can_access_party_room: {
         Args: { _room_id: string; _user_id: string }
         Returns: boolean
+      }
+      can_initiate_private_call: {
+        Args: { p_caller_id: string; p_host_id: string }
+        Returns: Json
       }
       can_user_go_live: { Args: never; Returns: Json }
       cancel_account_deletion: { Args: { _user_id: string }; Returns: boolean }
