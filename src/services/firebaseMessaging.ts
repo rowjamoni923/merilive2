@@ -6,6 +6,7 @@
  */
 import { supabase } from '@/integrations/supabase/client';
 import { Capacitor } from '@capacitor/core';
+import { isNativeApp } from '@/utils/nativeUtils';
 
 // Firebase Web Config - these are PUBLIC/publishable keys
 // TODO: Replace with your actual Firebase project config
@@ -63,7 +64,7 @@ export async function registerFCMToken(userId: string): Promise<string | null> {
   if (tokenRegistered) return null;
 
   // On native platform, use Capacitor Push Notifications instead
-  if (Capacitor.isNativePlatform()) {
+  if (isNativeApp()) {
     return registerNativePushToken(userId);
   }
 
@@ -216,7 +217,7 @@ async function saveTokenToDatabase(userId: string, token: string, platform: stri
 export async function setupForegroundMessageHandler(
   onMessage: (payload: any) => void
 ) {
-  if (Capacitor.isNativePlatform()) {
+  if (isNativeApp()) {
     // Native: use Capacitor listener
     try {
       const { PushNotifications } = await import('@capacitor/push-notifications');
