@@ -33,7 +33,7 @@ import { useRefreshOnResume } from "@/hooks/useAppResumeHandler";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { LevelLockModal } from "@/components/level/LevelLockModal";
 
-const GO_LIVE_PROFILE_FIELDS = "id, display_name, avatar_url, user_level, host_level, is_host, host_status, gender, is_face_verified, face_verification_image";
+const GO_LIVE_PROFILE_FIELDS = "id, display_name, avatar_url, user_level, host_level, max_user_level, is_host, host_status, gender, is_face_verified, face_verification_image";
 
 const isApprovedLiveHost = (profile?: {
   is_host?: boolean | null;
