@@ -1,7 +1,7 @@
 /**
  * Post-submit Rekognition pass for Section-07 three-angle flow:
- * DetectFaces(front) + CompareFaces(front<->left, front<->right).
- * Writes ai_analysis.rekognition + rekognition_confidence; optionally calls
+ * DetectFaces(front) + CompareFaces(front↔left, front↔right).
+ * Writes ai_analysis + rekognition_confidence; optionally calls
  * service_auto_finalize_face_verification when app_settings allows.
  */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -226,9 +226,29 @@ serve(async (req) => {
       });
     }
 
-    const frontBytes = await fetchImageBytes(frontUrl);
-    const leftBytes = await fetchImageBytes(leftUrl);
-    const rightBytes = await fetchImageBytes(rightUrl);
+    let frontBytes: Uint8Array;
+    let leftBytes: Uint8Array;
+    let rightBytes: Uint8Array;
+    try {
+      frontBytes = await fetchImageBytes(frontUrl);
+      leftBytes = await fetchImageBytes(leftUrl);
+      rightBytes = await fetchImageBytes(rightUrl);
+    } catch (fetchErr) {
+      const msg = fetchErr instanceof Error ? fetchErr.message : "image_fetch_failed";
+      const rekognition = { version: 1, edge_fetch_error: msg };
+      await supabaseAdmin
+        .from("face_verification_submissions")
+        .update({
+          ai_analysis: { rekognition },
+          admin_notes: `Rekognition: image fetch failed — ${msg}`,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", submissionId);
+      return new Response(JSON.stringify({ ok: false, error: msg }), {
+        status: 502,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const det = await detectFaces(frontBytes, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION);
     const details = (det.FaceDetails as Record<string, unknown>[] | undefined) ?? [];
