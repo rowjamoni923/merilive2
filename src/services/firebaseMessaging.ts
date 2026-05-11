@@ -228,7 +228,7 @@ async function saveTokenToDatabase(userId: string, token: string, platform: stri
  * Setup foreground message handler
  */
 export async function setupForegroundMessageHandler(
-  onMessage: (payload: any) => void
+  onMessage: (payload: NotificationPayload) => void
 ) {
   if (isNativeApp()) {
     // Native: use Capacitor listener
@@ -281,7 +281,7 @@ export async function setupForegroundMessageHandler(
 /**
  * Show a browser notification
  */
-function showBrowserNotification(title: string, body: string, image?: string, data?: any) {
+function showBrowserNotification(title: string, body: string, image?: string, data?: NotificationData) {
   if (Notification.permission !== 'granted') return;
 
   const notification = new Notification(title, {
@@ -309,7 +309,7 @@ function showBrowserNotification(title: string, body: string, image?: string, da
 /**
  * Handle notification tap — navigate to appropriate screen
  */
-function handleNotificationTap(data: any) {
+function handleNotificationTap(data?: NotificationData) {
   if (!data) return;
 
   const type = data.type || '';
