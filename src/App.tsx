@@ -472,6 +472,16 @@ const App = () => {
   const [showGenderModal, setShowGenderModal] = useState(false);
   const [pendingUserId, setPendingUserId] = useState<string | null>(null);
   const [maintenanceMode, setMaintenanceMode] = useState<{ enabled: boolean; message: string } | null>(null);
+  // Show splash once per tab session, and never on /admin or auth callback routes.
+  const [showSplash, setShowSplash] = useState(() => {
+    try {
+      if (typeof window === 'undefined') return false;
+      if (sessionStorage.getItem('splash_shown') === '1') return false;
+      const p = window.location.pathname;
+      if (p.startsWith('/admin') || p.startsWith('/auth/callback') || p.startsWith('/~oauth')) return false;
+      return true;
+    } catch { return false; }
+  });
   
 
   // 🛠️ MAINTENANCE MODE CHECK - fetch only, no dedicated realtime channel
@@ -989,6 +999,11 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
+      {showSplash && (
+        <Suspense fallback={null}>
+          <SplashScreen onComplete={() => { try { sessionStorage.setItem('splash_shown', '1'); } catch {} setShowSplash(false); }} />
+        </Suspense>
+      )}
       <Suspense fallback={null}><NativeSystemUIBridge /></Suspense>
       <RealtimeProvider notifyOnImportantUpdates={!isAdminRoute}>
         <PresenceProvider>
