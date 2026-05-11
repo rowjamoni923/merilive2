@@ -14905,7 +14905,7 @@ export type Database = {
         Returns: boolean
       }
       can_access_party_room: {
-        Args: { _room_id: string; _user_id: string }
+        Args: { p_room_id: string; p_user_id: string }
         Returns: boolean
       }
       can_initiate_private_call: {
@@ -15081,6 +15081,15 @@ export type Database = {
         }
         Returns: string
       }
+      create_party_room: {
+        Args: {
+          p_game_mode?: string
+          p_name: string
+          p_password?: string
+          p_room_type: string
+        }
+        Returns: string
+      }
       create_sub_agent: {
         Args: {
           _agency_id: string
@@ -15155,6 +15164,7 @@ export type Database = {
         Returns: number
       }
       end_live_stream: { Args: { p_stream_id: string }; Returns: Json }
+      end_party_room: { Args: { p_room_id: string }; Returns: Json }
       end_private_call: {
         Args: { _call_id: string; _end_reason?: string }
         Returns: boolean
