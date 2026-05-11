@@ -591,7 +591,8 @@ const PartyRoom = () => {
     roomId || null,
     currentUser?.id || null,
     room?.room_type || 'video',
-    isHost
+    isHost,
+    isHost || myPosition !== null
   );
 
   // Auto-close room handler when no voice activity for 10 seconds
