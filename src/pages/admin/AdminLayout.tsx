@@ -993,7 +993,7 @@ const navGroups: NavGroup[] = [
       },
       {
         label: "Support Reports",
-        icon: AlertTriangle,
+        icon: ShieldAlert,
         path: "/admin/support-reports",
         hubKey: "moderation-hub",
         description: "Owner inbox for issues forwarded by support admins. Includes user ID + the reported message.",
