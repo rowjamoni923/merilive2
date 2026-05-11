@@ -370,16 +370,16 @@ export function usePrivateCall(userId: string | null) {
       // Each new call must be created fresh by start_private_call RPC without force-ending any active call.
 
       // PARALLEL: Fetch user coins, host info, and admin call settings simultaneously
-      const [userProfileRes, hostProfileRes, hostCallStatusRes, settingsRes] = await Promise.all([
+      // NOTE: Do NOT query the host's `profiles` row directly — RLS blocks non-owner SELECT.
+      // Host busy/blocked/face-verified checks all run server-side inside `start_private_call` RPC.
+      const [userProfileRes, hostProfileRes, settingsRes] = await Promise.all([
         supabase.from('profiles').select('coins, display_name, avatar_url, user_level').eq('id', userId).single(),
-        supabase.from('profiles_public').select('display_name, avatar_url, is_online, host_level, call_rate_per_minute').eq('id', hostId).single(),
-        supabase.from('profiles').select('is_in_call, current_call_id').eq('id', hostId).single(),
+        supabase.from('profiles_public').select('display_name, avatar_url, is_online, host_level, call_rate_per_minute').eq('id', hostId).maybeSingle(),
         supabase.from('app_settings').select('setting_value').eq('setting_key', 'call_rates').maybeSingle(),
       ]);
 
       const userProfile = userProfileRes.data;
       const hostProfile = hostProfileRes.data;
-      const hostCallStatus = hostCallStatusRes.data;
       const callSettings = parseCallRateSettings(settingsRes.data?.setting_value);
       const callRate = resolveEffectiveCallRate({
         settings: callSettings,
@@ -406,32 +406,7 @@ export function usePrivateCall(userId: string | null) {
         return null;
       }
 
-      // ✅ FIX: Check host availability from PROFILES table directly
-      // Also verify the host's current_call_id actually points to an active call
-      if (hostCallStatus?.is_in_call && hostCallStatus?.current_call_id) {
-        // Double-check: is the call actually active?
-        const { data: activeCall } = await supabase
-          .from('private_calls')
-          .select('status')
-          .eq('id', hostCallStatus.current_call_id)
-          .single();
-        
-        if (activeCall && (activeCall.status === 'connected' || activeCall.status === 'ringing')) {
-          // Host is genuinely in an active call
-          toast({
-            title: "Host Busy",
-            description: "Host is currently in another call",
-          });
-          return null;
-        } else {
-          // Stale is_in_call flag - reset it and proceed
-          console.log('[Call] Host has stale is_in_call flag, resetting...');
-          await supabase
-            .from('profiles')
-            .update({ is_in_call: false, current_call_id: null })
-            .eq('id', hostId);
-        }
-      }
+      // Host busy / blocked / face-verified checks happen inside the RPC (RLS-safe).
 
       // Reset connection/billing flags for new call
       billingStartedRef.current = false;
@@ -516,6 +491,35 @@ export function usePrivateCall(userId: string | null) {
       }
 
       const rpcPayload = (data && typeof data === 'object') ? data as Record<string, any> : null;
+
+      // Server-side rejection (host busy, blocked, insufficient balance, etc.)
+      if (rpcPayload && rpcPayload.success === false) {
+        const reason = String(rpcPayload.error || '');
+        const reasonMap: Record<string, { title: string; description: string }> = {
+          host_busy_in_call: { title: 'Host Busy', description: 'Host is currently in another call' },
+          host_busy_live: { title: 'Host Busy', description: 'Host is currently live' },
+          hosts_cannot_initiate_user_calls: { title: 'Not Allowed', description: 'Hosts cannot initiate calls' },
+          receiver_not_callable_host: { title: 'Unavailable', description: 'This user is not a callable host' },
+          private_calls_disabled: { title: 'Calls Disabled', description: 'Private calls are temporarily disabled' },
+          account_blocked: { title: 'Account Blocked', description: 'Account is blocked' },
+          user_blocked: { title: 'Blocked', description: 'You and this host have blocked each other' },
+          cannot_call_self: { title: 'Invalid', description: 'You cannot call yourself' },
+        };
+        const mapped = reasonMap[reason];
+        if (reason === 'Insufficient balance') {
+          toast({ title: 'Insufficient Diamonds', description: 'Please recharge to continue', variant: 'destructive' });
+          navigate('/recharge');
+        } else {
+          toast({
+            title: mapped?.title || 'Call Failed',
+            description: mapped?.description || reason || 'Please try again',
+            variant: 'destructive',
+          });
+        }
+        setCallState(prev => ({ ...prev, status: 'idle', callId: null }));
+        return null;
+      }
+
       const resolvedCallId = (rpcPayload?.call_id as string | undefined) || (typeof data === 'string' ? data : '');
       const resolvedCoinsPerMinute = Number(rpcPayload?.coins_per_minute ?? callRate);
 
