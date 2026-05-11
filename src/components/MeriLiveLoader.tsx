@@ -60,12 +60,6 @@ export const MeriLiveLoader = ({
         ))}
       </div>
 
-      {/* Message */}
-      <div className="relative z-10 text-center">
-        <h1 className="text-base font-semibold text-foreground">{message}</h1>
-        <p className="mt-1.5 text-sm text-muted-foreground">{subMessage}</p>
-      </div>
-
       <style>{`
         @keyframes meri-letter-cycle {
           0%   { opacity: 0; transform: translateY(16px) scale(0.7);  filter: blur(8px); }
