@@ -116,59 +116,44 @@ const EventPopupBanner = () => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-6"
+          className="fixed inset-0 z-[9999] bg-black"
           onClick={canSkip ? handleDismiss : undefined}
         >
           <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
+            initial={{ scale: 1.05, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.8, opacity: 0 }}
+            exit={{ scale: 0.95, opacity: 0 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="relative max-w-sm w-full"
+            className="relative w-full h-full"
             onClick={(e) => e.stopPropagation()}
           >
-            <div
-              className="relative rounded-2xl overflow-hidden shadow-2xl shadow-purple-500/30 cursor-pointer"
+            <img
+              src={banner.image_url}
+              alt={banner.title}
               onClick={handleBannerClick}
-            >
-              <img
-                src={banner.image_url}
-                alt={banner.title}
-                className="w-full h-auto"
-              />
-              <div className="absolute inset-0 rounded-2xl border-2 border-amber-400/30" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
-              
-              {/* Countdown Timer Badge */}
-              <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-black/60 backdrop-blur-sm rounded-full px-2.5 py-1 border border-white/10">
-                <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                <span className="text-white text-xs font-medium">
-                  {Math.max(0, autoDismiss - elapsed)}s
-                </span>
-              </div>
+              className="absolute inset-0 w-full h-full object-cover cursor-pointer"
+            />
+
+            {/* Countdown Timer Badge */}
+            <div className="absolute top-4 left-4 flex items-center gap-1.5 bg-black/60 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/10 z-10">
+              <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+              <span className="text-white text-xs font-medium">
+                {Math.max(0, autoDismiss - elapsed)}s
+              </span>
             </div>
 
             {/* Close X button - only show after skip delay */}
-            {canSkip && (
-              <button
-                onClick={handleDismiss}
-                className="absolute -top-3 -right-3 w-9 h-9 rounded-full bg-black/80 border border-white/20 flex items-center justify-center transition-all shadow-lg text-white/80 hover:text-white hover:bg-black/90 cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-
             {canSkip ? (
               <button
                 onClick={handleDismiss}
-                className="mt-4 mx-auto block text-white/50 text-sm hover:text-white/80 transition-colors"
+                className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/70 border border-white/20 flex items-center justify-center shadow-lg text-white z-10"
               >
-                Skip
+                <X className="w-5 h-5" />
               </button>
             ) : (
-              <p className="mt-3 text-center text-white/40 text-xs">
-                Skip available in {Math.max(0, skipDelay - elapsed)}s
-              </p>
+              <div className="absolute top-4 right-4 px-3 py-1.5 rounded-full bg-black/60 border border-white/10 text-white/70 text-xs z-10">
+                Skip in {Math.max(0, skipDelay - elapsed)}s
+              </div>
             )}
           </motion.div>
         </motion.div>
