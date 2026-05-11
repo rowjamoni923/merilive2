@@ -1811,6 +1811,15 @@ const AdminSupportTickets = () => {
           </div>
         </DialogContent>
       </Dialog>
+      <SupportReportDialog
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+        ticketId={selectedTicket?.id ?? null}
+        lastUserMessageId={[...messages].reverse().find(m => m.sender_type === 'user')?.id ?? null}
+        ticketSubject={selectedTicket?.subject ?? null}
+        userAppUid={selectedTicket?.profile?.app_uid ?? null}
+        userDisplayName={selectedTicket?.profile?.display_name ?? null}
+      />
     </div>
   );
 };
