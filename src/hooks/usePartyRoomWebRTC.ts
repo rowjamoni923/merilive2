@@ -30,8 +30,12 @@ export function usePartyRoomWebRTC(
   roomId: string | null,
   userId: string | null,
   roomType: 'video' | 'audio' | 'game',
-  isHost: boolean
+  isHost: boolean,
+  /** When false, LiveKit token is subscribe-only (audience); no local camera/mic publish. */
+  partyCanPublish: boolean
 ) {
+  const partyCanPublishRef = useRef(partyCanPublish);
+  partyCanPublishRef.current = partyCanPublish;
   const [state, setState] = useState<PartyWebRTCState>({
     localStream: null,
     peerStreams: new Map(),
@@ -63,6 +67,7 @@ export function usePartyRoomWebRTC(
   }, []);
 
   const toggleAudio = useCallback(() => {
+    if (!partyCanPublishRef.current) return;
     const room = roomRef.current;
     if (!room?.localParticipant) return;
 
@@ -72,6 +77,7 @@ export function usePartyRoomWebRTC(
   }, [state.isAudioEnabled]);
 
   const toggleVideo = useCallback(() => {
+    if (!partyCanPublishRef.current) return;
     const room = roomRef.current;
     if (!room?.localParticipant) return;
 
@@ -249,9 +255,9 @@ export function usePartyRoomWebRTC(
           rebuildLocalStream();
         });
 
-        // Get token and connect
-        warmLiveKitToken(roomName, 'party').catch(() => {});
-        const { token, url } = await getLiveKitToken(roomName, 'party');
+        // Get token and connect (audience: subscribe-only token)
+        warmLiveKitToken(roomName, 'party', undefined, undefined, partyCanPublish).catch(() => {});
+        const { token, url } = await getLiveKitToken(roomName, 'party', undefined, undefined, partyCanPublish);
         await room.prepareConnection(url, token).catch(() => {});
         await room.connect(url, token);
         console.log('[PartyLiveKit] ✅ Connected to room');
