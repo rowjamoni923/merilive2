@@ -16045,6 +16045,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      service_auto_finalize_face_verification: {
+        Args: { p_submission_id: string }
+        Returns: Json
+      }
       set_signup_country: {
         Args: {
           _city?: string
