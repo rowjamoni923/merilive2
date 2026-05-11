@@ -16130,16 +16130,14 @@ export type Database = {
         }
         Returns: Json
       }
-      start_private_call:
-        | { Args: { _host_id: string; _stream_id?: string }; Returns: string }
-        | {
-            Args: {
-              p_call_type?: string
-              p_caller_id: string
-              p_receiver_id: string
-            }
-            Returns: Json
-          }
+      start_private_call: {
+        Args: {
+          p_call_type?: string
+          p_caller_id: string
+          p_receiver_id: string
+        }
+        Returns: Json
+      }
       timeout_private_call: { Args: { _call_id: string }; Returns: Json }
       transfer_coins_to_user: {
         Args: {
