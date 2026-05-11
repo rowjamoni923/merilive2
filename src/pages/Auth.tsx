@@ -111,18 +111,28 @@ const getReturnUrl = (): string => {
 };
 
 const AuthBackground = ({ branding }: { branding: AuthBranding }) => {
-  const [mediaReady, setMediaReady] = useState(false);
+  // INSTANT BACKGROUND: branding is read from localStorage cache + preloaded
+  // via useBrandingRealtime on module load, so the asset is already in the
+  // browser cache. We render it immediately (no opacity gate, no fade-in).
+  // The gradient sits behind as a 0-cost fallback in case the asset is missing.
   const [mediaFailed, setMediaFailed] = useState(false);
   const showMedia = Boolean(branding.background_url && !mediaFailed);
 
   useEffect(() => {
-    setMediaReady(false);
     setMediaFailed(false);
   }, [branding.background_url, branding.background_type]);
 
+  const mediaStyle: React.CSSProperties = {
+    imageRendering: 'auto',
+    transform: 'translateZ(0)',
+    backfaceVisibility: 'hidden',
+    WebkitBackfaceVisibility: 'hidden',
+    filter: 'contrast(1.05) saturate(1.08)',
+  };
+
   return (
     <>
-      <div 
+      <div
         className="absolute inset-0"
         style={{
           background: 'linear-gradient(135deg, #0f0c29 0%, #302b63 40%, #24243e 70%, #0f0c29 100%)',
@@ -131,43 +141,27 @@ const AuthBackground = ({ branding }: { branding: AuthBranding }) => {
       {showMedia && branding.background_type === 'video' ? (
         <video
           src={branding.background_url}
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${mediaReady ? 'opacity-100' : 'opacity-0'}`}
+          className="absolute inset-0 w-full h-full object-cover"
           autoPlay
           muted
           loop
           playsInline
           preload="auto"
           disablePictureInPicture
-          onCanPlay={() => setMediaReady(true)}
-          onLoadedData={() => setMediaReady(true)}
           onError={() => setMediaFailed(true)}
           ref={(el) => { if (el) el.playbackRate = 0.6; }}
-          style={{
-            imageRendering: 'auto',
-            transform: 'translateZ(0)',
-            backfaceVisibility: 'hidden',
-            WebkitBackfaceVisibility: 'hidden',
-            willChange: 'transform',
-            filter: 'contrast(1.05) saturate(1.08)',
-          }}
+          style={mediaStyle}
         />
       ) : showMedia && (branding.background_type === 'image' || branding.background_type === 'gif') ? (
         <img
           src={branding.background_url}
           alt="MeriLive background"
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${mediaReady ? 'opacity-100' : 'opacity-0'}`}
-          decoding="async"
+          className="absolute inset-0 w-full h-full object-cover"
+          decoding="sync"
+          loading="eager"
           fetchPriority="high"
-          onLoad={() => setMediaReady(true)}
           onError={() => setMediaFailed(true)}
-          style={{
-            imageRendering: 'auto',
-            transform: 'translateZ(0)',
-            backfaceVisibility: 'hidden',
-            WebkitBackfaceVisibility: 'hidden',
-            willChange: 'transform',
-            filter: 'contrast(1.05) saturate(1.08)',
-          }}
+          style={mediaStyle}
         />
       ) : null}
     </>
