@@ -76,7 +76,7 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
 
         const { data } = await supabase
           .from('profiles')
-          .select('user_level, host_level, is_host, host_status, gender')
+          .select('user_level, host_level, max_user_level, is_host, host_status, gender')
           .eq('id', user.id)
           .maybeSingle();
 
