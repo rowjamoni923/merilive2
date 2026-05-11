@@ -1,9 +1,11 @@
 /**
  * Professional Native Splash Screen
- * Shows animated brand logo on app launch
+ * Animated brand logo + name + version on app launch.
  */
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
+import appLogo from '@/assets/app-logo.png';
+import { APP_VERSION } from '@/lib/version';
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -11,13 +13,13 @@ interface SplashScreenProps {
   minDuration?: number;
 }
 
-export function SplashScreen({ onComplete, minDuration = 1800 }: SplashScreenProps) {
+export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenProps) {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsVisible(false);
-      setTimeout(onComplete, 400); // Wait for exit animation
+      setTimeout(onComplete, 450);
     }, minDuration);
     return () => clearTimeout(timer);
   }, [onComplete, minDuration]);
@@ -28,65 +30,130 @@ export function SplashScreen({ onComplete, minDuration = 1800 }: SplashScreenPro
         <motion.div
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center"
-          style={{ background: 'linear-gradient(180deg, hsl(240 10% 6%) 0%, hsl(240 10% 3%) 100%)' }}
+          transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
+          className="fixed inset-0 z-[99999] flex flex-col items-center justify-center overflow-hidden"
+          style={{
+            background:
+              'radial-gradient(ellipse at top, hsl(280 60% 14%) 0%, hsl(240 30% 6%) 55%, hsl(240 30% 3%) 100%)',
+          }}
         >
-          {/* Glow background */}
+          {/* Animated stars */}
+          {[...Array(18)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute rounded-full bg-white"
+              style={{
+                width: Math.random() * 3 + 1,
+                height: Math.random() * 3 + 1,
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+              }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 0.9, 0.2] }}
+              transition={{
+                duration: 2 + Math.random() * 2,
+                repeat: Infinity,
+                delay: Math.random() * 1.5,
+              }}
+            />
+          ))}
+
+          {/* Glow halo */}
           <motion.div
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 0.3 }}
-            transition={{ duration: 1, ease: 'easeOut' }}
-            className="absolute w-80 h-80 rounded-full"
+            initial={{ scale: 0.4, opacity: 0 }}
+            animate={{ scale: 1.1, opacity: 0.5 }}
+            transition={{ duration: 1.2, ease: 'easeOut' }}
+            className="absolute w-[420px] h-[420px] rounded-full pointer-events-none"
             style={{
-              background: 'radial-gradient(circle, hsl(330 85% 60% / 0.4) 0%, transparent 70%)',
+              background:
+                'radial-gradient(circle, hsl(330 90% 60% / 0.45) 0%, hsl(280 80% 55% / 0.18) 45%, transparent 75%)',
+              filter: 'blur(20px)',
             }}
           />
 
           {/* Logo */}
           <motion.div
-            initial={{ scale: 0.5, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.1, duration: 0.6, ease: [0.34, 1.56, 0.64, 1] }}
-            className="relative z-10 flex flex-col items-center gap-4"
+            initial={{ scale: 0.4, opacity: 0, rotate: -8 }}
+            animate={{ scale: 1, opacity: 1, rotate: 0 }}
+            transition={{ delay: 0.05, duration: 0.7, ease: [0.34, 1.56, 0.64, 1] }}
+            className="relative z-10"
           >
-            {/* App Icon */}
-            <div className="w-24 h-24 rounded-3xl flex items-center justify-center"
-              style={{ background: 'var(--gradient-primary)' }}
+            <div
+              className="w-32 h-32 rounded-[28px] overflow-hidden ring-2 ring-white/15"
+              style={{
+                boxShadow:
+                  '0 20px 60px rgba(236,72,153,0.45), 0 0 0 1px rgba(255,255,255,0.08), inset 0 0 0 1px rgba(255,255,255,0.1)',
+              }}
             >
-              <svg viewBox="0 0 48 48" className="w-14 h-14 text-white" fill="currentColor">
-                <path d="M24 4C13 4 4 13 4 24s9 20 20 20 20-9 20-20S35 4 24 4zm-4 28l-2-2 8-8-8-8 2-2 10 10-10 10z" />
-              </svg>
+              <img src={appLogo} alt="MeriLive" className="w-full h-full object-cover" />
             </div>
-
-            {/* Brand Name */}
-            <motion.div
-              initial={{ y: 10, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.4, duration: 0.4 }}
-            >
-              <h1 className="text-3xl font-bold text-foreground tracking-tight">
-                Meri<span className="text-primary">Live</span>
-              </h1>
-            </motion.div>
           </motion.div>
+
+          {/* Brand name with shimmer */}
+          <motion.div
+            initial={{ y: 16, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.45, duration: 0.5 }}
+            className="relative z-10 mt-6"
+          >
+            <h1
+              className="text-[40px] font-extrabold tracking-tight text-transparent bg-clip-text"
+              style={{
+                backgroundImage:
+                  'linear-gradient(110deg, #ffffff 0%, #ffd6f5 25%, #ff7eb6 50%, #ffd6f5 75%, #ffffff 100%)',
+                backgroundSize: '200% auto',
+                animation: 'splash-shimmer 2.4s linear infinite',
+                letterSpacing: '-0.02em',
+              }}
+            >
+              MeriLive
+            </h1>
+          </motion.div>
+
+          {/* Tagline */}
+          <motion.p
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 0.7, y: 0 }}
+            transition={{ delay: 0.75, duration: 0.4 }}
+            className="relative z-10 mt-1 text-[12px] text-white/70 tracking-[0.25em] uppercase"
+          >
+            Live · Connect · Earn
+          </motion.p>
 
           {/* Loading dots */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.8 }}
-            className="absolute bottom-20 flex gap-1.5"
+            transition={{ delay: 0.9 }}
+            className="absolute bottom-24 flex gap-1.5"
           >
-            {[0, 1, 2].map(i => (
+            {[0, 1, 2].map((i) => (
               <motion.div
                 key={i}
-                className="w-2 h-2 rounded-full bg-primary"
-                animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
-                transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
+                className="w-2 h-2 rounded-full"
+                style={{ background: 'hsl(330 90% 65%)' }}
+                animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.2, 0.8] }}
+                transition={{ duration: 1, repeat: Infinity, delay: i * 0.15 }}
               />
             ))}
           </motion.div>
+
+          {/* Version */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.6 }}
+            transition={{ delay: 1.1, duration: 0.5 }}
+            className="absolute bottom-8 text-[11px] text-white/55 tracking-wider"
+          >
+            Version {APP_VERSION}
+          </motion.div>
+
+          <style>{`
+            @keyframes splash-shimmer {
+              0% { background-position: 0% center; }
+              100% { background-position: 200% center; }
+            }
+          `}</style>
         </motion.div>
       )}
     </AnimatePresence>
