@@ -539,6 +539,33 @@ const AdminAnimationStore = () => {
                       >
                         <Plus className="w-3 h-3" />
                       </Button>
+                      {showHidden ? (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 px-2 text-emerald-500 hover:text-emerald-400 hover:bg-emerald-500/10"
+                          title="Restore"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRestoreAnimation(animation.id);
+                          }}
+                        >
+                          <ArrowRight className="w-3 h-3 rotate-180" />
+                        </Button>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          title="Delete"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirmDelete(animation);
+                          }}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </motion.div>
