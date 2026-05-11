@@ -157,9 +157,11 @@ const AdminAnimationStore = () => {
       const matchesCategory = selectedCategory === 'all' || animation.category === selectedCategory;
       const matchesTier = selectedTier === 'all' || animation.tier === selectedTier;
       const matchesSearch = animation.name.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesCategory && matchesTier && matchesSearch;
+      const isHidden = hiddenIds.has(animation.id);
+      const matchesHidden = showHidden ? isHidden : !isHidden;
+      return matchesCategory && matchesTier && matchesSearch && matchesHidden;
     });
-  }, [selectedCategory, selectedTier, searchQuery]);
+  }, [selectedCategory, selectedTier, searchQuery, hiddenIds, showHidden]);
 
   const animationsByCategory = useMemo(() => {
     const grouped: Record<string, PremiumAnimation[]> = {};
