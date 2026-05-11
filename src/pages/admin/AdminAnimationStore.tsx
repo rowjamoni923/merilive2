@@ -81,9 +81,53 @@ const AdminAnimationStore = () => {
   const [assignAnimationId, setAssignAnimationId] = useState<string>('');
   const [saving, setSaving] = useState(false);
 
-  // Load existing assignments
+  // Hidden (admin-deleted) animation IDs
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
+  const [showHidden, setShowHidden] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<PremiumAnimation | null>(null);
 
-  useAdminRealtime(['animation_store_items'], () => loadAssignments());
+  const loadHidden = async () => {
+    const { data, error } = await supabase
+      .from('premium_animations_hidden')
+      .select('animation_id');
+    if (!error && data) {
+      setHiddenIds(new Set(data.map((r: any) => r.animation_id)));
+    }
+  };
+
+  useEffect(() => { loadHidden(); }, []);
+
+  // Load existing assignments
+  useAdminRealtime(['animation_store_items', 'premium_animations_hidden'], () => {
+    loadAssignments();
+    loadHidden();
+  });
+
+  const handleDeleteAnimation = async (animation: PremiumAnimation) => {
+    const { error } = await supabase
+      .from('premium_animations_hidden')
+      .insert({ animation_id: animation.id, reason: 'Admin removed from store' });
+    if (error) {
+      toast.error('Delete failed: ' + error.message);
+      return;
+    }
+    toast.success(`"${animation.name}" deleted from store`);
+    setConfirmDelete(null);
+    loadHidden();
+  };
+
+  const handleRestoreAnimation = async (id: string) => {
+    const { error } = await supabase
+      .from('premium_animations_hidden')
+      .delete()
+      .eq('animation_id', id);
+    if (error) {
+      toast.error('Restore failed: ' + error.message);
+      return;
+    }
+    toast.success('Animation restored');
+    loadHidden();
+  };
 
   const loadAssignments = async () => {
     const { data, error } = await supabase
@@ -113,9 +157,11 @@ const AdminAnimationStore = () => {
       const matchesCategory = selectedCategory === 'all' || animation.category === selectedCategory;
       const matchesTier = selectedTier === 'all' || animation.tier === selectedTier;
       const matchesSearch = animation.name.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesCategory && matchesTier && matchesSearch;
+      const isHidden = hiddenIds.has(animation.id);
+      const matchesHidden = showHidden ? isHidden : !isHidden;
+      return matchesCategory && matchesTier && matchesSearch && matchesHidden;
     });
-  }, [selectedCategory, selectedTier, searchQuery]);
+  }, [selectedCategory, selectedTier, searchQuery, hiddenIds, showHidden]);
 
   const animationsByCategory = useMemo(() => {
     const grouped: Record<string, PremiumAnimation[]> = {};
@@ -254,6 +300,15 @@ const AdminAnimationStore = () => {
         >
           <Settings className="w-4 h-4" />
           Assign to Levels
+        </Button>
+        <Button
+          variant={showHidden ? 'destructive' : 'outline'}
+          onClick={() => setShowHidden(v => !v)}
+          className="gap-2 ml-auto"
+          title="Toggle deleted animations view"
+        >
+          <Trash2 className="w-4 h-4" />
+          {showHidden ? `Showing Deleted (${hiddenIds.size})` : `Deleted (${hiddenIds.size})`}
         </Button>
       </div>
 
@@ -493,6 +548,33 @@ const AdminAnimationStore = () => {
                       >
                         <Plus className="w-3 h-3" />
                       </Button>
+                      {showHidden ? (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 px-2 text-emerald-500 hover:text-emerald-400 hover:bg-emerald-500/10"
+                          title="Restore"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRestoreAnimation(animation.id);
+                          }}
+                        >
+                          <ArrowRight className="w-3 h-3 rotate-180" />
+                        </Button>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          title="Delete"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirmDelete(animation);
+                          }}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </motion.div>
@@ -882,6 +964,32 @@ const AdminAnimationStore = () => {
             </Button>
             <Button onClick={handleAssignToLevel} disabled={saving}>
               {saving ? 'Saving...' : 'Assign'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirm Delete Dialog */}
+      <Dialog open={!!confirmDelete} onOpenChange={(open) => !open && setConfirmDelete(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <Trash2 className="w-5 h-5" />
+              Delete Animation?
+            </DialogTitle>
+            <DialogDescription>
+              "{confirmDelete?.name}" will be removed from the Animation Store. You can restore it
+              later from the "Deleted" view.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmDelete(null)}>Cancel</Button>
+            <Button
+              variant="destructive"
+              onClick={() => confirmDelete && handleDeleteAnimation(confirmDelete)}
+            >
+              <Trash2 className="w-4 h-4 mr-1" />
+              Delete
             </Button>
           </DialogFooter>
         </DialogContent>
