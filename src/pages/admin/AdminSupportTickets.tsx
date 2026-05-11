@@ -476,6 +476,14 @@ const AdminSupportTickets = () => {
       }
 
       // Insert reply message with translation
+      // Snapshot the admin's chosen support display name for this reply
+      const { data: meRow } = await supabase
+        .from('admin_users')
+        .select('support_display_name, display_name')
+        .eq('user_id', user?.id ?? '')
+        .maybeSingle();
+      const supportName = ((meRow as any)?.support_display_name?.trim() || (meRow as any)?.display_name) ?? null;
+
       const { error: msgError } = await supabase
         .from('support_messages')
         .insert({
@@ -486,6 +494,7 @@ const AdminSupportTickets = () => {
           is_read: false,
           translated_content: translatedContent || null,
           original_language: 'bn',
+          support_admin_name: supportName,
         } as any);
 
       if (msgError) throw msgError;
