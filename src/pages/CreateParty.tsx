@@ -106,10 +106,16 @@ const CreateParty = () => {
   // Check feature level access when user is loaded
   useEffect(() => {
     if (currentUser?.profile && !featureLevelLoading && !resolvedLevelLoading) {
-      const isHost = isEligiblePartyHost(currentUser.profile);
-      const currentLevel = resolvedUserLevel;
+      const profile: any = currentUser.profile;
+      const isHost = isEligiblePartyHost(profile);
+      const currentLevel = Math.max(
+        Number(resolvedUserLevel) || 0,
+        Number(profile.user_level) || 0,
+        Number(profile.host_level) || 0,
+        Number(profile.max_user_level) || 0,
+      );
       const result = checkFeatureAccess('create_party', currentLevel, isHost);
-      
+
       if (!result.canAccess) {
         setRequiredLevel(result.requiredLevel);
         setShowLevelRestricted(true);
@@ -258,7 +264,12 @@ const CreateParty = () => {
       if (profile) {
         const isHost = isEligiblePartyHost(profile);
         const resolvedLevel = await resolveLevelFromTiers({ id: user.id, ...profile });
-        const currentLevel = resolvedLevel.level;
+        const currentLevel = Math.max(
+          Number(resolvedLevel.level) || 0,
+          Number((profile as any).user_level) || 0,
+          Number((profile as any).host_level) || 0,
+          Number((profile as any).max_user_level) || 0,
+        );
         const result = checkFeatureAccess('create_party', currentLevel, isHost);
         if (!result.canAccess) {
           setRequiredLevel(result.requiredLevel);

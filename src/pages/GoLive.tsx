@@ -33,7 +33,7 @@ import { useRefreshOnResume } from "@/hooks/useAppResumeHandler";
 import { recordClientError } from "@/utils/clientErrorLog";
 import { LevelLockModal } from "@/components/level/LevelLockModal";
 
-const GO_LIVE_PROFILE_FIELDS = "id, display_name, avatar_url, user_level, host_level, is_host, host_status, gender, is_face_verified, face_verification_image";
+const GO_LIVE_PROFILE_FIELDS = "id, display_name, avatar_url, user_level, host_level, max_user_level, is_host, host_status, gender, is_face_verified, face_verification_image";
 
 const isApprovedLiveHost = (profile?: {
   is_host?: boolean | null;
@@ -240,9 +240,15 @@ const GoLive = () => {
   useEffect(() => {
     if (userProfile && !featureLevelLoading && !resolvedLevelLoading) {
       const isHost = isApprovedLiveHost(userProfile);
-      const currentLevel = resolvedUserLevel;
+      // Use highest known level — never block a user whose stored level already qualifies
+      const currentLevel = Math.max(
+        Number(resolvedUserLevel) || 0,
+        Number(userProfile.user_level) || 0,
+        Number(userProfile.host_level) || 0,
+        Number((userProfile as any).max_user_level) || 0,
+      );
       const result = checkFeatureAccess('go_live', currentLevel, isHost);
-      
+
       if (!result.canAccess) {
         setRequiredLevel(result.requiredLevel);
         setShowLevelRestricted(true);
