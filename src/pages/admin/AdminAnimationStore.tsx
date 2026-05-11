@@ -301,6 +301,15 @@ const AdminAnimationStore = () => {
           <Settings className="w-4 h-4" />
           Assign to Levels
         </Button>
+        <Button
+          variant={showHidden ? 'destructive' : 'outline'}
+          onClick={() => setShowHidden(v => !v)}
+          className="gap-2 ml-auto"
+          title="Toggle deleted animations view"
+        >
+          <Trash2 className="w-4 h-4" />
+          {showHidden ? `Showing Deleted (${hiddenIds.size})` : `Deleted (${hiddenIds.size})`}
+        </Button>
       </div>
 
       {activeView === 'browse' ? (
