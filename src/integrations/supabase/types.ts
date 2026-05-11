@@ -397,6 +397,63 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_pending_actions: {
+        Row: {
+          action_type: string
+          created_at: string
+          executed_result: Json | null
+          id: string
+          owner_notes: string | null
+          payload: Json
+          reason: string | null
+          requested_by: string
+          requested_by_name: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          reviewed_by_name: string | null
+          status: string
+          target_agency_id: string | null
+          target_user_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          executed_result?: Json | null
+          id?: string
+          owner_notes?: string | null
+          payload?: Json
+          reason?: string | null
+          requested_by: string
+          requested_by_name?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewed_by_name?: string | null
+          status?: string
+          target_agency_id?: string | null
+          target_user_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          executed_result?: Json | null
+          id?: string
+          owner_notes?: string | null
+          payload?: Json
+          reason?: string | null
+          requested_by?: string
+          requested_by_name?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          reviewed_by_name?: string | null
+          status?: string
+          target_agency_id?: string | null
+          target_user_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       admin_permanent_ban_case_targets: {
         Row: {
           case_id: string
@@ -13649,6 +13706,22 @@ export type Database = {
       }
     }
     Functions: {
+      _current_admin_display: { Args: never; Returns: string }
+      _current_admin_role: { Args: never; Returns: string }
+      _enqueue_admin_pending_action: {
+        Args: {
+          _action_type: string
+          _payload: Json
+          _reason: string
+          _target_agency: string
+          _target_user: string
+        }
+        Returns: string
+      }
+      _execute_admin_pending_action: {
+        Args: { _action_type: string; _payload: Json }
+        Returns: Json
+      }
       _internal_add_beans: {
         Args: { _amount: number; _user_id: string }
         Returns: undefined
@@ -13676,7 +13749,7 @@ export type Database = {
       }
       add_beans_to_user: {
         Args: { _amount: number; _user_id: string }
-        Returns: undefined
+        Returns: Json
       }
       add_coins: {
         Args: { p_amount: number; p_user_id: string }
@@ -13692,7 +13765,7 @@ export type Database = {
       }
       add_diamonds_to_user: {
         Args: { _amount: number; _user_id: string }
-        Returns: undefined
+        Returns: Json
       }
       add_to_helper_wallet: {
         Args: { _amount: number; _helper_id: string }
@@ -13721,6 +13794,10 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_adjust_agency_beans: {
+        Args: { _agency_id: string; _delta: number; _reason?: string }
+        Returns: Json
+      }
       admin_agency_overview_stats: { Args: never; Returns: Json }
       admin_apply_severity_ban: {
         Args: {
@@ -13737,6 +13814,10 @@ export type Database = {
         Returns: Json
       }
       admin_approve_helper: { Args: { _helper_id: string }; Returns: boolean }
+      admin_approve_pending_action: {
+        Args: { _id: string; _notes?: string }
+        Returns: Json
+      }
       admin_authenticate: {
         Args: { _email: string; _password: string }
         Returns: Json
@@ -14282,6 +14363,33 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      admin_list_pending_actions: {
+        Args: { _limit?: number; _status?: string }
+        Returns: {
+          action_type: string
+          created_at: string
+          executed_result: Json | null
+          id: string
+          owner_notes: string | null
+          payload: Json
+          reason: string | null
+          requested_by: string
+          requested_by_name: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          reviewed_by_name: string | null
+          status: string
+          target_agency_id: string | null
+          target_user_id: string | null
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "admin_pending_actions"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       admin_list_pending_devices: {
         Args: { _owner_admin_id: string }
         Returns: {
@@ -14651,6 +14759,10 @@ export type Database = {
       }
       admin_process_withdrawal: {
         Args: { _notes?: string; _status: string; _withdrawal_id: string }
+        Returns: Json
+      }
+      admin_reject_pending_action: {
+        Args: { _id: string; _notes?: string }
         Returns: Json
       }
       admin_rekognition_shard_stats: { Args: never; Returns: Json }
