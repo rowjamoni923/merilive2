@@ -491,6 +491,35 @@ export function usePrivateCall(userId: string | null) {
       }
 
       const rpcPayload = (data && typeof data === 'object') ? data as Record<string, any> : null;
+
+      // Server-side rejection (host busy, blocked, insufficient balance, etc.)
+      if (rpcPayload && rpcPayload.success === false) {
+        const reason = String(rpcPayload.error || '');
+        const reasonMap: Record<string, { title: string; description: string }> = {
+          host_busy_in_call: { title: 'Host Busy', description: 'Host is currently in another call' },
+          host_busy_live: { title: 'Host Busy', description: 'Host is currently live' },
+          hosts_cannot_initiate_user_calls: { title: 'Not Allowed', description: 'Hosts cannot initiate calls' },
+          receiver_not_callable_host: { title: 'Unavailable', description: 'This user is not a callable host' },
+          private_calls_disabled: { title: 'Calls Disabled', description: 'Private calls are temporarily disabled' },
+          account_blocked: { title: 'Account Blocked', description: 'Account is blocked' },
+          user_blocked: { title: 'Blocked', description: 'You and this host have blocked each other' },
+          cannot_call_self: { title: 'Invalid', description: 'You cannot call yourself' },
+        };
+        const mapped = reasonMap[reason];
+        if (reason === 'Insufficient balance') {
+          toast({ title: 'Insufficient Diamonds', description: 'Please recharge to continue', variant: 'destructive' });
+          navigate('/recharge');
+        } else {
+          toast({
+            title: mapped?.title || 'Call Failed',
+            description: mapped?.description || reason || 'Please try again',
+            variant: 'destructive',
+          });
+        }
+        setCallState(prev => ({ ...prev, status: 'idle', callId: null }));
+        return null;
+      }
+
       const resolvedCallId = (rpcPayload?.call_id as string | undefined) || (typeof data === 'string' ? data : '');
       const resolvedCoinsPerMinute = Number(rpcPayload?.coins_per_minute ?? callRate);
 
