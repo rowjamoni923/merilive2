@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import AdminQuickLinks from "@/components/admin/AdminQuickLinks";
+import SupportReportDialog from "@/components/admin/SupportReportDialog";
+import { ShieldAlert } from "lucide-react";
 
 import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
