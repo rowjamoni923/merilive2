@@ -102,6 +102,7 @@ const AdminSupportTickets = () => {
   const [sectorFilter, setSectorFilter] = useState("all");
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [messages, setMessages] = useState<SupportMessage[]>([]);
+  const [reportOpen, setReportOpen] = useState(false);
   const [replyMessage, setReplyMessage] = useState("");
   const [replyLanguage, setReplyLanguage] = useState("user_lang");
   const [isTranslating, setIsTranslating] = useState(false);
