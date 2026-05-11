@@ -541,18 +541,25 @@ const AdminSupportTickets = () => {
     if (!selectedTicket || changingGender) return;
     setChangingGender(true);
     try {
-      const { error } = await supabase.rpc('admin_update_user_gender', {
+      const { data, error } = await supabase.rpc('admin_update_user_gender', {
         _user_id: selectedTicket.user_id,
         _gender: newGender,
       });
 
       if (error) throw error;
-      
-      setUserGender(newGender);
-      toast({
-        title: '✅ Gender Updated',
-        description: `User gender changed to ${newGender === 'female' ? 'Female (Host)' : 'Male (User)'}`,
-      });
+
+      if ((data as any)?.pending) {
+        toast({
+          title: '⏳ Submitted for Owner Approval',
+          description: `Gender change request sent to owner. It will apply once approved.`,
+        });
+      } else {
+        setUserGender(newGender);
+        toast({
+          title: '✅ Gender Updated',
+          description: `User gender changed to ${newGender === 'female' ? 'Female (Host)' : 'Male (User)'}`,
+        });
+      }
     } catch (err: any) {
       toast({ title: 'Error', description: err.message || 'Failed to update gender', variant: 'destructive' });
     } finally {
@@ -576,22 +583,39 @@ const AdminSupportTickets = () => {
 
     setSendingCompensation(true);
     try {
+      let anyPending = false;
       if (beansAmount > 0) {
-        const { error } = await supabase.rpc('add_beans_to_user', { _user_id: selectedTicket.user_id, _amount: beansAmount });
+        const { data, error } = await supabase.rpc('add_beans_to_user', { _user_id: selectedTicket.user_id, _amount: beansAmount });
         if (error) throw new Error(`Beans transfer failed: ${error.message}`);
+        if ((data as any)?.pending) anyPending = true;
       }
       if (diamondsAmount > 0) {
-        const { error } = await supabase.rpc('add_diamonds_to_user', { _user_id: selectedTicket.user_id, _amount: diamondsAmount });
+        const { data, error } = await supabase.rpc('add_diamonds_to_user', { _user_id: selectedTicket.user_id, _amount: diamondsAmount });
         if (error) throw new Error(`Diamonds transfer failed: ${error.message}`);
+        if ((data as any)?.pending) anyPending = true;
       }
-      // Agency beans adjustment
+      // Agency beans adjustment via gated RPC
       if (agencyBeansAmount > 0 && userAgency) {
         const adjustedAmount = agencyBeansMode === "deduct" ? -agencyBeansAmount : agencyBeansAmount;
-        const { error } = await supabase
-          .from('agencies')
-          .update({ beans_balance: (userAgency.beans_balance || 0) + adjustedAmount })
-          .eq('id', userAgency.id);
+        const { data, error } = await supabase.rpc('admin_adjust_agency_beans', {
+          _agency_id: userAgency.id,
+          _delta: adjustedAmount,
+          _reason: `Support compensation (ticket ${selectedTicket.ticket_number})`,
+        });
         if (error) throw new Error(`Agency beans adjustment failed: ${error.message}`);
+        if ((data as any)?.pending) anyPending = true;
+      }
+
+      if (anyPending) {
+        toast({
+          title: '⏳ Submitted for Owner Approval',
+          description: 'Compensation request sent to owner. Funds will be credited once approved.',
+        });
+        setCompensationBeans("");
+        setCompensationDiamonds("");
+        setCompensationAgencyBeans("");
+        setShowCompensation(false);
+        return;
       }
 
       const { data: { user } } = await supabase.auth.getUser();
@@ -827,23 +851,35 @@ const AdminSupportTickets = () => {
       const diamondsAmount = parseInt(resolveDiamonds) || 0;
       const agencyBeansAmount = parseInt(resolveAgencyBeans) || 0;
 
+      let anyPending = false;
       // Send rewards if any
       if (beansAmount > 0) {
-        const { error } = await supabase.rpc('add_beans_to_user', { _user_id: selectedTicket.user_id, _amount: beansAmount });
+        const { data, error } = await supabase.rpc('add_beans_to_user', { _user_id: selectedTicket.user_id, _amount: beansAmount });
         if (error) throw new Error(`Beans transfer failed: ${error.message}`);
+        if ((data as any)?.pending) anyPending = true;
       }
       if (diamondsAmount > 0) {
-        const { error } = await supabase.rpc('add_diamonds_to_user', { _user_id: selectedTicket.user_id, _amount: diamondsAmount });
+        const { data, error } = await supabase.rpc('add_diamonds_to_user', { _user_id: selectedTicket.user_id, _amount: diamondsAmount });
         if (error) throw new Error(`Diamonds transfer failed: ${error.message}`);
+        if ((data as any)?.pending) anyPending = true;
       }
-      // Agency beans adjustment
+      // Agency beans adjustment via gated RPC
       if (agencyBeansAmount > 0 && userAgency) {
         const adjustedAmount = resolveAgencyBeansMode === "deduct" ? -agencyBeansAmount : agencyBeansAmount;
-        const { error } = await supabase
-          .from('agencies')
-          .update({ beans_balance: (userAgency.beans_balance || 0) + adjustedAmount })
-          .eq('id', userAgency.id);
+        const { data, error } = await supabase.rpc('admin_adjust_agency_beans', {
+          _agency_id: userAgency.id,
+          _delta: adjustedAmount,
+          _reason: `Resolve ticket ${selectedTicket.ticket_number}`,
+        });
         if (error) throw new Error(`Agency beans adjustment failed: ${error.message}`);
+        if ((data as any)?.pending) anyPending = true;
+      }
+
+      if (anyPending) {
+        toast({
+          title: '⏳ Reward Pending Approval',
+          description: 'Ticket resolved, but reward credits are queued for owner approval.',
+        });
       }
 
       // Resolve the ticket
