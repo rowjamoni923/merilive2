@@ -257,7 +257,7 @@ serve(async (req: Request): Promise<Response> => {
                 token: device.token,
                 data: dataPayload,
                 android: {
-                  priority: "HIGH",
+                  priority: "high",
                   ttl: `${ringTimeoutSec}s`,
                 },
                 apns: {
