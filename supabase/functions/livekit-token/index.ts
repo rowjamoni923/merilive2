@@ -62,7 +62,7 @@ serve(async (req) => {
       });
     }
 
-    const { roomName, participantName, roomType, hidden } = await req.json();
+    const { roomName, participantName, roomType, hidden, partyCanPublish } = await req.json();
 
     if (!roomName) {
       return new Response(JSON.stringify({ error: "roomName is required" }), {
@@ -107,13 +107,20 @@ serve(async (req) => {
 
     const isHost = !isAdminBypass && (roomType === "host_stream" || roomType === "host_call");
 
+    // Party: default publish ON (web / legacy). Flutter audience sends `partyCanPublish: false` (subscribe-only).
+    const allowPartyMediaPublish =
+      roomType === "party" ? partyCanPublish !== false : false;
+
+    const canPublish =
+      isAdminBypass ? false : isHost || roomType === "call" || allowPartyMediaPublish;
+
     // hidden=true for preload connections (don't count as viewers)
     const shouldBeHidden = isAdminBypass ? true : (hidden === true);
 
     at.addGrant({
       roomJoin: true,
       room: roomName,
-      canPublish: isAdminBypass ? false : isHost || roomType === "call" || roomType === "party",
+      canPublish,
       canSubscribe: true,
       canPublishData: isAdminBypass ? false : true,
       hidden: shouldBeHidden,
