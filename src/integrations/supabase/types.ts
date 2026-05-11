@@ -8623,6 +8623,27 @@ export type Database = {
         }
         Relationships: []
       }
+      premium_animations_hidden: {
+        Row: {
+          animation_id: string
+          hidden_at: string
+          hidden_by: string | null
+          reason: string | null
+        }
+        Insert: {
+          animation_id: string
+          hidden_at?: string
+          hidden_by?: string | null
+          reason?: string | null
+        }
+        Update: {
+          animation_id?: string
+          hidden_at?: string
+          hidden_by?: string | null
+          reason?: string | null
+        }
+        Relationships: []
+      }
       private_call_security_logs: {
         Row: {
           action_taken: string | null
