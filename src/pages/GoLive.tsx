@@ -240,9 +240,15 @@ const GoLive = () => {
   useEffect(() => {
     if (userProfile && !featureLevelLoading && !resolvedLevelLoading) {
       const isHost = isApprovedLiveHost(userProfile);
-      const currentLevel = resolvedUserLevel;
+      // Use highest known level — never block a user whose stored level already qualifies
+      const currentLevel = Math.max(
+        Number(resolvedUserLevel) || 0,
+        Number(userProfile.user_level) || 0,
+        Number(userProfile.host_level) || 0,
+        Number((userProfile as any).max_user_level) || 0,
+      );
       const result = checkFeatureAccess('go_live', currentLevel, isHost);
-      
+
       if (!result.canAccess) {
         setRequiredLevel(result.requiredLevel);
         setShowLevelRestricted(true);
