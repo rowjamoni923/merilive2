@@ -104,7 +104,7 @@ export default function AdminPendingApprovals() {
       <AdminPageHeader
         icon={ShieldAlert}
         title="Pending Approvals"
-        description="Sub-admin requests awaiting owner approval — diamond/beans credits, gender changes, face verification decisions."
+        subtitle="Sub-admin requests awaiting owner approval — diamond/beans credits, gender changes, face verification decisions."
       />
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
