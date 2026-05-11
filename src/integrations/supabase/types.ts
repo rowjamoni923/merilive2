@@ -14909,7 +14909,11 @@ export type Database = {
         Returns: boolean
       }
       can_initiate_private_call: {
-        Args: { p_caller_id: string; p_host_id: string }
+        Args: {
+          p_caller_id: string
+          p_context_stream_id?: string
+          p_host_id: string
+        }
         Returns: Json
       }
       can_user_go_live: { Args: never; Returns: Json }
@@ -16134,6 +16138,7 @@ export type Database = {
         Args: {
           p_call_type?: string
           p_caller_id: string
+          p_context_stream_id?: string
           p_receiver_id: string
         }
         Returns: Json
