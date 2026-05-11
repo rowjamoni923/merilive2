@@ -126,7 +126,14 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
 
       const normalizedGender = String(userProfile.gender ?? '').toLowerCase();
       const isHost = Boolean(userProfile.is_host) || String(userProfile.host_status ?? '').toLowerCase() === 'approved' || normalizedGender === 'female';
-      const currentLevel = resolvedUserLevel;
+      // Use highest known level so we never block a user whose stored level is already sufficient
+      // (resolvedUserLevel can briefly read 1 from cache before the resolver completes).
+      const currentLevel = Math.max(
+        Number(resolvedUserLevel) || 0,
+        Number(userProfile.user_level) || 0,
+        Number(userProfile.host_level) || 0,
+        Number(userProfile.max_user_level) || 0,
+      );
       const result = checkFeatureAccess(featureKey, currentLevel, isHost);
 
       if (!result.canAccess) {
