@@ -227,9 +227,9 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
         className="fixed bottom-0 left-0 right-0" 
         style={{ zIndex: 9990, paddingBottom: 'max(env(safe-area-inset-bottom, 0px), var(--min-bottom-inset, 0px))' }}
       >
-        {/* Seamless gradient fade — no hard line */}
-        <div className="absolute inset-x-0 -top-4 h-4 pointer-events-none" style={{ background: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.85))' }} />
-        <div className="absolute inset-x-0 bottom-0 h-[calc(100%+max(env(safe-area-inset-bottom,0px),var(--min-bottom-inset,0px)))] backdrop-blur-2xl" style={{ background: 'rgba(0,0,0,0.85)' }} />
+        {/* Soft transparent fade — no visible dark line above nav */}
+        <div className="absolute inset-x-0 -top-6 h-6 pointer-events-none" style={{ background: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.35) 70%, rgba(0,0,0,0.7) 100%)' }} />
+        <div className="absolute inset-x-0 bottom-0 h-[calc(100%+max(env(safe-area-inset-bottom,0px),var(--min-bottom-inset,0px)))] backdrop-blur-2xl" style={{ background: 'rgba(0,0,0,0.78)' }} />
         
         <div className="relative flex items-center justify-around py-1.5 px-3 max-w-lg mx-auto">
           {navItems.map((item, index) => {
