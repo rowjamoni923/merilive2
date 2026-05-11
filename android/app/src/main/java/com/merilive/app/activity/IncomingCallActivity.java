@@ -90,10 +90,10 @@ public class IncomingCallActivity extends AppCompatActivity {
 
         startRinging();
 
-        // Auto-timeout after 45 seconds
+        // Auto-timeout after 5 seconds (per product requirement)
         timeoutHandler = new Handler(Looper.getMainLooper());
         timeoutRunnable = () -> { stopRinging(); finish(); };
-        timeoutHandler.postDelayed(timeoutRunnable, 45000);
+        timeoutHandler.postDelayed(timeoutRunnable, 5000);
     }
 
     private void startRinging() {
