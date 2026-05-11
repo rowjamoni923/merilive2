@@ -81,9 +81,53 @@ const AdminAnimationStore = () => {
   const [assignAnimationId, setAssignAnimationId] = useState<string>('');
   const [saving, setSaving] = useState(false);
 
-  // Load existing assignments
+  // Hidden (admin-deleted) animation IDs
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
+  const [showHidden, setShowHidden] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<PremiumAnimation | null>(null);
 
-  useAdminRealtime(['animation_store_items'], () => loadAssignments());
+  const loadHidden = async () => {
+    const { data, error } = await supabase
+      .from('premium_animations_hidden')
+      .select('animation_id');
+    if (!error && data) {
+      setHiddenIds(new Set(data.map((r: any) => r.animation_id)));
+    }
+  };
+
+  useEffect(() => { loadHidden(); }, []);
+
+  // Load existing assignments
+  useAdminRealtime(['animation_store_items', 'premium_animations_hidden'], () => {
+    loadAssignments();
+    loadHidden();
+  });
+
+  const handleDeleteAnimation = async (animation: PremiumAnimation) => {
+    const { error } = await supabase
+      .from('premium_animations_hidden')
+      .insert({ animation_id: animation.id, reason: 'Admin removed from store' });
+    if (error) {
+      toast.error('Delete failed: ' + error.message);
+      return;
+    }
+    toast.success(`"${animation.name}" deleted from store`);
+    setConfirmDelete(null);
+    loadHidden();
+  };
+
+  const handleRestoreAnimation = async (id: string) => {
+    const { error } = await supabase
+      .from('premium_animations_hidden')
+      .delete()
+      .eq('animation_id', id);
+    if (error) {
+      toast.error('Restore failed: ' + error.message);
+      return;
+    }
+    toast.success('Animation restored');
+    loadHidden();
+  };
 
   const loadAssignments = async () => {
     const { data, error } = await supabase
