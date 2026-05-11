@@ -999,6 +999,13 @@ const navGroups: NavGroup[] = [
         description: "Owner inbox for issues forwarded by support admins. Includes user ID + the reported message.",
       },
       {
+        label: "Pending Approvals",
+        icon: Clock,
+        path: "/admin/pending-approvals",
+        hubKey: "moderation-hub",
+        description: "Owner-only queue of sub-admin financial / verification actions awaiting approval.",
+      },
+      {
         label: "Gmail Support",
         icon: Mail,
         path: "/admin/gmail-support",
