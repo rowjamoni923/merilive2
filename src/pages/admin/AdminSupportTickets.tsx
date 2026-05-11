@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import AdminQuickLinks from "@/components/admin/AdminQuickLinks";
+import SupportReportDialog from "@/components/admin/SupportReportDialog";
+import { ShieldAlert } from "lucide-react";
 
 import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
@@ -100,6 +102,7 @@ const AdminSupportTickets = () => {
   const [sectorFilter, setSectorFilter] = useState("all");
   const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
   const [messages, setMessages] = useState<SupportMessage[]>([]);
+  const [reportOpen, setReportOpen] = useState(false);
   const [replyMessage, setReplyMessage] = useState("");
   const [replyLanguage, setReplyLanguage] = useState("user_lang");
   const [isTranslating, setIsTranslating] = useState(false);
@@ -473,6 +476,14 @@ const AdminSupportTickets = () => {
       }
 
       // Insert reply message with translation
+      // Snapshot the admin's chosen support display name for this reply
+      const { data: meRow } = await supabase
+        .from('admin_users')
+        .select('support_display_name, display_name')
+        .eq('user_id', user?.id ?? '')
+        .maybeSingle();
+      const supportName = ((meRow as any)?.support_display_name?.trim() || (meRow as any)?.display_name) ?? null;
+
       const { error: msgError } = await supabase
         .from('support_messages')
         .insert({
@@ -483,6 +494,7 @@ const AdminSupportTickets = () => {
           is_read: false,
           translated_content: translatedContent || null,
           original_language: 'bn',
+          support_admin_name: supportName,
         } as any);
 
       if (msgError) throw msgError;
@@ -1238,6 +1250,9 @@ const AdminSupportTickets = () => {
                 </div>
                 {/* Compact action buttons */}
                 <div className="flex items-center gap-1.5 shrink-0">
+                  <Button size="sm" variant="outline" className="h-7 text-[10px] px-2 border-red-500/30 text-red-400 hover:bg-red-500/10" onClick={() => setReportOpen(true)}>
+                    <ShieldAlert className="w-3 h-3 mr-0.5" /> Report
+                  </Button>
                   <Button size="sm" variant="outline" className="h-7 text-[10px] px-2 border-amber-500/30 text-amber-400 hover:bg-amber-500/10" onClick={() => setShowCompensation(prev => !prev)}>
                     <Gift className="w-3 h-3 mr-0.5" /> Reward
                   </Button>
@@ -1796,6 +1811,15 @@ const AdminSupportTickets = () => {
           </div>
         </DialogContent>
       </Dialog>
+      <SupportReportDialog
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+        ticketId={selectedTicket?.id ?? null}
+        lastUserMessageId={[...messages].reverse().find(m => m.sender_type === 'user')?.id ?? null}
+        ticketSubject={selectedTicket?.subject ?? null}
+        userAppUid={selectedTicket?.profile?.app_uid ?? null}
+        userDisplayName={selectedTicket?.profile?.display_name ?? null}
+      />
     </div>
   );
 };

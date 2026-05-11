@@ -770,6 +770,7 @@ export type Database = {
           password_reset_by: string | null
           password_set_at: string | null
           role: Database["public"]["Enums"]["admin_role"]
+          support_display_name: string | null
           updated_at: string | null
           user_id: string | null
           whatsapp_number: string | null
@@ -791,6 +792,7 @@ export type Database = {
           password_reset_by?: string | null
           password_set_at?: string | null
           role?: Database["public"]["Enums"]["admin_role"]
+          support_display_name?: string | null
           updated_at?: string | null
           user_id?: string | null
           whatsapp_number?: string | null
@@ -812,6 +814,7 @@ export type Database = {
           password_reset_by?: string | null
           password_set_at?: string | null
           role?: Database["public"]["Enums"]["admin_role"]
+          support_display_name?: string | null
           updated_at?: string | null
           user_id?: string | null
           whatsapp_number?: string | null
@@ -10819,6 +10822,7 @@ export type Database = {
           original_language: string | null
           sender_id: string | null
           sender_type: string
+          support_admin_name: string | null
           ticket_id: string
           translated_content: string | null
           voice_transcript: string | null
@@ -10833,6 +10837,7 @@ export type Database = {
           original_language?: string | null
           sender_id?: string | null
           sender_type?: string
+          support_admin_name?: string | null
           ticket_id: string
           translated_content?: string | null
           voice_transcript?: string | null
@@ -10847,11 +10852,81 @@ export type Database = {
           original_language?: string | null
           sender_id?: string | null
           sender_type?: string
+          support_admin_name?: string | null
           ticket_id?: string
           translated_content?: string | null
           voice_transcript?: string | null
         }
         Relationships: []
+      }
+      support_reports: {
+        Row: {
+          created_at: string
+          id: string
+          message_content: string
+          message_id: string | null
+          owner_notes: string | null
+          reason: string
+          reported_by_admin_id: string | null
+          reported_by_admin_name: string | null
+          reviewed_at: string | null
+          reviewed_by_owner_id: string | null
+          status: string
+          ticket_id: string | null
+          ticket_subject: string | null
+          user_app_uid: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_content?: string
+          message_id?: string | null
+          owner_notes?: string | null
+          reason: string
+          reported_by_admin_id?: string | null
+          reported_by_admin_name?: string | null
+          reviewed_at?: string | null
+          reviewed_by_owner_id?: string | null
+          status?: string
+          ticket_id?: string | null
+          ticket_subject?: string | null
+          user_app_uid?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_content?: string
+          message_id?: string | null
+          owner_notes?: string | null
+          reason?: string
+          reported_by_admin_id?: string | null
+          reported_by_admin_name?: string | null
+          reviewed_at?: string | null
+          reviewed_by_owner_id?: string | null
+          status?: string
+          ticket_id?: string | null
+          ticket_subject?: string | null
+          user_app_uid?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_reports_reported_by_admin_id_fkey"
+            columns: ["reported_by_admin_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_reports_reviewed_by_owner_id_fkey"
+            columns: ["reviewed_by_owner_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       support_tickets: {
         Row: {
@@ -14419,6 +14494,26 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      admin_list_support_reports: {
+        Args: { _limit?: number; _offset?: number; _status?: string }
+        Returns: {
+          created_at: string
+          id: string
+          message_content: string
+          message_id: string
+          owner_notes: string
+          reason: string
+          reported_by_admin_id: string
+          reported_by_admin_name: string
+          reviewed_at: string
+          status: string
+          ticket_id: string
+          ticket_subject: string
+          user_app_uid: string
+          user_display_name: string
+          user_id: string
+        }[]
+      }
       admin_list_topup_helpers: {
         Args: { _admin_id: string }
         Returns: {
@@ -14663,6 +14758,14 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      admin_update_my_support_display_name: {
+        Args: { _name: string }
+        Returns: string
+      }
+      admin_update_support_report: {
+        Args: { _notes?: string; _report_id: string; _status: string }
+        Returns: undefined
       }
       admin_update_user_gender: {
         Args: { _gender: string; _user_id: string }
@@ -15722,6 +15825,7 @@ export type Database = {
       }
       host_weekly_contribution: { Args: { _uid?: string }; Returns: number }
       increment_reel_view: { Args: { reel_uuid: string }; Returns: undefined }
+      is_active_admin_owner_session: { Args: never; Returns: boolean }
       is_active_admin_session: { Args: never; Returns: boolean }
       is_active_owner_session: { Args: never; Returns: boolean }
       is_admin:
@@ -16152,6 +16256,10 @@ export type Database = {
           p_receiver_id: string
         }
         Returns: Json
+      }
+      support_admin_file_report: {
+        Args: { _message_id: string; _reason: string; _ticket_id: string }
+        Returns: string
       }
       timeout_private_call: { Args: { _call_id: string }; Returns: Json }
       transfer_coins_to_user: {

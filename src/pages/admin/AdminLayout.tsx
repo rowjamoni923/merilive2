@@ -992,6 +992,13 @@ const navGroups: NavGroup[] = [
         description: "In-app support ticket queue — reply to user issues; powers the Customer Service screen.",
       },
       {
+        label: "Support Reports",
+        icon: ShieldAlert,
+        path: "/admin/support-reports",
+        hubKey: "moderation-hub",
+        description: "Owner inbox for issues forwarded by support admins. Includes user ID + the reported message.",
+      },
+      {
         label: "Gmail Support",
         icon: Mail,
         path: "/admin/gmail-support",
