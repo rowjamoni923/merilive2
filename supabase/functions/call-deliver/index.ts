@@ -1,315 +1,333 @@
 /**
- * call-deliver — Reliable Call Delivery Engine (FCM HTTP v1)
- *
- * Triggered after a private call is created. Sends FCM high-priority
- * data-only push with retry + exponential backoff and logs every attempt.
- * Aborts early if the call is no longer pending.
- *
- * Body: { callId, calleeId, callerId, callType, callerName, callerAvatar }
- *
- * Requires secret: FIREBASE_SERVICE_ACCOUNT_JSON (full service account JSON)
+ * Reliable private-call FCM delivery: high-priority data messages, retries, logging.
+ * Invoked by Flutter after start_private_call (caller JWT) — validates caller_id matches session.
  */
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { create, getNumericDate } from "https://deno.land/x/djwt@v3.0.2/mod.ts";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version",
 };
 
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const FIREBASE_SA_JSON = Deno.env.get("FIREBASE_SERVICE_ACCOUNT_JSON") ?? "";
-
-const admin = createClient(SUPABASE_URL, SERVICE_ROLE, {
-  auth: { persistSession: false, autoRefreshToken: false },
-});
-
-interface DeliverBody {
-  callId: string;
-  calleeId: string;
-  callerId: string;
-  callType: "video" | "audio";
-  callerName: string;
-  callerAvatar?: string;
+interface ServiceAccountCredentials {
+  private_key: string;
+  client_email: string;
+  project_id: string;
 }
 
-// ---- FCM HTTP v1: OAuth token cache ----
-let cachedAccessToken: { token: string; expiresAt: number } | null = null;
-
-async function pemToCryptoKey(pem: string): Promise<CryptoKey> {
-  const b64 = pem
-    .replace(/-----BEGIN PRIVATE KEY-----/, "")
-    .replace(/-----END PRIVATE KEY-----/, "")
-    .replace(/\s+/g, "");
-  const der = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-  return await crypto.subtle.importKey(
+async function getAccessToken(credentials: ServiceAccountCredentials): Promise<string> {
+  const now = Math.floor(Date.now() / 1000);
+  const exp = now + 3600;
+  const header = { alg: "RS256", typ: "JWT" };
+  const payload = {
+    iss: credentials.client_email,
+    sub: credentials.client_email,
+    aud: "https://oauth2.googleapis.com/token",
+    iat: now,
+    exp: exp,
+    scope: "https://www.googleapis.com/auth/firebase.messaging",
+  };
+  const encoder = new TextEncoder();
+  const headerB64 = btoa(JSON.stringify(header)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  const payloadB64 = btoa(JSON.stringify(payload)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  const signatureInput = `${headerB64}.${payloadB64}`;
+  const pemContents = credentials.private_key
+    .replace("-----BEGIN PRIVATE KEY-----", "")
+    .replace("-----END PRIVATE KEY-----", "")
+    .replace(/\s/g, "");
+  const binaryKey = Uint8Array.from(atob(pemContents), (c) => c.charCodeAt(0));
+  const cryptoKey = await crypto.subtle.importKey(
     "pkcs8",
-    der,
+    binaryKey,
     { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
     false,
     ["sign"],
   );
-}
-
-async function getFcmAccessToken(): Promise<{ token: string; projectId: string }> {
-  if (!FIREBASE_SA_JSON) throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON missing");
-  const sa = JSON.parse(FIREBASE_SA_JSON);
-
-  if (cachedAccessToken && cachedAccessToken.expiresAt > Date.now() + 60_000) {
-    return { token: cachedAccessToken.token, projectId: sa.project_id };
-  }
-
-  const key = await pemToCryptoKey(sa.private_key);
-  const jwt = await create(
-    { alg: "RS256", typ: "JWT" },
-    {
-      iss: sa.client_email,
-      scope: "https://www.googleapis.com/auth/firebase.messaging",
-      aud: "https://oauth2.googleapis.com/token",
-      iat: getNumericDate(0),
-      exp: getNumericDate(3600),
-    },
-    key,
+  const signature = await crypto.subtle.sign(
+    "RSASSA-PKCS1-v1_5",
+    cryptoKey,
+    encoder.encode(signatureInput),
   );
-
-  const res = await fetch("https://oauth2.googleapis.com/token", {
+  const signatureB64 = btoa(String.fromCharCode(...new Uint8Array(signature)))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+  const jwt = `${signatureInput}.${signatureB64}`;
+  const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-      assertion: jwt,
-    }),
+    body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`,
   });
-  if (!res.ok) throw new Error(`FCM oauth failed: ${await res.text()}`);
-  const json = await res.json();
-  cachedAccessToken = {
-    token: json.access_token,
-    expiresAt: Date.now() + (json.expires_in ?? 3600) * 1000,
-  };
-  return { token: json.access_token, projectId: sa.project_id };
-}
-
-// ---- DB helpers ----
-async function getSetting(key: string, fallback: number): Promise<number> {
-  const { data } = await admin
-    .from("app_settings")
-    .select("setting_value")
-    .eq("setting_key", key)
-    .maybeSingle();
-  const raw = data?.setting_value;
-  if (raw == null) return fallback;
-  const n = Number(typeof raw === "string" ? raw : JSON.stringify(raw));
-  return Number.isFinite(n) ? n : fallback;
-}
-
-async function callIsStillPending(callId: string): Promise<boolean> {
-  const { data } = await admin
-    .from("private_calls")
-    .select("status")
-    .eq("id", callId)
-    .maybeSingle();
-  return data?.status === "pending" || data?.status === "ringing";
-}
-
-async function getFcmTokens(userId: string): Promise<string[]> {
-  const { data } = await admin
-    .from("user_fcm_tokens")
-    .select("fcm_token")
-    .eq("user_id", userId)
-    .eq("is_active", true);
-  return (data ?? []).map((r: any) => r.fcm_token).filter(Boolean);
-}
-
-async function logAttempt(row: {
-  call_id: string;
-  callee_id: string;
-  attempt_number: number;
-  channel: string;
-  fcm_token?: string;
-  status: string;
-  error_message?: string;
-  sent_at?: string;
-}) {
-  await admin.from("call_delivery_log").insert(row);
-}
-
-async function deactivateBadToken(token: string) {
-  await admin
-    .from("user_fcm_tokens")
-    .update({ is_active: false })
-    .eq("fcm_token", token);
-}
-
-// ---- FCM HTTP v1 send ----
-async function sendFcmV1(
-  accessToken: string,
-  projectId: string,
-  token: string,
-  body: DeliverBody,
-  ringTimeoutSec: number,
-): Promise<{ ok: boolean; error?: string; unregistered?: boolean }> {
-  const message = {
-    message: {
-      token,
-      data: {
-        type: "incoming_call",
-        call_id: body.callId,
-        caller_id: body.callerId,
-        caller_name: body.callerName,
-        caller_avatar: body.callerAvatar ?? "",
-        call_type: body.callType,
-        ring_timeout_seconds: String(ringTimeoutSec),
-        ts: String(Date.now()),
-      },
-      android: {
-        priority: "HIGH",
-        ttl: `${ringTimeoutSec}s`,
-        direct_boot_ok: true,
-      },
-      apns: {
-        headers: {
-          "apns-priority": "10",
-          "apns-push-type": "voip",
-          "apns-expiration": String(Math.floor(Date.now() / 1000) + ringTimeoutSec),
-        },
-      },
-    },
-  };
-
-  try {
-    const res = await fetch(
-      `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(message),
-      },
-    );
-    const text = await res.text();
-    if (res.ok) return { ok: true };
-
-    // 404 UNREGISTERED / 400 INVALID_ARGUMENT (bad token) → deactivate
-    const unregistered =
-      text.includes("UNREGISTERED") || text.includes("registration-token-not-registered");
-    return { ok: false, error: `FCM ${res.status}: ${text}`, unregistered };
-  } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : "fetch fail" };
+  const tokenData = await tokenResponse.json();
+  if (!tokenResponse.ok) {
+    throw new Error(`Token exchange failed: ${tokenData.error_description || tokenData.error}`);
   }
+  return tokenData.access_token as string;
 }
 
-// ---- main ----
-serve(async (req) => {
+function sleep(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+async function loadSetting(admin: ReturnType<typeof createClient>, key: string, fallback: string): Promise<string> {
+  const { data } = await admin.from("app_settings").select("setting_value").eq("setting_key", key).maybeSingle();
+  const v = data?.setting_value?.toString?.()?.trim();
+  return v && v.length > 0 ? v : fallback;
+}
+
+serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const body = (await req.json()) as DeliverBody;
-    if (!body?.callId || !body?.calleeId || !body?.callerId) {
-      return new Response(JSON.stringify({ error: "missing fields" }), {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const serviceAccountJson = Deno.env.get("FIREBASE_SERVICE_ACCOUNT_JSON");
+
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    const userClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: userData, error: userErr } = await userClient.auth.getUser(token);
+    if (userErr || !userData?.user?.id) {
+      return new Response(JSON.stringify({ error: "Invalid session" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const body = await req.json() as {
+      callId?: string;
+      calleeId?: string;
+      callerId?: string;
+      callType?: string;
+      callerName?: string;
+      callerAvatar?: string;
+    };
+
+    const callId = body.callId?.trim();
+    const calleeId = body.calleeId?.trim();
+    const callerId = body.callerId?.trim();
+    if (!callId || !calleeId || !callerId) {
+      return new Response(JSON.stringify({ error: "callId, calleeId, callerId required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const maxRetries = await getSetting("call_delivery_max_retries", 3);
-    const retryGapMs = await getSetting("call_delivery_retry_gap_ms", 2000);
-    const ringTimeoutSec = await getSetting("call_ring_timeout_seconds", 30);
-
-    const tokens = await getFcmTokens(body.calleeId);
-    if (tokens.length === 0) {
-      await logAttempt({
-        call_id: body.callId,
-        callee_id: body.calleeId,
-        attempt_number: 1,
-        channel: "fcm",
-        status: "failed",
-        error_message: "no_fcm_token",
+    if (userData.user.id !== callerId) {
+      return new Response(JSON.stringify({ error: "caller mismatch" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
-      return new Response(
-        JSON.stringify({ ok: false, reason: "no_fcm_token" }),
-        {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
     }
 
-    const { token: accessToken, projectId } = await getFcmAccessToken();
+    const admin = createClient(supabaseUrl, serviceKey);
 
-    let delivered = false;
-    let activeTokens = [...tokens];
+    const maxRetries = parseInt(await loadSetting(admin, "call_delivery_max_retries", "3"), 10) || 3;
+    const gapMs = parseInt(await loadSetting(admin, "call_delivery_retry_gap_ms", "2000"), 10) || 2000;
+    const ringTimeoutSec = parseInt(await loadSetting(admin, "call_ring_timeout_seconds", "30"), 10) || 30;
 
-    for (let attempt = 1; attempt <= maxRetries && !delivered; attempt++) {
-      if (!(await callIsStillPending(body.callId))) {
-        await logAttempt({
-          call_id: body.callId,
-          callee_id: body.calleeId,
-          attempt_number: attempt,
+    let callerName = body.callerName?.trim() || "Caller";
+    let callerAvatar = body.callerAvatar?.trim() || "";
+    if (!callerName || callerName === "Caller") {
+      const { data: prof } = await admin.from("profiles").select("display_name,avatar_url").eq("id", callerId).maybeSingle();
+      if (prof?.display_name) callerName = String(prof.display_name);
+      if (prof?.avatar_url) callerAvatar = String(prof.avatar_url ?? "");
+    }
+
+    const callType = (body.callType || "video").toLowerCase();
+
+    const { data: callRow, error: callErr } = await admin
+      .from("private_calls")
+      .select("id,status,caller_id,host_id")
+      .eq("id", callId)
+      .maybeSingle();
+
+    if (callErr || !callRow) {
+      return new Response(JSON.stringify({ error: "call_not_found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const st = String(callRow.status || "").toLowerCase();
+    if (!["ringing", "pending"].includes(st)) {
+      return new Response(JSON.stringify({ ok: false, reason: "call_not_ringing", status: callRow.status }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (callRow.caller_id !== callerId || callRow.host_id !== calleeId) {
+      return new Response(JSON.stringify({ error: "call_participants_mismatch" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (!serviceAccountJson) {
+      await admin.from("call_delivery_log").insert({
+        call_id: callId,
+        callee_user_id: calleeId,
+        attempt_no: 1,
+        channel: "fcm",
+        status: "skipped_no_fcm",
+        detail: { reason: "FIREBASE_SERVICE_ACCOUNT_JSON missing" },
+      });
+      return new Response(JSON.stringify({ ok: false, reason: "fcm_not_configured" }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const credentials = JSON.parse(serviceAccountJson) as ServiceAccountCredentials;
+    const accessToken = await getAccessToken(credentials);
+    const projectId = credentials.project_id;
+
+    let lastResults: unknown[] = [];
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      const { data: deviceTokens, error: tokErr } = await admin
+        .from("device_tokens")
+        .select("token, platform, user_id")
+        .eq("user_id", calleeId)
+        .eq("is_active", true);
+
+      if (tokErr) {
+        console.error("[call-deliver] tokens:", tokErr);
+      }
+
+      const tokens = deviceTokens ?? [];
+      const { data: fresh } = await admin.from("private_calls").select("status").eq("id", callId).maybeSingle();
+      const fst = String(fresh?.status || "").toLowerCase();
+      if (!["ringing", "pending"].includes(fst)) {
+        await admin.from("call_delivery_log").insert({
+          call_id: callId,
+          callee_user_id: calleeId,
+          attempt_no: attempt,
           channel: "fcm",
-          status: "expired",
-          error_message: "call_no_longer_pending",
+          status: "aborted_call_ended",
+          detail: { remote_status: fresh?.status },
         });
         break;
       }
 
+      if (tokens.length === 0) {
+        await admin.from("call_delivery_log").insert({
+          call_id: callId,
+          callee_user_id: calleeId,
+          attempt_no: attempt,
+          channel: "fcm",
+          status: "no_tokens",
+          detail: {},
+        });
+        if (attempt < maxRetries) await sleep(gapMs * Math.pow(2, attempt - 1));
+        continue;
+      }
+
+      const dataPayload: Record<string, string> = {
+        type: "incoming_call",
+        call_id: callId,
+        caller_id: callerId,
+        callee_id: calleeId,
+        caller_name: callerName,
+        caller_avatar: callerAvatar,
+        call_type: callType,
+        ring_timeout_seconds: String(ringTimeoutSec),
+      };
+
       const results = await Promise.all(
-        activeTokens.map((tok) =>
-          sendFcmV1(accessToken, projectId, tok, body, ringTimeoutSec).then(
-            (r) => ({ tok, r }),
-          ),
-        ),
+        tokens.map(async (device: { token: string; platform: string }) => {
+          try {
+            const fcmMessage = {
+              message: {
+                token: device.token,
+                data: dataPayload,
+                android: {
+                  priority: "HIGH",
+                  ttl: `${ringTimeoutSec}s`,
+                },
+                apns: {
+                  headers: { "apns-priority": "10" },
+                  payload: {
+                    aps: {
+                      "content-available": 1,
+                    },
+                  },
+                },
+              },
+            };
+
+            const response = await fetch(
+              `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${accessToken}`,
+                },
+                body: JSON.stringify(fcmMessage),
+              },
+            );
+            const result = await response.json();
+            if (!response.ok) {
+              if (
+                result.error?.details?.some((d: { errorCode?: string }) =>
+                  d.errorCode === "UNREGISTERED" || d.errorCode === "INVALID_ARGUMENT",
+                )
+              ) {
+                await admin.from("device_tokens").update({ is_active: false }).eq("token", device.token);
+              }
+              return { success: false, error: result.error };
+            }
+            return { success: true, messageId: result.name };
+          } catch (e) {
+            return { success: false, error: String(e) };
+          }
+        }),
       );
 
-      const sentAt = new Date().toISOString();
-      const survivingTokens: string[] = [];
+      lastResults = results;
+      const okCount = results.filter((r: { success?: boolean }) => r.success).length;
 
-      for (const { tok, r } of results) {
-        await logAttempt({
-          call_id: body.callId,
-          callee_id: body.calleeId,
-          attempt_number: attempt,
-          channel: "fcm",
-          fcm_token: tok,
-          status: r.ok ? "sent" : "failed",
-          error_message: r.error,
-          sent_at: sentAt,
-        });
-        if (r.ok) {
-          delivered = true;
-          survivingTokens.push(tok);
-        } else if (r.unregistered) {
-          await deactivateBadToken(tok);
-        } else {
-          survivingTokens.push(tok); // transient — retry
-        }
+      await admin.from("call_delivery_log").insert({
+        call_id: callId,
+        callee_user_id: calleeId,
+        attempt_no: attempt,
+        channel: "fcm",
+        status: okCount > 0 ? "sent" : "failed",
+        detail: { tokens: tokens.length, success: okCount, results },
+      });
+
+      if (okCount > 0) {
+        break;
       }
-      activeTokens = survivingTokens;
-      if (activeTokens.length === 0) break;
-      if (delivered) break;
 
       if (attempt < maxRetries) {
-        await new Promise((res) =>
-          setTimeout(res, retryGapMs * Math.pow(2, attempt - 1)),
-        );
+        await sleep(gapMs * Math.pow(2, attempt - 1));
       }
     }
 
     return new Response(
-      JSON.stringify({ ok: true, delivered, attempts_used: maxRetries }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
+      JSON.stringify({ ok: true, attempts: maxRetries, lastResults }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (e) {
-    const msg = e instanceof Error ? e.message : "Unknown";
+    const msg = e instanceof Error ? e.message : "Unknown error";
+    console.error("[call-deliver]", e);
     return new Response(JSON.stringify({ error: msg }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
