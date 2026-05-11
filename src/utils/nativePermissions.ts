@@ -3,7 +3,8 @@
  * All permissions are handled natively within the app - NO external browser
  */
 
-import { Capacitor, registerPlugin } from '@capacitor/core';
+import { registerPlugin } from '@capacitor/core';
+import { isNativeApp as detectNativeApp } from '@/utils/nativeUtils';
 
 interface MeriPermissionsStatus {
   camera: boolean;
@@ -25,7 +26,7 @@ interface MeriPermissionsPlugin {
 const MeriPermissions = registerPlugin<MeriPermissionsPlugin>('MeriPermissions');
 
 export const isNativeApp = (): boolean => {
-  return Capacitor.isNativePlatform();
+  return detectNativeApp();
 };
 
 // =====================================================
