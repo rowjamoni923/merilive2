@@ -16,6 +16,8 @@ interface LiveKitTokenRequest {
   roomType: 'call' | 'host_stream' | 'viewer_stream' | 'party';
   participantName?: string;
   hidden?: boolean;
+  /** Party rooms only: `false` = subscribe-only (audience). Omitted = legacy default (publish allowed). */
+  partyCanPublish?: boolean;
 }
 
 const TOKEN_CACHE_TTL_MS = 25_000;
@@ -75,8 +77,18 @@ const invokeLiveKitToken = async (request: LiveKitTokenRequest, accessToken?: st
     headers['x-admin-access-token'] = adminLinkToken;
   }
 
+  const body: Record<string, unknown> = {
+    roomName: request.roomName,
+    roomType: request.roomType,
+  };
+  if (request.participantName) body.participantName = request.participantName;
+  if (request.hidden) body.hidden = true;
+  if (request.roomType === 'party') {
+    body.partyCanPublish = request.partyCanPublish !== false;
+  }
+
   return supabase.functions.invoke('livekit-token', {
-    body: request,
+    body,
     ...(Object.keys(headers).length > 0 ? { headers } : {}),
   });
 };
@@ -84,7 +96,9 @@ const invokeLiveKitToken = async (request: LiveKitTokenRequest, accessToken?: st
 const getCacheKey = (request: LiveKitTokenRequest, accessToken?: string) => {
   const tokenScope = accessToken ? accessToken.slice(-16) : 'anon';
   const hiddenFlag = request.hidden ? ':hidden' : '';
-  return `${request.roomType}::${request.roomName}::${request.participantName ?? ''}::${tokenScope}${hiddenFlag}`;
+  const partyPub =
+    request.roomType === 'party' ? `:pp:${request.partyCanPublish !== false}` : '';
+  return `${request.roomType}::${request.roomName}::${request.participantName ?? ''}::${tokenScope}${hiddenFlag}${partyPub}`;
 };
 
 const getFromCache = (cacheKey: string): LiveKitTokenResponse | null => {
@@ -136,9 +150,16 @@ export async function getLiveKitToken(
   roomName: string,
   roomType: 'call' | 'host_stream' | 'viewer_stream' | 'party',
   participantName?: string,
-  hidden?: boolean
+  hidden?: boolean,
+  partyCanPublish?: boolean
 ): Promise<LiveKitTokenResponse> {
-  const request: LiveKitTokenRequest = { roomName, roomType, participantName, ...(hidden ? { hidden: true } : {}) };
+  const request: LiveKitTokenRequest = {
+    roomName,
+    roomType,
+    participantName,
+    ...(hidden ? { hidden: true } : {}),
+    ...(roomType === 'party' && partyCanPublish !== undefined ? { partyCanPublish } : {}),
+  };
 
   const accessToken = await getAuthAccessToken();
   const cacheKey = getCacheKey(request, accessToken);
@@ -166,7 +187,9 @@ export async function getLiveKitToken(
 export function warmLiveKitToken(
   roomName: string,
   roomType: 'call' | 'host_stream' | 'viewer_stream' | 'party',
-  participantName?: string
+  participantName?: string,
+  hidden?: boolean,
+  partyCanPublish?: boolean
 ): Promise<LiveKitTokenResponse> {
-  return getLiveKitToken(roomName, roomType, participantName);
+  return getLiveKitToken(roomName, roomType, participantName, hidden, partyCanPublish);
 }
