@@ -231,7 +231,7 @@ const AdminFaceVerification = () => {
     setSelectedSubmission(null);
 
     try {
-      const { error } = await supabase.rpc('admin_process_face_verification', {
+      const { data, error } = await supabase.rpc('admin_process_face_verification', {
         _submission_id: submission.id,
         _action: action,
         _reason: resolvedReason,
@@ -241,10 +241,19 @@ const AdminFaceVerification = () => {
 
       if (error) throw error;
 
-      toast({
-        title: action === 'approve' ? '✅ Approved!' : '❌ Rejected!',
-        description: action === 'approve' ? 'Face verification approved' : 'Face verification rejected',
-      });
+      if ((data as any)?.pending) {
+        toast({
+          title: '⏳ Submitted for Owner Approval',
+          description: 'Your decision has been queued for owner approval.',
+        });
+        // Restore — submission was not actually changed
+        setSubmissions(previousSubmissions);
+      } else {
+        toast({
+          title: action === 'approve' ? '✅ Approved!' : '❌ Rejected!',
+          description: action === 'approve' ? 'Face verification approved' : 'Face verification rejected',
+        });
+      }
 
       setActionReason('');
       fetchSubmissions();
@@ -276,9 +285,13 @@ const AdminFaceVerification = () => {
     actionInFlightRef.current = true;
     setProcessing(true);
     try {
-      const { error } = await supabase.rpc('admin_remove_face_verification', { _user_id: userId });
+      const { data, error } = await supabase.rpc('admin_remove_face_verification', { _user_id: userId });
       if (error) throw error;
-      toast({ title: "✅ Verification Removed", description: "User can now re-verify" });
+      if ((data as any)?.pending) {
+        toast({ title: "⏳ Submitted for Owner Approval", description: "Revoke request queued for owner approval." });
+      } else {
+        toast({ title: "✅ Verification Removed", description: "User can now re-verify" });
+      }
       fetchSubmissions();
       setShowDetailModal(false);
     } catch (error: any) {
