@@ -6,6 +6,9 @@
  */
 import { supabase } from '@/integrations/supabase/client';
 import { Capacitor } from '@capacitor/core';
+import { isNativeApp } from '@/utils/nativeUtils';
+import type { FirebaseApp } from 'firebase/app';
+import type { Messaging } from 'firebase/messaging';
 
 // Firebase Web Config - these are PUBLIC/publishable keys
 // TODO: Replace with your actual Firebase project config
@@ -20,8 +23,14 @@ const FIREBASE_CONFIG = {
 };
 
 // Singleton instances
-let firebaseApp: any = null;
-let messaging: any = null;
+type NotificationData = Record<string, string | undefined>;
+type NotificationPayload = {
+  notification?: { title?: string; body?: string; image?: string };
+  data?: NotificationData;
+};
+
+let firebaseApp: FirebaseApp | null = null;
+let messaging: Messaging | null = null;
 let tokenRegistered = false;
 
 /**
@@ -63,7 +72,7 @@ export async function registerFCMToken(userId: string): Promise<string | null> {
   if (tokenRegistered) return null;
 
   // On native platform, use Capacitor Push Notifications instead
-  if (Capacitor.isNativePlatform()) {
+  if (isNativeApp()) {
     return registerNativePushToken(userId);
   }
 
@@ -74,7 +83,7 @@ export async function registerFCMToken(userId: string): Promise<string | null> {
       return null;
     }
 
-    let permission = Notification.permission;
+    const permission = Notification.permission;
     if (permission === 'denied') {
       console.warn('[FCM] Notification permission denied');
       return null;
@@ -139,7 +148,7 @@ async function registerNativePushToken(userId: string): Promise<string | null> {
       return null;
     }
 
-    return await new Promise<string | null>(async (resolve) => {
+    return await new Promise<string | null>((resolve) => {
       let settled = false;
       let registrationListener: { remove: () => Promise<void> } | null = null;
       let errorListener: { remove: () => Promise<void> } | null = null;
@@ -152,23 +161,28 @@ async function registerNativePushToken(userId: string): Promise<string | null> {
         resolve(value);
       };
 
-      registrationListener = await PushNotifications.addListener('registration', async (registrationToken) => {
-        const token = registrationToken.value;
-        console.log('[FCM Native] Token:', token.substring(0, 20) + '...');
-        
-        const platform = Capacitor.getPlatform() === 'ios' ? 'ios' : 'android';
-        await saveTokenToDatabase(userId, token, platform);
-        tokenRegistered = true;
-        await finish(token);
-      });
+      void (async () => {
+        registrationListener = await PushNotifications.addListener('registration', async (registrationToken) => {
+          const token = registrationToken.value;
+          console.log('[FCM Native] Token:', token.substring(0, 20) + '...');
+          
+          const platform = Capacitor.getPlatform() === 'ios' ? 'ios' : 'android';
+          await saveTokenToDatabase(userId, token, platform);
+          tokenRegistered = true;
+          await finish(token);
+        });
 
-      errorListener = await PushNotifications.addListener('registrationError', async (error) => {
-        console.error('[FCM Native] Registration error:', error);
-        await finish(null);
-      });
+        errorListener = await PushNotifications.addListener('registrationError', async (error) => {
+          console.error('[FCM Native] Registration error:', error);
+          await finish(null);
+        });
 
-      await PushNotifications.register();
-      window.setTimeout(() => void finish(null), 15000);
+        await PushNotifications.register();
+        window.setTimeout(() => void finish(null), 15000);
+      })().catch((error) => {
+        console.error('[FCM Native] Registration setup failed:', error);
+        void finish(null);
+      });
     });
   } catch (error) {
     console.error('[FCM Native] Failed:', error);
@@ -214,9 +228,9 @@ async function saveTokenToDatabase(userId: string, token: string, platform: stri
  * Setup foreground message handler
  */
 export async function setupForegroundMessageHandler(
-  onMessage: (payload: any) => void
+  onMessage: (payload: NotificationPayload) => void
 ) {
-  if (Capacitor.isNativePlatform()) {
+  if (isNativeApp()) {
     // Native: use Capacitor listener
     try {
       const { PushNotifications } = await import('@capacitor/push-notifications');
@@ -267,7 +281,7 @@ export async function setupForegroundMessageHandler(
 /**
  * Show a browser notification
  */
-function showBrowserNotification(title: string, body: string, image?: string, data?: any) {
+function showBrowserNotification(title: string, body: string, image?: string, data?: NotificationData) {
   if (Notification.permission !== 'granted') return;
 
   const notification = new Notification(title, {
@@ -295,7 +309,7 @@ function showBrowserNotification(title: string, body: string, image?: string, da
 /**
  * Handle notification tap — navigate to appropriate screen
  */
-function handleNotificationTap(data: any) {
+function handleNotificationTap(data?: NotificationData) {
   if (!data) return;
 
   const type = data.type || '';
