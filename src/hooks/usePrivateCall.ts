@@ -1049,9 +1049,9 @@ export function usePrivateCall(userId: string | null) {
         // NEVER show a call we already ended
         if (endedCallIdsRef.current.has(call.id)) return;
 
-        // Only show if call is recent (within 45 seconds)
+        // Only show if call is recent (within 30 seconds — industry standard)
         const callAge = Date.now() - new Date(call.created_at).getTime();
-        if (callAge >= 45000) return;
+        if (callAge >= 30000) return;
 
         // ⚡ Fetch caller profile WITHOUT re-verifying call status (broadcast already validated)
         const { data: callerProfile } = await supabase
