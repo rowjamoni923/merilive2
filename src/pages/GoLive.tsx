@@ -155,7 +155,7 @@ const GoLive = () => {
   const openBeautyStudio = useCallback(async () => {
     if (isNativeAndroid) {
       const ok = await openBeautyPanel();
-      if (!ok) toast.error("DeepAR Beauty failed to initialize");
+      if (!ok) toast.error("Beauty filter failed to initialize");
     } else {
       // On web: just open the panel — Tencent SDK handles beauty
       setShowBeautyPanel(true);
