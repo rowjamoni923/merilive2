@@ -90,10 +90,10 @@ public class IncomingCallActivity extends AppCompatActivity {
 
         startRinging();
 
-        // Auto-timeout after 5 seconds (per product requirement)
+        // Auto-timeout after 30 seconds (industry standard - WhatsApp/Messenger parity)
         timeoutHandler = new Handler(Looper.getMainLooper());
         timeoutRunnable = () -> { stopRinging(); finish(); };
-        timeoutHandler.postDelayed(timeoutRunnable, 5000);
+        timeoutHandler.postDelayed(timeoutRunnable, 30000);
     }
 
     private void startRinging() {

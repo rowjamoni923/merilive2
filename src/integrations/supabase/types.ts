@@ -2441,6 +2441,51 @@ export type Database = {
         }
         Relationships: []
       }
+      call_delivery_log: {
+        Row: {
+          attempt_number: number
+          call_id: string
+          callee_id: string
+          channel: string
+          created_at: string
+          delivered_at: string | null
+          device_info: Json | null
+          error_message: string | null
+          fcm_token: string | null
+          id: string
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          attempt_number?: number
+          call_id: string
+          callee_id: string
+          channel: string
+          created_at?: string
+          delivered_at?: string | null
+          device_info?: Json | null
+          error_message?: string | null
+          fcm_token?: string | null
+          id?: string
+          sent_at?: string | null
+          status: string
+        }
+        Update: {
+          attempt_number?: number
+          call_id?: string
+          callee_id?: string
+          channel?: string
+          created_at?: string
+          delivered_at?: string | null
+          device_info?: Json | null
+          error_message?: string | null
+          fcm_token?: string | null
+          id?: string
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       call_events: {
         Row: {
           call_id: string | null
@@ -15695,6 +15740,10 @@ export type Database = {
           _target_type?: string
         }
         Returns: undefined
+      }
+      mark_call_delivered: {
+        Args: { p_call_id: string; p_channel?: string; p_device_info?: Json }
+        Returns: Json
       }
       mark_live_stream_live: { Args: { p_stream_id: string }; Returns: Json }
       mark_messages_delivered: {

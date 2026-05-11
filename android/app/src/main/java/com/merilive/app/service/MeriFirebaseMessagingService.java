@@ -119,7 +119,7 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
             .setFullScreenIntent(fullScreenPI, true)
             .addAction(R.drawable.ic_call_accept, "Accept", acceptPI)
             .addAction(R.drawable.ic_call_decline, "Decline", declinePI)
-            .setTimeoutAfter(45000)
+            .setTimeoutAfter(30000)
             .setDefaults(NotificationCompat.DEFAULT_ALL);
 
         if (callerAvatar != null && !callerAvatar.isEmpty()) {
