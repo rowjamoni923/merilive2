@@ -15067,6 +15067,15 @@ export type Database = {
         Returns: number
       }
       apply_as_topup_helper: { Args: { _data: Json }; Returns: Json }
+      apply_install_referrer: {
+        Args: {
+          p_agency_code?: string
+          p_invite_code?: string
+          p_inviter_app_uid?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       apply_multi_level_ban: {
         Args: {
           _ban_level: string
