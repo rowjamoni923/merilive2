@@ -301,6 +301,7 @@ const AdminRankingAutomation = lazy(lazyRetry(() => import("./pages/admin/AdminR
 const AdminVisualAssetsHub = lazy(lazyRetry(() => import("./pages/admin/AdminVisualAssetsHub")));
 const AdminUserHub = lazy(lazyRetry(() => import("./pages/admin/AdminUserHub")));
 const AdminSupportTickets = lazy(lazyRetry(() => import("./pages/admin/AdminSupportTickets")));
+const AdminSupportReports = lazy(lazyRetry(() => import("./pages/admin/AdminSupportReports")));
 const AdminGmailSupport = lazy(lazyRetry(() => import("./pages/admin/AdminGmailSupport")));
 const AdminUserReports = lazy(lazyRetry(() => import("./pages/admin/AdminUserReports")));
 const AdminErrorLogs = lazy(lazyRetry(() => import("./pages/admin/AdminErrorLogs")));
