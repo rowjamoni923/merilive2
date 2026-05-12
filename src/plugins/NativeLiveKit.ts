@@ -153,6 +153,8 @@ export interface RtcStatsEvent {
   /** True when Insertable-Streams E2EE is on for this session (Step 23). */
   e2ee: boolean;
 }
+
+export interface NativeLiveKitPlugin {
   isAvailable(): Promise<{ available: boolean; backend: string; version: string }>;
   connect(opts: ConnectOptions): Promise<{ connected: boolean; sid: string; identity: string }>;
   disconnect(): Promise<void>;
