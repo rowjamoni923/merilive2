@@ -106,6 +106,10 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
   const lastForcedVideoResubscribeAtRef = useRef(0);
   const lastRetrySubscriptionAtRef = useRef(0);
   const preferredVideoQualityRef = useRef<VideoQuality>(VideoQuality.HIGH);
+  // True when this session was published via the native Android LiveKit
+  // plugin (Capacitor) instead of the browser livekit-client. Drives the
+  // native branch in joinChannel/leaveChannel/toggle*/switchCamera.
+  const usingNativeRef = useRef(false);
 
   const getUidForParticipant = useCallback((identity: string): number => {
     if (participantUidMapRef.current.has(identity)) {
