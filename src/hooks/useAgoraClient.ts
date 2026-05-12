@@ -224,6 +224,7 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
         });
 
         usingNativeRef.current = true;
+        setNativeActive(true);
         channelRef.current = normalizedChannel;
         setIsJoined(true);
         setConnectionState('CONNECTED');
@@ -236,6 +237,7 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
       } catch (nativeErr) {
         console.error('[LiveKitClient/Native] join failed, falling back to web:', nativeErr);
         usingNativeRef.current = false;
+        setNativeActive(false);
         // Fall through to web path.
       }
     }
