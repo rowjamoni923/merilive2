@@ -276,6 +276,17 @@ const PartyRoom = () => {
   
   // Gift broadcast channel ref for instant sync
   const giftBroadcastChannelRef = useRef<any>(null);
+  const optimisticGiftCountsRef = useRef<Map<string, { beans: number; coins: number; expiresAt: number }>>(new Map());
+  const getPartyGiftRealtimeKey = useCallback((senderId?: string | null, giftId?: string | null, coins?: number | null, count?: number | null) => {
+    return `${senderId || 'unknown'}:${giftId || 'unknown'}:${coins || 0}:${count || 1}`;
+  }, []);
+  const markOptimisticPartyGiftCount = useCallback((key: string, beans: number, coins: number) => {
+    const now = Date.now();
+    optimisticGiftCountsRef.current.set(key, { beans, coins, expiresAt: now + 15000 });
+    optimisticGiftCountsRef.current.forEach((value, staleKey) => {
+      if (value.expiresAt < now) optimisticGiftCountsRef.current.delete(staleKey);
+    });
+  }, []);
   
   // Track joins already processed by broadcast to deduplicate with postgres_changes
   const processedBroadcastJoinsRef = useRef(new Set<string>());
