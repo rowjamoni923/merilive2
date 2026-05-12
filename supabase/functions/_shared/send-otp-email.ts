@@ -31,26 +31,44 @@ export async function sendOtpEmail(args: SendOtpEmailArgs): Promise<{ success: b
     // non-fatal
   }
 
-  const { data, error } = await supabase.functions.invoke("send-transactional-email", {
-    body: {
-      templateName: "otp-code",
-      recipientEmail: args.to,
-      idempotencyKey,
-      templateData: {
-        otp: args.otp,
-        purpose: args.purpose,
-        expiryMinutes: args.expiryMinutes ?? 5,
+  // Call send-transactional-email directly via fetch with explicit
+  // service-role Authorization. functions.invoke can mangle the JWT
+  // header in cross-function calls (UNAUTHORIZED_INVALID_JWT_FORMAT).
+  try {
+    const resp = await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${serviceKey}`,
+        apikey: serviceKey,
       },
-    },
-  });
+      body: JSON.stringify({
+        templateName: "otp-code",
+        recipientEmail: args.to,
+        idempotencyKey,
+        templateData: {
+          otp: args.otp,
+          purpose: args.purpose,
+          expiryMinutes: args.expiryMinutes ?? 5,
+        },
+      }),
+    });
 
-  if (error) {
-    console.error("[sendOtpEmail] invoke error:", error);
-    return { success: false, error: error.message || String(error) };
+    const text = await resp.text();
+    let data: any = null;
+    try { data = text ? JSON.parse(text) : null; } catch { /* non-json */ }
+
+    if (!resp.ok) {
+      console.error("[sendOtpEmail] HTTP", resp.status, text);
+      return { success: false, error: data?.error || `HTTP ${resp.status}: ${text}` };
+    }
+    if (data && data.error) {
+      console.error("[sendOtpEmail] response error:", data.error);
+      return { success: false, error: data.error };
+    }
+    return { success: true };
+  } catch (e) {
+    console.error("[sendOtpEmail] fetch error:", e);
+    return { success: false, error: e instanceof Error ? e.message : String(e) };
   }
-  if (data && (data as any).error) {
-    console.error("[sendOtpEmail] response error:", (data as any).error);
-    return { success: false, error: (data as any).error };
-  }
-  return { success: true };
 }
