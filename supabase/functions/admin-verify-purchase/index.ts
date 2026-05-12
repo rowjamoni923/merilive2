@@ -5,16 +5,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Google Play product mapping (must match verify-google-purchase)
-const PLAY_STORE_PRODUCTS: Record<string, { coins: number; priceUsd: number }> = {
-  'diamonds_7000_v2': { coins: 7000, priceUsd: 1.99 },
-  'diamonds_13200_v2': { coins: 13200, priceUsd: 3.99 },
-  'diamonds_56000_v2': { coins: 56000, priceUsd: 14.99 },
-  'diamonds_169000_v2': { coins: 169000, priceUsd: 23.99 },
-  'diamonds_470000_v2': { coins: 470000, priceUsd: 59.99 },
-  'diamonds_650000_v2': { coins: 650000, priceUsd: 129.99 },
-};
-
 /**
  * Admin Manual Purchase Verification & Credit
  * 
@@ -112,25 +102,35 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Find matching product for price
-    let priceUsd = 0;
-    for (const [, product] of Object.entries(PLAY_STORE_PRODUCTS)) {
-      if (product.coins === coinAmount) {
-        priceUsd = product.priceUsd;
-        break;
-      }
-    }
+    const { data: activePackages } = await adminSupabase
+      .from("coin_packages")
+      .select("coins_amount, bonus_coins, price_usd, product_id")
+      .eq("is_active", true);
+
+    const matchingPackage = (activePackages || []).find((pkg: any) => {
+      const baseCoins = Number(pkg.coins_amount || 0);
+      const totalCoins = baseCoins + Number(pkg.bonus_coins || 0);
+      return baseCoins === Number(coinAmount) || totalCoins === Number(coinAmount);
+    });
+
+    const priceUsd = Number(matchingPackage?.price_usd || 0);
 
     // Record in recharge_transactions
     const { error: rechargeError } = await adminSupabase.from("recharge_transactions").insert({
       user_id: userId,
       coins_received: coinAmount,
+      coins_amount: coinAmount,
       amount: priceUsd,
+      usd_amount: priceUsd,
       payment_method: "admin_manual_recovery",
       purchase_source: "admin_manual",
       google_order_id: googleOrderId || `admin_recovery_${Date.now()}`,
+      google_product_id: matchingPackage?.product_id || null,
+      transaction_id: googleOrderId || `admin_recovery_${Date.now()}`,
       status: "completed",
       completed_at: new Date().toISOString(),
+      processed_at: new Date().toISOString(),
+      currency: "USD",
       currency_code: "USD",
       notes: `🔧 Admin manual recovery by ${adminUser.role}. Reason: ${reason || "Purchase not delivered"}`,
     });

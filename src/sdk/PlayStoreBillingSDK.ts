@@ -41,6 +41,14 @@ export interface PlayStoreProduct {
   priceCurrencyCode: string;
 }
 
+interface AdminPlayStoreProductRow {
+  coins_amount: number | null;
+  bonus_coins: number | null;
+  price_usd: number | string | null;
+  product_id: string | null;
+  is_active: boolean | null;
+}
+
 export interface PurchaseResult {
   success: boolean;
   orderId?: string;
@@ -52,7 +60,7 @@ export interface PurchaseResult {
 // ============================================
 // Play Store Product Mapping
 // ============================================
-// Source of truth = `recharge_packages` table (admin-editable).
+// Source of truth = `coin_packages` table (admin-editable).
 // The values below mirror the current DB rows so synchronous callers
 // (components reading PLAY_STORE_PRODUCTS directly) get correct data
 // even before loadPlayStoreProducts() finishes its async DB fetch.
@@ -70,7 +78,7 @@ export const PLAY_STORE_PRODUCTS: Record<number, { productId: string; priceUsd: 
 export let ALL_PRODUCT_IDS: string[] = Object.values(PLAY_STORE_PRODUCTS).map(p => p.productId);
 
 /**
- * Refresh PLAY_STORE_PRODUCTS from the `recharge_packages` DB table so
+ * Refresh PLAY_STORE_PRODUCTS from the `coin_packages` DB table so
  * admin price/product changes propagate without a code release.
  * Call once at app start (after Supabase client is ready). Safe to fail —
  * the hardcoded fallback above keeps the app working offline.
@@ -78,18 +86,28 @@ export let ALL_PRODUCT_IDS: string[] = Object.values(PLAY_STORE_PRODUCTS).map(p 
 export async function loadPlayStoreProducts(): Promise<void> {
   try {
     const { data, error } = await supabase
-      .from('recharge_packages')
-      .select('coins_amount, price_usd, product_id, is_active')
+      .from('coin_packages')
+      .select('coins_amount, bonus_coins, price_usd, product_id, is_active')
       .eq('is_active', true);
     if (error || !data?.length) return;
 
     const next: Record<number, { productId: string; priceUsd: number }> = {};
-    for (const row of data) {
-      if (!row.coins_amount || !row.product_id || row.price_usd == null) continue;
-      next[row.coins_amount] = {
-        productId: row.product_id,
+    for (const row of data as AdminPlayStoreProductRow[]) {
+      const baseCoins = Number(row.coins_amount || 0);
+      const bonusCoins = Number(row.bonus_coins || 0);
+      const totalCoins = baseCoins + bonusCoins;
+      const productId = String(row.product_id || '').trim();
+      if (!baseCoins || !productId || row.price_usd == null) continue;
+
+      const product = {
+        productId,
         priceUsd: Number(row.price_usd),
       };
+
+      // Support both old UI lookups by base diamonds and new UI lookups by
+      // total delivered diamonds (base + bonus) without breaking admin edits.
+      next[baseCoins] = product;
+      if (totalCoins !== baseCoins) next[totalCoins] = product;
     }
     if (Object.keys(next).length === 0) return;
 

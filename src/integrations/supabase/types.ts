@@ -15966,6 +15966,10 @@ export type Database = {
           user_level: number
         }[]
       }
+      get_google_play_product_info: {
+        Args: { _product_id: string }
+        Returns: Json
+      }
       get_host_agency_request: {
         Args: { _host_id: string }
         Returns: {
@@ -16358,6 +16362,16 @@ export type Database = {
           p_reel_id?: string
           p_sender_id: string
           p_stream_id?: string
+        }
+        Returns: Json
+      }
+      process_google_play_purchase: {
+        Args: {
+          p_google_order_id?: string
+          p_google_payload?: Json
+          p_product_id: string
+          p_purchase_token: string
+          p_user_id: string
         }
         Returns: Json
       }
