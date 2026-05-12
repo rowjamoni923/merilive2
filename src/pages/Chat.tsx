@@ -919,13 +919,25 @@ const Chat = () => {
     const pollInterval = setInterval(async () => {
       const { data } = await supabase
         .from('group_messages')
-        .select('*, sender:profiles!group_messages_sender_id_fkey(display_name, avatar_url, user_level)')
+        .select('*')
         .eq('group_id', selectedGroup.id)
         .order('created_at', { ascending: true })
         .limit(100);
-      
-      if (data) {
-        setGroupMessages(data);
+
+      if (data && data.length > 0) {
+        // Sender profile JOIN through `profiles` FK is blocked by RLS for
+        // non-owner reads — fetch sender info separately via profiles_public.
+        const senderIds = [...new Set(data.map((m: any) => m.sender_id))];
+        const { data: senders } = await supabase
+          .from('profiles_public')
+          .select('id, display_name, avatar_url, user_level')
+          .in('id', senderIds);
+        const sMap = new Map((senders || []).map((s: any) => [s.id, s]));
+        setGroupMessages(
+          data.map((m: any) => ({ ...m, sender: sMap.get(m.sender_id) || null }))
+        );
+      } else {
+        setGroupMessages(data || []);
       }
     }, 5000);
 
