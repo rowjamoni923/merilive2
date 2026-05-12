@@ -340,6 +340,17 @@ export function usePrivateCall(userId: string | null) {
 
   const startCall = useCallback(async (hostId: string, streamId?: string) => {
 
+    // 🔒 Native-only enforcement: Calls can ONLY be initiated from the Android app.
+    // Web browsers (including PWA / mobile web) are blocked from placing private calls.
+    if (!isNativeAndroidApp()) {
+      toast({
+        title: "Android App Required",
+        description: "Private calls are available only in the MeriLive Android app. Please install/open the app to call.",
+        variant: "destructive",
+      });
+      return null;
+    }
+
     if (!userId) {
       toast({
         title: "Login Required",
