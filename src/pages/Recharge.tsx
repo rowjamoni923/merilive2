@@ -531,13 +531,15 @@ const Recharge = () => {
       const legacyNormalized = (legacyMethodsData || []).map((m: any) => ({
         id: m.id,
         helper_id: m.helper_id,
-        country_code: userCountryCode,
+        // Use the row's real country_code if present; else inherit user's country
+        // (will still be cross-checked via topup_helpers.country_code below).
+        country_code: m.country_code || userCountryCode,
         payment_type: m.method_type,
         method_type: m.method_type,
         account_name: m.account_name,
         account_number: m.account_number,
         bank_name: (m.additional_info as any)?.bank_name || null,
-        logo_url: m.logo_url || m.icon_url || (m.additional_info as any)?.logo_url || (m.additional_info as any)?.icon_url || null,
+        logo_url: m.logo_url || (m.additional_info as any)?.logo_url || (m.additional_info as any)?.icon_url || null,
         merchant_number: (m.additional_info as any)?.merchant_number || null,
         is_merchant: Boolean((m.additional_info as any)?.is_merchant),
         additional_info: m.additional_info || null,
