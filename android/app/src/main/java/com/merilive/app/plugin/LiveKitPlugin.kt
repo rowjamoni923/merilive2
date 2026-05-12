@@ -804,9 +804,11 @@ class LiveKitPlugin : Plugin() {
                         }
                     }
                     is RoomEvent.ConnectionQualityChanged -> {
+                        val qLower = event.quality.name.lowercase()
+                        qualityTable[event.participant.sid.value] = qLower // Step 28 cache
                         val data = JSObject()
                         data.put("sid", event.participant.sid.value)
-                        data.put("quality", event.quality.name.lowercase())
+                        data.put("quality", qLower)
                         notifyListeners("connection-quality", data)
 
                         // Step 22 — react ONLY to our own uplink quality.
