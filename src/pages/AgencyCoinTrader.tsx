@@ -815,7 +815,7 @@ const AgencyCoinTrader = () => {
                     onChange={(e) => setTradeAmount(e.target.value)}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Your wallet: {(agency?.wallet_balance || 0).toLocaleString()} Diamonds
+                    Trader Wallet: {((agency?.diamond_balance || 0) + (helperData?.wallet_balance || 0)).toLocaleString()} 💎
                   </p>
                   {tradeAmount && (
                     <div className="bg-green-50 rounded-lg p-3">
