@@ -28,6 +28,7 @@ interface PaymentMethod {
   icon_url: string | null;
   display_order: number | null;
   is_active: boolean | null;
+  country_codes: string[] | null;
 }
 
 const METHOD_TYPES = [
@@ -57,6 +58,7 @@ const AdminTopupPaymentMethods = () => {
     payment_number: '',
     payment_instructions: '',
     icon_url: '',
+    country_codes: '', // comma-separated, e.g. "BD,IN" — empty = global
   });
 
   const loadMethods = useCallback(async () => {
@@ -92,6 +94,7 @@ const AdminTopupPaymentMethods = () => {
       payment_number: '',
       payment_instructions: '',
       icon_url: '',
+      country_codes: '',
     });
   };
 
@@ -105,6 +108,10 @@ const AdminTopupPaymentMethods = () => {
     try {
       // Persist logo into BOTH icon_url (admin) and additional_info.logo_url
       // so the Recharge / HelperDashboard / Local-Pay logo readers all find it.
+      const parsedCountries = formData.country_codes
+        .split(',')
+        .map((c) => c.trim().toUpperCase())
+        .filter(Boolean);
       const payload = {
         name: formData.name,
         method_type: formData.method_type,
@@ -113,6 +120,8 @@ const AdminTopupPaymentMethods = () => {
         payment_number: formData.payment_number || formData.account_number || null,
         payment_instructions: formData.payment_instructions || null,
         icon_url: formData.icon_url || null,
+        logo_url: formData.icon_url || null,
+        country_codes: parsedCountries.length > 0 ? parsedCountries : null,
         additional_info: formData.icon_url ? { logo_url: formData.icon_url } : null,
         updated_at: new Date().toISOString(),
       };
@@ -155,6 +164,7 @@ const AdminTopupPaymentMethods = () => {
       payment_number: method.payment_number || '',
       payment_instructions: method.payment_instructions || '',
       icon_url: method.icon_url || '',
+      country_codes: Array.isArray(method.country_codes) ? method.country_codes.join(',') : '',
     });
     setShowDialog(true);
   };
@@ -317,6 +327,13 @@ const AdminTopupPaymentMethods = () => {
                         {!method.is_active && (
                           <Badge variant="outline" className="text-red-400 border-red-400">Inactive</Badge>
                         )}
+                        {method.country_codes && method.country_codes.length > 0 ? (
+                          <Badge variant="outline" className="text-emerald-300 border-emerald-500/40">
+                            🌍 {method.country_codes.join(', ')}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-blue-300 border-blue-500/40">🌐 Global</Badge>
+                        )}
                       </div>
                       {method.account_name && <p className="text-slate-400 text-sm">{method.account_name}</p>}
                       {(method.payment_number || method.account_number) && (
@@ -471,6 +488,19 @@ const AdminTopupPaymentMethods = () => {
                 onChange={(e) => setFormData({ ...formData, icon_url: e.target.value })}
                 placeholder="Or paste an image URL: https://..."
                 className="bg-slate-800 border-slate-700 text-white mt-3 text-xs"
+              />
+            </div>
+
+            <div>
+              <Label className="text-white">Allowed Countries (ISO codes, comma-separated)</Label>
+              <p className="text-xs text-slate-400 mb-2">
+                e.g. <span className="text-emerald-300">BD</span> = Bangladesh only, <span className="text-emerald-300">BD,IN</span> = both, blank = global (crypto/USDT). Helpers & users will only see methods matching their country.
+              </p>
+              <Input
+                value={formData.country_codes}
+                onChange={(e) => setFormData({ ...formData, country_codes: e.target.value })}
+                placeholder="BD,IN,PK   (or leave empty for global)"
+                className="bg-slate-800 border-slate-700 text-white mt-1 font-mono text-sm"
               />
             </div>
 

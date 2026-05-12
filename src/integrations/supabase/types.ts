@@ -11371,11 +11371,13 @@ export type Database = {
           account_name: string | null
           account_number: string | null
           additional_info: Json | null
+          country_codes: string[] | null
           created_at: string | null
           display_order: number | null
           icon_url: string | null
           id: string
           is_active: boolean | null
+          logo_url: string | null
           method_type: string
           name: string
           payment_instructions: string | null
@@ -11386,11 +11388,13 @@ export type Database = {
           account_name?: string | null
           account_number?: string | null
           additional_info?: Json | null
+          country_codes?: string[] | null
           created_at?: string | null
           display_order?: number | null
           icon_url?: string | null
           id?: string
           is_active?: boolean | null
+          logo_url?: string | null
           method_type: string
           name: string
           payment_instructions?: string | null
@@ -11401,11 +11405,13 @@ export type Database = {
           account_name?: string | null
           account_number?: string | null
           additional_info?: Json | null
+          country_codes?: string[] | null
           created_at?: string | null
           display_order?: number | null
           icon_url?: string | null
           id?: string
           is_active?: boolean | null
+          logo_url?: string | null
           method_type?: string
           name?: string
           payment_instructions?: string | null

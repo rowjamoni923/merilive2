@@ -53,6 +53,8 @@ interface PaymentMethod {
   instructions: string | null;
   min_amount: number;
   max_amount: number;
+  logo_url: string | null;
+  country_codes: string[] | null;
 }
 
 // Normalize topup_payment_methods row → legacy PaymentMethod shape used by the UI
@@ -66,11 +68,23 @@ const normalizePaymentMethod = (row: any): PaymentMethod => ({
   instructions: row.payment_instructions ?? row.instructions ?? null,
   min_amount: row.min_amount ?? 0,
   max_amount: row.max_amount ?? 0,
+  logo_url: row.logo_url ?? row.icon_url ?? null,
+  country_codes: Array.isArray(row.country_codes) ? row.country_codes : null,
 });
 
 const getHelperPackageLevel = (pkg: { display_order?: number | null; description?: string | null }, index: number) => {
   const descriptionMatch = pkg.description?.match(/level\s*(\d+)/i);
   return pkg.display_order || (descriptionMatch ? Number(descriptionMatch[1]) : index + 1);
+};
+
+// Strict country filter — empty/null country_codes = global (e.g. crypto/USDT).
+const filterMethodsByCountry = (methods: PaymentMethod[], countryCode: string | null | undefined): PaymentMethod[] => {
+  const cc = (countryCode || '').toUpperCase().trim();
+  if (!cc) return methods.filter((m) => !m.country_codes || m.country_codes.length === 0);
+  return methods.filter((m) => {
+    if (!m.country_codes || m.country_codes.length === 0) return true; // global
+    return m.country_codes.map((c) => String(c).toUpperCase()).includes(cc);
+  });
 };
 
 const HelperDashboard = () => {
@@ -314,8 +328,10 @@ const HelperDashboard = () => {
           
           if (methods) {
             const normalized = (methods as any[]).map(normalizePaymentMethod);
-            setPaymentMethods(normalized);
-            console.log('[HelperDashboard] Payment methods refreshed:', normalized.length);
+            const cc = (helperData as any)?.country_code || null;
+            const filtered = filterMethodsByCountry(normalized, cc);
+            setPaymentMethods(filtered);
+            console.log('[HelperDashboard] Payment methods refreshed:', filtered.length, 'country:', cc);
           }
         }
       )
@@ -326,7 +342,7 @@ const HelperDashboard = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [helperData?.id]);
+  }, [helperData?.id, helperData?.country_code]);
 
   // Separate fetch function that accepts helper_id directly - fetch ALL requests including approved
   const fetchPendingRequests = async (helperId: string) => {
@@ -401,11 +417,13 @@ const HelperDashboard = () => {
       
       if (methods) {
         const normalized = (methods as any[]).map(normalizePaymentMethod);
-        console.log('[HelperDashboard] Payment methods loaded:', normalized.length, normalized.map((m) => m.method_name));
-        setPaymentMethods(normalized);
-        if (normalized.length > 0) {
-          setTopupPaymentMethod(normalized[0].method_name);
-          setSelectedPaymentMethod(normalized[0]);
+        const cc = (helper as any)?.country_code || null;
+        const filtered = filterMethodsByCountry(normalized, cc);
+        console.log('[HelperDashboard] Payment methods loaded:', filtered.length, 'country:', cc, filtered.map((m) => m.method_name));
+        setPaymentMethods(filtered);
+        if (filtered.length > 0) {
+          setTopupPaymentMethod(filtered[0].method_name);
+          setSelectedPaymentMethod(filtered[0]);
         }
       } else {
         console.log('[HelperDashboard] No payment methods found');
@@ -1426,7 +1444,11 @@ const HelperDashboard = () => {
                                   : "bg-slate-700 border-slate-600 text-slate-300 hover:border-emerald-500"
                               )}
                             >
-                              <span className="text-lg">{getMethodIcon(method.method_type)}</span>
+                              {method.logo_url ? (
+                                <img src={method.logo_url} alt={method.method_name} className="w-6 h-6 rounded object-contain bg-white/10" loading="lazy" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                              ) : (
+                                <span className="text-lg">{getMethodIcon(method.method_type)}</span>
+                              )}
                               <span>{method.method_name}</span>
                             </button>
                           );
@@ -1852,7 +1874,11 @@ const HelperDashboard = () => {
                             : "bg-slate-800 border-slate-700 text-slate-300 hover:border-purple-500"
                         )}
                       >
-                        <span className="text-lg">{getMethodIcon(method.method_type)}</span>
+                        {method.logo_url ? (
+                          <img src={method.logo_url} alt={method.method_name} className="w-6 h-6 rounded object-contain bg-white/10" loading="lazy" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                        ) : (
+                          <span className="text-lg">{getMethodIcon(method.method_type)}</span>
+                        )}
                         <span>{method.method_name}</span>
                       </button>
                     );
