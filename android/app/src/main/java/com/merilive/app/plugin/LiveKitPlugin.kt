@@ -2334,4 +2334,270 @@ class LiveKitPlugin : Plugin() {
             Log.w(TAG, "emitAudioDeviceState failed: ${e.message}")
         }
     }
+
+    // ============================================================
+    // Step 30 — Bluetooth SCO + headset hardware-button support
+    //
+    // Three independent pieces of plumbing wired together:
+    //
+    //  1. ACTION_HEADSET_PLUG receiver       → "headset-plug" event
+    //     so JS can show a toast / auto-route audio when the user
+    //     plugs/unplugs a 3.5 mm or USB-C headset mid-call.
+    //
+    //  2. ACTION_SCO_AUDIO_STATE_UPDATED     → "sco-state-changed"
+    //     event so JS sees CONNECTING → CONNECTED → DISCONNECTED
+    //     for Bluetooth Hands-Free profile transitions, plus an
+    //     explicit setBluetoothScoEnabled() switch for pre-API 31
+    //     devices where setCommunicationDevice() doesn't exist.
+    //
+    //  3. MediaSession callback              → "headset-button"
+    //     event {action: "hook"|"play_pause"|"next"|"previous"}.
+    //     Routes hardware-button presses (single click on wired
+    //     remote, BT headset answer/end button, KEYCODE_HEADSETHOOK)
+    //     into JS so Live broadcasters can mute/unmute and Private
+    //     Call recipients can answer/hang up without unlocking the
+    //     screen. Session is only ACTIVE while a LiveKit room is
+    //     connected so we don't steal media keys outside calls.
+    // ============================================================
+
+    private var headsetButtonsEnabled: Boolean = true
+    private var headsetMediaSession: MediaSession? = null
+    private var headsetReceiver: BroadcastReceiver? = null
+    private var scoReceiver: BroadcastReceiver? = null
+    private var scoState: String = "disconnected" // "disconnected"|"connecting"|"connected"|"error"
+    private var wiredHeadsetPlugged: Boolean = false
+    private var wiredHeadsetHasMic: Boolean = false
+
+    private fun registerHeadsetReceivers() {
+        if (headsetReceiver == null) {
+            try {
+                val r = object : BroadcastReceiver() {
+                    override fun onReceive(ctx: Context?, intent: Intent?) {
+                        if (intent?.action != Intent.ACTION_HEADSET_PLUG) return
+                        val state = intent.getIntExtra("state", 0)
+                        val mic = intent.getIntExtra("microphone", 0)
+                        wiredHeadsetPlugged = state == 1
+                        wiredHeadsetHasMic = mic == 1
+                        val data = JSObject()
+                        data.put("plugged", wiredHeadsetPlugged)
+                        data.put("hasMic", wiredHeadsetHasMic)
+                        data.put("name", intent.getStringExtra("name") ?: "")
+                        notifyListeners("headset-plug", data)
+                        // Audio device list also changes — re-emit.
+                        emitAudioDeviceState()
+                    }
+                }
+                val filter = IntentFilter(Intent.ACTION_HEADSET_PLUG)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    context.registerReceiver(r, filter, Context.RECEIVER_NOT_EXPORTED)
+                } else {
+                    @Suppress("UnspecifiedRegisterReceiverFlag")
+                    context.registerReceiver(r, filter)
+                }
+                headsetReceiver = r
+            } catch (e: Exception) {
+                Log.w(TAG, "registerHeadsetReceivers headset failed: ${e.message}")
+            }
+        }
+        if (scoReceiver == null) {
+            try {
+                val r = object : BroadcastReceiver() {
+                    override fun onReceive(ctx: Context?, intent: Intent?) {
+                        if (intent?.action != AudioManager.ACTION_SCO_AUDIO_STATE_UPDATED) return
+                        val s = intent.getIntExtra(
+                            AudioManager.EXTRA_SCO_AUDIO_STATE,
+                            AudioManager.SCO_AUDIO_STATE_ERROR
+                        )
+                        scoState = when (s) {
+                            AudioManager.SCO_AUDIO_STATE_CONNECTED -> "connected"
+                            AudioManager.SCO_AUDIO_STATE_CONNECTING -> "connecting"
+                            AudioManager.SCO_AUDIO_STATE_DISCONNECTED -> "disconnected"
+                            else -> "error"
+                        }
+                        val data = JSObject()
+                        data.put("state", scoState)
+                        notifyListeners("sco-state-changed", data)
+                    }
+                }
+                val filter = IntentFilter(AudioManager.ACTION_SCO_AUDIO_STATE_UPDATED)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    context.registerReceiver(r, filter, Context.RECEIVER_NOT_EXPORTED)
+                } else {
+                    @Suppress("UnspecifiedRegisterReceiverFlag")
+                    context.registerReceiver(r, filter)
+                }
+                scoReceiver = r
+            } catch (e: Exception) {
+                Log.w(TAG, "registerHeadsetReceivers sco failed: ${e.message}")
+            }
+        }
+    }
+
+    private fun unregisterHeadsetReceivers() {
+        try { headsetReceiver?.let { context.unregisterReceiver(it) } } catch (_: Exception) {}
+        headsetReceiver = null
+        try { scoReceiver?.let { context.unregisterReceiver(it) } } catch (_: Exception) {}
+        scoReceiver = null
+    }
+
+    /**
+     * Explicitly start/stop the Bluetooth SCO link. On API 31+ prefer
+     * setAudioDevice("bluetooth") which uses setCommunicationDevice;
+     * this entry point is the legacy fallback (and a manual override
+     * for testing). Idempotent — safe to call repeatedly.
+     */
+    private fun startBluetoothScoInternal(): Boolean {
+        val am = audioManager() ?: return false
+        return try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val device = am.availableCommunicationDevices.firstOrNull {
+                    it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO ||
+                    it.type == AudioDeviceInfo.TYPE_BLE_HEADSET
+                }
+                if (device != null) {
+                    am.setCommunicationDevice(device); scoState = "connected"; true
+                } else false
+            } else {
+                @Suppress("DEPRECATION")
+                if (am.isBluetoothScoAvailableOffCall) {
+                    @Suppress("DEPRECATION") am.startBluetoothSco()
+                    @Suppress("DEPRECATION") am.isBluetoothScoOn = true
+                    true
+                } else false
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "startBluetoothScoInternal failed: ${e.message}"); false
+        }
+    }
+
+    private fun stopBluetoothScoInternal() {
+        val am = audioManager() ?: return
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                try { am.clearCommunicationDevice() } catch (_: Exception) {}
+            } else {
+                @Suppress("DEPRECATION") am.isBluetoothScoOn = false
+                @Suppress("DEPRECATION") am.stopBluetoothSco()
+            }
+        } catch (_: Exception) {}
+    }
+
+    private fun startHeadsetMediaSession() {
+        if (headsetMediaSession != null) return
+        try {
+            val session = MediaSession(context, "$TAG.MediaSession")
+            session.setCallback(object : MediaSession.Callback() {
+                override fun onMediaButtonEvent(intent: Intent): Boolean {
+                    val key: KeyEvent? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT, KeyEvent::class.java)
+                    } else {
+                        @Suppress("DEPRECATION")
+                        intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT) as? KeyEvent
+                    }
+                    if (key == null || key.action != KeyEvent.ACTION_DOWN) {
+                        return super.onMediaButtonEvent(intent)
+                    }
+                    val action = when (key.keyCode) {
+                        KeyEvent.KEYCODE_HEADSETHOOK,
+                        KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> "hook"
+                        KeyEvent.KEYCODE_MEDIA_PLAY -> "play"
+                        KeyEvent.KEYCODE_MEDIA_PAUSE,
+                        KeyEvent.KEYCODE_MEDIA_STOP -> "pause"
+                        KeyEvent.KEYCODE_MEDIA_NEXT -> "next"
+                        KeyEvent.KEYCODE_MEDIA_PREVIOUS -> "previous"
+                        else -> return super.onMediaButtonEvent(intent)
+                    }
+                    val data = JSObject()
+                    data.put("action", action)
+                    data.put("keyCode", key.keyCode)
+                    data.put("repeatCount", key.repeatCount)
+                    notifyListeners("headset-button", data)
+                    return true
+                }
+            })
+            // Minimal "playing" PlaybackState so the system routes media buttons to us.
+            val pb = PlaybackState.Builder()
+                .setActions(
+                    PlaybackState.ACTION_PLAY_PAUSE or
+                    PlaybackState.ACTION_PLAY or
+                    PlaybackState.ACTION_PAUSE or
+                    PlaybackState.ACTION_STOP or
+                    PlaybackState.ACTION_SKIP_TO_NEXT or
+                    PlaybackState.ACTION_SKIP_TO_PREVIOUS
+                )
+                .setState(PlaybackState.STATE_PLAYING, 0L, 1.0f)
+                .build()
+            session.setPlaybackState(pb)
+            session.isActive = true
+            headsetMediaSession = session
+        } catch (e: Exception) {
+            Log.w(TAG, "startHeadsetMediaSession failed: ${e.message}")
+        }
+    }
+
+    private fun stopHeadsetMediaSession() {
+        try {
+            headsetMediaSession?.let {
+                try { it.isActive = false } catch (_: Exception) {}
+                try { it.release() } catch (_: Exception) {}
+            }
+        } catch (_: Exception) {}
+        headsetMediaSession = null
+    }
+
+    @PluginMethod
+    fun setBluetoothScoEnabled(call: PluginCall) {
+        val enabled = call.getBoolean("enabled") ?: false
+        val ok = if (enabled) startBluetoothScoInternal() else { stopBluetoothScoInternal(); true }
+        val ret = JSObject()
+        ret.put("enabled", enabled)
+        ret.put("applied", ok)
+        ret.put("state", scoState)
+        call.resolve(ret)
+    }
+
+    @PluginMethod
+    fun getBluetoothScoState(call: PluginCall) {
+        val am = audioManager()
+        val available = try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                am?.availableCommunicationDevices?.any {
+                    it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO ||
+                    it.type == AudioDeviceInfo.TYPE_BLE_HEADSET
+                } ?: false
+            } else {
+                @Suppress("DEPRECATION") am?.isBluetoothScoAvailableOffCall ?: false
+            }
+        } catch (_: Exception) { false }
+        val ret = JSObject()
+        ret.put("state", scoState)
+        ret.put("available", available)
+        call.resolve(ret)
+    }
+
+    @PluginMethod
+    fun setHeadsetButtonsEnabled(call: PluginCall) {
+        val enabled = call.getBoolean("enabled") ?: true
+        headsetButtonsEnabled = enabled
+        if (enabled) {
+            if (room != null) startHeadsetMediaSession()
+        } else {
+            stopHeadsetMediaSession()
+        }
+        val ret = JSObject()
+        ret.put("enabled", enabled)
+        ret.put("active", headsetMediaSession != null)
+        call.resolve(ret)
+    }
+
+    @PluginMethod
+    fun getHeadsetState(call: PluginCall) {
+        val ret = JSObject()
+        ret.put("wiredPlugged", wiredHeadsetPlugged)
+        ret.put("wiredHasMic", wiredHeadsetHasMic)
+        ret.put("scoState", scoState)
+        ret.put("buttonsEnabled", headsetButtonsEnabled)
+        ret.put("mediaSessionActive", headsetMediaSession != null)
+        call.resolve(ret)
+    }
 }
