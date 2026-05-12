@@ -595,6 +595,7 @@ export function UnifiedPartyRoom({
   // Unified chat format state - SAME as Live Stream (ONE LINK)
   // Only premiumMessages used - no separate joinNotifications (prevents duplicates)
   const [premiumMessages, setPremiumMessages] = useState<RoomChatMessage[]>([]);
+  const [currentUserProfile, setCurrentUserProfile] = useState<{ display_name?: string | null; avatar_url?: string | null; user_level?: number | null } | null>(null);
   
   // Join notifications for stacking display
   const [joinNotifications, setJoinNotifications] = useState<JoinNotification[]>([]);
@@ -641,6 +642,19 @@ export function UnifiedPartyRoom({
   useEffect(() => {
     hostIdRef.current = hostInfo?.id;
   }, [hostInfo?.id]);
+
+  useEffect(() => {
+    if (!currentUserId) {
+      setCurrentUserProfile(null);
+      return;
+    }
+    supabase
+      .from('profiles_public')
+      .select('display_name, avatar_url, user_level')
+      .eq('id', currentUserId)
+      .maybeSingle()
+      .then(({ data }) => setCurrentUserProfile(data || null));
+  }, [currentUserId]);
   
   // Store onTriggerEntryEffect in ref to avoid stale closures
   const onTriggerEntryEffectRef = useRef(onTriggerEntryEffect);
