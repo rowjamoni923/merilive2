@@ -914,6 +914,68 @@ class LiveKitPlugin : Plugin() {
         call.resolve(ret)
     }
 
+    // ------------------------------------------------------------
+    // Lifecycle hardening (Step 24)
+    //
+    // Capacitor delivers Activity onPause/onResume. We use them to free
+    // GPU compositor work and (optionally) stop publishing camera while
+    // the host is not visible — without ever tearing the room down.
+    // ------------------------------------------------------------
+
+    @PluginMethod
+    fun setPauseCameraOnBackground(call: PluginCall) {
+        pauseCameraOnBackground = call.getBoolean("enabled", false) ?: false
+        val ret = JSObject()
+        ret.put("enabled", pauseCameraOnBackground)
+        call.resolve(ret)
+    }
+
+    override fun handleOnPause() {
+        super.handleOnPause()
+        if (room == null) return
+        inBackground = true
+        try {
+            localRenderer?.let { (it.parent as? ViewGroup)?.removeView(it) }
+            remoteRenderers.values.forEach { (it.parent as? ViewGroup)?.removeView(it) }
+            bridge?.webView?.setBackgroundColor(0xFF000000.toInt())
+
+            if (pauseCameraOnBackground) {
+                val r = room ?: return
+                val pub = r.localParticipant.getTrackPublication(Track.Source.CAMERA)
+                cameraOnBeforeBackground = (pub?.track != null) && !(pub.muted)
+                if (cameraOnBeforeBackground) {
+                    scope.launch {
+                        try { r.localParticipant.setCameraEnabled(false) }
+                        catch (e: Exception) { Log.w(TAG, "pause camera failed: ${e.message}") }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "handleOnPause cleanup failed", e)
+        }
+    }
+
+    override fun handleOnResume() {
+        super.handleOnResume()
+        if (room == null) return
+        if (!inBackground) return
+        inBackground = false
+        try {
+            localRenderer?.let { mountBehindWebView(it) }
+            remoteRenderers.values.forEach { mountBehindWebView(it) }
+
+            if (pauseCameraOnBackground && cameraOnBeforeBackground) {
+                val r = room ?: return
+                scope.launch {
+                    try { r.localParticipant.setCameraEnabled(true) }
+                    catch (e: Exception) { Log.w(TAG, "resume camera failed: ${e.message}") }
+                }
+            }
+            cameraOnBeforeBackground = false
+        } catch (e: Exception) {
+            Log.w(TAG, "handleOnResume restore failed", e)
+        }
+    }
 
     override fun handleOnDestroy() {
         super.handleOnDestroy()
