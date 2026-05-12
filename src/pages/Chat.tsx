@@ -712,7 +712,7 @@ const Chat = () => {
         }
         
         // Get beans amount from response for message
-        const beansEarned = response.data?.hostReceived || Math.floor(totalCost * 0.6);
+        const beansEarned = response.hostReceived || Math.floor(totalCost * 0.6);
         
         // Send gift as message - include animation/icon URL + diamond cost + beans for asymmetric render
         // Format: [Gift: URL|EMOJI NAME xCOUNT | -DIAMONDS diamonds | +BEANS beans]
