@@ -46,6 +46,8 @@ export type AudioDeviceType = 'speaker' | 'earpiece' | 'wired' | 'bluetooth' | '
 export interface NativeAudioDevice { id: number; type: AudioDeviceType; name: string }
 export interface AudioDeviceChangedEvent { active: AudioDeviceType; devices: NativeAudioDevice[] }
 
+/** Step 15 — emitted when system audio focus is taken (PSTN call, alarm, etc.) and returned. */
+export interface AudioInterruptionEvent { state: 'loss' | 'gain'; permanent: boolean }
 
 export interface NativeLiveKitPlugin {
   isAvailable(): Promise<{ available: boolean; backend: string; version: string }>;
