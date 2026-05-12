@@ -2201,7 +2201,6 @@ const HelperDashboard = () => {
                       <div>
                         <p className="text-white font-semibold">{searchedUser.display_name}</p>
                         <p className="text-slate-400 text-xs">ID: {searchedUser.app_uid}</p>
-                        <p className="text-cyan-400 text-xs">Balance: {searchedUser.coins?.toLocaleString() || 0} 💎</p>
                       </div>
                     </div>
 
