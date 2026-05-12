@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.process_gift_transaction(uuid, uuid, uuid, integer, uuid, uuid, uuid);
