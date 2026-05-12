@@ -276,6 +276,7 @@ const Recharge = () => {
 
   const resolveMethodLogo = useCallback(
     (currentLogo: string | null | undefined, methodName: string | null | undefined): string | null => {
+      if (currentLogo) return currentLogo;
       if (!methodName) return null;
       const key = String(methodName).toLowerCase().trim();
       if (adminLogoMap.has(key)) return adminLogoMap.get(key)!;
@@ -285,7 +286,6 @@ const Recharge = () => {
       for (const [k, v] of adminLogoMap.entries()) {
         if (key.includes(k) || k.includes(key) || normalizedKey.includes(k) || k.includes(normalizedKey)) return v;
       }
-      if (currentLogo) return currentLogo;
       return null;
     },
     [adminLogoMap, normalizePaymentKey]
