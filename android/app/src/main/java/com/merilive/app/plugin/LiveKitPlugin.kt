@@ -720,6 +720,14 @@ class LiveKitPlugin : Plugin() {
                         notifyListeners("disconnected", data)
                         // Server-initiated / network drop — release the screen-on flag too.
                         setKeepScreenOn(false)
+                        // Step 26 — escalate to a hard reconnect when the
+                        // SDK's auto-recovery has fully given up. Skip when
+                        // the user (or our disconnect()) initiated it.
+                        if (resilienceEnabled && lastConnectArgs != null &&
+                            !isClientInitiatedDisconnect(event.reason.name)
+                        ) {
+                            scheduleHardReconnect("disconnected:${event.reason.name}")
+                        }
                     }
                     is RoomEvent.ConnectionQualityChanged -> {
                         val data = JSObject()
@@ -735,17 +743,31 @@ class LiveKitPlugin : Plugin() {
                     // Step 16 — connection lifecycle so JS can show
                     // "Reconnecting…" / "Reconnected" UI like WhatsApp.
                     is RoomEvent.Reconnecting -> {
+                        reconnectingSinceMs = System.currentTimeMillis()
                         val data = JSObject()
                         data.put("state", "reconnecting")
                         notifyListeners("connection-state", data)
+                        // Step 26 — if SDK can't recover within 15 s, we
+                        // tear the room down and rebuild from cached args.
+                        startReconnectWatchdog()
                     }
                     is RoomEvent.Reconnected -> {
+                        val elapsed = if (reconnectingSinceMs > 0)
+                            System.currentTimeMillis() - reconnectingSinceMs else 0L
+                        reconnectingSinceMs = 0L
+                        hardReconnectAttempts = 0
+                        stopReconnectWatchdog()
                         val data = JSObject()
                         data.put("state", "reconnected")
+                        data.put("elapsedMs", elapsed)
                         notifyListeners("connection-state", data)
                         // Re-apply our communication audio mode in case
                         // the OS reset it during the network drop.
                         applyAudioMode(true)
+                        // Step 25 — fresh keyframes will arrive shortly;
+                        // reset stall timers so we don't insta-recover.
+                        val now = System.currentTimeMillis()
+                        stallTable.values.forEach { it.lastFrameMs = now; it.attempts = 0 }
                     }
                     else -> { /* ignore */ }
                 }
