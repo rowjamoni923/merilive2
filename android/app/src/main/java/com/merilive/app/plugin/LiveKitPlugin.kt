@@ -166,6 +166,14 @@ class LiveKitPlugin : Plugin() {
                 room?.disconnect()
                 room = null
 
+                // Step 22 — reset adaptive ladder for this fresh session.
+                baseTier = if (resolution == "720p") AdaptiveTier.MEDIUM else AdaptiveTier.HIGH
+                currentTier = baseTier
+                baseLens = if (lens == "back") CameraPosition.BACK else CameraPosition.FRONT
+                consecutiveExcellent = 0
+                lastTierChangeMs = 0L
+                adaptiveBusy = false
+
                 val captureParams: VideoCaptureParameter = if (resolution == "720p") {
                     VideoPreset169.H720.capture
                 } else {
@@ -565,6 +573,11 @@ class LiveKitPlugin : Plugin() {
                         data.put("sid", event.participant.sid.value)
                         data.put("quality", event.quality.name.lowercase())
                         notifyListeners("connection-quality", data)
+
+                        // Step 22 — react ONLY to our own uplink quality.
+                        if (event.participant == newRoom.localParticipant) {
+                            handleLocalQuality(event.quality)
+                        }
                     }
                     // Step 16 — connection lifecycle so JS can show
                     // "Reconnecting…" / "Reconnected" UI like WhatsApp.
