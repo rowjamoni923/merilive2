@@ -351,6 +351,7 @@ class LiveKitPlugin : Plugin() {
             try {
                 eventJob?.cancel()
                 eventJob = null
+                stopStallWatchdog()
                 room?.disconnect()
                 room = null
                 activity?.runOnUiThread { detachAllRenderersInternal() }
