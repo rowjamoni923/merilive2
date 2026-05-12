@@ -38,6 +38,11 @@ export interface TrackEvent {
 export interface DisconnectedEvent { reason: string }
 export interface QualityEvent { sid: string; quality: string }
 
+export type AudioDeviceType = 'speaker' | 'earpiece' | 'wired' | 'bluetooth' | 'unknown';
+export interface NativeAudioDevice { id: number; type: AudioDeviceType; name: string }
+export interface AudioDeviceChangedEvent { active: AudioDeviceType; devices: NativeAudioDevice[] }
+const _placeholder = 0; void _placeholder;
+
 export interface NativeLiveKitPlugin {
   isAvailable(): Promise<{ available: boolean; backend: string; version: string }>;
   connect(opts: ConnectOptions): Promise<{ connected: boolean; sid: string; identity: string }>;
