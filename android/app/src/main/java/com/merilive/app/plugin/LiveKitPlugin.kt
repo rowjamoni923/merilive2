@@ -506,6 +506,7 @@ class LiveKitPlugin : Plugin() {
             setKeepScreenOn(false)
             setProximityMonitoringInternal(false)
             applyAudioMode(false)
+            unregisterAudioDeviceListener()
         } catch (_: Exception) {}
     }
 
