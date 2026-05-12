@@ -1297,6 +1297,9 @@ class LiveKitPlugin : Plugin() {
             stopBluetoothScoInternal()
             abandonAudioFocusInternal()
             stopCallForegroundService()
+            // Step 36 — release MediaPipe segmenter + RenderScript blur.
+            try { virtualBackgroundProcessor?.release() } catch (_: Exception) {}
+            virtualBackgroundProcessor = null
         } catch (_: Exception) {}
         // Step 29 — release static bridge so a new plugin instance
         // doesn't hand callbacks to a destroyed object.
