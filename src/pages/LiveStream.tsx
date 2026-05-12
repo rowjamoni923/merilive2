@@ -65,7 +65,7 @@ import { GlobalGameOverlay, GlobalGameButton } from "@/components/games/GlobalGa
 import { LiveGameSelector } from "@/components/games/LiveGameSelector";
 // UNIFIED GIFTING - SINGLE LINK for all sections (Live, Party, Call, Chat, Profile)
 // Change @/features/shared/gifting = Change everywhere automatically
-import { GiftPanel, GiftData, FlyingGiftAnimation, useFlyingGifts } from "@/features/shared/gifting";
+import { GiftPanel, GiftData, FlyingGiftAnimation, useFlyingGifts, sendGift } from "@/features/shared/gifting";
 // UNIFIED Chat Overlay - ONE LINK for Live Stream + Party Room
 // Change RoomChatOverlay = Change everywhere (Live, Party Audio, Party Video, Party Game)
 import { RoomChatOverlay, type JoinNotification, type RoomChatMessage } from "@/features/shared/room";
@@ -296,6 +296,7 @@ const LiveStream = () => {
 
   // Deduplicate broadcast gift chat message vs DB stream_chat gift insert
   const recentBroadcastGiftKeysRef = useRef<Map<string, number>>(new Map());
+  const giftBroadcastChannelRef = useRef<any>(null);
 
   // Profile card states
   const [showProfileCard, setShowProfileCard] = useState(false);
