@@ -2768,5 +2768,317 @@ class LiveKitPlugin : Plugin() {
         // Hardware accel is always on through DefaultVideoEncoderFactory.
         ret.put("hardwareAcceleration", true)
         call.resolve(ret)
+
+    // ============================================================
+    // Step 33 — Bandwidth probe + pre-call quality test.
+    //
+    // Runs BEFORE connect() to predict whether the device's current
+    // network can sustain a 1080p / 720p / voice-only call. Two
+    // measurements (run sequentially on a background coroutine):
+    //
+    //   1. RTT + jitter probe — N HEAD requests against `pingUrl`.
+    //      Measures p50 / p95 latency and mean-absolute-deviation
+    //      jitter. Used to detect lossy / Wi-Fi-roaming scenarios
+    //      that wreck WebRTC even when raw throughput is high.
+    //
+    //   2. Throughput probe — single GET against `downloadUrl`,
+    //      capped at `downloadBytes` (default 512 KB) and `timeoutMs`
+    //      (default 6 s). Reports observed kbps. We deliberately keep
+    //      the payload small — a long-running speed test would burn
+    //      cellular data and delay the call by 5+ seconds.
+    //
+    // Verdict mapping (matches our publish ladder + Step 22 tiers):
+    //   • HIGH   ≥ 2500 kbps and rtt < 150 ms and jitter < 30 ms
+    //   • MEDIUM ≥ 1100 kbps and rtt < 250 ms and jitter < 60 ms
+    //   • LOW    ≥ 400  kbps
+    //   • VOICE  ≥ 80   kbps  (audio-only fallback)
+    //   • POOR   below — JS should warn "Network too weak for a call".
+    //
+    // Emits `quality-probe-progress` events during the run so the UI
+    // can render a progress bar without blocking on the resolve.
+    // ============================================================
+
+    private var qualityProbeJob: Job? = null
+    private var lastQualityProbe: org.json.JSONObject? = null
+
+    private data class QualityVerdict(
+        val tier: String,                  // "high" | "medium" | "low" | "voice" | "poor"
+        val recommendedTier: String,       // "high" | "medium" | "low"
+        val recommendedAudioOnly: Boolean, // true when video would chop
+        val warning: String?,              // null when tier is high/medium
+    )
+
+    private fun resolveVerdict(downKbps: Double, rttAvg: Double, jitter: Double): QualityVerdict {
+        return when {
+            downKbps >= 2500 && rttAvg < 150 && jitter < 30 ->
+                QualityVerdict("high", "high", false, null)
+            downKbps >= 1100 && rttAvg < 250 && jitter < 60 ->
+                QualityVerdict("medium", "medium", false, null)
+            downKbps >= 400 ->
+                QualityVerdict("low", "low", false, "Network is weak — quality may drop.")
+            downKbps >= 80 ->
+                QualityVerdict("voice", "low", true, "Network too weak for video — switching to voice only.")
+            else ->
+                QualityVerdict("poor", "low", true, "Network too weak for a call. Try Wi-Fi.")
+        }
     }
+
+    private fun emitProgress(stage: String, percent: Int, detail: org.json.JSONObject? = null) {
+        try {
+            val ev = JSObject()
+            ev.put("stage", stage)
+            ev.put("percent", percent.coerceIn(0, 100))
+            if (detail != null) ev.put("detail", detail)
+            notifyListeners("quality-probe-progress", ev)
+        } catch (_: Exception) {}
+    }
+
+    /**
+     * One-shot HEAD with hard timeout. Returns RTT in ms or -1 on
+     * failure. We deliberately disable keep-alive so each sample is
+     * a real new connection — gives a more honest jitter reading.
+     */
+    private fun pingOnce(url: String, timeoutMs: Int): Long {
+        var conn: HttpURLConnection? = null
+        return try {
+            val u = URL(url)
+            val started = System.nanoTime()
+            conn = (u.openConnection() as HttpURLConnection).apply {
+                requestMethod = "HEAD"
+                connectTimeout = timeoutMs
+                readTimeout = timeoutMs
+                instanceFollowRedirects = true
+                useCaches = false
+                setRequestProperty("Cache-Control", "no-cache")
+                setRequestProperty("Connection", "close")
+            }
+            val code = conn.responseCode
+            // 2xx / 3xx / 204 are all fine for a reachability ping.
+            if (code in 200..399) (System.nanoTime() - started) / 1_000_000L else -1L
+        } catch (_: Exception) {
+            -1L
+        } finally {
+            try { conn?.disconnect() } catch (_: Exception) {}
+        }
+    }
+
+    /**
+     * Streaming GET capped at `maxBytes` / `timeoutMs`. Returns the
+     * measured downlink throughput in kbps (kilobits / second), or 0
+     * on failure. Drains into /dev/null — never allocates the full
+     * payload.
+     */
+    private fun downloadProbe(url: String, maxBytes: Long, timeoutMs: Int): Double {
+        var conn: HttpURLConnection? = null
+        return try {
+            val u = URL(url)
+            conn = (u.openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                connectTimeout = timeoutMs
+                readTimeout = timeoutMs
+                instanceFollowRedirects = true
+                useCaches = false
+                setRequestProperty("Cache-Control", "no-cache")
+                setRequestProperty("Range", "bytes=0-${maxBytes - 1}")
+            }
+            val started = System.nanoTime()
+            val input = conn.inputStream
+            val buf = ByteArray(8 * 1024)
+            var total = 0L
+            while (total < maxBytes) {
+                val n = input.read(buf)
+                if (n <= 0) break
+                total += n
+                if ((System.nanoTime() - started) / 1_000_000L > timeoutMs) break
+            }
+            try { input.close() } catch (_: Exception) {}
+            val elapsedMs = max(1L, (System.nanoTime() - started) / 1_000_000L)
+            // bits / ms == kbps
+            (total * 8.0) / elapsedMs.toDouble()
+        } catch (_: Exception) {
+            0.0
+        } finally {
+            try { conn?.disconnect() } catch (_: Exception) {}
+        }
+    }
+
+    @PluginMethod
+    fun runPreCallQualityProbe(call: PluginCall) {
+        // Cancel any in-flight probe so a freshly-mounted Pre-Call
+        // screen never races against a stale one from the last call.
+        qualityProbeJob?.cancel()
+
+        val pingUrl = call.getString("pingUrl") ?: "https://www.gstatic.com/generate_204"
+        val downloadUrl = call.getString("downloadUrl")  // null = skip throughput stage
+        val samples = (call.getInt("samples") ?: 5).coerceIn(1, 20)
+        val downloadBytes = (call.getInt("downloadBytes") ?: 512_000).coerceIn(64_000, 4_000_000).toLong()
+        val timeoutMs = (call.getInt("timeoutMs") ?: 6000).coerceIn(1000, 15000)
+
+        qualityProbeJob = scope.launch {
+            try {
+                emitProgress("starting", 0)
+
+                // -------- Stage 1 — RTT + jitter --------
+                val rtts = mutableListOf<Long>()
+                for (i in 0 until samples) {
+                    val rtt = withContext(Dispatchers.IO) { pingOnce(pingUrl, timeoutMs) }
+                    if (rtt >= 0) rtts.add(rtt)
+                    val pct = ((i + 1) * 40 / samples)
+                    emitProgress("rtt", pct, org.json.JSONObject().put("sampleMs", rtt))
+                    // Tiny gap between probes — avoids accidentally
+                    // exercising HTTP/2 multiplexing on the same conn.
+                    delay(80)
+                }
+
+                val rttCount = rtts.size
+                val rttAvg = if (rttCount > 0) rtts.average() else -1.0
+                val rttMin = rtts.minOrNull() ?: -1L
+                val rttMax = rtts.maxOrNull() ?: -1L
+                val jitter = if (rttCount > 1) {
+                    val mean = rttAvg
+                    rtts.map { abs(it - mean) }.average()
+                } else 0.0
+                val packetLossPercent = if (samples > 0)
+                    ((samples - rttCount) * 100.0) / samples
+                else 0.0
+
+                emitProgress("rtt-done", 40, org.json.JSONObject()
+                    .put("rttAvg", rttAvg)
+                    .put("rttMin", rttMin)
+                    .put("rttMax", rttMax)
+                    .put("jitter", jitter)
+                    .put("packetLoss", packetLossPercent))
+
+                // -------- Stage 2 — Throughput --------
+                val downKbps = if (!downloadUrl.isNullOrBlank()) {
+                    emitProgress("throughput", 50)
+                    val v = withContext(Dispatchers.IO) {
+                        downloadProbe(downloadUrl, downloadBytes, timeoutMs)
+                    }
+                    emitProgress("throughput-done", 90,
+                        org.json.JSONObject().put("kbps", v))
+                    v
+                } else {
+                    // No URL provided → can't measure throughput.
+                    // Mark as -1 so the verdict layer falls back to
+                    // an RTT-only "low" estimate when reachable.
+                    emitProgress("throughput-skipped", 90)
+                    -1.0
+                }
+
+                // -------- Verdict --------
+                // When we couldn't measure throughput, downgrade the
+                // verdict by RTT only (assume MEDIUM if the network
+                // even responded; POOR if every ping was lost).
+                val verdict = when {
+                    downKbps < 0 && rttCount == 0 ->
+                        QualityVerdict("poor", "low", true, "No network. Connect to Wi-Fi or mobile data.")
+                    downKbps < 0 ->
+                        resolveVerdict(min(2000.0, max(800.0, 2000.0 - rttAvg)), rttAvg, jitter)
+                    else -> resolveVerdict(downKbps, rttAvg, jitter)
+                }
+
+                // Codec hint — let JS auto-pick a frugal codec on weak
+                // links (VP9/AV1 sip ~30 % less bandwidth than H264 at
+                // the same quality, when HW-encode is available).
+                val caps = probeCodecCapabilities()
+                val codecHint = when (verdict.recommendedTier) {
+                    "low" -> when {
+                        caps.optJSONObject("av1")?.optBoolean("hwEncode") == true -> "av1"
+                        caps.optJSONObject("vp9")?.optBoolean("hwEncode") == true -> "vp9"
+                        caps.optJSONObject("h264")?.optBoolean("hwEncode") == true -> "h264"
+                        else -> "vp8"
+                    }
+                    else -> "auto"
+                }
+
+                val networkType = currentNetworkTypeLabel()
+
+                val result = org.json.JSONObject()
+                    .put("ts", System.currentTimeMillis())
+                    .put("rttAvg", rttAvg)
+                    .put("rttMin", rttMin)
+                    .put("rttMax", rttMax)
+                    .put("jitter", jitter)
+                    .put("packetLoss", packetLossPercent)
+                    .put("samples", samples)
+                    .put("samplesReceived", rttCount)
+                    .put("downKbps", downKbps)
+                    .put("tier", verdict.tier)
+                    .put("recommendedTier", verdict.recommendedTier)
+                    .put("recommendedAudioOnly", verdict.recommendedAudioOnly)
+                    .put("recommendedCodec", codecHint)
+                    .put("warning", verdict.warning ?: org.json.JSONObject.NULL)
+                    .put("networkType", networkType)
+                    .put("dataSaver", isDataSaverActive())
+
+                lastQualityProbe = result
+                emitProgress("done", 100, result)
+
+                val ret = JSObject.fromJSONObject(result)
+                call.resolve(ret)
+            } catch (e: Exception) {
+                Log.w(TAG, "runPreCallQualityProbe failed: ${e.message}")
+                call.reject("quality-probe-failed", e)
+            } finally {
+                qualityProbeJob = null
+            }
+        }
+    }
+
+    @PluginMethod
+    fun cancelPreCallQualityProbe(call: PluginCall) {
+        val running = qualityProbeJob != null
+        qualityProbeJob?.cancel()
+        qualityProbeJob = null
+        val ret = JSObject()
+        ret.put("cancelled", running)
+        call.resolve(ret)
+    }
+
+    @PluginMethod
+    fun getLastQualityProbe(call: PluginCall) {
+        val ret = JSObject()
+        val last = lastQualityProbe
+        if (last != null) {
+            ret.put("hasResult", true)
+            ret.put("result", JSObject.fromJSONObject(last))
+        } else {
+            ret.put("hasResult", false)
+        }
+        call.resolve(ret)
+    }
+
+    /**
+     * Best-effort label aligned with the Step 27 NetworkType enum so
+     * JS sees the same vocabulary across `network-changed`, `rtc-stats`,
+     * and the quality probe result.
+     */
+    private fun currentNetworkTypeLabel(): String {
+        return try {
+            val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+                ?: return "unknown"
+            val net = cm.activeNetwork ?: return "none"
+            val caps = cm.getNetworkCapabilities(net) ?: return "none"
+            when {
+                caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> "wifi"
+                caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> "cellular"
+                caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> "ethernet"
+                else -> "other"
+            }
+        } catch (_: Exception) {
+            "unknown"
+        }
+    }
+
+    private fun isDataSaverActive(): Boolean {
+        return try {
+            val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+                ?: return false
+            cm.restrictBackgroundStatus == ConnectivityManager.RESTRICT_BACKGROUND_STATUS_ENABLED
+        } catch (_: Exception) {
+            false
+        }
+    }
+}
 }
