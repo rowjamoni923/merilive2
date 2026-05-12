@@ -300,6 +300,58 @@ class LiveKitPlugin : Plugin() {
         }
     }
 
+    // --- Audio routing API (Step 11) -------------------------------
+
+    @PluginMethod
+    fun setSpeakerphoneEnabled(call: PluginCall) {
+        val enabled = call.getBoolean("enabled", true) ?: true
+        try {
+            setSpeakerphoneInternal(enabled)
+            val ret = JSObject(); ret.put("speakerphone", enabled); call.resolve(ret)
+        } catch (e: Exception) {
+            call.reject("setSpeakerphoneEnabled failed: ${e.message}")
+        }
+    }
+
+    @PluginMethod
+    fun setProximityMonitoring(call: PluginCall) {
+        val enabled = call.getBoolean("enabled", false) ?: false
+        try {
+            setProximityMonitoringInternal(enabled)
+            val ret = JSObject(); ret.put("proximity", enabled); call.resolve(ret)
+        } catch (e: Exception) {
+            call.reject("setProximityMonitoring failed: ${e.message}")
+        }
+    }
+
+    @PluginMethod
+    fun setAudioMode(call: PluginCall) {
+        // mode: "voice" → earpiece + proximity ON; "video" → speaker ON, proximity OFF; "none" → restore
+        val mode = call.getString("mode", "video") ?: "video"
+        try {
+            when (mode) {
+                "voice" -> {
+                    applyAudioMode(true)
+                    setSpeakerphoneInternal(false)
+                    setProximityMonitoringInternal(true)
+                }
+                "video" -> {
+                    applyAudioMode(true)
+                    setSpeakerphoneInternal(true)
+                    setProximityMonitoringInternal(false)
+                }
+                "none", "off", "restore" -> {
+                    setProximityMonitoringInternal(false)
+                    applyAudioMode(false)
+                }
+                else -> { call.reject("Unknown mode: $mode"); return }
+            }
+            val ret = JSObject(); ret.put("mode", mode); call.resolve(ret)
+        } catch (e: Exception) {
+            call.reject("setAudioMode failed: ${e.message}")
+        }
+    }
+
     // ------------------------------------------------------------
     // Internals
     // ------------------------------------------------------------
