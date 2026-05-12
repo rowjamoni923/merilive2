@@ -102,26 +102,6 @@ export async function getGiftsByCategory(category: string): Promise<GiftItem[]> 
 }
 
 /**
- * Get host commission rate from settings
- * CRITICAL: Returns 0 if not configured - never use hardcoded defaults
- */
-async function getHostCommissionRate(): Promise<number> {
-  const { data } = await supabase
-    .from('app_settings')
-    .select('setting_value')
-    .eq('setting_key', 'gift_commission')
-    .single();
-  
-  const value = data?.setting_value as any;
-  if (value?.host_percent && typeof value.host_percent === 'number' && value.host_percent > 0) {
-    return value.host_percent;
-  }
-  
-  console.warn('[GiftingService] ⚠️ gift_commission not configured in Admin Panel! Using 0%');
-  return 0;
-}
-
-/**
  * Send a gift - The SINGLE method for all gift sending
  * Uses atomic database function for secure transaction
  */
