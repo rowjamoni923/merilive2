@@ -319,6 +319,7 @@ const FullScreenGiftAnimation = ({
               loop={false}
               autoPlay={true}
               muted={false}
+              onEnded={handleAnimationEnd}
             />
           </div>
         </Suspense>
@@ -328,9 +329,10 @@ const FullScreenGiftAnimation = ({
     if (animationType === 'lottie' && lottieData) {
       return (
         <div className="absolute inset-0 flex items-center justify-center">
-          <Lottie 
-            animationData={lottieData} 
+          <Lottie
+            animationData={lottieData}
             loop={false}
+            onComplete={handleAnimationEnd}
             className="w-full h-full max-w-[90vw] max-h-[90vh]"
           />
         </div>
@@ -340,12 +342,13 @@ const FullScreenGiftAnimation = ({
     if (animationType === 'video' && gift.animation_url) {
       return (
         <div className="absolute inset-0 flex items-center justify-center">
-          <video 
-            src={gift.animation_url} 
-            autoPlay 
+          <video
+            src={gift.animation_url}
+            autoPlay
             loop={false}
-            muted 
+            muted
             playsInline
+            onEnded={handleAnimationEnd}
             className="w-full h-full max-w-[90vw] max-h-[90vh] object-contain"
           />
         </div>
