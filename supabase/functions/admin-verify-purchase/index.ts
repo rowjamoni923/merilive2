@@ -102,19 +102,35 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { data: matchingPackage } = await adminSupabase
-      .from(
+    const { data: activePackages } = await adminSupabase
+      .from("coin_packages")
+      .select("coins_amount, bonus_coins, price_usd, product_id")
+      .eq("is_active", true);
+
+    const matchingPackage = (activePackages || []).find((pkg: any) => {
+      const baseCoins = Number(pkg.coins_amount || 0);
+      const totalCoins = baseCoins + Number(pkg.bonus_coins || 0);
+      return baseCoins === Number(coinAmount) || totalCoins === Number(coinAmount);
+    });
+
+    const priceUsd = Number(matchingPackage?.price_usd || 0);
 
     // Record in recharge_transactions
     const { error: rechargeError } = await adminSupabase.from("recharge_transactions").insert({
       user_id: userId,
       coins_received: coinAmount,
+      coins_amount: coinAmount,
       amount: priceUsd,
+      usd_amount: priceUsd,
       payment_method: "admin_manual_recovery",
       purchase_source: "admin_manual",
       google_order_id: googleOrderId || `admin_recovery_${Date.now()}`,
+      google_product_id: matchingPackage?.product_id || null,
+      transaction_id: googleOrderId || `admin_recovery_${Date.now()}`,
       status: "completed",
       completed_at: new Date().toISOString(),
+      processed_at: new Date().toISOString(),
+      currency: "USD",
       currency_code: "USD",
       notes: `🔧 Admin manual recovery by ${adminUser.role}. Reason: ${reason || "Purchase not delivered"}`,
     });
