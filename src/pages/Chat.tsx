@@ -35,6 +35,7 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSound } from "@/hooks/useSound";
 import { getCachedHostGiftPercent, ensureHostGiftPercentLoaded } from "@/hooks/useHostGiftPercent";
+import { callGiftService } from "@/utils/giftServiceClient";
 import {
   Sheet,
   SheetContent,
@@ -693,20 +694,15 @@ const Chat = () => {
     // ========== BACKGROUND PROCESSING ==========
     (async () => {
       try {
-        // Use edge function for proper commission handling
-        const response = await supabase.functions.invoke('gift-service', {
-          body: {
-            receiverId: selectedConversation.other_user.id,
-            giftId: gift.id,
-            quantity: count,
-            // No streamId or partyRoomId - this is DM context
-          }
+        const response = await callGiftService({
+          receiverId: selectedConversation.other_user.id,
+          giftId: gift.id,
+          quantity: count,
         });
-        
-        if (response.error) {
-          const { extractEdgeFnError } = await import("@/utils/edgeFnError");
-          const realMsg = await extractEdgeFnError(response.error, "Gift failed");
-          console.error('[Chat Gift] Edge function error:', realMsg, response.error);
+
+        if (!response.success) {
+          const realMsg = response.error || "Gift failed";
+          console.error('[Chat Gift] Edge function error:', realMsg);
           recordClientError({ label: "Chat.response", message: realMsg });
           // Refund on failure
           setUserCoins(prev => prev + totalCost);
