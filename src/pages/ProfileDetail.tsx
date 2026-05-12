@@ -69,7 +69,6 @@ import FramedAvatarWithPrivileges from "@/components/common/FramedAvatarWithPriv
 // Change @/features/shared/gifting = Change everywhere automatically
 import { GiftPanel, GiftData, FlyingGiftAnimation, useFlyingGifts } from "@/features/shared/gifting";
 import { sendGift } from "@/features/shared/gifting/GiftingService";
-import { AnimatePresence } from "framer-motion";
 import { ReportUserDialog } from "@/components/report/ReportUserDialog";
 
 interface ProfileData {
