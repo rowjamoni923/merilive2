@@ -431,27 +431,9 @@ export const useGeolocation = (userId: string | null, autoUpdate: boolean = true
                   updateData.region = ipData.region;
                 }
 
-                // AUTO-CORRECT BD: If profile is BD but real IP shows foreign country, fix it
-                if (countryCode === 'BD' && ipData?.countryCode && ipData.countryCode !== 'BD') {
-                  const realCode = ipData.countryCode;
-                  const realFlag = getCountryFlag(realCode);
-                  const realName = countryNamesEnglish[realCode] || realCode;
-                  updateData.country_code = realCode;
-                  updateData.country_name = realName;
-                  updateData.country_flag = realFlag;
-                  console.log(`[Geolocation] 🔄 BD AUTO-CORRECT: BD → ${realCode} (${realName}) based on real IP`);
-                  
-                  // Also update the UI state immediately
-                  setLocation({
-                    country: realName,
-                    countryCode: realCode,
-                    countryFlag: realFlag,
-                    city: ipData.city || profile.city || "",
-                    region: ipData.region || profile.region || "",
-                    loading: false,
-                    error: null,
-                  });
-                }
+                // POLICY: Country is LOCKED to registration country forever.
+                // VPN/IP changes must NEVER alter country_code, country_name, or country_flag.
+                // No auto-correction here — the DB trigger also blocks any such update.
 
                 await supabase
                   .from("profiles")
