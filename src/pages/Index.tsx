@@ -418,7 +418,7 @@ const Index = () => {
             alt={user.display_name || 'User'}
             className="w-full h-full object-cover"
             loading={index < 6 ? "eager" : "lazy"}
-            fetchPriority={index < 4 ? "high" : "auto"}
+            {...({ fetchpriority: index < 4 ? "high" : "auto" } as any)}
             decoding="async"
           />
 
