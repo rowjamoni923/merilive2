@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
+import { getAdminSession } from "@/utils/adminSession";
 import { useToast } from "@/hooks/use-toast";
 import { 
   MessageCircle, Search, Loader2, Send, Clock, CheckCircle, 
@@ -448,7 +449,7 @@ const AdminSupportTickets = () => {
 
     setSending(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
       
       // Translate admin reply to user's language if needed
       let translatedContent = "";
@@ -618,7 +619,7 @@ const AdminSupportTickets = () => {
         return;
       }
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
       const rewardParts = [];
       if (beansAmount > 0) rewardParts.push(`${beansAmount.toLocaleString()} Beans`);
       if (diamondsAmount > 0) rewardParts.push(`${diamondsAmount.toLocaleString()} Diamonds`);
@@ -679,7 +680,7 @@ const AdminSupportTickets = () => {
       const { data: urlData } = supabase.storage.from('support-attachments').getPublicUrl(path);
       const imageUrl = urlData.publicUrl;
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
       const { error: msgError } = await supabase.from('support_messages').insert({
         ticket_id: selectedTicket.id,
         sender_id: user?.id,
@@ -895,7 +896,7 @@ const AdminSupportTickets = () => {
       if (ticketError) throw ticketError;
 
       // Send resolution message with reward info
-      const { data: { user } } = await supabase.auth.getUser();
+      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
       const rewardParts = [];
       if (beansAmount > 0) rewardParts.push(`${beansAmount.toLocaleString()} Beans`);
       if (diamondsAmount > 0) rewardParts.push(`${diamondsAmount.toLocaleString()} Diamonds`);

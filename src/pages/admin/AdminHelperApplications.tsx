@@ -23,6 +23,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
+import { getAdminSession } from "@/utils/adminSession";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -165,7 +166,7 @@ const AdminHelperApplications = () => {
     if (!guardStart(`approve-${app.id}`)) return;
     setProcessing(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
 
       // Update application status
       await supabase
@@ -219,7 +220,7 @@ const AdminHelperApplications = () => {
     if (!guardStart(`reject-${app.id}`)) return;
     setProcessing(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
 
       await supabase
         .from('helper_applications')
