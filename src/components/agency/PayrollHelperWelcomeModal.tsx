@@ -39,44 +39,40 @@ const PayrollHelperWelcomeModal = ({ agencyId, userId }: PayrollHelperWelcomeMod
   useEffect(() => {
     checkAndShowModal();
     fetchHelperTiers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [agencyId, userId]);
 
-  const checkAndShowModal = async () => {
-    const shownKey = `payroll_helper_modal_shown_${userId}`;
-    const alreadyShown = localStorage.getItem(shownKey);
-    
-    if (alreadyShown) {
-      return;
+  const markShown = () => {
+    try {
+      // Per-AGENCY key (not just per-user) so creating a new agency re-triggers the welcome.
+      localStorage.setItem(`payroll_helper_modal_shown_${userId}_${agencyId}`, "true");
+    } catch (_) {
+      /* storage disabled */
     }
+  };
 
+  const checkAndShowModal = async () => {
+    const shownKey = `payroll_helper_modal_shown_${userId}_${agencyId}`;
+    let alreadyShown = false;
+    try { alreadyShown = !!localStorage.getItem(shownKey); } catch (_) { /* ignore */ }
+    if (alreadyShown) return;
+
+    // If the user is ALREADY a verified payroll helper, no need to show the welcome.
+    // (Pending / unverified rows should still see it so they remember to complete onboarding.)
     const { data: helperData } = await supabase
       .from("topup_helpers")
-      .select("id, is_verified")
+      .select("id, is_verified, payroll_enabled")
       .eq("user_id", userId)
       .maybeSingle();
 
-    if (helperData) {
-      localStorage.setItem(shownKey, "true");
+    if (helperData && helperData.is_verified === true && helperData.payroll_enabled === true) {
+      markShown();
       return;
     }
 
-    const { data: agency } = await supabase
-      .from("agencies")
-      .select("created_at")
-      .eq("id", agencyId)
-      .single();
-
-    if (agency) {
-      const createdAt = new Date(agency.created_at);
-      const now = new Date();
-      const diffMinutes = (now.getTime() - createdAt.getTime()) / (1000 * 60);
-      
-      if (diffMinutes < 30) {
-        setTimeout(() => setIsOpen(true), 1500);
-      }
-    }
-
-    localStorage.setItem(shownKey, "true");
+    // Show the welcome banner — no time-window restriction. Only suppressed once
+    // the user actually interacts with it (Apply / Maybe Later) or already a verified helper.
+    setTimeout(() => setIsOpen(true), 800);
   };
 
   const fetchHelperTiers = async () => {
@@ -105,6 +101,7 @@ const PayrollHelperWelcomeModal = ({ agencyId, userId }: PayrollHelperWelcomeMod
           title: "Already Applied",
           description: "You have already applied for Payroll Helper access",
         });
+        markShown();
         setIsOpen(false);
         return;
       }
@@ -124,6 +121,7 @@ const PayrollHelperWelcomeModal = ({ agencyId, userId }: PayrollHelperWelcomeMod
         title: "Application Submitted! 🎉",
         description: "Your Payroll Helper application is pending approval",
       });
+      markShown();
       setIsOpen(false);
     } catch (error: any) {
       toast({
@@ -137,6 +135,7 @@ const PayrollHelperWelcomeModal = ({ agencyId, userId }: PayrollHelperWelcomeMod
   };
 
   const handleClose = () => {
+    markShown();
     setIsOpen(false);
   };
 
