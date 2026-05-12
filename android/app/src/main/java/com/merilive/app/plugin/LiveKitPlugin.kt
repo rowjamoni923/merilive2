@@ -1483,6 +1483,7 @@ class LiveKitPlugin : Plugin() {
             override fun onFrame(frame: VideoFrame?) {
                 val entry = stallTable[key] ?: return
                 entry.lastFrameMs = System.currentTimeMillis()
+                entry.frameCount += 1L          // Step 28 — fps source.
                 if (entry.attempts > 0) entry.attempts = 0
             }
         }
