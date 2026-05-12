@@ -3348,8 +3348,7 @@ const LiveStream = () => {
           }
           
           // ========== INSTANT UI UPDATE (< 100ms) ==========
-          // Close panel immediately
-          setShowGiftPanel(false);
+          // NOTE: Do NOT close panel — keeping it open enables professional combo gifting
           
           // Optimistic coin deduction (instant visual feedback)
           setUserCoins(prev => prev - totalCost);
