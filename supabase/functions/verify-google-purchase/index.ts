@@ -249,9 +249,11 @@ serve(async (req) => {
     const newBalance = (addData as any)?.new_balance;
     console.log(`[verify-google-purchase] ✅ SUCCESS! User: ${userId}, Coins: +${productInfo.coins}, New balance: ${newBalance}`);
 
-    // Acknowledge/consume the purchase with Google
+    // Consume the purchase with Google only after DB credit succeeds.
+    // Diamonds are consumable products, so consuming server-side makes the
+    // same product immediately purchasable again while preventing paid-but-not-delivered loss.
     try {
-      const consumeUrl = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${packageName}/purchases/products/${productId}/tokens/${purchaseToken}:acknowledge`;
+      const consumeUrl = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${packageName}/purchases/products/${productId}/tokens/${purchaseToken}:consume`;
       await fetch(consumeUrl, {
         method: 'POST',
         headers: { 
@@ -259,9 +261,9 @@ serve(async (req) => {
           'Content-Type': 'application/json',
         },
       });
-      console.log(`[verify-google-purchase] ✅ Purchase acknowledged with Google`);
+      console.log(`[verify-google-purchase] ✅ Purchase consumed with Google`);
     } catch (ackErr) {
-      console.warn(`[verify-google-purchase] ⚠️ Acknowledge failed (non-critical):`, ackErr);
+      console.warn(`[verify-google-purchase] ⚠️ Consume failed (non-critical):`, ackErr);
     }
 
     return new Response(JSON.stringify({ 

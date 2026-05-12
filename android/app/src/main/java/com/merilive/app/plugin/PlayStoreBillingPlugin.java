@@ -16,29 +16,88 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
     private static final String TAG = "PlayStoreBilling";
     private BillingClient billingClient;
     private PluginCall pendingCall;
+    private boolean isConnecting = false;
+    private final List<PluginCall> pendingInitializeCalls = new ArrayList<>();
 
     @Override
     public void load() {
+        super.load();
+        createBillingClient();
+        startBillingConnection(null);
+    }
+
+    @PluginMethod
+    public void initialize(PluginCall call) {
+        startBillingConnection(call);
+    }
+
+    private void createBillingClient() {
+        if (billingClient != null) return;
         billingClient = BillingClient.newBuilder(getContext())
             .setListener(this)
             .enablePendingPurchases()
             .build();
+    }
+
+    private void startBillingConnection(PluginCall call) {
+        createBillingClient();
+
+        if (billingClient.isReady()) {
+            resolveInitialize(call, true, "BillingClient already connected");
+            return;
+        }
+
+        if (call != null) pendingInitializeCalls.add(call);
+        if (isConnecting) return;
+
+        isConnecting = true;
 
         billingClient.startConnection(new BillingClientStateListener() {
             @Override
             public void onBillingSetupFinished(BillingResult result) {
+                isConnecting = false;
                 Log.d(TAG, "Billing setup finished: " + result.getResponseCode());
+                if (result.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+                    resolveAllInitialize(true, "BillingClient connected");
+                } else {
+                    rejectAllInitialize("Billing setup failed: " + result.getDebugMessage(), "BILLING_SETUP_FAILED");
+                }
             }
 
             @Override
             public void onBillingServiceDisconnected() {
+                isConnecting = false;
                 Log.w(TAG, "Billing service disconnected");
             }
         });
     }
 
+    private void resolveInitialize(PluginCall call, boolean success, String message) {
+        if (call == null) return;
+        JSObject ret = new JSObject();
+        ret.put("success", success);
+        ret.put("message", message);
+        call.resolve(ret);
+    }
+
+    private void resolveAllInitialize(boolean success, String message) {
+        for (PluginCall call : new ArrayList<>(pendingInitializeCalls)) {
+            resolveInitialize(call, success, message);
+        }
+        pendingInitializeCalls.clear();
+    }
+
+    private void rejectAllInitialize(String message, String code) {
+        for (PluginCall call : new ArrayList<>(pendingInitializeCalls)) {
+            call.reject(message, code);
+        }
+        pendingInitializeCalls.clear();
+    }
+
     @PluginMethod
     public void getProducts(PluginCall call) {
+        if (!ensureReady(call)) return;
+
         List<String> productIds = new ArrayList<>();
         try {
             org.json.JSONArray arr = call.getArray("productIds");
@@ -69,12 +128,13 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
                 for (ProductDetails details : productDetailsList) {
                     JSObject item = new JSObject();
                     item.put("productId", details.getProductId());
+                    item.put("title", details.getTitle());
                     item.put("name", details.getName());
                     item.put("description", details.getDescription());
                     if (details.getOneTimePurchaseOfferDetails() != null) {
                         item.put("price", details.getOneTimePurchaseOfferDetails().getFormattedPrice());
-                        item.put("priceMicros", details.getOneTimePurchaseOfferDetails().getPriceAmountMicros());
-                        item.put("currency", details.getOneTimePurchaseOfferDetails().getPriceCurrencyCode());
+                        item.put("priceAmountMicros", details.getOneTimePurchaseOfferDetails().getPriceAmountMicros());
+                        item.put("priceCurrencyCode", details.getOneTimePurchaseOfferDetails().getPriceCurrencyCode());
                     }
                     arr.put(item);
                 }
@@ -87,10 +147,17 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
     }
 
     @PluginMethod
-    public void purchaseProduct(PluginCall call) {
+    public void purchase(PluginCall call) {
+        if (!ensureReady(call)) return;
+
         String productId = call.getString("productId");
         if (productId == null) {
             call.reject("productId is required");
+            return;
+        }
+
+        if (pendingCall != null) {
+            call.reject("Another purchase is already in progress", "PURCHASE_IN_PROGRESS");
             return;
         }
 
@@ -131,16 +198,7 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
     public void onPurchasesUpdated(BillingResult billingResult, List<Purchase> purchases) {
         if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && purchases != null) {
             for (Purchase purchase : purchases) {
-                // Acknowledge or consume
                 if (purchase.getPurchaseState() == Purchase.PurchaseState.PURCHASED) {
-                    ConsumeParams consumeParams = ConsumeParams.newBuilder()
-                        .setPurchaseToken(purchase.getPurchaseToken())
-                        .build();
-
-                    billingClient.consumeAsync(consumeParams, (result, token) -> {
-                        Log.d(TAG, "Purchase consumed: " + result.getResponseCode());
-                    });
-
                     if (pendingCall != null) {
                         JSObject ret = new JSObject();
                         ret.put("success", true);
@@ -151,12 +209,20 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
                         pendingCall = null;
                     }
 
-                    // Notify WebView
+                    // Notify WebView without consuming locally. The server verifies
+                    // and consumes the purchase only after diamonds are credited.
                     notifyListeners("purchaseCompleted", new JSObject() {{
                         put("productId", purchase.getProducts().get(0));
                         put("purchaseToken", purchase.getPurchaseToken());
                         put("orderId", purchase.getOrderId());
                     }});
+                } else {
+                    Log.d(TAG, "Purchase pending: " + purchase.getProducts().get(0));
+
+                    if (pendingCall != null) {
+                        pendingCall.reject("Purchase is pending", "PURCHASE_PENDING");
+                        pendingCall = null;
+                    }
                 }
             }
         } else if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.USER_CANCELED) {
@@ -174,6 +240,8 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
 
     @PluginMethod
     public void restorePurchases(PluginCall call) {
+        if (!ensureReady(call)) return;
+
         billingClient.queryPurchasesAsync(
             QueryPurchasesParams.newBuilder()
                 .setProductType(BillingClient.ProductType.INAPP)
@@ -194,5 +262,13 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
                 call.resolve(ret);
             }
         );
+    }
+
+    private boolean ensureReady(PluginCall call) {
+        if (billingClient == null || !billingClient.isReady()) {
+            call.reject("BillingClient not ready. Call initialize() first.", "NOT_CONNECTED");
+            return false;
+        }
+        return true;
     }
 }
