@@ -128,12 +128,13 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
                 for (ProductDetails details : productDetailsList) {
                     JSObject item = new JSObject();
                     item.put("productId", details.getProductId());
+                    item.put("title", details.getTitle());
                     item.put("name", details.getName());
                     item.put("description", details.getDescription());
                     if (details.getOneTimePurchaseOfferDetails() != null) {
                         item.put("price", details.getOneTimePurchaseOfferDetails().getFormattedPrice());
-                        item.put("priceMicros", details.getOneTimePurchaseOfferDetails().getPriceAmountMicros());
-                        item.put("currency", details.getOneTimePurchaseOfferDetails().getPriceCurrencyCode());
+                        item.put("priceAmountMicros", details.getOneTimePurchaseOfferDetails().getPriceAmountMicros());
+                        item.put("priceCurrencyCode", details.getOneTimePurchaseOfferDetails().getPriceCurrencyCode());
                     }
                     arr.put(item);
                 }
@@ -235,6 +236,8 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
 
     @PluginMethod
     public void restorePurchases(PluginCall call) {
+        if (!ensureReady(call)) return;
+
         billingClient.queryPurchasesAsync(
             QueryPurchasesParams.newBuilder()
                 .setProductType(BillingClient.ProductType.INAPP)
