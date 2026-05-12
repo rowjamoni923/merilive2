@@ -183,6 +183,47 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
     const startTime = performance.now();
     console.log(`[LiveKitClient] Joining channel: ${normalizedChannel} as ${config.role}`);
 
+    // 🛰️ Native Android publish path (Capacitor + LiveKit Android SDK).
+    // Only host broadcasts are routed natively for now; viewers stay on
+    // web livekit-client (audience playback inside the WebView is fine).
+    // Web/iOS gate=false → falls through to web Room flow below.
+    if (
+      config.role === 'host' &&
+      !config.preloadedRoom &&
+      shouldUseNativeLiveKit({ feature: 'live-broadcast' })
+    ) {
+      try {
+        const roomType = 'host_stream';
+        warmLiveKitToken(normalizedChannel, roomType).catch(() => {});
+        const { token, url } = await getLiveKitToken(normalizedChannel, roomType);
+
+        await nativeLiveKitController.connectAndPublish({
+          url,
+          token,
+          video: true,
+          audio: true,
+          lens: 'front',
+          resolution: '1080p',
+          attachLocal: true,
+        });
+
+        usingNativeRef.current = true;
+        channelRef.current = normalizedChannel;
+        setIsJoined(true);
+        setConnectionState('CONNECTED');
+        setCurrentRole('host');
+        setIsLoading(false);
+        isJoiningRef.current = false;
+        const joinTime = performance.now() - startTime;
+        console.log(`[LiveKitClient/Native] ✅ Connected in ${joinTime.toFixed(0)}ms`);
+        return { uid: uidRef.current || 0, channel: normalizedChannel };
+      } catch (nativeErr) {
+        console.error('[LiveKitClient/Native] join failed, falling back to web:', nativeErr);
+        usingNativeRef.current = false;
+        // Fall through to web path.
+      }
+    }
+
     try {
       // Disconnect existing room if any
       if (roomRef.current) {
