@@ -115,6 +115,16 @@ export interface NativeLiveKitPlugin {
   setE2EEEnabled(opts: { enabled: boolean }): Promise<{ enabled: boolean }>;
   getE2EEStatus(): Promise<{ enabled: boolean; hasKey: boolean; hasRoom: boolean }>;
 
+  // --- Lifecycle hardening (Step 24) ---------------------------
+  /**
+   * Privacy mode for 1:1 Private Calls. When `true`, the camera is
+   * automatically disabled when the host backgrounds the app and
+   * re-enabled on resume. Mic + room stay alive either way. For Live
+   * broadcasts keep this `false` so the stream survives backgrounding.
+   * Renderer GPU work is always paused when the app is not visible.
+   */
+  setPauseCameraOnBackground(opts: { enabled: boolean }): Promise<{ enabled: boolean }>;
+
   addListener(eventName: 'participant-connected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'participant-disconnected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'track-subscribed', cb: (e: TrackEvent) => void): Promise<PluginListenerHandle>;
