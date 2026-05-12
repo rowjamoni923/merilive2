@@ -250,6 +250,34 @@ class LiveKitPlugin : Plugin() {
     private var dataSaverOnCellular: Boolean = false
     private var lastNetTransitionMs: Long = 0L
 
+    // --- RTC stats / telemetry (Step 28) -------------------------
+    //
+    // Periodically samples per-track + per-room health and emits an
+    // "rtc-stats" event so the JS layer (debug HUD, QoE analytics,
+    // adaptive UI badges like "Weak network") can react without
+    // polling the plugin every second.
+    //
+    // What we measure honestly (no fake numbers):
+    //   • fps  — derived from the same VideoSink frame counter the
+    //            stall watchdog already maintains, so it costs nothing
+    //            extra to read.
+    //   • silentMs — wall-clock since the last decoded frame.
+    //   • quality  — last ConnectionQuality reported by the SFU per
+    //                participant (EXCELLENT/GOOD/POOR/LOST).
+    //   • tier / maxBitrate / simulcast — current publisher ladder
+    //     position (Step 22 source of truth).
+    //   • network type + dataSaver (Step 27).
+    //   • reconnect state (Step 26).
+    //
+    // We deliberately do NOT poll WebRTC getStats() here — that API
+    // shape varies by livekit-android version and would silently
+    // return zeros on some devices. Frame-count based fps is exact.
+    private var statsCollectorJob: Job? = null
+    private var statsCollectorEnabled: Boolean = true
+    private var statsIntervalMs: Long = STATS_DEFAULT_INTERVAL_MS
+    private val qualityTable = mutableMapOf<String, String>() // sid → quality lowercase
+    private var localSid: String = "local"
+
     // ------------------------------------------------------------
     // Public API
     // ------------------------------------------------------------
