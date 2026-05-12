@@ -108,7 +108,51 @@ export interface NetworkChangedEvent {
   metered: boolean;
 }
 
-export interface NativeLiveKitPlugin {
+/** Step 28 — periodic RTC stats / telemetry snapshot. */
+export interface RtcTrackStat {
+  sid: string;
+  isLocal: boolean;
+  /** Decoded frames-per-second observed during the last sample window. */
+  fps: number;
+  /** Wall-clock since the last decoded frame (0 means a frame just landed). */
+  silentMs: number;
+  /** Monotonic frame counter since the track was first attached. */
+  framesTotal: number;
+  /** How many stall recovery attempts have been spent on this track. */
+  recoveryAttempts: number;
+  /** SFU-reported quality for this participant. */
+  quality: 'excellent' | 'good' | 'poor' | 'lost' | 'unknown' | string;
+}
+
+export interface RtcStatsEvent {
+  /** ms epoch when the snapshot was sampled (Android System.currentTimeMillis). */
+  ts: number;
+  tracks: RtcTrackStat[];
+  /** Current publisher ladder tier (Step 22). */
+  tier: AdaptiveTier;
+  /** Session ceiling tier negotiated at connect time. */
+  baseTier: AdaptiveTier;
+  /** Whether simulcast is currently active for the publisher. */
+  simulcast: boolean;
+  /** Encoder cap for the current tier (bps). */
+  maxBitrate: number;
+  /** Physical network underneath WebRTC right now. */
+  networkType: NetworkType;
+  /** Step 27 data-saver mode (forces LOW on cellular when true). */
+  dataSaver: boolean;
+  /** Latest SFU-reported quality bucket for our own publisher. */
+  localQuality: 'excellent' | 'good' | 'poor' | 'lost' | 'unknown' | string;
+  /** True while we're inside a Reconnecting window. */
+  reconnecting: boolean;
+  /** ms spent in the current reconnecting window (0 when not reconnecting). */
+  reconnectingMs: number;
+  /** How many hard-reconnect attempts are currently in flight (Step 26). */
+  hardReconnectAttempts: number;
+  /** Remote participant count (excludes us). */
+  remoteParticipantCount: number;
+  /** True when Insertable-Streams E2EE is on for this session (Step 23). */
+  e2ee: boolean;
+}
   isAvailable(): Promise<{ available: boolean; backend: string; version: string }>;
   connect(opts: ConnectOptions): Promise<{ connected: boolean; sid: string; identity: string }>;
   disconnect(): Promise<void>;
