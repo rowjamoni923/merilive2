@@ -513,6 +513,46 @@ export interface NativeLiveKitPlugin {
     trackedParticipants: number;
   }>;
 
+  // --- Virtual background / blur (Step 36) --------------------
+  /**
+   * Soft probe — returns `supported:false` when the MediaPipe selfie-
+   * segmentation model file is missing from the APK, so the UI can
+   * hide the "Background Effects" button entirely on builds that
+   * skipped the asset.
+   */
+  isVirtualBackgroundSupported(): Promise<{ supported: boolean; requiresAsset: string }>;
+  /**
+   * Apply a virtual-background effect to the LOCAL camera track.
+   * The processor stays attached across camera switches.
+   *
+   * - `mode: "none"`  — pass-through (instant toggle, zero overhead).
+   * - `mode: "blur"`  — Gaussian blur with `blurRadius` (1-25, default 18).
+   * - `mode: "image"` — replace background with the file at `imagePath`
+   *                     (absolute path on the device — copy from assets
+   *                     or `Filesystem.writeFile` first).
+   *
+   * `segmenterReady:false` in the result means the MediaPipe model
+   * couldn't be loaded — JS should fall back to "none" and surface
+   * an "Effect unavailable on this device" toast.
+   */
+  setVirtualBackground(opts: {
+    mode: 'none' | 'blur' | 'image';
+    blurRadius?: number;
+    imagePath?: string;
+  }): Promise<{
+    mode: string;
+    blurRadius: number;
+    imageApplied: boolean;
+    segmenterReady: boolean;
+    hasRoom: boolean;
+  }>;
+  getVirtualBackgroundState(): Promise<{
+    mode: 'none' | 'blur' | 'image' | string;
+    blurRadius: number;
+    processorAttached: boolean;
+    hasRoom: boolean;
+  }>;
+
   addListener(eventName: 'participant-connected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'participant-disconnected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'track-subscribed', cb: (e: TrackEvent) => void): Promise<PluginListenerHandle>;

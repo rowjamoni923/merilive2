@@ -109,4 +109,10 @@ dependencies {
     // ===== LiveKit Android SDK (Native WebRTC) =====
     // Publishes camera + mic as native WebRTC tracks for Live + Private Call.
     implementation 'io.livekit:livekit-android:2.7.0'
+
+    // ===== MediaPipe Tasks Vision (Step 36 — virtual background / blur) =====
+    // On-device person-segmentation for VirtualBackgroundProcessor. Runs the
+    // SelfieSegmenter (UINT8 mask, 256x256) on a background thread; per-frame
+    // overhead is ~3 ms on a Snapdragon 8 Gen 2.
+    implementation 'com.google.mediapipe:tasks-vision:0.10.14'
 }
