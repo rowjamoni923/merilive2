@@ -1187,6 +1187,14 @@ class LiveKitPlugin : Plugin() {
     override fun handleOnPause() {
         super.handleOnPause()
         if (room == null) return
+        // Step 29 — entering Picture-in-Picture also fires onPause, but
+        // the activity stays visible. Keep renderers attached so the
+        // floating PiP window keeps showing the call. Likewise skip the
+        // camera auto-pause: the user is still on a call, just compact.
+        if (enteringPip || inPictureInPicture || isActivityInPip()) {
+            Log.d(TAG, "handleOnPause skipped — entering/in PiP")
+            return
+        }
         inBackground = true
         try {
             localRenderer?.let { (it.parent as? ViewGroup)?.removeView(it) }
