@@ -15276,14 +15276,14 @@ export type Database = {
       agency_send_diamonds_to_agency: {
         Args: {
           _amount: number
-          _from_agency_id: string
-          _to_agency_id: string
+          _sender_agency_id: string
+          _target_agency_id: string
         }
-        Returns: boolean
+        Returns: Json
       }
       agency_send_diamonds_to_user: {
-        Args: { _agency_id: string; _amount: number; _user_id: string }
-        Returns: boolean
+        Args: { _agency_id: string; _amount: number; _receiver_id: string }
+        Returns: Json
       }
       agency_weekly_total_income: {
         Args: { _agency_id: string }
