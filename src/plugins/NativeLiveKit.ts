@@ -49,6 +49,9 @@ export interface AudioDeviceChangedEvent { active: AudioDeviceType; devices: Nat
 /** Step 15 — emitted when system audio focus is taken (PSTN call, alarm, etc.) and returned. */
 export interface AudioInterruptionEvent { state: 'loss' | 'gain'; permanent: boolean }
 
+/** Step 16 — emitted while LiveKit recovers from a transient network drop. */
+export interface ConnectionStateEvent { state: 'reconnecting' | 'reconnected' }
+
 export interface NativeLiveKitPlugin {
   isAvailable(): Promise<{ available: boolean; backend: string; version: string }>;
   connect(opts: ConnectOptions): Promise<{ connected: boolean; sid: string; identity: string }>;
