@@ -48,6 +48,27 @@ const NewHostBonusCard = ({ hostId, isStreamActive = true, onBeansClaimed }: New
     fetchState();
   }, [fetchState]);
 
+  // Realtime: refresh card the instant progress row changes (no refresh needed)
+  useEffect(() => {
+    if (!hostId) return;
+    const channel = supabase
+      .channel(`new-host-bonus-${hostId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "new_host_live_bonus_progress",
+          filter: `host_id=eq.${hostId}`,
+        },
+        () => fetchState()
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [hostId, fetchState]);
+
   // Server-side per-minute heartbeat (only when actively live)
   useEffect(() => {
     if (!isStreamActive) return;
