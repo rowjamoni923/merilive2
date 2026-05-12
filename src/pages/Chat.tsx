@@ -60,6 +60,8 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useGlobalUnreadCount, formatBadgeCount } from "@/hooks/useGlobalUnreadCount";
 import { GiftEmojiAnimation } from "@/components/chat/GiftEmojiAnimation";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
+import Beans3DIcon from "@/components/common/Beans3DIcon";
+import diamondGem3D from "@/assets/diamond-gem-3d.png";
 import TraderBadge from "@/components/common/TraderBadge";
 import { LevelBadge } from "@/components/common/LevelBadge";
 import { trackTaskProgress } from "@/hooks/useTaskProgress";
@@ -145,8 +147,8 @@ const cleanGiftMessageForPreview = (content: string): string => {
   // Extract just emoji, name, count and beans - remove URL completely
   const urlRemoved = content.replace(/\[Gift:\s*https?:\/\/[^\|\s]+\|/i, '[Gift: ');
 
-  // Parse the clean content
-  const match = urlRemoved.match(/\[Gift:\s*([^\s]+)\s+([^x]+)\s*x(\d+)\s*\|\s*\+(\d+)\s*beans\]/i);
+  // Parse the clean content (supports both old and new format with optional diamonds segment)
+  const match = urlRemoved.match(/\[Gift:\s*([^\s]+)\s+([^x]+?)\s*x(\d+)\s*\|(?:\s*-\d+\s*diamonds\s*\|)?\s*\+(\d+)\s*beans\s*\]/i);
   if (match) {
     const [, emoji, name, count, beans] = match;
     return `[Gift: ${emoji} ${name.trim()} x${count} | +${Number(beans).toLocaleString()} bea...]`;
@@ -692,11 +694,11 @@ const Chat = () => {
         // Get beans amount from response for message
         const beansEarned = response.data?.hostReceived || Math.floor(totalCost * 0.6);
         
-        // Send gift as message - include animation/icon URL for rendering
-        // Format: [Gift: URL|EMOJI NAME xCOUNT | +BEANS beans]
+        // Send gift as message - include animation/icon URL + diamond cost + beans for asymmetric render
+        // Format: [Gift: URL|EMOJI NAME xCOUNT | -DIAMONDS diamonds | +BEANS beans]
         const messageContent = giftMediaUrl
-          ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | +${beansEarned} beans]`
-          : `[Gift: ${giftEmoji} ${gift.name} x${count} | +${beansEarned} beans]`;
+          ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${beansEarned} beans]`
+          : `[Gift: ${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${beansEarned} beans]`;
         
         await persistDirectMessage(
           selectedConversation.id,
@@ -2043,10 +2045,12 @@ const Chat = () => {
                           // Old format: [Gift: EMOJI NAME xCOUNT | +BEANS beans]
                           const { mediaUrl, emoji } = parseGiftContent(content);
                           const beansMatch = content.match(/\+(\d+)\s*beans/i);
+                          const diamondsMatch = content.match(/-(\d+)\s*diamonds/i);
                           
                           const iconUrl = mediaUrl;
                           const giftEmoji = emoji;
                           const beansAmount = beansMatch ? beansMatch[1] : null;
+                          const diamondsAmount = diamondsMatch ? diamondsMatch[1] : null;
                           
                           // Check if iconUrl is an animation file
                           const normalizedGiftUrl = iconUrl ? iconUrl.split('?')[0].toLowerCase() : '';
@@ -2098,14 +2102,29 @@ const Chat = () => {
                                 )}
                               </div>
                               
-                              {/* Mini Beans Badge */}
-                              {beansAmount && (
-                                <div className="flex items-center px-2 py-0.5 mt-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full">
+                              {/* Asymmetric badge: sender → diamonds spent (red), receiver → beans earned (gold 3D) */}
+                              {isMine && diamondsAmount ? (
+                                <div className="flex items-center gap-1 px-2 py-0.5 mt-1 bg-gradient-to-r from-rose-500 to-red-600 rounded-full shadow-md shadow-rose-500/30">
+                                  <img src={diamondGem3D} alt="" className="w-3 h-3 object-contain drop-shadow" />
+                                  <span className="text-[9px] font-bold text-white">
+                                    -{Number(diamondsAmount).toLocaleString()}
+                                  </span>
+                                </div>
+                              ) : !isMine && beansAmount ? (
+                                <div className="flex items-center gap-1 px-2 py-0.5 mt-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full shadow-md shadow-amber-500/30">
+                                  <Beans3DIcon size={12} />
                                   <span className="text-[9px] font-bold text-white">
                                     +{Number(beansAmount).toLocaleString()}
                                   </span>
                                 </div>
-                              )}
+                              ) : beansAmount ? (
+                                <div className="flex items-center gap-1 px-2 py-0.5 mt-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full shadow-md">
+                                  <Beans3DIcon size={12} />
+                                  <span className="text-[9px] font-bold text-white">
+                                    +{Number(beansAmount).toLocaleString()}
+                                  </span>
+                                </div>
+                              ) : null}
                               
                               {/* Timestamp + Status */}
                               <p className="text-[8px] text-muted-foreground/60 mt-0.5 flex items-center justify-center gap-0.5">
