@@ -1285,6 +1285,130 @@ class LiveKitPlugin : Plugin() {
     }
 
     // ------------------------------------------------------------
+    // Step 27 — Network type & data-saver awareness
+    //
+    // Bridges Android ConnectivityManager → LiveKit. On WiFi↔Cellular
+    // transitions we trigger a hard reconnect (Step 26) so the new
+    // network's ICE candidates take over immediately. On cellular we
+    // optionally pin the publisher ladder to LOW (Step 22) to spare
+    // the user's data plan. JS gets `network-changed` events with the
+    // new type so the UI can show a "Switched to mobile data" badge.
+    // ------------------------------------------------------------
+
+    private fun classifyNetwork(caps: NetworkCapabilities?): NetType {
+        if (caps == null) return NetType.NONE
+        return when {
+            caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)     -> NetType.WIFI
+            caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> NetType.CELLULAR
+            caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> NetType.ETHERNET
+            else -> NetType.OTHER
+        }
+    }
+
+    private fun registerNetworkCallback() {
+        if (networkCallback != null) return
+        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+            ?: return
+        try {
+            val request = NetworkRequest.Builder()
+                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                .build()
+            currentNetType = classifyNetwork(cm.getNetworkCapabilities(cm.activeNetwork))
+            val cb = object : ConnectivityManager.NetworkCallback() {
+                override fun onCapabilitiesChanged(network: Network, caps: NetworkCapabilities) {
+                    val newType = classifyNetwork(caps)
+                    if (newType == currentNetType) return
+                    val prev = currentNetType
+                    currentNetType = newType
+                    onNetworkTransition(prev, newType, caps)
+                }
+                override fun onLost(network: Network) {
+                    if (currentNetType == NetType.NONE) return
+                    val prev = currentNetType
+                    currentNetType = NetType.NONE
+                    onNetworkTransition(prev, NetType.NONE, null)
+                }
+            }
+            networkCallback = cb
+            cm.registerNetworkCallback(request, cb)
+        } catch (e: Exception) {
+            Log.w(TAG, "registerNetworkCallback failed: ${e.message}")
+            networkCallback = null
+        }
+    }
+
+    private fun unregisterNetworkCallback() {
+        val cb = networkCallback ?: return
+        networkCallback = null
+        currentNetType = NetType.NONE
+        try {
+            val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+            cm?.unregisterNetworkCallback(cb)
+        } catch (_: Exception) {}
+    }
+
+    private fun onNetworkTransition(prev: NetType, next: NetType, caps: NetworkCapabilities?) {
+        val now = System.currentTimeMillis()
+        // Debounce — Android can fire onCapabilitiesChanged twice in <500ms
+        // when a network handoff completes (validated→validated+notMetered).
+        if (now - lastNetTransitionMs < 1_500L) return
+        lastNetTransitionMs = now
+
+        val data = JSObject()
+        data.put("from", prev.name.lowercase())
+        data.put("to", next.name.lowercase())
+        data.put("metered", caps?.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED) == false)
+        notifyListeners("network-changed", data)
+        Log.i(TAG, "Network transition: ${prev.name} → ${next.name}")
+
+        if (room == null || lastConnectArgs == null) return
+
+        // Apply data-saver: cap to LOW on cellular, restore baseTier on WiFi.
+        if (dataSaverOnCellular) {
+            when (next) {
+                NetType.CELLULAR -> if (currentTier != AdaptiveTier.LOW)
+                    applyAdaptiveTier(AdaptiveTier.LOW, "data-saver-cellular")
+                NetType.WIFI, NetType.ETHERNET -> if (currentTier != baseTier)
+                    applyAdaptiveTier(baseTier, "data-saver-wifi")
+                else -> { /* NONE / OTHER — let resilience layer handle */ }
+            }
+        }
+
+        // Fully different physical link → existing peer connection's local
+        // ICE candidates point at the old interface. Force a hard reconnect.
+        val isMajorHandoff = (prev != NetType.NONE && next != NetType.NONE && prev != next)
+        if (isMajorHandoff && resilienceEnabled) {
+            Log.w(TAG, "Network handoff $prev → $next — forcing hard reconnect")
+            reconnectingSinceMs = now
+            scheduleHardReconnect("network-changed:${prev.name.lowercase()}->${next.name.lowercase()}")
+        }
+    }
+
+    @PluginMethod
+    fun setDataSaverEnabled(call: PluginCall) {
+        dataSaverOnCellular = call.getBoolean("enabled", false) ?: false
+        if (dataSaverOnCellular && currentNetType == NetType.CELLULAR &&
+            room != null && currentTier != AdaptiveTier.LOW
+        ) {
+            applyAdaptiveTier(AdaptiveTier.LOW, "data-saver-toggle")
+        } else if (!dataSaverOnCellular && room != null && currentTier != baseTier) {
+            applyAdaptiveTier(baseTier, "data-saver-off")
+        }
+        val ret = JSObject()
+        ret.put("enabled", dataSaverOnCellular)
+        ret.put("network", currentNetType.name.lowercase())
+        call.resolve(ret)
+    }
+
+    @PluginMethod
+    fun getNetworkType(call: PluginCall) {
+        val ret = JSObject()
+        ret.put("type", currentNetType.name.lowercase())
+        ret.put("dataSaver", dataSaverOnCellular)
+        call.resolve(ret)
+    }
+
+    // ------------------------------------------------------------
     // Step 25 — Video stall & black-frame recovery
     //
     // A WebRTC track can keep its ICE/DTLS state nominally "alive" while
