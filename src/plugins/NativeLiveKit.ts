@@ -264,6 +264,34 @@ export interface NativeLiveKitPlugin {
   /** One-shot snapshot of the same payload that `rtc-stats` carries. */
   getRtcStats(): Promise<RtcStatsEvent & { hasRoom: boolean; enabled?: boolean; intervalMs?: number }>;
 
+  // --- Picture-in-Picture (Step 29) ----------------------------
+  /**
+   * Whether the device + Android version supports PiP. Always false
+   * on Android < 8.0 (API 26) or on TVs / form factors that opt out.
+   */
+  isPictureInPictureSupported(): Promise<{ supported: boolean; inPip: boolean }>;
+  /**
+   * Manually shrink the call to a floating PiP window — wire this to a
+   * "minimise" button in the in-call UI. `aspect` is "W:H" (default
+   * "9:16" for portrait video, "16:9" for landscape Live broadcasts,
+   * "1:1" for voice calls). Resolves with `entered:false` when PiP
+   * isn't supported or the activity is already in PiP.
+   */
+  enterPictureInPicture(opts?: { aspect?: '9:16' | '16:9' | '1:1' | string }): Promise<{ entered: boolean; supported: boolean }>;
+  /**
+   * Auto-enter PiP when the user taps the home button mid-call (parity
+   * with WhatsApp / Meet). Default OFF — Live broadcasters usually
+   * stay full-screen; enable for 1:1 video / voice calls.
+   */
+  setAutoPipOnLeaveHint(opts: { enabled: boolean; aspect?: string }): Promise<{ enabled: boolean; supported: boolean }>;
+  getPipState(): Promise<{
+    supported: boolean;
+    inPip: boolean;
+    autoOnLeaveHint: boolean;
+    aspectNumerator: number;
+    aspectDenominator: number;
+  }>;
+
   addListener(eventName: 'participant-connected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'participant-disconnected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'track-subscribed', cb: (e: TrackEvent) => void): Promise<PluginListenerHandle>;
