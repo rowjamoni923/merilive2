@@ -188,6 +188,12 @@ class LiveKitPlugin : Plugin() {
                 setProximityMonitoringInternal(!enableVideo)
                 registerAudioDeviceListener()
 
+                // Step 15 — request VoIP audio focus so an incoming PSTN
+                // call / alarm / other media auto-pauses our mic, then
+                // resumes when focus comes back. Track user mic intent.
+                micIntentBeforeLoss = enableAudio
+                requestAudioFocusInternal()
+
                 // Step 14 — promote process to a foreground service so Android
                 // 14+ keeps mic/camera alive when the user backgrounds the app.
                 startCallForegroundService(callerName, callType)
