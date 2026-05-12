@@ -1157,7 +1157,7 @@ const FaceVerification = () => {
         .from('face_verification_submissions')
         .select('id, status')
         .eq('user_id', userId)
-        .in('status', ['pending'])
+        .in('status', ['pending','submitted'])
         .maybeSingle();
 
       if (existingSubmission) {
@@ -1425,7 +1425,7 @@ const FaceVerification = () => {
         .from('face_verification_submissions')
         .select('id, status')
         .eq('user_id', userId)
-        .in('status', ['pending'])
+        .in('status', ['pending','submitted'])
         .maybeSingle();
 
       if (existingSubmission) {
