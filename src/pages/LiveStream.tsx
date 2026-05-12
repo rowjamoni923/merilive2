@@ -574,7 +574,7 @@ const LiveStream = () => {
         // Session gifts
         stream && id ? supabase.from("gift_transactions").select("coin_amount").eq("stream_id", id).eq("receiver_id", stream.host_id) : Promise.resolve({ data: null }),
         // Self profile for viewer join notification
-        !isActualHost && currentUserId ? supabase.from("profiles").select("display_name, avatar_url, user_level, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id").eq("id", currentUserId).single() : Promise.resolve({ data: null }),
+        !isActualHost && currentUserId ? supabase.from("profiles_public").select("app_uid, display_name, avatar_url, user_level, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id").eq("id", currentUserId).single() : Promise.resolve({ data: null }),
       ]);
       
       // Process user profile
@@ -730,6 +730,7 @@ const LiveStream = () => {
                     event: 'viewer_joined',
                     payload: {
                       userId: currentUserId,
+                      appUid: selfProfile.app_uid || null,
                       userName,
                       userAvatar: avatarUrl,
                       userLevel,
