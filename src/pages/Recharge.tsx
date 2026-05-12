@@ -239,10 +239,13 @@ const Recharge = () => {
     }));
   }, []);
 
+  const normalizePaymentKey = useCallback((value: string | null | undefined) => {
+    return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  }, []);
+
   // Build a fast admin-logo lookup keyed by method name / type so every
-  // helper method always resolves to a valid brand logo (bKash, Nagad, ePay,
-  // Binance Pay, JazzCash, Easypaisa, Paytm, PhonePe, USDT, etc.) even if
-  // the helper forgot to upload one on their own.
+  // helper method always resolves to a valid brand logo (bKash, Nagad, Rocket,
+  // Upay, ePay, Binance Pay, JazzCash, Easypaisa, Paytm, PhonePe, USDT, etc.).
   const adminLogoMap = useMemo(() => {
     const map = new Map<string, string>();
     (adminPaymentMethods || []).forEach((a: any) => {
@@ -250,25 +253,30 @@ const Recharge = () => {
       if (!logo) return;
       [a?.name, a?.method_type, (a?.additional_info as any)?.display_method]
         .filter(Boolean)
-        .map((v: string) => String(v).toLowerCase().trim())
+        .flatMap((v: string) => {
+          const raw = String(v).toLowerCase().trim();
+          return [raw, normalizePaymentKey(raw)];
+        })
         .forEach((key: string) => { if (key && !map.has(key)) map.set(key, logo); });
     });
     return map;
-  }, [adminPaymentMethods]);
+  }, [adminPaymentMethods, normalizePaymentKey]);
 
   const resolveMethodLogo = useCallback(
     (currentLogo: string | null | undefined, methodName: string | null | undefined): string | null => {
-      if (currentLogo) return currentLogo;
       if (!methodName) return null;
       const key = String(methodName).toLowerCase().trim();
       if (adminLogoMap.has(key)) return adminLogoMap.get(key)!;
+      const normalizedKey = normalizePaymentKey(key);
+      if (adminLogoMap.has(normalizedKey)) return adminLogoMap.get(normalizedKey)!;
       // Fuzzy contains match (e.g. "bkash auto" → "bkash")
       for (const [k, v] of adminLogoMap.entries()) {
-        if (key.includes(k) || k.includes(key)) return v;
+        if (key.includes(k) || k.includes(key) || normalizedKey.includes(k) || k.includes(normalizedKey)) return v;
       }
+      if (currentLogo) return currentLogo;
       return null;
     },
-    [adminLogoMap]
+    [adminLogoMap, normalizePaymentKey]
   );
 
   // Pick a random helper for the static card display; changes when payment type or methods change
