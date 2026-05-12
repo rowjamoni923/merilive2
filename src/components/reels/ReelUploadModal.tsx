@@ -114,6 +114,51 @@ export const ReelUploadModal = ({
     });
   };
 
+  // Extract N evenly-spaced frames as base64 JPEGs for AWS Rekognition NSFW scan.
+  // Frames are downscaled to ~720px to stay well under Rekognition's 5MB limit
+  // and keep the network round-trip fast.
+  const extractFramesForModeration = (file: File, count = 6): Promise<string[]> => {
+    return new Promise((resolve, reject) => {
+      const video = document.createElement('video');
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      video.preload = 'metadata';
+      video.muted = true;
+      video.playsInline = true;
+      const url = URL.createObjectURL(file);
+      const frames: string[] = [];
+      let timestamps: number[] = [];
+      let idx = 0;
+      const cleanup = () => URL.revokeObjectURL(url);
+
+      video.onloadedmetadata = () => {
+        const dur = Math.max(0.5, video.duration || 1);
+        const fractions = [0.05, 0.2, 0.4, 0.6, 0.8, 0.95].slice(0, count);
+        timestamps = fractions.map((f) => Math.min(dur - 0.05, dur * f));
+        video.currentTime = timestamps[0];
+      };
+      video.onseeked = () => {
+        const w = video.videoWidth || 720;
+        const h = video.videoHeight || 1280;
+        const scale = Math.min(1, 720 / Math.max(w, h));
+        canvas.width = Math.round(w * scale);
+        canvas.height = Math.round(h * scale);
+        ctx?.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.78);
+        frames.push(dataUrl.split(',')[1] || dataUrl);
+        idx++;
+        if (idx < timestamps.length) {
+          video.currentTime = timestamps[idx];
+        } else {
+          cleanup();
+          resolve(frames);
+        }
+      };
+      video.onerror = (e) => { cleanup(); reject(e); };
+      video.src = url;
+    });
+  };
+
   const handleUpload = async () => {
     if (!videoFile) {
       toast.error("Please select a video");
