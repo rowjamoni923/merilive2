@@ -561,6 +561,22 @@ const PartyRoom = () => {
           const newGiftValue = payload.new?.coin_amount || 0;
           const newHostBeans = payload.new?.receiver_beans ?? Math.floor(newGiftValue * hostCommissionPercent / 100);
           const senderId = payload.new?.sender_id;
+          const giftKey = getPartyGiftRealtimeKey(senderId, payload.new?.gift_id, newGiftValue, payload.new?.quantity);
+          const optimistic = optimisticGiftCountsRef.current.get(giftKey);
+          if (optimistic) {
+            optimisticGiftCountsRef.current.delete(giftKey);
+            if (optimistic.beans !== newHostBeans || optimistic.coins !== newGiftValue) {
+              setTotalRoomBeans(prev => Math.max(0, prev - optimistic.beans + newHostBeans));
+              if (senderId) {
+                setParticipantBeans(prev => ({
+                  ...prev,
+                  [senderId]: Math.max(0, (prev[senderId] || 0) - optimistic.coins + newGiftValue),
+                }));
+              }
+            }
+            console.log('[PartyRoom] Gift confirmed by DB:', newHostBeans, 'from:', senderId);
+            return;
+          }
           console.log('[PartyRoom] New gift received! Adding beans:', newHostBeans, 'from:', senderId);
           setTotalRoomBeans(prev => prev + newHostBeans);
           
@@ -580,7 +596,7 @@ const PartyRoom = () => {
     return () => {
       supabase.removeChannel(giftChannel);
     };
-  }, [roomId, hostCommissionPercent]);
+  }, [roomId, hostCommissionPercent, getPartyGiftRealtimeKey]);
 
   // Determine if current user is host or admin
   const isHost = room?.host_id === currentUser?.id;
