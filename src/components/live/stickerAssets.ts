@@ -133,3 +133,65 @@ export const STICKER_ASSET_MAP: Record<string, string> = Object.fromEntries(
 );
 
 export const getStickerAsset = (name: string) => STICKER_ASSET_MAP[name] || null;
+
+/**
+ * Animation class per sticker — gives every PNG a GIF-like motion.
+ * Categories drive the default; specific names can override for theme accuracy
+ * (fire/heart/sparkle/etc.).
+ */
+const STICKER_ANIM_OVERRIDES: Record<string, string> = {
+  'Fire Girl': 'sticker-anim-fire',
+  'Hot Live': 'sticker-anim-fire',
+  'Hot Girl': 'sticker-anim-fire',
+  'Spicy': 'sticker-anim-fire',
+  'Temptation': 'sticker-anim-fire',
+  'Wild Side': 'sticker-anim-fire',
+
+  'I Love You': 'sticker-anim-heartbeat',
+  'Kiss Me': 'sticker-anim-heartbeat',
+  'My Heart': 'sticker-anim-heartbeat',
+  'Love You More': 'sticker-anim-heartbeat',
+  'Be Mine': 'sticker-anim-heartbeat',
+  'Forever Yours': 'sticker-anim-heartbeat',
+  'Soulmate': 'sticker-anim-heartbeat',
+  'Only You': 'sticker-anim-heartbeat',
+  "Can't Resist": 'sticker-anim-heartbeat',
+  'Sweetheart': 'sticker-anim-heartbeat',
+  'My Love': 'sticker-anim-heartbeat',
+  'Hug Me': 'sticker-anim-float',
+  'Miss You': 'sticker-anim-sway',
+  'Cutie': 'sticker-anim-bounce',
+
+  'VIP Only': 'sticker-anim-shine',
+  'Premium': 'sticker-anim-shine',
+  'Exclusive': 'sticker-anim-shine',
+  'Top Host': 'sticker-anim-shine',
+
+  "Let's Party": 'sticker-anim-bounce',
+  'Turn Up': 'sticker-anim-bounce',
+  'Make It Rain': 'sticker-anim-bounce',
+  'Shower Gifts': 'sticker-anim-bounce',
+};
+
+const CATEGORY_ANIM: Record<PromoStickerCategory, string> = {
+  gift: 'sticker-anim-bounce',
+  follow: 'sticker-anim-float',
+  engage: 'sticker-anim-float',
+  hot: 'sticker-anim-fire',
+  romantic: 'sticker-anim-heartbeat',
+  premium: 'sticker-anim-shine',
+  party: 'sticker-anim-bounce',
+};
+
+export function getStickerAnimationClass(name: string): string {
+  if (STICKER_ANIM_OVERRIDES[name]) return STICKER_ANIM_OVERRIDES[name];
+  const sticker = PROMO_STICKERS.find((s) => s.name === name);
+  if (sticker) return CATEGORY_ANIM[sticker.category];
+  return 'sticker-anim-float';
+}
+
+/** Whether to also apply the diagonal shimmer sweep (premium / hot). */
+export function getStickerShimmer(name: string): boolean {
+  const sticker = PROMO_STICKERS.find((s) => s.name === name);
+  return sticker?.category === 'premium' || sticker?.category === 'hot';
+}
