@@ -625,6 +625,7 @@ const LiveStream = () => {
           const selfProfile = selfProfileRes.data;
 
           // ⚡ INSTANT: Optimistically increment viewer count BEFORE DB write
+          activeViewerIdsRef.current.add(currentUserId);
           setViewerCount(prev => prev + 1);
 
           // Reliable join write (no silent fail)
@@ -1362,7 +1363,7 @@ const LiveStream = () => {
           
           // Fetch viewer profile with entry effect info
           const { data: profile } = await supabase
-            .from("profiles")
+            .from("profiles_public")
             .select("display_name, avatar_url, user_level, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id")
             .eq("id", payload.new.viewer_id)
             .single();
@@ -1605,8 +1606,9 @@ const LiveStream = () => {
 
           console.log('[LiveStream] 👤 Viewer INSERT detected:', payload.new?.viewer_id);
 
-          // ⚡ INSTANT: Optimistic increment before DB fetch
-          setViewerCount(prev => prev + 1);
+          // ⚡ INSTANT: Count from an in-memory active viewer set to prevent double increments
+          activeViewerIdsRef.current.add(payload.new.viewer_id);
+          setViewerCount(activeViewerIdsRef.current.size);
           fetchRecentViewers();
 
           if (payload.new?.viewer_id) {
@@ -1626,9 +1628,11 @@ const LiveStream = () => {
 
           // ⚡ INSTANT: Optimistic count adjustment
           if (viewerLeft) {
-            setViewerCount(prev => Math.max(0, prev - 1));
+            activeViewerIdsRef.current.delete(payload.new?.viewer_id);
+            setViewerCount(activeViewerIdsRef.current.size);
           } else if (viewerReturned) {
-            setViewerCount(prev => prev + 1);
+            activeViewerIdsRef.current.add(payload.new?.viewer_id);
+            setViewerCount(activeViewerIdsRef.current.size);
           }
 
           fetchRecentViewers();
@@ -1651,8 +1655,9 @@ const LiveStream = () => {
           if (payload.old?.stream_id !== id) return;
 
           console.log('[LiveStream] 👋 Viewer DELETE detected:', payload.old?.viewer_id);
-          // ⚡ INSTANT: Optimistic decrement
-          setViewerCount(prev => Math.max(0, prev - 1));
+          // ⚡ INSTANT: Optimistic decrement from active viewer set
+          activeViewerIdsRef.current.delete(payload.old?.viewer_id);
+          setViewerCount(activeViewerIdsRef.current.size);
           fetchRecentViewers();
 
         }
