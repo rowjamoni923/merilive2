@@ -1,5 +1,6 @@
 // Profile Page - Main user profile view
 import { useState, useEffect, useMemo, useRef } from "react";
+import diamondGem3D from "@/assets/diamond-gem-3d.png";
 
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { useNavigate, useParams } from "react-router-dom";
