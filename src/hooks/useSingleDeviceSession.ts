@@ -110,13 +110,17 @@ export const useSingleDeviceSession = (userId: string | null) => {
     }
 
     try {
-      const deviceInfo = navigator.userAgent.substring(0, 100);
-      
-      await supabase.rpc('update_active_session', {
-        p_user_id: userId,
-        p_session_id: sessionId.current,
-        p_device_info: deviceInfo,
+      const deviceInfo = {
+        ua: navigator.userAgent.substring(0, 200),
+        platform: IS_NATIVE ? 'native' : 'web',
+        ts: new Date().toISOString(),
+      };
+
+      const { error: rpcError } = await supabase.rpc('update_active_session', {
+        _session_id: sessionId.current,
+        _device_info: deviceInfo as any,
       });
+      if (rpcError) throw rpcError;
 
       console.log('[SingleDevice] ✅ Session registered:', sessionId.current.substring(0, 15));
       isRegistered.current = true;
