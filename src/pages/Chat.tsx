@@ -2045,10 +2045,12 @@ const Chat = () => {
                           // Old format: [Gift: EMOJI NAME xCOUNT | +BEANS beans]
                           const { mediaUrl, emoji } = parseGiftContent(content);
                           const beansMatch = content.match(/\+(\d+)\s*beans/i);
+                          const diamondsMatch = content.match(/-(\d+)\s*diamonds/i);
                           
                           const iconUrl = mediaUrl;
                           const giftEmoji = emoji;
                           const beansAmount = beansMatch ? beansMatch[1] : null;
+                          const diamondsAmount = diamondsMatch ? diamondsMatch[1] : null;
                           
                           // Check if iconUrl is an animation file
                           const normalizedGiftUrl = iconUrl ? iconUrl.split('?')[0].toLowerCase() : '';
