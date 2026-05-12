@@ -24,6 +24,8 @@ export interface FlyingGift {
   isReceiverGift?: boolean;
   /** Optional explicit beans amount (overrides client-side calculation) */
   beansEarned?: number;
+  /** Bumped on every combo merge — drives count-up retrigger + dismiss-timer reset */
+  comboKey?: number;
 }
 
 interface FlyingGiftAnimationProps {
