@@ -28,8 +28,11 @@ import io.livekit.android.events.RoomEvent
 import io.livekit.android.events.collect
 import io.livekit.android.renderer.TextureViewRenderer
 import io.livekit.android.room.Room
+import io.livekit.android.room.participant.ConnectionQuality
 import io.livekit.android.room.participant.RemoteParticipant
+import io.livekit.android.room.participant.VideoTrackPublishOptions
 import io.livekit.android.room.track.CameraPosition
+import io.livekit.android.room.track.LocalVideoTrack
 import io.livekit.android.room.track.LocalVideoTrackOptions
 import io.livekit.android.room.track.Track
 import io.livekit.android.room.track.VideoCaptureParameter
@@ -102,6 +105,23 @@ class LiveKitPlugin : Plugin() {
     private var micPausedByFocusLoss: Boolean = false
     /** Snapshot of user's mic intent before interruption, restored on focus regain. */
     private var micIntentBeforeLoss: Boolean = true
+
+    // --- Adaptive bitrate fallback state (Step 22) -----------------
+    //
+    // Simulcast handles per-VIEWER adaptation server-side (SFU drops layers
+    // for slow viewers). This state handles per-PUBLISHER uplink adaptation:
+    // when our own ConnectionQuality drops to POOR we step the published
+    // camera ladder down (1080p→720p→540p) so the broadcast keeps flowing
+    // even on a 3G/EDGE / congested wifi uplink. On sustained EXCELLENT
+    // we step back up. Republishes through unpublishTrack + publishVideoTrack.
+    private enum class AdaptiveTier { HIGH, MEDIUM, LOW }
+    private var adaptiveEnabled: Boolean = true
+    private var currentTier: AdaptiveTier = AdaptiveTier.HIGH
+    private var baseTier: AdaptiveTier = AdaptiveTier.HIGH
+    private var baseLens: CameraPosition = CameraPosition.FRONT
+    private var consecutiveExcellent: Int = 0
+    private var lastTierChangeMs: Long = 0L
+    private var adaptiveBusy: Boolean = false
 
     // ------------------------------------------------------------
     // Public API
