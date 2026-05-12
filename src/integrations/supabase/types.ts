@@ -12293,39 +12293,54 @@ export type Database = {
       }
       user_reports: {
         Row: {
+          action_taken: string | null
           admin_notes: string | null
+          context_id: string | null
+          context_type: string | null
           created_at: string | null
           description: string | null
           evidence_urls: string[] | null
           id: string
           reason: string
+          report_category: string
           reported_id: string
+          reported_user_id: string
           reporter_id: string
           reviewed_at: string | null
           reviewed_by: string | null
           status: string | null
         }
         Insert: {
+          action_taken?: string | null
           admin_notes?: string | null
+          context_id?: string | null
+          context_type?: string | null
           created_at?: string | null
           description?: string | null
           evidence_urls?: string[] | null
           id?: string
           reason: string
+          report_category: string
           reported_id: string
+          reported_user_id: string
           reporter_id: string
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string | null
         }
         Update: {
+          action_taken?: string | null
           admin_notes?: string | null
+          context_id?: string | null
+          context_type?: string | null
           created_at?: string | null
           description?: string | null
           evidence_urls?: string[] | null
           id?: string
           reason?: string
+          report_category?: string
           reported_id?: string
+          reported_user_id?: string
           reporter_id?: string
           reviewed_at?: string | null
           reviewed_by?: string | null
@@ -14847,13 +14862,18 @@ export type Database = {
       admin_list_user_reports: {
         Args: { _admin_id: string; _limit?: number; _status?: string }
         Returns: {
+          action_taken: string | null
           admin_notes: string | null
+          context_id: string | null
+          context_type: string | null
           created_at: string | null
           description: string | null
           evidence_urls: string[] | null
           id: string
           reason: string
+          report_category: string
           reported_id: string
+          reported_user_id: string
           reporter_id: string
           reviewed_at: string | null
           reviewed_by: string | null
@@ -15072,13 +15092,18 @@ export type Database = {
           _status: string
         }
         Returns: {
+          action_taken: string | null
           admin_notes: string | null
+          context_id: string | null
+          context_type: string | null
           created_at: string | null
           description: string | null
           evidence_urls: string[] | null
           id: string
           reason: string
+          report_category: string
           reported_id: string
+          reported_user_id: string
           reporter_id: string
           reviewed_at: string | null
           reviewed_by: string | null
