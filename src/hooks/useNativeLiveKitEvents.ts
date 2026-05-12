@@ -23,8 +23,8 @@ export interface NativeLiveKitEventHandlers {
   onParticipantConnected?: (sid: string, identity: string) => void;
   /** A remote participant left. */
   onParticipantDisconnected?: (sid: string, identity: string) => void;
-  /** Step 18 — transient network reconnect lifecycle ('reconnecting' | 'reconnected'). */
-  onConnectionState?: (state: 'reconnecting' | 'reconnected') => void;
+  /** Step 18/26 — connection lifecycle: transient reconnect, hard reconnect, or permanent loss. */
+  onConnectionState?: (state: 'reconnecting' | 'reconnected' | 'degraded' | 'reconnect-failed' | 'lost') => void;
   /** Step 18 — system audio focus lost/regained (PSTN call, alarm, navigation prompt, etc.). */
   onAudioInterruption?: (state: 'loss' | 'gain', permanent: boolean) => void;
 }
