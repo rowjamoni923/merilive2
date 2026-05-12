@@ -56,6 +56,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
+import { getAdminSession } from "@/utils/adminSession";
 import { formatDistanceToNow } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { recordAdminError } from "@/utils/adminErrorLog";
@@ -258,7 +259,7 @@ const AdminNoticeBroadcast = () => {
 
     setSending(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
       
       let expiresAt = null;
       if (expiresIn) {

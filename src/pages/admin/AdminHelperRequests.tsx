@@ -23,6 +23,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
+import { getAdminSession } from "@/utils/adminSession";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -160,7 +161,7 @@ const AdminHelperRequests = () => {
     if (!guardStart(`approve-${selectedRequest.id}`)) return;
     setProcessing(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
       
       if (requestType === 'upgrade') {
         const req = selectedRequest as UpgradeRequest;
@@ -232,7 +233,7 @@ const AdminHelperRequests = () => {
     if (!guardStart(`reject-${selectedRequest.id}`)) return;
     setProcessing(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
       const table = requestType === 'upgrade' ? 'helper_upgrade_requests' : 'helper_topup_requests';
       
       await supabase

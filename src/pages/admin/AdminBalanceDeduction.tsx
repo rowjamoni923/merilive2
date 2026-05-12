@@ -32,6 +32,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
+import { getAdminSession } from "@/utils/adminSession";
 import { toast } from "sonner";
 import { adminStyles, gradients, iconBgColors } from "@/styles/adminStyles";
 import { motion, AnimatePresence } from "framer-motion";
@@ -210,7 +211,7 @@ export default function AdminBalanceDeduction() {
         .eq('id', alert.userId);
       
       // Log the admin action
-      const { data: { user } } = await supabase.auth.getUser();
+      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
       await supabase.from('admin_logs').insert({
         admin_id: user?.id,
         action_type: 'user_blocked',
@@ -655,7 +656,7 @@ export default function AdminBalanceDeduction() {
       }
 
       // Log the admin action
-      const { data: { user } } = await supabase.auth.getUser();
+      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
       await supabase.from('admin_logs').insert({
         admin_id: user?.id,
         action_type: 'balance_restore',
@@ -816,7 +817,7 @@ export default function AdminBalanceDeduction() {
       }
 
       // Log the admin action
-      const { data: { user } } = await supabase.auth.getUser();
+      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
       await supabase.from('admin_logs').insert({
         admin_id: user?.id,
         action_type: 'balance_deduction',
@@ -887,7 +888,7 @@ export default function AdminBalanceDeduction() {
       }
 
       // Log the admin action
-      const { data: { user } } = await supabase.auth.getUser();
+      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
       await supabase.from('admin_logs').insert({
         admin_id: user?.id,
         action_type: 'user_blocked',

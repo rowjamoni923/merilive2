@@ -28,6 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
+import { getAdminSession } from "@/utils/adminSession";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import {
@@ -160,7 +161,7 @@ export default function AdminErrorLogs() {
 
   const handleResolve = async (errorId: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
       
       await supabase
         .from('system_error_logs')

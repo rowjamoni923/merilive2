@@ -26,6 +26,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
+import { getAdminSession } from "@/utils/adminSession";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -261,7 +262,7 @@ const AdminHelperManagement = () => {
     if (!guardStart(`payroll-approve-${helper.id}`)) return;
     setProcessingIds(prev => new Set(prev).add(helper.id));
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
       
       const { error } = await supabase
         .from('topup_helpers')
@@ -329,7 +330,7 @@ const AdminHelperManagement = () => {
     if (!guardStart(`app-approve-${app.id}`)) return;
     setProcessingIds(prev => new Set(prev).add(app.id));
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
 
       const { error: updateError } = await supabase
         .from('helper_applications')
@@ -400,7 +401,7 @@ const AdminHelperManagement = () => {
     if (!guardStart(`app-reject-${app.id}`)) return;
     setProcessingIds(prev => new Set(prev).add(app.id));
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
 
       await supabase
         .from('helper_applications')

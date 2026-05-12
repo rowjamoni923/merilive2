@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
+import { getAdminSession } from "@/utils/adminSession";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -73,7 +74,7 @@ const AdminHostConversion = () => {
   const handleConvert = async (req: ConversionRequest, toHost: boolean) => {
     setProcessing(req.id);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
 
       // Convert user gender and host status
       const { error: rpcError } = await supabase.rpc('admin_update_user_gender', {
@@ -114,7 +115,7 @@ const AdminHostConversion = () => {
   const handleReject = async (req: ConversionRequest) => {
     setProcessing(req.id);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
 
       await supabase
         .from('host_conversion_requests')

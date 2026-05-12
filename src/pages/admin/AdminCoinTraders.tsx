@@ -25,6 +25,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
+import { getAdminSession } from "@/utils/adminSession";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -129,7 +130,7 @@ const AdminCoinTraders = () => {
     if (!selectedUser) return;
     setProcessing(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
       const { error } = await supabase.from('topup_helpers').insert({
         user_id: selectedUser.id, is_active: true, is_verified: true,
         approved_at: new Date().toISOString(), approved_by: user?.id
@@ -208,7 +209,7 @@ const AdminCoinTraders = () => {
 
     setIsTransferring(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
       
       // Update helper's wallet balance
       const newBalance = (selectedHelper.wallet_balance || 0) + amount;
