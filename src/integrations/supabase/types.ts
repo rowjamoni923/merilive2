@@ -15966,6 +15966,10 @@ export type Database = {
           user_level: number
         }[]
       }
+      get_google_play_product_info: {
+        Args: { _product_id: string }
+        Returns: Json
+      }
       get_host_agency_request: {
         Args: { _host_id: string }
         Returns: {
