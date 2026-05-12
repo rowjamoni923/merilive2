@@ -1102,6 +1102,11 @@ const Level5HelperDashboard = () => {
       toast({ title: "Error", description: "Upload payment screenshot", variant: "destructive" });
       return;
     }
+    const trimmedTx = helperTransactionId.trim();
+    if (trimmedTx.length < 4) {
+      toast({ title: "Transaction ID required", description: "Enter the payment Transaction ID (min 4 characters)", variant: "destructive" });
+      return;
+    }
 
     setProcessing(true);
     try {
@@ -1135,13 +1140,14 @@ const Level5HelperDashboard = () => {
         .from('payment-proofs')
         .getPublicUrl(fileName);
 
-      const safeNote = helperNotes.trim().slice(0, 500) || null;
+      const safeNotes = helperNotes.trim().slice(0, 500) || null;
 
       const { data: processResult, error: processError } = await supabase.rpc('helper_process_agency_withdrawal' as any, {
         _withdrawal_id: selectedAgencyWithdrawal.id,
         _helper_id: helperData.id,
         _screenshot_url: publicUrl,
-        _transaction_note: safeNote,
+        _transaction_id: trimmedTx,
+        _notes: safeNotes,
       });
 
       if (processError) throw processError;
@@ -1171,6 +1177,7 @@ const Level5HelperDashboard = () => {
       setSelectedAgencyWithdrawal(null);
       setScreenshotFile(null);
       setHelperNotes("");
+      setHelperTransactionId("");
       loadAgencyWithdrawals();
       loadCompletedHistory();
     } catch (error: any) {
