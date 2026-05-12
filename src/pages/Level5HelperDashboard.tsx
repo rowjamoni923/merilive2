@@ -3532,13 +3532,27 @@ const Level5HelperDashboard = () => {
                     </div>
                   </div>
 
-                  {/* Transaction ID / Notes */}
+                  {/* Transaction ID (required) */}
                   <div>
-                    <Label className="text-slate-300">Transaction ID / Notes</Label>
+                    <Label className="text-slate-300">Transaction ID *</Label>
+                    <Input
+                      value={helperTransactionId}
+                      onChange={(e) => setHelperTransactionId(e.target.value)}
+                      placeholder="e.g. TRX123456789"
+                      maxLength={120}
+                      className="bg-slate-800 border-slate-700 text-white mt-1 font-mono"
+                    />
+                    <p className="text-[10px] text-slate-500 mt-1">Required — paste the payment reference / TX ID (min 4 characters)</p>
+                  </div>
+
+                  {/* Notes (optional) */}
+                  <div>
+                    <Label className="text-slate-300">Notes (optional)</Label>
                     <Textarea
                       value={helperNotes}
                       onChange={(e) => setHelperNotes(e.target.value)}
-                      placeholder="Enter transaction ID or additional info..."
+                      placeholder="Any additional info for admin..."
+                      maxLength={500}
                       className="bg-slate-800 border-slate-700 text-white mt-1"
                       rows={2}
                     />
@@ -3546,7 +3560,7 @@ const Level5HelperDashboard = () => {
 
                   <Button 
                     onClick={handleProcessAgencyWithdrawal}
-                    disabled={processing || !screenshotFile}
+                    disabled={processing || !screenshotFile || helperTransactionId.trim().length < 4}
                     className="w-full bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600"
                   >
                     {processing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
