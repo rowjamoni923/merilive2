@@ -440,6 +440,28 @@ export interface NativeLiveKitPlugin {
   /** Last completed result (cached per-process). */
   getLastQualityProbe(): Promise<{ hasResult: boolean; result?: QualityProbeResult }>;
 
+  // --- Screen-share publishing (Step 34) ----------------------
+  /**
+   * Whether the device + Android version supports MediaProjection
+   * screen capture. Almost always true on Android 5.0+; some work-
+   * profile / TV form factors decline.
+   */
+  isScreenShareSupported(): Promise<{ supported: boolean; active: boolean }>;
+  /** Current sharing state. */
+  isScreenSharing(): Promise<{ active: boolean; startedAt: number; hasRoom: boolean }>;
+  /**
+   * Trigger the system screen-capture permission prompt and, on
+   * approval, publish the device display as a second video track on
+   * the active room (alongside the camera). The room MUST already be
+   * connected — call `connect()` first.
+   *
+   * Resolves with `{ active:true }` once the SFU is publishing. Rejects
+   * with `permission-denied` if the user dismisses the prompt.
+   */
+  startScreenShare(): Promise<{ active: boolean; startedAt?: number; alreadyOn?: boolean }>;
+  /** Stop the screen-share track and tear down the foreground service. */
+  stopScreenShare(): Promise<{ active: boolean; alreadyOff?: boolean }>;
+
   addListener(eventName: 'participant-connected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'participant-disconnected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'track-subscribed', cb: (e: TrackEvent) => void): Promise<PluginListenerHandle>;
@@ -482,6 +504,11 @@ export interface NativeLiveKitPlugin {
   addListener(
     eventName: 'quality-probe-progress',
     cb: (e: QualityProbeProgressEvent) => void,
+  ): Promise<PluginListenerHandle>;
+  /** Step 34 — screen-share lifecycle ("starting" → "started" → "stopped", or "denied" / "error"). */
+  addListener(
+    eventName: 'screen-share-state',
+    cb: (e: { state: 'starting' | 'started' | 'stopped' | 'denied' | 'error'; active: boolean; startedAt: number; error?: string }) => void,
   ): Promise<PluginListenerHandle>;
 }
 
