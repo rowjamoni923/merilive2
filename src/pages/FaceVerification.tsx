@@ -900,6 +900,14 @@ const FaceVerification = () => {
         
         if (passed) {
           setScanningStatus('pass');
+          // Capture this angle's still frame for AWS Rekognition (front/left/right only)
+          if (instruction.id === 'center' || instruction.id === 'left' || instruction.id === 'right') {
+            const angleKey = instruction.id as 'center' | 'left' | 'right';
+            if (!capturedAnglesRef.current[angleKey]) {
+              const stillFrame = captureFrameFromLiveVideo(videoEl, 720);
+              if (stillFrame) capturedAnglesRef.current[angleKey] = stillFrame;
+            }
+          }
           const newCompleted = [...instructionsCompletedRef.current];
           newCompleted[instrIdx] = true;
           instructionsCompletedRef.current = newCompleted;
