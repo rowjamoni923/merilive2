@@ -94,6 +94,7 @@ const AdminTopupPaymentMethods = () => {
       payment_number: '',
       payment_instructions: '',
       icon_url: '',
+      country_codes: '',
     });
   };
 
