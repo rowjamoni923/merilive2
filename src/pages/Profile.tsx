@@ -1,5 +1,6 @@
 // Profile Page - Main user profile view
 import { useState, useEffect, useMemo, useRef } from "react";
+import diamondGem3D from "@/assets/diamond-gem-3d.png";
 
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { useNavigate, useParams } from "react-router-dom";
@@ -2594,8 +2595,18 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                             </div>
                           </div>
                           <div className="text-right flex-shrink-0">
-                            <p className={`text-base font-bold ${isSent ? 'text-rose-400' : 'text-emerald-400'}`}>
-                              {isSent ? '-' : '+'}{tx.amount.toLocaleString()} {tx.currency === 'bean' ? '🫘' : '💎'}
+                            <p className={`text-base font-bold inline-flex items-center gap-1 justify-end ${isSent ? 'text-rose-400' : 'text-emerald-400'}`}>
+                              <span>{isSent ? '−' : '+'}{tx.amount.toLocaleString()}</span>
+                              {tx.currency === 'bean' ? (
+                                <span className="text-base leading-none">🫘</span>
+                              ) : (
+                                <img
+                                  src={diamondGem3D}
+                                  alt="diamond"
+                                  className="w-4 h-4 object-contain"
+                                  style={{ background: 'transparent' }}
+                                />
+                              )}
                             </p>
                             <p className={`text-[10px] capitalize ${statusColor}`}>{tx.status}</p>
                           </div>

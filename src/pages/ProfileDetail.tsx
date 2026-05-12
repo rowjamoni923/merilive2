@@ -67,7 +67,7 @@ import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import FramedAvatarWithPrivileges from "@/components/common/FramedAvatarWithPrivileges";
 // UNIFIED GIFTING - SINGLE LINK for all sections (Live, Party, Call, Chat, Profile)
 // Change @/features/shared/gifting = Change everywhere automatically
-import { GiftPanel, GiftData } from "@/features/shared/gifting";
+import { GiftPanel, GiftData, FlyingGiftAnimation, useFlyingGifts } from "@/features/shared/gifting";
 import { sendGift } from "@/features/shared/gifting/GiftingService";
 import { ReportUserDialog } from "@/components/report/ReportUserDialog";
 
@@ -200,6 +200,7 @@ const ProfileDetail = () => {
   const [showCallConfirmModal, setShowCallConfirmModal] = useState(false);
   const [currentUserCoins, setCurrentUserCoins] = useState(0);
   const [showGiftPanel, setShowGiftPanel] = useState(false);
+  const { gifts: flyingGifts, addGift: addFlyingGift, removeGift: removeFlyingGift } = useFlyingGifts();
   
   // Host availability toggle
   const [hostAvailability, setHostAvailability] = useState<string>('online');
@@ -1656,6 +1657,21 @@ const ProfileDetail = () => {
           const { updateCachedBalance, getCachedBalance } = await import("@/hooks/useUserBalance");
           updateCachedBalance(getCachedBalance() - totalCost);
 
+          // Trigger LOCAL full-screen SVGA animation INSTANTLY for the sender
+          addFlyingGift({
+            senderName: 'You',
+            receiverName: profile?.display_name || 'User',
+            giftName: gift.name,
+            giftIcon: '🎁',
+            giftImageUrl: gift.icon_url || undefined,
+            animationUrl: gift.animation_url || gift.icon_url || undefined,
+            soundUrl: (gift as any).sound_url || undefined,
+            giftColor: 'from-pink-500 to-purple-500',
+            count,
+            coins: gift.coins,
+            isOwnGift: true,
+          });
+
           const result = await sendGift({
             giftId: gift.id,
             senderId: currentUser.id,
@@ -1680,6 +1696,17 @@ const ProfileDetail = () => {
         }}
         userCoins={currentUserCoins}
       />
+
+      {/* Full-screen SVGA Gift Animations (own gift instant feedback) */}
+      <AnimatePresence>
+        {flyingGifts.map(g => (
+          <FlyingGiftAnimation
+            key={g.id}
+            gift={g}
+            onComplete={() => removeFlyingGift(g.id)}
+          />
+        ))}
+      </AnimatePresence>
       </div>
     </div>
   );
