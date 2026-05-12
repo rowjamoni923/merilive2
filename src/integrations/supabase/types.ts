@@ -1076,6 +1076,7 @@ export type Database = {
           agency_name: string | null
           amount: number
           call_earnings: number | null
+          commission_processed_at: string | null
           commission_rate: number | null
           created_at: string
           gift_earnings: number | null
@@ -1095,6 +1096,7 @@ export type Database = {
           agency_name?: string | null
           amount?: number
           call_earnings?: number | null
+          commission_processed_at?: string | null
           commission_rate?: number | null
           created_at?: string
           gift_earnings?: number | null
@@ -1114,6 +1116,7 @@ export type Database = {
           agency_name?: string | null
           amount?: number
           call_earnings?: number | null
+          commission_processed_at?: string | null
           commission_rate?: number | null
           created_at?: string
           gift_earnings?: number | null
@@ -16190,6 +16193,10 @@ export type Database = {
           p_round_id: string
           p_user_id: string
         }
+        Returns: Json
+      }
+      process_agency_commission_distribution: {
+        Args: { _since?: string }
         Returns: Json
       }
       process_contact_violation: {
