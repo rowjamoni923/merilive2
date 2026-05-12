@@ -1874,7 +1874,11 @@ const HelperDashboard = () => {
                             : "bg-slate-800 border-slate-700 text-slate-300 hover:border-purple-500"
                         )}
                       >
-                        <span className="text-lg">{getMethodIcon(method.method_type)}</span>
+                        {method.logo_url ? (
+                          <img src={method.logo_url} alt={method.method_name} className="w-6 h-6 rounded object-contain bg-white/10" loading="lazy" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                        ) : (
+                          <span className="text-lg">{getMethodIcon(method.method_type)}</span>
+                        )}
                         <span>{method.method_name}</span>
                       </button>
                     );
