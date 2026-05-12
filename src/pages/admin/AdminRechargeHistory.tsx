@@ -529,6 +529,13 @@ const AdminRechargeHistory = () => {
             <p className="text-xs text-muted-foreground">Total Revenue</p>
           </CardContent>
         </Card>
+        <Card className="bg-gradient-to-br from-emerald-900/40 to-emerald-700/20 border-emerald-500/40 cursor-pointer hover:border-emerald-400 transition"
+              onClick={() => { setSourceFilter('google_play'); setPage(0); }}>
+          <CardContent className="p-4 text-center">
+            <p className="text-2xl font-bold text-emerald-300">📱 {stats.playStoreCount}</p>
+            <p className="text-xs text-emerald-300/80">Play Store · ${stats.playStoreUsd.toFixed(2)}</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filters */}
