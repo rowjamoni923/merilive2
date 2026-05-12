@@ -28,6 +28,7 @@ interface PaymentMethod {
   icon_url: string | null;
   display_order: number | null;
   is_active: boolean | null;
+  country_codes: string[] | null;
 }
 
 const METHOD_TYPES = [
