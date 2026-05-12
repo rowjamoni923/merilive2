@@ -124,7 +124,42 @@ export function useAgoraCall(
     const init = async () => {
       try {
         console.log('[LiveKitCall] Initializing for call:', callId);
-        
+
+        // 🛰️ Native Android publish path. Web/iOS gate=false → falls
+        // through to web livekit-client Room flow below.
+        if (shouldUseNativeLiveKit({ feature: 'private-call' })) {
+          try {
+            warmLiveKitToken(roomName, 'call').catch(() => {});
+            const { token, url } = await getLiveKitToken(roomName, 'call');
+            if (deadRef.current) return;
+
+            await nativeLiveKitController.connectAndPublish({
+              url,
+              token,
+              video: true,
+              audio: true,
+              lens: 'front',
+              resolution: '1080p',
+              attachLocal: true,
+            });
+
+            usingNativeRef.current = true;
+            setState(p => ({
+              ...p,
+              isConnected: true,
+              connectionState: 'connected',
+              isAudioEnabled: true,
+              isVideoEnabled: true,
+            }));
+            console.log('[LiveKitCall/Native] ✅ Connected');
+            return;
+          } catch (nativeErr) {
+            console.error('[LiveKitCall/Native] init failed, falling back to web:', nativeErr);
+            usingNativeRef.current = false;
+            // Fall through to web path.
+          }
+        }
+
         const room = new Room({
           // CRYSTAL CLEAR: No adaptive downgrade for calls
           adaptiveStream: false,
