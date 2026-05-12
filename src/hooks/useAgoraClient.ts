@@ -732,6 +732,7 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
       if (usingNativeRef.current) {
         try { await nativeLiveKitController.disconnect(); } catch { /* noop */ }
         usingNativeRef.current = false;
+        setNativeActive(false);
       }
 
       if (roomRef.current) {
