@@ -1132,7 +1132,7 @@ const Chat = () => {
     if (existing) {
       const { data: profile } = await supabase
         .from('profiles_public')
-        .select('id, display_name, avatar_url, is_online, is_verified, is_host, gender, call_rate_per_minute')
+        .select('id, display_name, avatar_url, is_online, is_verified, is_host, gender, call_rate_per_minute, user_level, country_flag, country_name, city, last_seen_at')
         .eq('id', otherUserId)
         .maybeSingle();
 
@@ -1160,7 +1160,7 @@ const Chat = () => {
 
       const { data: profile } = await supabase
         .from('profiles_public')
-        .select('id, display_name, avatar_url, is_online, is_verified, is_host, gender, call_rate_per_minute')
+        .select('id, display_name, avatar_url, is_online, is_verified, is_host, gender, call_rate_per_minute, user_level, country_flag, country_name, city, last_seen_at')
         .eq('id', otherUserId)
         .maybeSingle();
 
@@ -1332,7 +1332,7 @@ const Chat = () => {
     const senderIds = [...new Set(data?.map(m => m.sender_id) || [])];
     const { data: profiles } = await supabase
       .from('profiles_public')
-      .select('id, display_name, avatar_url')
+      .select('id, display_name, avatar_url, user_level')
       .in('id', senderIds);
 
     const profilesMap = new Map(profiles?.map(p => [p.id, p]) || []);
@@ -2010,7 +2010,7 @@ const Chat = () => {
                 : (isGroup ? msg.sender?.avatar_url : selectedConversation?.other_user?.avatar_url);
               const senderLevel = isMine
                 ? (myProfile?.user_level || 1)
-                : (isGroup ? 1 : selectedConversation?.other_user?.user_level || 1);
+                : (isGroup ? (msg.sender?.user_level || 1) : selectedConversation?.other_user?.user_level || 1);
               const senderUserId = isMine ? currentUserId : otherUserId;
               
               return (
