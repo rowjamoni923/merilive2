@@ -921,27 +921,39 @@ export function UnifiedPartyRoom({
     const loadMessages = async () => {
       const { data } = await supabase
         .from('party_room_messages')
-        .select('id, sender_id, content, message_type, created_at, profiles:sender_id(display_name, user_level, avatar_url, is_host)')
+        .select('id, sender_id, content, message_type, created_at')
         .eq('room_id', roomId)
         .order('created_at', { ascending: true })
         .limit(100);
       
       if (data) {
+        const senderIds = [...new Set(data.map((m: any) => m.sender_id).filter(Boolean))];
+        const { data: publicProfiles } = senderIds.length
+          ? await supabase
+              .from('profiles_public')
+              .select('id, display_name, user_level, avatar_url, is_host')
+              .in('id', senderIds)
+          : { data: [] as any[] };
+        const profileMap = new Map((publicProfiles || []).map((profile: any) => [profile.id, profile]));
+
         // Load directly to unified premiumMessages - NO duplicate chatMessages
-        const unifiedMsgs: RoomChatMessage[] = data.map((m: any) => ({
-          id: m.id,
-          userId: m.sender_id,
-          user: m.profiles?.display_name || 'User',
-          initial: (m.profiles?.display_name || 'U').charAt(0).toUpperCase(),
-          message: m.content,
-          color: m.message_type === 'gift' ? 'pink' : m.message_type === 'join' ? 'emerald' : 'white',
-          userLevel: m.profiles?.user_level || 1,
-          userAvatar: m.profiles?.avatar_url,
-          isHost: m.profiles?.is_host || (m.sender_id === hostInfo?.id),
-          isNewUser: false,
-          type: m.message_type || 'text',
-          bubbleUrl: null,
-        }));
+        const unifiedMsgs: RoomChatMessage[] = data.map((m: any) => {
+          const profile = profileMap.get(m.sender_id);
+          return {
+            id: m.id,
+            userId: m.sender_id,
+            user: profile?.display_name || 'User',
+            initial: (profile?.display_name || 'U').charAt(0).toUpperCase(),
+            message: m.content,
+            color: m.message_type === 'gift' ? 'pink' : m.message_type === 'join' ? 'emerald' : 'white',
+            userLevel: profile?.user_level || 1,
+            userAvatar: profile?.avatar_url,
+            isHost: profile?.is_host || (m.sender_id === hostInfo?.id),
+            isNewUser: false,
+            type: m.message_type || 'text',
+            bubbleUrl: null,
+          };
+        });
         setPremiumMessages(unifiedMsgs);
         unifiedMsgs.forEach(m => processedMsgIdsRef.current.add(m.id));
 
