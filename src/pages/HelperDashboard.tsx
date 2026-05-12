@@ -328,8 +328,10 @@ const HelperDashboard = () => {
           
           if (methods) {
             const normalized = (methods as any[]).map(normalizePaymentMethod);
-            setPaymentMethods(normalized);
-            console.log('[HelperDashboard] Payment methods refreshed:', normalized.length);
+            const cc = (helperData as any)?.country_code || null;
+            const filtered = filterMethodsByCountry(normalized, cc);
+            setPaymentMethods(filtered);
+            console.log('[HelperDashboard] Payment methods refreshed:', filtered.length, 'country:', cc);
           }
         }
       )
@@ -340,7 +342,7 @@ const HelperDashboard = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [helperData?.id]);
+  }, [helperData?.id, helperData?.country_code]);
 
   // Separate fetch function that accepts helper_id directly - fetch ALL requests including approved
   const fetchPendingRequests = async (helperId: string) => {
