@@ -318,6 +318,8 @@ class LiveKitPlugin : Plugin() {
                         data.put("reason", event.reason.name)
                         event.error?.let { data.put("error", it.message ?: it.javaClass.simpleName) }
                         notifyListeners("disconnected", data)
+                        // Server-initiated / network drop — release the screen-on flag too.
+                        setKeepScreenOn(false)
                     }
                     is RoomEvent.ConnectionQualityChanged -> {
                         val data = JSObject()
