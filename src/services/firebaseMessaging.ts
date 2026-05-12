@@ -265,6 +265,10 @@ export async function setupForegroundMessageHandler(
   onFCMMessage(msg, (payload) => {
     console.log('[FCM] Foreground message:', payload);
     onMessage(payload);
+    if (payload.data?.type === 'gift' || payload.data?.type === 'gift_received' || payload.data?.type === 'gift_sent') {
+      console.log('[FCM] Gift foreground notification suppressed; handled by in-room gift feed');
+      return;
+    }
     
     // Show browser notification for foreground messages
     if (payload.notification) {
