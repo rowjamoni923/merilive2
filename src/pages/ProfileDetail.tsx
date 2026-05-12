@@ -67,8 +67,9 @@ import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import FramedAvatarWithPrivileges from "@/components/common/FramedAvatarWithPrivileges";
 // UNIFIED GIFTING - SINGLE LINK for all sections (Live, Party, Call, Chat, Profile)
 // Change @/features/shared/gifting = Change everywhere automatically
-import { GiftPanel, GiftData } from "@/features/shared/gifting";
+import { GiftPanel, GiftData, FlyingGiftAnimation, useFlyingGifts } from "@/features/shared/gifting";
 import { sendGift } from "@/features/shared/gifting/GiftingService";
+import { AnimatePresence } from "framer-motion";
 import { ReportUserDialog } from "@/components/report/ReportUserDialog";
 
 interface ProfileData {
