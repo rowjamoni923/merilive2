@@ -2595,7 +2595,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                           </div>
                           <div className="text-right flex-shrink-0">
                             <p className={`text-base font-bold ${isSent ? 'text-rose-400' : 'text-emerald-400'}`}>
-                              {isSent ? '-' : '+'}{tx.amount.toLocaleString()} 💎
+                              {isSent ? '-' : '+'}{tx.amount.toLocaleString()} {tx.currency === 'bean' ? '🫘' : '💎'}
                             </p>
                             <p className={`text-[10px] capitalize ${statusColor}`}>{tx.status}</p>
                           </div>
