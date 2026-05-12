@@ -1027,15 +1027,11 @@ const LiveStream = () => {
           isReceiverGift: isHost,
         });
         
-        // 2. INSTANT beans counter update for host
-        if (isHost) {
-          const giftAmount = Number(data.receiverBeans ?? (data.giftCoins || 0) * (data.count || 1));
-          if (data.giftKey) markOptimisticGiftCount(data.giftKey, giftAmount);
-          setTotalBeans(prev => prev + giftAmount);
-          
-          // Track first gift received for task progress
-          trackTaskProgress('first_gift');
-        }
+        // 2. INSTANT beans counter update for everyone in the room
+        const giftAmount = Number(data.receiverBeans ?? (data.giftCoins || 0) * (data.count || 1));
+        if (data.giftKey) markOptimisticGiftCount(data.giftKey, giftAmount);
+        setTotalBeans(prev => prev + giftAmount);
+        if (isHost) trackTaskProgress('first_gift');
         
         // 3. INSTANT chat message
         const giftChatMessage = `[GIFT:${data.giftIconUrl || ''}] sent ${data.giftName} x${data.count || 1}`;
@@ -3426,11 +3422,8 @@ const LiveStream = () => {
               timestamp: Date.now(),
             }
           });
-
-          if (currentUserId === hostInfo.id) {
-            markOptimisticGiftCount(giftKey, optimisticReceiverBeans);
-            setTotalBeans(prev => prev + optimisticReceiverBeans);
-          }
+          markOptimisticGiftCount(giftKey, optimisticReceiverBeans);
+          setTotalBeans(prev => prev + optimisticReceiverBeans);
           
           // ========== BACKGROUND PROCESSING (fire-and-forget) ==========
           (async () => {
