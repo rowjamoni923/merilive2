@@ -21,6 +21,10 @@ export interface NativeJoinOptions {
   resolution?: Resolution;
   /** Show local preview surface immediately after connect. Default true for hosts. */
   attachLocal?: boolean;
+  /** Step 14 — shown in the ongoing-call foreground notification. */
+  callerName?: string;
+  /** Step 14 — e.g. "Video Call", "Voice Call", "Live broadcast". */
+  callType?: string;
 }
 
 class NativeLiveKitController {
@@ -48,6 +52,8 @@ class NativeLiveKitController {
         audio: opts.audio ?? true,
         lens: opts.lens ?? 'front',
         resolution: opts.resolution ?? '1080p',
+        callerName: opts.callerName,
+        callType: opts.callType,
       };
 
       const res = await NativeLiveKit.connect(payload);

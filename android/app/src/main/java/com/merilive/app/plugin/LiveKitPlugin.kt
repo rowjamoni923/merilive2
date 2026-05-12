@@ -2,10 +2,12 @@ package com.merilive.app.plugin
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.os.Build
 import android.os.PowerManager
+import com.merilive.app.service.CallForegroundService
 import android.util.Log
 import android.view.ViewGroup
 import android.view.WindowManager
@@ -123,6 +125,9 @@ class LiveKitPlugin : Plugin() {
         val enableAudio = call.getBoolean("audio", true) ?: true
         val lens = call.getString("lens", "front") ?: "front"
         val resolution = call.getString("resolution", "1080p") ?: "1080p"
+        val callerName = call.getString("callerName", "") ?: ""
+        val callType = call.getString("callType", if (enableVideo) "Video Call" else "Voice Call")
+            ?: if (enableVideo) "Video Call" else "Voice Call"
 
         scope.launch {
             try {
@@ -174,6 +179,10 @@ class LiveKitPlugin : Plugin() {
                 setProximityMonitoringInternal(!enableVideo)
                 registerAudioDeviceListener()
 
+                // Step 14 — promote process to a foreground service so Android
+                // 14+ keeps mic/camera alive when the user backgrounds the app.
+                startCallForegroundService(callerName, callType)
+
                 val ret = JSObject()
                 ret.put("connected", true)
                 ret.put("sid", newRoom.localParticipant.sid.value)
@@ -199,6 +208,7 @@ class LiveKitPlugin : Plugin() {
                 setProximityMonitoringInternal(false)
                 applyAudioMode(false)
                 unregisterAudioDeviceListener()
+                stopCallForegroundService()
                 call.resolve()
             } catch (e: Exception) {
                 call.reject("disconnect failed: ${e.message}")
@@ -507,7 +517,48 @@ class LiveKitPlugin : Plugin() {
             setProximityMonitoringInternal(false)
             applyAudioMode(false)
             unregisterAudioDeviceListener()
+            stopCallForegroundService()
         } catch (_: Exception) {}
+    }
+
+    // ------------------------------------------------------------
+    // Foreground Service lifecycle (Step 14)
+    //
+    // Android 14+ kills mic / camera the moment the app is backgrounded
+    // unless a foreground service of type microphone|camera|phoneCall is
+    // running. We start CallForegroundService on connect() and stop it on
+    // disconnect()/destroy so Live + Private Call survive backgrounding,
+    // exactly like WhatsApp / Messenger.
+    // ------------------------------------------------------------
+
+    private fun startCallForegroundService(callerName: String, callType: String) {
+        val ctx = context ?: return
+        try {
+            val intent = Intent(ctx, CallForegroundService::class.java).apply {
+                action = CallForegroundService.ACTION_START
+                putExtra("caller_name", callerName.ifBlank { "Live session" })
+                putExtra("call_type", callType.ifBlank { "Call" })
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                ctx.startForegroundService(intent)
+            } else {
+                ctx.startService(intent)
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "startCallForegroundService failed: ${e.message}")
+        }
+    }
+
+    private fun stopCallForegroundService() {
+        val ctx = context ?: return
+        try {
+            val intent = Intent(ctx, CallForegroundService::class.java).apply {
+                action = CallForegroundService.ACTION_STOP
+            }
+            ctx.startService(intent)
+        } catch (e: Exception) {
+            Log.w(TAG, "stopCallForegroundService failed: ${e.message}")
+        }
     }
 
     /**
