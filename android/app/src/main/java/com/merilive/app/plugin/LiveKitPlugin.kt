@@ -3,6 +3,7 @@ package com.merilive.app.plugin
 import android.Manifest
 import android.util.Log
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.widget.FrameLayout
 import com.getcapacitor.JSObject
 import com.getcapacitor.PermissionState
@@ -151,6 +152,9 @@ class LiveKitPlugin : Plugin() {
                 newRoom.localParticipant.setMicrophoneEnabled(enableAudio)
                 newRoom.localParticipant.setCameraEnabled(enableVideo)
 
+                // Keep screen on for the duration of the live/call session.
+                setKeepScreenOn(true)
+
                 val ret = JSObject()
                 ret.put("connected", true)
                 ret.put("sid", newRoom.localParticipant.sid.value)
@@ -172,6 +176,7 @@ class LiveKitPlugin : Plugin() {
                 room?.disconnect()
                 room = null
                 activity?.runOnUiThread { detachAllRenderersInternal() }
+                setKeepScreenOn(false)
                 call.resolve()
             } catch (e: Exception) {
                 call.reject("disconnect failed: ${e.message}")
@@ -369,6 +374,27 @@ class LiveKitPlugin : Plugin() {
         try {
             eventJob?.cancel()
             scope.launch { room?.disconnect() }
+            setKeepScreenOn(false)
         } catch (_: Exception) {}
+    }
+
+    /**
+     * Toggles FLAG_KEEP_SCREEN_ON on the host Activity window so Android
+     * does not dim or lock the screen while a live broadcast / private
+     * call session is active. Always dispatched to the UI thread.
+     */
+    private fun setKeepScreenOn(on: Boolean) {
+        val act = activity ?: return
+        act.runOnUiThread {
+            try {
+                if (on) {
+                    act.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                } else {
+                    act.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "setKeepScreenOn($on) failed: ${e.message}")
+            }
+        }
     }
 }
