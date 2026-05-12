@@ -3527,5 +3527,137 @@ class LiveKitPlugin : Plugin() {
         ret.put("trackedParticipants", participantPositions.size)
         call.resolve(ret)
     }
+
+    // ============================================================
+    // Step 36 — Virtual background / blur (MediaPipe Selfie Seg).
+    //
+    // The pixel pipeline lives in VirtualBackgroundProcessor (impl
+    // of org.webrtc.VideoProcessor). We hand it to LiveKit via
+    // `LocalVideoTrack.setVideoProcessor(...)` which the SDK forwards
+    // to the underlying VideoSource — every captured frame is then
+    // composited (person stays sharp, background blurred or replaced)
+    // before reaching the SFU.
+    //
+    // Modes:
+    //   • "none"  — pass-through (zero overhead)
+    //   • "blur"  — RenderScript Gaussian blur (radius 1-25, default 18)
+    //   • "image" — replace background with a user-supplied bitmap
+    //
+    // Lifecycle: the processor is lazily created on the first
+    // `setVirtualBackground()` call and survives camera switches.
+    // It is released in disconnect() / handleOnDestroy().
+    // ============================================================
+
+    private var virtualBackgroundProcessor:
+        com.merilive.app.plugin.video.VirtualBackgroundProcessor? = null
+
+    private fun ensureBackgroundProcessor():
+        com.merilive.app.plugin.video.VirtualBackgroundProcessor {
+        virtualBackgroundProcessor?.let { return it }
+        val proc = com.merilive.app.plugin.video.VirtualBackgroundProcessor(context)
+        virtualBackgroundProcessor = proc
+        return proc
+    }
+
+    private fun attachBackgroundProcessor() {
+        val proc = virtualBackgroundProcessor ?: return
+        val track = try {
+            room?.localParticipant?.getTrackPublication(Track.Source.CAMERA)?.track
+                as? io.livekit.android.room.track.LocalVideoTrack
+        } catch (_: Exception) { null } ?: return
+        // LiveKit Android 2.x exposes LocalVideoTrack.addRenderer/removeRenderer
+        // and forwards a VideoProcessor through the underlying VideoSource.
+        try {
+            val m = track.javaClass.methods.firstOrNull {
+                it.name == "setVideoProcessor" && it.parameterTypes.size == 1
+            }
+            if (m != null) {
+                m.invoke(track, proc)
+            } else {
+                Log.w(TAG, "LocalVideoTrack.setVideoProcessor not found — virtual bg disabled.")
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "attachBackgroundProcessor failed: ${e.message}")
+        }
+    }
+
+    private fun detachBackgroundProcessor() {
+        val track = try {
+            room?.localParticipant?.getTrackPublication(Track.Source.CAMERA)?.track
+                as? io.livekit.android.room.track.LocalVideoTrack
+        } catch (_: Exception) { null }
+        try {
+            val m = track?.javaClass?.methods?.firstOrNull {
+                it.name == "setVideoProcessor" && it.parameterTypes.size == 1
+            }
+            m?.invoke(track, null as Any?)
+        } catch (_: Exception) {}
+    }
+
+    @PluginMethod
+    fun setVirtualBackground(call: PluginCall) {
+        val rawMode = (call.getString("mode") ?: "none").lowercase()
+        val mode = when (rawMode) {
+            "blur"  -> com.merilive.app.plugin.video.VirtualBackgroundProcessor.Mode.BLUR
+            "image" -> com.merilive.app.plugin.video.VirtualBackgroundProcessor.Mode.IMAGE
+            else    -> com.merilive.app.plugin.video.VirtualBackgroundProcessor.Mode.NONE
+        }
+        val blurRadius = call.getFloat("blurRadius") ?: 18f
+        val imagePath = call.getString("imagePath")
+
+        val proc = ensureBackgroundProcessor()
+        proc.setMode(mode)
+        proc.setBlurRadius(blurRadius)
+        if (mode == com.merilive.app.plugin.video.VirtualBackgroundProcessor.Mode.IMAGE) {
+            val ok = proc.setBackgroundFromFile(imagePath)
+            if (!ok && !imagePath.isNullOrBlank()) {
+                Log.w(TAG, "Background image not found at: $imagePath")
+            }
+        }
+
+        // Initialise MediaPipe lazily; tryInit() returns false when
+        // selfie_segmenter.tflite isn't bundled — surface that to JS
+        // so the UI can show "Effect unavailable" instead of crashing.
+        val segmenterReady = if (mode == com.merilive.app.plugin.video.VirtualBackgroundProcessor.Mode.NONE) true
+                             else proc.tryInit()
+
+        if (mode != com.merilive.app.plugin.video.VirtualBackgroundProcessor.Mode.NONE && segmenterReady) {
+            attachBackgroundProcessor()
+        }
+        // For NONE we leave the processor wired but pass-through —
+        // toggling back on is then instant (no track re-publish).
+
+        val ret = JSObject()
+        ret.put("mode", rawMode)
+        ret.put("blurRadius", blurRadius)
+        ret.put("imageApplied", mode == com.merilive.app.plugin.video.VirtualBackgroundProcessor.Mode.IMAGE && !imagePath.isNullOrBlank())
+        ret.put("segmenterReady", segmenterReady)
+        ret.put("hasRoom", room != null)
+        call.resolve(ret)
+    }
+
+    @PluginMethod
+    fun getVirtualBackgroundState(call: PluginCall) {
+        val proc = virtualBackgroundProcessor
+        val ret = JSObject()
+        ret.put("mode", proc?.mode?.name?.lowercase() ?: "none")
+        ret.put("blurRadius", proc?.blurRadius ?: 18f)
+        ret.put("processorAttached", proc != null)
+        ret.put("hasRoom", room != null)
+        call.resolve(ret)
+    }
+
+    @PluginMethod
+    fun isVirtualBackgroundSupported(call: PluginCall) {
+        // Soft probe — tries to load MediaPipe model. If the asset
+        // is missing the answer is `supported:false` so the UI can
+        // hide the "Background Effects" button entirely.
+        val proc = ensureBackgroundProcessor()
+        val ok = proc.tryInit()
+        val ret = JSObject()
+        ret.put("supported", ok)
+        ret.put("requiresAsset", "android/app/src/main/assets/mediapipe/selfie_segmenter.tflite")
+        call.resolve(ret)
+    }
 }
 
