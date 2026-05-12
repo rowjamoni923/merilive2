@@ -626,7 +626,7 @@ const LiveStream = () => {
 
           // ⚡ INSTANT: Optimistically increment viewer count BEFORE DB write
           activeViewerIdsRef.current.add(currentUserId);
-          setViewerCount(prev => prev + 1);
+          setViewerCount(activeViewerIdsRef.current.size);
 
           // Reliable join write (no silent fail)
           void supabase
