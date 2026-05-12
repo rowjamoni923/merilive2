@@ -994,6 +994,7 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
     toggleAudio,
     toggleVideo,
     switchCamera,
+    setSpeakerOn,
     startScreenShare,
     stopScreenShare,
     applyBeautyEffect,
