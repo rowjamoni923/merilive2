@@ -2194,16 +2194,78 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     setHistoryLoading(true);
                     const { data: { user: authUser } } = await supabase.auth.getUser();
                     if (!authUser) return;
-                    const { data: rows } = await supabase
-                      .from('coin_transfers')
-                      .select('id, sender_id, receiver_id, amount, transfer_type, status, notes, created_at')
-                      .or(`sender_id.eq.${authUser.id},receiver_id.eq.${authUser.id}`)
-                      .order('created_at', { ascending: false })
-                      .limit(50);
-                    const list = (rows || []).map((r: any) => ({
-                      ...r,
+
+                    // Load BOTH coin_transfers (Trader Wallet) AND gift_transactions (Gifts) in parallel
+                    const [transfersRes, giftsSentRes, giftsRecvRes] = await Promise.all([
+                      supabase
+                        .from('coin_transfers')
+                        .select('id, sender_id, receiver_id, amount, transfer_type, status, notes, created_at')
+                        .or(`sender_id.eq.${authUser.id},receiver_id.eq.${authUser.id}`)
+                        .order('created_at', { ascending: false })
+                        .limit(50),
+                      supabase
+                        .from('gift_transactions')
+                        .select('id, sender_id, receiver_id, coin_amount, created_at, gifts(name)')
+                        .eq('sender_id', authUser.id)
+                        .order('created_at', { ascending: false })
+                        .limit(50),
+                      supabase
+                        .from('gift_transactions')
+                        .select('id, sender_id, receiver_id, receiver_beans, coin_amount, created_at, gifts(name)')
+                        .eq('receiver_id', authUser.id)
+                        .order('created_at', { ascending: false })
+                        .limit(50),
+                    ]);
+
+                    const transferList = (transfersRes.data || []).map((r: any) => ({
+                      id: r.id,
+                      sender_id: r.sender_id,
+                      receiver_id: r.receiver_id,
+                      amount: Number(r.amount || 0),
+                      transfer_type: r.transfer_type,
+                      status: r.status,
+                      notes: r.notes,
+                      created_at: r.created_at,
                       direction: (r.sender_id === authUser.id ? 'sent' : 'received') as 'sent' | 'received',
+                      kind: 'transfer' as const,
+                      currency: 'diamond' as const,
                     }));
+
+                    const giftSentList = (giftsSentRes.data || []).map((g: any) => ({
+                      id: `gs-${g.id}`,
+                      sender_id: g.sender_id,
+                      receiver_id: g.receiver_id,
+                      amount: Number(g.coin_amount || 0),
+                      transfer_type: g.gifts?.name ? `Gift: ${g.gifts.name}` : 'Gift',
+                      status: 'completed',
+                      notes: null,
+                      created_at: g.created_at,
+                      direction: 'sent' as const,
+                      kind: 'gift' as const,
+                      currency: 'diamond' as const,
+                    }));
+
+                    const giftRecvList = (giftsRecvRes.data || []).map((g: any) => {
+                      const beans = Number(g.receiver_beans || 0);
+                      return {
+                        id: `gr-${g.id}`,
+                        sender_id: g.sender_id,
+                        receiver_id: g.receiver_id,
+                        amount: beans > 0 ? beans : Number(g.coin_amount || 0),
+                        transfer_type: g.gifts?.name ? `Gift: ${g.gifts.name}` : 'Gift',
+                        status: 'completed',
+                        notes: null,
+                        created_at: g.created_at,
+                        direction: 'received' as const,
+                        kind: 'gift' as const,
+                        currency: (beans > 0 ? 'bean' : 'diamond') as 'bean' | 'diamond',
+                      };
+                    });
+
+                    const list = [...transferList, ...giftSentList, ...giftRecvList].sort(
+                      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+                    );
+
                     // Resolve counterparty names
                     const otherIds = Array.from(new Set(list.map(r => r.direction === 'sent' ? r.receiver_id : r.sender_id).filter(Boolean)));
                     if (otherIds.length > 0) {
