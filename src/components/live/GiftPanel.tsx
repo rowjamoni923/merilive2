@@ -98,6 +98,13 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
   const [gifts, setGifts] = useState<GiftData[]>([]);
   const [loading, setLoading] = useState(!hasGiftCache()); // Instant if cached
   const [isVisible, setIsVisible] = useState(false);
+  // Combo state — Bigo / TikTok Live style rapid-tap combo
+  const [comboCount, setComboCount] = useState(0);
+  const [comboProgress, setComboProgress] = useState(0); // 0..1, ring sweep
+  const comboTimerRef = useRef<number | null>(null);
+  const comboRafRef = useRef<number | null>(null);
+  const comboDeadlineRef = useRef<number>(0);
+  const COMBO_WINDOW_MS = 3000;
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Animation state for panel open/close (CSS-based for performance)
