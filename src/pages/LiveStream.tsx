@@ -294,10 +294,22 @@ const LiveStream = () => {
     removeNameBarAnimation,
   } = useEntryAnimations();
 
-  // Deduplicate broadcast gift chat message vs DB stream_chat gift insert
-  const recentBroadcastGiftKeysRef = useRef<Map<string, number>>(new Map());
+  // Deduplicate optimistic/broadcast gift counters against DB realtime confirmation
+  const recentBroadcastGiftKeysRef = useRef<Map<string, { beans: number; expiresAt: number }>>(new Map());
   const giftBroadcastChannelRef = useRef<any>(null);
   const activeViewerIdsRef = useRef<Set<string>>(new Set());
+
+  const getGiftRealtimeKey = useCallback((senderId?: string | null, giftId?: string | null, coins?: number | null, count?: number | null) => {
+    return `${senderId || 'unknown'}:${giftId || 'unknown'}:${coins || 0}:${count || 1}`;
+  }, []);
+
+  const markOptimisticGiftCount = useCallback((key: string, beans: number) => {
+    const now = Date.now();
+    recentBroadcastGiftKeysRef.current.set(key, { beans, expiresAt: now + 15000 });
+    recentBroadcastGiftKeysRef.current.forEach((value, staleKey) => {
+      if (value.expiresAt < now) recentBroadcastGiftKeysRef.current.delete(staleKey);
+    });
+  }, []);
 
   // Profile card states
   const [showProfileCard, setShowProfileCard] = useState(false);
