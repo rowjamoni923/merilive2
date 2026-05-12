@@ -696,7 +696,7 @@ const PartyRoom = () => {
           })(),
           supabase
             .from('party_rooms')
-            .select(`*, host:profiles!party_rooms_host_id_fkey(id, display_name, avatar_url, host_level, user_level, country_flag, frame_id)`)
+            .select('*')
             .eq('id', roomId)
             .single()
         ]);
@@ -731,7 +731,16 @@ const PartyRoom = () => {
           return;
         }
         
-        setRoom(roomData.data as PartyRoom);
+        const hostId = roomData.data?.host_id;
+        const { data: hostProfile } = hostId
+          ? await supabase
+              .from('profiles_public')
+              .select('id, display_name, avatar_url, host_level, user_level, country_flag, frame_id')
+              .eq('id', hostId)
+              .maybeSingle()
+          : { data: null };
+
+        setRoom({ ...(roomData.data as any), host: hostProfile || null } as PartyRoom);
         
         // Fetch participants and seat requests in parallel
         await Promise.all([fetchParticipants(), fetchSeatRequests()]);
@@ -826,7 +835,7 @@ const PartyRoom = () => {
               // This ensures host, visitors, and joining user ALL see the message
               await supabase.from('party_room_messages').insert({
                 room_id: roomId,
-                sender_id: payload.new.user_id,
+                user_id: payload.new.user_id,
                 content: 'joined the room ✨',
                 message_type: 'join'
               });
@@ -1079,13 +1088,13 @@ const PartyRoom = () => {
           if (!isMountedRef.current) return;
           
           const messageType = payload.new?.message_type;
-          const senderId = payload.new?.sender_id;
+          const senderId = payload.new?.user_id;
           
           // Handle join messages - show notification to EVERYONE
           if (messageType === 'join' && senderId) {
             // Fetch sender profile for display
             const { data: senderProfile } = await supabase
-              .from('profiles')
+              .from('profiles_public')
               .select('display_name, avatar_url, user_level')
               .eq('id', senderId)
               .single();
