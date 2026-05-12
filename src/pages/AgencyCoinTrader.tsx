@@ -252,7 +252,7 @@ const AgencyCoinTrader = () => {
     }
 
     // Combined balance for sell validation
-    const totalAvailable = (agency?.wallet_balance ?? 0) + (helperData?.wallet_balance ?? 0);
+    const totalAvailable = (agency?.diamond_balance ?? 0) + (helperData?.wallet_balance ?? 0);
 
     if (activeTab === "sell" && amount > totalAvailable) {
       toast({
