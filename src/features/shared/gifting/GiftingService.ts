@@ -25,10 +25,11 @@ export interface GiftSendRequest {
   senderId: string;
   receiverId: string;
   quantity: number;
-  context: 'live' | 'party' | 'call' | 'chat' | 'profile';
+  context: 'live' | 'party' | 'call' | 'chat' | 'profile' | 'reel';
   roomId?: string;
   streamId?: string;
   callId?: string;
+  reelId?: string;
 }
 
 export interface GiftSendResult {
