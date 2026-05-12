@@ -200,6 +200,7 @@ const ProfileDetail = () => {
   const [showCallConfirmModal, setShowCallConfirmModal] = useState(false);
   const [currentUserCoins, setCurrentUserCoins] = useState(0);
   const [showGiftPanel, setShowGiftPanel] = useState(false);
+  const { gifts: flyingGifts, addGift: addFlyingGift, removeGift: removeFlyingGift } = useFlyingGifts();
   
   // Host availability toggle
   const [hostAvailability, setHostAvailability] = useState<string>('online');
