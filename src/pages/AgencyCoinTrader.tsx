@@ -837,7 +837,7 @@ const AgencyCoinTrader = () => {
                 <Button
                   className="w-full bg-green-600 hover:bg-green-700"
                   onClick={() => setShowConfirmDialog(true)}
-                  disabled={!tradeAmount || parseFloat(tradeAmount) < tradeSettings.min_trade_amount || parseFloat(tradeAmount) > (agency?.wallet_balance || 0)}
+                  disabled={!tradeAmount || parseFloat(tradeAmount) < tradeSettings.min_trade_amount || parseFloat(tradeAmount) > ((agency?.diamond_balance || 0) + (helperData?.wallet_balance || 0))}
                 >
                   <Banknote className="w-4 h-4 mr-2" />
                   Sell Coins
