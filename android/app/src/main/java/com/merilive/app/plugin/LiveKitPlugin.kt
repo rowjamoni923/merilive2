@@ -408,6 +408,11 @@ class LiveKitPlugin : Plugin() {
     fun disconnect(call: PluginCall) {
         scope.launch {
             try {
+                // Step 26 — user-initiated tear-down: prevent the
+                // resilience watchdog from auto-reconnecting us.
+                lastConnectArgs = null
+                stopReconnectWatchdog()
+                hardReconnectAttempts = 0
                 eventJob?.cancel()
                 eventJob = null
                 stopStallWatchdog()
