@@ -2397,8 +2397,7 @@ const PartyRoom = () => {
               }
               
               // ========== INSTANT UI UPDATE (< 100ms) ==========
-              // Close panel immediately for instant feedback
-              setShowGiftPanel(false);
+              // NOTE: Do NOT close panel — keeping it open enables professional combo gifting
               
               // Optimistic coin deduction (instant visual feedback)
               setUserCoins(prev => prev - totalCost);
