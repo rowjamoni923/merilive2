@@ -193,14 +193,14 @@ export default function AdminRatingRewards() {
   const handleApprove = async (claim: RatingClaim) => {
     setProcessingId(claim.id);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      const session = getAdminSession();
+      if (!session?.admin_id) throw new Error('Admin session expired. Please log in again.');
 
       setClaims(prev => prev.filter(c => c.id !== claim.id));
 
       const { data, error } = await supabase.rpc('approve_rating_reward', {
         p_claim_id: claim.id,
-        p_admin_id: user.id,
+        p_admin_id: session.admin_id,
       });
 
       if (error) throw error;
@@ -211,13 +211,12 @@ export default function AdminRatingRewards() {
         return;
       }
 
-      // Send notification to user
       await adminSendNotification(claim.user_id, '🎉 Rating Reward Approved!', `Congratulations! Your Play Store rating has been verified. ${result.reward_type === 'beans' ? '🫘 10,000 Beans' : '💎 5,000 Diamonds'} have been credited to your account. Thank you for your support!`, 'system')
 
       toast.success(`Approved! ${result.reward_type === 'beans' ? '🫘 10,000 Beans' : '💎 5,000 Diamonds'} sent to user`);
     } catch (err: any) {
       console.error('Approve error:', err);
-      recordAdminError({ kind: "rpc", label: "AdminRatingRewards.result", message: formatAdminError(err) });
+      recordAdminError({ kind: "rpc", label: "AdminRatingRewards.approve", message: formatAdminError(err) });
       toast.error(err.message || 'Failed to approve');
     } finally {
       setProcessingId(null);
@@ -227,14 +226,16 @@ export default function AdminRatingRewards() {
   const handleReject = async (claimId: string) => {
     setProcessingId(claimId);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const session = getAdminSession();
+      if (!session?.admin_id) throw new Error('Admin session expired. Please log in again.');
+
       setClaims(prev => prev.filter(c => c.id !== claimId));
 
       const { error } = await supabase
         .from('rating_reward_claims')
         .update({
           status: 'rejected',
-          reviewed_by: user?.id || null,
+          reviewed_by: session.admin_id,
           reviewed_at: new Date().toISOString(),
           rejection_reason: 'Screenshot does not show a valid 5-star rating',
         })
@@ -242,7 +243,6 @@ export default function AdminRatingRewards() {
 
       if (error) throw error;
 
-      // Find the claim to get user_id
       const rejectedClaim = claims.find(c => c.id === claimId);
       if (rejectedClaim) {
         await adminSendNotification(rejectedClaim.user_id, '❌ Rating Reward Rejected', 'Your Play Store rating screenshot was not approved. Please make sure to submit a clear screenshot showing your 5-star rating. You can only submit once.', 'system');
@@ -250,6 +250,7 @@ export default function AdminRatingRewards() {
 
       toast.success('Claim rejected');
     } catch (err: any) {
+      recordAdminError({ kind: "rpc", label: "AdminRatingRewards.reject", message: formatAdminError(err) });
       toast.error(err.message || 'Failed to reject');
     } finally {
       setProcessingId(null);
