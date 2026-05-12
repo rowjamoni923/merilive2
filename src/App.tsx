@@ -1189,6 +1189,7 @@ const App = () => {
                   <Route path="coins" element={<AdminRouteGuard routeSegment="coins"><AdminCoins /></AdminRouteGuard>} />
                   <Route path="payment-gateways" element={<AdminRouteGuard routeSegment="payment-gateways"><AdminPaymentGateways /></AdminRouteGuard>} />
                   <Route path="transfer-scheduler" element={<AdminRouteGuard routeSegment="transfer-scheduler"><AdminTransferScheduler /></AdminRouteGuard>} />
+                  <Route path="agency-commission-log" element={<AdminRouteGuard routeSegment="agency-commission-log"><AdminAgencyCommissionLog /></AdminRouteGuard>} />
                   <Route path="transfer-history" element={<AdminRouteGuard routeSegment="transfer-history"><AdminTransferHistory /></AdminRouteGuard>} />
                   <Route path="recharge-history" element={<AdminRouteGuard routeSegment="recharge-history"><AdminRechargeHistory /></AdminRouteGuard>} />
                   <Route path="recharge-campaigns" element={<AdminRouteGuard routeSegment="recharge-campaigns"><AdminRechargeCampaigns /></AdminRouteGuard>} />
