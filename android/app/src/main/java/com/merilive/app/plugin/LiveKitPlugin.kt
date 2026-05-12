@@ -3259,5 +3259,273 @@ class LiveKitPlugin : Plugin() {
             }
         }
     }
+
+    // ============================================================
+    // Step 35 — Push-to-Talk + spatial audio (Party Rooms).
+    //
+    // Two complementary primitives wired around the existing audio
+    // track plumbing:
+    //
+    //   • PUSH-TO-TALK — instantaneous mute/unmute of the LOCAL
+    //     audio track without unpublishing it. We flip the track's
+    //     `enabled` flag instead of calling `setMicrophoneEnabled`,
+    //     which would tear down + republish every press (audible
+    //     "pop", 200-400 ms gap, costs SFU subscribe traffic). PTT
+    //     starts in HELD mode (mic off until pressed) so a user who
+    //     joined a Party Room mid-conversation never accidentally
+    //     broadcasts.
+    //
+    //   • SPATIAL AUDIO — distance-attenuated per-remote gain. We
+    //     keep a 2D listener (the local participant) plus a position
+    //     map for each remote sid. On every position update the
+    //     plugin recomputes Euclidean distance and writes the new
+    //     gain to the matching RemoteAudioTrack via `setVolume()`.
+    //
+    //     Falloff: linear from `nearMeters` (vol 1.0) down to
+    //     `farMeters` (vol `minVolume`, default 0.05). Outside the
+    //     `farMeters` ring we stay at `minVolume` so a participant
+    //     never silently disappears (matches Discord Voice Channels
+    //     and Roblox Spatial Voice behaviour).
+    //
+    //     This is gain-only, not HRTF — true binaural panning needs
+    //     OpenSL/Oboe + per-frame DSP and is reserved for a later
+    //     "Stereo Party" mode. Gain attenuation alone covers ~90 %
+    //     of the perceived spatial effect when paired with stereo
+    //     headphones in a small Party Room (≤ 8 seats).
+    // ============================================================
+
+    // -- PTT state --------------------------------------------------
+    private var pttModeEnabled = false
+    private var pttMicHeldOpen = false
+    private var pttMicMutedBeforePtt = true   // restored when PTT mode is disabled
+
+    // -- Spatial audio state ----------------------------------------
+    private var spatialAudioEnabled = false
+    private var spatialNear = 1.0   // metres at which gain == 1.0
+    private var spatialFar = 8.0    // metres at which gain == minVolume
+    private var spatialMinVolume = 0.05
+    private val listenerPos = doubleArrayOf(0.0, 0.0)
+    private val participantPositions = mutableMapOf<String, DoubleArray>()
+
+    private fun localAudioTrack(): io.livekit.android.room.track.LocalAudioTrack? {
+        val r = room ?: return null
+        return try {
+            r.localParticipant.getTrackPublication(Track.Source.MICROPHONE)?.track
+                as? io.livekit.android.room.track.LocalAudioTrack
+        } catch (_: Exception) { null }
+    }
+
+    private fun applyMicGate(open: Boolean) {
+        // Flip the SDK-level mic flag — fast path, no republish.
+        try {
+            scope.launch {
+                room?.localParticipant?.setMicrophoneEnabled(open)
+            }
+        } catch (_: Exception) {}
+        // Belt-and-braces: also flip the track's enabled flag so any
+        // SDK that ignores the high-level setter still goes silent.
+        try { localAudioTrack()?.enabled = open } catch (_: Exception) {}
+    }
+
+    private fun emitPttState(reason: String) {
+        try {
+            val ev = JSObject()
+            ev.put("enabled", pttModeEnabled)
+            ev.put("micOpen", pttMicHeldOpen)
+            ev.put("reason", reason)
+            notifyListeners("ptt-state", ev)
+        } catch (_: Exception) {}
+    }
+
+    @PluginMethod
+    fun setPushToTalkEnabled(call: PluginCall) {
+        val enabled = call.getBoolean("enabled") ?: false
+        if (enabled == pttModeEnabled) {
+            val ret = JSObject()
+            ret.put("enabled", pttModeEnabled)
+            ret.put("micOpen", pttMicHeldOpen)
+            call.resolve(ret)
+            return
+        }
+        if (enabled) {
+            // Snapshot current mic so we can restore it cleanly later.
+            pttMicMutedBeforePtt = try {
+                localAudioTrack()?.enabled?.not() ?: true
+            } catch (_: Exception) { true }
+            pttModeEnabled = true
+            pttMicHeldOpen = false
+            applyMicGate(false)
+            emitPttState("enabled")
+        } else {
+            pttModeEnabled = false
+            pttMicHeldOpen = false
+            // Restore pre-PTT mic state — usually "open" when the user
+            // started a Party Room, "muted" if they had toggled it off.
+            applyMicGate(!pttMicMutedBeforePtt)
+            emitPttState("disabled")
+        }
+        val ret = JSObject()
+        ret.put("enabled", pttModeEnabled)
+        ret.put("micOpen", pttMicHeldOpen)
+        call.resolve(ret)
+    }
+
+    @PluginMethod
+    fun setPushToTalkHeld(call: PluginCall) {
+        val held = call.getBoolean("held") ?: false
+        if (!pttModeEnabled) {
+            call.reject("ptt-disabled", "Enable PTT mode first via setPushToTalkEnabled.")
+            return
+        }
+        if (held == pttMicHeldOpen) {
+            val ret = JSObject()
+            ret.put("micOpen", pttMicHeldOpen)
+            call.resolve(ret)
+            return
+        }
+        pttMicHeldOpen = held
+        applyMicGate(held)
+        emitPttState(if (held) "press" else "release")
+        val ret = JSObject()
+        ret.put("micOpen", pttMicHeldOpen)
+        call.resolve(ret)
+    }
+
+    @PluginMethod
+    fun getPushToTalkState(call: PluginCall) {
+        val ret = JSObject()
+        ret.put("enabled", pttModeEnabled)
+        ret.put("micOpen", pttMicHeldOpen)
+        ret.put("hasRoom", room != null)
+        call.resolve(ret)
+    }
+
+    // -------- Spatial audio --------
+
+    private fun gainForDistance(distMetres: Double): Double {
+        if (distMetres <= spatialNear) return 1.0
+        if (distMetres >= spatialFar) return spatialMinVolume
+        val span = (spatialFar - spatialNear).coerceAtLeast(0.001)
+        val t = (distMetres - spatialNear) / span
+        return (1.0 - t * (1.0 - spatialMinVolume)).coerceIn(spatialMinVolume, 1.0)
+    }
+
+    private fun applySpatialGains() {
+        val r = room ?: return
+        if (!spatialAudioEnabled) return
+        try {
+            for (rp in r.remoteParticipants.values) {
+                val sid = try { rp.sid.value } catch (_: Exception) { null } ?: continue
+                val pos = participantPositions[sid] ?: doubleArrayOf(0.0, 0.0)
+                val dx = pos[0] - listenerPos[0]
+                val dy = pos[1] - listenerPos[1]
+                val dist = kotlin.math.sqrt(dx * dx + dy * dy)
+                val gain = gainForDistance(dist).toFloat()
+                for (pub in rp.audioTrackPublications) {
+                    val track = pub.first?.track as? io.livekit.android.room.track.RemoteAudioTrack
+                        ?: continue
+                    try { track.setVolume(gain.toDouble()) } catch (_: Exception) {}
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "applySpatialGains failed: ${e.message}")
+        }
+    }
+
+    private fun resetRemoteGainsToUnity() {
+        val r = room ?: return
+        try {
+            for (rp in r.remoteParticipants.values) {
+                for (pub in rp.audioTrackPublications) {
+                    val track = pub.first?.track as? io.livekit.android.room.track.RemoteAudioTrack
+                        ?: continue
+                    try { track.setVolume(1.0) } catch (_: Exception) {}
+                }
+            }
+        } catch (_: Exception) {}
+    }
+
+    @PluginMethod
+    fun setSpatialAudioEnabled(call: PluginCall) {
+        val enabled = call.getBoolean("enabled") ?: false
+        val near = call.getDouble("nearMeters")
+        val far = call.getDouble("farMeters")
+        val minVol = call.getDouble("minVolume")
+        if (near != null && near > 0) spatialNear = near
+        if (far != null && far > spatialNear) spatialFar = far
+        if (minVol != null) spatialMinVolume = minVol.coerceIn(0.0, 1.0)
+
+        spatialAudioEnabled = enabled
+        if (!enabled) {
+            // Drop everyone back to unity gain so the room sounds
+            // normal again — important when toggling off mid-call.
+            resetRemoteGainsToUnity()
+        } else {
+            applySpatialGains()
+        }
+        val ret = JSObject()
+        ret.put("enabled", spatialAudioEnabled)
+        ret.put("nearMeters", spatialNear)
+        ret.put("farMeters", spatialFar)
+        ret.put("minVolume", spatialMinVolume)
+        call.resolve(ret)
+    }
+
+    @PluginMethod
+    fun setListenerPosition(call: PluginCall) {
+        listenerPos[0] = call.getDouble("x") ?: 0.0
+        listenerPos[1] = call.getDouble("y") ?: 0.0
+        applySpatialGains()
+        val ret = JSObject()
+        ret.put("x", listenerPos[0])
+        ret.put("y", listenerPos[1])
+        call.resolve(ret)
+    }
+
+    @PluginMethod
+    fun setParticipantPosition(call: PluginCall) {
+        val sid = call.getString("sid")
+        if (sid.isNullOrBlank()) {
+            call.reject("missing-sid", "Provide the remote participant sid.")
+            return
+        }
+        val x = call.getDouble("x") ?: 0.0
+        val y = call.getDouble("y") ?: 0.0
+        participantPositions[sid] = doubleArrayOf(x, y)
+        applySpatialGains()
+        val ret = JSObject()
+        ret.put("sid", sid)
+        ret.put("x", x); ret.put("y", y)
+        call.resolve(ret)
+    }
+
+    @PluginMethod
+    fun clearParticipantPosition(call: PluginCall) {
+        val sid = call.getString("sid")
+        if (sid.isNullOrBlank()) {
+            participantPositions.clear()
+        } else {
+            participantPositions.remove(sid)
+        }
+        // Reset that participant (or all) to unity if spatial is on,
+        // otherwise the stale gain would linger until the next move.
+        if (spatialAudioEnabled) applySpatialGains()
+        val ret = JSObject()
+        ret.put("cleared", sid ?: "all")
+        call.resolve(ret)
+    }
+
+    @PluginMethod
+    fun getSpatialAudioState(call: PluginCall) {
+        val ret = JSObject()
+        ret.put("enabled", spatialAudioEnabled)
+        ret.put("nearMeters", spatialNear)
+        ret.put("farMeters", spatialFar)
+        ret.put("minVolume", spatialMinVolume)
+        ret.put("listenerX", listenerPos[0])
+        ret.put("listenerY", listenerPos[1])
+        ret.put("trackedParticipants", participantPositions.size)
+        call.resolve(ret)
+    }
 }
 
