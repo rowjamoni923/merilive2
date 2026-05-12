@@ -294,10 +294,22 @@ const LiveStream = () => {
     removeNameBarAnimation,
   } = useEntryAnimations();
 
-  // Deduplicate broadcast gift chat message vs DB stream_chat gift insert
-  const recentBroadcastGiftKeysRef = useRef<Map<string, number>>(new Map());
+  // Deduplicate optimistic/broadcast gift counters against DB realtime confirmation
+  const recentBroadcastGiftKeysRef = useRef<Map<string, { beans: number; expiresAt: number }>>(new Map());
   const giftBroadcastChannelRef = useRef<any>(null);
   const activeViewerIdsRef = useRef<Set<string>>(new Set());
+
+  const getGiftRealtimeKey = useCallback((senderId?: string | null, giftId?: string | null, coins?: number | null, count?: number | null) => {
+    return `${senderId || 'unknown'}:${giftId || 'unknown'}:${coins || 0}:${count || 1}`;
+  }, []);
+
+  const markOptimisticGiftCount = useCallback((key: string, beans: number) => {
+    const now = Date.now();
+    recentBroadcastGiftKeysRef.current.set(key, { beans, expiresAt: now + 15000 });
+    recentBroadcastGiftKeysRef.current.forEach((value, staleKey) => {
+      if (value.expiresAt < now) recentBroadcastGiftKeysRef.current.delete(staleKey);
+    });
+  }, []);
 
   // Profile card states
   const [showProfileCard, setShowProfileCard] = useState(false);
@@ -572,7 +584,7 @@ const LiveStream = () => {
         // User profile
         cachedUser ? supabase.from("profiles").select("id, gender, coins, display_name, avatar_url, user_level, country_flag").eq("id", cachedUser.id).single() : Promise.resolve({ data: null }),
         // Session gifts
-        stream && id ? supabase.from("gift_transactions").select("coin_amount").eq("stream_id", id).eq("receiver_id", stream.host_id) : Promise.resolve({ data: null }),
+        stream && id ? supabase.from("gift_transactions").select("coin_amount, receiver_beans").eq("stream_id", id).eq("receiver_id", stream.host_id) : Promise.resolve({ data: null }),
         // Self profile for viewer join notification
         !isActualHost && currentUserId ? supabase.from("profiles_public").select("app_uid, display_name, avatar_url, user_level, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id").eq("id", currentUserId).single() : Promise.resolve({ data: null }),
       ]);
@@ -598,7 +610,7 @@ const LiveStream = () => {
         setStreamStartTime(new Date(stream.started_at || stream.created_at).getTime());
         setViewerCount(stream.viewer_count || 0);
         
-        const sessionBeans = sessionGiftsRes.data?.reduce((sum: number, tx: any) => sum + (tx.coin_amount || 0), 0) || 0;
+        const sessionBeans = sessionGiftsRes.data?.reduce((sum: number, tx: any) => sum + Number(tx.receiver_beans ?? tx.coin_amount ?? 0), 0) || 0;
         setTotalBeans(sessionBeans);
         console.log('[LiveStream] Session beans calculated:', sessionBeans, 'from', sessionGiftsRes.data?.length, 'transactions');
         
@@ -953,7 +965,24 @@ const LiveStream = () => {
         (payload: any) => {
           // Only count gifts for THIS stream session
           if (payload.new?.stream_id === id && payload.new?.receiver_id === streamData.host_id) {
-            const giftAmount = payload.new?.coin_amount || 0;
+            const giftAmount = Number(payload.new?.receiver_beans ?? payload.new?.coin_amount ?? 0);
+            const giftKey = getGiftRealtimeKey(
+              payload.new?.sender_id,
+              payload.new?.gift_id,
+              payload.new?.coin_amount,
+              payload.new?.quantity
+            );
+            const optimistic = recentBroadcastGiftKeysRef.current.get(giftKey);
+
+            if (optimistic) {
+              recentBroadcastGiftKeysRef.current.delete(giftKey);
+              if (optimistic.beans !== giftAmount) {
+                setTotalBeans(prev => Math.max(0, prev - optimistic.beans + giftAmount));
+              }
+              console.log('[LiveStream] Session beans confirmed by DB:', giftAmount);
+              return;
+            }
+
             setTotalBeans(prev => prev + giftAmount);
             console.log('[LiveStream] Session beans updated +', giftAmount);
           }
@@ -964,7 +993,7 @@ const LiveStream = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [streamData?.host_id, id]);
+  }, [streamData?.host_id, id, getGiftRealtimeKey]);
 
   // ========== INSTANT GIFT BROADCAST RECEIVER ==========
   // Uses Supabase broadcast (not postgres_changes) for sub-100ms delivery
@@ -998,14 +1027,11 @@ const LiveStream = () => {
           isReceiverGift: isHost,
         });
         
-        // 2. INSTANT beans counter update for host
-        if (isHost) {
-          const giftAmount = (data.giftCoins || 0) * (data.count || 1);
-          setTotalBeans(prev => prev + giftAmount);
-          
-          // Track first gift received for task progress
-          trackTaskProgress('first_gift');
-        }
+        // 2. INSTANT beans counter update for everyone in the room
+        const giftAmount = Number(data.receiverBeans ?? (data.giftCoins || 0) * (data.count || 1));
+        if (data.giftKey) markOptimisticGiftCount(data.giftKey, giftAmount);
+        setTotalBeans(prev => prev + giftAmount);
+        if (isHost) trackTaskProgress('first_gift');
         
         // 3. INSTANT chat message
         const giftChatMessage = `[GIFT:${data.giftIconUrl || ''}] sent ${data.giftName} x${data.count || 1}`;
@@ -1034,7 +1060,7 @@ const LiveStream = () => {
       giftBroadcastChannelRef.current = null;
       supabase.removeChannel(broadcastChannel);
     };
-  }, [id, currentUserId, addFlyingGift, playSound, isHost]);
+  }, [id, currentUserId, addFlyingGift, playSound, isHost, markOptimisticGiftCount]);
 
   // ========== INSTANT JOIN BROADCAST RECEIVER ==========
   // Uses Supabase broadcast for sub-100ms delivery of viewer join events
@@ -3336,6 +3362,9 @@ const LiveStream = () => {
           const senderAvatar = currentUser?.avatar_url || undefined;
           const senderLevel = currentUser?.user_level || 1;
           
+          const optimisticReceiverBeans = Math.floor(totalCost * adminGiftCommission / 100);
+          const giftKey = getGiftRealtimeKey(currentUserId, gift.id, totalCost, count);
+
           // Trigger flying gift animation IMMEDIATELY
           addFlyingGift({
             senderName: senderName,
@@ -3352,7 +3381,7 @@ const LiveStream = () => {
           });
           
           // Add gift message to chat IMMEDIATELY (optimistic)
-          const giftChatMessage = `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${count}`;
+          const giftChatMessage = `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${count} | -${totalCost} diamonds | +${optimisticReceiverBeans} beans`;
           const tempGiftMsgId = `gift_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
           setMessages(prev => [...prev, {
             id: tempGiftMsgId,
@@ -3385,11 +3414,16 @@ const LiveStream = () => {
               giftAnimationUrl: gift.animation_url || gift.icon_url || undefined,
               giftSoundUrl: gift.sound_url || undefined,
               giftCoins: gift.coins,
+              receiverBeans: optimisticReceiverBeans,
               count,
               streamId: id,
+              giftId: gift.id,
+              giftKey,
               timestamp: Date.now(),
             }
           });
+          markOptimisticGiftCount(giftKey, optimisticReceiverBeans);
+          setTotalBeans(prev => prev + optimisticReceiverBeans);
           
           // ========== BACKGROUND PROCESSING (fire-and-forget) ==========
           (async () => {
@@ -3425,7 +3459,19 @@ const LiveStream = () => {
               
               // Save gift message to database for other participants
               if (result.success) {
-                const finalGiftMessage = `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${count}`;
+                const finalBeans = result.transaction?.beans_earned ?? optimisticReceiverBeans;
+                const finalCost = result.transaction?.coins_spent ?? totalCost;
+                if (finalBeans !== optimisticReceiverBeans) {
+                  const optimistic = recentBroadcastGiftKeysRef.current.get(giftKey);
+                  if (optimistic) {
+                    recentBroadcastGiftKeysRef.current.set(giftKey, { ...optimistic, beans: finalBeans });
+                  }
+                  setMessages(prev => prev.map(m => m.id === tempGiftMsgId ? {
+                    ...m,
+                    message: `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${count} | -${finalCost} diamonds | +${finalBeans} beans`,
+                  } : m));
+                }
+                const finalGiftMessage = `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${count} | -${finalCost} diamonds | +${finalBeans} beans`;
                 await supabase.from("stream_chat").insert({
                   stream_id: id,
                   user_id: currentUserId,

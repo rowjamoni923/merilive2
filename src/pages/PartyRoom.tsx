@@ -223,6 +223,7 @@ const PartyRoom = () => {
   const currentUserRef = useRef<any>(null);
   const roomRef = useRef<PartyRoom | null>(null);
   const roomIdRef = useRef<string | undefined>(roomId);
+  const hostCommissionPercentRef = useRef(55);
   
   // Keep refs in sync with state
   useEffect(() => {
@@ -276,6 +277,17 @@ const PartyRoom = () => {
   
   // Gift broadcast channel ref for instant sync
   const giftBroadcastChannelRef = useRef<any>(null);
+  const optimisticGiftCountsRef = useRef<Map<string, { beans: number; coins: number; expiresAt: number }>>(new Map());
+  const getPartyGiftRealtimeKey = useCallback((senderId?: string | null, giftId?: string | null, coins?: number | null, count?: number | null) => {
+    return `${senderId || 'unknown'}:${giftId || 'unknown'}:${coins || 0}:${count || 1}`;
+  }, []);
+  const markOptimisticPartyGiftCount = useCallback((key: string, beans: number, coins: number) => {
+    const now = Date.now();
+    optimisticGiftCountsRef.current.set(key, { beans, coins, expiresAt: now + 15000 });
+    optimisticGiftCountsRef.current.forEach((value, staleKey) => {
+      if (value.expiresAt < now) optimisticGiftCountsRef.current.delete(staleKey);
+    });
+  }, []);
   
   // Track joins already processed by broadcast to deduplicate with postgres_changes
   const processedBroadcastJoinsRef = useRef(new Set<string>());
@@ -338,6 +350,9 @@ const PartyRoom = () => {
   // Fetch total room beans from gift transactions
   // ✅ Using GLOBAL SETTINGS for commission rate - Real-time sync with Admin Panel
   const [hostCommissionPercent, setHostCommissionPercent] = useState<number>(55);
+  useEffect(() => {
+    hostCommissionPercentRef.current = hostCommissionPercent;
+  }, [hostCommissionPercent]);
   
   // ✅ UNIFIED SETTINGS SUBSCRIPTION - gift_commission + party_room_limits
   useEffect(() => {
@@ -550,6 +565,22 @@ const PartyRoom = () => {
           const newGiftValue = payload.new?.coin_amount || 0;
           const newHostBeans = payload.new?.receiver_beans ?? Math.floor(newGiftValue * hostCommissionPercent / 100);
           const senderId = payload.new?.sender_id;
+          const giftKey = getPartyGiftRealtimeKey(senderId, payload.new?.gift_id, newGiftValue, payload.new?.quantity);
+          const optimistic = optimisticGiftCountsRef.current.get(giftKey);
+          if (optimistic) {
+            optimisticGiftCountsRef.current.delete(giftKey);
+            if (optimistic.beans !== newHostBeans || optimistic.coins !== newGiftValue) {
+              setTotalRoomBeans(prev => Math.max(0, prev - optimistic.beans + newHostBeans));
+              if (senderId) {
+                setParticipantBeans(prev => ({
+                  ...prev,
+                  [senderId]: Math.max(0, (prev[senderId] || 0) - optimistic.coins + newGiftValue),
+                }));
+              }
+            }
+            console.log('[PartyRoom] Gift confirmed by DB:', newHostBeans, 'from:', senderId);
+            return;
+          }
           console.log('[PartyRoom] New gift received! Adding beans:', newHostBeans, 'from:', senderId);
           setTotalRoomBeans(prev => prev + newHostBeans);
           
@@ -569,7 +600,7 @@ const PartyRoom = () => {
     return () => {
       supabase.removeChannel(giftChannel);
     };
-  }, [roomId, hostCommissionPercent]);
+  }, [roomId, hostCommissionPercent, getPartyGiftRealtimeKey]);
 
   // Determine if current user is host or admin
   const isHost = room?.host_id === currentUser?.id;
@@ -1157,6 +1188,8 @@ const PartyRoom = () => {
         }
         
         console.log('[PartyRoom] 🎁 🎉 INSTANT ANIMATION for:', giftData.giftName, 'from', giftData.senderName);
+        const broadcastBeans = Number(giftData.receiverBeans ?? Math.floor((giftData.coins || 0) * (giftData.count || 1) * hostCommissionPercentRef.current / 100));
+        const broadcastCoins = Number(giftData.totalCoins ?? (giftData.coins || 0) * (giftData.count || 1));
         
         // Trigger flying gift animation IMMEDIATELY (no DB fetch delay!)
         addFlyingGift({
@@ -1173,6 +1206,16 @@ const PartyRoom = () => {
             ? giftData.receiverId === currentUserId
             : false,
         });
+        
+        // Host + room counters update instantly from broadcast, DB confirmation dedupes later
+        if (giftData.giftKey) markOptimisticPartyGiftCount(giftData.giftKey, broadcastBeans, broadcastCoins);
+        setTotalRoomBeans(prev => prev + broadcastBeans);
+        if (giftData.senderId) {
+          setParticipantBeans(prev => ({
+            ...prev,
+            [giftData.senderId]: (prev[giftData.senderId] || 0) + broadcastCoins,
+          }));
+        }
         
         // Play gift sound for all participants
         playSound('gift');
@@ -1268,7 +1311,7 @@ const PartyRoom = () => {
       supabase.removeChannel(joinBroadcastChannel);
       supabase.removeChannel(roomCloseBroadcastChannel);
     };
-  }, [roomId]); // ONLY depend on roomId - use refs for other values to avoid subscription recreation
+    }, [roomId, markOptimisticPartyGiftCount]);
 
   // ============= POLLING FALLBACK FOR ROOM CLOSE DETECTION =============
   // In case realtime subscription fails, poll every 5 seconds to check room status
@@ -2364,6 +2407,8 @@ const PartyRoom = () => {
               playSound('gift');
               
               // Prepare gift animation data
+              const optimisticReceiverBeans = Math.floor(totalCost * hostCommissionPercentRef.current / 100);
+              const giftKey = getPartyGiftRealtimeKey(currentUser.id, gift.id, totalCost, count);
               const giftAnimationData = {
                 senderName: currentUser?.profile?.display_name || 'You',
                 giftName: gift.name,
@@ -2398,10 +2443,20 @@ const PartyRoom = () => {
                     soundUrl: gift.sound_url || undefined,
                     count: count,
                     coins: gift.coins,
+                    totalCoins: totalCost,
+                    receiverBeans: optimisticReceiverBeans,
+                    giftId: gift.id,
+                    giftKey,
                   }
                 });
                 console.log('[PartyRoom] ✅ Gift broadcast sent instantly!');
               }
+              markOptimisticPartyGiftCount(giftKey, optimisticReceiverBeans, totalCost);
+              setTotalRoomBeans(prev => prev + optimisticReceiverBeans);
+              setParticipantBeans(prev => ({
+                ...prev,
+                [currentUser.id]: (prev[currentUser.id] || 0) + totalCost,
+              }));
               
               // Gift animation is already playing - no toast needed
               
@@ -2440,7 +2495,9 @@ const PartyRoom = () => {
                   
                   // Save gift message to party_room_messages
                   if (result.success) {
-                    const giftChatMessage = `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${count}`;
+                    const finalBeans = result.transaction?.beans_earned ?? optimisticReceiverBeans;
+                    const finalCost = result.transaction?.coins_spent ?? totalCost;
+                    const giftChatMessage = `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${count} | -${finalCost} diamonds | +${finalBeans} beans`;
                     await supabase.from("party_room_messages").insert({
                       room_id: room.id,
                       user_id: currentUser.id,

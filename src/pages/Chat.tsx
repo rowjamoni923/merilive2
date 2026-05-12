@@ -34,6 +34,7 @@ import { useCall } from "@/components/call/CallProvider";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSound } from "@/hooks/useSound";
+import { getCachedHostGiftPercent, ensureHostGiftPercentLoaded } from "@/hooks/useHostGiftPercent";
 import {
   Sheet,
   SheetContent,
@@ -670,6 +671,24 @@ const Chat = () => {
     
     // Gift animation is already playing - no toast needed
     
+    const estimatedBeansEarned = Math.floor(totalCost * getCachedHostGiftPercent() / 100);
+    void ensureHostGiftPercentLoaded();
+    const optimisticGiftMessage = giftMediaUrl
+      ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans]`
+      : `[Gift: ${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans]`;
+    const optimisticGiftRow: Message = {
+      id: `gift_live_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      content: optimisticGiftMessage,
+      sender_id: currentUserId,
+      created_at: new Date().toISOString(),
+      is_read: false,
+      message_type: 'gift',
+      status: 'sending',
+      _optimistic: true,
+    };
+    upsertLiveMessage(optimisticGiftRow);
+    void broadcastDirectMessage(optimisticGiftRow, selectedConversation.id);
+
     // ========== BACKGROUND PROCESSING ==========
     (async () => {
       try {
@@ -678,6 +697,7 @@ const Chat = () => {
           body: {
             receiverId: selectedConversation.other_user.id,
             giftId: gift.id,
+            quantity: count,
             // No streamId or partyRoomId - this is DM context
           }
         });
@@ -687,6 +707,7 @@ const Chat = () => {
           recordClientError({ label: "Chat.response", message: response.error instanceof Error ? response.error.message : String(response.error) });
           // Refund on failure
           setUserCoins(prev => prev + totalCost);
+          setMessages(prev => prev.filter(m => m.id !== optimisticGiftRow.id));
           toast.error("Gift failed - diamonds refunded");
           return;
         }
@@ -699,6 +720,10 @@ const Chat = () => {
         const messageContent = giftMediaUrl
           ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${beansEarned} beans]`
           : `[Gift: ${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${beansEarned} beans]`;
+
+        setMessages(prev => prev.map(m =>
+          m.id === optimisticGiftRow.id ? { ...m, content: messageContent } : m
+        ));
         
         await persistDirectMessage(
           selectedConversation.id,
@@ -725,6 +750,7 @@ const Chat = () => {
         recordClientError({ label: "Chat.messageContent", message: error instanceof Error ? error.message : String(error) });
         // Refund on error
         setUserCoins(prev => prev + totalCost);
+        setMessages(prev => prev.filter(m => m.id !== optimisticGiftRow.id));
         toast.error("Gift failed - diamonds refunded");
       }
     })();
@@ -762,7 +788,7 @@ const Chat = () => {
   useEffect(() => {
     if (!selectedConversation || !currentUserId) return;
 
-    const channelName = `dm-live-${selectedConversation.id}-${Date.now()}`;
+    const channelName = `dm-live-${selectedConversation.id}`;
     const channel = supabase
       .channel(channelName)
       .on(
@@ -1174,14 +1200,13 @@ const Chat = () => {
     const newMessage = castMessage(messageRow);
 
     setMessages(prev => {
-      const baseMessages = newMessage.sender_id === currentUserId
-        ? prev.filter(
-            m =>
-              !m._optimistic ||
-              m.content !== newMessage.content ||
-              m.message_type !== newMessage.message_type
-          )
-        : prev;
+      const baseMessages = prev.filter(
+        m =>
+          !m._optimistic ||
+          m.sender_id !== newMessage.sender_id ||
+          m.content !== newMessage.content ||
+          m.message_type !== newMessage.message_type
+      );
 
       if (baseMessages.find(m => m.id === newMessage.id)) return baseMessages;
 
