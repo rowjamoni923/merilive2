@@ -262,28 +262,57 @@ class LiveKitPlugin : Plugin() {
         val e2eeOn = call.getBoolean("e2eeEnabled", false) ?: false
         val e2eeSharedKey = call.getString("e2eeKey", null)
 
+        // Step 26 — cache args so reconnectInternal() / hard-reconnect
+        // watchdog can rebuild the room without re-prompting JS.
+        lastConnectArgs = ConnectArgs(
+            url, token, enableVideo, enableAudio, lens, resolution,
+            callerName, callType, e2eeOn, e2eeSharedKey,
+        )
+        hardReconnectAttempts = 0
+
         scope.launch {
             try {
-                // Tear down any previous room first.
-                room?.disconnect()
-                room = null
+                connectInternal(lastConnectArgs!!, isReconnect = false)
+                val newRoom = room!!
+                val ret = JSObject()
+                ret.put("connected", true)
+                ret.put("sid", newRoom.localParticipant.sid.value)
+                ret.put("identity", newRoom.localParticipant.identity?.value ?: "")
+                call.resolve(ret)
+            } catch (e: Exception) {
+                Log.e(TAG, "connect failed", e)
+                call.reject("LiveKit connect failed: ${e.message}")
+            }
+        }
+    }
 
-                // Step 22 — reset adaptive ladder for this fresh session.
-                baseTier = if (resolution == "720p") AdaptiveTier.MEDIUM else AdaptiveTier.HIGH
-                currentTier = baseTier
-                baseLens = if (lens == "back") CameraPosition.BACK else CameraPosition.FRONT
-                consecutiveExcellent = 0
-                lastTierChangeMs = 0L
-                adaptiveBusy = false
+    /**
+     * Step 26 — shared connect path used by both the public connect()
+     * call and by hard-reconnect retries. Builds a fresh Room with the
+     * cached args, attaches event listeners, publishes mic/camera, and
+     * (re-)applies audio mode. Throws on failure so the caller can wrap
+     * it in retry/backoff logic.
+     */
+    private suspend fun connectInternal(args: ConnectArgs, isReconnect: Boolean) {
+        // Tear down any previous room first.
+        room?.disconnect()
+        room = null
 
-                val captureParams: VideoCaptureParameter = if (resolution == "720p") {
-                    VideoPreset169.H720.capture
-                } else {
-                    VideoPreset169.H1080.capture
-                }
+        // Step 22 — reset adaptive ladder for this fresh session.
+        baseTier = if (args.resolution == "720p") AdaptiveTier.MEDIUM else AdaptiveTier.HIGH
+        currentTier = baseTier
+        baseLens = if (args.lens == "back") CameraPosition.BACK else CameraPosition.FRONT
+        consecutiveExcellent = 0
+        lastTierChangeMs = 0L
+        adaptiveBusy = false
 
-                val cameraPosition =
-                    if (lens == "back") CameraPosition.BACK else CameraPosition.FRONT
+        val captureParams: VideoCaptureParameter = if (args.resolution == "720p") {
+            VideoPreset169.H720.capture
+        } else {
+            VideoPreset169.H1080.capture
+        }
+        val cameraPosition =
+            if (args.lens == "back") CameraPosition.BACK else CameraPosition.FRONT
 
                 // Step 20 — explicit publish encoding ladder.
                 // 1080p/30fps live: 4 Mbps top layer + simulcast for viewer adaptation.
