@@ -802,7 +802,7 @@ export function UnifiedPartyRoom({
           
           // Fetch user profile with entry effect info for display
           const { data: profile } = await supabase
-            .from('profiles')
+            .from('profiles_public')
             .select('display_name, user_level, avatar_url, equipped_entrance_id, equipped_entry_name_bar_id')
             .eq('id', newParticipant.user_id)
             .single();
