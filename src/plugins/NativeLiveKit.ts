@@ -154,7 +154,54 @@ export interface RtcStatsEvent {
   e2ee: boolean;
 }
 
-export interface NativeLiveKitPlugin {
+/** Step 33 — pre-call bandwidth probe verdict. */
+export type QualityTier = 'high' | 'medium' | 'low' | 'voice' | 'poor';
+export interface QualityProbeResult {
+  /** Sample epoch (System.currentTimeMillis on Android). */
+  ts: number;
+  /** RTT statistics in milliseconds. -1 when no samples returned. */
+  rttAvg: number;
+  rttMin: number;
+  rttMax: number;
+  /** Mean-absolute-deviation jitter, in ms. */
+  jitter: number;
+  /** Estimated packet loss as a percentage (0-100). */
+  packetLoss: number;
+  /** RTT samples requested. */
+  samples: number;
+  /** RTT samples that came back successfully. */
+  samplesReceived: number;
+  /** Observed downlink throughput in kbps (kilobits/sec). -1 when no `downloadUrl` was provided. */
+  downKbps: number;
+  /** Verdict bucket. */
+  tier: QualityTier;
+  /** Suggested publisher ladder tier for this network. */
+  recommendedTier: AdaptiveTier;
+  /** True when the network is too weak for video — JS should disable camera. */
+  recommendedAudioOnly: boolean;
+  /** Suggested codec (`auto` for healthy networks, frugal codec on weak links when HW-encode is available). */
+  recommendedCodec: 'auto' | 'vp8' | 'vp9' | 'h264' | 'av1';
+  /** Human-readable warning to surface above the "Start Call" button (null when tier is high/medium). */
+  warning: string | null;
+  /** Physical network underneath the probe. */
+  networkType: NetworkType;
+  /** True when the OS has Background Data Saver enabled. */
+  dataSaver: boolean;
+}
+
+export interface QualityProbeProgressEvent {
+  stage:
+    | 'starting'
+    | 'rtt'
+    | 'rtt-done'
+    | 'throughput'
+    | 'throughput-done'
+    | 'throughput-skipped'
+    | 'done';
+  /** 0-100 progress for a UI bar. */
+  percent: number;
+  detail?: Record<string, unknown>;
+}
   isAvailable(): Promise<{ available: boolean; backend: string; version: string }>;
   connect(opts: ConnectOptions): Promise<{ connected: boolean; sid: string; identity: string }>;
   disconnect(): Promise<void>;
