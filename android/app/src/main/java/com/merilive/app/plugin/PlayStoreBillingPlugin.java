@@ -208,6 +208,14 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
                         pendingCall.resolve(ret);
                         pendingCall = null;
                     }
+
+                    // Notify WebView without consuming locally. The server verifies
+                    // and consumes the purchase only after diamonds are credited.
+                    notifyListeners("purchaseCompleted", new JSObject() {{
+                        put("productId", purchase.getProducts().get(0));
+                        put("purchaseToken", purchase.getPurchaseToken());
+                        put("orderId", purchase.getOrderId());
+                    }});
                 } else {
                     Log.d(TAG, "Purchase pending: " + purchase.getProducts().get(0));
 
@@ -216,14 +224,6 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
                         pendingCall = null;
                     }
                 }
-
-                // Notify WebView without consuming locally. The server verifies
-                // and consumes the purchase only after diamonds are credited.
-                notifyListeners("purchaseCompleted", new JSObject() {{
-                    put("productId", purchase.getProducts().get(0));
-                    put("purchaseToken", purchase.getPurchaseToken());
-                    put("orderId", purchase.getOrderId());
-                }});
             }
         } else if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.USER_CANCELED) {
             if (pendingCall != null) {
