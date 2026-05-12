@@ -1,9 +1,11 @@
 package com.merilive.app;
 
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.WindowManager;
 import com.getcapacitor.BridgeActivity;
+import com.merilive.app.plugin.LiveKitPlugin;
 import com.merilive.app.util.NotificationHelper;
 
 public class MainActivity extends BridgeActivity {
