@@ -20,6 +20,7 @@ import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
 import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
 import { useNativeLiveKitEvents } from '@/hooks/useNativeLiveKitEvents';
 import { useNativeLiveKitLifecycle } from '@/hooks/useNativeLiveKitLifecycle';
+import { toast } from 'sonner';
 
 interface AgoraConfig {
   channelName: string;
@@ -125,6 +126,22 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
       setIsJoined(false);
       setConnectionState('DISCONNECTED');
       try { options.onError?.(new Error(`native_livekit_disconnected: ${reason}`)); } catch { /* noop */ }
+    },
+    // Step 19 — sticky reconnect toast for live broadcasters/viewers.
+    onConnectionState: (s) => {
+      if (s === 'reconnecting') {
+        toast.loading('Reconnecting to live…', { id: 'lk-live-reconnect' });
+        setConnectionState('CONNECTING');
+      } else {
+        toast.success('Reconnected', { id: 'lk-live-reconnect', duration: 1500 });
+        setConnectionState('CONNECTED');
+      }
+    },
+    // Step 19 — permanent audio focus loss (PSTN call) — inform broadcaster.
+    onAudioInterruption: (s, permanent) => {
+      if (s === 'loss' && permanent) {
+        toast.info('Mic paused — interrupted by another app');
+      }
     },
   });
 

@@ -26,6 +26,7 @@ import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
 import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
 import { useNativeLiveKitEvents } from '@/hooks/useNativeLiveKitEvents';
 import { useNativeLiveKitLifecycle } from '@/hooks/useNativeLiveKitLifecycle';
+import { toast } from 'sonner';
 
 interface LiveKitCallState {
   localStream: MediaStream | null;
@@ -73,6 +74,27 @@ export function useAgoraCall(
       if (deadRef.current) return;
       setState(p => ({ ...p, isConnected: false, connectionState: 'disconnected' }));
       setNativeActive(false);
+    },
+    // Step 19 — surface transient reconnect to the user (sticky toast).
+    onConnectionState: (s) => {
+      if (deadRef.current) return;
+      if (s === 'reconnecting') {
+        toast.loading('Reconnecting…', { id: 'lk-reconnect' });
+        setState(p => ({ ...p, connectionState: 'connecting' }));
+      } else {
+        toast.success('Reconnected', { id: 'lk-reconnect', duration: 1500 });
+        setState(p => ({ ...p, connectionState: p.isConnected ? 'connected' : p.connectionState }));
+      }
+    },
+    // Step 19 — PSTN/alarm interrupt: native side already pauses mic. Tell the user only
+    // when permanent so they understand why the other side stopped hearing them.
+    onAudioInterruption: (s, permanent) => {
+      if (deadRef.current) return;
+      if (s === 'loss' && permanent) {
+        toast.info('Audio paused — interrupted by another app');
+      } else if (s === 'gain') {
+        toast.dismiss('lk-audio-interrupt');
+      }
     },
   });
 
