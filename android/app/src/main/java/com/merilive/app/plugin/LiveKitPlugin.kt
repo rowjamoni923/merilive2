@@ -443,6 +443,7 @@ class LiveKitPlugin : Plugin() {
                 eventJob?.cancel()
                 eventJob = null
                 stopStallWatchdog()
+                unregisterNetworkCallback()
                 room?.disconnect()
                 room = null
                 activity?.runOnUiThread { detachAllRenderersInternal() }
