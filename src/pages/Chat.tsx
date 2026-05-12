@@ -919,7 +919,7 @@ const Chat = () => {
     const pollInterval = setInterval(async () => {
       const { data } = await supabase
         .from('group_messages')
-        .select('*, sender:profiles!group_messages_sender_id_fkey(display_name, avatar_url)')
+        .select('*, sender:profiles!group_messages_sender_id_fkey(display_name, avatar_url, user_level)')
         .eq('group_id', selectedGroup.id)
         .order('created_at', { ascending: true })
         .limit(100);
