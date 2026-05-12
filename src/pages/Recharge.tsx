@@ -239,6 +239,38 @@ const Recharge = () => {
     }));
   }, []);
 
+  // Build a fast admin-logo lookup keyed by method name / type so every
+  // helper method always resolves to a valid brand logo (bKash, Nagad, ePay,
+  // Binance Pay, JazzCash, Easypaisa, Paytm, PhonePe, USDT, etc.) even if
+  // the helper forgot to upload one on their own.
+  const adminLogoMap = useMemo(() => {
+    const map = new Map<string, string>();
+    (adminPaymentMethods || []).forEach((a: any) => {
+      const logo = a?.icon_url || (a?.additional_info as any)?.logo_url || null;
+      if (!logo) return;
+      [a?.name, a?.method_type, (a?.additional_info as any)?.display_method]
+        .filter(Boolean)
+        .map((v: string) => String(v).toLowerCase().trim())
+        .forEach((key: string) => { if (key && !map.has(key)) map.set(key, logo); });
+    });
+    return map;
+  }, [adminPaymentMethods]);
+
+  const resolveMethodLogo = useCallback(
+    (currentLogo: string | null | undefined, methodName: string | null | undefined): string | null => {
+      if (currentLogo) return currentLogo;
+      if (!methodName) return null;
+      const key = String(methodName).toLowerCase().trim();
+      if (adminLogoMap.has(key)) return adminLogoMap.get(key)!;
+      // Fuzzy contains match (e.g. "bkash auto" → "bkash")
+      for (const [k, v] of adminLogoMap.entries()) {
+        if (key.includes(k) || k.includes(key)) return v;
+      }
+      return null;
+    },
+    [adminLogoMap]
+  );
+
   // Pick a random helper for the static card display; changes when payment type or methods change
   const currentHelperMethod = useMemo(() => {
     if (helperPaymentMethods.length === 0) return null;
@@ -603,19 +635,23 @@ const Recharge = () => {
       // Get unique helper IDs
       const helperIds = [...new Set(combinedMethodsData.map(m => m.helper_id).filter((id: string) => !id.startsWith('country-') && !id.startsWith('global-')))];
       
-      // Fetch helper data with profiles separately
+      // STRICT COUNTRY FILTER on the helper itself — guarantees BD methods only
+      // show in BD, IN methods only in IN, PK in PK, etc. Combined with the
+      // country filter on helper_country_payment_methods, leakage is impossible.
       const { data: helpersData, error: helpersError } = await supabase
         .from('topup_helpers')
         .select(`
           id,
           user_id,
           wallet_balance,
+          country_code,
           trader_level,
           payroll_enabled,
           is_active,
           is_verified
         `)
-        .in('id', helperIds);
+        .in('id', helperIds)
+        .eq('country_code', userCountryCode);
 
       if (helpersError) {
         console.error('[Recharge] Error fetching helpers:', helpersError);
@@ -2462,14 +2498,7 @@ const Recharge = () => {
                         const isSelected = selectedPaymentType === methodType;
                         // 1) Try helper's own uploaded logo
                         const methodData = helperPaymentMethods.find(m => m.method_name.toLowerCase() === methodType);
-                        // 2) Fallback to admin-configured brand logo from topup_payment_methods
-                        const adminMatch = adminPaymentMethods.find((a: any) => {
-                          const an = String(a.name || '').toLowerCase();
-                          const at = String(a.method_type || '').toLowerCase();
-                          return an === methodType || at === methodType || an.includes(methodType) || methodType.includes(an);
-                        });
-                        const adminLogo = adminMatch?.icon_url || (adminMatch?.additional_info as any)?.logo_url || null;
-                        const logoUrl = methodData?.logo_url || adminLogo;
+                        const logoUrl = resolveMethodLogo(methodData?.logo_url, methodType);
                         
                         // Fallback colors based on payment type
                         const getPaymentColors = (type: string) => {
@@ -3182,16 +3211,19 @@ const Recharge = () => {
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <div className="w-9 h-9 rounded-xl bg-amber-500/20 flex items-center justify-center overflow-hidden">
-                        {selectedHelperMethod.logo_url ? (
-                          <img
-                            src={selectedHelperMethod.logo_url}
-                            alt={selectedHelperMethod.method_name}
-                            className="h-6 w-6 object-contain"
-                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                          />
-                        ) : (
-                          <span className="text-lg">{selectedHelperMethod.method_name.toLowerCase() === 'nagad' ? '🧡' : selectedHelperMethod.method_name.toLowerCase() === 'bkash' ? '💜' : '💳'}</span>
-                        )}
+                        {(() => {
+                          const resolvedLogo = resolveMethodLogo(selectedHelperMethod.logo_url, selectedHelperMethod.method_name);
+                          return resolvedLogo ? (
+                            <img
+                              src={resolvedLogo}
+                              alt={selectedHelperMethod.method_name}
+                              className="h-6 w-6 object-contain"
+                              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                            />
+                          ) : (
+                            <span className="text-lg">{selectedHelperMethod.method_name.toLowerCase() === 'nagad' ? '🧡' : selectedHelperMethod.method_name.toLowerCase() === 'bkash' ? '💜' : '💳'}</span>
+                          );
+                        })()}
                       </div>
                       <div>
                         <p className="text-sm font-bold text-white">{selectedHelperMethod.method_name}</p>
