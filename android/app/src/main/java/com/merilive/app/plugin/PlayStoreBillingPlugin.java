@@ -16,25 +16,82 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
     private static final String TAG = "PlayStoreBilling";
     private BillingClient billingClient;
     private PluginCall pendingCall;
+    private boolean isConnecting = false;
+    private final List<PluginCall> pendingInitializeCalls = new ArrayList<>();
 
     @Override
     public void load() {
+        super.load();
+        createBillingClient();
+        startBillingConnection(null);
+    }
+
+    @PluginMethod
+    public void initialize(PluginCall call) {
+        startBillingConnection(call);
+    }
+
+    private void createBillingClient() {
+        if (billingClient != null) return;
         billingClient = BillingClient.newBuilder(getContext())
             .setListener(this)
             .enablePendingPurchases()
             .build();
+    }
+
+    private void startBillingConnection(PluginCall call) {
+        createBillingClient();
+
+        if (billingClient.isReady()) {
+            resolveInitialize(call, true, "BillingClient already connected");
+            return;
+        }
+
+        if (call != null) pendingInitializeCalls.add(call);
+        if (isConnecting) return;
+
+        isConnecting = true;
 
         billingClient.startConnection(new BillingClientStateListener() {
             @Override
             public void onBillingSetupFinished(BillingResult result) {
+                isConnecting = false;
                 Log.d(TAG, "Billing setup finished: " + result.getResponseCode());
+                if (result.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+                    resolveAllInitialize(true, "BillingClient connected");
+                } else {
+                    rejectAllInitialize("Billing setup failed: " + result.getDebugMessage(), "BILLING_SETUP_FAILED");
+                }
             }
 
             @Override
             public void onBillingServiceDisconnected() {
+                isConnecting = false;
                 Log.w(TAG, "Billing service disconnected");
             }
         });
+    }
+
+    private void resolveInitialize(PluginCall call, boolean success, String message) {
+        if (call == null) return;
+        JSObject ret = new JSObject();
+        ret.put("success", success);
+        ret.put("message", message);
+        call.resolve(ret);
+    }
+
+    private void resolveAllInitialize(boolean success, String message) {
+        for (PluginCall call : new ArrayList<>(pendingInitializeCalls)) {
+            resolveInitialize(call, success, message);
+        }
+        pendingInitializeCalls.clear();
+    }
+
+    private void rejectAllInitialize(String message, String code) {
+        for (PluginCall call : new ArrayList<>(pendingInitializeCalls)) {
+            call.reject(message, code);
+        }
+        pendingInitializeCalls.clear();
     }
 
     @PluginMethod
