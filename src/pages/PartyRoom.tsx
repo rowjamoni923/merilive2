@@ -2407,6 +2407,8 @@ const PartyRoom = () => {
               playSound('gift');
               
               // Prepare gift animation data
+              const optimisticReceiverBeans = Math.floor(totalCost * hostCommissionPercentRef.current / 100);
+              const giftKey = getPartyGiftRealtimeKey(currentUser.id, gift.id, totalCost, count);
               const giftAnimationData = {
                 senderName: currentUser?.profile?.display_name || 'You',
                 giftName: gift.name,
@@ -2441,10 +2443,20 @@ const PartyRoom = () => {
                     soundUrl: gift.sound_url || undefined,
                     count: count,
                     coins: gift.coins,
+                    totalCoins: totalCost,
+                    receiverBeans: optimisticReceiverBeans,
+                    giftId: gift.id,
+                    giftKey,
                   }
                 });
                 console.log('[PartyRoom] ✅ Gift broadcast sent instantly!');
               }
+              markOptimisticPartyGiftCount(giftKey, optimisticReceiverBeans, totalCost);
+              setTotalRoomBeans(prev => prev + optimisticReceiverBeans);
+              setParticipantBeans(prev => ({
+                ...prev,
+                [currentUser.id]: (prev[currentUser.id] || 0) + totalCost,
+              }));
               
               // Gift animation is already playing - no toast needed
               
@@ -2483,7 +2495,9 @@ const PartyRoom = () => {
                   
                   // Save gift message to party_room_messages
                   if (result.success) {
-                    const giftChatMessage = `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${count}`;
+                    const finalBeans = result.transaction?.beans_earned ?? optimisticReceiverBeans;
+                    const finalCost = result.transaction?.coins_spent ?? totalCost;
+                    const giftChatMessage = `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${count} | -${finalCost} diamonds | +${finalBeans} beans`;
                     await supabase.from("party_room_messages").insert({
                       room_id: room.id,
                       user_id: currentUser.id,
