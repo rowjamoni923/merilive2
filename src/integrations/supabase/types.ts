@@ -5387,33 +5387,39 @@ export type Database = {
           account_name: string
           account_number: string
           additional_info: Json | null
+          country_code: string | null
           created_at: string | null
           helper_id: string
           id: string
           is_active: boolean | null
           is_primary: boolean | null
+          logo_url: string | null
           method_type: string
         }
         Insert: {
           account_name: string
           account_number: string
           additional_info?: Json | null
+          country_code?: string | null
           created_at?: string | null
           helper_id: string
           id?: string
           is_active?: boolean | null
           is_primary?: boolean | null
+          logo_url?: string | null
           method_type: string
         }
         Update: {
           account_name?: string
           account_number?: string
           additional_info?: Json | null
+          country_code?: string | null
           created_at?: string | null
           helper_id?: string
           id?: string
           is_active?: boolean | null
           is_primary?: boolean | null
+          logo_url?: string | null
           method_type?: string
         }
         Relationships: []

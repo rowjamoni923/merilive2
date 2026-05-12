@@ -450,6 +450,10 @@ const Recharge = () => {
       const GLOBAL_METHOD_TYPES = ['crypto', 'usdt', 'trc20', 'erc20', 'btc', 'eth', 'cryptocurrency'];
 
       // FETCH 1: helper_payment_methods using actual schema
+      // STRICT country filter at SQL: country_code = user's country (defense-in-depth
+      // alongside the topup_helpers.country_code filter further down). Includes rows
+      // whose country_code is still NULL (legacy un-backfilled) — those will be
+      // gated by the helper-country join below.
       const { data: legacyMethodsData, error: legacyMethodsError } = await supabase
         .from('helper_payment_methods')
         .select(`
@@ -460,9 +464,12 @@ const Recharge = () => {
           is_active,
           is_primary,
           method_type,
+          country_code,
+          logo_url,
           additional_info
         `)
-        .eq('is_active', true);
+        .eq('is_active', true)
+        .or(`country_code.eq.${userCountryCode},country_code.is.null`);
 
       if (legacyMethodsError) {
         console.error('[Recharge] Error fetching legacy payment methods:', legacyMethodsError);
@@ -524,13 +531,15 @@ const Recharge = () => {
       const legacyNormalized = (legacyMethodsData || []).map((m: any) => ({
         id: m.id,
         helper_id: m.helper_id,
-        country_code: userCountryCode,
+        // Use the row's real country_code if present; else inherit user's country
+        // (will still be cross-checked via topup_helpers.country_code below).
+        country_code: m.country_code || userCountryCode,
         payment_type: m.method_type,
         method_type: m.method_type,
         account_name: m.account_name,
         account_number: m.account_number,
         bank_name: (m.additional_info as any)?.bank_name || null,
-        logo_url: m.logo_url || m.icon_url || (m.additional_info as any)?.logo_url || (m.additional_info as any)?.icon_url || null,
+        logo_url: m.logo_url || (m.additional_info as any)?.logo_url || (m.additional_info as any)?.icon_url || null,
         merchant_number: (m.additional_info as any)?.merchant_number || null,
         is_merchant: Boolean((m.additional_info as any)?.is_merchant),
         additional_info: m.additional_info || null,
@@ -1143,6 +1152,13 @@ const Recharge = () => {
     }
   }, [geoLocation.countryCode, userCountryCode]);
 
+  // Re-fetch gateways when country changes (country-strict gateway list)
+  useEffect(() => {
+    if (userCountryCode) {
+      fetchGateways();
+    }
+  }, [userCountryCode]);
+
   // Fetch helpers when tab is selected OR country changes
   useEffect(() => {
     if (selectedTab === "helper" && userCountryCode) {
@@ -1251,19 +1267,31 @@ const Recharge = () => {
     try {
       const { data, error } = await supabase
         .from('payment_gateways')
-        .select('id, name, gateway_type, config, supported_currencies')
+        .select('id, name, gateway_type, config, supported_currencies, country_codes, logo_url')
         .eq('is_active', true)
         .order('display_order', { ascending: true });
 
       if (error) throw error;
+
+      // STRICT country filter: gateway must contain user's country in country_codes
+      // (or have NULL/empty country_codes = treated as global, e.g. crypto/USDT)
+      const cc = (userCountryCode || '').toUpperCase();
+      const countryFiltered = (data || []).filter((g: any) => {
+        const codes: string[] = Array.isArray(g.country_codes) ? g.country_codes.map((c: string) => String(c).toUpperCase()) : [];
+        if (codes.length === 0) return true; // global
+        return cc ? codes.includes(cc) : false;
+      });
+      const dataFiltered = countryFiltered;
+      // Re-bind to keep downstream mapping unchanged
+      const _data = dataFiltered;
       
       // Map data to include payment_number and payment_instructions from settings
-      const mappedGateways: PaymentGateway[] = (data || []).map((g: any) => ({
+      const mappedGateways: PaymentGateway[] = (_data || []).map((g: any) => ({
         id: g.id,
         name: g.name,
         gateway_code: g.gateway_type,
         description: (g.config as any)?.description || '',
-        logo_url: (g.config as any)?.logo_url || null,
+        logo_url: g.logo_url || (g.config as any)?.logo_url || null,
         supported_currencies: g.supported_currencies || [],
         fee_percentage: Number((g.config as any)?.fee_percentage) || 0,
         fee_fixed: Number((g.config as any)?.fee_fixed) || 0,
