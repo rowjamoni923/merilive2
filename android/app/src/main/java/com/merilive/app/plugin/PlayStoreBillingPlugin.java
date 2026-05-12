@@ -156,6 +156,11 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
             return;
         }
 
+        if (pendingCall != null) {
+            call.reject("Another purchase is already in progress", "PURCHASE_IN_PROGRESS");
+            return;
+        }
+
         pendingCall = call;
 
         List<QueryProductDetailsParams.Product> products = new ArrayList<>();
@@ -193,16 +198,7 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
     public void onPurchasesUpdated(BillingResult billingResult, List<Purchase> purchases) {
         if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && purchases != null) {
             for (Purchase purchase : purchases) {
-                // Acknowledge or consume
                 if (purchase.getPurchaseState() == Purchase.PurchaseState.PURCHASED) {
-                    ConsumeParams consumeParams = ConsumeParams.newBuilder()
-                        .setPurchaseToken(purchase.getPurchaseToken())
-                        .build();
-
-                    billingClient.consumeAsync(consumeParams, (result, token) -> {
-                        Log.d(TAG, "Purchase consumed: " + result.getResponseCode());
-                    });
-
                     if (pendingCall != null) {
                         JSObject ret = new JSObject();
                         ret.put("success", true);
@@ -212,14 +208,22 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
                         pendingCall.resolve(ret);
                         pendingCall = null;
                     }
+                } else {
+                    Log.d(TAG, "Purchase pending: " + purchase.getProducts().get(0));
 
-                    // Notify WebView
-                    notifyListeners("purchaseCompleted", new JSObject() {{
-                        put("productId", purchase.getProducts().get(0));
-                        put("purchaseToken", purchase.getPurchaseToken());
-                        put("orderId", purchase.getOrderId());
-                    }});
+                    if (pendingCall != null) {
+                        pendingCall.reject("Purchase is pending", "PURCHASE_PENDING");
+                        pendingCall = null;
+                    }
                 }
+
+                // Notify WebView without consuming locally. The server verifies
+                // and consumes the purchase only after diamonds are credited.
+                notifyListeners("purchaseCompleted", new JSObject() {{
+                    put("productId", purchase.getProducts().get(0));
+                    put("purchaseToken", purchase.getPurchaseToken());
+                    put("orderId", purchase.getOrderId());
+                }});
             }
         } else if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.USER_CANCELED) {
             if (pendingCall != null) {
