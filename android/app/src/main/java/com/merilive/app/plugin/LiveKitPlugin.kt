@@ -223,6 +223,26 @@ class LiveKitPlugin : Plugin() {
     private var hardReconnectInProgress: Boolean = false
     private var resilienceEnabled: Boolean = true
 
+    // --- Network type & data-saver awareness (Step 27) -----------
+    //
+    // Android delivers ConnectivityManager#NetworkCallback events when
+    // the device transitions WiFi ↔ Cellular ↔ Ethernet (e.g. user
+    // walks out of WiFi range). The new network has different ICE
+    // candidates so the existing WebRTC peer connection silently keeps
+    // sending packets into a dead socket until LiveKit's WebSocket ping
+    // notices ~10 s later. We pre-empt that by triggering a hard
+    // reconnect (reuses Step 26 plumbing) the moment a transition is
+    // detected — peers see ~2 s of buffering instead of ~12 s of black.
+    //
+    // Data-saver: when on cellular and `dataSaverOnCellular` is true we
+    // also force the adaptive ladder down to LOW so the user doesn't
+    // burn through their plan when they leave WiFi mid-stream.
+    private enum class NetType { NONE, WIFI, CELLULAR, ETHERNET, OTHER }
+    private var networkCallback: ConnectivityManager.NetworkCallback? = null
+    private var currentNetType: NetType = NetType.NONE
+    private var dataSaverOnCellular: Boolean = false
+    private var lastNetTransitionMs: Long = 0L
+
     // ------------------------------------------------------------
     // Public API
     // ------------------------------------------------------------
