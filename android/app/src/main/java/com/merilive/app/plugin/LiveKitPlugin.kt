@@ -897,6 +897,7 @@ class LiveKitPlugin : Plugin() {
     }
 
 
+    override fun handleOnDestroy() {
         super.handleOnDestroy()
         try {
             eventJob?.cancel()
