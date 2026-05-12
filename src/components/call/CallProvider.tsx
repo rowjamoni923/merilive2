@@ -198,9 +198,9 @@ export function CallProvider({ children }: CallProviderProps) {
             .limit(5);
           if (liveRows && liveRows.length > 0) {
             await Promise.all(
-              liveRows.map((r: any) =>
-                supabase.rpc('end_live_stream', { p_stream_id: r.id }).then(() => undefined).catch(() => undefined)
-              )
+              liveRows.map(async (r: any) => {
+                try { await supabase.rpc('end_live_stream', { p_stream_id: r.id }); } catch { /* ignore */ }
+              })
             );
           }
         } catch (_) {
