@@ -167,6 +167,13 @@ class LiveKitPlugin : Plugin() {
                 // Keep screen on for the duration of the live/call session.
                 setKeepScreenOn(true)
 
+                // Apply communication audio mode + default routing:
+                //  - video session  → speaker ON, no proximity (Live broadcast / video call)
+                //  - audio-only call → speaker OFF (earpiece), proximity ON
+                applyAudioMode(true)
+                setSpeakerphoneInternal(enableVideo)
+                setProximityMonitoringInternal(!enableVideo)
+
                 val ret = JSObject()
                 ret.put("connected", true)
                 ret.put("sid", newRoom.localParticipant.sid.value)
