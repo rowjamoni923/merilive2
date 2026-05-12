@@ -10,7 +10,8 @@
  * hook becomes a no-op — no listeners registered, zero plugin contact.
  */
 import { useEffect, useRef } from 'react';
-import { NativeLiveKit, isNativeLiveKitAvailable, type PluginListenerHandle } from '@/plugins/NativeLiveKit';
+import { NativeLiveKit, isNativeLiveKitAvailable } from '@/plugins/NativeLiveKit';
+import type { PluginListenerHandle } from '@capacitor/core';
 import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
 
 export interface NativeLiveKitEventHandlers {
