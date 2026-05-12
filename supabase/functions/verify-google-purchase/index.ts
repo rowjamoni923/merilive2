@@ -6,15 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-// Google Play product mapping
-const PLAY_STORE_PRODUCTS: Record<string, { coins: number; priceUsd: number }> = {
-  'diamonds_7000_v2': { coins: 7000, priceUsd: 1.99 },
-  'diamonds_13200_v2': { coins: 13200, priceUsd: 3.99 },
-  'diamonds_56000_v2': { coins: 56000, priceUsd: 14.99 },
-  'diamonds_169000_v2': { coins: 169000, priceUsd: 23.99 },
-  'diamonds_470000_v2': { coins: 470000, priceUsd: 59.99 },
-  'diamonds_650000_v2': { coins: 650000, priceUsd: 129.99 },
-};
+const PACKAGE_NAME = 'com.merilive.app';
 
 /**
  * Get Google OAuth2 access token using Service Account
@@ -123,30 +115,23 @@ serve(async (req) => {
       });
     }
 
-    // Validate product
-    const productInfo = PLAY_STORE_PRODUCTS[productId];
-    if (!productInfo) {
+    const adminSupabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    );
+
+    // Validate product from admin-managed coin_packages table.
+    const { data: productInfo, error: productInfoError } = await adminSupabase.rpc('get_google_play_product_info', {
+      _product_id: productId,
+    });
+
+    if (productInfoError || !productInfo?.coins) {
       return new Response(JSON.stringify({ success: false, error: 'Invalid product ID' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     console.log(`[verify-google-purchase] User: ${userId}, Product: ${productId}, Coins: ${productInfo.coins}`);
-
-    // 🛡️ ANTI-FRAUD: Check duplicate order
-    const orderIdForCheck = (orderId || purchaseToken).substring(0, 40);
-    const { data: existingOrder } = await supabase
-      .from('recharge_transactions')
-      .select('id')
-      .eq('google_order_id', orderIdForCheck)
-      .limit(1);
-
-    if (existingOrder && existingOrder.length > 0) {
-      console.error(`[verify-google-purchase] ❌ DUPLICATE ORDER: ${orderIdForCheck}`);
-      return new Response(JSON.stringify({ success: false, error: 'Purchase already processed' }), {
-        status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
 
     // 🔐 Verify with Google Play Developer API
     const serviceAccountJson = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_JSON');
@@ -160,8 +145,7 @@ serve(async (req) => {
     const serviceAccount = JSON.parse(serviceAccountJson);
     const accessToken = await getAccessToken(serviceAccount);
 
-    const packageName = 'com.merilive.app';
-    const verifyUrl = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${packageName}/purchases/products/${productId}/tokens/${purchaseToken}`;
+    const verifyUrl = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${PACKAGE_NAME}/purchases/products/${productId}/tokens/${purchaseToken}`;
 
     const googleResponse = await fetch(verifyUrl, {
       headers: { Authorization: `Bearer ${accessToken}` },
@@ -193,67 +177,31 @@ serve(async (req) => {
       });
     }
 
-    // ✅ Purchase verified by Google! Now credit coins.
-
-    // Use admin client for DB operations
-    const adminSupabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    );
-
-    // Record in recharge_transactions
-    const { error: rechargeError } = await adminSupabase.from('recharge_transactions').insert({
-      user_id: userId,
-      coins_received: productInfo.coins,
-      amount: productInfo.priceUsd,
-      payment_method: 'google_play',
-      purchase_source: 'google_play',
-      google_product_id: productId,
-      google_order_id: orderIdForCheck,
-      status: 'completed',
-      completed_at: new Date().toISOString(),
-      currency_code: 'USD',
-      notes: `✅ Server-verified via Google Play Developer API. OrderId: ${purchaseData.orderId || 'N/A'}`,
-    });
-
-    if (rechargeError) {
-      console.error(`[verify-google-purchase] ❌ recharge insert failed:`, rechargeError);
-      return new Response(JSON.stringify({ success: false, error: 'Failed to record purchase (possible duplicate)' }), {
-        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Record in coin_transfers
-    await adminSupabase.from('coin_transfers').insert({
-      sender_id: userId,
-      receiver_id: userId,
-      sender_type: 'google_play',
-      amount: productInfo.coins,
-      status: 'completed',
-      note: `✅ Verified Play Store Purchase: ${productId}`,
-    });
-
-    // Credit coins atomically
-    const { data: addData, error: addError } = await adminSupabase.rpc('add_coins', {
+    // ✅ Purchase verified by Google. Credit and record atomically in DB.
+    const { data: processData, error: processError } = await adminSupabase.rpc('process_google_play_purchase', {
       p_user_id: userId,
-      p_amount: productInfo.coins,
+      p_product_id: productId,
+      p_purchase_token: purchaseToken,
+      p_google_order_id: purchaseData.orderId || orderId || null,
+      p_google_payload: purchaseData,
     });
 
-    if (addError) {
-      console.error(`[verify-google-purchase] ❌ add_coins failed:`, addError);
-      return new Response(JSON.stringify({ success: false, error: 'Failed to credit coins' }), {
+    if (processError || !processData?.success) {
+      console.error(`[verify-google-purchase] ❌ process_google_play_purchase failed:`, processError || processData);
+      return new Response(JSON.stringify({ success: false, error: processData?.error || 'Failed to credit purchase' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const newBalance = (addData as any)?.new_balance;
-    console.log(`[verify-google-purchase] ✅ SUCCESS! User: ${userId}, Coins: +${productInfo.coins}, New balance: ${newBalance}`);
+    const creditedCoins = Number(processData.coins || productInfo.coins || 0);
+    const newBalance = processData.newBalance;
+    console.log(`[verify-google-purchase] ✅ SUCCESS! User: ${userId}, Coins: +${creditedCoins}, New balance: ${newBalance}`);
 
     // Consume the purchase with Google only after DB credit succeeds.
     // Diamonds are consumable products, so consuming server-side makes the
     // same product immediately purchasable again while preventing paid-but-not-delivered loss.
     try {
-      const consumeUrl = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${packageName}/purchases/products/${productId}/tokens/${purchaseToken}:consume`;
+      const consumeUrl = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${PACKAGE_NAME}/purchases/products/${productId}/tokens/${purchaseToken}:consume`;
       await fetch(consumeUrl, {
         method: 'POST',
         headers: { 
@@ -268,9 +216,10 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({ 
       success: true, 
-      coins: productInfo.coins,
+      coins: creditedCoins,
       newBalance,
       orderId: purchaseData.orderId,
+      alreadyProcessed: Boolean(processData.alreadyProcessed),
     }), {
       status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
