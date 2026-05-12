@@ -253,6 +253,17 @@ export interface NativeLiveKitPlugin {
   setDataSaverEnabled(opts: { enabled: boolean }): Promise<{ enabled: boolean; network: NetworkType }>;
   getNetworkType(): Promise<{ type: NetworkType; dataSaver: boolean }>;
 
+  // --- RTC stats / telemetry (Step 28) -------------------------
+  /**
+   * Toggle the periodic native stats collector. When enabled (default),
+   * the plugin emits `rtc-stats` events every `intervalMs` (default
+   * 3000, min 1000) for HUD/QoE consumers. Costs effectively zero per
+   * frame — fps is read from the existing stall-watchdog frame counter.
+   */
+  setStatsCollectorEnabled(opts: { enabled: boolean; intervalMs?: number }): Promise<{ enabled: boolean; intervalMs: number }>;
+  /** One-shot snapshot of the same payload that `rtc-stats` carries. */
+  getRtcStats(): Promise<RtcStatsEvent & { hasRoom: boolean; enabled?: boolean; intervalMs?: number }>;
+
   addListener(eventName: 'participant-connected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'participant-disconnected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'track-subscribed', cb: (e: TrackEvent) => void): Promise<PluginListenerHandle>;
