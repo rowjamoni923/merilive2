@@ -473,7 +473,7 @@ const AgencyCoinTrader = () => {
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
         <main className="px-4 py-4 space-y-4">
-        {/* Wallet Balance - Show helperData balance if available, else agency balance */}
+        {/* Trader Wallet — unified diamond pool (helper + agency) */}
         <Card className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white border-0">
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
@@ -481,11 +481,13 @@ const AgencyCoinTrader = () => {
                 <Coins className="w-7 h-7" />
               </div>
               <div>
-                <p className="text-white/80 text-sm">Agency Wallet</p>
+                <p className="text-white/80 text-sm">Trader Wallet</p>
                 <p className="text-3xl font-bold">
-                  {((helperData?.wallet_balance ?? 0) + (agency?.wallet_balance ?? 0)).toLocaleString()}
+                  {((helperData?.wallet_balance ?? 0) + (agency?.diamond_balance ?? 0)).toLocaleString()} 💎
                 </p>
-                <p className="text-xs text-white/60">Diamonds</p>
+                <p className="text-xs text-white/60">
+                  Helper {(helperData?.wallet_balance ?? 0).toLocaleString()} + Agency {(agency?.diamond_balance ?? 0).toLocaleString()}
+                </p>
               </div>
             </div>
           </CardContent>
