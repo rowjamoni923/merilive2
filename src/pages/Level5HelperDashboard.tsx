@@ -1656,11 +1656,18 @@ const Level5HelperDashboard = () => {
                       <div className="mt-3 pt-3 border-t border-slate-700">
                         <div className="bg-slate-900/50 rounded-lg p-3">
                           <p className="text-slate-400 text-xs mb-2">📝 Payment Details</p>
-                          {order.payment_details.transaction_id && (
+                          {(order.payment_details.transaction_id || order.payment_details.user_transaction_id) && (
                             <div className="flex items-center justify-between mb-2">
                               <span className="text-slate-500 text-xs">Transaction ID:</span>
                               <span className="text-yellow-400 font-mono text-sm font-bold">
-                                {order.payment_details.transaction_id}
+                                {order.payment_details.transaction_id || order.payment_details.user_transaction_id}
+                              </span>
+                            </div>
+                          )}
+                          {order.payment_details.manual_review_required && (
+                            <div className="mb-2">
+                              <span className="inline-block px-2 py-0.5 rounded bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-bold">
+                                ⚠ MANUAL REVIEW (auto-verify missed)
                               </span>
                             </div>
                           )}
