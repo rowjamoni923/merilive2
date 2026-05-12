@@ -1023,8 +1023,11 @@ const LiveStream = () => {
         playSound('gift');
       })
       .subscribe();
+
+    giftBroadcastChannelRef.current = broadcastChannel;
     
     return () => {
+      giftBroadcastChannelRef.current = null;
       supabase.removeChannel(broadcastChannel);
     };
   }, [id, currentUserId, addFlyingGift, playSound, isHost]);
