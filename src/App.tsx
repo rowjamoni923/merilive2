@@ -1,6 +1,6 @@
 import { useEffect, useState, lazy, Suspense, memo } from "react";
 import { useLocation, useParams } from "react-router-dom";
-import { lazyRetry, lazyRetryOptional } from "@/utils/lazyRetry";
+import { lazyRetry } from "@/utils/lazyRetry";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
@@ -47,11 +47,10 @@ const Auth = lazy(lazyRetry(() => import("./pages/Auth")));
 const DeepLinkHandler = lazy(lazyRetry(() => import("./components/common/DeepLinkHandler")));
 import ErrorBoundary from "./components/ErrorBoundary";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
-const EventPopupBanner = lazy(lazyRetry(() => import("./components/common/EventPopupBanner")));
-const OptionalOverlayFallback = () => null;
-const DailyLoginPopup = lazy(lazyRetryOptional(() => import("./components/rewards/DailyLoginPopup"), OptionalOverlayFallback));
-const WelcomeOnboarding = lazy(lazyRetryOptional(() => import("./components/onboarding/WelcomeOnboarding"), OptionalOverlayFallback));
-const RatingRewardPopup = lazy(lazyRetryOptional(() => import("./components/rewards/RatingRewardPopup"), OptionalOverlayFallback));
+import EventPopupBanner from "./components/common/EventPopupBanner";
+import DailyLoginPopup from "./components/rewards/DailyLoginPopup";
+import WelcomeOnboarding from "./components/onboarding/WelcomeOnboarding";
+import RatingRewardPopup from "./components/rewards/RatingRewardPopup";
 const LandingPage = lazy(lazyRetry(() => import("./pages/LandingPage")));
 const Unsubscribe = lazy(lazyRetry(() => import("./pages/Unsubscribe")));
 // =============================================
