@@ -58,6 +58,7 @@ const AdminTopupPaymentMethods = () => {
     payment_number: '',
     payment_instructions: '',
     icon_url: '',
+    country_codes: '', // comma-separated, e.g. "BD,IN" — empty = global
   });
 
   const loadMethods = useCallback(async () => {
