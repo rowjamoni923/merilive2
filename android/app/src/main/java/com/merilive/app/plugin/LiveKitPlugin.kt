@@ -1143,6 +1143,7 @@ class LiveKitPlugin : Plugin() {
             eventJob?.cancel()
             stopStallWatchdog()
             stopReconnectWatchdog()
+            unregisterNetworkCallback()
             lastConnectArgs = null
             scope.launch { room?.disconnect() }
             setKeepScreenOn(false)
