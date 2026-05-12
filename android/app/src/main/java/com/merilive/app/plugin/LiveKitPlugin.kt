@@ -296,26 +296,27 @@ class LiveKitPlugin : Plugin() {
                         emit("participant-disconnected", event.participant)
                     is RoomEvent.TrackSubscribed -> {
                         val data = JSObject()
-                        data.put("sid", event.participant.sid?.value ?: "")
+                        data.put("sid", event.participant.sid.value)
                         data.put("identity", event.participant.identity?.value ?: "")
                         data.put("kind", event.track.kind.name.lowercase())
                         notifyListeners("track-subscribed", data)
                     }
                     is RoomEvent.TrackUnsubscribed -> {
                         val data = JSObject()
-                        data.put("sid", event.participant.sid?.value ?: "")
+                        data.put("sid", event.participant.sid.value)
                         data.put("identity", event.participant.identity?.value ?: "")
                         data.put("kind", event.track.kind.name.lowercase())
                         notifyListeners("track-unsubscribed", data)
                     }
                     is RoomEvent.Disconnected -> {
                         val data = JSObject()
-                        data.put("reason", event.reason?.name ?: "UNKNOWN")
+                        data.put("reason", event.reason.name)
+                        event.error?.let { data.put("error", it.message ?: it.javaClass.simpleName) }
                         notifyListeners("disconnected", data)
                     }
                     is RoomEvent.ConnectionQualityChanged -> {
                         val data = JSObject()
-                        data.put("sid", event.participant.sid?.value ?: "")
+                        data.put("sid", event.participant.sid.value)
                         data.put("quality", event.quality.name.lowercase())
                         notifyListeners("connection-quality", data)
                     }
