@@ -85,6 +85,12 @@ class LiveKitPlugin : Plugin() {
     private var localRenderer: TextureViewRenderer? = null
     private val remoteRenderers = mutableMapOf<String, TextureViewRenderer>()
 
+    // --- Audio routing state (Step 11) -----------------------------
+    private var savedAudioMode: Int = AudioManager.MODE_NORMAL
+    private var savedSpeakerphoneOn: Boolean = false
+    private var audioModeApplied: Boolean = false
+    private var proximityWakeLock: PowerManager.WakeLock? = null
+
     // ------------------------------------------------------------
     // Public API
     // ------------------------------------------------------------
