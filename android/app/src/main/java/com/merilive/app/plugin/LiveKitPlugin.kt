@@ -768,6 +768,8 @@ class LiveKitPlugin : Plugin() {
         ret.put("base", baseTier.name.lowercase())
         call.resolve(ret)
     }
+
+    override fun handleOnDestroy() {
         super.handleOnDestroy()
         try {
             eventJob?.cancel()
