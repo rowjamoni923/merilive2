@@ -12,6 +12,7 @@ public class MainActivity extends BridgeActivity {
     protected void onCreate(Bundle savedInstanceState) {
         registerPlugin(com.merilive.app.plugin.PlayStoreBillingPlugin.class);
         registerPlugin(com.merilive.app.plugin.NativePermissionsPlugin.class);
+        registerPlugin(com.merilive.app.plugin.NativeCameraPlugin.class);
 
         super.onCreate(savedInstanceState);
 
