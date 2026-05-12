@@ -126,6 +126,63 @@ const AdminTransferScheduler = () => {
     }
   };
 
+  const fetchCommissionSchedule = async () => {
+    try {
+      const { data } = await supabase
+        .from('app_settings')
+        .select('setting_value')
+        .eq('setting_key', 'commission_schedule')
+        .maybeSingle();
+      if (data?.setting_value) {
+        const value = parseSettingValue<CommissionSchedule>(data.setting_value) as CommissionSchedule;
+        setCommissionSchedule({
+          is_active: value.is_active ?? true,
+          delay_hours_after_transfer: value.delay_hours_after_transfer ?? 1,
+          next_run_at: value.next_run_at ?? null,
+          last_run_at: value.last_run_at ?? null,
+          last_result: value.last_result ?? null,
+        });
+      }
+    } catch (error) {
+      recordAdminError({ kind: "rpc", label: "AdminTransferScheduler.ErrorFetchingCommissionSchedule", message: formatAdminError(error)});
+    }
+  };
+
+  const saveCommissionSchedule = async (next: CommissionSchedule) => {
+    try {
+      await saveAppSetting('commission_schedule', JSON.parse(JSON.stringify(next)), 'Agency commission distribution schedule');
+      setCommissionSchedule(next);
+    } catch (error) {
+      recordAdminError({ kind: "rpc", label: "AdminTransferScheduler.ErrorSavingCommissionSchedule", message: formatAdminError(error)});
+      toast.error('Failed to save commission schedule');
+    }
+  };
+
+  const distributeCommissionNow = async () => {
+    setDistributing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('agency-commission-distribute', {
+        body: { manual: true },
+      });
+      if (error) throw error;
+      const result = data?.result || {};
+      await saveCommissionSchedule({
+        ...commissionSchedule,
+        last_run_at: new Date().toISOString(),
+        next_run_at: null,
+        last_result: result,
+      });
+      toast.success(
+        `Commission distributed: ${result.transfers_processed ?? 0} transfers, ${formatNumber(result.own_commission_total ?? 0)} agency + ${formatNumber(result.upper_bonus_total ?? 0)} upper bonus`
+      );
+    } catch (error) {
+      recordAdminError({ kind: "rpc", label: "AdminTransferScheduler.ErrorDistributingCommission", message: formatAdminError(error)});
+      toast.error('Commission distribution failed');
+    } finally {
+      setDistributing(false);
+    }
+  };
+
   const fetchHistory = async () => {
     try {
       // Fetch real transfer records from agency_earnings_transfers, grouped by batch
