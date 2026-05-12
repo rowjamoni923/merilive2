@@ -362,6 +362,13 @@ const AdminTransferScheduler = () => {
       // Refetch history from actual transfers table
       await fetchHistory();
 
+      // Auto-schedule the agency commission distribution after the configured delay
+      if (commissionSchedule.is_active) {
+        const delayMs = (commissionSchedule.delay_hours_after_transfer || 1) * 60 * 60 * 1000;
+        const nextRun = new Date(Date.now() + delayMs).toISOString();
+        await saveCommissionSchedule({ ...commissionSchedule, next_run_at: nextRun });
+      }
+
       toast.success(`Transfer complete! ${data?.result?.total_transfers || 0} transfers processed`);
     } catch (error) {
       recordAdminError({ kind: "rpc", label: "AdminTransferScheduler.ErrorProcessingTransfer", message: formatAdminError(error)});
