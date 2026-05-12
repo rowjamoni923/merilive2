@@ -10,7 +10,17 @@
  * all calls are still safe no-ops because the underlying plugin returns
  * "not implemented" which we swallow.
  */
-import { NativeLiveKit, type ConnectOptions, type Lens, type Resolution, type AudioDeviceType, type NativeAudioDevice } from '@/plugins/NativeLiveKit';
+import {
+  NativeLiveKit,
+  type ConnectOptions,
+  type Lens,
+  type Resolution,
+  type AudioDeviceType,
+  type NativeAudioDevice,
+  type ConnectionStateEvent,
+  type AudioInterruptionEvent,
+} from '@/plugins/NativeLiveKit';
+import type { PluginListenerHandle } from '@capacitor/core';
 
 export interface NativeJoinOptions {
   url: string;
@@ -140,6 +150,36 @@ class NativeLiveKitController {
   async setAudioDevice(type: AudioDeviceType): Promise<boolean> {
     try { const r = await NativeLiveKit.setAudioDevice({ type }); return r.applied; }
     catch (e) { console.warn('[NativeLiveKitController] setAudioDevice failed:', e); return false; }
+  }
+
+  // --- Lifecycle event subscriptions (Step 17) -------------------
+  // Returns an unsubscribe function. Safe no-op on web/iOS.
+  /** Fires while LiveKit recovers from a transient network drop. */
+  onConnectionState(cb: (e: ConnectionStateEvent) => void): () => void {
+    let handle: PluginListenerHandle | null = null;
+    let cancelled = false;
+    NativeLiveKit.addListener('connection-state', cb)
+      .then((h) => { if (cancelled) h.remove(); else handle = h; })
+      .catch(() => { /* not implemented on web/iOS */ });
+    return () => {
+      cancelled = true;
+      try { handle?.remove(); } catch { /* noop */ }
+      handle = null;
+    };
+  }
+
+  /** Fires when system audio focus is taken (PSTN call, alarm) and returned. */
+  onAudioInterruption(cb: (e: AudioInterruptionEvent) => void): () => void {
+    let handle: PluginListenerHandle | null = null;
+    let cancelled = false;
+    NativeLiveKit.addListener('audio-interruption', cb)
+      .then((h) => { if (cancelled) h.remove(); else handle = h; })
+      .catch(() => { /* not implemented on web/iOS */ });
+    return () => {
+      cancelled = true;
+      try { handle?.remove(); } catch { /* noop */ }
+      handle = null;
+    };
   }
 }
 
