@@ -39,6 +39,8 @@ import io.livekit.android.room.track.VideoCaptureParameter
 import io.livekit.android.room.track.VideoEncoding
 import io.livekit.android.room.track.VideoPreset169
 import io.livekit.android.room.track.VideoTrackPublishDefaults
+import io.livekit.android.e2ee.BaseKeyProvider
+import io.livekit.android.e2ee.E2EEOptions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -122,6 +124,18 @@ class LiveKitPlugin : Plugin() {
     private var consecutiveExcellent: Int = 0
     private var lastTierChangeMs: Long = 0L
     private var adaptiveBusy: Boolean = false
+
+    // --- End-to-end encryption (Step 23) -------------------------
+    //
+    // LiveKit Insertable-Streams E2EE — frames are AES-GCM encrypted with
+    // a shared key BEFORE leaving the publisher's WebRTC encoder, and
+    // decrypted only on subscriber devices that hold the same key. The
+    // SFU forwards opaque ciphertext, so neither LiveKit Cloud nor any
+    // network observer can decode the media. Used for 1:1 Private Calls
+    // where both peers derive the key from the call session id.
+    private var e2eeKeyProvider: BaseKeyProvider? = null
+    private var e2eeEnabled: Boolean = false
+    private var e2eeKey: String? = null
 
     // ------------------------------------------------------------
     // Public API
