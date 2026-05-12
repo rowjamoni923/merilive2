@@ -149,18 +149,22 @@ export const resolveLevelFromTiers = async (
   const weeklyEarnings = Number(profile.weekly_earnings ?? 0);
 
   const totalPoints = isFemaleHost
-    ? await resolveEffectiveHostEarnings(profile.id, profileTotalEarnings, weeklyEarnings)
+    ? weeklyEarnings
     : await resolveEffectiveUserRechargeTotal(profile.id, profileTotalRecharged);
 
   const derivedLevel = tiers.reduce((highest, tier) => {
-    const threshold = Number(isFemaleHost ? (tier.min_earning_amount ?? 0) : (tier.min_topup_amount ?? 0));
+    const threshold = Number(
+      isFemaleHost
+        ? (tier.min_earning_amount ?? tier.min_topup_amount ?? 0)
+        : (tier.min_topup_amount ?? tier.min_earning_amount ?? 0),
+    );
     return totalPoints >= threshold ? Math.max(highest, Number(tier.level_number ?? 0)) : highest;
   }, 0);
 
   const storedLevel = Number(isFemaleHost ? (profile.host_level ?? 0) : (profile.user_level ?? 0));
   const maxUserLevel = Number(profile.max_user_level ?? 0);
   const resolvedLevel = isFemaleHost
-    ? Math.max(derivedLevel, 0)
+    ? Math.max(storedLevel, derivedLevel, 0)
     : Math.max(storedLevel, maxUserLevel, derivedLevel, 1);
 
   if (!isFemaleHost && profile.id && (totalPoints > profileTotalRecharged || derivedLevel > Math.max(storedLevel, maxUserLevel))) {
@@ -178,13 +182,13 @@ export const resolveLevelFromTiers = async (
 
   let progress = 100;
   if (currentTier && nextTier && Number(currentTier.level_number) !== Number(nextTier.level_number)) {
-    const currentMin = Number(isFemaleHost ? (currentTier.min_earning_amount ?? 0) : (currentTier.min_topup_amount ?? 0));
-    const nextMin = Number(isFemaleHost ? (nextTier.min_earning_amount ?? 0) : (nextTier.min_topup_amount ?? 0));
+    const currentMin = Number(isFemaleHost ? (currentTier.min_earning_amount ?? currentTier.min_topup_amount ?? 0) : (currentTier.min_topup_amount ?? currentTier.min_earning_amount ?? 0));
+    const nextMin = Number(isFemaleHost ? (nextTier.min_earning_amount ?? nextTier.min_topup_amount ?? 0) : (nextTier.min_topup_amount ?? nextTier.min_earning_amount ?? 0));
     const range = nextMin - currentMin;
     const progressInRange = currentXP - currentMin;
     progress = range > 0 ? (progressInRange / range) * 100 : 0;
   } else if (!currentTier && nextTier) {
-    const nextMin = Number(isFemaleHost ? (nextTier.min_earning_amount ?? 0) : (nextTier.min_topup_amount ?? 0));
+    const nextMin = Number(isFemaleHost ? (nextTier.min_earning_amount ?? nextTier.min_topup_amount ?? 0) : (nextTier.min_topup_amount ?? nextTier.min_earning_amount ?? 0));
     progress = nextMin > 0 ? (currentXP / nextMin) * 100 : 0;
   }
 

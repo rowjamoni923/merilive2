@@ -89,12 +89,14 @@ interface ProfileData {
   is_verified: boolean | null;
   is_host: boolean | null;
   user_level: number | null;
+  max_user_level?: number | null;
   host_level?: number | null;
   previous_host_level?: number | null;
   weekly_earnings?: number | null;
   coins?: number | null;
   tags: string[] | null;
   frame_id?: string | null;
+  total_recharged?: number | null;
   app_uid?: string | null;
   total_consumption?: number | null;
   total_earnings?: number | null;
@@ -463,7 +465,7 @@ const ProfileDetail = () => {
 
     // SECOND PARALLEL BATCH - Dependent on profile data
     if (profileData) {
-      const userLevel = profileData.user_level || 1;
+      const userLevel = Math.max(profileData.user_level || 1, profileData.max_user_level || 1);
       const hostLevel = profileData.host_level || 0;
       const isHostUser = profileData.is_host && (profileData.gender === 'female' || profileData.gender === 'Female');
       const fallbackLevel = isHostUser ? hostLevel : userLevel;
@@ -754,7 +756,7 @@ const ProfileDetail = () => {
   const isFemaleHost = profile.is_host && (profile.gender === 'female' || profile.gender === 'Female');
   const fallbackLevel = isFemaleHost 
     ? (profile.host_level ?? 0)
-    : (profile.user_level ?? 1);
+    : Math.max(profile.user_level ?? 1, profile.max_user_level ?? 1);
   const level = resolvedLevelLoading ? fallbackLevel : resolvedLevel;
   const isVideo = posterImages[currentSlideIndex]?.image_url?.match(/\.(mp4|webm|mov)$/i);
 
