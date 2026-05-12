@@ -704,12 +704,14 @@ const Chat = () => {
         });
         
         if (response.error) {
-          console.error('[Chat Gift] Edge function error:', response.error);
-          recordClientError({ label: "Chat.response", message: response.error instanceof Error ? response.error.message : String(response.error) });
+          const { extractEdgeFnError } = await import("@/utils/edgeFnError");
+          const realMsg = await extractEdgeFnError(response.error, "Gift failed");
+          console.error('[Chat Gift] Edge function error:', realMsg, response.error);
+          recordClientError({ label: "Chat.response", message: realMsg });
           // Refund on failure
           setUserCoins(prev => prev + totalCost);
           setMessages(prev => prev.filter(m => m.id !== optimisticGiftRow.id));
-          toast.error("Gift failed - diamonds refunded");
+          toast.error(`Gift failed: ${realMsg}`);
           return;
         }
         
