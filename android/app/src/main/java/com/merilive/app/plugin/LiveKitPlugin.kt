@@ -1014,6 +1014,10 @@ class LiveKitPlugin : Plugin() {
                 }
             }
             cameraOnBeforeBackground = false
+            // Step 25 — give the renderer time to start receiving frames
+            // again before the watchdog re-arms its stall timer.
+            val now = System.currentTimeMillis()
+            stallTable.values.forEach { it.lastFrameMs = now; it.attempts = 0 }
         } catch (e: Exception) {
             Log.w(TAG, "handleOnResume restore failed", e)
         }
