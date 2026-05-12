@@ -3483,7 +3483,7 @@ const LiveStream = () => {
               recordClientError({ label: "LiveStream.finalGiftMessage", message: err instanceof Error ? err.message : String(err) });
               // Refund coins on complete failure
               setUserCoins(prev => prev + totalCost);
-              toast.error("Gift failed - diamonds refunded");
+              toast.error(`Gift failed: ${err instanceof Error ? err.message : String(err)}`);
             }
           })();
         }}
