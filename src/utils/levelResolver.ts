@@ -164,7 +164,7 @@ export const resolveLevelFromTiers = async (
   const storedLevel = Number(isFemaleHost ? (profile.host_level ?? 0) : (profile.user_level ?? 0));
   const maxUserLevel = Number(profile.max_user_level ?? 0);
   const resolvedLevel = isFemaleHost
-    ? Math.max(derivedLevel, 0)
+    ? Math.max(storedLevel, derivedLevel, 0)
     : Math.max(storedLevel, maxUserLevel, derivedLevel, 1);
 
   if (!isFemaleHost && profile.id && (totalPoints > profileTotalRecharged || derivedLevel > Math.max(storedLevel, maxUserLevel))) {
