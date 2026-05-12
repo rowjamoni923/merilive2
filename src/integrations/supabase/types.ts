@@ -1638,6 +1638,13 @@ export type Database = {
             referencedRelation: "topup_helpers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "agency_withdrawals_assigned_helper_id_fkey"
+            columns: ["assigned_helper_id"]
+            isOneToOne: false
+            referencedRelation: "topup_helpers_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       allowed_external_links: {
@@ -4872,6 +4879,13 @@ export type Database = {
             referencedRelation: "topup_helpers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "helper_accepted_payment_methods_helper_id_fkey"
+            columns: ["helper_id"]
+            isOneToOne: false
+            referencedRelation: "topup_helpers_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       helper_admin_messages: {
@@ -4918,6 +4932,13 @@ export type Database = {
             columns: ["helper_id"]
             isOneToOne: false
             referencedRelation: "topup_helpers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "helper_admin_messages_helper_id_fkey"
+            columns: ["helper_id"]
+            isOneToOne: false
+            referencedRelation: "topup_helpers_public"
             referencedColumns: ["id"]
           },
         ]
@@ -5077,6 +5098,13 @@ export type Database = {
             columns: ["helper_id"]
             isOneToOne: false
             referencedRelation: "topup_helpers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "helper_country_payment_methods_helper_id_fkey"
+            columns: ["helper_id"]
+            isOneToOne: false
+            referencedRelation: "topup_helpers_public"
             referencedColumns: ["id"]
           },
         ]
@@ -5329,6 +5357,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "helper_orders_helper_id_fkey"
+            columns: ["helper_id"]
+            isOneToOne: false
+            referencedRelation: "topup_helpers_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "helper_orders_user_id_fkey"
             columns: ["customer_id"]
             isOneToOne: false
@@ -5435,6 +5470,13 @@ export type Database = {
             referencedRelation: "topup_helpers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "helper_topup_requests_helper_id_fkey"
+            columns: ["helper_id"]
+            isOneToOne: false
+            referencedRelation: "topup_helpers_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       helper_transactions: {
@@ -5487,6 +5529,13 @@ export type Database = {
             columns: ["helper_id"]
             isOneToOne: false
             referencedRelation: "topup_helpers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "helper_transactions_helper_id_fkey"
+            columns: ["helper_id"]
+            isOneToOne: false
+            referencedRelation: "topup_helpers_public"
             referencedColumns: ["id"]
           },
           {
@@ -5552,6 +5601,13 @@ export type Database = {
             columns: ["helper_id"]
             isOneToOne: false
             referencedRelation: "topup_helpers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "helper_upgrade_requests_helper_id_fkey"
+            columns: ["helper_id"]
+            isOneToOne: false
+            referencedRelation: "topup_helpers_public"
             referencedColumns: ["id"]
           },
         ]
@@ -5642,6 +5698,13 @@ export type Database = {
             columns: ["helper_id"]
             isOneToOne: false
             referencedRelation: "topup_helpers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "helper_withdrawal_requests_helper_id_fkey"
+            columns: ["helper_id"]
+            isOneToOne: false
+            referencedRelation: "topup_helpers_public"
             referencedColumns: ["id"]
           },
           {
@@ -13601,6 +13664,48 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      topup_helpers_public: {
+        Row: {
+          id: string | null
+          is_active: boolean | null
+          is_verified: boolean | null
+          payroll_enabled: boolean | null
+          trader_level: number | null
+          user_id: string | null
+        }
+        Insert: {
+          id?: string | null
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          payroll_enabled?: boolean | null
+          trader_level?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          id?: string | null
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          payroll_enabled?: boolean | null
+          trader_level?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "topup_helpers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "topup_helpers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vip_plans: {
         Row: {
