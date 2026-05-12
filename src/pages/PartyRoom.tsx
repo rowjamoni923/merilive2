@@ -223,13 +223,15 @@ const PartyRoom = () => {
   const currentUserRef = useRef<any>(null);
   const roomRef = useRef<PartyRoom | null>(null);
   const roomIdRef = useRef<string | undefined>(roomId);
+  const hostCommissionPercentRef = useRef(hostCommissionPercent);
   
   // Keep refs in sync with state
   useEffect(() => {
     currentUserRef.current = currentUser;
     roomRef.current = room;
     roomIdRef.current = roomId;
-  }, [currentUser, room, roomId]);
+    hostCommissionPercentRef.current = hostCommissionPercent;
+  }, [currentUser, room, roomId, hostCommissionPercent]);
   
   // Ref to track component mount status for async operations
   const isMountedRef = useRef(true);
