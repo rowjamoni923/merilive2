@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { subscribeToTables } from '@/hooks/useUniversalRealtime';
 import { useToast } from '@/hooks/use-toast';
 import { Capacitor } from '@capacitor/core';
+import { isNativeAndroidApp } from '@/utils/nativeUtils';
 import { parseCallRateSettings, resolveEffectiveCallRate } from '@/utils/callRateSettings';
 
 interface CallState {
@@ -338,6 +339,17 @@ export function usePrivateCall(userId: string | null) {
   });
 
   const startCall = useCallback(async (hostId: string, streamId?: string) => {
+
+    // 🔒 Native-only enforcement: Calls can ONLY be initiated from the Android app.
+    // Web browsers (including PWA / mobile web) are blocked from placing private calls.
+    if (!isNativeAndroidApp()) {
+      toast({
+        title: "Android App Required",
+        description: "Private calls are available only in the MeriLive Android app. Please install/open the app to call.",
+        variant: "destructive",
+      });
+      return null;
+    }
 
     if (!userId) {
       toast({
