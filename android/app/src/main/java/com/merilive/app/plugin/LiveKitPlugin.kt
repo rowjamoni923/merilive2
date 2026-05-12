@@ -351,6 +351,59 @@ class LiveKitPlugin : Plugin() {
         }
     }
 
+    // --- Audio device routing (Step 13) ----------------------------
+
+    /**
+     * Returns currently available communication audio devices and the
+     * type that is actively routed. Lets the JS UI render a "speaker /
+     * earpiece / Bluetooth / wired headset" picker like real phone apps.
+     */
+    @PluginMethod
+    fun getAudioDevices(call: PluginCall) {
+        try {
+            val ret = JSObject()
+            val list = org.json.JSONArray()
+            val am = audioManager()
+            if (am != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                am.availableCommunicationDevices.forEach { d ->
+                    val o = JSObject()
+                    o.put("id", d.id)
+                    o.put("type", audioDeviceTypeName(d.type))
+                    o.put("name", d.productName?.toString() ?: audioDeviceTypeName(d.type))
+                    list.put(o)
+                }
+                ret.put("active", audioDeviceTypeName(am.communicationDevice?.type ?: -1))
+            } else {
+                // Legacy fallback: only earpiece/speaker known.
+                listOf("earpiece", "speaker").forEach { name ->
+                    val o = JSObject(); o.put("id", -1); o.put("type", name); o.put("name", name); list.put(o)
+                }
+                @Suppress("DEPRECATION")
+                ret.put("active", if (am?.isSpeakerphoneOn == true) "speaker" else "earpiece")
+            }
+            ret.put("devices", list)
+            call.resolve(ret)
+        } catch (e: Exception) {
+            call.reject("getAudioDevices failed: ${e.message}")
+        }
+    }
+
+    /**
+     * Route audio to a specific device class. Accepted values:
+     *   "bluetooth" | "wired" | "speaker" | "earpiece"
+     */
+    @PluginMethod
+    fun setAudioDevice(call: PluginCall) {
+        val type = call.getString("type") ?: return call.reject("type required")
+        try {
+            val ok = setAudioDeviceInternal(type)
+            val ret = JSObject(); ret.put("type", type); ret.put("applied", ok)
+            call.resolve(ret)
+        } catch (e: Exception) {
+            call.reject("setAudioDevice failed: ${e.message}")
+        }
+    }
+
     // ------------------------------------------------------------
     // Internals
     // ------------------------------------------------------------
