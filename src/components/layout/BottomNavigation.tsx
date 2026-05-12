@@ -294,6 +294,8 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
               <button
                 key={item.path}
                 onClick={() => handleNavClick(item)}
+                onPointerDown={() => prefetchRoute(item.path)}
+                onMouseEnter={() => prefetchRoute(item.path)}
                 className="flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-2xl transition-all duration-300 min-w-[52px] active:scale-90 touch-manipulation relative"
               >
                 <div className="relative">
