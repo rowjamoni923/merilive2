@@ -15340,16 +15340,14 @@ export type Database = {
         Args: { p_permission: string; p_user_id: string }
         Returns: boolean
       }
-      claim_agency_withdrawal:
-        | { Args: { _withdrawal_id: string }; Returns: Json }
-        | {
-            Args: {
-              _helper_id: string
-              _lock_seconds?: number
-              _withdrawal_id: string
-            }
-            Returns: Json
-          }
+      claim_agency_withdrawal: {
+        Args: {
+          _helper_id: string
+          _lock_seconds?: number
+          _withdrawal_id: string
+        }
+        Returns: Json
+      }
       claim_daily_login_reward: {
         Args: { _claimed_date: string; _day_end: string; _day_start: string }
         Returns: Json
