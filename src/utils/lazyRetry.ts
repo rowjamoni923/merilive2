@@ -66,8 +66,8 @@ export function lazyRetry<T extends React.ComponentType<any>>(
 
 export function lazyRetryOptional<T extends React.ComponentType<any>>(
   importFn: () => Promise<{ default: T }>,
-  fallback: T,
-): () => Promise<{ default: T }> {
+  fallback: React.ComponentType<any>,
+): () => Promise<{ default: React.ComponentType<any> }> {
   const load = lazyRetry(importFn);
 
   return async () => {
