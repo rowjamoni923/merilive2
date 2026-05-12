@@ -252,28 +252,64 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
     [getCategoryGifts, activeCategoryId]
   );
 
+  // Reset combo state — call when gift changes / panel closes / timer expires
+  const resetCombo = useCallback(() => {
+    setComboCount(0);
+    setComboProgress(0);
+    if (comboTimerRef.current) { window.clearTimeout(comboTimerRef.current); comboTimerRef.current = null; }
+    if (comboRafRef.current) { cancelAnimationFrame(comboRafRef.current); comboRafRef.current = null; }
+  }, []);
+
+  const startComboTimer = useCallback(() => {
+    if (comboTimerRef.current) window.clearTimeout(comboTimerRef.current);
+    if (comboRafRef.current) cancelAnimationFrame(comboRafRef.current);
+    comboDeadlineRef.current = performance.now() + COMBO_WINDOW_MS;
+    const tick = () => {
+      const remaining = comboDeadlineRef.current - performance.now();
+      const p = Math.max(0, Math.min(1, remaining / COMBO_WINDOW_MS));
+      setComboProgress(p);
+      if (remaining > 0) {
+        comboRafRef.current = requestAnimationFrame(tick);
+      }
+    };
+    comboRafRef.current = requestAnimationFrame(tick);
+    comboTimerRef.current = window.setTimeout(() => {
+      resetCombo();
+    }, COMBO_WINDOW_MS);
+  }, [resetCombo]);
+
   const handleGiftTap = useCallback((gift: GiftData) => {
     if (selectedGift?.id === gift.id) {
       setSelectedGift(null);
+      resetCombo();
     } else {
       setSelectedGift(gift);
       setCount(1);
+      resetCombo();
     }
-  }, [selectedGift]);
+  }, [selectedGift, resetCombo]);
 
+  // Combo-aware send: each tap fires the currently-selected `count` and bumps combo
   const handleSend = useCallback(() => {
-    if (selectedGift && userCoins >= selectedGift.coins * count) {
-      onSendGift(selectedGift, count);
-      setSelectedGift(null);
-      setCount(1);
-    }
-  }, [selectedGift, userCoins, count, onSendGift]);
+    if (!selectedGift) return;
+    if (userCoins < selectedGift.coins * count) return;
+    onSendGift(selectedGift, count);
+    setComboCount(prev => prev + count);
+    startComboTimer();
+  }, [selectedGift, userCoins, count, onSendGift, startComboTimer]);
 
   const handleQuickSend = useCallback((quickCount: number) => {
-    if (selectedGift && userCoins >= selectedGift.coins * quickCount) {
-      onSendGift(selectedGift, quickCount);
-    }
-  }, [selectedGift, userCoins, onSendGift]);
+    if (!selectedGift) return;
+    if (userCoins < selectedGift.coins * quickCount) return;
+    setCount(quickCount);
+    onSendGift(selectedGift, quickCount);
+    setComboCount(prev => prev + quickCount);
+    startComboTimer();
+  }, [selectedGift, userCoins, onSendGift, startComboTimer]);
+
+  // Reset combo on close / category switch / unmount
+  useEffect(() => { if (!isOpen) resetCombo(); }, [isOpen, resetCombo]);
+  useEffect(() => () => resetCombo(), [resetCombo]);
 
   const getAnimationTypeColor = useCallback((type: GiftData['animationType']) => {
     switch (type) {
