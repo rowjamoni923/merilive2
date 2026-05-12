@@ -117,7 +117,7 @@ const AgencyCoinTrader = () => {
       // Fetch agency
       const { data: agencyData, error: agencyError } = await supabase
         .from('agencies')
-        .select('id, name, wallet_balance')
+        .select('id, name, diamond_balance')
         .eq('owner_id', user.id)
         .maybeSingle();
 
