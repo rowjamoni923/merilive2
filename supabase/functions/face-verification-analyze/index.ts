@@ -252,9 +252,9 @@ serve(async (req) => {
     let leftBytes: Uint8Array;
     let rightBytes: Uint8Array;
     try {
-      frontBytes = await fetchImageBytes(frontUrl);
-      leftBytes = await fetchImageBytes(leftUrl);
-      rightBytes = await fetchImageBytes(rightUrl);
+      frontBytes = await fetchImageBytes(frontUrl, supabaseAdmin);
+      leftBytes = await fetchImageBytes(leftUrl, supabaseAdmin);
+      rightBytes = await fetchImageBytes(rightUrl, supabaseAdmin);
     } catch (fetchErr) {
       const msg = fetchErr instanceof Error ? fetchErr.message : "image_fetch_failed";
       const rekognition = { version: 1, edge_fetch_error: msg };
