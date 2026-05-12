@@ -495,7 +495,7 @@ const PartyRoom = () => {
       try {
         const { data, error } = await supabase
           .from('gift_transactions')
-          .select('coin_amount, sender_id')
+          .select('coin_amount, receiver_beans, sender_id')
           .eq('party_room_id', roomId);
 
         if (error) {
@@ -506,7 +506,7 @@ const PartyRoom = () => {
 
         if (data && data.length > 0) {
           const totalGiftValue = data.reduce((sum, tx) => sum + (tx.coin_amount || 0), 0);
-          const hostBeans = Math.floor(totalGiftValue * hostCommissionPercent / 100);
+          const hostBeans = data.reduce((sum, tx) => sum + (tx.receiver_beans ?? Math.floor((tx.coin_amount || 0) * hostCommissionPercent / 100)), 0);
           console.log('[PartyRoom] Total beans calculated:', hostBeans, 'from', data.length, 'transactions, rate:', hostCommissionPercent);
           setTotalRoomBeans(hostBeans);
           
