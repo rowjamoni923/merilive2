@@ -547,9 +547,8 @@ const PartyRoom = () => {
           // CLIENT-SIDE FILTER: Only count gifts for THIS party room
           if (payload.new?.party_room_id !== roomId) return;
           
-          // Apply commission rate to new gift
           const newGiftValue = payload.new?.coin_amount || 0;
-          const newHostBeans = Math.floor(newGiftValue * hostCommissionPercent / 100);
+          const newHostBeans = payload.new?.receiver_beans ?? Math.floor(newGiftValue * hostCommissionPercent / 100);
           const senderId = payload.new?.sender_id;
           console.log('[PartyRoom] New gift received! Adding beans:', newHostBeans, 'from:', senderId);
           setTotalRoomBeans(prev => prev + newHostBeans);
