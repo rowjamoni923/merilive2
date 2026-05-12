@@ -60,6 +60,8 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useGlobalUnreadCount, formatBadgeCount } from "@/hooks/useGlobalUnreadCount";
 import { GiftEmojiAnimation } from "@/components/chat/GiftEmojiAnimation";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
+import Beans3DIcon from "@/components/common/Beans3DIcon";
+import diamondGem3D from "@/assets/diamond-gem-3d.png";
 import TraderBadge from "@/components/common/TraderBadge";
 import { LevelBadge } from "@/components/common/LevelBadge";
 import { trackTaskProgress } from "@/hooks/useTaskProgress";
