@@ -98,7 +98,11 @@ dependencies {
     implementation "androidx.camera:camera-view:${cameraxVersion}"
     implementation "androidx.camera:camera-video:${cameraxVersion}"
 
+    // ===== Kotlin + Coroutines (LiveKit interop) =====
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1'
+
     // ===== LiveKit Android SDK (Native WebRTC) =====
-    // Publishes CameraX frames as a native WebRTC track.
+    // Publishes camera + mic as native WebRTC tracks for Live + Private Call.
     implementation 'io.livekit:livekit-android:2.7.0'
 }
