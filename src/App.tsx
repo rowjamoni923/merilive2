@@ -451,12 +451,10 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
       <Suspense fallback={null}><DeferredAppHooks userId={userId} /></Suspense>
       {showPopups ? (
         <ErrorBoundary componentName="OptionalAppOverlays" fallback={null}>
-          <Suspense fallback={null}>
-            <WelcomeOnboarding />
-            <EventPopupBanner />
-            <DailyLoginPopup />
-            <RatingRewardPopup />
-          </Suspense>
+          <WelcomeOnboarding />
+          <EventPopupBanner />
+          <DailyLoginPopup />
+          <RatingRewardPopup />
         </ErrorBoundary>
       ) : null}
       {!isAdminRoute && (
