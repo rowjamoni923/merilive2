@@ -172,6 +172,7 @@ class LiveKitPlugin : Plugin() {
                 applyAudioMode(true)
                 setSpeakerphoneInternal(enableVideo)
                 setProximityMonitoringInternal(!enableVideo)
+                registerAudioDeviceListener()
 
                 val ret = JSObject()
                 ret.put("connected", true)
