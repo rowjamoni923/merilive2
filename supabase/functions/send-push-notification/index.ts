@@ -119,7 +119,7 @@ const handler = async (req: Request): Promise<Response> => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const { userId, title, body, imageUrl, data = {}, type = 'general', target }: PushNotificationRequest = await req.json();
-    const shouldPersistFallback = data.persist_fallback !== 'false' && data.persist_fallback !== false;
+    const shouldPersistFallback = String(data.persist_fallback ?? 'true') !== 'false';
 
     const isBroadcast = target && ['all', 'android', 'ios'].includes(target);
     
