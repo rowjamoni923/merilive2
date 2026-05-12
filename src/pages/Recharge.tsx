@@ -795,24 +795,28 @@ const Recharge = () => {
         );
       });
 
-      // Shuffle methods randomly so different numbers appear each time (variety)
-      // Uses Fisher-Yates shuffle for true randomization
-      const shuffled = [...uniqueTransformedMethods];
-      for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-      }
-      
-      // Log detailed method breakdown by type
+      // STABLE SORT (not shuffle) — wallet chips must NOT move around between
+      // fetches/re-renders. Different numbers only appear when the user clicks
+      // a package (handled by pickNonRepeatingMethod cycling), not on idle.
+      // Sort by method_name → display_order → account_number for deterministic order.
+      const sorted = [...uniqueTransformedMethods].sort((a, b) => {
+        const an = String(a.method_name || '').toLowerCase();
+        const bn = String(b.method_name || '').toLowerCase();
+        if (an !== bn) return an.localeCompare(bn);
+        const ao = Number(a.additional_info?.display_order ?? 9999);
+        const bo = Number(b.additional_info?.display_order ?? 9999);
+        if (ao !== bo) return ao - bo;
+        return String(a.account_number || '').localeCompare(String(b.account_number || ''));
+      });
+
       const methodBreakdown: Record<string, number> = {};
-      shuffled.forEach(m => {
+      sorted.forEach(m => {
         const key = m.method_name.toLowerCase();
         methodBreakdown[key] = (methodBreakdown[key] || 0) + 1;
       });
-      console.log('[Recharge] Auto-filtered & shuffled', shuffled.length, 'payment methods for country:', userCountryCode, '| Breakdown:', methodBreakdown);
-      console.log('[Recharge] Methods ready:', shuffled.length);
+      console.log('[Recharge] Stable-sorted', sorted.length, 'payment methods for country:', userCountryCode, '| Breakdown:', methodBreakdown);
 
-      setHelperPaymentMethods(shuffled as Level5HelperPaymentMethod[]);
+      setHelperPaymentMethods(sorted as Level5HelperPaymentMethod[]);
     } catch (error) {
       console.error('Error fetching level 5 helper payment methods:', error);
       recordClientError({ label: "Recharge.key", message: error instanceof Error ? error.message : String(error) });
