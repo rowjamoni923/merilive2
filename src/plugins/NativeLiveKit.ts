@@ -292,6 +292,37 @@ export interface NativeLiveKitPlugin {
     aspectDenominator: number;
   }>;
 
+  // --- Bluetooth SCO + headset hardware buttons (Step 30) -----
+  /**
+   * Explicitly start/stop the Bluetooth SCO link. Prefer
+   * `setAudioDevice({ type: 'bluetooth' })` on Android 12+ — this
+   * entry point is the legacy fallback (and a manual override
+   * for QA / pre-API-31 devices).
+   */
+  setBluetoothScoEnabled(opts: { enabled: boolean }): Promise<{
+    enabled: boolean;
+    applied: boolean;
+    state: 'disconnected' | 'connecting' | 'connected' | 'error';
+  }>;
+  getBluetoothScoState(): Promise<{
+    state: 'disconnected' | 'connecting' | 'connected' | 'error';
+    available: boolean;
+  }>;
+  /**
+   * Toggle hardware media-button capture (wired-remote single-click,
+   * BT headset answer/end button, KEYCODE_HEADSETHOOK). When enabled
+   * and a room is connected, the plugin owns the system MediaSession
+   * and emits `headset-button` events. Default ON.
+   */
+  setHeadsetButtonsEnabled(opts: { enabled: boolean }): Promise<{ enabled: boolean; active: boolean }>;
+  getHeadsetState(): Promise<{
+    wiredPlugged: boolean;
+    wiredHasMic: boolean;
+    scoState: 'disconnected' | 'connecting' | 'connected' | 'error';
+    buttonsEnabled: boolean;
+    mediaSessionActive: boolean;
+  }>;
+
   addListener(eventName: 'participant-connected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'participant-disconnected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'track-subscribed', cb: (e: TrackEvent) => void): Promise<PluginListenerHandle>;
