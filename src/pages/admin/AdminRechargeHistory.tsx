@@ -314,6 +314,7 @@ const AdminRechargeHistory = () => {
 
       // Calculate stats from all records
       const completedRecords = allRecords.filter(r => r.status === 'completed');
+      const playStoreCompleted = completedRecords.filter(r => r.source === 'google_play');
       setStats({
         total: allRecords.length,
         completed: completedRecords.length,
@@ -321,6 +322,8 @@ const AdminRechargeHistory = () => {
         pending: allRecords.filter(r => r.status === 'pending').length,
         totalCoins: completedRecords.reduce((sum, r) => sum + (r.coin_amount || 0), 0),
         totalUsd: completedRecords.reduce((sum, r) => sum + (r.amount_usd || 0), 0),
+        playStoreCount: playStoreCompleted.length,
+        playStoreUsd: playStoreCompleted.reduce((sum, r) => sum + (r.amount_usd || 0), 0),
       });
 
       setTotalCount(allRecords.length);
