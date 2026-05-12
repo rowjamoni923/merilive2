@@ -223,7 +223,7 @@ const PartyRoom = () => {
   const currentUserRef = useRef<any>(null);
   const roomRef = useRef<PartyRoom | null>(null);
   const roomIdRef = useRef<string | undefined>(roomId);
-  const hostCommissionPercentRef = useRef(hostCommissionPercent);
+  const hostCommissionPercentRef = useRef(55);
   
   // Keep refs in sync with state
   useEffect(() => {
