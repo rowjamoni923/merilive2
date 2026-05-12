@@ -15950,44 +15950,24 @@ export type Database = {
         }
         Returns: Json
       }
-      helper_transfer_coins_to_user:
-        | {
-            Args: {
-              _amount: number
-              _receiver_id: string
-              _sender_id: string
-              _sender_type?: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              _amount: number
-              _receiver_id: string
-              _sender_id: string
-              _sender_type?: string
-            }
-            Returns: Json
-          }
-      helper_transfer_diamonds_to_agency:
-        | {
-            Args: {
-              _amount: number
-              _sender_id: string
-              _sender_type?: string
-              _target_agency_id?: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              _amount: number
-              _sender_id: string
-              _sender_type?: string
-              _target_agency_id: string
-            }
-            Returns: Json
-          }
+      helper_transfer_coins_to_user: {
+        Args: {
+          _amount: number
+          _receiver_id: string
+          _sender_id: string
+          _sender_type?: string
+        }
+        Returns: Json
+      }
+      helper_transfer_diamonds_to_agency: {
+        Args: {
+          _amount: number
+          _sender_id: string
+          _sender_type?: string
+          _target_agency_id: string
+        }
+        Returns: Json
+      }
       helper_transfer_diamonds_to_self: {
         Args: { _amount: number; _user_id: string }
         Returns: Json
