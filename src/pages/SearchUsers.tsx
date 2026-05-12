@@ -4,6 +4,7 @@ import { ArrowLeft, Search, Phone, UserPlus, UserCheck, X, Filter, Tag } from "l
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AvatarWithFrame from "@/components/common/AvatarWithFrame";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { BottomNavigation } from "@/components/layout/BottomNavigation";
