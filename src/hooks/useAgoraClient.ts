@@ -740,6 +740,10 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
 
   // Toggle audio
   const toggleAudio = useCallback(async (enabled: boolean) => {
+    if (usingNativeRef.current) {
+      await nativeLiveKitController.setMicrophoneEnabled(enabled);
+      return;
+    }
     const room = roomRef.current;
     if (!room?.localParticipant) return;
     await room.localParticipant.setMicrophoneEnabled(enabled);
@@ -747,6 +751,10 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
 
   // Toggle video
   const toggleVideo = useCallback(async (enabled: boolean) => {
+    if (usingNativeRef.current) {
+      await nativeLiveKitController.setCameraEnabled(enabled);
+      return;
+    }
     const room = roomRef.current;
     if (!room?.localParticipant) return;
     await room.localParticipant.setCameraEnabled(enabled);
@@ -754,6 +762,10 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
 
   // Switch camera
   const switchCamera = useCallback(async () => {
+    if (usingNativeRef.current) {
+      await nativeLiveKitController.switchCamera();
+      return;
+    }
     const room = roomRef.current;
     if (!room?.localParticipant) return;
 
