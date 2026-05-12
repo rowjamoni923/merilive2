@@ -1184,6 +1184,8 @@ const PartyRoom = () => {
         }
         
         console.log('[PartyRoom] 🎁 🎉 INSTANT ANIMATION for:', giftData.giftName, 'from', giftData.senderName);
+        const broadcastBeans = Number(giftData.receiverBeans ?? Math.floor((giftData.coins || 0) * (giftData.count || 1) * hostCommissionPercent / 100));
+        const broadcastCoins = Number(giftData.totalCoins ?? (giftData.coins || 0) * (giftData.count || 1));
         
         // Trigger flying gift animation IMMEDIATELY (no DB fetch delay!)
         addFlyingGift({
@@ -1200,6 +1202,16 @@ const PartyRoom = () => {
             ? giftData.receiverId === currentUserId
             : false,
         });
+        
+        // Host + room counters update instantly from broadcast, DB confirmation dedupes later
+        if (giftData.giftKey) markOptimisticPartyGiftCount(giftData.giftKey, broadcastBeans, broadcastCoins);
+        setTotalRoomBeans(prev => prev + broadcastBeans);
+        if (giftData.senderId) {
+          setParticipantBeans(prev => ({
+            ...prev,
+            [giftData.senderId]: (prev[giftData.senderId] || 0) + broadcastCoins,
+          }));
+        }
         
         // Play gift sound for all participants
         playSound('gift');
@@ -1295,7 +1307,7 @@ const PartyRoom = () => {
       supabase.removeChannel(joinBroadcastChannel);
       supabase.removeChannel(roomCloseBroadcastChannel);
     };
-  }, [roomId]); // ONLY depend on roomId - use refs for other values to avoid subscription recreation
+    }, [roomId, hostCommissionPercent, markOptimisticPartyGiftCount]);
 
   // ============= POLLING FALLBACK FOR ROOM CLOSE DETECTION =============
   // In case realtime subscription fails, poll every 5 seconds to check room status
