@@ -252,7 +252,8 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
   
   const sizeConfig = sizeConfigs[size];
   const displayName = name?.charAt(0)?.toUpperCase() || 'U';
-  const avatarImageLoading: 'eager' | 'lazy' = size === 'xs' || size === 'sm' ? 'lazy' : 'eager';
+  // Always eager — avatar must appear instantly with no flicker
+  const avatarImageLoading: 'eager' | 'lazy' = 'eager';
 
   // Fetch frame - uses batch system (NO per-avatar realtime subscription)
   useEffect(() => {
