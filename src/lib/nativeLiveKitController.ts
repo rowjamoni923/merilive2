@@ -10,7 +10,7 @@
  * all calls are still safe no-ops because the underlying plugin returns
  * "not implemented" which we swallow.
  */
-import { NativeLiveKit, type ConnectOptions, type Lens, type Resolution } from '@/plugins/NativeLiveKit';
+import { NativeLiveKit, type ConnectOptions, type Lens, type Resolution, type AudioDeviceType, type NativeAudioDevice } from '@/plugins/NativeLiveKit';
 
 export interface NativeJoinOptions {
   url: string;
@@ -123,6 +123,17 @@ class NativeLiveKitController {
     try { await NativeLiveKit.setAudioMode({ mode }); } catch (e) {
       console.warn('[NativeLiveKitController] setAudioMode failed:', e);
     }
+  }
+
+  // --- Audio device routing (Step 13) ----------------------------
+  async getAudioDevices(): Promise<{ active: AudioDeviceType; devices: NativeAudioDevice[] }> {
+    try { return await NativeLiveKit.getAudioDevices(); }
+    catch { return { active: 'unknown', devices: [] }; }
+  }
+
+  async setAudioDevice(type: AudioDeviceType): Promise<boolean> {
+    try { const r = await NativeLiveKit.setAudioDevice({ type }); return r.applied; }
+    catch (e) { console.warn('[NativeLiveKitController] setAudioDevice failed:', e); return false; }
   }
 }
 

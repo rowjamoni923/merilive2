@@ -38,6 +38,11 @@ export interface TrackEvent {
 export interface DisconnectedEvent { reason: string }
 export interface QualityEvent { sid: string; quality: string }
 
+export type AudioDeviceType = 'speaker' | 'earpiece' | 'wired' | 'bluetooth' | 'unknown';
+export interface NativeAudioDevice { id: number; type: AudioDeviceType; name: string }
+export interface AudioDeviceChangedEvent { active: AudioDeviceType; devices: NativeAudioDevice[] }
+
+
 export interface NativeLiveKitPlugin {
   isAvailable(): Promise<{ available: boolean; backend: string; version: string }>;
   connect(opts: ConnectOptions): Promise<{ connected: boolean; sid: string; identity: string }>;
@@ -55,12 +60,17 @@ export interface NativeLiveKitPlugin {
   /** "voice" = earpiece + proximity; "video" = speaker; "none"/"off"/"restore" = release. */
   setAudioMode(opts: { mode: 'voice' | 'video' | 'none' | 'off' | 'restore' }): Promise<{ mode: string }>;
 
+  // --- Audio device routing (Step 13) --------------------------
+  getAudioDevices(): Promise<{ active: AudioDeviceType; devices: NativeAudioDevice[] }>;
+  setAudioDevice(opts: { type: AudioDeviceType }): Promise<{ type: AudioDeviceType; applied: boolean }>;
+
   addListener(eventName: 'participant-connected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'participant-disconnected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'track-subscribed', cb: (e: TrackEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'track-unsubscribed', cb: (e: TrackEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'disconnected', cb: (e: DisconnectedEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'connection-quality', cb: (e: QualityEvent) => void): Promise<PluginListenerHandle>;
+  addListener(eventName: 'audio-device-changed', cb: (e: AudioDeviceChangedEvent) => void): Promise<PluginListenerHandle>;
 }
 
 export const NativeLiveKit = registerPlugin<NativeLiveKitPlugin>('NativeLiveKit');
