@@ -169,6 +169,26 @@ export interface NativeLiveKitPlugin {
   setStallWatchdogEnabled(opts: { enabled: boolean }): Promise<{ enabled: boolean }>;
   getStallStatus(): Promise<StallStatus>;
 
+  // --- Network resilience (Step 26) ----------------------------
+  /**
+   * Force a hard reconnect right now (rebuilds the room from cached
+   * connect args). Use behind a "Tap to retry" button when the JS
+   * layer receives a `connection-state { state: "lost" }` event.
+   */
+  reconnectNow(): Promise<{ connected: boolean }>;
+  /**
+   * Toggle automatic hard-reconnect (default ON). Disable for unit
+   * tests or when JS wants to manage retry policy itself.
+   */
+  setResilienceEnabled(opts: { enabled: boolean }): Promise<{ enabled: boolean }>;
+  getConnectionState(): Promise<{
+    hasRoom: boolean;
+    hasSession: boolean;
+    reconnectingSinceMs: number;
+    hardReconnectAttempts: number;
+    resilienceEnabled: boolean;
+  }>;
+
   addListener(eventName: 'participant-connected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'participant-disconnected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'track-subscribed', cb: (e: TrackEvent) => void): Promise<PluginListenerHandle>;
