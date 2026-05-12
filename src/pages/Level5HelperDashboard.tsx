@@ -210,6 +210,7 @@ const Level5HelperDashboard = () => {
   const [bankName, setBankName] = useState("");
   const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
   const [helperNotes, setHelperNotes] = useState("");
+  const [helperTransactionId, setHelperTransactionId] = useState("");
   const [selectedCountry, setSelectedCountry] = useState("");
   const [selectedPaymentCountry, setSelectedPaymentCountry] = useState(""); // Country for legacy payment method
   const [paymentLogoFile, setPaymentLogoFile] = useState<File | null>(null);
@@ -1093,12 +1094,18 @@ const Level5HelperDashboard = () => {
     setSelectedAgencyWithdrawal(null);
     setScreenshotFile(null);
     setHelperNotes("");
+    setHelperTransactionId("");
     loadAgencyWithdrawals(); // Refresh list
   };
 
   const handleProcessAgencyWithdrawal = async () => {
     if (!selectedAgencyWithdrawal || !screenshotFile) {
       toast({ title: "Error", description: "Upload payment screenshot", variant: "destructive" });
+      return;
+    }
+    const trimmedTx = helperTransactionId.trim();
+    if (trimmedTx.length < 4) {
+      toast({ title: "Transaction ID required", description: "Enter the payment Transaction ID (min 4 characters)", variant: "destructive" });
       return;
     }
 
@@ -1134,13 +1141,14 @@ const Level5HelperDashboard = () => {
         .from('payment-proofs')
         .getPublicUrl(fileName);
 
-      const safeNote = helperNotes.trim().slice(0, 500) || null;
+      const safeNotes = helperNotes.trim().slice(0, 500) || null;
 
       const { data: processResult, error: processError } = await supabase.rpc('helper_process_agency_withdrawal' as any, {
         _withdrawal_id: selectedAgencyWithdrawal.id,
         _helper_id: helperData.id,
         _screenshot_url: publicUrl,
-        _transaction_note: safeNote,
+        _transaction_id: trimmedTx,
+        _notes: safeNotes,
       });
 
       if (processError) throw processError;
@@ -1170,6 +1178,7 @@ const Level5HelperDashboard = () => {
       setSelectedAgencyWithdrawal(null);
       setScreenshotFile(null);
       setHelperNotes("");
+      setHelperTransactionId("");
       loadAgencyWithdrawals();
       loadCompletedHistory();
     } catch (error: any) {
@@ -3523,13 +3532,27 @@ const Level5HelperDashboard = () => {
                     </div>
                   </div>
 
-                  {/* Transaction ID / Notes */}
+                  {/* Transaction ID (required) */}
                   <div>
-                    <Label className="text-slate-300">Transaction ID / Notes</Label>
+                    <Label className="text-slate-300">Transaction ID *</Label>
+                    <Input
+                      value={helperTransactionId}
+                      onChange={(e) => setHelperTransactionId(e.target.value)}
+                      placeholder="e.g. TRX123456789"
+                      maxLength={120}
+                      className="bg-slate-800 border-slate-700 text-white mt-1 font-mono"
+                    />
+                    <p className="text-[10px] text-slate-500 mt-1">Required — paste the payment reference / TX ID (min 4 characters)</p>
+                  </div>
+
+                  {/* Notes (optional) */}
+                  <div>
+                    <Label className="text-slate-300">Notes (optional)</Label>
                     <Textarea
                       value={helperNotes}
                       onChange={(e) => setHelperNotes(e.target.value)}
-                      placeholder="Enter transaction ID or additional info..."
+                      placeholder="Any additional info for admin..."
+                      maxLength={500}
                       className="bg-slate-800 border-slate-700 text-white mt-1"
                       rows={2}
                     />
@@ -3537,7 +3560,7 @@ const Level5HelperDashboard = () => {
 
                   <Button 
                     onClick={handleProcessAgencyWithdrawal}
-                    disabled={processing || !screenshotFile}
+                    disabled={processing || !screenshotFile || helperTransactionId.trim().length < 4}
                     className="w-full bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600"
                   >
                     {processing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}

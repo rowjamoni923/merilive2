@@ -16047,8 +16047,9 @@ export type Database = {
       helper_process_agency_withdrawal: {
         Args: {
           _helper_id: string
+          _notes?: string
           _screenshot_url: string
-          _transaction_note?: string
+          _transaction_id: string
           _withdrawal_id: string
         }
         Returns: Json
