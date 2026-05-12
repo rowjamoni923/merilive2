@@ -126,6 +126,9 @@ export function useAgoraCall(
     const enabled = !state.isVideoEnabled;
     if (usingNativeRef.current) {
       nativeLiveKitController.setCameraEnabled(enabled).catch(() => {});
+      // Auto-switch native audio routing: video off → earpiece + proximity,
+      // video on → speakerphone (mirrors how WhatsApp/Messenger behave).
+      nativeLiveKitController.setAudioMode(enabled ? 'video' : 'voice').catch(() => {});
       setState(p => ({ ...p, isVideoEnabled: enabled }));
       return;
     }
@@ -134,6 +137,12 @@ export function useAgoraCall(
     room.localParticipant.setCameraEnabled(enabled);
     setState(p => ({ ...p, isVideoEnabled: enabled }));
   }, [state.isVideoEnabled]);
+
+  /** Toggle native speakerphone during a call. No-op on web/iOS. */
+  const setSpeakerOn = useCallback((on: boolean) => {
+    if (!usingNativeRef.current) return;
+    nativeLiveKitController.setSpeakerphone(on).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!callId || !userId) return;
@@ -421,6 +430,7 @@ export function useAgoraCall(
     ...state,
     toggleAudio,
     toggleVideo,
+    setSpeakerOn,
     cleanup,
     remoteStreamVersion: 0,
   };
