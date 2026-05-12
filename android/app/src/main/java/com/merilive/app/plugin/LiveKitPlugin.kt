@@ -497,6 +497,9 @@ class LiveKitPlugin : Plugin() {
         setSpeakerphoneInternal(args.video)
         setProximityMonitoringInternal(!args.video)
         registerAudioDeviceListener()
+        // Step 30 — wired-headset / SCO broadcast receivers + media-button MediaSession.
+        registerHeadsetReceivers()
+        if (headsetButtonsEnabled) startHeadsetMediaSession()
 
         // Step 15 — request VoIP audio focus so an incoming PSTN
         // call / alarm / other media auto-pauses our mic, then
