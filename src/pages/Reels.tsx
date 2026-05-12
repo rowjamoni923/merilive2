@@ -561,6 +561,8 @@ const Reels = () => {
                         <FramedAvatarWithPrivileges
                           userId={currentReel.user_id}
                           src={currentReel.user?.avatar_url || ''}
+                          name={currentReel.user?.display_name || currentReel.user?.app_uid || 'User'}
+                          level={currentReel.user?.user_level || 1}
                           size="sm"
                         />
                       </div>
@@ -687,6 +689,11 @@ const Reels = () => {
                             @{currentReel.user?.display_name || 'User'}
                           </span>
                         </button>
+                        {currentReel.user?.app_uid && (
+                          <span className="text-white/70 text-[10px] font-bold drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">
+                            ID {currentReel.user.app_uid}
+                          </span>
+                        )}
                         {currentReel.user?.is_verified && (
                           <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center shadow-[0_0_8px_rgba(59,130,246,0.5)]">
                             <span className="text-white text-[8px] font-bold">✓</span>
