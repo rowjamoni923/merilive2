@@ -2593,13 +2593,12 @@ const Recharge = () => {
                                 alt={methodType} 
                                 className="w-5 h-5 rounded object-cover"
                                 onError={(e) => {
-                                  // Hide broken images
-                                  (e.target as HTMLImageElement).style.display = 'none';
+                                  (e.currentTarget.style.display = 'none');
+                                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
                                 }}
                               />
-                            ) : (
-                              <span className="text-sm">💳</span>
-                            )}
+                            ) : null}
+                            <span className={cn("text-sm font-black leading-none", logoUrl && "hidden")}>{paymentBrandFallback(methodType)}</span>
                             <span className="capitalize">
                               {methodType}
                             </span>
