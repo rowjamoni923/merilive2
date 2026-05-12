@@ -2429,23 +2429,21 @@ const LiveStream = () => {
       return;
     }
     
-    // Use atomic process_gift_transaction RPC
-    // This deducts sender diamonds AND credits receiver beans (via triggers)
-    const { data, error } = await supabase.rpc('process_gift_transaction', {
-      p_sender_id: currentUserId,
-      p_receiver_id: hostInfo.id,
-      p_gift_id: gift.id,
-      p_quantity: 1,
-      p_stream_id: id,
+    const result = await sendGift({
+      giftId: gift.id,
+      senderId: currentUserId,
+      receiverId: hostInfo.id,
+      quantity: 1,
+      context: 'live',
+      streamId: id,
     });
-    
-    const result = data as any;
-    if (error || !result?.success) {
+
+    if (!result.success) {
       toast.error(result?.error || "Failed to send gift");
       return;
     }
     
-    setUserCoins(prev => prev - (result.coins_spent || gift.coins));
+    setUserCoins(prev => prev - (result.transaction?.coins_spent || gift.coins));
     // Balance will be refreshed by the background gift processing flow below
     setShowGiftPanel(false);
   };
