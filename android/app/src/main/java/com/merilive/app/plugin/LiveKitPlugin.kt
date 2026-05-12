@@ -238,6 +238,10 @@ class LiveKitPlugin : Plugin() {
         val r = room ?: return call.reject("Not connected")
         scope.launch {
             try {
+                // Step 15 — remember user intent so we can restore it after
+                // an interruption (PSTN call, alarm) ends.
+                micIntentBeforeLoss = enabled
+                micPausedByFocusLoss = false
                 r.localParticipant.setMicrophoneEnabled(enabled)
                 call.resolve()
             } catch (e: Exception) {
