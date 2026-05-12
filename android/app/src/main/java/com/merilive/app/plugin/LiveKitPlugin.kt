@@ -164,6 +164,18 @@ class LiveKitPlugin : Plugin() {
     private var lastTierChangeMs: Long = 0L
     private var adaptiveBusy: Boolean = false
 
+    // --- Codec preference + hardware acceleration (Step 32) ------
+    //
+    // LiveKit Android delegates codec selection to libwebrtc + SDP
+    // negotiation. We bias the publish side by setting `videoCodec`
+    // on VideoTrackPublishDefaults; the SFU and subscribers fall in
+    // line through SDP. Hardware encoder/decoder factories are on by
+    // default in the SDK (`DefaultVideoEncoderFactory` already wraps
+    // MediaCodec), so all we expose is the preference + a capability
+    // probe so JS can refuse codecs the device can't HW-encode.
+    private var preferredCodec: String = "auto"   // "auto"|"vp8"|"vp9"|"h264"|"av1"
+    private var negotiatedCodec: String = "unknown"
+
     // --- End-to-end encryption (Step 23) -------------------------
     //
     // LiveKit Insertable-Streams E2EE — frames are AES-GCM encrypted with
