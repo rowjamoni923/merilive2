@@ -832,7 +832,7 @@ const HelperDashboard = () => {
           owner_name: owner?.display_name || 'Unknown'
         });
       } else {
-        toast({ title: "Not Found", description: "No agency found with this code", variant: "destructive" });
+        toast({ title: "Not Found", description: "No agency found with this owner UID", variant: "destructive" });
       }
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
