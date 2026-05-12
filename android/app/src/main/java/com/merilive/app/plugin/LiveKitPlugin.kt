@@ -1620,6 +1620,130 @@ class LiveKitPlugin : Plugin() {
     }
 
     // ------------------------------------------------------------
+    // RTC stats / telemetry collector (Step 28)
+    //
+    // Background coroutine emits an "rtc-stats" event every
+    // statsIntervalMs (default 3 s) so the JS layer can render a
+    // debug HUD and stream Quality-of-Experience metrics into
+    // analytics without polling. Per-track fps is derived from the
+    // VideoSink frame counter that the stall watchdog already
+    // maintains, so this collector adds zero per-frame overhead.
+    // ------------------------------------------------------------
+
+    private fun startStatsCollector() {
+        stopStatsCollector()
+        if (!statsCollectorEnabled) return
+        statsCollectorJob = scope.launch {
+            // Seed sample window so the first emit reports a sensible fps.
+            val now = System.currentTimeMillis()
+            stallTable.values.forEach {
+                it.lastSampleFrameCount = it.frameCount
+                it.lastSampleMs = now
+            }
+            while (true) {
+                delay(statsIntervalMs)
+                if (room == null) break
+                if (inBackground) continue
+                emitRtcStatsSnapshot()
+            }
+        }
+    }
+
+    private fun stopStatsCollector() {
+        statsCollectorJob?.cancel()
+        statsCollectorJob = null
+    }
+
+    private fun buildRtcStatsPayload(): JSObject {
+        val now = System.currentTimeMillis()
+        val tracks = org.json.JSONArray()
+        // Snapshot to avoid concurrent modification.
+        val entries = stallTable.entries.toList()
+        for ((_, e) in entries) {
+            val winMs = (now - e.lastSampleMs).coerceAtLeast(1L)
+            val deltaFrames = (e.frameCount - e.lastSampleFrameCount).coerceAtLeast(0L)
+            val fps = (deltaFrames.toDouble() * 1000.0 / winMs.toDouble())
+            // Slide the window for the next sample.
+            e.lastSampleFrameCount = e.frameCount
+            e.lastSampleMs = now
+
+            val sidKey = if (e.isLocal) localSid else e.sid
+            val o = JSObject()
+            o.put("sid", e.sid)
+            o.put("isLocal", e.isLocal)
+            o.put("fps", Math.round(fps * 10.0) / 10.0)
+            o.put("silentMs", now - e.lastFrameMs)
+            o.put("framesTotal", e.frameCount)
+            o.put("recoveryAttempts", e.attempts)
+            o.put("quality", qualityTable[sidKey] ?: "unknown")
+            tracks.put(o)
+        }
+        val payload = JSObject()
+        payload.put("ts", now)
+        payload.put("tracks", tracks)
+        // Publisher ladder (Step 22 source of truth).
+        payload.put("tier", currentTier.name.lowercase())
+        payload.put("baseTier", baseTier.name.lowercase())
+        payload.put("simulcast", currentTier != AdaptiveTier.LOW)
+        payload.put("maxBitrate", tierEncoding(currentTier).maxBitrate)
+        // Network + data-saver (Step 27).
+        payload.put("networkType", currentNetType.name.lowercase())
+        payload.put("dataSaver", dataSaverOnCellular)
+        // Local quality + reconnect state.
+        payload.put("localQuality", qualityTable[localSid] ?: "unknown")
+        payload.put("reconnecting", reconnectingSinceMs > 0L)
+        payload.put(
+            "reconnectingMs",
+            if (reconnectingSinceMs > 0L) now - reconnectingSinceMs else 0L
+        )
+        payload.put("hardReconnectAttempts", hardReconnectAttempts)
+        payload.put("remoteParticipantCount", room?.remoteParticipants?.size ?: 0)
+        payload.put("e2ee", e2eeEnabled)
+        return payload
+    }
+
+    private fun emitRtcStatsSnapshot() {
+        try {
+            notifyListeners("rtc-stats", buildRtcStatsPayload())
+        } catch (e: Exception) {
+            Log.w(TAG, "emitRtcStatsSnapshot failed: ${e.message}")
+        }
+    }
+
+    @PluginMethod
+    fun setStatsCollectorEnabled(call: PluginCall) {
+        val enabled = call.getBoolean("enabled", true) ?: true
+        val interval = call.getLong("intervalMs")
+        if (interval != null) {
+            statsIntervalMs = interval.coerceAtLeast(STATS_MIN_INTERVAL_MS)
+        }
+        statsCollectorEnabled = enabled
+        if (enabled && room != null && statsCollectorJob == null) startStatsCollector()
+        if (!enabled) stopStatsCollector()
+        val ret = JSObject()
+        ret.put("enabled", enabled)
+        ret.put("intervalMs", statsIntervalMs)
+        call.resolve(ret)
+    }
+
+    @PluginMethod
+    fun getRtcStats(call: PluginCall) {
+        if (room == null) {
+            val empty = JSObject()
+            empty.put("ts", System.currentTimeMillis())
+            empty.put("tracks", org.json.JSONArray())
+            empty.put("hasRoom", false)
+            call.resolve(empty)
+            return
+        }
+        val payload = buildRtcStatsPayload()
+        payload.put("hasRoom", true)
+        payload.put("enabled", statsCollectorEnabled)
+        payload.put("intervalMs", statsIntervalMs)
+        call.resolve(payload)
+    }
+
+    // ------------------------------------------------------------
     // Audio focus + interruption handling (Step 15)
     //
     // When an incoming PSTN call / alarm / other media app takes audio
