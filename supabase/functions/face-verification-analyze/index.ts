@@ -135,7 +135,29 @@ async function compareFaces(
   return Math.max(0, ...matches.map((m) => Number(m.Similarity || 0)));
 }
 
-async function fetchImageBytes(url: string): Promise<Uint8Array> {
+// Extract { bucket, path } from a Supabase storage URL (public, sign, or authenticated form).
+function parseStorageUrl(url: string): { bucket: string; path: string } | null {
+  try {
+    const u = new URL(url);
+    // /storage/v1/object/{public|sign|authenticated}/{bucket}/{path...}
+    const m = u.pathname.match(/\/storage\/v1\/object\/(?:public|sign|authenticated)\/([^\/]+)\/(.+)$/);
+    if (!m) return null;
+    return { bucket: decodeURIComponent(m[1]), path: decodeURIComponent(m[2]) };
+  } catch { return null; }
+}
+
+async function fetchImageBytes(
+  url: string,
+  supabaseAdmin: ReturnType<typeof createClient>,
+): Promise<Uint8Array> {
+  // Prefer service-role storage download when this is a Supabase storage URL
+  // (the face-verification bucket is private — public fetch would 400).
+  const parsed = parseStorageUrl(url);
+  if (parsed) {
+    const { data, error } = await supabaseAdmin.storage.from(parsed.bucket).download(parsed.path);
+    if (error || !data) throw new Error(`storage_download_failed:${error?.message || "no_data"}`);
+    return new Uint8Array(await data.arrayBuffer());
+  }
   const res = await fetch(url);
   if (!res.ok) throw new Error(`fetch image ${res.status}`);
   return new Uint8Array(await res.arrayBuffer());
