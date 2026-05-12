@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
+import { getAdminSession } from "@/utils/adminSession";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { parseSettingValue, saveAppSetting } from "@/utils/adminSettingsStorage";
@@ -95,7 +96,7 @@ const AdminInvitationSettings = () => {
     if (!file) return;
     setUploadingBanner(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const __as2 = getAdminSession(); const session = __as2?.admin_id ? ({ user: { id: __as2.admin_id } } as any) : null;
       if (!session) throw new Error('Not authenticated');
 
       const ext = file.name.split('.').pop();
