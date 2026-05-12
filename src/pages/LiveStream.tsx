@@ -584,7 +584,7 @@ const LiveStream = () => {
         // User profile
         cachedUser ? supabase.from("profiles").select("id, gender, coins, display_name, avatar_url, user_level, country_flag").eq("id", cachedUser.id).single() : Promise.resolve({ data: null }),
         // Session gifts
-        stream && id ? supabase.from("gift_transactions").select("coin_amount").eq("stream_id", id).eq("receiver_id", stream.host_id) : Promise.resolve({ data: null }),
+        stream && id ? supabase.from("gift_transactions").select("coin_amount, receiver_beans").eq("stream_id", id).eq("receiver_id", stream.host_id) : Promise.resolve({ data: null }),
         // Self profile for viewer join notification
         !isActualHost && currentUserId ? supabase.from("profiles_public").select("app_uid, display_name, avatar_url, user_level, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id").eq("id", currentUserId).single() : Promise.resolve({ data: null }),
       ]);
@@ -610,7 +610,7 @@ const LiveStream = () => {
         setStreamStartTime(new Date(stream.started_at || stream.created_at).getTime());
         setViewerCount(stream.viewer_count || 0);
         
-        const sessionBeans = sessionGiftsRes.data?.reduce((sum: number, tx: any) => sum + (tx.coin_amount || 0), 0) || 0;
+        const sessionBeans = sessionGiftsRes.data?.reduce((sum: number, tx: any) => sum + Number(tx.receiver_beans ?? tx.coin_amount ?? 0), 0) || 0;
         setTotalBeans(sessionBeans);
         console.log('[LiveStream] Session beans calculated:', sessionBeans, 'from', sessionGiftsRes.data?.length, 'transactions');
         
