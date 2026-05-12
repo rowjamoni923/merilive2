@@ -993,8 +993,8 @@ export function UnifiedPartyRoom({
           
           // Fetch sender info with avatar
           const { data: senderData } = await supabase
-            .from('profiles')
-            .select('display_name, user_level, avatar_url, is_host')
+      .from('profiles_public')
+      .select('display_name, user_level, avatar_url, is_host')
             .eq('id', newMsg.sender_id)
             .single();
           
@@ -1083,7 +1083,7 @@ export function UnifiedPartyRoom({
     pendingMessagesRef.current.add(msgKey);
     
     // OPTIMISTIC UPDATE: Instantly show message in UI before DB save
-    const senderName = hostInfo?.displayName || 'You';
+    const senderName = currentUserProfile?.display_name || (isHost ? hostInfo?.displayName : null) || 'You';
     const ownBubble = await getEquippedBubble(currentUserId);
     const optimisticMessage: RoomChatMessage = {
       id: tempId,
@@ -1091,8 +1091,8 @@ export function UnifiedPartyRoom({
       user: senderName,
       initial: senderName.charAt(0).toUpperCase(),
       message: trimmedMessage,
-      userLevel: hostInfo?.level || 1,
-      userAvatar: hostInfo?.avatarUrl,
+      userLevel: currentUserProfile?.user_level || (isHost ? hostInfo?.level : 1) || 1,
+      userAvatar: currentUserProfile?.avatar_url || (isHost ? hostInfo?.avatarUrl : undefined),
       isHost: isHost,
       type: 'text',
       timestamp: new Date(),
