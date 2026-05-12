@@ -22,6 +22,8 @@ import {
 } from 'livekit-client';
 import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
+import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
+import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
 
 interface LiveKitCallState {
   localStream: MediaStream | null;
