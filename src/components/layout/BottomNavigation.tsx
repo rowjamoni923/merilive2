@@ -113,6 +113,21 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
     }
   }, [navigate, onTabChange, startTransition]);
 
+  // 🚀 INSTANT NAV: warm up the route chunk on touch-start / hover so the
+  // tap itself navigates with zero perceived delay.
+  const prefetchRoute = useCallback((path: string) => {
+    try {
+      switch (path) {
+        case '/': import('@/pages/Index'); break;
+        case '/discover': import('@/pages/Discover'); break;
+        case '/reels': import('@/pages/Reels'); break;
+        case '/profile': import('@/pages/Profile'); break;
+        case '/go-live': import('@/pages/GoLive').catch(() => {}); break;
+        case '/create-party': import('@/pages/CreateParty').catch(() => {}); break;
+      }
+    } catch {}
+  }, []);
+
   const handleActionClick = (path: string) => {
     hapticFeedback('medium');
 
@@ -279,6 +294,8 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
               <button
                 key={item.path}
                 onClick={() => handleNavClick(item)}
+                onPointerDown={() => prefetchRoute(item.path)}
+                onMouseEnter={() => prefetchRoute(item.path)}
                 className="flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-2xl transition-all duration-300 min-w-[52px] active:scale-90 touch-manipulation relative"
               >
                 <div className="relative">

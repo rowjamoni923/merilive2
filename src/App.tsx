@@ -2,6 +2,8 @@ import { useEffect, useState, lazy, Suspense, memo } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import { lazyRetry } from "@/utils/lazyRetry";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
@@ -387,6 +389,22 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+// 🚀 INSTANT LOAD: Persist React Query cache to localStorage so on every app
+// launch / reload / route switch, all previously-fetched data appears in 0ms.
+// Realtime + background refetch silently update under the hood.
+const __queryPersister = (() => {
+  try {
+    if (typeof window === 'undefined') return undefined;
+    return createSyncStoragePersister({
+      storage: window.localStorage,
+      key: 'merilive-rq-cache-v1',
+      throttleTime: 1000,
+    });
+  } catch {
+    return undefined;
+  }
+})();
 
 // Export queryClient for use in app resume handler
 export { queryClient };
@@ -1007,7 +1025,14 @@ const App = () => {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{
+        persister: __queryPersister as any,
+        maxAge: 1000 * 60 * 60 * 24 * 7, // keep cache 7 days
+        buster: 'merilive-v1',
+      }}
+    >
       {showSplash && (
         <Suspense fallback={null}>
           <SplashScreen onComplete={() => { try { sessionStorage.setItem('splash_shown', '1'); } catch {} setShowSplash(false); }} />
@@ -1308,7 +1333,7 @@ const App = () => {
           </TooltipProvider>
         </PresenceProvider>
       </RealtimeProvider>
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   );
 };
 
