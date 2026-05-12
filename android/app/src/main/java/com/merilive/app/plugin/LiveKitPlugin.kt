@@ -416,6 +416,9 @@ class LiveKitPlugin : Plugin() {
         // Step 25 — start the video stall watchdog for this session.
         startStallWatchdog()
 
+        // Step 27 — listen for WiFi↔Cellular transitions for this session.
+        if (!isReconnect) registerNetworkCallback()
+
         if (isReconnect) {
             // Step 26 — emit a "reconnected" event so JS knows our hard
             // reconnect succeeded and can re-attach renderers (the old
