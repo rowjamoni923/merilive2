@@ -671,6 +671,24 @@ const Chat = () => {
     
     // Gift animation is already playing - no toast needed
     
+    const estimatedBeansEarned = Math.floor(totalCost * getCachedHostGiftPercent() / 100);
+    void ensureHostGiftPercentLoaded();
+    const optimisticGiftMessage = giftMediaUrl
+      ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans]`
+      : `[Gift: ${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${estimatedBeansEarned} beans]`;
+    const optimisticGiftRow: Message = {
+      id: `gift_live_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      content: optimisticGiftMessage,
+      sender_id: currentUserId,
+      created_at: new Date().toISOString(),
+      is_read: false,
+      message_type: 'gift',
+      status: 'sending',
+      _optimistic: true,
+    };
+    upsertLiveMessage(optimisticGiftRow);
+    void broadcastDirectMessage(optimisticGiftRow, selectedConversation.id);
+
     // ========== BACKGROUND PROCESSING ==========
     (async () => {
       try {
@@ -679,6 +697,7 @@ const Chat = () => {
           body: {
             receiverId: selectedConversation.other_user.id,
             giftId: gift.id,
+            quantity: count,
             // No streamId or partyRoomId - this is DM context
           }
         });
@@ -688,6 +707,7 @@ const Chat = () => {
           recordClientError({ label: "Chat.response", message: response.error instanceof Error ? response.error.message : String(response.error) });
           // Refund on failure
           setUserCoins(prev => prev + totalCost);
+          setMessages(prev => prev.filter(m => m.id !== optimisticGiftRow.id));
           toast.error("Gift failed - diamonds refunded");
           return;
         }
@@ -726,6 +746,7 @@ const Chat = () => {
         recordClientError({ label: "Chat.messageContent", message: error instanceof Error ? error.message : String(error) });
         // Refund on error
         setUserCoins(prev => prev + totalCost);
+        setMessages(prev => prev.filter(m => m.id !== optimisticGiftRow.id));
         toast.error("Gift failed - diamonds refunded");
       }
     })();
