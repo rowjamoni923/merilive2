@@ -363,6 +363,34 @@ export interface NativeLiveKitPlugin {
     hardwareAcceleration: boolean;
   }>;
 
+  // --- Bandwidth probe + pre-call quality test (Step 33) ------
+  /**
+   * Run a quick (≈1-2 s) bandwidth + RTT probe BEFORE calling
+   * `connect()`. Used by the Pre-Call screen to predict whether the
+   * device's current network can sustain a 1080p / 720p video call,
+   * and to auto-fall-back to voice-only when it can't.
+   *
+   * - `pingUrl` — HEAD endpoint for RTT samples. Default `https://www.gstatic.com/generate_204` (204 No Content, ~50 B response).
+   * - `downloadUrl` — Optional small payload (≤ 4 MB). Omit to skip the throughput stage and rely on RTT only.
+   * - `samples` — RTT sample count. Default 5, max 20.
+   * - `downloadBytes` — Cap on bytes pulled from `downloadUrl`. Default 512 KB.
+   * - `timeoutMs` — Per-request hard timeout. Default 6 s.
+   *
+   * Emits `quality-probe-progress` events while running. Resolves
+   * with the verdict and a recommended publish tier / codec.
+   */
+  runPreCallQualityProbe(opts?: {
+    pingUrl?: string;
+    downloadUrl?: string;
+    samples?: number;
+    downloadBytes?: number;
+    timeoutMs?: number;
+  }): Promise<QualityProbeResult>;
+  /** Cancel a probe currently in-flight (e.g. user backed out of Pre-Call). */
+  cancelPreCallQualityProbe(): Promise<{ cancelled: boolean }>;
+  /** Last completed result (cached per-process). */
+  getLastQualityProbe(): Promise<{ hasResult: boolean; result?: QualityProbeResult }>;
+
   addListener(eventName: 'participant-connected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'participant-disconnected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'track-subscribed', cb: (e: TrackEvent) => void): Promise<PluginListenerHandle>;
