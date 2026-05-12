@@ -169,21 +169,20 @@ const FullScreenGiftAnimation = ({
 
   // =====================================================
   // GIFT DISPLAY POLICY:
-  // - PNG/GIF/WebP (Static/Image): Less than 1 second (800ms)
-  // - SVGA/Lottie/Video (Animated): Play for full animation duration
+  // - PNG/GIF/WebP (Static/Image): less than 1 second (800ms)
+  // - SVGA/Lottie/Video/VAP (Animated): play for the EXACT animation duration.
+  //   The player itself fires onComplete the moment the underlying frames
+  //   finish (SVGA: frames/FPS, Video: ended event). The timer below is a
+  //   pure safety net in case the player never fires onComplete; it must be
+  //   long enough that it never cuts a real animation short.
   // =====================================================
   const getDuration = () => {
-    // Static images: less than 1 second
     if (animationType === 'image' || animationType === 'none') {
       return 800; // 800ms for static images
     }
-    
-    // Animated gifts (SVGA, Lottie, Video, VAP): play for full duration
-    // SVGA will use its own onComplete callback, these are safety fallbacks
-    if (isMythic) return 15000; // 15s safety for mythic SVGA
-    if (isLegendary) return 12000; // 12s safety for legendary SVGA
-    if (isPremium) return 10000; // 10s safety for premium SVGA
-    return 8000; // 8s safety for normal SVGA
+    // Generous safety net — never trims a real SVGA. Real dismissal is
+    // driven by the player's own onComplete callback (exact duration).
+    return 60000;
   };
 
   // Load Lottie data
@@ -320,6 +319,7 @@ const FullScreenGiftAnimation = ({
               loop={false}
               autoPlay={true}
               muted={false}
+              onComplete={handleAnimationEnd}
             />
           </div>
         </Suspense>
@@ -329,9 +329,10 @@ const FullScreenGiftAnimation = ({
     if (animationType === 'lottie' && lottieData) {
       return (
         <div className="absolute inset-0 flex items-center justify-center">
-          <Lottie 
-            animationData={lottieData} 
+          <Lottie
+            animationData={lottieData}
             loop={false}
+            onComplete={handleAnimationEnd}
             className="w-full h-full max-w-[90vw] max-h-[90vh]"
           />
         </div>
@@ -341,12 +342,13 @@ const FullScreenGiftAnimation = ({
     if (animationType === 'video' && gift.animation_url) {
       return (
         <div className="absolute inset-0 flex items-center justify-center">
-          <video 
-            src={gift.animation_url} 
-            autoPlay 
+          <video
+            src={gift.animation_url}
+            autoPlay
             loop={false}
-            muted 
+            muted
             playsInline
+            onEnded={handleAnimationEnd}
             className="w-full h-full max-w-[90vw] max-h-[90vh] object-contain"
           />
         </div>
