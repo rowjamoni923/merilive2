@@ -188,11 +188,13 @@ const executeBatch = async () => {
     try {
       const { data: shopItems } = await supabase
         .from('shop_items')
-        .select('id, animation_file_url, animation_url, preview_url')
-        .in('id', Array.from(shopCheckIds));
+        .select('id, category, animation_file_url, animation_url, preview_url')
+        .in('id', Array.from(shopCheckIds))
+        .in('category', ['frame', 'portrait_frame']);
 
       const shopMap = new Map<string, string>();
       shopItems?.forEach((item: any) => {
+        if (item.category !== 'frame' && item.category !== 'portrait_frame') return;
         const url = item.animation_file_url || item.animation_url || item.preview_url;
         if (url) shopMap.set(item.id, url);
       });
