@@ -1017,9 +1017,14 @@ const App = () => {
               {/* Deferred hooks - route scoped so admin pages stay static */}
               <RouteScopedBackgroundHooks userId={session?.user?.id || null} hasSession={!!session} />
               <CallProvider>
-                  {/* ⚡ fallback={null} prevents a full-screen loader flash on
-                      every navigation — each page renders its own skeleton */}
-                  <Suspense fallback={null}>
+                  {/* Suspense fallback shows a themed spinner instead of a black screen
+                       during route chunk loads. Background matches app theme so users
+                       never see a black flash between sections. */}
+                  <Suspense fallback={
+                    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-background">
+                      <div className="h-10 w-10 rounded-full border-2 border-muted border-t-primary animate-spin" />
+                    </div>
+                  }>
                   <Routes>
                 {/* ============================================= */}
                 {/* PUBLIC ROUTES - No authentication required */}
