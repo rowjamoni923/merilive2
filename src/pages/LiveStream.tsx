@@ -297,6 +297,7 @@ const LiveStream = () => {
   // Deduplicate broadcast gift chat message vs DB stream_chat gift insert
   const recentBroadcastGiftKeysRef = useRef<Map<string, number>>(new Map());
   const giftBroadcastChannelRef = useRef<any>(null);
+  const activeViewerIdsRef = useRef<Set<string>>(new Set());
 
   // Profile card states
   const [showProfileCard, setShowProfileCard] = useState(false);
@@ -542,13 +543,7 @@ const LiveStream = () => {
       const userPromise = getCachedUser();
       const streamPromise = id ? supabase
         .from("live_streams")
-        .select(`
-          *,
-          profiles!live_streams_host_id_fkey (
-            id, display_name, avatar_url, gender, user_level,
-            country_flag, country_name, pending_earnings, beans, is_host
-          )
-        `)
+        .select("*")
         .eq("id", id)
         .single() : null;
       
@@ -557,6 +552,13 @@ const LiveStream = () => {
       
       // Process stream data first to determine host
       const stream = id && streamResult ? streamResult.data : null;
+      const { data: hostProfile } = stream?.host_id
+        ? await supabase
+            .from("profiles_public")
+            .select("id, display_name, avatar_url, gender, user_level, country_flag, country_name, is_host")
+            .eq("id", stream.host_id)
+            .maybeSingle()
+        : { data: null };
       
       if (cachedUser) {
         currentUserId = cachedUser.id;
@@ -592,7 +594,7 @@ const LiveStream = () => {
       
       // Process stream data
       if (stream && mountedRef.current) {
-        setStreamData(stream);
+        setStreamData({ ...stream, profiles: hostProfile, host: hostProfile });
         setStreamStartTime(new Date(stream.started_at || stream.created_at).getTime());
         setViewerCount(stream.viewer_count || 0);
         
@@ -605,16 +607,16 @@ const LiveStream = () => {
         setIsHostVerified(true);
         console.log(`🔐 Host verification: currentUser=${currentUserId}, streamHost=${stream.host_id}, isHost=${isActualHost}`);
         
-        if (stream.profiles) {
+        if (hostProfile) {
           setHostInfo({
-            name: stream.profiles.display_name || "Host",
-            avatar: stream.profiles.avatar_url || "",
-            country: stream.profiles.country_flag || "🌍",
+            name: hostProfile.display_name || "Host",
+            avatar: hostProfile.avatar_url || "",
+            country: hostProfile.country_flag || "🌍",
             language: "English",
-            gender: stream.profiles.gender || "female",
-            level: stream.profiles.user_level || 1,
-            id: stream.profiles.id,
-            isVerifiedHost: stream.profiles.is_host === true,
+            gender: hostProfile.gender || "female",
+            level: hostProfile.user_level || 1,
+            id: hostProfile.id,
+            isVerifiedHost: hostProfile.is_host === true,
           });
         }
         
