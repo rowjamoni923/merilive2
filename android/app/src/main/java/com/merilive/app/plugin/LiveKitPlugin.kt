@@ -125,6 +125,9 @@ class LiveKitPlugin : Plugin() {
         val enableAudio = call.getBoolean("audio", true) ?: true
         val lens = call.getString("lens", "front") ?: "front"
         val resolution = call.getString("resolution", "1080p") ?: "1080p"
+        val callerName = call.getString("callerName", "") ?: ""
+        val callType = call.getString("callType", if (enableVideo) "Video Call" else "Voice Call")
+            ?: if (enableVideo) "Video Call" else "Voice Call"
 
         scope.launch {
             try {
