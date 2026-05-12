@@ -849,14 +849,14 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     setSearchedAgency(null);
     
     try {
-      const { data: userData, error: userError } = await supabase
-        .from('profiles')
-        .select('id, display_name, app_uid')
-        .eq('app_uid', transferSearchQuery.trim().toUpperCase())
-        .maybeSingle();
+      const { data: userDataRows, error: userError } = await supabase.rpc('search_user_by_app_uid', {
+        _app_uid: transferSearchQuery.trim().toUpperCase()
+      });
 
       if (userError) throw userError;
       
+      const userData = Array.isArray(userDataRows) ? userDataRows[0] : null;
+
       if (!userData) {
         toast({ title: "Not Found", description: "No user found with this App UID", variant: "destructive" });
         setTransferSearching(false);
@@ -864,11 +864,10 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       }
 
       const { data: agencyData, error: agencyError } = await supabase
-        .from('agencies')
+        .from('agencies_public')
         .select('id, name, agency_code, diamond_balance')
         .eq('owner_id', userData.id)
         .eq('is_active', true)
-        .order('updated_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
