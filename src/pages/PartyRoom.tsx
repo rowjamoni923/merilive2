@@ -812,8 +812,8 @@ const PartyRoom = () => {
             console.log('[PartyRoom] 🎬 Fetching profile for new participant:', payload.new.user_id);
             // Fetch user profile with entry effect info
             const { data: profile } = await supabase
-              .from('profiles')
-              .select('display_name, avatar_url, user_level, host_level, is_host, gender, total_recharged, total_earnings, weekly_earnings, max_user_level, equipped_entrance_id, equipped_entry_name_bar_id')
+              .from('profiles_public')
+              .select('display_name, avatar_url, user_level, host_level, is_host, equipped_entrance_id, equipped_entry_name_bar_id')
               .eq('id', payload.new.user_id)
               .single();
             
@@ -2433,7 +2433,7 @@ const PartyRoom = () => {
                     const giftChatMessage = `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${count}`;
                     await supabase.from("party_room_messages").insert({
                       room_id: room.id,
-                      sender_id: currentUser.id,
+                      user_id: currentUser.id,
                       content: giftChatMessage,
                       message_type: 'gift'
                     });
