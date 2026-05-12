@@ -157,21 +157,23 @@ const ShopItemCard = ({
             <img 
               src={item.preview_url} 
               alt={item.name}
-              className={`w-full h-full object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 ${isFullWidth ? 'scale-105' : ''}`}
+              className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
               onError={() => setImageError(true)}
             />
           ) : item.animation_file_url?.endsWith('.svga') || item.animation_file_url?.endsWith('.json') ? (
-            <UniversalAnimationPlayer
-              src={item.animation_file_url || ''}
-              className={`w-full h-full ${isFullWidth ? 'scale-110' : ''}`}
-              loop
-              autoPlay
-            />
+            <div className="w-full h-full flex items-center justify-center">
+              <UniversalAnimationPlayer
+                src={item.animation_file_url || ''}
+                className={`max-w-[85%] max-h-[85%] ${isFullWidth ? 'scale-110' : ''}`}
+                loop
+                autoPlay
+              />
+            </div>
           ) : (
             <img 
               src={item.animation_file_url || item.preview_url || ''} 
               alt={item.name}
-              className={`w-full h-full object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 ${isFullWidth ? 'scale-105' : ''}`}
+              className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
               onError={() => setImageError(true)}
             />
           )
