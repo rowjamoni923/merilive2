@@ -6205,38 +6205,65 @@ export type Database = {
       }
       leaderboard_reward_history: {
         Row: {
+          category: string | null
           claimed_at: string | null
+          distributed_at: string | null
           id: string
           leaderboard_type: string
           period_end: string
+          period_label: string | null
           period_start: string
+          period_type: string | null
           rank_position: number
           reward_amount: number
+          reward_beans: number | null
+          reward_coins: number | null
+          reward_diamonds: number | null
           reward_type: string
+          sent_at: string | null
+          stat_value: number | null
           status: string | null
           user_id: string
         }
         Insert: {
+          category?: string | null
           claimed_at?: string | null
+          distributed_at?: string | null
           id?: string
           leaderboard_type: string
           period_end: string
+          period_label?: string | null
           period_start: string
+          period_type?: string | null
           rank_position: number
           reward_amount: number
+          reward_beans?: number | null
+          reward_coins?: number | null
+          reward_diamonds?: number | null
           reward_type: string
+          sent_at?: string | null
+          stat_value?: number | null
           status?: string | null
           user_id: string
         }
         Update: {
+          category?: string | null
           claimed_at?: string | null
+          distributed_at?: string | null
           id?: string
           leaderboard_type?: string
           period_end?: string
+          period_label?: string | null
           period_start?: string
+          period_type?: string | null
           rank_position?: number
           reward_amount?: number
+          reward_beans?: number | null
+          reward_coins?: number | null
+          reward_diamonds?: number | null
           reward_type?: string
+          sent_at?: string | null
+          stat_value?: number | null
           status?: string | null
           user_id?: string
         }
