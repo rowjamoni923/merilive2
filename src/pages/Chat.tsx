@@ -720,6 +720,10 @@ const Chat = () => {
         const messageContent = giftMediaUrl
           ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${beansEarned} beans]`
           : `[Gift: ${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${beansEarned} beans]`;
+
+        setMessages(prev => prev.map(m =>
+          m.id === optimisticGiftRow.id ? { ...m, content: messageContent } : m
+        ));
         
         await persistDirectMessage(
           selectedConversation.id,
