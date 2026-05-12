@@ -1544,6 +1544,7 @@ export type Database = {
           currency: string | null
           exchange_rate: number | null
           fee_percentage: number | null
+          helper_diamonds_credited: boolean
           helper_processed_at: string | null
           helper_proof: Json | null
           id: string
@@ -1569,6 +1570,7 @@ export type Database = {
           currency?: string | null
           exchange_rate?: number | null
           fee_percentage?: number | null
+          helper_diamonds_credited?: boolean
           helper_processed_at?: string | null
           helper_proof?: Json | null
           id?: string
@@ -1594,6 +1596,7 @@ export type Database = {
           currency?: string | null
           exchange_rate?: number | null
           fee_percentage?: number | null
+          helper_diamonds_credited?: boolean
           helper_processed_at?: string | null
           helper_proof?: Json | null
           id?: string
