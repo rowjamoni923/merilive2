@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, Smartphone, Sparkles, Bell, Sliders, Shield, Wand2 } from "lucide-react";
+import { Settings, Smartphone, Sparkles, Bell, Sliders, Shield, Wand2, Antenna } from "lucide-react";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import AdminLuxuryStatCard from "@/components/admin/AdminLuxuryStatCard";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
@@ -13,6 +13,7 @@ import AdminNotificationTemplates from "./AdminNotificationTemplates";
 import AdminSettings from "./AdminSettings";
 import AdminAllowedLinks from "./AdminAllowedLinks";
 import AdminTencentBeautySettings from "@/components/admin/AdminTencentBeautySettings";
+import AdminNativeBridge from "./AdminNativeBridge";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 const tabTriggerClass = "flex-shrink-0 gap-1.5 py-3 text-xs sm:text-sm text-[hsl(var(--admin-text-secondary))] data-[state=active]:bg-[linear-gradient(120deg,hsl(var(--primary)),hsl(var(--accent)))] data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_10px_26px_-14px_hsl(var(--admin-gold)/0.85)]";
@@ -103,6 +104,10 @@ const AdminAppSettingsHub = () => {
             <Wand2 className="h-4 w-4" />
             Beauty SDK
           </TabsTrigger>
+          <TabsTrigger value="native-bridge" className={tabTriggerClass}>
+            <Antenna className="h-4 w-4" />
+            Native
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="version" className="mt-0">
@@ -122,6 +127,9 @@ const AdminAppSettingsHub = () => {
         </TabsContent>
         <TabsContent value="beauty-sdk" className="mt-0">
           <AdminTencentBeautySettings />
+        </TabsContent>
+        <TabsContent value="native-bridge" className="mt-0">
+          <AdminNativeBridge />
         </TabsContent>
       </Tabs>
     </div>
