@@ -73,6 +73,15 @@ export interface NativeLiveKitPlugin {
   getAudioDevices(): Promise<{ active: AudioDeviceType; devices: NativeAudioDevice[] }>;
   setAudioDevice(opts: { type: AudioDeviceType }): Promise<{ type: AudioDeviceType; applied: boolean }>;
 
+  // --- Beauty pipeline ↔ camera ownership bridge (Step 21) ----
+  /**
+   * Hand the physical camera over to (or back from) the DeepAR beauty
+   * pipeline. When `enabled: true` the LiveKit native camera track is
+   * disabled so DeepAR can open the camera; when `false`, LiveKit
+   * resumes its own capture.
+   */
+  setBeautyPipelineEnabled(opts: { enabled: boolean }): Promise<{ enabled: boolean; hasRoom: boolean }>;
+
   addListener(eventName: 'participant-connected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'participant-disconnected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'track-subscribed', cb: (e: TrackEvent) => void): Promise<PluginListenerHandle>;
