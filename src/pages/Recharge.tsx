@@ -895,7 +895,10 @@ const Recharge = () => {
     
     if (isAndroid) {
       console.log('[Recharge] Android detected, initializing PlayStoreBilling via registerPlugin...');
-      
+
+      // Refresh package map from DB before initializing — keeps Play Store
+      // product IDs/prices in sync with the admin-edited recharge_packages table.
+      loadPlayStoreProducts().finally(() => {
       playStoreBilling.initialize().then(async (available) => {
         console.log('[Recharge] Play Store Billing initialize result:', available);
         setIsPlayStoreAvailable(available);
