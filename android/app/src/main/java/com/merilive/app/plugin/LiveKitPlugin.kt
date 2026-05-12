@@ -208,6 +208,7 @@ class LiveKitPlugin : Plugin() {
                 setProximityMonitoringInternal(false)
                 applyAudioMode(false)
                 unregisterAudioDeviceListener()
+                stopCallForegroundService()
                 call.resolve()
             } catch (e: Exception) {
                 call.reject("disconnect failed: ${e.message}")
