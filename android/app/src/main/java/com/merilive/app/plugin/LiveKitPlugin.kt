@@ -196,6 +196,8 @@ class LiveKitPlugin : Plugin() {
                 room = null
                 activity?.runOnUiThread { detachAllRenderersInternal() }
                 setKeepScreenOn(false)
+                setProximityMonitoringInternal(false)
+                applyAudioMode(false)
                 call.resolve()
             } catch (e: Exception) {
                 call.reject("disconnect failed: ${e.message}")
