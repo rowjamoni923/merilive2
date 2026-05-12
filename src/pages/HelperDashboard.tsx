@@ -159,18 +159,17 @@ const HelperDashboard = () => {
   const [transferProcessing, setTransferProcessing] = useState(false);
   const [searchedUser, setSearchedUser] = useState<{
     id: string;
-    display_name: string;
-    avatar_url: string;
-    app_uid: string;
-    coins: number;
+    display_name: string | null;
+    avatar_url: string | null;
+    app_uid: string | null;
   } | null>(null);
   const [searchedAgency, setSearchedAgency] = useState<{
     id: string;
-    name: string;
-    agency_code: string;
-    wallet_balance: number;
-    owner_id: string;
-    owner_name?: string;
+    name: string | null;
+    agency_code: string | null;
+    wallet_balance: number | null;
+    owner_id: string | null;
+    owner_name?: string | null;
   } | null>(null);
 
   // Transfer history state
