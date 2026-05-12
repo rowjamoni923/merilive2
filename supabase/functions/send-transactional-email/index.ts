@@ -2,6 +2,7 @@ import * as React from 'npm:react@18.3.1'
 import { renderAsync } from 'npm:@react-email/components@0.0.22'
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { sendLovableEmail } from 'npm:@lovable.dev/email-js'
+import nodemailer from 'npm:nodemailer@6.9.12'
 import { TEMPLATES } from '../_shared/transactional-email-templates/registry.ts'
 
 // Configuration baked in at scaffold time — do NOT change these manually.
@@ -31,6 +32,39 @@ function generateToken(): string {
     .join('')
 }
 
+let cachedGmailTransporter: any = null
+
+function getGmailTransporter() {
+  if (cachedGmailTransporter) return cachedGmailTransporter
+  const user = (Deno.env.get('GMAIL_USER') ?? '').trim()
+  const pass = (Deno.env.get('GMAIL_APP_PASSWORD') ?? '').replace(/\s+/g, '')
+  if (!user || !pass) return null
+  cachedGmailTransporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    auth: { user, pass },
+    pool: true,
+    maxConnections: 2,
+    maxMessages: 100,
+  })
+  return cachedGmailTransporter
+}
+
+async function sendOtpViaGmailFallback(to: string, subject: string, html: string, text: string) {
+  const transporter = getGmailTransporter()
+  const user = (Deno.env.get('GMAIL_USER') ?? '').trim()
+  if (!transporter || !user) throw new Error('Gmail fallback is not configured')
+
+  await transporter.sendMail({
+    from: `${SITE_NAME} <${user}>`,
+    to,
+    subject,
+    html,
+    text,
+  })
+}
+
 // Auth note: this function uses verify_jwt = true in config.toml, so Supabase's
 // gateway validates the caller's JWT (anon or service_role) before the request
 // reaches this code. No in-function auth check is needed.
@@ -53,6 +87,18 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     )
+  }
+
+  const authHeader = req.headers.get('Authorization')
+  const apiKeyHeader = req.headers.get('apikey')
+  const isTrustedInternalRequest =
+    authHeader === `Bearer ${supabaseServiceKey}` && apiKeyHeader === supabaseServiceKey
+
+  if (!isTrustedInternalRequest) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
   }
 
   // Parse request body
@@ -141,22 +187,27 @@ Deno.serve(async (req) => {
       typeof template.subject === 'function' ? template.subject(templateData) : template.subject
 
     try {
-      await sendLovableEmail(
-        {
-          message_id: messageId,
-          to: effectiveRecipient,
-          from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
-          sender_domain: SENDER_DOMAIN,
-          subject: resolvedSubject,
-          html,
-          text,
-          purpose: 'transactional',
-          label: templateName,
-          idempotency_key: idempotencyKey,
-          unsubscribe_token: generateToken(),
-        },
-        { apiKey, idempotencyKey },
-      )
+      try {
+        await sendLovableEmail(
+          {
+            message_id: messageId,
+            to: effectiveRecipient,
+            from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
+            sender_domain: SENDER_DOMAIN,
+            subject: resolvedSubject,
+            html,
+            text,
+            purpose: 'transactional',
+            label: templateName,
+            idempotency_key: idempotencyKey,
+            unsubscribe_token: generateToken(),
+          },
+          { apiKey, idempotencyKey },
+        )
+      } catch (primaryError) {
+        console.warn('Lovable Email unavailable for OTP, using Gmail fallback', { primaryError })
+        await sendOtpViaGmailFallback(effectiveRecipient, resolvedSubject, html, text)
+      }
       console.log('OTP email sent', { templateName, effectiveRecipient })
       return new Response(JSON.stringify({ success: true, sent: true }), {
         status: 200,
