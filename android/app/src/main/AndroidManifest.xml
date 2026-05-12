@@ -134,6 +134,10 @@
         <service android:name=".service.CallForegroundService" android:exported="false"
             android:foregroundServiceType="phoneCall|camera|microphone" />
 
+        <!-- Step 34 — hosts MediaProjection while a screen-share is being published. -->
+        <service android:name=".service.ScreenCaptureService" android:exported="false"
+            android:foregroundServiceType="mediaProjection" />
+
         <receiver android:name=".receiver.BootReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
