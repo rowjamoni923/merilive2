@@ -2102,14 +2102,29 @@ const Chat = () => {
                                 )}
                               </div>
                               
-                              {/* Mini Beans Badge */}
-                              {beansAmount && (
-                                <div className="flex items-center px-2 py-0.5 mt-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full">
+                              {/* Asymmetric badge: sender → diamonds spent (red), receiver → beans earned (gold 3D) */}
+                              {isMine && diamondsAmount ? (
+                                <div className="flex items-center gap-1 px-2 py-0.5 mt-1 bg-gradient-to-r from-rose-500 to-red-600 rounded-full shadow-md shadow-rose-500/30">
+                                  <img src={diamondGem3D} alt="" className="w-3 h-3 object-contain drop-shadow" />
+                                  <span className="text-[9px] font-bold text-white">
+                                    -{Number(diamondsAmount).toLocaleString()}
+                                  </span>
+                                </div>
+                              ) : !isMine && beansAmount ? (
+                                <div className="flex items-center gap-1 px-2 py-0.5 mt-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full shadow-md shadow-amber-500/30">
+                                  <Beans3DIcon size={12} />
                                   <span className="text-[9px] font-bold text-white">
                                     +{Number(beansAmount).toLocaleString()}
                                   </span>
                                 </div>
-                              )}
+                              ) : beansAmount ? (
+                                <div className="flex items-center gap-1 px-2 py-0.5 mt-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full shadow-md">
+                                  <Beans3DIcon size={12} />
+                                  <span className="text-[9px] font-bold text-white">
+                                    +{Number(beansAmount).toLocaleString()}
+                                  </span>
+                                </div>
+                              ) : null}
                               
                               {/* Timestamp + Status */}
                               <p className="text-[8px] text-muted-foreground/60 mt-0.5 flex items-center justify-center gap-0.5">
