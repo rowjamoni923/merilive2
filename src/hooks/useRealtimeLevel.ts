@@ -6,6 +6,7 @@ import { resolveLevelFromTiers } from "@/utils/levelResolver";
 interface LevelData {
   user_level: number;
   host_level: number;
+  max_user_level?: number;
   coins: number;
   total_earnings: number;
   total_consumption: number;
@@ -17,7 +18,9 @@ interface LevelData {
 }
 
 // ============= LocalStorage Level Cache =============
-const LEVEL_CACHE_KEY = 'meri_level_cache';
+const LEVEL_CACHE_KEY = 'meri_level_cache_v2';
+const PRIVATE_LEVEL_SELECT = "user_level, host_level, previous_host_level, coins, total_earnings, total_consumption, total_recharged, is_host, weekly_earnings, weekly_reset_at, gender, max_user_level";
+const PUBLIC_LEVEL_SELECT = "user_level, host_level, total_earnings, is_host, weekly_earnings, gender, max_user_level";
 
 interface LevelCache {
   userId: string;
@@ -71,14 +74,32 @@ export const useRealtimeLevel = (userId: string | null) => {
       return;
     }
 
-    // Fetch profile data
+    // Fetch private profile first; for other users RLS can block this, so fall back to profiles_public.
     const profileRes = await supabase
       .from("profiles")
-      .select("user_level, host_level, previous_host_level, coins, total_earnings, total_consumption, total_recharged, is_host, weekly_earnings, weekly_reset_at, gender, max_user_level")
+      .select(PRIVATE_LEVEL_SELECT)
       .eq("id", userId)
       .maybeSingle();
 
-    const data = profileRes.data;
+    let data = profileRes.data as any;
+
+    if (!data) {
+      const publicRes = await supabase
+        .from("profiles_public")
+        .select(PUBLIC_LEVEL_SELECT)
+        .eq("id", userId)
+        .maybeSingle();
+
+      if (publicRes.data) {
+        data = {
+          ...publicRes.data,
+          coins: 0,
+          total_consumption: 0,
+          total_recharged: 0,
+          weekly_reset_at: null,
+        };
+      }
+    }
 
     if (data) {
       const resolved = await resolveLevelFromTiers({
@@ -105,6 +126,7 @@ export const useRealtimeLevel = (userId: string | null) => {
       const newLevelData: LevelData = {
         user_level: resolved.levelType === 'user' ? displayLevel : (data.user_level ?? 0),
         host_level: resolved.levelType === 'host' ? displayLevel : (data.host_level ?? 0),
+        max_user_level: data.max_user_level ?? data.user_level ?? 1,
         coins: data.coins ?? 0,
         total_earnings: data.total_earnings ?? 0,
         total_consumption: data.total_consumption ?? 0,
