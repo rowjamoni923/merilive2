@@ -60,7 +60,7 @@ export interface PurchaseResult {
 // ============================================
 // Play Store Product Mapping
 // ============================================
-// Source of truth = `recharge_packages` table (admin-editable).
+// Source of truth = `coin_packages` table (admin-editable).
 // The values below mirror the current DB rows so synchronous callers
 // (components reading PLAY_STORE_PRODUCTS directly) get correct data
 // even before loadPlayStoreProducts() finishes its async DB fetch.
@@ -78,7 +78,7 @@ export const PLAY_STORE_PRODUCTS: Record<number, { productId: string; priceUsd: 
 export let ALL_PRODUCT_IDS: string[] = Object.values(PLAY_STORE_PRODUCTS).map(p => p.productId);
 
 /**
- * Refresh PLAY_STORE_PRODUCTS from the `recharge_packages` DB table so
+ * Refresh PLAY_STORE_PRODUCTS from the `coin_packages` DB table so
  * admin price/product changes propagate without a code release.
  * Call once at app start (after Supabase client is ready). Safe to fail —
  * the hardcoded fallback above keeps the app working offline.
