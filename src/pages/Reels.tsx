@@ -51,11 +51,14 @@ interface Reel {
   created_at: string;
   user: {
     id: string;
+    app_uid?: string | null;
     display_name: string | null;
     avatar_url: string | null;
     user_level: number | null;
     is_verified: boolean | null;
     is_host: boolean | null;
+    frame_id?: string | null;
+    equipped_frame_id?: string | null;
   } | null;
   is_liked?: boolean;
   is_following?: boolean;
@@ -144,7 +147,7 @@ const Reels = () => {
       .from('reels')
       .select(`
         *,
-        user:profiles!reels_user_id_fkey(id, display_name, avatar_url, user_level, is_verified, is_host)
+        user:profiles_public!reels_user_id_fkey(id, app_uid, display_name, avatar_url, user_level, is_verified, is_host, frame_id, equipped_frame_id)
       `)
       .eq('is_active', true)
       .eq('is_approved', true)
@@ -272,7 +275,7 @@ const Reels = () => {
       .from('reel_comments')
       .select(`
         *,
-        user:profiles!reel_comments_user_id_fkey(id, display_name, avatar_url, user_level)
+        user:profiles_public!reel_comments_user_id_fkey(id, display_name, avatar_url, user_level)
       `)
       .eq('reel_id', reelId)
       .eq('is_active', true)
@@ -302,7 +305,7 @@ const Reels = () => {
       })
       .select(`
         *,
-        user:profiles!reel_comments_user_id_fkey(id, display_name, avatar_url, user_level)
+        user:profiles_public!reel_comments_user_id_fkey(id, display_name, avatar_url, user_level)
       `)
       .single();
 
