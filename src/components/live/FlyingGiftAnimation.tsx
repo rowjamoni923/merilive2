@@ -100,7 +100,7 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     }, 3500);
   }, [gift.giftName, handleAnimationComplete]);
 
-  // Count-up animation
+  // Count-up animation — re-runs on combo merge (comboKey changes)
   useEffect(() => {
     const target = gift.count;
     const duration = Math.min(600, target * 25);
@@ -113,15 +113,14 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
     };
     rafId = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(rafId);
-  }, [gift.count]);
+  }, [gift.count, gift.comboKey]);
 
-  // Timer logic
+  // Dismiss timer — also resets on combo merge so combo banner stays alive
   useEffect(() => {
     mountedRef.current = true;
-    if (animationStartedRef.current) return;
-    animationStartedRef.current = true;
 
-    if (isSVGA && !svgaError) {
+    if (isSVGA && !svgaError && !animationStartedRef.current) {
+      animationStartedRef.current = true;
       // SVGA: let onComplete handle it, but safety timeout at 8s
       const safety = setTimeout(() => {
         if (mountedRef.current && !completedRef.current) handleAnimationComplete();
@@ -129,12 +128,13 @@ const FlyingGiftAnimationInner = memo(({ gift, onComplete }: FlyingGiftAnimation
       return () => { mountedRef.current = false; clearTimeout(safety); };
     }
 
-    // Non-SVGA: show banner for 3.5 seconds (professional timing like Bigo)
+    // Non-SVGA: show banner for 3.5 seconds — RESET on every combo bump
+    completedRef.current = false;
     const timer = setTimeout(() => {
       if (mountedRef.current && !completedRef.current) handleAnimationComplete();
     }, 3500);
     return () => { mountedRef.current = false; clearTimeout(timer); };
-  }, []);
+  }, [gift.comboKey, isSVGA, svgaError, handleAnimationComplete]);
 
   // Get gift icon URL (prefer giftImageUrl over giftIcon)
   const giftIconSrc = gift.giftImageUrl || (gift.giftIcon?.startsWith('http') ? gift.giftIcon : null);
