@@ -696,7 +696,7 @@ const PartyRoom = () => {
           })(),
           supabase
             .from('party_rooms')
-            .select(`*, host:profiles!party_rooms_host_id_fkey(id, display_name, avatar_url, host_level, user_level, country_flag, frame_id)`)
+            .select('*')
             .eq('id', roomId)
             .single()
         ]);
@@ -731,7 +731,16 @@ const PartyRoom = () => {
           return;
         }
         
-        setRoom(roomData.data as PartyRoom);
+        const hostId = roomData.data?.host_id;
+        const { data: hostProfile } = hostId
+          ? await supabase
+              .from('profiles_public')
+              .select('id, display_name, avatar_url, host_level, user_level, country_flag, frame_id')
+              .eq('id', hostId)
+              .maybeSingle()
+          : { data: null };
+
+        setRoom({ ...(roomData.data as any), host: hostProfile || null } as PartyRoom);
         
         // Fetch participants and seat requests in parallel
         await Promise.all([fetchParticipants(), fetchSeatRequests()]);
@@ -803,8 +812,8 @@ const PartyRoom = () => {
             console.log('[PartyRoom] 🎬 Fetching profile for new participant:', payload.new.user_id);
             // Fetch user profile with entry effect info
             const { data: profile } = await supabase
-              .from('profiles')
-              .select('display_name, avatar_url, user_level, host_level, is_host, gender, total_recharged, total_earnings, weekly_earnings, max_user_level, equipped_entrance_id, equipped_entry_name_bar_id')
+              .from('profiles_public')
+              .select('display_name, avatar_url, user_level, host_level, is_host, equipped_entrance_id, equipped_entry_name_bar_id')
               .eq('id', payload.new.user_id)
               .single();
             
@@ -826,7 +835,7 @@ const PartyRoom = () => {
               // This ensures host, visitors, and joining user ALL see the message
               await supabase.from('party_room_messages').insert({
                 room_id: roomId,
-                sender_id: payload.new.user_id,
+                user_id: payload.new.user_id,
                 content: 'joined the room ✨',
                 message_type: 'join'
               });
@@ -1079,13 +1088,13 @@ const PartyRoom = () => {
           if (!isMountedRef.current) return;
           
           const messageType = payload.new?.message_type;
-          const senderId = payload.new?.sender_id;
+          const senderId = payload.new?.user_id;
           
           // Handle join messages - show notification to EVERYONE
           if (messageType === 'join' && senderId) {
             // Fetch sender profile for display
             const { data: senderProfile } = await supabase
-              .from('profiles')
+              .from('profiles_public')
               .select('display_name, avatar_url, user_level')
               .eq('id', senderId)
               .single();
@@ -1223,7 +1232,7 @@ const PartyRoom = () => {
         // 3. Save join message to DB (non-blocking)
         void supabase.from('party_room_messages').insert({
           room_id: roomId,
-          sender_id: data.userId,
+          user_id: data.userId,
           content: 'joined the room ✨',
           message_type: 'join'
         });
@@ -1322,10 +1331,7 @@ const PartyRoom = () => {
 
     const { data, error } = await supabase
       .from('party_room_participants')
-      .select(`
-        *,
-        user:profiles!party_room_participants_user_id_fkey(id, display_name, avatar_url, user_level, frame_id)
-      `)
+      .select('*')
       .eq('room_id', currentRoomId)
       .is('left_at', null)
       .order('position', { ascending: true });
@@ -1344,7 +1350,20 @@ const PartyRoom = () => {
     const currentUserId = currentUserRef.current?.id;
     
     if (data) {
-      setParticipants(data as Participant[]);
+      const userIds = [...new Set(data.map((p: any) => p.user_id).filter(Boolean))];
+      const { data: publicProfiles } = userIds.length
+        ? await supabase
+            .from('profiles_public')
+            .select('id, display_name, avatar_url, user_level, frame_id')
+            .in('id', userIds)
+        : { data: [] as any[] };
+      const profileMap = new Map((publicProfiles || []).map((profile: any) => [profile.id, profile]));
+      const hydratedParticipants = data.map((participant: any) => ({
+        ...participant,
+        user: profileMap.get(participant.user_id) || null,
+      }));
+
+      setParticipants(hydratedParticipants as Participant[]);
       
       // Update my position and role from DB
       if (currentUserId) {
@@ -1370,10 +1389,7 @@ const PartyRoom = () => {
 
     const { data, error } = await supabase
       .from('seat_requests')
-      .select(`
-        *,
-        requester:profiles!seat_requests_requester_id_fkey(display_name, avatar_url, user_level)
-      `)
+      .select('*')
       .eq('room_id', currentRoomId)
       .eq('status', 'pending')
       .order('created_at', { ascending: true });
@@ -1387,7 +1403,20 @@ const PartyRoom = () => {
     if (!isMountedRef.current) return;
 
     // Filter out any recently processed requests to prevent race conditions
-    const filteredData = (data || []).filter(
+    const requesterIds = [...new Set((data || []).map((r: any) => r.requester_id).filter(Boolean))];
+    const { data: requesterProfiles } = requesterIds.length
+      ? await supabase
+          .from('profiles_public')
+          .select('id, display_name, avatar_url, user_level')
+          .in('id', requesterIds)
+      : { data: [] as any[] };
+    const requesterMap = new Map((requesterProfiles || []).map((profile: any) => [profile.id, profile]));
+    const hydratedRequests = (data || []).map((request: any) => ({
+      ...request,
+      requester: requesterMap.get(request.requester_id) || null,
+    }));
+
+    const filteredData = hydratedRequests.filter(
       r => !recentlyProcessedRequestsRef.current.has(r.id)
     );
     
@@ -2414,7 +2443,7 @@ const PartyRoom = () => {
                     const giftChatMessage = `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${count}`;
                     await supabase.from("party_room_messages").insert({
                       room_id: room.id,
-                      sender_id: currentUser.id,
+                      user_id: currentUser.id,
                       content: giftChatMessage,
                       message_type: 'gift'
                     });

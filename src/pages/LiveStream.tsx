@@ -297,6 +297,7 @@ const LiveStream = () => {
   // Deduplicate broadcast gift chat message vs DB stream_chat gift insert
   const recentBroadcastGiftKeysRef = useRef<Map<string, number>>(new Map());
   const giftBroadcastChannelRef = useRef<any>(null);
+  const activeViewerIdsRef = useRef<Set<string>>(new Set());
 
   // Profile card states
   const [showProfileCard, setShowProfileCard] = useState(false);
@@ -542,13 +543,7 @@ const LiveStream = () => {
       const userPromise = getCachedUser();
       const streamPromise = id ? supabase
         .from("live_streams")
-        .select(`
-          *,
-          profiles!live_streams_host_id_fkey (
-            id, display_name, avatar_url, gender, user_level,
-            country_flag, country_name, pending_earnings, beans, is_host
-          )
-        `)
+        .select("*")
         .eq("id", id)
         .single() : null;
       
@@ -557,6 +552,13 @@ const LiveStream = () => {
       
       // Process stream data first to determine host
       const stream = id && streamResult ? streamResult.data : null;
+      const { data: hostProfile } = stream?.host_id
+        ? await supabase
+            .from("profiles_public")
+            .select("id, display_name, avatar_url, gender, user_level, country_flag, country_name, is_host")
+            .eq("id", stream.host_id)
+            .maybeSingle()
+        : { data: null };
       
       if (cachedUser) {
         currentUserId = cachedUser.id;
@@ -572,7 +574,7 @@ const LiveStream = () => {
         // Session gifts
         stream && id ? supabase.from("gift_transactions").select("coin_amount").eq("stream_id", id).eq("receiver_id", stream.host_id) : Promise.resolve({ data: null }),
         // Self profile for viewer join notification
-        !isActualHost && currentUserId ? supabase.from("profiles").select("display_name, avatar_url, user_level, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id").eq("id", currentUserId).single() : Promise.resolve({ data: null }),
+        !isActualHost && currentUserId ? supabase.from("profiles_public").select("app_uid, display_name, avatar_url, user_level, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id").eq("id", currentUserId).single() : Promise.resolve({ data: null }),
       ]);
       
       // Process user profile
@@ -592,7 +594,7 @@ const LiveStream = () => {
       
       // Process stream data
       if (stream && mountedRef.current) {
-        setStreamData(stream);
+        setStreamData({ ...stream, profiles: hostProfile, host: hostProfile });
         setStreamStartTime(new Date(stream.started_at || stream.created_at).getTime());
         setViewerCount(stream.viewer_count || 0);
         
@@ -605,16 +607,16 @@ const LiveStream = () => {
         setIsHostVerified(true);
         console.log(`🔐 Host verification: currentUser=${currentUserId}, streamHost=${stream.host_id}, isHost=${isActualHost}`);
         
-        if (stream.profiles) {
+        if (hostProfile) {
           setHostInfo({
-            name: stream.profiles.display_name || "Host",
-            avatar: stream.profiles.avatar_url || "",
-            country: stream.profiles.country_flag || "🌍",
+            name: hostProfile.display_name || "Host",
+            avatar: hostProfile.avatar_url || "",
+            country: hostProfile.country_flag || "🌍",
             language: "English",
-            gender: stream.profiles.gender || "female",
-            level: stream.profiles.user_level || 1,
-            id: stream.profiles.id,
-            isVerifiedHost: stream.profiles.is_host === true,
+            gender: hostProfile.gender || "female",
+            level: hostProfile.user_level || 1,
+            id: hostProfile.id,
+            isVerifiedHost: hostProfile.is_host === true,
           });
         }
         
@@ -623,7 +625,8 @@ const LiveStream = () => {
           const selfProfile = selfProfileRes.data;
 
           // ⚡ INSTANT: Optimistically increment viewer count BEFORE DB write
-          setViewerCount(prev => prev + 1);
+          activeViewerIdsRef.current.add(currentUserId);
+          setViewerCount(activeViewerIdsRef.current.size);
 
           // Reliable join write (no silent fail)
           void supabase
@@ -728,6 +731,7 @@ const LiveStream = () => {
                     event: 'viewer_joined',
                     payload: {
                       userId: currentUserId,
+                      appUid: selfProfile.app_uid || null,
                       userName,
                       userAvatar: avatarUrl,
                       userLevel,
@@ -1057,8 +1061,19 @@ const LiveStream = () => {
         
         console.log('[LiveStream] ⚡ INSTANT join broadcast received:', data.userName);
         
-        // 1. INSTANT viewer count increment
-        setViewerCount(prev => prev + 1);
+        // 1. INSTANT viewer count + avatar update (host sees visitor without refresh)
+        activeViewerIdsRef.current.add(data.userId);
+        setViewerCount(activeViewerIdsRef.current.size);
+        setRecentViewerAvatars(prev => [
+          {
+            id: data.userId,
+            app_uid: data.appUid || null,
+            avatar_url: data.userAvatar || null,
+            name: data.userName || "User",
+            user_level: data.userLevel || 1,
+          },
+          ...prev.filter(v => v.id !== data.userId),
+        ].slice(0, 5));
         
         // 2. INSTANT flying join banner
         addBigoJoinNotification({
@@ -1348,7 +1363,7 @@ const LiveStream = () => {
           
           // Fetch viewer profile with entry effect info
           const { data: profile } = await supabase
-            .from("profiles")
+            .from("profiles_public")
             .select("display_name, avatar_url, user_level, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id")
             .eq("id", payload.new.viewer_id)
             .single();
@@ -1418,8 +1433,7 @@ const LiveStream = () => {
           .select("viewer_id")
           .eq("stream_id", id)
           .is("left_at", null)
-          .order("joined_at", { ascending: false })
-          .limit(5),
+          .order("joined_at", { ascending: false }),
         supabase
           .from("stream_viewers")
           .select("*", { count: "exact", head: true })
@@ -1446,7 +1460,7 @@ const LiveStream = () => {
 
       if (viewerIds.length > 0) {
         const { data: profiles, error: profilesError } = await supabase
-          .from("profiles")
+          .from("profiles_public")
           .select("id, app_uid, display_name, avatar_url, user_level")
           .in("id", viewerIds);
 
@@ -1473,6 +1487,7 @@ const LiveStream = () => {
       });
 
       if (mountedRef.current) {
+        activeViewerIdsRef.current = new Set(viewerIds);
         setRecentViewerAvatars(avatars);
 
         if (typeof count === 'number') {
@@ -1509,7 +1524,7 @@ const LiveStream = () => {
       
       // Fetch viewer profile
         const { data: profile } = await supabase
-          .from('profiles')
+          .from('profiles_public')
           .select('display_name, avatar_url, user_level, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id')
           .eq('id', viewerId)
         .single();
@@ -1590,8 +1605,9 @@ const LiveStream = () => {
 
           console.log('[LiveStream] 👤 Viewer INSERT detected:', payload.new?.viewer_id);
 
-          // ⚡ INSTANT: Optimistic increment before DB fetch
-          setViewerCount(prev => prev + 1);
+          // ⚡ INSTANT: Count from an in-memory active viewer set to prevent double increments
+          activeViewerIdsRef.current.add(payload.new.viewer_id);
+          setViewerCount(activeViewerIdsRef.current.size);
           fetchRecentViewers();
 
           if (payload.new?.viewer_id) {
@@ -1611,9 +1627,11 @@ const LiveStream = () => {
 
           // ⚡ INSTANT: Optimistic count adjustment
           if (viewerLeft) {
-            setViewerCount(prev => Math.max(0, prev - 1));
+            activeViewerIdsRef.current.delete(payload.new?.viewer_id);
+            setViewerCount(activeViewerIdsRef.current.size);
           } else if (viewerReturned) {
-            setViewerCount(prev => prev + 1);
+            activeViewerIdsRef.current.add(payload.new?.viewer_id);
+            setViewerCount(activeViewerIdsRef.current.size);
           }
 
           fetchRecentViewers();
@@ -1636,8 +1654,9 @@ const LiveStream = () => {
           if (payload.old?.stream_id !== id) return;
 
           console.log('[LiveStream] 👋 Viewer DELETE detected:', payload.old?.viewer_id);
-          // ⚡ INSTANT: Optimistic decrement
-          setViewerCount(prev => Math.max(0, prev - 1));
+          // ⚡ INSTANT: Optimistic decrement from active viewer set
+          activeViewerIdsRef.current.delete(payload.old?.viewer_id);
+          setViewerCount(activeViewerIdsRef.current.size);
           fetchRecentViewers();
 
         }
