@@ -52,6 +52,15 @@ export interface AudioInterruptionEvent { state: 'loss' | 'gain'; permanent: boo
 /** Step 16 — emitted while LiveKit recovers from a transient network drop. */
 export interface ConnectionStateEvent { state: 'reconnecting' | 'reconnected' }
 
+/** Step 22 — emitted when adaptive bitrate fallback steps the publish ladder. */
+export type AdaptiveTier = 'high' | 'medium' | 'low';
+export interface AdaptiveTierEvent {
+  tier: AdaptiveTier;
+  reason: 'downgrade' | 'upgrade' | 'manual-restore' | string;
+  simulcast: boolean;
+  maxBitrate: number;
+}
+
 export interface NativeLiveKitPlugin {
   isAvailable(): Promise<{ available: boolean; backend: string; version: string }>;
   connect(opts: ConnectOptions): Promise<{ connected: boolean; sid: string; identity: string }>;
@@ -82,6 +91,15 @@ export interface NativeLiveKitPlugin {
    */
   setBeautyPipelineEnabled(opts: { enabled: boolean }): Promise<{ enabled: boolean; hasRoom: boolean }>;
 
+  // --- Adaptive bitrate fallback (Step 22) ----------------------
+  /**
+   * Toggle the publisher-side bitrate fallback ladder. When enabled
+   * (default), the plugin republishes the camera at HIGH→MEDIUM→LOW on
+   * sustained POOR uplink quality, and climbs back on EXCELLENT.
+   */
+  setAdaptiveBitrateEnabled(opts: { enabled: boolean }): Promise<{ enabled: boolean; tier: AdaptiveTier }>;
+  getAdaptiveTier(): Promise<{ enabled: boolean; tier: AdaptiveTier; base: AdaptiveTier }>;
+
   addListener(eventName: 'participant-connected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'participant-disconnected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'track-subscribed', cb: (e: TrackEvent) => void): Promise<PluginListenerHandle>;
@@ -91,6 +109,7 @@ export interface NativeLiveKitPlugin {
   addListener(eventName: 'audio-device-changed', cb: (e: AudioDeviceChangedEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'audio-interruption', cb: (e: AudioInterruptionEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'connection-state', cb: (e: ConnectionStateEvent) => void): Promise<PluginListenerHandle>;
+  addListener(eventName: 'adaptive-tier', cb: (e: AdaptiveTierEvent) => void): Promise<PluginListenerHandle>;
 }
 
 export const NativeLiveKit = registerPlugin<NativeLiveKitPlugin>('NativeLiveKit');
