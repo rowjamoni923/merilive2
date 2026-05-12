@@ -20,6 +20,7 @@ import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
 import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
 import { useNativeLiveKitEvents } from '@/hooks/useNativeLiveKitEvents';
 import { useNativeLiveKitLifecycle } from '@/hooks/useNativeLiveKitLifecycle';
+import { toast } from 'sonner';
 
 interface AgoraConfig {
   channelName: string;
