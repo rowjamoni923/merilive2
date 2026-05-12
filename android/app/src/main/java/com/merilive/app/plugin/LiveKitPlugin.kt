@@ -723,6 +723,8 @@ class LiveKitPlugin : Plugin() {
 
     private fun detachAllRenderersInternal() {
         val webView = bridge?.webView
+        // Step 25 — drop stall sinks before we release the underlying tracks.
+        try { clearStallSinks() } catch (_: Exception) {}
         localRenderer?.let { (it.parent as? ViewGroup)?.removeView(it); it.release() }
         localRenderer = null
         remoteRenderers.values.forEach {
