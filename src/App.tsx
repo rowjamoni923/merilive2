@@ -601,6 +601,10 @@ const App = () => {
     // Initialize error logging service (deferred)
     import('./services/ErrorLoggingService').then(m => m.default.initialize());
 
+    // 🚀 INSTANT-LOAD: warm up most-visited route chunks during browser idle time
+    // so the user's first navigation to any of them is 0ms.
+    import('./utils/idleRoutePrefetch').then(m => m.startIdleRoutePrefetch()).catch(() => {});
+
     // 🔐 ENCRYPTED STORAGE - Migrate plaintext sensitive data to encrypted
     if (secureStorage.isAvailable()) {
       secureStorage.migrateToEncrypted();
