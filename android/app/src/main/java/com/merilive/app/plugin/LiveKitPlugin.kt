@@ -1268,6 +1268,10 @@ class LiveKitPlugin : Plugin() {
             setProximityMonitoringInternal(false)
             applyAudioMode(false)
             unregisterAudioDeviceListener()
+            // Step 30 — tear down headset receivers + media-button session.
+            unregisterHeadsetReceivers()
+            stopHeadsetMediaSession()
+            stopBluetoothScoInternal()
             abandonAudioFocusInternal()
             stopCallForegroundService()
         } catch (_: Exception) {}
