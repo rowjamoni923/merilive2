@@ -1433,8 +1433,7 @@ const LiveStream = () => {
           .select("viewer_id")
           .eq("stream_id", id)
           .is("left_at", null)
-          .order("joined_at", { ascending: false })
-          .limit(5),
+          .order("joined_at", { ascending: false }),
         supabase
           .from("stream_viewers")
           .select("*", { count: "exact", head: true })
