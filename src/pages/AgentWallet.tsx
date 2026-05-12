@@ -42,6 +42,7 @@ interface TransferRecord {
 
 interface FoundUser {
   id: string;
+  app_uid: string | null;
   username: string | null;
   display_name: string | null;
   avatar_url: string | null;
@@ -164,7 +165,7 @@ const AgentWallet = () => {
     setSearchResults([]);
 
     const { data, error } = await supabase
-      .rpc("search_user_by_id", { _search_query: userId.trim() });
+      .rpc("search_user_by_id", { _search_id: userId.trim().toUpperCase() });
 
     if (error) {
       toast({
@@ -621,7 +622,7 @@ const AgentWallet = () => {
                           <CheckCircle2 className="w-4 h-4 text-blue-500 inline ml-1" />
                         )}
                       </p>
-                      <p className="text-xs text-gray-500 truncate">ID: {user.id.slice(0, 8)}...</p>
+                      <p className="text-xs text-gray-500 truncate">UID: {user.app_uid || user.id.slice(0, 8)}</p>
                     </div>
                     {user.is_host && (
                       <Badge variant="secondary" className="text-xs">Host</Badge>
@@ -644,7 +645,7 @@ const AgentWallet = () => {
                   <p className="font-semibold text-green-800">
                     {foundUser.display_name || foundUser.username || "Unknown"}
                   </p>
-                  <p className="text-sm text-green-600">ID: {foundUser.id.slice(0, 8)}...</p>
+                  <p className="text-sm text-green-600">UID: {foundUser.app_uid || foundUser.id.slice(0, 8)}</p>
                 </div>
                 <CheckCircle2 className="w-6 h-6 text-green-600" />
               </div>

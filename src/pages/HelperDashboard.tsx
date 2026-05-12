@@ -159,18 +159,17 @@ const HelperDashboard = () => {
   const [transferProcessing, setTransferProcessing] = useState(false);
   const [searchedUser, setSearchedUser] = useState<{
     id: string;
-    display_name: string;
-    avatar_url: string;
-    app_uid: string;
-    coins: number;
+    display_name: string | null;
+    avatar_url: string | null;
+    app_uid: string | null;
   } | null>(null);
   const [searchedAgency, setSearchedAgency] = useState<{
     id: string;
-    name: string;
-    agency_code: string;
-    wallet_balance: number;
-    owner_id: string;
-    owner_name?: string;
+    name: string | null;
+    agency_code: string | null;
+    wallet_balance: number | null;
+    owner_id: string | null;
+    owner_name?: string | null;
   } | null>(null);
 
   // Transfer history state
@@ -769,16 +768,16 @@ const HelperDashboard = () => {
     setSearchedUser(null);
     
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, display_name, avatar_url, app_uid, coins')
-        .eq('app_uid', transferSearchQuery.trim().toUpperCase())
-        .maybeSingle();
+      const { data, error } = await supabase.rpc('search_user_by_app_uid', {
+        _app_uid: transferSearchQuery.trim().toUpperCase()
+      });
 
       if (error) throw error;
       
-      if (data) {
-        setSearchedUser(data);
+      const foundUser = Array.isArray(data) ? data[0] : null;
+
+      if (foundUser) {
+        setSearchedUser(foundUser);
       } else {
         toast({ title: "Not Found", description: "No user found with this App UID", variant: "destructive" });
       }
@@ -789,7 +788,7 @@ const HelperDashboard = () => {
     }
   };
 
-  // Search agency by code
+  // Search agency by owner's App UID, with agency-code fallback
   const handleSearchAgency = async () => {
     if (!transferSearchQuery.trim()) return;
     
@@ -797,28 +796,43 @@ const HelperDashboard = () => {
     setSearchedAgency(null);
     
     try {
-      const { data, error } = await supabase
-        .from('agencies')
-        .select('id, name, agency_code, wallet_balance, owner_id')
-        .eq('agency_code', transferSearchQuery.trim().toUpperCase())
+      const normalizedQuery = transferSearchQuery.trim().toUpperCase();
+      const { data: ownerRows, error: ownerSearchError } = await supabase.rpc('search_user_by_app_uid', {
+        _app_uid: normalizedQuery
+      });
+      if (ownerSearchError) throw ownerSearchError;
+
+      const ownerByUid = Array.isArray(ownerRows) ? ownerRows[0] : null;
+      const agencyQuery = supabase
+        .from('agencies_public')
+        .select('id, name, agency_code, diamond_balance, owner_id')
+        .eq(ownerByUid ? 'owner_id' : 'agency_code', ownerByUid?.id || normalizedQuery)
+        .limit(1)
         .maybeSingle();
+
+      const { data, error } = await agencyQuery;
 
       if (error) throw error;
       
       if (data) {
         // Get owner name
-        const { data: owner } = await supabase
-          .from('profiles')
+        const owner = ownerByUid || (data.owner_id ? await supabase
+          .from('profiles_public')
           .select('display_name')
           .eq('id', data.owner_id)
-          .single();
+          .maybeSingle()
+          .then(({ data }) => data) : null);
         
         setSearchedAgency({
-          ...data,
+          id: data.id,
+          name: data.name,
+          agency_code: data.agency_code,
+          wallet_balance: data.diamond_balance || 0,
+          owner_id: data.owner_id,
           owner_name: owner?.display_name || 'Unknown'
         });
       } else {
-        toast({ title: "Not Found", description: "No agency found with this code", variant: "destructive" });
+        toast({ title: "Not Found", description: "No agency found with this owner UID", variant: "destructive" });
       }
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -2197,7 +2211,6 @@ const HelperDashboard = () => {
                       <div>
                         <p className="text-white font-semibold">{searchedUser.display_name}</p>
                         <p className="text-slate-400 text-xs">ID: {searchedUser.app_uid}</p>
-                        <p className="text-cyan-400 text-xs">Balance: {searchedUser.coins?.toLocaleString() || 0} 💎</p>
                       </div>
                     </div>
 
@@ -2236,12 +2249,12 @@ const HelperDashboard = () => {
               </TabsContent>
 
               <TabsContent value="agency" className="mt-4 space-y-4">
-                {/* Search by Agency Code */}
+                {/* Search by Agency Owner UID */}
                 <div>
-                  <Label className="text-white text-sm">Search by Agency Code</Label>
+                  <Label className="text-white text-sm">Search Agency by Owner's App UID</Label>
                   <div className="flex gap-2 mt-1">
                     <Input
-                      placeholder="Enter Agency Code"
+                      placeholder="Enter Owner's App UID"
                       value={transferSearchQuery}
                       onChange={(e) => setTransferSearchQuery(e.target.value.toUpperCase())}
                       className="bg-slate-800 border-slate-600 text-white uppercase"

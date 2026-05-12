@@ -59,7 +59,6 @@ interface UserProfile {
   avatar_url: string | null;
   username: string | null;
   app_uid: string | null;
-  coins: number;
 }
 
 interface TradeHistory {
@@ -201,8 +200,8 @@ const AgencyCoinTrader = () => {
     setSearching(true);
     try {
       const { data, error } = await supabase
-        .from('profiles')
-        .select('id, display_name, avatar_url, username, app_uid, coins')
+        .from('profiles_public')
+        .select('id, display_name, avatar_url, username, app_uid')
         .or(`app_uid.ilike.%${searchQuery}%,display_name.ilike.%${searchQuery}%,username.ilike.%${searchQuery}%`)
         .limit(10);
 
@@ -258,15 +257,6 @@ const AgencyCoinTrader = () => {
       toast({
         title: "Error",
         description: "Insufficient coins in your wallet",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (activeTab === "buy" && amount > (selectedUser.coins || 0)) {
-      toast({
-        title: "Error",
-        description: "User doesn't have enough coins",
         variant: "destructive"
       });
       return;

@@ -51,7 +51,6 @@ interface UserProfile {
   avatar_url: string | null;
   username: string | null;
   app_uid: string | null;
-  coins: number;
 }
 
 interface TargetAgency {
@@ -309,8 +308,8 @@ const AgencyCoinExchange = () => {
 
     try {
       const { data, error } = await supabase
-        .from("profiles")
-        .select("id, display_name, avatar_url, username, app_uid, coins")
+        .from("profiles_public")
+        .select("id, display_name, avatar_url, username, app_uid")
         .or(`app_uid.ilike.%${query}%,display_name.ilike.%${query}%,username.ilike.%${query}%`)
         .limit(10);
 
@@ -342,12 +341,11 @@ const AgencyCoinExchange = () => {
     setSelectedTargetAgency(null);
 
     try {
-      // First find the owner by app_uid
-      const { data: ownerData, error: ownerError } = await supabase
-        .from("profiles")
-        .select("id, display_name, app_uid")
-        .eq("app_uid", agencySearchQuery.trim())
-        .maybeSingle();
+      const { data: ownerRows, error: ownerError } = await supabase.rpc('search_user_by_app_uid', {
+        _app_uid: agencySearchQuery.trim().toUpperCase()
+      });
+
+      const ownerData = Array.isArray(ownerRows) ? ownerRows[0] : null;
 
       if (ownerError || !ownerData) {
         toast({
@@ -361,7 +359,7 @@ const AgencyCoinExchange = () => {
 
       // Then find their agency
       const { data: agencyData, error: agencyError } = await supabase
-        .from("agencies")
+        .from("agencies_public")
         .select("id, name, agency_code, owner_id, diamond_balance")
         .eq("owner_id", ownerData.id)
         .eq("is_active", true)
@@ -965,8 +963,7 @@ const AgencyCoinExchange = () => {
                           </p>
                         </div>
                         <Badge className="bg-cyan-500/20 text-cyan-300 border-cyan-500/30">
-                          <Diamond className="w-3 h-3 mr-1" />
-                          {(user.coins ?? 0).toLocaleString()}
+                          UID
                         </Badge>
                       </div>
                     ))}
@@ -986,7 +983,7 @@ const AgencyCoinExchange = () => {
                       <div className="flex-1">
                         <p className="font-semibold text-white">{selectedUser.display_name || "Unknown"}</p>
                         <p className="text-xs text-white/50">
-                          UID: {selectedUser.app_uid || selectedUser.id.slice(0, 8)} | 💎 {(selectedUser.coins ?? 0).toLocaleString()}
+                          UID: {selectedUser.app_uid || selectedUser.id.slice(0, 8)}
                         </p>
                       </div>
                       <Button

@@ -222,18 +222,17 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   const [transferProcessing, setTransferProcessing] = useState(false);
   const [searchedUser, setSearchedUser] = useState<{
     id: string;
-    display_name: string;
-    avatar_url: string;
-    app_uid: string;
-    coins: number;
+    display_name: string | null;
+    avatar_url: string | null;
+    app_uid: string | null;
   } | null>(null);
   const [searchedAgency, setSearchedAgency] = useState<{
     id: string;
-    name: string;
-    agency_code: string;
-    diamond_balance: number;
-    owner_name?: string;
-    owner_uid?: string;
+    name: string | null;
+    agency_code: string | null;
+    diamond_balance: number | null;
+    owner_name?: string | null;
+    owner_uid?: string | null;
   } | null>(null);
   
   // Confirmation dialog state
@@ -816,25 +815,25 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     setSearchedUser(null);
     
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, display_name, avatar_url, app_uid, coins')
-        .eq('app_uid', transferSearchQuery.trim().toUpperCase())
-        .maybeSingle();
+        const { data, error } = await supabase.rpc('search_user_by_app_uid', {
+          _app_uid: transferSearchQuery.trim().toUpperCase()
+        });
 
       if (error) throw error;
       
-      if (!data) {
+      const foundUser = Array.isArray(data) ? data[0] : null;
+
+      if (!foundUser) {
         toast({ title: "Not Found", description: "No user found with this App UID", variant: "destructive" });
         return;
       }
 
-      if (data.id === currentUser.id) {
+      if (foundUser.id === currentUser.id) {
         toast({ title: "Invalid Receiver", description: "You cannot transfer diamonds to yourself from the User tab", variant: "destructive" });
         return;
       }
 
-      setSearchedUser(data);
+      setSearchedUser(foundUser);
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
@@ -850,14 +849,14 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     setSearchedAgency(null);
     
     try {
-      const { data: userData, error: userError } = await supabase
-        .from('profiles')
-        .select('id, display_name, app_uid')
-        .eq('app_uid', transferSearchQuery.trim().toUpperCase())
-        .maybeSingle();
+      const { data: userDataRows, error: userError } = await supabase.rpc('search_user_by_app_uid', {
+        _app_uid: transferSearchQuery.trim().toUpperCase()
+      });
 
       if (userError) throw userError;
       
+      const userData = Array.isArray(userDataRows) ? userDataRows[0] : null;
+
       if (!userData) {
         toast({ title: "Not Found", description: "No user found with this App UID", variant: "destructive" });
         setTransferSearching(false);
@@ -865,11 +864,10 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       }
 
       const { data: agencyData, error: agencyError } = await supabase
-        .from('agencies')
+        .from('agencies_public')
         .select('id, name, agency_code, diamond_balance')
         .eq('owner_id', userData.id)
         .eq('is_active', true)
-        .order('updated_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
@@ -2356,7 +2354,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                       <div className="flex-1">
                         <p className="text-white font-bold text-lg">{searchedUser.display_name}</p>
                         <p className="text-slate-400 text-sm">ID: {searchedUser.app_uid}</p>
-                        <p className="text-cyan-400 text-xs mt-0.5">Balance: {searchedUser.coins?.toLocaleString() || 0} 💎</p>
                       </div>
                     </div>
 
