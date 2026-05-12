@@ -102,6 +102,13 @@ type LocalRoute = "auto" | "manual";
 const LOCAL_ROUTE_STORAGE_KEY = "recharge_next_local_route_v1";
 const LAST_METHOD_STORAGE_KEY = "recharge_last_method_by_type_v1";
 
+const PAYMENT_BRAND_FALLBACKS: Record<string, string> = {
+  bkash: "bK",
+  nagad: "N",
+  rocket: "R",
+  upay: "U",
+};
+
 const Recharge = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -239,10 +246,18 @@ const Recharge = () => {
     }));
   }, []);
 
+  const normalizePaymentKey = useCallback((value: string | null | undefined) => {
+    return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  }, []);
+
+  const paymentBrandFallback = useCallback(
+    (value: string | null | undefined) => PAYMENT_BRAND_FALLBACKS[normalizePaymentKey(value)] || "💳",
+    [normalizePaymentKey]
+  );
+
   // Build a fast admin-logo lookup keyed by method name / type so every
-  // helper method always resolves to a valid brand logo (bKash, Nagad, ePay,
-  // Binance Pay, JazzCash, Easypaisa, Paytm, PhonePe, USDT, etc.) even if
-  // the helper forgot to upload one on their own.
+  // helper method always resolves to a valid brand logo (bKash, Nagad, Rocket,
+  // Upay, ePay, Binance Pay, JazzCash, Easypaisa, Paytm, PhonePe, USDT, etc.).
   const adminLogoMap = useMemo(() => {
     const map = new Map<string, string>();
     (adminPaymentMethods || []).forEach((a: any) => {
@@ -250,25 +265,30 @@ const Recharge = () => {
       if (!logo) return;
       [a?.name, a?.method_type, (a?.additional_info as any)?.display_method]
         .filter(Boolean)
-        .map((v: string) => String(v).toLowerCase().trim())
+        .flatMap((v: string) => {
+          const raw = String(v).toLowerCase().trim();
+          return [raw, normalizePaymentKey(raw)];
+        })
         .forEach((key: string) => { if (key && !map.has(key)) map.set(key, logo); });
     });
     return map;
-  }, [adminPaymentMethods]);
+  }, [adminPaymentMethods, normalizePaymentKey]);
 
   const resolveMethodLogo = useCallback(
     (currentLogo: string | null | undefined, methodName: string | null | undefined): string | null => {
-      if (currentLogo) return currentLogo;
       if (!methodName) return null;
       const key = String(methodName).toLowerCase().trim();
       if (adminLogoMap.has(key)) return adminLogoMap.get(key)!;
+      const normalizedKey = normalizePaymentKey(key);
+      if (adminLogoMap.has(normalizedKey)) return adminLogoMap.get(normalizedKey)!;
       // Fuzzy contains match (e.g. "bkash auto" → "bkash")
       for (const [k, v] of adminLogoMap.entries()) {
-        if (key.includes(k) || k.includes(key)) return v;
+        if (key.includes(k) || k.includes(key) || normalizedKey.includes(k) || k.includes(normalizedKey)) return v;
       }
+      if (currentLogo) return currentLogo;
       return null;
     },
-    [adminLogoMap]
+    [adminLogoMap, normalizePaymentKey]
   );
 
   // Pick a random helper for the static card display; changes when payment type or methods change
@@ -2573,13 +2593,12 @@ const Recharge = () => {
                                 alt={methodType} 
                                 className="w-5 h-5 rounded object-cover"
                                 onError={(e) => {
-                                  // Hide broken images
-                                  (e.target as HTMLImageElement).style.display = 'none';
+                                  (e.currentTarget.style.display = 'none');
+                                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
                                 }}
                               />
-                            ) : (
-                              <span className="text-sm">💳</span>
-                            )}
+                            ) : null}
+                            <span className={cn("text-sm font-black leading-none", logoUrl && "hidden")}>{paymentBrandFallback(methodType)}</span>
                             <span className="capitalize">
                               {methodType}
                             </span>
@@ -2979,9 +2998,20 @@ const Recharge = () => {
                       "bg-gradient-to-br from-purple-500 to-indigo-600"
                     )}>
                       {gateway.logo_url ? (
-                        <img src={gateway.logo_url} alt={gateway.name} className="w-10 h-10 rounded-lg object-cover" />
+                        <>
+                          <img
+                            src={gateway.logo_url}
+                            alt={gateway.name}
+                            className="w-10 h-10 rounded-lg object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                            }}
+                          />
+                          <span className="hidden text-base font-black text-white">{paymentBrandFallback(gateway.name)}</span>
+                        </>
                       ) : (
-                        <span>💳</span>
+                        <span className="text-base font-black text-white">{paymentBrandFallback(gateway.name)}</span>
                       )}
                     </div>
                     <div className="flex-1 text-left">
@@ -3255,14 +3285,20 @@ const Recharge = () => {
                         {(() => {
                           const resolvedLogo = resolveMethodLogo(selectedHelperMethod.logo_url, selectedHelperMethod.method_name);
                           return resolvedLogo ? (
-                            <img
-                              src={resolvedLogo}
-                              alt={selectedHelperMethod.method_name}
-                              className="h-6 w-6 object-contain"
-                              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                            />
+                            <>
+                              <img
+                                src={resolvedLogo}
+                                alt={selectedHelperMethod.method_name}
+                                className="h-6 w-6 object-contain"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                }}
+                              />
+                              <span className="hidden text-sm font-black text-amber-200">{paymentBrandFallback(selectedHelperMethod.method_name)}</span>
+                            </>
                           ) : (
-                            <span className="text-lg">{selectedHelperMethod.method_name.toLowerCase() === 'nagad' ? '🧡' : selectedHelperMethod.method_name.toLowerCase() === 'bkash' ? '💜' : '💳'}</span>
+                            <span className="text-sm font-black text-amber-200">{paymentBrandFallback(selectedHelperMethod.method_name)}</span>
                           );
                         })()}
                       </div>
