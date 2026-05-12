@@ -788,7 +788,7 @@ const HelperDashboard = () => {
     }
   };
 
-  // Search agency by code
+  // Search agency by owner's App UID, with agency-code fallback
   const handleSearchAgency = async () => {
     if (!transferSearchQuery.trim()) return;
     
@@ -796,22 +796,32 @@ const HelperDashboard = () => {
     setSearchedAgency(null);
     
     try {
-      const { data, error } = await supabase
+      const normalizedQuery = transferSearchQuery.trim().toUpperCase();
+      const { data: ownerRows, error: ownerSearchError } = await supabase.rpc('search_user_by_app_uid', {
+        _app_uid: normalizedQuery
+      });
+      if (ownerSearchError) throw ownerSearchError;
+
+      const ownerByUid = Array.isArray(ownerRows) ? ownerRows[0] : null;
+      const agencyQuery = supabase
         .from('agencies_public')
         .select('id, name, agency_code, diamond_balance, owner_id')
-        .or(`agency_code.eq.${transferSearchQuery.trim().toUpperCase()},owner_id.eq.${transferSearchQuery.trim()}`)
+        .eq(ownerByUid ? 'owner_id' : 'agency_code', ownerByUid?.id || normalizedQuery)
         .limit(1)
         .maybeSingle();
+
+      const { data, error } = await agencyQuery;
 
       if (error) throw error;
       
       if (data) {
         // Get owner name
-        const { data: owner } = await supabase
+        const owner = ownerByUid || (data.owner_id ? await supabase
           .from('profiles_public')
           .select('display_name')
           .eq('id', data.owner_id)
-          .maybeSingle();
+          .maybeSingle()
+          .then(({ data }) => data) : null);
         
         setSearchedAgency({
           id: data.id,
