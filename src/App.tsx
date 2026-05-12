@@ -1333,7 +1333,7 @@ const App = () => {
           </TooltipProvider>
         </PresenceProvider>
       </RealtimeProvider>
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   );
 };
 
