@@ -158,6 +158,7 @@ const AdminTopupPaymentMethods = () => {
       payment_number: method.payment_number || '',
       payment_instructions: method.payment_instructions || '',
       icon_url: method.icon_url || '',
+      country_codes: Array.isArray(method.country_codes) ? method.country_codes.join(',') : '',
     });
     setShowDialog(true);
   };
