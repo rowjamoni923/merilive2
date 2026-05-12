@@ -202,6 +202,8 @@ export interface QualityProbeProgressEvent {
   percent: number;
   detail?: Record<string, unknown>;
 }
+
+export interface NativeLiveKitPlugin {
   isAvailable(): Promise<{ available: boolean; backend: string; version: string }>;
   connect(opts: ConnectOptions): Promise<{ connected: boolean; sid: string; identity: string }>;
   disconnect(): Promise<void>;
