@@ -633,9 +633,17 @@ const App = () => {
     // Get initial session - INSTANT from localStorage, recovery in background
     const initSession = async () => {
       try {
+        // 🔒 NATIVE: wait for Capacitor Preferences → localStorage hydration
+        // before reading the session, so a freshly-killed app launch sees the
+        // persisted Supabase keys and stays logged in.
+        try {
+          const { waitForNativeAuthHydration } = await import('@/integrations/supabase/nativeStorage');
+          await waitForNativeAuthHydration();
+        } catch { /* ignore — web has nothing to hydrate */ }
+
         // ⚡ STEP 1: getSession() reads from localStorage — near-instant
         const { data: { session } } = await supabase.auth.getSession();
-        
+
         if (session?.user) {
           if (mounted) {
             setSession(session);
