@@ -328,7 +328,7 @@ class LiveKitPlugin : Plugin() {
 
     private fun emit(name: String, p: io.livekit.android.room.participant.Participant) {
         val data = JSObject()
-        data.put("sid", p.sid?.value ?: "")
+        data.put("sid", p.sid.value)
         data.put("identity", p.identity?.value ?: "")
         data.put("isRemote", p is RemoteParticipant)
         notifyListeners(name, data)
