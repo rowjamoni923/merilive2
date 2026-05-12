@@ -2249,12 +2249,12 @@ const HelperDashboard = () => {
               </TabsContent>
 
               <TabsContent value="agency" className="mt-4 space-y-4">
-                {/* Search by Agency Code */}
+                {/* Search by Agency Owner UID */}
                 <div>
-                  <Label className="text-white text-sm">Search by Agency Code</Label>
+                  <Label className="text-white text-sm">Search Agency by Owner's App UID</Label>
                   <div className="flex gap-2 mt-1">
                     <Input
-                      placeholder="Enter Agency Code"
+                      placeholder="Enter Owner's App UID"
                       value={transferSearchQuery}
                       onChange={(e) => setTransferSearchQuery(e.target.value.toUpperCase())}
                       className="bg-slate-800 border-slate-600 text-white uppercase"
