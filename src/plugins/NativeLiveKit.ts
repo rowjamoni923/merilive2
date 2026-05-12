@@ -561,6 +561,11 @@ export interface NativeLiveKitPlugin {
     eventName: 'screen-share-state',
     cb: (e: { state: 'starting' | 'started' | 'stopped' | 'denied' | 'error'; active: boolean; startedAt: number; error?: string }) => void,
   ): Promise<PluginListenerHandle>;
+  /** Step 35 — PTT mode/gate transitions. `reason` is "enabled" | "disabled" | "press" | "release". */
+  addListener(
+    eventName: 'ptt-state',
+    cb: (e: { enabled: boolean; micOpen: boolean; reason: 'enabled' | 'disabled' | 'press' | 'release' }) => void,
+  ): Promise<PluginListenerHandle>;
 }
 
 export const NativeLiveKit = registerPlugin<NativeLiveKitPlugin>('NativeLiveKit');
