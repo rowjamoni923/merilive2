@@ -484,6 +484,19 @@ const AdminTopupPaymentMethods = () => {
               />
             </div>
 
+            <div>
+              <Label className="text-white">Allowed Countries (ISO codes, comma-separated)</Label>
+              <p className="text-xs text-slate-400 mb-2">
+                e.g. <span className="text-emerald-300">BD</span> = Bangladesh only, <span className="text-emerald-300">BD,IN</span> = both, blank = global (crypto/USDT). Helpers & users will only see methods matching their country.
+              </p>
+              <Input
+                value={formData.country_codes}
+                onChange={(e) => setFormData({ ...formData, country_codes: e.target.value })}
+                placeholder="BD,IN,PK   (or leave empty for global)"
+                className="bg-slate-800 border-slate-700 text-white mt-1 font-mono text-sm"
+              />
+            </div>
+
             <div className="flex gap-2 pt-4">
               <Button variant="outline" onClick={() => setShowDialog(false)} className="flex-1">
                 Cancel
