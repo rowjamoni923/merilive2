@@ -294,6 +294,30 @@ class LiveKitPlugin : Plugin() {
     private val qualityTable = mutableMapOf<String, String>() // sid → quality lowercase
     private var localSid: String = "local"
 
+    // --- Picture-in-Picture (Step 29) ----------------------------
+    //
+    // Industry standard for in-call apps (WhatsApp, Messenger, Meet):
+    // tap home → call shrinks to a floating PiP window so the user can
+    // multitask without dropping the broadcast/call. Renderers stay
+    // attached behind the WebView while PiP is active so the remote
+    // tile keeps updating; we just suppress the "background detach"
+    // path that Step 24 normally runs in handleOnPause.
+    //
+    //   • setAutoPipOnLeaveHint({enabled})  → opt-in per session
+    //     (Live broadcasters: usually false; 1:1 callers: true).
+    //   • enterPictureInPicture({aspect})    → manual entry from JS
+    //     (e.g. a "minimise" button in the call screen).
+    //   • pip-changed event {isInPip}        → JS toggles compact UI.
+    //
+    // Aspect must stay between 0.418 and 2.39 per Android contract;
+    // we clamp silently so callers can pass any sensible ratio.
+    private var pipSupported: Boolean = false
+    private var autoPipOnLeaveHint: Boolean = false
+    private var inPictureInPicture: Boolean = false
+    private var enteringPip: Boolean = false
+    private var pipAspectNumerator: Int = 9
+    private var pipAspectDenominator: Int = 16
+
     // ------------------------------------------------------------
     // Public API
     // ------------------------------------------------------------
