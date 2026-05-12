@@ -616,4 +616,120 @@ class LiveKitPlugin : Plugin() {
             Log.w(TAG, "setProximityMonitoringInternal($on) failed: ${e.message}")
         }
     }
+
+    // ------------------------------------------------------------
+    // Audio device routing internals (Step 13)
+    // ------------------------------------------------------------
+
+    private var commDeviceListener: AudioManager.OnCommunicationDeviceChangedListener? = null
+
+    private fun audioDeviceTypeName(type: Int): String = when (type) {
+        AudioDeviceInfo.TYPE_BUILTIN_SPEAKER -> "speaker"
+        AudioDeviceInfo.TYPE_BUILTIN_EARPIECE -> "earpiece"
+        AudioDeviceInfo.TYPE_WIRED_HEADSET,
+        AudioDeviceInfo.TYPE_WIRED_HEADPHONES,
+        AudioDeviceInfo.TYPE_USB_HEADSET -> "wired"
+        AudioDeviceInfo.TYPE_BLUETOOTH_SCO,
+        AudioDeviceInfo.TYPE_BLE_HEADSET -> "bluetooth"
+        else -> "unknown"
+    }
+
+    private fun matchesType(deviceType: Int, target: String): Boolean = when (target) {
+        "speaker" -> deviceType == AudioDeviceInfo.TYPE_BUILTIN_SPEAKER
+        "earpiece" -> deviceType == AudioDeviceInfo.TYPE_BUILTIN_EARPIECE
+        "wired" -> deviceType == AudioDeviceInfo.TYPE_WIRED_HEADSET ||
+                   deviceType == AudioDeviceInfo.TYPE_WIRED_HEADPHONES ||
+                   deviceType == AudioDeviceInfo.TYPE_USB_HEADSET
+        "bluetooth" -> deviceType == AudioDeviceInfo.TYPE_BLUETOOTH_SCO ||
+                       deviceType == AudioDeviceInfo.TYPE_BLE_HEADSET
+        else -> false
+    }
+
+    private fun setAudioDeviceInternal(type: String): Boolean {
+        val am = audioManager() ?: return false
+        return try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val device = am.availableCommunicationDevices.firstOrNull { matchesType(it.type, type) }
+                if (device != null) {
+                    am.setCommunicationDevice(device); true
+                } else false
+            } else {
+                @Suppress("DEPRECATION")
+                when (type) {
+                    "speaker" -> { am.isSpeakerphoneOn = true; true }
+                    "earpiece" -> { am.isSpeakerphoneOn = false; true }
+                    "bluetooth" -> {
+                        @Suppress("DEPRECATION")
+                        try { am.startBluetoothSco(); am.isBluetoothScoOn = true; true } catch (_: Exception) { false }
+                    }
+                    "wired" -> { am.isSpeakerphoneOn = false; true }
+                    else -> false
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "setAudioDeviceInternal($type) failed: ${e.message}")
+            false
+        }
+    }
+
+    /**
+     * Subscribe to system communication-device changes (BT headset
+     * connect/disconnect, wired plug/unplug) and emit "audio-device-changed"
+     * to JS so call UIs can re-render the active route. API 31+ only;
+     * older devices receive the initial state once on connect.
+     */
+    private fun registerAudioDeviceListener() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            emitAudioDeviceState(); return
+        }
+        val am = audioManager() ?: return
+        if (commDeviceListener != null) return
+        try {
+            val listener = AudioManager.OnCommunicationDeviceChangedListener { _ -> emitAudioDeviceState() }
+            am.addOnCommunicationDeviceChangedListener(
+                { r -> activity?.runOnUiThread(r) ?: r.run() },
+                listener
+            )
+            commDeviceListener = listener
+            emitAudioDeviceState()
+        } catch (e: Exception) {
+            Log.w(TAG, "registerAudioDeviceListener failed: ${e.message}")
+        }
+    }
+
+    private fun unregisterAudioDeviceListener() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
+        val am = audioManager() ?: return
+        try {
+            commDeviceListener?.let { am.removeOnCommunicationDeviceChangedListener(it) }
+        } catch (_: Exception) {}
+        commDeviceListener = null
+    }
+
+    private fun emitAudioDeviceState() {
+        try {
+            val am = audioManager() ?: return
+            val list = org.json.JSONArray()
+            var active = "unknown"
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                am.availableCommunicationDevices.forEach { d ->
+                    val o = JSObject()
+                    o.put("id", d.id)
+                    o.put("type", audioDeviceTypeName(d.type))
+                    o.put("name", d.productName?.toString() ?: audioDeviceTypeName(d.type))
+                    list.put(o)
+                }
+                active = audioDeviceTypeName(am.communicationDevice?.type ?: -1)
+            } else {
+                @Suppress("DEPRECATION")
+                active = if (am.isSpeakerphoneOn) "speaker" else "earpiece"
+            }
+            val data = JSObject()
+            data.put("active", active)
+            data.put("devices", list)
+            notifyListeners("audio-device-changed", data)
+        } catch (e: Exception) {
+            Log.w(TAG, "emitAudioDeviceState failed: ${e.message}")
+        }
+    }
 }
