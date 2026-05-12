@@ -694,11 +694,11 @@ const Chat = () => {
         // Get beans amount from response for message
         const beansEarned = response.data?.hostReceived || Math.floor(totalCost * 0.6);
         
-        // Send gift as message - include animation/icon URL for rendering
-        // Format: [Gift: URL|EMOJI NAME xCOUNT | +BEANS beans]
+        // Send gift as message - include animation/icon URL + diamond cost + beans for asymmetric render
+        // Format: [Gift: URL|EMOJI NAME xCOUNT | -DIAMONDS diamonds | +BEANS beans]
         const messageContent = giftMediaUrl
-          ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | +${beansEarned} beans]`
-          : `[Gift: ${giftEmoji} ${gift.name} x${count} | +${beansEarned} beans]`;
+          ? `[Gift: ${giftMediaUrl}|${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${beansEarned} beans]`
+          : `[Gift: ${giftEmoji} ${gift.name} x${count} | -${totalCost} diamonds | +${beansEarned} beans]`;
         
         await persistDirectMessage(
           selectedConversation.id,
