@@ -1094,6 +1094,7 @@ const Level5HelperDashboard = () => {
     setSelectedAgencyWithdrawal(null);
     setScreenshotFile(null);
     setHelperNotes("");
+    setHelperTransactionId("");
     loadAgencyWithdrawals(); // Refresh list
   };
 
