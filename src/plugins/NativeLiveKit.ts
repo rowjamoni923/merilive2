@@ -189,6 +189,15 @@ export interface NativeLiveKitPlugin {
     resilienceEnabled: boolean;
   }>;
 
+  // --- Network type & data-saver awareness (Step 27) ----------
+  /**
+   * Cap the publisher to LOW tier (540p / 700 kbps) whenever the
+   * device is on cellular. Restored to baseTier when on WiFi/Ethernet.
+   * Default OFF — let UI surface a toggle in the live/call settings.
+   */
+  setDataSaverEnabled(opts: { enabled: boolean }): Promise<{ enabled: boolean; network: NetworkType }>;
+  getNetworkType(): Promise<{ type: NetworkType; dataSaver: boolean }>;
+
   addListener(eventName: 'participant-connected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'participant-disconnected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'track-subscribed', cb: (e: TrackEvent) => void): Promise<PluginListenerHandle>;
@@ -200,6 +209,7 @@ export interface NativeLiveKitPlugin {
   addListener(eventName: 'connection-state', cb: (e: ConnectionStateEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'adaptive-tier', cb: (e: AdaptiveTierEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'video-stall', cb: (e: VideoStallEvent) => void): Promise<PluginListenerHandle>;
+  addListener(eventName: 'network-changed', cb: (e: NetworkChangedEvent) => void): Promise<PluginListenerHandle>;
 }
 
 export const NativeLiveKit = registerPlugin<NativeLiveKitPlugin>('NativeLiveKit');
