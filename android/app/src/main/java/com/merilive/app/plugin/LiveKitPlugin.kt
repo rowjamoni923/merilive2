@@ -638,7 +638,136 @@ class LiveKitPlugin : Plugin() {
         webView?.setBackgroundColor(0xFF000000.toInt())
     }
 
-    override fun handleOnDestroy() {
+    // ------------------------------------------------------------
+    // Adaptive bitrate fallback (Step 22)
+    //
+    // ConnectionQuality buckets from the SFU:
+    //   EXCELLENT > GOOD > POOR > LOST
+    // We only react to LOCAL participant quality (our uplink). Step
+    // changes are debounced 8 s to avoid thrash. Republishes the camera
+    // track with a smaller VideoCaptureParameter + lower VideoEncoding
+    // so the encoder + uplink stop saturating. Simulcast is preserved
+    // for HIGH/MEDIUM (live), disabled at LOW (single small layer).
+    // ------------------------------------------------------------
+
+    private fun tierCapture(t: AdaptiveTier): VideoCaptureParameter = when (t) {
+        AdaptiveTier.HIGH   -> VideoPreset169.H1080.capture
+        AdaptiveTier.MEDIUM -> VideoPreset169.H720.capture
+        AdaptiveTier.LOW    -> VideoPreset169.H540.capture
+    }
+
+    private fun tierEncoding(t: AdaptiveTier): VideoEncoding = when (t) {
+        AdaptiveTier.HIGH   -> VideoEncoding(maxBitrate = 4_000_000, maxFps = 30)
+        AdaptiveTier.MEDIUM -> VideoEncoding(maxBitrate = 1_800_000, maxFps = 30)
+        AdaptiveTier.LOW    -> VideoEncoding(maxBitrate =   700_000, maxFps = 24)
+    }
+
+    private fun handleLocalQuality(quality: ConnectionQuality) {
+        if (!adaptiveEnabled) return
+        val now = System.currentTimeMillis()
+        // 8 s debounce — uplink probes are noisy.
+        if (now - lastTierChangeMs < 8_000L) return
+        when (quality) {
+            ConnectionQuality.POOR, ConnectionQuality.LOST -> {
+                consecutiveExcellent = 0
+                val next = when (currentTier) {
+                    AdaptiveTier.HIGH   -> AdaptiveTier.MEDIUM
+                    AdaptiveTier.MEDIUM -> AdaptiveTier.LOW
+                    AdaptiveTier.LOW    -> return // already at floor
+                }
+                applyAdaptiveTier(next, "downgrade")
+            }
+            ConnectionQuality.EXCELLENT -> {
+                consecutiveExcellent++
+                if (consecutiveExcellent < 2) return
+                if (currentTier == baseTier) return // already at ceiling
+                val next = when (currentTier) {
+                    AdaptiveTier.LOW    -> AdaptiveTier.MEDIUM
+                    AdaptiveTier.MEDIUM -> AdaptiveTier.HIGH
+                    AdaptiveTier.HIGH   -> return
+                }
+                // Never climb above the session ceiling (e.g. 720p calls stay ≤ MEDIUM).
+                if (next.ordinal < baseTier.ordinal) return
+                applyAdaptiveTier(next, "upgrade")
+            }
+            else -> { consecutiveExcellent = 0 }
+        }
+    }
+
+    private fun applyAdaptiveTier(target: AdaptiveTier, reason: String) {
+        val r = room ?: return
+        if (adaptiveBusy) return
+        adaptiveBusy = true
+        lastTierChangeMs = System.currentTimeMillis()
+        scope.launch {
+            try {
+                val pub = r.localParticipant.getTrackPublication(Track.Source.CAMERA)
+                val oldTrack = pub?.track as? LocalVideoTrack
+                if (oldTrack == null) {
+                    // Camera not currently published (mic-only call) — nothing to do.
+                    currentTier = target
+                    return@launch
+                }
+                val newCapture = tierCapture(target)
+                val newEncoding = tierEncoding(target)
+                val simulcast = (target != AdaptiveTier.LOW) // drop simulcast at floor
+                val newOptions = LocalVideoTrackOptions(
+                    position = baseLens,
+                    captureParams = newCapture
+                )
+                // Stop + unpublish the old track, then create + publish a fresh one.
+                try { oldTrack.stopCapture() } catch (_: Exception) {}
+                r.localParticipant.unpublishTrack(oldTrack)
+
+                val newTrack = r.localParticipant.createVideoTrack(options = newOptions)
+                newTrack.startCapture()
+                r.localParticipant.publishVideoTrack(
+                    track = newTrack,
+                    options = VideoTrackPublishOptions(
+                        videoEncoding = newEncoding,
+                        simulcast = simulcast,
+                    )
+                )
+                currentTier = target
+                Log.i(TAG, "Adaptive tier $reason → ${target.name} (simulcast=$simulcast)")
+
+                val data = JSObject()
+                data.put("tier", target.name.lowercase())
+                data.put("reason", reason)
+                data.put("simulcast", simulcast)
+                data.put("maxBitrate", newEncoding.maxBitrate)
+                notifyListeners("adaptive-tier", data)
+            } catch (e: Exception) {
+                Log.e(TAG, "applyAdaptiveTier failed", e)
+            } finally {
+                adaptiveBusy = false
+            }
+        }
+    }
+
+    @PluginMethod
+    fun setAdaptiveBitrateEnabled(call: PluginCall) {
+        val enabled = call.getBoolean("enabled", true) ?: true
+        adaptiveEnabled = enabled
+        if (!enabled) {
+            consecutiveExcellent = 0
+            // Snap back to the session ceiling immediately.
+            if (currentTier != baseTier && room != null) applyAdaptiveTier(baseTier, "manual-restore")
+        }
+        val ret = JSObject()
+        ret.put("enabled", enabled)
+        ret.put("tier", currentTier.name.lowercase())
+        call.resolve(ret)
+    }
+
+    @PluginMethod
+    fun getAdaptiveTier(call: PluginCall) {
+        val ret = JSObject()
+        ret.put("enabled", adaptiveEnabled)
+        ret.put("tier", currentTier.name.lowercase())
+        ret.put("base", baseTier.name.lowercase())
+        call.resolve(ret)
+    }
         super.handleOnDestroy()
         try {
             eventJob?.cancel()
