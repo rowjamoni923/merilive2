@@ -341,6 +341,26 @@ export interface NativeLiveKitPlugin {
     eventName: 'pip-changed',
     cb: (e: { isInPip: boolean; aspectNumerator: number; aspectDenominator: number }) => void,
   ): Promise<PluginListenerHandle>;
+  /** Step 30 — wired headset (3.5 mm / USB-C) plug or unplug. */
+  addListener(
+    eventName: 'headset-plug',
+    cb: (e: { plugged: boolean; hasMic: boolean; name: string }) => void,
+  ): Promise<PluginListenerHandle>;
+  /** Step 30 — Bluetooth Hands-Free SCO link state transitions. */
+  addListener(
+    eventName: 'sco-state-changed',
+    cb: (e: { state: 'disconnected' | 'connecting' | 'connected' | 'error' }) => void,
+  ): Promise<PluginListenerHandle>;
+  /**
+   * Step 30 — hardware media-button press from a wired remote, BT
+   * headset answer/end button, or KEYCODE_HEADSETHOOK. `action` is the
+   * normalised intent: "hook" covers single click / play-pause /
+   * answer-or-hangup, "next"/"previous" the multi-click skip variants.
+   */
+  addListener(
+    eventName: 'headset-button',
+    cb: (e: { action: 'hook' | 'play' | 'pause' | 'next' | 'previous'; keyCode: number; repeatCount: number }) => void,
+  ): Promise<PluginListenerHandle>;
 }
 
 export const NativeLiveKit = registerPlugin<NativeLiveKitPlugin>('NativeLiveKit');
