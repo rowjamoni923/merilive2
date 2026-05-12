@@ -1270,7 +1270,7 @@ const Recharge = () => {
       const _data = dataFiltered;
       
       // Map data to include payment_number and payment_instructions from settings
-      const mappedGateways: PaymentGateway[] = (data || []).map((g: any) => ({
+      const mappedGateways: PaymentGateway[] = (_data || []).map((g: any) => ({
         id: g.id,
         name: g.name,
         gateway_code: g.gateway_type,
