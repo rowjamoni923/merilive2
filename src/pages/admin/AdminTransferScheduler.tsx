@@ -584,7 +584,77 @@ const AdminTransferScheduler = () => {
           </CardContent>
         </Card>
 
-        {/* Last Transfer Info */}
+        {/* Agency Commission Distribution */}
+        <Card className="border-purple-500/30 bg-purple-500/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Coins className="w-5 h-5 text-purple-500" />
+              Agency Commission Distribution
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-xs text-muted-foreground">
+              Pays each agency its level commission on weekly host beans transferred. Upper agency receives the
+              (upper rate − sub rate) difference only when strictly greater. Company-paid — never deducted from
+              host or sub-agency.
+            </p>
+
+            <div className="flex items-center justify-between rounded-md border border-border p-3">
+              <div>
+                <Label className="text-sm">Auto-run after host transfer</Label>
+                <p className="text-xs text-muted-foreground">Runs automatically once delay elapses</p>
+              </div>
+              <Switch
+                checked={commissionSchedule.is_active}
+                onCheckedChange={(v) => saveCommissionSchedule({ ...commissionSchedule, is_active: v })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Delay after host transfer (hours)</Label>
+              <Select
+                value={String(commissionSchedule.delay_hours_after_transfer)}
+                onValueChange={(v) => saveCommissionSchedule({ ...commissionSchedule, delay_hours_after_transfer: parseInt(v) })}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {[1, 2, 3, 6, 12, 24].map(h => (
+                    <SelectItem key={h} value={String(h)}>{h} hour{h > 1 ? 's' : ''}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="rounded-md bg-muted/50 p-2">
+                <div className="text-muted-foreground">Last run</div>
+                <div className="font-medium">{commissionSchedule.last_run_at ? formatDate(commissionSchedule.last_run_at) : '—'}</div>
+              </div>
+              <div className="rounded-md bg-muted/50 p-2">
+                <div className="text-muted-foreground">Next auto run</div>
+                <div className="font-medium">{commissionSchedule.next_run_at ? formatDate(commissionSchedule.next_run_at) : '—'}</div>
+              </div>
+            </div>
+
+            {commissionSchedule.last_result && (
+              <div className="rounded-md border border-border p-2 text-xs space-y-1">
+                <div className="flex justify-between"><span className="text-muted-foreground">Transfers processed</span><span className="font-medium">{commissionSchedule.last_result.transfers_processed ?? 0}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Agency commission</span><span className="font-medium text-green-500">{formatNumber(commissionSchedule.last_result.own_commission_total ?? 0)} Beans</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Upper referral bonus</span><span className="font-medium text-purple-500">{formatNumber(commissionSchedule.last_result.upper_bonus_total ?? 0)} Beans</span></div>
+              </div>
+            )}
+
+            <Button
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+              onClick={distributeCommissionNow}
+              disabled={distributing}
+            >
+              {distributing ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Coins className="w-4 h-4 mr-2" />}
+              Distribute Commission Now
+            </Button>
+          </CardContent>
+        </Card>
+
         {schedule.last_transfer_at && (
           <Card>
             <CardContent className="py-4">
