@@ -280,15 +280,17 @@ const SearchUsers = () => {
       >
         {/* Avatar */}
         <div className="relative">
-          <Avatar className="w-14 h-14">
-            <AvatarImage src={user.avatar_url || undefined} />
-            <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-white">
-              {user.display_name?.[0] || user.username?.[0] || '?'}
-            </AvatarFallback>
-          </Avatar>
-          {user.is_online && (
-            <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
-          )}
+          <AvatarWithFrame
+            userId={user.id}
+            src={user.avatar_url || undefined}
+            name={user.display_name || user.username || '?'}
+            level={(user as any).user_level || 1}
+            isHost={!!user.is_host}
+            size="md"
+            showFrame={true}
+            showAnimation={true}
+            isOnline={!!user.is_online}
+          />
           {user.is_verified && (
             <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white">
               <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
