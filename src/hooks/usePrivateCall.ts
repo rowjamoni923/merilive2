@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { subscribeToTables } from '@/hooks/useUniversalRealtime';
 import { useToast } from '@/hooks/use-toast';
 import { Capacitor } from '@capacitor/core';
+import { isNativeAndroidApp } from '@/utils/nativeUtils';
 import { parseCallRateSettings, resolveEffectiveCallRate } from '@/utils/callRateSettings';
 
 interface CallState {
