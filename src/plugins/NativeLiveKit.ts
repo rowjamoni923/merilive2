@@ -305,6 +305,11 @@ export interface NativeLiveKitPlugin {
   addListener(eventName: 'video-stall', cb: (e: VideoStallEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'network-changed', cb: (e: NetworkChangedEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'rtc-stats', cb: (e: RtcStatsEvent) => void): Promise<PluginListenerHandle>;
+  /** Step 29 — fired both when entering and leaving Picture-in-Picture. */
+  addListener(
+    eventName: 'pip-changed',
+    cb: (e: { isInPip: boolean; aspectNumerator: number; aspectDenominator: number }) => void,
+  ): Promise<PluginListenerHandle>;
 }
 
 export const NativeLiveKit = registerPlugin<NativeLiveKitPlugin>('NativeLiveKit');
