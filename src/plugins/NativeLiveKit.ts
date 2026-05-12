@@ -478,6 +478,11 @@ export interface NativeLiveKitPlugin {
     eventName: 'headset-button',
     cb: (e: { action: 'hook' | 'play' | 'pause' | 'next' | 'previous'; keyCode: number; repeatCount: number }) => void,
   ): Promise<PluginListenerHandle>;
+  /** Step 33 — incremental progress while `runPreCallQualityProbe` is running. */
+  addListener(
+    eventName: 'quality-probe-progress',
+    cb: (e: QualityProbeProgressEvent) => void,
+  ): Promise<PluginListenerHandle>;
 }
 
 export const NativeLiveKit = registerPlugin<NativeLiveKitPlugin>('NativeLiveKit');
