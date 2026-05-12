@@ -83,8 +83,13 @@ export function useNativeLiveKit(): NativeLiveKitApi {
   useEffect(() => {
     if (!available) return;
     mountedRef.current = true;
+    let cancelled = false;
 
-    const handles: PluginListenerHandle[] = [];
+    // Push directly into listenersRef so unmount mid-setup still cleans up.
+    const addHandle = (h: PluginListenerHandle) => {
+      if (cancelled) { try { h.remove(); } catch { /* ignore */ } return; }
+      listenersRef.current.push(h);
+    };
 
     const upsertRemote = (e: ParticipantEvent, patch: Partial<RemotePeer> = {}) => {
       if (!mountedRef.current || !e.sid) return;
@@ -101,14 +106,12 @@ export function useNativeLiveKit(): NativeLiveKitApi {
       }));
     };
 
-    const setup = async () => {
-      handles.push(
-        await NativeLiveKit.addListener('participant-connected', (e: ParticipantEvent) => {
+    (async () => {
+      try {
+        addHandle(await NativeLiveKit.addListener('participant-connected', (e: ParticipantEvent) => {
           upsertRemote(e);
-        }),
-      );
-      handles.push(
-        await NativeLiveKit.addListener('participant-disconnected', (e: ParticipantEvent) => {
+        }));
+        addHandle(await NativeLiveKit.addListener('participant-disconnected', (e: ParticipantEvent) => {
           if (!mountedRef.current) return;
           setRemotes(prev => {
             if (!prev[e.sid]) return prev;
@@ -116,47 +119,38 @@ export function useNativeLiveKit(): NativeLiveKitApi {
             delete next[e.sid];
             return next;
           });
-        }),
-      );
-      handles.push(
-        await NativeLiveKit.addListener('track-subscribed', (e: TrackEvent) => {
+        }));
+        addHandle(await NativeLiveKit.addListener('track-subscribed', (e: TrackEvent) => {
           upsertRemote(e, e.kind === 'video' ? { hasVideo: true } : { hasAudio: true });
-        }),
-      );
-      handles.push(
-        await NativeLiveKit.addListener('track-unsubscribed', (e: TrackEvent) => {
+        }));
+        addHandle(await NativeLiveKit.addListener('track-unsubscribed', (e: TrackEvent) => {
           upsertRemote(e, e.kind === 'video' ? { hasVideo: false } : { hasAudio: false });
-        }),
-      );
-      handles.push(
-        await NativeLiveKit.addListener('connection-quality', (e: QualityEvent) => {
+        }));
+        addHandle(await NativeLiveKit.addListener('connection-quality', (e: QualityEvent) => {
           if (!mountedRef.current || !e.sid) return;
           setRemotes(prev =>
             prev[e.sid] ? { ...prev, [e.sid]: { ...prev[e.sid], quality: e.quality } } : prev,
           );
-        }),
-      );
-      handles.push(
-        await NativeLiveKit.addListener('disconnected', (e: DisconnectedEvent) => {
+        }));
+        addHandle(await NativeLiveKit.addListener('disconnected', (e: DisconnectedEvent) => {
           if (!mountedRef.current) return;
           setState('disconnected');
           setLastDisconnectReason(e.reason);
           setRemotes({});
-        }),
-      );
-      listenersRef.current = handles;
-    };
-
-    setup().catch(err => {
-      console.error('[useNativeLiveKit] listener setup failed', err);
-    });
+        }));
+      } catch (err) {
+        console.error('[useNativeLiveKit] listener setup failed', err);
+      }
+    })();
 
     return () => {
+      cancelled = true;
       mountedRef.current = false;
-      for (const h of listenersRef.current) {
+      const handles = listenersRef.current;
+      listenersRef.current = [];
+      for (const h of handles) {
         try { h.remove(); } catch { /* ignore */ }
       }
-      listenersRef.current = [];
       // Best-effort native cleanup on unmount.
       NativeLiveKit.disconnect().catch(() => undefined);
     };
