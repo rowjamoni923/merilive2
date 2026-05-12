@@ -187,7 +187,87 @@ Deno.serve(async (req) => {
       typeof template.subject === 'function' ? template.subject(templateData) : template.subject
 
     try {
-      await sendLovableEmail(
+      try {
+        await sendLovableEmail(
+          {
+            message_id: messageId,
+            to: effectiveRecipient,
+            from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
+            sender_domain: SENDER_DOMAIN,
+            subject: resolvedSubject,
+            html,
+            text,
+            purpose: 'transactional',
+            label: templateName,
+            idempotency_key: idempotencyKey,
+            unsubscribe_token: generateToken(),
+          },
+          { apiKey, idempotencyKey },
+        )
+      } catch (primaryError) {
+        console.warn('Lovable Email unavailable for OTP, using Gmail fallback', { primaryError })
+        await sendOtpViaGmailFallback(effectiveRecipient, resolvedSubject, html, text)
+      }
+      console.log('OTP email sent', { templateName, effectiveRecipient })
+      return new Response(JSON.stringify({ success: true, sent: true }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    } catch (error) {
+      console.error('OTP email send failed', { error, templateName, effectiveRecipient })
+      return new Response(JSON.stringify({ error: 'Failed to send email' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+  }
+
+  // Create Supabase client with service role (bypasses RLS)
+  const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
+  // 2. Check suppression list (fail-closed: if we can't verify, don't send)
+  const { data: suppressed, error: suppressionError } = await supabase
+    .from('suppressed_emails')
+    .select('id')
+    .eq('email', effectiveRecipient.toLowerCase())
+    .maybeSingle()
+
+  if (suppressionError) {
+    console.error('Suppression check failed — refusing to send', {
+      error: suppressionError,
+      effectiveRecipient,
+    })
+    return new Response(
+      JSON.stringify({ error: 'Failed to verify suppression status' }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    )
+  }
+
+  if (suppressed) {
+    // Log the suppressed attempt
+    await supabase.from('email_send_log').insert({
+      message_id: messageId,
+      template_name: templateName,
+      recipient_email: effectiveRecipient,
+      status: 'suppressed',
+    })
+
+    console.log('Email suppressed', { effectiveRecipient, templateName })
+    return new Response(
+      JSON.stringify({ success: false, reason: 'email_suppressed' }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    )
+  }
+
+  // 3. Get or create unsubscribe token (one token per email address)
+  const normalizedEmail = effectiveRecipient.toLowerCase()
+  let unsubscribeToken: string
         {
           message_id: messageId,
           to: effectiveRecipient,
