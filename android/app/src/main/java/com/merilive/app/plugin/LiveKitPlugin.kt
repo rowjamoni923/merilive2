@@ -190,6 +190,10 @@ class LiveKitPlugin : Plugin() {
         var lastAttemptMs: Long,
         val isLocal: Boolean,
         val sid: String, // participant sid; "local" for our own preview
+        // Step 28 — running frame counter (monotonic) used to derive fps.
+        var frameCount: Long = 0L,
+        var lastSampleFrameCount: Long = 0L,
+        var lastSampleMs: Long = 0L,
     )
     private val stallTable = mutableMapOf<String, StallEntry>()
     private val stallSinks = mutableMapOf<String, VideoSink>()
