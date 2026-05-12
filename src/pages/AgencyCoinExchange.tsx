@@ -963,8 +963,7 @@ const AgencyCoinExchange = () => {
                           </p>
                         </div>
                         <Badge className="bg-cyan-500/20 text-cyan-300 border-cyan-500/30">
-                          <Diamond className="w-3 h-3 mr-1" />
-                          {(user.coins ?? 0).toLocaleString()}
+                          UID
                         </Badge>
                       </div>
                     ))}
@@ -984,7 +983,7 @@ const AgencyCoinExchange = () => {
                       <div className="flex-1">
                         <p className="font-semibold text-white">{selectedUser.display_name || "Unknown"}</p>
                         <p className="text-xs text-white/50">
-                          UID: {selectedUser.app_uid || selectedUser.id.slice(0, 8)} | 💎 {(selectedUser.coins ?? 0).toLocaleString()}
+                          UID: {selectedUser.app_uid || selectedUser.id.slice(0, 8)}
                         </p>
                       </div>
                       <Button
