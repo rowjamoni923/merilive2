@@ -16520,6 +16520,14 @@ export type Database = {
         }
         Returns: Json
       }
+      submit_manual_recharge_proof: {
+        Args: {
+          p_order_id: string
+          p_proof_url?: string
+          p_transaction_id: string
+        }
+        Returns: Json
+      }
       support_admin_file_report: {
         Args: { _message_id: string; _reason: string; _ticket_id: string }
         Returns: string
