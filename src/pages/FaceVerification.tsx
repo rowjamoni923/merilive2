@@ -259,6 +259,8 @@ const FaceVerification = () => {
   const poseCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const currentInstructionRef = useRef(0);
   const instructionsCompletedRef = useRef<boolean[]>([false, false, false, false, false]);
+  // 3-angle stills captured live during pose check (for AWS Rekognition auto-approve)
+  const capturedAnglesRef = useRef<{ center?: string; left?: string; right?: string }>({});
 
   const attachFacePreviewStream = useCallback((stream: MediaStream) => {
     const videoEl = faceVideoRef.current;
@@ -811,6 +813,7 @@ const FaceVerification = () => {
     setScanningStatus('idle');
     setPoseHistory([]);
     faceChunksRef.current = [];
+    capturedAnglesRef.current = {};
 
     try {
       const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') 
@@ -897,6 +900,14 @@ const FaceVerification = () => {
         
         if (passed) {
           setScanningStatus('pass');
+          // Capture this angle's still frame for AWS Rekognition (front/left/right only)
+          if (instruction.id === 'center' || instruction.id === 'left' || instruction.id === 'right') {
+            const angleKey = instruction.id as 'center' | 'left' | 'right';
+            if (!capturedAnglesRef.current[angleKey]) {
+              const stillFrame = captureFrameFromLiveVideo(videoEl, 720);
+              if (stillFrame) capturedAnglesRef.current[angleKey] = stillFrame;
+            }
+          }
           const newCompleted = [...instructionsCompletedRef.current];
           newCompleted[instrIdx] = true;
           instructionsCompletedRef.current = newCompleted;
@@ -1033,6 +1044,59 @@ const FaceVerification = () => {
     return publicUrl;
   };
 
+  // Convert dataURL → Blob for storage upload
+  const dataUrlToBlob = (dataUrl: string): Blob | null => {
+    try {
+      const [meta, b64] = dataUrl.split(',');
+      const mime = /data:(.*?);base64/.exec(meta || '')?.[1] || 'image/jpeg';
+      const bin = atob(b64 || '');
+      const len = bin.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) bytes[i] = bin.charCodeAt(i);
+      return new Blob([bytes], { type: mime });
+    } catch { return null; }
+  };
+
+  // Upload the 3 captured angle stills (front/left/right) for AWS Rekognition auto-approve.
+  // Returns { front_url, left_url, right_url } — all three are required for auto-finalize.
+  const uploadCapturedAngles = async (): Promise<{ front_url?: string; left_url?: string; right_url?: string }> => {
+    const out: { front_url?: string; left_url?: string; right_url?: string } = {};
+    const map: Array<['center' | 'left' | 'right', 'front_url' | 'left_url' | 'right_url', string]> = [
+      ['center', 'front_url', 'face-angles/front'],
+      ['left', 'left_url', 'face-angles/left'],
+      ['right', 'right_url', 'face-angles/right'],
+    ];
+    for (const [angle, field, folder] of map) {
+      const dataUrl = capturedAnglesRef.current[angle];
+      if (!dataUrl) continue;
+      const blob = dataUrlToBlob(dataUrl);
+      if (!blob) continue;
+      const url = await uploadFile(blob, folder);
+      if (url) out[field] = url;
+    }
+    return out;
+  };
+
+  // Trigger AWS Rekognition analyze (DetectFaces + CompareFaces front-vs-left/right)
+  // which writes ai_analysis.rekognition + (when app_settings allow) auto-finalizes the
+  // submission via service_auto_finalize_face_verification (gender, is_host, status).
+  const triggerRekognitionAutoApprove = async (submissionId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('face-verification-analyze', {
+        body: { submissionId },
+      });
+      if (error) {
+        console.warn('[FaceVerification] face-verification-analyze error:', error);
+        return null;
+      }
+      console.log('[FaceVerification] Rekognition analyze result:', data);
+      return data as { ok?: boolean; autoFinalize?: { success?: boolean; gender?: string; verification_type?: string; reason?: string } | null };
+    } catch (err) {
+      console.warn('[FaceVerification] face-verification-analyze invoke threw:', err);
+      return null;
+    }
+  };
+
   const getMissingHostRequirements = () => {
     const missing: string[] = [];
 
@@ -1093,7 +1157,7 @@ const FaceVerification = () => {
         .from('face_verification_submissions')
         .select('id, status')
         .eq('user_id', userId)
-        .in('status', ['pending'])
+        .in('status', ['pending','submitted'])
         .maybeSingle();
 
       if (existingSubmission) {
@@ -1138,15 +1202,22 @@ const FaceVerification = () => {
         .eq('id', userId);
 
       const videoUrl = await uploadFile(faceVerificationVideo, 'face-videos');
-      
-      // Insert submission with ALL user info (name, age, language, photo)
+
+      // Upload 3-angle stills (front/left/right) captured live for AWS Rekognition auto-approve
+      const angleUrls = await uploadCapturedAngles();
+
+      // Insert submission with ALL user info (name, age, language, photo) + 3 angles
       const { data: submissionData, error: submissionError } = await supabase
         .from('face_verification_submissions')
         .insert({
           user_id: userId,
           verification_type: 'face',
-          status: 'pending',
+          status: 'submitted', // ★ 'submitted' so service_auto_finalize_face_verification can pick it up
           face_image_url: videoUrl,
+          selfie_url: angleUrls.front_url || videoUrl || 'pending://no-image',
+          front_url: angleUrls.front_url ?? null,
+          left_url: angleUrls.left_url ?? null,
+          right_url: angleUrls.right_url ?? null,
           full_name: fullName.trim(),
           age: parseInt(age),
           language: language,
@@ -1154,13 +1225,27 @@ const FaceVerification = () => {
         })
         .select('id')
         .single();
-      
+
       if (submissionError) throw submissionError;
 
-      // ✅ NO AUTO-APPROVE — All submissions go to Admin Panel for manual review
+      // ★ AUTO-APPROVE via AWS Rekognition: DetectFaces (gender) + CompareFaces (front-vs-left/right)
+      // → service_auto_finalize_face_verification handles gender swap + is_host + status='approved'.
+      let autoApproved = false;
+      let autoMessage = "Your verification has been submitted. Admin will review and approve your account.";
+      if (submissionData?.id && angleUrls.front_url && angleUrls.left_url && angleUrls.right_url) {
+        const result = await triggerRekognitionAutoApprove(submissionData.id);
+        if (result?.autoFinalize?.success) {
+          autoApproved = true;
+          const detected = result.autoFinalize.gender;
+          autoMessage = detected === 'female'
+            ? "🎉 Auto-approved as Host! Welcome."
+            : "🎉 Auto-approved! Your account is verified.";
+        }
+      }
+
       toast({
-        title: "✅ Submission Successful!",
-        description: "Your verification has been submitted. Admin will review and approve your account.",
+        title: autoApproved ? "✅ Auto-Approved!" : "✅ Submission Successful!",
+        description: autoMessage,
       });
       navigate('/profile');
       return;
@@ -1340,7 +1425,7 @@ const FaceVerification = () => {
         .from('face_verification_submissions')
         .select('id, status')
         .eq('user_id', userId)
-        .in('status', ['pending'])
+        .in('status', ['pending','submitted'])
         .maybeSingle();
 
       if (existingSubmission) {
@@ -1353,13 +1438,16 @@ const FaceVerification = () => {
         return;
       }
       
-      // Insert submission with pending status
+      // Upload 3-angle stills (front/left/right) captured live for AWS Rekognition auto-approve
+      const angleUrls = await uploadCapturedAngles();
+
+      // Insert submission with submitted status (auto-approve pipeline)
       const { data: submissionData, error: submissionError } = await supabase
         .from('face_verification_submissions')
         .insert({
           user_id: userId,
           verification_type: 'host',
-          status: 'pending',
+          status: 'submitted', // ★ 'submitted' so service_auto_finalize_face_verification can pick it up
           full_name: fullName,
           age: parseInt(age),
           language: language,
@@ -1367,6 +1455,10 @@ const FaceVerification = () => {
           video_url: introVideoUrl,
           host_photos: photoUrls,
           face_image_url: faceVideoUrl,
+          selfie_url: angleUrls.front_url || faceVideoUrl || 'pending://no-image',
+          front_url: angleUrls.front_url ?? null,
+          left_url: angleUrls.left_url ?? null,
+          right_url: angleUrls.right_url ?? null,
           is_duplicate_face: isDuplicateFace,
           duplicate_face_user_id: duplicateFaceUserId,
           duplicate_face_name: duplicateFaceName,
@@ -1375,13 +1467,27 @@ const FaceVerification = () => {
         })
         .select('id')
         .single();
-      
+
       if (submissionError) throw submissionError;
-      
-      // ✅ NO AUTO-APPROVE — All host submissions go to Admin Panel for manual review
+
+      // ★ AUTO-APPROVE via AWS Rekognition: DetectFaces (gender) + CompareFaces (front-vs-left/right)
+      // → service_auto_finalize_face_verification handles gender swap + is_host=true + status='approved'.
+      let autoApproved = false;
+      let autoMessage = "Your host verification has been submitted. Admin will review all your information and approve.";
+      if (submissionData?.id && angleUrls.front_url && angleUrls.left_url && angleUrls.right_url) {
+        const result = await triggerRekognitionAutoApprove(submissionData.id);
+        if (result?.autoFinalize?.success) {
+          autoApproved = true;
+          const detected = result.autoFinalize.gender;
+          autoMessage = detected === 'female'
+            ? "🎉 Auto-approved as Host! Welcome to the platform."
+            : "🎉 Auto-approved! Note: detected as male, account converted to user.";
+        }
+      }
+
       toast({
-        title: "✅ Host Application Submitted!",
-        description: "Your host verification has been submitted. Admin will review all your information and approve manually.",
+        title: autoApproved ? "✅ Auto-Approved!" : "✅ Host Application Submitted!",
+        description: autoMessage,
       });
       navigate('/profile');
       return;
