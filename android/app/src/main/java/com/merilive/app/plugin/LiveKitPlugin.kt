@@ -616,11 +616,12 @@ class LiveKitPlugin : Plugin() {
             AudioManager.AUDIOFOCUS_LOSS,
             AudioManager.AUDIOFOCUS_LOSS_TRANSIENT,
             AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
-                // Snapshot user intent and pause our mic so the interrupting
-                // app (PSTN call, alarm, voice assistant) gets clean audio.
+                // Pause our mic so the interrupting app (PSTN call,
+                // alarm, voice assistant) gets clean audio. We do NOT
+                // overwrite micIntentBeforeLoss here — it already reflects
+                // the user's last explicit choice from connect() /
+                // setMicrophoneEnabled() and is what we restore on GAIN.
                 if (!micPausedByFocusLoss) {
-                    val pub = r.localParticipant.getTrackPublication(Track.Source.MICROPHONE)
-                    micIntentBeforeLoss = pub?.track != null && !(pub.muted)
                     micPausedByFocusLoss = true
                     scope.launch {
                         try { r.localParticipant.setMicrophoneEnabled(false) }
