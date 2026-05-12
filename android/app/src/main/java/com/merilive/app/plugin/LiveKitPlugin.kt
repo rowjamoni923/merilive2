@@ -453,10 +453,15 @@ class LiveKitPlugin : Plugin() {
         } else {
             VideoEncoding(maxBitrate = 4_000_000, maxFps = 30)
         }
+        // Step 32 — bias publish-side codec when JS pinned a preference.
+        // Falls back to "auto" → SDK chooses (VP8 default on libwebrtc).
+        val codecForPublish: String? = resolvePublishCodec()
         val publishDefaults = VideoTrackPublishDefaults(
             videoEncoding = publishEncoding,
             simulcast = (args.resolution != "720p"),
+            videoCodec = codecForPublish ?: VideoTrackPublishDefaults().videoCodec,
         )
+        negotiatedCodec = codecForPublish ?: "auto"
 
         // Step 23 — build the E2EE key provider once per session.
         val e2eeOptions: E2EEOptions? = if (args.e2eeOn && !args.e2eeKey.isNullOrBlank()) {
