@@ -25,6 +25,10 @@ export interface ConnectOptions {
   callerName?: string;
   /** Step 14 — e.g. "Video Call", "Voice Call", "Live broadcast". */
   callType?: string;
+  /** Step 23 — turn on Insertable-Streams E2EE for this room. */
+  e2eeEnabled?: boolean;
+  /** Step 23 — AES-GCM shared key (both peers must derive the same value). */
+  e2eeKey?: string;
 }
 
 export interface ParticipantEvent {
