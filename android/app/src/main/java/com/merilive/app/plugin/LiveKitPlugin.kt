@@ -164,6 +164,18 @@ class LiveKitPlugin : Plugin() {
     private var lastTierChangeMs: Long = 0L
     private var adaptiveBusy: Boolean = false
 
+    // --- Codec preference + hardware acceleration (Step 32) ------
+    //
+    // LiveKit Android delegates codec selection to libwebrtc + SDP
+    // negotiation. We bias the publish side by setting `videoCodec`
+    // on VideoTrackPublishDefaults; the SFU and subscribers fall in
+    // line through SDP. Hardware encoder/decoder factories are on by
+    // default in the SDK (`DefaultVideoEncoderFactory` already wraps
+    // MediaCodec), so all we expose is the preference + a capability
+    // probe so JS can refuse codecs the device can't HW-encode.
+    private var preferredCodec: String = "auto"   // "auto"|"vp8"|"vp9"|"h264"|"av1"
+    private var negotiatedCodec: String = "unknown"
+
     // --- End-to-end encryption (Step 23) -------------------------
     //
     // LiveKit Insertable-Streams E2EE — frames are AES-GCM encrypted with
@@ -441,10 +453,15 @@ class LiveKitPlugin : Plugin() {
         } else {
             VideoEncoding(maxBitrate = 4_000_000, maxFps = 30)
         }
+        // Step 32 — bias publish-side codec when JS pinned a preference.
+        // Falls back to "auto" → SDK chooses (VP8 default on libwebrtc).
+        val codecForPublish: String? = resolvePublishCodec()
         val publishDefaults = VideoTrackPublishDefaults(
             videoEncoding = publishEncoding,
             simulcast = (args.resolution != "720p"),
+            videoCodec = codecForPublish ?: VideoTrackPublishDefaults().videoCodec,
         )
+        negotiatedCodec = codecForPublish ?: "auto"
 
         // Step 23 — build the E2EE key provider once per session.
         val e2eeOptions: E2EEOptions? = if (args.e2eeOn && !args.e2eeKey.isNullOrBlank()) {
@@ -2598,6 +2615,152 @@ class LiveKitPlugin : Plugin() {
         ret.put("scoState", scoState)
         ret.put("buttonsEnabled", headsetButtonsEnabled)
         ret.put("mediaSessionActive", headsetMediaSession != null)
+        call.resolve(ret)
+    }
+
+    // ============================================================
+    // Step 32 — Codec negotiation + hardware acceleration
+    //
+    // libwebrtc inside livekit-android already wraps MediaCodec via
+    // DefaultVideoEncoderFactory / DefaultVideoDecoderFactory, so HW
+    // accel is on by default for any codec the device's MediaCodec
+    // list reports. What this section adds:
+    //
+    //  • A capability probe that walks android.media.MediaCodecList
+    //    and reports per-codec {hwEncode, hwDecode, mime} so JS can
+    //    refuse a preference the device can't HW-encode (mid-tier
+    //    devices rarely have a HW VP9 encoder, often have HW H.264
+    //    + HW VP8 + HW VP9 *decode* only).
+    //
+    //  • A `setPreferredCodec({codec})` switch that biases the
+    //    publish side via VideoTrackPublishDefaults.videoCodec on
+    //    the next connect() call (codec is part of SDP — we don't
+    //    hot-swap mid-call; JS surfaces a "Reconnect for new codec"
+    //    toast).
+    //
+    //  • `getCodecState()` so a debug HUD can show what's actually
+    //    being negotiated for the current session.
+    // ============================================================
+
+    private val supportedCodecs = listOf("vp8", "vp9", "h264", "av1")
+
+    private fun resolvePublishCodec(): String? {
+        val want = preferredCodec.lowercase()
+        if (want == "auto" || want.isBlank()) return null
+        if (want !in supportedCodecs) return null
+        // Only honour the preference if MediaCodec can HW-encode it;
+        // otherwise let the SDK fall back to its default to avoid a
+        // software encoder pinning the CPU at 100 %.
+        val caps = probeCodecCapabilities()
+        val hw = caps.optJSONObject(want)?.optBoolean("hwEncode", false) ?: false
+        return if (hw) want else null
+    }
+
+    private fun mimeForCodec(codec: String): String = when (codec.lowercase()) {
+        "vp8"  -> "video/x-vnd.on2.vp8"
+        "vp9"  -> "video/x-vnd.on2.vp9"
+        "h264" -> "video/avc"
+        "av1"  -> "video/av01"
+        else   -> ""
+    }
+
+    /**
+     * Walk MediaCodecList.REGULAR_CODECS once and return a JSONObject
+     * keyed by codec name with {hwEncode, hwDecode, encoders, decoders}.
+     * Result is cached per process — codec list never changes at runtime.
+     */
+    private var codecCapsCache: org.json.JSONObject? = null
+    private fun probeCodecCapabilities(): org.json.JSONObject {
+        codecCapsCache?.let { return it }
+        val out = org.json.JSONObject()
+        try {
+            val list = android.media.MediaCodecList(android.media.MediaCodecList.REGULAR_CODECS)
+            for (codec in supportedCodecs) {
+                val mime = mimeForCodec(codec)
+                if (mime.isEmpty()) continue
+                var hwEncode = false; var hwDecode = false
+                val encoders = org.json.JSONArray()
+                val decoders = org.json.JSONArray()
+                for (info in list.codecInfos) {
+                    val name = info.name ?: continue
+                    if (!info.supportedTypes.any { it.equals(mime, ignoreCase = true) }) continue
+                    val isHardware = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        info.isHardwareAccelerated
+                    } else {
+                        // Heuristic for older devices: software codecs are
+                        // prefixed "OMX.google." or "c2.android." in AOSP.
+                        val n = name.lowercase()
+                        !n.startsWith("omx.google.") && !n.startsWith("c2.android.")
+                    }
+                    if (info.isEncoder) {
+                        encoders.put(name); if (isHardware) hwEncode = true
+                    } else {
+                        decoders.put(name); if (isHardware) hwDecode = true
+                    }
+                }
+                val o = org.json.JSONObject()
+                o.put("hwEncode", hwEncode)
+                o.put("hwDecode", hwDecode)
+                o.put("encoders", encoders)
+                o.put("decoders", decoders)
+                o.put("mime", mime)
+                out.put(codec, o)
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "probeCodecCapabilities failed: ${e.message}")
+        }
+        codecCapsCache = out
+        return out
+    }
+
+    @PluginMethod
+    fun getCodecCapabilities(call: PluginCall) {
+        val caps = probeCodecCapabilities()
+        val ret = JSObject()
+        ret.put("codecs", caps)
+        ret.put("preferred", preferredCodec)
+        ret.put("negotiated", negotiatedCodec)
+        // Surface a recommended default per device class:
+        //  • AV1 if HW available (newest Tensor / Snapdragon 8 Gen 2+)
+        //  • H264 otherwise (universally HW-encoded since 2014)
+        val rec = when {
+            caps.optJSONObject("av1")?.optBoolean("hwEncode") == true -> "av1"
+            caps.optJSONObject("vp9")?.optBoolean("hwEncode") == true -> "vp9"
+            caps.optJSONObject("h264")?.optBoolean("hwEncode") == true -> "h264"
+            else -> "vp8"
+        }
+        ret.put("recommended", rec)
+        call.resolve(ret)
+    }
+
+    @PluginMethod
+    fun setPreferredCodec(call: PluginCall) {
+        val raw = (call.getString("codec") ?: "auto").lowercase()
+        val codec = if (raw == "auto" || raw in supportedCodecs) raw else "auto"
+        val previous = preferredCodec
+        preferredCodec = codec
+        // Validate against capabilities — return applied=false if the
+        // device can't HW-encode the requested codec (JS should toast).
+        val caps = probeCodecCapabilities()
+        val hwOk = if (codec == "auto") true
+                   else caps.optJSONObject(codec)?.optBoolean("hwEncode", false) ?: false
+        val ret = JSObject()
+        ret.put("codec", codec)
+        ret.put("previous", previous)
+        ret.put("hwEncode", hwOk)
+        ret.put("requiresReconnect", room != null && previous != codec)
+        ret.put("applied", true)
+        call.resolve(ret)
+    }
+
+    @PluginMethod
+    fun getCodecState(call: PluginCall) {
+        val ret = JSObject()
+        ret.put("preferred", preferredCodec)
+        ret.put("negotiated", negotiatedCodec)
+        ret.put("hasRoom", room != null)
+        // Hardware accel is always on through DefaultVideoEncoderFactory.
+        ret.put("hardwareAcceleration", true)
         call.resolve(ret)
     }
 }

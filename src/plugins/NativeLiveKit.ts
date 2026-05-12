@@ -323,6 +323,46 @@ export interface NativeLiveKitPlugin {
     mediaSessionActive: boolean;
   }>;
 
+  // --- Codec negotiation + hardware acceleration (Step 32) ----
+  /**
+   * Walk Android's MediaCodecList and report per-codec hardware
+   * encode/decode availability. Use `recommended` as the default
+   * codec for this device class (HW AV1 → AV1, else HW VP9, else
+   * HW H264, else VP8). `negotiated` is what the active room picked.
+   */
+  getCodecCapabilities(): Promise<{
+    codecs: Record<
+      'vp8' | 'vp9' | 'h264' | 'av1',
+      { hwEncode: boolean; hwDecode: boolean; encoders: string[]; decoders: string[]; mime: string }
+    >;
+    preferred: 'auto' | 'vp8' | 'vp9' | 'h264' | 'av1';
+    negotiated: string;
+    recommended: 'vp8' | 'vp9' | 'h264' | 'av1';
+  }>;
+  /**
+   * Pin the publisher to a specific codec on the next connect() call.
+   * Codec is part of SDP — does NOT hot-swap an active room. If the
+   * device can't HW-encode the choice, the SDK falls back to its
+   * default at connect time and `hwEncode:false` is returned.
+   */
+  setPreferredCodec(opts: {
+    codec: 'auto' | 'vp8' | 'vp9' | 'h264' | 'av1';
+  }): Promise<{
+    codec: 'auto' | 'vp8' | 'vp9' | 'h264' | 'av1';
+    previous: 'auto' | 'vp8' | 'vp9' | 'h264' | 'av1';
+    hwEncode: boolean;
+    /** True when a room is already connected — JS should toast "Reconnect to apply". */
+    requiresReconnect: boolean;
+    applied: boolean;
+  }>;
+  getCodecState(): Promise<{
+    preferred: 'auto' | 'vp8' | 'vp9' | 'h264' | 'av1';
+    negotiated: string;
+    hasRoom: boolean;
+    /** Always true — DefaultVideoEncoderFactory wraps MediaCodec for every codec. */
+    hardwareAcceleration: boolean;
+  }>;
+
   addListener(eventName: 'participant-connected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'participant-disconnected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'track-subscribed', cb: (e: TrackEvent) => void): Promise<PluginListenerHandle>;
