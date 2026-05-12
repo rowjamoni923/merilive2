@@ -102,6 +102,22 @@ class LiveKitPlugin : Plugin() {
         // Step 28 — RTC stats / telemetry tunables.
         private const val STATS_DEFAULT_INTERVAL_MS = 3_000L
         private const val STATS_MIN_INTERVAL_MS = 1_000L
+
+        // Step 29 — Picture-in-Picture bridge from MainActivity.
+        // MainActivity overrides onUserLeaveHint / onPictureInPictureModeChanged
+        // and forwards into these statics so the plugin can react without
+        // having to subclass BridgeActivity.
+        @Volatile private var INSTANCE: LiveKitPlugin? = null
+
+        @JvmStatic
+        fun notifyUserLeaveHint(activity: android.app.Activity) {
+            INSTANCE?.onUserLeaveHintInternal(activity)
+        }
+
+        @JvmStatic
+        fun notifyPipModeChanged(isInPip: Boolean) {
+            INSTANCE?.onPipModeChangedInternal(isInPip)
+        }
     }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
