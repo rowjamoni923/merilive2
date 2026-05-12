@@ -104,6 +104,28 @@ class NativeLiveKitController {
       console.warn('[NativeLiveKitController] attachRemote failed:', e);
     }
   }
+
+  // --- Audio routing (Step 11) ----------------------------------
+  async setSpeakerphone(enabled: boolean): Promise<void> {
+    try { await NativeLiveKit.setSpeakerphoneEnabled({ enabled }); } catch (e) {
+      console.warn('[NativeLiveKitController] setSpeakerphone failed:', e);
+    }
+  }
+
+  async setProximity(enabled: boolean): Promise<void> {
+    try { await NativeLiveKit.setProximityMonitoring({ enabled }); } catch (e) {
+      console.warn('[NativeLiveKitController] setProximity failed:', e);
+    }
+  }
+
+  /** Convenience: switch to voice-call (earpiece+proximity) or video/live (speaker) routing. */
+  async setAudioMode(mode: 'voice' | 'video' | 'none'): Promise<void> {
+    try { await NativeLiveKit.setAudioMode({ mode }); } catch (e) {
+      console.warn('[NativeLiveKitController] setAudioMode failed:', e);
+    }
+  }
 }
+
+export const nativeLiveKitController = new NativeLiveKitController();
 
 export const nativeLiveKitController = new NativeLiveKitController();
