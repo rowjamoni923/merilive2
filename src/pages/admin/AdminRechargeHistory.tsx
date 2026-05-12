@@ -68,7 +68,7 @@ const AdminRechargeHistory = () => {
   const [page, setPage] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
   const [selectedRecord, setSelectedRecord] = useState<RechargeRecord | null>(null);
-  const [stats, setStats] = useState({ total: 0, completed: 0, cancelled: 0, pending: 0, totalCoins: 0, totalUsd: 0 });
+  const [stats, setStats] = useState({ total: 0, completed: 0, cancelled: 0, pending: 0, totalCoins: 0, totalUsd: 0, playStoreCount: 0, playStoreUsd: 0 });
 
   const PAGE_SIZE = 30;
 
@@ -314,6 +314,7 @@ const AdminRechargeHistory = () => {
 
       // Calculate stats from all records
       const completedRecords = allRecords.filter(r => r.status === 'completed');
+      const playStoreCompleted = completedRecords.filter(r => r.source === 'google_play');
       setStats({
         total: allRecords.length,
         completed: completedRecords.length,
@@ -321,6 +322,8 @@ const AdminRechargeHistory = () => {
         pending: allRecords.filter(r => r.status === 'pending').length,
         totalCoins: completedRecords.reduce((sum, r) => sum + (r.coin_amount || 0), 0),
         totalUsd: completedRecords.reduce((sum, r) => sum + (r.amount_usd || 0), 0),
+        playStoreCount: playStoreCompleted.length,
+        playStoreUsd: playStoreCompleted.reduce((sum, r) => sum + (r.amount_usd || 0), 0),
       });
 
       setTotalCount(allRecords.length);
@@ -524,6 +527,13 @@ const AdminRechargeHistory = () => {
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold text-green-400">${stats.totalUsd.toFixed(2)}</p>
             <p className="text-xs text-muted-foreground">Total Revenue</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-gradient-to-br from-emerald-900/40 to-emerald-700/20 border-emerald-500/40 cursor-pointer hover:border-emerald-400 transition"
+              onClick={() => { setSourceFilter('google_play'); setPage(0); }}>
+          <CardContent className="p-4 text-center">
+            <p className="text-2xl font-bold text-emerald-300">📱 {stats.playStoreCount}</p>
+            <p className="text-xs text-emerald-300/80">Play Store · ${stats.playStoreUsd.toFixed(2)}</p>
           </CardContent>
         </Card>
       </div>
