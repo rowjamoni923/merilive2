@@ -127,6 +127,22 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
       setConnectionState('DISCONNECTED');
       try { options.onError?.(new Error(`native_livekit_disconnected: ${reason}`)); } catch { /* noop */ }
     },
+    // Step 19 — sticky reconnect toast for live broadcasters/viewers.
+    onConnectionState: (s) => {
+      if (s === 'reconnecting') {
+        toast.loading('Reconnecting to live…', { id: 'lk-live-reconnect' });
+        setConnectionState('RECONNECTING');
+      } else {
+        toast.success('Reconnected', { id: 'lk-live-reconnect', duration: 1500 });
+        setConnectionState('CONNECTED');
+      }
+    },
+    // Step 19 — permanent audio focus loss (PSTN call) — inform broadcaster.
+    onAudioInterruption: (s, permanent) => {
+      if (s === 'loss' && permanent) {
+        toast.info('Mic paused — interrupted by another app');
+      }
+    },
   });
 
   // Pause camera + mic when the app is backgrounded; restore on resume.
