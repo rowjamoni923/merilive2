@@ -484,6 +484,21 @@ class LiveKitPlugin : Plugin() {
                         data.put("quality", event.quality.name.lowercase())
                         notifyListeners("connection-quality", data)
                     }
+                    // Step 16 — connection lifecycle so JS can show
+                    // "Reconnecting…" / "Reconnected" UI like WhatsApp.
+                    is RoomEvent.Reconnecting -> {
+                        val data = JSObject()
+                        data.put("state", "reconnecting")
+                        notifyListeners("connection-state", data)
+                    }
+                    is RoomEvent.Reconnected -> {
+                        val data = JSObject()
+                        data.put("state", "reconnected")
+                        notifyListeners("connection-state", data)
+                        // Re-apply our communication audio mode in case
+                        // the OS reset it during the network drop.
+                        applyAudioMode(true)
+                    }
                     else -> { /* ignore */ }
                 }
             }
