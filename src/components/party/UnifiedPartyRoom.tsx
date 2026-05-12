@@ -921,13 +921,13 @@ export function UnifiedPartyRoom({
     const loadMessages = async () => {
       const { data } = await supabase
         .from('party_room_messages')
-        .select('id, sender_id, content, message_type, created_at')
+        .select('id, user_id, content, message_type, created_at')
         .eq('room_id', roomId)
         .order('created_at', { ascending: true })
         .limit(100);
       
       if (data) {
-        const senderIds = [...new Set(data.map((m: any) => m.sender_id).filter(Boolean))];
+        const senderIds = [...new Set(data.map((m: any) => m.user_id).filter(Boolean))];
         const { data: publicProfiles } = senderIds.length
           ? await supabase
               .from('profiles_public')
@@ -938,17 +938,17 @@ export function UnifiedPartyRoom({
 
         // Load directly to unified premiumMessages - NO duplicate chatMessages
         const unifiedMsgs: RoomChatMessage[] = data.map((m: any) => {
-          const profile = profileMap.get(m.sender_id);
+          const profile = profileMap.get(m.user_id);
           return {
             id: m.id,
-            userId: m.sender_id,
+            userId: m.user_id,
             user: profile?.display_name || 'User',
             initial: (profile?.display_name || 'U').charAt(0).toUpperCase(),
             message: m.content,
             color: m.message_type === 'gift' ? 'pink' : m.message_type === 'join' ? 'emerald' : 'white',
             userLevel: profile?.user_level || 1,
             userAvatar: profile?.avatar_url,
-            isHost: profile?.is_host || (m.sender_id === hostInfo?.id),
+            isHost: profile?.is_host || (m.user_id === hostInfo?.id),
             isNewUser: false,
             type: m.message_type || 'text',
             bubbleUrl: null,
