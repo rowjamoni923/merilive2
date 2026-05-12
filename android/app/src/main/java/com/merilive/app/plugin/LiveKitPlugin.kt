@@ -1,6 +1,11 @@
 package com.merilive.app.plugin
 
 import android.Manifest
+import android.content.Context
+import android.media.AudioDeviceInfo
+import android.media.AudioManager
+import android.os.Build
+import android.os.PowerManager
 import android.util.Log
 import android.view.ViewGroup
 import android.view.WindowManager
@@ -79,6 +84,12 @@ class LiveKitPlugin : Plugin() {
     private var localRenderer: TextureViewRenderer? = null
     private val remoteRenderers = mutableMapOf<String, TextureViewRenderer>()
 
+    // --- Audio routing state (Step 11) -----------------------------
+    private var savedAudioMode: Int = AudioManager.MODE_NORMAL
+    private var savedSpeakerphoneOn: Boolean = false
+    private var audioModeApplied: Boolean = false
+    private var proximityWakeLock: PowerManager.WakeLock? = null
+
     // ------------------------------------------------------------
     // Public API
     // ------------------------------------------------------------
@@ -155,6 +166,13 @@ class LiveKitPlugin : Plugin() {
                 // Keep screen on for the duration of the live/call session.
                 setKeepScreenOn(true)
 
+                // Apply communication audio mode + default routing:
+                //  - video session  → speaker ON, no proximity (Live broadcast / video call)
+                //  - audio-only call → speaker OFF (earpiece), proximity ON
+                applyAudioMode(true)
+                setSpeakerphoneInternal(enableVideo)
+                setProximityMonitoringInternal(!enableVideo)
+
                 val ret = JSObject()
                 ret.put("connected", true)
                 ret.put("sid", newRoom.localParticipant.sid.value)
@@ -177,6 +195,8 @@ class LiveKitPlugin : Plugin() {
                 room = null
                 activity?.runOnUiThread { detachAllRenderersInternal() }
                 setKeepScreenOn(false)
+                setProximityMonitoringInternal(false)
+                applyAudioMode(false)
                 call.resolve()
             } catch (e: Exception) {
                 call.reject("disconnect failed: ${e.message}")
@@ -279,6 +299,58 @@ class LiveKitPlugin : Plugin() {
         }
     }
 
+    // --- Audio routing API (Step 11) -------------------------------
+
+    @PluginMethod
+    fun setSpeakerphoneEnabled(call: PluginCall) {
+        val enabled = call.getBoolean("enabled", true) ?: true
+        try {
+            setSpeakerphoneInternal(enabled)
+            val ret = JSObject(); ret.put("speakerphone", enabled); call.resolve(ret)
+        } catch (e: Exception) {
+            call.reject("setSpeakerphoneEnabled failed: ${e.message}")
+        }
+    }
+
+    @PluginMethod
+    fun setProximityMonitoring(call: PluginCall) {
+        val enabled = call.getBoolean("enabled", false) ?: false
+        try {
+            setProximityMonitoringInternal(enabled)
+            val ret = JSObject(); ret.put("proximity", enabled); call.resolve(ret)
+        } catch (e: Exception) {
+            call.reject("setProximityMonitoring failed: ${e.message}")
+        }
+    }
+
+    @PluginMethod
+    fun setAudioMode(call: PluginCall) {
+        // mode: "voice" → earpiece + proximity ON; "video" → speaker ON, proximity OFF; "none" → restore
+        val mode = call.getString("mode", "video") ?: "video"
+        try {
+            when (mode) {
+                "voice" -> {
+                    applyAudioMode(true)
+                    setSpeakerphoneInternal(false)
+                    setProximityMonitoringInternal(true)
+                }
+                "video" -> {
+                    applyAudioMode(true)
+                    setSpeakerphoneInternal(true)
+                    setProximityMonitoringInternal(false)
+                }
+                "none", "off", "restore" -> {
+                    setProximityMonitoringInternal(false)
+                    applyAudioMode(false)
+                }
+                else -> { call.reject("Unknown mode: $mode"); return }
+            }
+            val ret = JSObject(); ret.put("mode", mode); call.resolve(ret)
+        } catch (e: Exception) {
+            call.reject("setAudioMode failed: ${e.message}")
+        }
+    }
+
     // ------------------------------------------------------------
     // Internals
     // ------------------------------------------------------------
@@ -377,6 +449,8 @@ class LiveKitPlugin : Plugin() {
             eventJob?.cancel()
             scope.launch { room?.disconnect() }
             setKeepScreenOn(false)
+            setProximityMonitoringInternal(false)
+            applyAudioMode(false)
         } catch (_: Exception) {}
     }
 
@@ -397,6 +471,96 @@ class LiveKitPlugin : Plugin() {
             } catch (e: Exception) {
                 Log.w(TAG, "setKeepScreenOn($on) failed: ${e.message}")
             }
+        }
+    }
+
+    // ------------------------------------------------------------
+    // Audio routing internals (Step 11)
+    // ------------------------------------------------------------
+
+    private fun audioManager(): AudioManager? =
+        context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+
+    /**
+     * Switch the system into MODE_IN_COMMUNICATION while a session is
+     * active so volume keys control the call/voip stream and routing
+     * priorities behave like a real phone call. Saves and restores the
+     * pre-session mode + speaker state on tear-down.
+     */
+    private fun applyAudioMode(active: Boolean) {
+        val am = audioManager() ?: return
+        try {
+            if (active) {
+                if (!audioModeApplied) {
+                    savedAudioMode = am.mode
+                    @Suppress("DEPRECATION")
+                    savedSpeakerphoneOn = am.isSpeakerphoneOn
+                    audioModeApplied = true
+                }
+                am.mode = AudioManager.MODE_IN_COMMUNICATION
+            } else if (audioModeApplied) {
+                try { am.mode = savedAudioMode } catch (_: Exception) {}
+                @Suppress("DEPRECATION")
+                try { am.isSpeakerphoneOn = savedSpeakerphoneOn } catch (_: Exception) {}
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    try { am.clearCommunicationDevice() } catch (_: Exception) {}
+                }
+                audioModeApplied = false
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "applyAudioMode($active) failed: ${e.message}")
+        }
+    }
+
+    /**
+     * Route audio to speakerphone (true) or earpiece/Bluetooth (false).
+     * Uses the modern setCommunicationDevice API on Android 12+ and falls
+     * back to the legacy isSpeakerphoneOn flag on older devices.
+     */
+    private fun setSpeakerphoneInternal(on: Boolean) {
+        val am = audioManager() ?: return
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val targetType = if (on) AudioDeviceInfo.TYPE_BUILTIN_SPEAKER
+                                 else AudioDeviceInfo.TYPE_BUILTIN_EARPIECE
+                val device = am.availableCommunicationDevices.firstOrNull { it.type == targetType }
+                if (device != null) {
+                    am.setCommunicationDevice(device)
+                    return
+                }
+                // Fall through to legacy flag if device unavailable.
+            }
+            @Suppress("DEPRECATION")
+            am.isSpeakerphoneOn = on
+        } catch (e: Exception) {
+            Log.w(TAG, "setSpeakerphoneInternal($on) failed: ${e.message}")
+        }
+    }
+
+    /**
+     * Acquire/release a PROXIMITY_SCREEN_OFF_WAKE_LOCK so the screen
+     * blanks when the user holds the phone to their ear during a voice
+     * call (mirrors the behaviour of the system Phone app). Idempotent.
+     */
+    private fun setProximityMonitoringInternal(on: Boolean) {
+        try {
+            if (on) {
+                if (proximityWakeLock?.isHeld == true) return
+                val pm = context.getSystemService(Context.POWER_SERVICE) as? PowerManager ?: return
+                if (!pm.isWakeLockLevelSupported(PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK)) return
+                val wl = pm.newWakeLock(
+                    PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK,
+                    "$TAG:proximity"
+                )
+                wl.setReferenceCounted(false)
+                wl.acquire(60L * 60L * 1000L) // 1h safety cap
+                proximityWakeLock = wl
+            } else {
+                proximityWakeLock?.let { if (it.isHeld) it.release() }
+                proximityWakeLock = null
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "setProximityMonitoringInternal($on) failed: ${e.message}")
         }
     }
 }

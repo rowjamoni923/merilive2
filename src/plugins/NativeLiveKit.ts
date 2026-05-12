@@ -49,6 +49,12 @@ export interface NativeLiveKitPlugin {
   attachRemote(opts: { sid: string }): Promise<void>;
   detachAll(): Promise<void>;
 
+  // --- Audio routing (Step 11) ---------------------------------
+  setSpeakerphoneEnabled(opts: { enabled: boolean }): Promise<{ speakerphone: boolean }>;
+  setProximityMonitoring(opts: { enabled: boolean }): Promise<{ proximity: boolean }>;
+  /** "voice" = earpiece + proximity; "video" = speaker; "none"/"off"/"restore" = release. */
+  setAudioMode(opts: { mode: 'voice' | 'video' | 'none' | 'off' | 'restore' }): Promise<{ mode: string }>;
+
   addListener(eventName: 'participant-connected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'participant-disconnected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'track-subscribed', cb: (e: TrackEvent) => void): Promise<PluginListenerHandle>;
