@@ -86,4 +86,18 @@ dependencies {
 
     // Work Manager
     implementation 'androidx.work:work-runtime:2.9.0'
+
+    // ===== CameraX (Native Camera Pipeline) =====
+    // Used by NativeCameraPlugin for Live + Private Call.
+    // Replaces browser getUserMedia for professional-grade camera control.
+    def cameraxVersion = '1.3.4'
+    implementation "androidx.camera:camera-core:${cameraxVersion}"
+    implementation "androidx.camera:camera-camera2:${cameraxVersion}"
+    implementation "androidx.camera:camera-lifecycle:${cameraxVersion}"
+    implementation "androidx.camera:camera-view:${cameraxVersion}"
+    implementation "androidx.camera:camera-video:${cameraxVersion}"
+
+    // ===== LiveKit Android SDK (Native WebRTC) =====
+    // Publishes CameraX frames as a native WebRTC track.
+    implementation 'io.livekit:livekit-android:2.7.0'
 }
