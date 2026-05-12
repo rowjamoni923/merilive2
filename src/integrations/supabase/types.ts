@@ -970,6 +970,7 @@ export type Database = {
       }
       agency_commission_history: {
         Row: {
+          adjusted_by: string | null
           agency_id: string
           commission_amount: number
           commission_rate: number
@@ -978,10 +979,12 @@ export type Database = {
           id: string
           notes: string | null
           original_amount: number
+          period_start: string | null
           source_transaction_id: string | null
           transaction_type: string
         }
         Insert: {
+          adjusted_by?: string | null
           agency_id: string
           commission_amount?: number
           commission_rate?: number
@@ -990,10 +993,12 @@ export type Database = {
           id?: string
           notes?: string | null
           original_amount?: number
+          period_start?: string | null
           source_transaction_id?: string | null
           transaction_type?: string
         }
         Update: {
+          adjusted_by?: string | null
           agency_id?: string
           commission_amount?: number
           commission_rate?: number
@@ -1002,6 +1007,7 @@ export type Database = {
           id?: string
           notes?: string | null
           original_amount?: number
+          period_start?: string | null
           source_transaction_id?: string | null
           transaction_type?: string
         }
@@ -13969,6 +13975,10 @@ export type Database = {
         Args: { _agency_id: string; _delta: number; _reason?: string }
         Returns: Json
       }
+      admin_adjust_agency_commission: {
+        Args: { _agency_id: string; _delta_beans: number; _reason: string }
+        Returns: Json
+      }
       admin_agency_overview_stats: { Args: never; Returns: Json }
       admin_apply_severity_ban: {
         Args: {
@@ -15837,6 +15847,14 @@ export type Database = {
           total_hosts: number
         }[]
       }
+      get_agency_tier_rate_for_usd: {
+        Args: { _usd: number }
+        Returns: {
+          commission_rate: number
+          level_code: string
+          level_name: string
+        }[]
+      }
       get_agency_transfer_history: {
         Args: { _agency_id: string; _limit?: number; _offset?: number }
         Returns: {
@@ -15855,6 +15873,7 @@ export type Database = {
           transfer_type: string
         }[]
       }
+      get_beans_per_usd: { Args: never; Returns: number }
       get_conversations_with_details: {
         Args: { p_user_id: string }
         Returns: Json
