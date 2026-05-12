@@ -99,6 +99,9 @@ class LiveKitPlugin : Plugin() {
         private const val STALL_WARN_MS = 5_000L
         private const val STALL_HARD_MS = 12_000L
         private const val STALL_RECOVERY_COOLDOWN_MS = 6_000L
+        // Step 28 — RTC stats / telemetry tunables.
+        private const val STATS_DEFAULT_INTERVAL_MS = 3_000L
+        private const val STATS_MIN_INTERVAL_MS = 1_000L
     }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
