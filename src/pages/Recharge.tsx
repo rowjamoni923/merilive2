@@ -102,6 +102,13 @@ type LocalRoute = "auto" | "manual";
 const LOCAL_ROUTE_STORAGE_KEY = "recharge_next_local_route_v1";
 const LAST_METHOD_STORAGE_KEY = "recharge_last_method_by_type_v1";
 
+const PAYMENT_BRAND_FALLBACKS: Record<string, string> = {
+  bkash: "bK",
+  nagad: "N",
+  rocket: "R",
+  upay: "U",
+};
+
 const Recharge = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -242,6 +249,11 @@ const Recharge = () => {
   const normalizePaymentKey = useCallback((value: string | null | undefined) => {
     return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
   }, []);
+
+  const paymentBrandFallback = useCallback(
+    (value: string | null | undefined) => PAYMENT_BRAND_FALLBACKS[normalizePaymentKey(value)] || "💳",
+    [normalizePaymentKey]
+  );
 
   // Build a fast admin-logo lookup keyed by method name / type so every
   // helper method always resolves to a valid brand logo (bKash, Nagad, Rocket,
