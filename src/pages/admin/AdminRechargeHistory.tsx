@@ -68,7 +68,7 @@ const AdminRechargeHistory = () => {
   const [page, setPage] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
   const [selectedRecord, setSelectedRecord] = useState<RechargeRecord | null>(null);
-  const [stats, setStats] = useState({ total: 0, completed: 0, cancelled: 0, pending: 0, totalCoins: 0, totalUsd: 0 });
+  const [stats, setStats] = useState({ total: 0, completed: 0, cancelled: 0, pending: 0, totalCoins: 0, totalUsd: 0, playStoreCount: 0, playStoreUsd: 0 });
 
   const PAGE_SIZE = 30;
 
