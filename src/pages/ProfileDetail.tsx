@@ -1200,8 +1200,9 @@ const ProfileDetail = () => {
             </motion.div>
           )}
 
-          {/* Location & Language Section - Dark Glass (hidden for NONE country accounts AND hide_location) */}
-          {profile.country_code !== 'NONE' && !profile.hide_location && (
+          {/* Location & Language Section - Country flag ALWAYS visible (unless NONE);
+              only city/region is hidden when profile owner enabled hide_location */}
+          {profile.country_code !== 'NONE' && (
           <div className="mt-4 p-3.5 rounded-2xl space-y-2.5" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
             {/* Location Row */}
             <div className="flex items-center gap-2 flex-wrap">
@@ -1212,7 +1213,7 @@ const ProfileDetail = () => {
                 <span>{profile.country_flag || "🌍"}</span>
                 {profile.country_name || ""}
               </Badge>
-              {(profile.city || profile.region) && (
+              {!profile.hide_location && (profile.city || profile.region) && (
                 <Badge className="gap-1 bg-purple-500/15 text-purple-300 border border-purple-500/20 px-2.5 py-1 text-[10px]">
                   <MapPin className="w-3 h-3" />
                   {profile.city || profile.region}
