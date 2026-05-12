@@ -65,6 +65,24 @@ export interface AdaptiveTierEvent {
   maxBitrate: number;
 }
 
+/** Step 25 — emitted when a video tile freezes (decoded-frame stream halts). */
+export interface VideoStallEvent {
+  /** Participant sid; "local" for our own preview. */
+  sid: string;
+  isLocal: boolean;
+  /** How long the renderer has been silent. */
+  silentMs: number;
+  /** 1-based recovery attempt number (0 when state is "failed"). */
+  attempt: number;
+  /** "stalled" while we're attempting recovery, "failed" after the hard window. */
+  state: 'stalled' | 'failed';
+}
+
+export interface StallStatus {
+  enabled: boolean;
+  tracks: Array<{ sid: string; isLocal: boolean; silentMs: number; attempts: number }>;
+}
+
 export interface NativeLiveKitPlugin {
   isAvailable(): Promise<{ available: boolean; backend: string; version: string }>;
   connect(opts: ConnectOptions): Promise<{ connected: boolean; sid: string; identity: string }>;
