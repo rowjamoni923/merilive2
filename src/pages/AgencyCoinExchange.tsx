@@ -573,7 +573,7 @@ const AgencyCoinExchange = () => {
         const diamonds = Math.floor(parseInt(diamondsToSend) || 0);
         
         // Use atomic RPC to deduct from agency AND add to user
-        const { data: result, error: rpcError } = await supabase.rpc('agency_send_diamonds_to_user', {
+        const { data: result, error: rpcError } = await (supabase as any).rpc('agency_send_diamonds_to_user', {
           _agency_id: agency.id,
           _receiver_id: selectedUser.id,
           _amount: diamonds
@@ -616,7 +616,7 @@ const AgencyCoinExchange = () => {
         const diamonds = Math.floor(parseInt(diamondsToSend) || 0);
         
         // Use atomic RPC for agency-to-agency transfer
-        const { data: result, error: rpcError } = await supabase.rpc('agency_send_diamonds_to_agency', {
+        const { data: result, error: rpcError } = await (supabase as any).rpc('agency_send_diamonds_to_agency', {
           _sender_agency_id: agency.id,
           _target_agency_id: selectedTargetAgency.id,
           _amount: diamonds
