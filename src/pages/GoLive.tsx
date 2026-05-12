@@ -1872,7 +1872,7 @@ const GoLive = () => {
       />
 
       {/* Face-tracked Sticker Overlay */}
-      <StickerOverlay stickerName={activeSticker} />
+      <StickerOverlay stickerName={activeSticker} onDismiss={() => handleStickerChange(null)} />
     </div>
   );
 };

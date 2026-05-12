@@ -2492,7 +2492,7 @@ const PartyRoom = () => {
         onSettingsChange={deepAR.handleBeautySettingsChange}
         onEnabledChange={deepAR.handleBeautyEnabledChange}
       />
-      <StickerOverlay stickerName={deepAR.activeSticker} />
+      <StickerOverlay stickerName={deepAR.activeSticker} onDismiss={() => deepAR.handleStickerChange(null)} />
     </>
   );
 };
