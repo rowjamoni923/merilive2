@@ -61,8 +61,24 @@ document.addEventListener('touchstart', () => {}, { passive: true });
 // Render app immediately
 const container = document.getElementById("root");
 if (container) {
-  const root = createRoot(container);
-  root.render(<App />);
+  try {
+    const root = createRoot(container);
+    root.render(<App />);
+    // Tell the boot watchdog (in index.html) that React mounted successfully —
+    // this cancels the 15s blank-screen fallback. Also force-hide the native
+    // splash so slow/old WebView devices don't stay stuck on it.
+    requestAnimationFrame(() => {
+      try { (window as any).__meriliveBooted?.(); } catch { /* ignore */ }
+      if (isNativeApp()) {
+        import('@capacitor/splash-screen')
+          .then(({ SplashScreen }) => SplashScreen.hide().catch(() => {}))
+          .catch(() => {});
+      }
+    });
+  } catch (err) {
+    console.error('[boot] React mount failed:', err);
+    // Leave fallback watchdog to render the recovery UI
+  }
 }
 
 // 🚀 AGGRESSIVE PREFETCH — Start downloading ALL routes immediately after first paint
