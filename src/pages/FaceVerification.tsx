@@ -1044,6 +1044,59 @@ const FaceVerification = () => {
     return publicUrl;
   };
 
+  // Convert dataURL → Blob for storage upload
+  const dataUrlToBlob = (dataUrl: string): Blob | null => {
+    try {
+      const [meta, b64] = dataUrl.split(',');
+      const mime = /data:(.*?);base64/.exec(meta || '')?.[1] || 'image/jpeg';
+      const bin = atob(b64 || '');
+      const len = bin.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) bytes[i] = bin.charCodeAt(i);
+      return new Blob([bytes], { type: mime });
+    } catch { return null; }
+  };
+
+  // Upload the 3 captured angle stills (front/left/right) for AWS Rekognition auto-approve.
+  // Returns { front_url, left_url, right_url } — all three are required for auto-finalize.
+  const uploadCapturedAngles = async (): Promise<{ front_url?: string; left_url?: string; right_url?: string }> => {
+    const out: { front_url?: string; left_url?: string; right_url?: string } = {};
+    const map: Array<['center' | 'left' | 'right', 'front_url' | 'left_url' | 'right_url', string]> = [
+      ['center', 'front_url', 'face-angles/front'],
+      ['left', 'left_url', 'face-angles/left'],
+      ['right', 'right_url', 'face-angles/right'],
+    ];
+    for (const [angle, field, folder] of map) {
+      const dataUrl = capturedAnglesRef.current[angle];
+      if (!dataUrl) continue;
+      const blob = dataUrlToBlob(dataUrl);
+      if (!blob) continue;
+      const url = await uploadFile(blob, folder);
+      if (url) out[field] = url;
+    }
+    return out;
+  };
+
+  // Trigger AWS Rekognition analyze (DetectFaces + CompareFaces front-vs-left/right)
+  // which writes ai_analysis.rekognition + (when app_settings allow) auto-finalizes the
+  // submission via service_auto_finalize_face_verification (gender, is_host, status).
+  const triggerRekognitionAutoApprove = async (submissionId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('face-verification-analyze', {
+        body: { submissionId },
+      });
+      if (error) {
+        console.warn('[FaceVerification] face-verification-analyze error:', error);
+        return null;
+      }
+      console.log('[FaceVerification] Rekognition analyze result:', data);
+      return data as { ok?: boolean; autoFinalize?: { success?: boolean; gender?: string; verification_type?: string; reason?: string } | null };
+    } catch (err) {
+      console.warn('[FaceVerification] face-verification-analyze invoke threw:', err);
+      return null;
+    }
+  };
+
   const getMissingHostRequirements = () => {
     const missing: string[] = [];
 
