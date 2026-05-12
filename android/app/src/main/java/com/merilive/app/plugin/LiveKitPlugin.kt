@@ -33,7 +33,9 @@ import io.livekit.android.room.track.CameraPosition
 import io.livekit.android.room.track.LocalVideoTrackOptions
 import io.livekit.android.room.track.Track
 import io.livekit.android.room.track.VideoCaptureParameter
+import io.livekit.android.room.track.VideoEncoding
 import io.livekit.android.room.track.VideoPreset169
+import io.livekit.android.room.track.VideoTrackPublishDefaults
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -153,13 +155,27 @@ class LiveKitPlugin : Plugin() {
                 val cameraPosition =
                     if (lens == "back") CameraPosition.BACK else CameraPosition.FRONT
 
+                // Step 20 — explicit publish encoding ladder.
+                // 1080p/30fps live: 4 Mbps top layer + simulcast for viewer adaptation.
+                // 720p call:        2 Mbps single layer (no simulcast — peer-to-peer).
+                val publishEncoding: VideoEncoding = if (resolution == "720p") {
+                    VideoEncoding(maxBitrate = 2_000_000, maxFps = 30)
+                } else {
+                    VideoEncoding(maxBitrate = 4_000_000, maxFps = 30)
+                }
+                val publishDefaults = VideoTrackPublishDefaults(
+                    videoEncoding = publishEncoding,
+                    simulcast = (resolution != "720p"),
+                )
+
                 val roomOptions = RoomOptions(
                     adaptiveStream = true,
                     dynacast = true,
                     videoTrackCaptureDefaults = LocalVideoTrackOptions(
                         position = cameraPosition,
                         captureParams = captureParams
-                    )
+                    ),
+                    videoTrackPublishDefaults = publishDefaults,
                 )
 
                 val newRoom = LiveKit.create(
