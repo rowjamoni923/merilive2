@@ -3366,6 +3366,9 @@ const LiveStream = () => {
           const senderAvatar = currentUser?.avatar_url || undefined;
           const senderLevel = currentUser?.user_level || 1;
           
+          const optimisticReceiverBeans = Math.floor(totalCost * adminGiftCommission / 100);
+          const giftKey = getGiftRealtimeKey(currentUserId, gift.id, totalCost, count);
+
           // Trigger flying gift animation IMMEDIATELY
           addFlyingGift({
             senderName: senderName,
@@ -3382,7 +3385,7 @@ const LiveStream = () => {
           });
           
           // Add gift message to chat IMMEDIATELY (optimistic)
-          const giftChatMessage = `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${count}`;
+          const giftChatMessage = `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${count} | -${totalCost} diamonds | +${optimisticReceiverBeans} beans`;
           const tempGiftMsgId = `gift_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
           setMessages(prev => [...prev, {
             id: tempGiftMsgId,
@@ -3415,11 +3418,19 @@ const LiveStream = () => {
               giftAnimationUrl: gift.animation_url || gift.icon_url || undefined,
               giftSoundUrl: gift.sound_url || undefined,
               giftCoins: gift.coins,
+              receiverBeans: optimisticReceiverBeans,
               count,
               streamId: id,
+              giftId: gift.id,
+              giftKey,
               timestamp: Date.now(),
             }
           });
+
+          if (currentUserId === hostInfo.id) {
+            markOptimisticGiftCount(giftKey, optimisticReceiverBeans);
+            setTotalBeans(prev => prev + optimisticReceiverBeans);
+          }
           
           // ========== BACKGROUND PROCESSING (fire-and-forget) ==========
           (async () => {
@@ -3455,7 +3466,19 @@ const LiveStream = () => {
               
               // Save gift message to database for other participants
               if (result.success) {
-                const finalGiftMessage = `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${count}`;
+                const finalBeans = result.transaction?.beans_earned ?? optimisticReceiverBeans;
+                const finalCost = result.transaction?.coins_spent ?? totalCost;
+                if (finalBeans !== optimisticReceiverBeans) {
+                  const optimistic = recentBroadcastGiftKeysRef.current.get(giftKey);
+                  if (optimistic) {
+                    recentBroadcastGiftKeysRef.current.set(giftKey, { ...optimistic, beans: finalBeans });
+                  }
+                  setMessages(prev => prev.map(m => m.id === tempGiftMsgId ? {
+                    ...m,
+                    message: `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${count} | -${finalCost} diamonds | +${finalBeans} beans`,
+                  } : m));
+                }
+                const finalGiftMessage = `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${count} | -${finalCost} diamonds | +${finalBeans} beans`;
                 await supabase.from("stream_chat").insert({
                   stream_id: id,
                   user_id: currentUserId,
