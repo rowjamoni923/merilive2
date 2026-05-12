@@ -38,7 +38,7 @@ import {
 interface Agency {
   id: string;
   name: string;
-  wallet_balance: number;
+  diamond_balance: number;
 }
 
 interface HelperData {
