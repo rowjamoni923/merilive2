@@ -153,7 +153,7 @@ class LiveKitPlugin : Plugin() {
 
                 val ret = JSObject()
                 ret.put("connected", true)
-                ret.put("sid", newRoom.localParticipant.sid?.value ?: "")
+                ret.put("sid", newRoom.localParticipant.sid.value)
                 ret.put("identity", newRoom.localParticipant.identity?.value ?: "")
                 call.resolve(ret)
             } catch (e: Exception) {
@@ -249,7 +249,7 @@ class LiveKitPlugin : Plugin() {
         activity?.runOnUiThread {
             try {
                 val participant = r.remoteParticipants.values.firstOrNull {
-                    it.sid?.value == sid
+                    it.sid.value == sid
                 } ?: return@runOnUiThread call.reject("Participant not found")
                 val track = participant.getTrackPublication(Track.Source.CAMERA)
                     ?.track as? io.livekit.android.room.track.VideoTrack
@@ -296,26 +296,27 @@ class LiveKitPlugin : Plugin() {
                         emit("participant-disconnected", event.participant)
                     is RoomEvent.TrackSubscribed -> {
                         val data = JSObject()
-                        data.put("sid", event.participant.sid?.value ?: "")
+                        data.put("sid", event.participant.sid.value)
                         data.put("identity", event.participant.identity?.value ?: "")
                         data.put("kind", event.track.kind.name.lowercase())
                         notifyListeners("track-subscribed", data)
                     }
                     is RoomEvent.TrackUnsubscribed -> {
                         val data = JSObject()
-                        data.put("sid", event.participant.sid?.value ?: "")
+                        data.put("sid", event.participant.sid.value)
                         data.put("identity", event.participant.identity?.value ?: "")
                         data.put("kind", event.track.kind.name.lowercase())
                         notifyListeners("track-unsubscribed", data)
                     }
                     is RoomEvent.Disconnected -> {
                         val data = JSObject()
-                        data.put("reason", event.reason?.name ?: "UNKNOWN")
+                        data.put("reason", event.reason.name)
+                        event.error?.let { data.put("error", it.message ?: it.javaClass.simpleName) }
                         notifyListeners("disconnected", data)
                     }
                     is RoomEvent.ConnectionQualityChanged -> {
                         val data = JSObject()
-                        data.put("sid", event.participant.sid?.value ?: "")
+                        data.put("sid", event.participant.sid.value)
                         data.put("quality", event.quality.name.lowercase())
                         notifyListeners("connection-quality", data)
                     }
@@ -327,7 +328,7 @@ class LiveKitPlugin : Plugin() {
 
     private fun emit(name: String, p: io.livekit.android.room.participant.Participant) {
         val data = JSObject()
-        data.put("sid", p.sid?.value ?: "")
+        data.put("sid", p.sid.value)
         data.put("identity", p.identity?.value ?: "")
         data.put("isRemote", p is RemoteParticipant)
         notifyListeners(name, data)
