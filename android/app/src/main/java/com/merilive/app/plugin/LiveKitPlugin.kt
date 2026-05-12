@@ -88,7 +88,14 @@ import org.webrtc.VideoSink
 )
 class LiveKitPlugin : Plugin() {
 
-    companion object { private const val TAG = "LiveKitPlugin" }
+    companion object {
+        private const val TAG = "LiveKitPlugin"
+        // Step 25 — stall watchdog tunables.
+        private const val STALL_POLL_MS = 2_000L
+        private const val STALL_WARN_MS = 5_000L
+        private const val STALL_HARD_MS = 12_000L
+        private const val STALL_RECOVERY_COOLDOWN_MS = 6_000L
+    }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var eventJob: Job? = null
