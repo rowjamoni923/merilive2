@@ -276,6 +276,7 @@ export interface NativeLiveKitPlugin {
   addListener(eventName: 'adaptive-tier', cb: (e: AdaptiveTierEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'video-stall', cb: (e: VideoStallEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'network-changed', cb: (e: NetworkChangedEvent) => void): Promise<PluginListenerHandle>;
+  addListener(eventName: 'rtc-stats', cb: (e: RtcStatsEvent) => void): Promise<PluginListenerHandle>;
 }
 
 export const NativeLiveKit = registerPlugin<NativeLiveKitPlugin>('NativeLiveKit');
