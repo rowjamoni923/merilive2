@@ -14146,6 +14146,16 @@ export type Database = {
           total_wins: number
         }[]
       }
+      admin_get_my_admin_user: {
+        Args: never
+        Returns: {
+          display_name: string
+          email: string
+          id: string
+          role: string
+          support_display_name: string
+        }[]
+      }
       admin_get_user_full_details: { Args: { _user_id: string }; Returns: Json }
       admin_gift_frame_to_user: {
         Args: {
