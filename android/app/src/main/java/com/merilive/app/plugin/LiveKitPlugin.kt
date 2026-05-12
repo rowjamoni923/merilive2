@@ -575,7 +575,7 @@ class LiveKitPlugin : Plugin() {
                         notifyListeners("connection-quality", data)
 
                         // Step 22 — react ONLY to our own uplink quality.
-                        if (event.participant == newRoom.localParticipant) {
+                        if (event.participant == r.localParticipant) {
                             handleLocalQuality(event.quality)
                         }
                     }
