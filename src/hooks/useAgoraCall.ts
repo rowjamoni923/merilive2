@@ -24,6 +24,7 @@ import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
 import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
+import { useNativeLiveKitEvents } from '@/hooks/useNativeLiveKitEvents';
 
 interface LiveKitCallState {
   localStream: MediaStream | null;
@@ -59,6 +60,20 @@ export function useAgoraCall(
   // Android LiveKit plugin (Capacitor) instead of the browser
   // livekit-client. Drives the native branch in cleanup/toggleAudio/toggleVideo.
   const usingNativeRef = useRef(false);
+  // Drives the native event-listener subscription. Mirrors usingNativeRef
+  // but as state so the effect re-runs after a successful native connect.
+  const [nativeActive, setNativeActive] = useState(false);
+
+  // Auto-attach incoming remote video tracks (so the peer's tile renders) and
+  // surface native disconnects back into React state. No-op on web/iOS.
+  useNativeLiveKitEvents(nativeActive, {
+    onDisconnected: (reason) => {
+      console.log('[LiveKitCall/Native] disconnected:', reason);
+      if (deadRef.current) return;
+      setState(p => ({ ...p, isConnected: false, connectionState: 'disconnected' }));
+      setNativeActive(false);
+    },
+  });
 
   const cleanup = useCallback(() => {
     console.log('[LiveKitCall] cleanup');
@@ -68,6 +83,7 @@ export function useAgoraCall(
     if (usingNativeRef.current) {
       nativeLiveKitController.disconnect().catch(() => {});
       usingNativeRef.current = false;
+      setNativeActive(false);
     }
 
     if (roomRef.current) {
@@ -144,6 +160,7 @@ export function useAgoraCall(
             });
 
             usingNativeRef.current = true;
+            setNativeActive(true);
             setState(p => ({
               ...p,
               isConnected: true,
@@ -156,6 +173,7 @@ export function useAgoraCall(
           } catch (nativeErr) {
             console.error('[LiveKitCall/Native] init failed, falling back to web:', nativeErr);
             usingNativeRef.current = false;
+            setNativeActive(false);
             // Fall through to web path.
           }
         }
