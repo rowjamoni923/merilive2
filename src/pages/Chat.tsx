@@ -784,7 +784,7 @@ const Chat = () => {
   useEffect(() => {
     if (!selectedConversation || !currentUserId) return;
 
-    const channelName = `dm-live-${selectedConversation.id}-${Date.now()}`;
+    const channelName = `dm-live-${selectedConversation.id}`;
     const channel = supabase
       .channel(channelName)
       .on(
@@ -1196,14 +1196,13 @@ const Chat = () => {
     const newMessage = castMessage(messageRow);
 
     setMessages(prev => {
-      const baseMessages = newMessage.sender_id === currentUserId
-        ? prev.filter(
-            m =>
-              !m._optimistic ||
-              m.content !== newMessage.content ||
-              m.message_type !== newMessage.message_type
-          )
-        : prev;
+      const baseMessages = prev.filter(
+        m =>
+          !m._optimistic ||
+          m.sender_id !== newMessage.sender_id ||
+          m.content !== newMessage.content ||
+          m.message_type !== newMessage.message_type
+      );
 
       if (baseMessages.find(m => m.id === newMessage.id)) return baseMessages;
 
