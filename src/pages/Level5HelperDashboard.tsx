@@ -210,6 +210,7 @@ const Level5HelperDashboard = () => {
   const [bankName, setBankName] = useState("");
   const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
   const [helperNotes, setHelperNotes] = useState("");
+  const [helperTransactionId, setHelperTransactionId] = useState("");
   const [selectedCountry, setSelectedCountry] = useState("");
   const [selectedPaymentCountry, setSelectedPaymentCountry] = useState(""); // Country for legacy payment method
   const [paymentLogoFile, setPaymentLogoFile] = useState<File | null>(null);
