@@ -954,31 +954,34 @@ const AdminSupportTickets = () => {
       }, ADMIN_RT_REFRESH_DEBOUNCE_MS);
     };
 
-    // Real-time subscription — only refresh on INSERT events to avoid loops
-    // UPDATE events (from translation saves, mark-as-read) should NOT trigger refetch
+    // Realtime via BROADCAST channel (RLS-free) — postgres_changes does not work
+    // for the admin client because it auths with anon JWT (no x-admin-token in WS handshake).
     const channel = supabase
-      .channel(`admin-support-tickets-realtime-${crypto.randomUUID()}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'support_tickets' }, () => {
-        scheduleTicketRefresh(true);
-      })
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'support_tickets' }, (payload) => {
-        // Only refresh if status actually changed (not just updated_at)
-        const oldStatus = (payload.old as any)?.status;
-        const newStatus = (payload.new as any)?.status;
-        if (oldStatus && newStatus && oldStatus !== newStatus) {
-          scheduleTicketRefresh(true);
-        }
-      })
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'support_messages' }, (payload) => {
-        const changedTicketId = (payload.new as any)?.ticket_id as string | undefined;
-        const senderType = (payload.new as any)?.sender_type as string | undefined;
+      .channel(`support_realtime`, { config: { broadcast: { self: false } } })
+      .on('broadcast', { event: 'support_event' }, ({ payload }) => {
+        const op = payload?.op as string | undefined;
+        const table = payload?.table as string | undefined;
+        const record = payload?.record as any;
+        const oldRecord = payload?.old_record as any;
 
-        // Only auto-load if it's a USER message (not our own admin reply or translation update)
-        if (changedTicketId && selectedTicketRef.current?.id === changedTicketId && senderType === 'user') {
-          loadMessages(changedTicketId);
+        if (table === 'support_tickets') {
+          if (op === 'INSERT') {
+            scheduleTicketRefresh(true);
+          } else if (op === 'UPDATE') {
+            const oldStatus = oldRecord?.status;
+            const newStatus = record?.status;
+            if (oldStatus && newStatus && oldStatus !== newStatus) {
+              scheduleTicketRefresh(true);
+            }
+          }
+        } else if (table === 'support_messages' && op === 'INSERT') {
+          const changedTicketId = record?.ticket_id as string | undefined;
+          const senderType = record?.sender_type as string | undefined;
+          if (changedTicketId && selectedTicketRef.current?.id === changedTicketId && senderType === 'user') {
+            loadMessages(changedTicketId);
+          }
+          scheduleTicketRefresh(false);
         }
-
-        scheduleTicketRefresh(false);
       })
       .subscribe();
 
