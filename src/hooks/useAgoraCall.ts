@@ -430,6 +430,7 @@ export function useAgoraCall(
     ...state,
     toggleAudio,
     toggleVideo,
+    setSpeakerOn,
     cleanup,
     remoteStreamVersion: 0,
   };
