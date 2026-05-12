@@ -505,6 +505,11 @@ export interface NativeLiveKitPlugin {
     eventName: 'quality-probe-progress',
     cb: (e: QualityProbeProgressEvent) => void,
   ): Promise<PluginListenerHandle>;
+  /** Step 34 — screen-share lifecycle ("starting" → "started" → "stopped", or "denied" / "error"). */
+  addListener(
+    eventName: 'screen-share-state',
+    cb: (e: { state: 'starting' | 'started' | 'stopped' | 'denied' | 'error'; active: boolean; startedAt: number; error?: string }) => void,
+  ): Promise<PluginListenerHandle>;
 }
 
 export const NativeLiveKit = registerPlugin<NativeLiveKitPlugin>('NativeLiveKit');
