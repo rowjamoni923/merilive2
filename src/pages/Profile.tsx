@@ -209,6 +209,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     created_at: string;
     direction: 'sent' | 'received';
     counterparty_name?: string;
+    kind?: 'transfer' | 'gift';
+    currency?: 'diamond' | 'bean';
   }>>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [selfRechargeAmount, setSelfRechargeAmount] = useState("");
