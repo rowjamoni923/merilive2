@@ -450,6 +450,10 @@ const Recharge = () => {
       const GLOBAL_METHOD_TYPES = ['crypto', 'usdt', 'trc20', 'erc20', 'btc', 'eth', 'cryptocurrency'];
 
       // FETCH 1: helper_payment_methods using actual schema
+      // STRICT country filter at SQL: country_code = user's country (defense-in-depth
+      // alongside the topup_helpers.country_code filter further down). Includes rows
+      // whose country_code is still NULL (legacy un-backfilled) — those will be
+      // gated by the helper-country join below.
       const { data: legacyMethodsData, error: legacyMethodsError } = await supabase
         .from('helper_payment_methods')
         .select(`
@@ -460,9 +464,12 @@ const Recharge = () => {
           is_active,
           is_primary,
           method_type,
+          country_code,
+          logo_url,
           additional_info
         `)
-        .eq('is_active', true);
+        .eq('is_active', true)
+        .or(`country_code.eq.${userCountryCode},country_code.is.null`);
 
       if (legacyMethodsError) {
         console.error('[Recharge] Error fetching legacy payment methods:', legacyMethodsError);
