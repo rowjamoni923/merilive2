@@ -942,17 +942,15 @@ const ProfileDetail = () => {
           <div className="flex items-start gap-4">
             {/* Avatar with Level-Based Frame */}
             <div className="relative flex-shrink-0 w-24 h-24">
-              <AvatarWithFrame
+              <FramedAvatarWithPrivileges
                 userId={profile.id}
                 src={profile.avatar_url}
                 name={profile.display_name || "U"}
                 level={level}
-                isHost={profile.is_host || false}
                 size="lg"
                 showFrame={true}
                 showAnimation={true}
                 showGlow={level >= 5}
-                isOnline={profile.is_online || false}
               />
             </div>
 
