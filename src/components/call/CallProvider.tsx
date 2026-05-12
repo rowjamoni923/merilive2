@@ -185,6 +185,29 @@ export function CallProvider({ children }: CallProviderProps) {
 
   const handleAcceptCall = async () => {
     if (incomingCall && !callEndedRef.current) {
+      // Pkg35: If the host is currently broadcasting a live stream, end it
+      // automatically so the private call can take over cleanly.
+      if (userId) {
+        try {
+          const { data: liveRows } = await supabase
+            .from('live_streams')
+            .select('id')
+            .eq('host_id', userId)
+            .is('ended_at', null)
+            .eq('is_active', true)
+            .limit(5);
+          if (liveRows && liveRows.length > 0) {
+            await Promise.all(
+              liveRows.map((r: any) =>
+                supabase.rpc('end_live_stream', { p_stream_id: r.id }).then(() => undefined).catch(() => undefined)
+              )
+            );
+          }
+        } catch (_) {
+          /* non-blocking */
+        }
+      }
+
       // Store the incoming call info BEFORE accepting (because incomingCall will be cleared)
       setAcceptedCallInfo({
         callId: incomingCall.callId,
@@ -193,7 +216,7 @@ export function CallProvider({ children }: CallProviderProps) {
         callerAvatar: incomingCall.callerAvatar,
       });
       setIsHost(true);
-      
+
       await acceptCall(incomingCall.callId);
     }
   };
