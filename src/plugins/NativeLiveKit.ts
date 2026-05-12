@@ -25,6 +25,10 @@ export interface ConnectOptions {
   callerName?: string;
   /** Step 14 — e.g. "Video Call", "Voice Call", "Live broadcast". */
   callType?: string;
+  /** Step 23 — turn on Insertable-Streams E2EE for this room. */
+  e2eeEnabled?: boolean;
+  /** Step 23 — AES-GCM shared key (both peers must derive the same value). */
+  e2eeKey?: string;
 }
 
 export interface ParticipantEvent {
@@ -99,6 +103,17 @@ export interface NativeLiveKitPlugin {
    */
   setAdaptiveBitrateEnabled(opts: { enabled: boolean }): Promise<{ enabled: boolean; tier: AdaptiveTier }>;
   getAdaptiveTier(): Promise<{ enabled: boolean; tier: AdaptiveTier; base: AdaptiveTier }>;
+
+  // --- End-to-end encryption (Step 23) -------------------------
+  /**
+   * Insertable-Streams AES-GCM E2EE for 1:1 Private Calls. Both peers
+   * MUST hold the same key (derive from the call session id over your
+   * existing signalling channel — never send the key as plain text).
+   */
+  isE2EESupported(): Promise<{ supported: boolean; algorithm: string }>;
+  setE2EEKey(opts: { key: string }): Promise<{ rotated: boolean }>;
+  setE2EEEnabled(opts: { enabled: boolean }): Promise<{ enabled: boolean }>;
+  getE2EEStatus(): Promise<{ enabled: boolean; hasKey: boolean; hasRoom: boolean }>;
 
   addListener(eventName: 'participant-connected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'participant-disconnected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
