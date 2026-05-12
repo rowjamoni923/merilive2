@@ -2380,28 +2380,19 @@ const PartyRoom = () => {
               // Process actual transaction in background - don't block UI
               (async () => {
                 try {
-                  // Send all gifts in parallel for faster processing
-                  const promises = Array.from({ length: count }, () => 
-                    supabase.functions.invoke('gift-service', {
-                      body: {
-                        receiverId: room.host!.id,
-                        giftId: gift.id,
-                        partyRoomId: room.id
-                      }
-                    })
-                  );
-                  
-                  const results = await Promise.allSettled(promises);
-                  const successCount = results.filter(r => r.status === 'fulfilled' && !(r.value as any).error).length;
-                  const failCount = count - successCount;
-                  
-                  console.log(`[PartyGift] Background: ${successCount}/${count} gifts processed`);
-                  
-                  // If some failed, refund the difference and notify
-                  if (failCount > 0) {
-                    const refundAmount = gift.coins * failCount;
-                    setUserCoins(prev => prev + refundAmount);
-                    toast.error(`${failCount} gift(s) failed - diamonds refunded`);
+                  const result = await sendGift({
+                    giftId: gift.id,
+                    senderId: currentUser.id,
+                    receiverId: room.host!.id,
+                    quantity: count,
+                    context: 'party',
+                    roomId: room.id,
+                  });
+
+                  if (!result.success) {
+                    setUserCoins(prev => prev + totalCost);
+                    toast.error(result.error || "Gift failed - diamonds refunded");
+                    return;
                   }
                   
                   // Refresh actual balance from server (in case of discrepancy)
@@ -2419,8 +2410,8 @@ const PartyRoom = () => {
                   }
                   
                   // Save gift message to party_room_messages
-                  if (successCount > 0) {
-                    const giftChatMessage = `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${successCount}`;
+                  if (result.success) {
+                    const giftChatMessage = `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${count}`;
                     await supabase.from("party_room_messages").insert({
                       room_id: room.id,
                       sender_id: currentUser.id,
