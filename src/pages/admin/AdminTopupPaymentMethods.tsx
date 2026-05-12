@@ -108,6 +108,10 @@ const AdminTopupPaymentMethods = () => {
     try {
       // Persist logo into BOTH icon_url (admin) and additional_info.logo_url
       // so the Recharge / HelperDashboard / Local-Pay logo readers all find it.
+      const parsedCountries = formData.country_codes
+        .split(',')
+        .map((c) => c.trim().toUpperCase())
+        .filter(Boolean);
       const payload = {
         name: formData.name,
         method_type: formData.method_type,
@@ -116,6 +120,8 @@ const AdminTopupPaymentMethods = () => {
         payment_number: formData.payment_number || formData.account_number || null,
         payment_instructions: formData.payment_instructions || null,
         icon_url: formData.icon_url || null,
+        logo_url: formData.icon_url || null,
+        country_codes: parsedCountries.length > 0 ? parsedCountries : null,
         additional_info: formData.icon_url ? { logo_url: formData.icon_url } : null,
         updated_at: new Date().toISOString(),
       };
