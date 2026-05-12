@@ -482,6 +482,8 @@ class LiveKitPlugin : Plugin() {
                 eventJob?.cancel()
                 eventJob = null
                 stopStallWatchdog()
+                stopStatsCollector()
+                qualityTable.clear()
                 unregisterNetworkCallback()
                 room?.disconnect()
                 room = null
