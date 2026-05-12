@@ -80,6 +80,20 @@ export function useNativeLiveKitEvents(
         });
         if (cancelled) { pDisconnected.remove(); return; }
         subs.push(pDisconnected);
+
+        // Step 18 — transient reconnect lifecycle (network drop recovery).
+        const connState = await NativeLiveKit.addListener('connection-state', (e) => {
+          handlersRef.current.onConnectionState?.(e.state);
+        });
+        if (cancelled) { connState.remove(); return; }
+        subs.push(connState);
+
+        // Step 18 — system audio focus loss/gain (PSTN, alarm, voice assistant).
+        const audioInt = await NativeLiveKit.addListener('audio-interruption', (e) => {
+          handlersRef.current.onAudioInterruption?.(e.state, e.permanent);
+        });
+        if (cancelled) { audioInt.remove(); return; }
+        subs.push(audioInt);
       } catch (err) {
         console.warn('[useNativeLiveKitEvents] listener registration failed:', err);
       }
