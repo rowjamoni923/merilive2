@@ -545,47 +545,149 @@ function CampaignFloatingButton() {
       <AnimatePresence>
         {!showPopup && (
           <motion.div
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
+            initial={{ scale: 0, opacity: 0, y: 30 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0, opacity: 0 }}
             className="fixed z-[45] flex flex-col items-center"
-            style={{ bottom: 'calc(var(--bottom-nav-height, 64px) + 48px)', right: '10px' }}
+            style={{
+              bottom: 'calc(var(--bottom-nav-height, 64px) + 110px)',
+              right: '12px',
+              perspective: '600px',
+            }}
           >
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 px-3 py-0.5 rounded-full shadow-lg min-w-[54px] text-center"
-              style={{ background: 'linear-gradient(135deg, #dc2626, #b91c1c)', boxShadow: '0 4px 15px rgba(220,38,38,0.5)' }}>
-              <span className="text-[10px] font-bold text-white tabular-nums">{formatCountdown(remainingSeconds)}</span>
-            </div>
-
-            <button
-              onClick={() => setShowPopup(true)}
-              className="relative w-[76px] h-[76px] rounded-full"
-              style={{ filter: 'drop-shadow(0 6px 20px rgba(245,158,11,0.5))' }}
+            {/* Countdown pill */}
+            <motion.div
+              className="absolute -top-3 left-1/2 -translate-x-1/2 z-20 px-3 py-0.5 rounded-full min-w-[58px] text-center"
+              style={{
+                background: 'linear-gradient(135deg, #ff1744, #b71c1c)',
+                boxShadow: '0 6px 18px rgba(255,23,68,0.55), inset 0 1px 0 rgba(255,255,255,0.3)',
+                border: '1px solid rgba(255,255,255,0.25)',
+              }}
+              animate={{ y: [0, -2, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
             >
+              <span className="text-[10px] font-bold text-white tabular-nums drop-shadow">{formatCountdown(remainingSeconds)}</span>
+            </motion.div>
+
+            {/* 3D floating + tilting wrapper */}
+            <motion.div
+              animate={{
+                y: [0, -8, 0],
+                rotateY: [-12, 12, -12],
+                rotateX: [4, -4, 4],
+              }}
+              transition={{
+                y: { duration: 2.4, repeat: Infinity, ease: 'easeInOut' },
+                rotateY: { duration: 5, repeat: Infinity, ease: 'easeInOut' },
+                rotateX: { duration: 4, repeat: Infinity, ease: 'easeInOut' },
+              }}
+              style={{ transformStyle: 'preserve-3d' }}
+            >
+              {/* Soft ground shadow */}
               <motion.div
-                className="absolute inset-0 rounded-full"
-                style={{ background: 'conic-gradient(from 0deg, #f59e0b, #ef4444, #f59e0b, #eab308, #f59e0b)', padding: '3px' }}
-                animate={{ rotate: 360 }}
-                transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
+                className="absolute left-1/2 -translate-x-1/2 rounded-full blur-md"
+                style={{
+                  bottom: '-10px',
+                  width: '60px',
+                  height: '10px',
+                  background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.55), transparent 70%)',
+                }}
+                animate={{ scale: [1, 0.85, 1], opacity: [0.55, 0.35, 0.55] }}
+                transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+              />
+
+              <button
+                onClick={() => setShowPopup(true)}
+                className="relative w-[78px] h-[78px] rounded-full"
+                style={{
+                  filter: 'drop-shadow(0 12px 22px rgba(245,158,11,0.55)) drop-shadow(0 4px 10px rgba(255,23,68,0.4))',
+                  transformStyle: 'preserve-3d',
+                }}
               >
-                <div className="w-full h-full rounded-full" style={{ background: '#0f0a1a' }} />
-              </motion.div>
-              <div className="absolute inset-[4px] rounded-full overflow-hidden"
-                style={{ border: '2px solid rgba(245,158,11,0.6)', background: 'radial-gradient(circle at 30% 30%, #1a1028, #0a0612)' }}>
-                {campaign.banner_image_url ? (
-                  <img src={campaign.banner_image_url} alt="" className="w-full h-full rounded-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <span className="text-3xl">💎</span>
-                  </div>
-                )}
-              </div>
-              <motion.div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-yellow-400"
-                animate={{ scale: [1, 1.4, 1], opacity: [0.8, 1, 0.8] }}
-                transition={{ duration: 1.5, repeat: Infinity }} />
-              <motion.div className="absolute -bottom-0.5 -left-0.5 w-2 h-2 rounded-full bg-amber-300"
-                animate={{ scale: [1, 1.3, 1], opacity: [0.6, 1, 0.6] }}
-                transition={{ duration: 2, repeat: Infinity, delay: 0.5 }} />
-            </button>
+                {/* Outer glow halo */}
+                <motion.div
+                  className="absolute -inset-2 rounded-full"
+                  style={{
+                    background: 'radial-gradient(circle, rgba(245,158,11,0.45) 0%, transparent 70%)',
+                  }}
+                  animate={{ scale: [1, 1.15, 1], opacity: [0.6, 0.95, 0.6] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                />
+
+                {/* Rotating conic ring */}
+                <motion.div
+                  className="absolute inset-0 rounded-full"
+                  style={{
+                    background: 'conic-gradient(from 0deg, #fbbf24, #ef4444, #f97316, #eab308, #fbbf24)',
+                    padding: '3px',
+                  }}
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 3.5, repeat: Infinity, ease: 'linear' }}
+                >
+                  <div className="w-full h-full rounded-full" style={{ background: '#0f0a1a' }} />
+                </motion.div>
+
+                {/* Counter-rotating inner ring (depth) */}
+                <motion.div
+                  className="absolute inset-[5px] rounded-full pointer-events-none"
+                  style={{
+                    background: 'conic-gradient(from 90deg, transparent 0deg, rgba(255,255,255,0.5) 60deg, transparent 120deg, rgba(255,255,255,0.4) 240deg, transparent 300deg)',
+                  }}
+                  animate={{ rotate: -360 }}
+                  transition={{ duration: 6, repeat: Infinity, ease: 'linear' }}
+                />
+
+                {/* Image disc with bevel */}
+                <div
+                  className="absolute inset-[5px] rounded-full overflow-hidden"
+                  style={{
+                    border: '1.5px solid rgba(255,255,255,0.35)',
+                    background: 'radial-gradient(circle at 30% 25%, #2a1645 0%, #0a0612 80%)',
+                    boxShadow: 'inset 0 -6px 12px rgba(0,0,0,0.6), inset 0 4px 10px rgba(255,255,255,0.18)',
+                  }}
+                >
+                  {campaign.banner_image_url ? (
+                    <img src={campaign.banner_image_url} alt="" className="w-full h-full rounded-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <motion.span
+                        className="text-3xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
+                        animate={{ scale: [1, 1.12, 1], rotate: [-6, 6, -6] }}
+                        transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+                      >
+                        💎
+                      </motion.span>
+                    </div>
+                  )}
+                  {/* Top gloss highlight */}
+                  <div
+                    className="absolute inset-0 rounded-full pointer-events-none"
+                    style={{
+                      background: 'radial-gradient(ellipse 70% 35% at 50% 12%, rgba(255,255,255,0.55), transparent 70%)',
+                    }}
+                  />
+                </div>
+
+                {/* Sparkle dots */}
+                <motion.div
+                  className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-yellow-300"
+                  style={{ boxShadow: '0 0 10px rgba(253,224,71,0.95)' }}
+                  animate={{ scale: [1, 1.5, 1], opacity: [0.8, 1, 0.8] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                />
+                <motion.div
+                  className="absolute -bottom-0.5 -left-0.5 w-2 h-2 rounded-full bg-amber-200"
+                  style={{ boxShadow: '0 0 8px rgba(252,211,77,0.95)' }}
+                  animate={{ scale: [1, 1.4, 1], opacity: [0.6, 1, 0.6] }}
+                  transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+                />
+                <motion.div
+                  className="absolute top-2 -left-1 w-1.5 h-1.5 rounded-full bg-white"
+                  animate={{ scale: [0.6, 1.2, 0.6], opacity: [0.3, 1, 0.3] }}
+                  transition={{ duration: 1.8, repeat: Infinity, delay: 1 }}
+                />
+              </button>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
