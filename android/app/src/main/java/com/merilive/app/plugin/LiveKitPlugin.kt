@@ -153,7 +153,7 @@ class LiveKitPlugin : Plugin() {
 
                 val ret = JSObject()
                 ret.put("connected", true)
-                ret.put("sid", newRoom.localParticipant.sid?.value ?: "")
+                ret.put("sid", newRoom.localParticipant.sid.value)
                 ret.put("identity", newRoom.localParticipant.identity?.value ?: "")
                 call.resolve(ret)
             } catch (e: Exception) {
