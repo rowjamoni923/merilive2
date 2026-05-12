@@ -939,6 +939,7 @@ const Recharge = () => {
         });
         setSelectedPaymentMethod('playstore');
       });
+      }); // close loadPlayStoreProducts().finally
     } else {
       console.log('[Recharge] Not Android - web mode');
       setSelectedPaymentMethod('playstore');
