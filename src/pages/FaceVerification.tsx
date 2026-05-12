@@ -1438,13 +1438,16 @@ const FaceVerification = () => {
         return;
       }
       
-      // Insert submission with pending status
+      // Upload 3-angle stills (front/left/right) captured live for AWS Rekognition auto-approve
+      const angleUrls = await uploadCapturedAngles();
+
+      // Insert submission with submitted status (auto-approve pipeline)
       const { data: submissionData, error: submissionError } = await supabase
         .from('face_verification_submissions')
         .insert({
           user_id: userId,
           verification_type: 'host',
-          status: 'pending',
+          status: 'submitted', // ★ 'submitted' so service_auto_finalize_face_verification can pick it up
           full_name: fullName,
           age: parseInt(age),
           language: language,
@@ -1452,6 +1455,10 @@ const FaceVerification = () => {
           video_url: introVideoUrl,
           host_photos: photoUrls,
           face_image_url: faceVideoUrl,
+          selfie_url: angleUrls.front_url || faceVideoUrl || 'pending://no-image',
+          front_url: angleUrls.front_url ?? null,
+          left_url: angleUrls.left_url ?? null,
+          right_url: angleUrls.right_url ?? null,
           is_duplicate_face: isDuplicateFace,
           duplicate_face_user_id: duplicateFaceUserId,
           duplicate_face_name: duplicateFaceName,
@@ -1460,13 +1467,27 @@ const FaceVerification = () => {
         })
         .select('id')
         .single();
-      
+
       if (submissionError) throw submissionError;
-      
-      // ✅ NO AUTO-APPROVE — All host submissions go to Admin Panel for manual review
+
+      // ★ AUTO-APPROVE via AWS Rekognition: DetectFaces (gender) + CompareFaces (front-vs-left/right)
+      // → service_auto_finalize_face_verification handles gender swap + is_host=true + status='approved'.
+      let autoApproved = false;
+      let autoMessage = "Your host verification has been submitted. Admin will review all your information and approve.";
+      if (submissionData?.id && angleUrls.front_url && angleUrls.left_url && angleUrls.right_url) {
+        const result = await triggerRekognitionAutoApprove(submissionData.id);
+        if (result?.autoFinalize?.success) {
+          autoApproved = true;
+          const detected = result.autoFinalize.gender;
+          autoMessage = detected === 'female'
+            ? "🎉 Auto-approved as Host! Welcome to the platform."
+            : "🎉 Auto-approved! Note: detected as male, account converted to user.";
+        }
+      }
+
       toast({
-        title: "✅ Host Application Submitted!",
-        description: "Your host verification has been submitted. Admin will review all your information and approve manually.",
+        title: autoApproved ? "✅ Auto-Approved!" : "✅ Host Application Submitted!",
+        description: autoMessage,
       });
       navigate('/profile');
       return;
