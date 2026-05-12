@@ -119,6 +119,7 @@ const handler = async (req: Request): Promise<Response> => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const { userId, title, body, imageUrl, data = {}, type = 'general', target }: PushNotificationRequest = await req.json();
+    const shouldPersistFallback = data.persist_fallback !== 'false' && data.persist_fallback !== false;
 
     const isBroadcast = target && ['all', 'android', 'ios'].includes(target);
     
@@ -295,7 +296,22 @@ const handler = async (req: Request): Promise<Response> => {
       console.log("[Push] FIREBASE_SERVICE_ACCOUNT_JSON not configured");
     }
 
-    // Fallback: Store notification in database for in-app display
+    // Fallback: Store notification in database for in-app display.
+    // Notifications inserted by the DB trigger already exist in the notifications table;
+    // re-inserting them here creates an infinite notification -> push -> notification loop.
+    if (!shouldPersistFallback) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "FCM not configured or failed; fallback persistence skipped",
+          persisted: false,
+          tokens_found: deviceTokens.length
+        }),
+        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // Fallback: Store notification in database for direct API callers only
     await supabase.from("notifications").insert({
       user_id: userId,
       type,
