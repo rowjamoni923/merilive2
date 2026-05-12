@@ -813,6 +813,7 @@ const FaceVerification = () => {
     setScanningStatus('idle');
     setPoseHistory([]);
     faceChunksRef.current = [];
+    capturedAnglesRef.current = {};
 
     try {
       const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') 
