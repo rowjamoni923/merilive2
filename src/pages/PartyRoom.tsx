@@ -1389,10 +1389,7 @@ const PartyRoom = () => {
 
     const { data, error } = await supabase
       .from('seat_requests')
-      .select(`
-        *,
-        requester:profiles!seat_requests_requester_id_fkey(display_name, avatar_url, user_level)
-      `)
+      .select('*')
       .eq('room_id', currentRoomId)
       .eq('status', 'pending')
       .order('created_at', { ascending: true });
@@ -1406,7 +1403,20 @@ const PartyRoom = () => {
     if (!isMountedRef.current) return;
 
     // Filter out any recently processed requests to prevent race conditions
-    const filteredData = (data || []).filter(
+    const requesterIds = [...new Set((data || []).map((r: any) => r.requester_id).filter(Boolean))];
+    const { data: requesterProfiles } = requesterIds.length
+      ? await supabase
+          .from('profiles_public')
+          .select('id, display_name, avatar_url, user_level')
+          .in('id', requesterIds)
+      : { data: [] as any[] };
+    const requesterMap = new Map((requesterProfiles || []).map((profile: any) => [profile.id, profile]));
+    const hydratedRequests = (data || []).map((request: any) => ({
+      ...request,
+      requester: requesterMap.get(request.requester_id) || null,
+    }));
+
+    const filteredData = hydratedRequests.filter(
       r => !recentlyProcessedRequestsRef.current.has(r.id)
     );
     
