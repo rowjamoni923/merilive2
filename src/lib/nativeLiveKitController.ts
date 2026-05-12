@@ -10,7 +10,17 @@
  * all calls are still safe no-ops because the underlying plugin returns
  * "not implemented" which we swallow.
  */
-import { NativeLiveKit, type ConnectOptions, type Lens, type Resolution, type AudioDeviceType, type NativeAudioDevice } from '@/plugins/NativeLiveKit';
+import {
+  NativeLiveKit,
+  type ConnectOptions,
+  type Lens,
+  type Resolution,
+  type AudioDeviceType,
+  type NativeAudioDevice,
+  type ConnectionStateEvent,
+  type AudioInterruptionEvent,
+} from '@/plugins/NativeLiveKit';
+import type { PluginListenerHandle } from '@capacitor/core';
 
 export interface NativeJoinOptions {
   url: string;
