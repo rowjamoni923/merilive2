@@ -249,7 +249,7 @@ class LiveKitPlugin : Plugin() {
         activity?.runOnUiThread {
             try {
                 val participant = r.remoteParticipants.values.firstOrNull {
-                    it.sid?.value == sid
+                    it.sid.value == sid
                 } ?: return@runOnUiThread call.reject("Participant not found")
                 val track = participant.getTrackPublication(Track.Source.CAMERA)
                     ?.track as? io.livekit.android.room.track.VideoTrack
