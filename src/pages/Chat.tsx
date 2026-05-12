@@ -126,6 +126,7 @@ interface GroupMessage {
   sender?: {
     display_name: string | null;
     avatar_url: string | null;
+    user_level?: number | null;
   };
 }
 
