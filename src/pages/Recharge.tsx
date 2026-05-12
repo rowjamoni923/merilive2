@@ -2498,14 +2498,7 @@ const Recharge = () => {
                         const isSelected = selectedPaymentType === methodType;
                         // 1) Try helper's own uploaded logo
                         const methodData = helperPaymentMethods.find(m => m.method_name.toLowerCase() === methodType);
-                        // 2) Fallback to admin-configured brand logo from topup_payment_methods
-                        const adminMatch = adminPaymentMethods.find((a: any) => {
-                          const an = String(a.name || '').toLowerCase();
-                          const at = String(a.method_type || '').toLowerCase();
-                          return an === methodType || at === methodType || an.includes(methodType) || methodType.includes(an);
-                        });
-                        const adminLogo = adminMatch?.icon_url || (adminMatch?.additional_info as any)?.logo_url || null;
-                        const logoUrl = methodData?.logo_url || adminLogo;
+                        const logoUrl = resolveMethodLogo(methodData?.logo_url, methodType);
                         
                         // Fallback colors based on payment type
                         const getPaymentColors = (type: string) => {
