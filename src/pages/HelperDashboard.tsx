@@ -77,6 +77,16 @@ const getHelperPackageLevel = (pkg: { display_order?: number | null; description
   return pkg.display_order || (descriptionMatch ? Number(descriptionMatch[1]) : index + 1);
 };
 
+// Strict country filter — empty/null country_codes = global (e.g. crypto/USDT).
+const filterMethodsByCountry = (methods: PaymentMethod[], countryCode: string | null | undefined): PaymentMethod[] => {
+  const cc = (countryCode || '').toUpperCase().trim();
+  if (!cc) return methods.filter((m) => !m.country_codes || m.country_codes.length === 0);
+  return methods.filter((m) => {
+    if (!m.country_codes || m.country_codes.length === 0) return true; // global
+    return m.country_codes.map((c) => String(c).toUpperCase()).includes(cc);
+  });
+};
+
 const HelperDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
