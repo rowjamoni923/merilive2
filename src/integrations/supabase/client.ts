@@ -20,15 +20,29 @@ const inProcessAuthLock = async <R,>(name: string, _acquireTimeout: number, fn: 
 // Note: Using untyped client temporarily — the new Supabase project schema
 // doesn't yet have all columns/functions/views from the original.
 // Once schema is fully migrated, restore: createClient<Database>(...)
+// Detect native Android app at module load (UA-based, works before Capacitor bridge ready)
+const __isNativeAndroid = (() => {
+  try {
+    if (typeof navigator !== 'undefined' && /MeriLive-Android-Native/i.test(navigator.userAgent || '')) return true;
+    const cap: any = (typeof window !== 'undefined') ? (window as any).Capacitor : null;
+    if (cap?.getPlatform && cap.getPlatform() === 'android') return true;
+    if (cap?.isNativePlatform && cap.isNativePlatform()) return true;
+  } catch {}
+  return false;
+})();
+
 export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
-    // Hybrid storage: localStorage on web, Capacitor Preferences (native
-    // EncryptedSharedPreferences/Keychain) mirror on Android/iOS so the
-    // session survives WebView/localStorage being wiped after app kill.
     storage: supabaseAuthStorage,
     persistSession: true,
     autoRefreshToken: true,
     lock: inProcessAuthLock,
-  }
+  },
+  global: {
+    headers: {
+      'x-client-platform': __isNativeAndroid ? 'android-native' : 'web',
+    },
+  },
 });
+
 
