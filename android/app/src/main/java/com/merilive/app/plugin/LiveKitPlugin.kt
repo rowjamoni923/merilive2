@@ -1114,6 +1114,8 @@ class LiveKitPlugin : Plugin() {
         try {
             eventJob?.cancel()
             stopStallWatchdog()
+            stopReconnectWatchdog()
+            lastConnectArgs = null
             scope.launch { room?.disconnect() }
             setKeepScreenOn(false)
             setProximityMonitoringInternal(false)
@@ -1122,6 +1124,135 @@ class LiveKitPlugin : Plugin() {
             abandonAudioFocusInternal()
             stopCallForegroundService()
         } catch (_: Exception) {}
+    }
+
+    // ------------------------------------------------------------
+    // Step 26 — Network resilience (hard reconnect + ICE restart)
+    //
+    // The LiveKit Android SDK already handles short signal-channel
+    // drops automatically (~10 s window of WebSocket retry + WebRTC ICE
+    // restart). When that fails we don't sit on a frozen tile — we
+    // tear the room down and rebuild from cached connect args. JS
+    // sees a single `connection-state` { state:"reconnected", hard:true }
+    // event when we succeed, or `state:"lost"` after we've burned all
+    // attempts inside the 60 s recovery window.
+    // ------------------------------------------------------------
+
+    private fun isClientInitiatedDisconnect(reasonName: String): Boolean {
+        // LiveKit's DisconnectReason enum: CLIENT_INITIATED, DUPLICATE_IDENTITY,
+        // SERVER_SHUTDOWN, PARTICIPANT_REMOVED, ROOM_DELETED, STATE_MISMATCH,
+        // JOIN_FAILURE, UNKNOWN_REASON. We only suppress auto-reconnect for
+        // the explicitly intentional cases.
+        return reasonName.equals("CLIENT_INITIATED", ignoreCase = true) ||
+               reasonName.equals("PARTICIPANT_REMOVED", ignoreCase = true) ||
+               reasonName.equals("ROOM_DELETED", ignoreCase = true) ||
+               reasonName.equals("DUPLICATE_IDENTITY", ignoreCase = true)
+    }
+
+    private fun startReconnectWatchdog() {
+        if (!resilienceEnabled) return
+        stopReconnectWatchdog()
+        reconnectWatchdogJob = scope.launch {
+            // Give the SDK 15 s to recover on its own.
+            delay(15_000L)
+            if (room == null) return@launch
+            if (reconnectingSinceMs == 0L) return@launch // already recovered
+            // Emit "degraded" so JS can swap to a stronger UI affordance.
+            val data = JSObject()
+            data.put("state", "degraded")
+            data.put("elapsedMs", System.currentTimeMillis() - reconnectingSinceMs)
+            notifyListeners("connection-state", data)
+            scheduleHardReconnect("watchdog")
+        }
+    }
+
+    private fun stopReconnectWatchdog() {
+        reconnectWatchdogJob?.cancel()
+        reconnectWatchdogJob = null
+    }
+
+    private fun scheduleHardReconnect(trigger: String) {
+        if (!resilienceEnabled) return
+        if (hardReconnectInProgress) return
+        val args = lastConnectArgs ?: return
+        // 60 s total recovery window from the *first* time we noticed trouble.
+        val windowStart = if (reconnectingSinceMs > 0) reconnectingSinceMs
+                          else System.currentTimeMillis()
+        if (System.currentTimeMillis() - windowStart > 60_000L ||
+            hardReconnectAttempts >= 3
+        ) {
+            val data = JSObject()
+            data.put("state", "lost")
+            data.put("attempts", hardReconnectAttempts)
+            data.put("trigger", trigger)
+            notifyListeners("connection-state", data)
+            return
+        }
+        hardReconnectInProgress = true
+        scope.launch {
+            try {
+                // Exponential backoff — 3 s, 6 s, 12 s.
+                val backoffMs = 3_000L * (1L shl hardReconnectAttempts)
+                Log.w(TAG, "Hard reconnect attempt ${hardReconnectAttempts + 1} in ${backoffMs}ms (trigger=$trigger)")
+                delay(backoffMs)
+                hardReconnectAttempts += 1
+                connectInternal(args, isReconnect = true)
+            } catch (e: Exception) {
+                Log.e(TAG, "Hard reconnect failed", e)
+                val data = JSObject()
+                data.put("state", "reconnect-failed")
+                data.put("attempt", hardReconnectAttempts)
+                data.put("error", e.message ?: e.javaClass.simpleName)
+                notifyListeners("connection-state", data)
+                // Schedule the next attempt (re-enters the gate above).
+                hardReconnectInProgress = false
+                scheduleHardReconnect("retry")
+                return@launch
+            } finally {
+                hardReconnectInProgress = false
+            }
+        }
+    }
+
+    @PluginMethod
+    fun reconnectNow(call: PluginCall) {
+        val args = lastConnectArgs
+        if (args == null) {
+            call.reject("No active session to reconnect")
+            return
+        }
+        scope.launch {
+            try {
+                hardReconnectAttempts = 0
+                reconnectingSinceMs = System.currentTimeMillis()
+                stopReconnectWatchdog()
+                connectInternal(args, isReconnect = true)
+                val ret = JSObject()
+                ret.put("connected", true)
+                call.resolve(ret)
+            } catch (e: Exception) {
+                call.reject("reconnectNow failed: ${e.message}")
+            }
+        }
+    }
+
+    @PluginMethod
+    fun setResilienceEnabled(call: PluginCall) {
+        val enabled = call.getBoolean("enabled", true) ?: true
+        resilienceEnabled = enabled
+        if (!enabled) stopReconnectWatchdog()
+        val ret = JSObject(); ret.put("enabled", enabled); call.resolve(ret)
+    }
+
+    @PluginMethod
+    fun getConnectionState(call: PluginCall) {
+        val ret = JSObject()
+        ret.put("hasRoom", room != null)
+        ret.put("hasSession", lastConnectArgs != null)
+        ret.put("reconnectingSinceMs", reconnectingSinceMs)
+        ret.put("hardReconnectAttempts", hardReconnectAttempts)
+        ret.put("resilienceEnabled", resilienceEnabled)
+        call.resolve(ret)
     }
 
     // ------------------------------------------------------------
