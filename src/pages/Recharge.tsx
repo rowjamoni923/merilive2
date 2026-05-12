@@ -3218,16 +3218,19 @@ const Recharge = () => {
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <div className="w-9 h-9 rounded-xl bg-amber-500/20 flex items-center justify-center overflow-hidden">
-                        {selectedHelperMethod.logo_url ? (
-                          <img
-                            src={selectedHelperMethod.logo_url}
-                            alt={selectedHelperMethod.method_name}
-                            className="h-6 w-6 object-contain"
-                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                          />
-                        ) : (
-                          <span className="text-lg">{selectedHelperMethod.method_name.toLowerCase() === 'nagad' ? '🧡' : selectedHelperMethod.method_name.toLowerCase() === 'bkash' ? '💜' : '💳'}</span>
-                        )}
+                        {(() => {
+                          const resolvedLogo = resolveMethodLogo(selectedHelperMethod.logo_url, selectedHelperMethod.method_name);
+                          return resolvedLogo ? (
+                            <img
+                              src={resolvedLogo}
+                              alt={selectedHelperMethod.method_name}
+                              className="h-6 w-6 object-contain"
+                              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                            />
+                          ) : (
+                            <span className="text-lg">{selectedHelperMethod.method_name.toLowerCase() === 'nagad' ? '🧡' : selectedHelperMethod.method_name.toLowerCase() === 'bkash' ? '💜' : '💳'}</span>
+                          );
+                        })()}
                       </div>
                       <div>
                         <p className="text-sm font-bold text-white">{selectedHelperMethod.method_name}</p>
