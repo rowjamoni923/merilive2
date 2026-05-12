@@ -143,6 +143,16 @@ export interface NativeLiveKitPlugin {
    */
   setPauseCameraOnBackground(opts: { enabled: boolean }): Promise<{ enabled: boolean }>;
 
+  // --- Video stall & black-frame recovery (Step 25) ------------
+  /**
+   * Toggle the per-track decoded-frame watchdog. When enabled (default),
+   * the plugin watches each attached video tile (local + remote) and
+   * attempts soft recovery (resubscribe / camera toggle) after 5 s of
+   * frozen frames; emits "video-stall-failed" after 12 s.
+   */
+  setStallWatchdogEnabled(opts: { enabled: boolean }): Promise<{ enabled: boolean }>;
+  getStallStatus(): Promise<StallStatus>;
+
   addListener(eventName: 'participant-connected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'participant-disconnected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'track-subscribed', cb: (e: TrackEvent) => void): Promise<PluginListenerHandle>;
@@ -153,6 +163,7 @@ export interface NativeLiveKitPlugin {
   addListener(eventName: 'audio-interruption', cb: (e: AudioInterruptionEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'connection-state', cb: (e: ConnectionStateEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'adaptive-tier', cb: (e: AdaptiveTierEvent) => void): Promise<PluginListenerHandle>;
+  addListener(eventName: 'video-stall', cb: (e: VideoStallEvent) => void): Promise<PluginListenerHandle>;
 }
 
 export const NativeLiveKit = registerPlugin<NativeLiveKitPlugin>('NativeLiveKit');
