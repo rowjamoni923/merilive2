@@ -40,11 +40,20 @@ interface BatchDetail {
   amount: number;
 }
 
+interface CommissionSchedule {
+  is_active: boolean;
+  delay_hours_after_transfer: number;
+  next_run_at: string | null;
+  last_run_at: string | null;
+  last_result: { transfers_processed?: number; own_commission_total?: number; upper_bonus_total?: number } | null;
+}
+
 const AdminTransferScheduler = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [distributing, setDistributing] = useState(false);
   const [schedule, setSchedule] = useState<TransferSchedule>({
     is_active: false,
     interval_days: 7,
@@ -52,6 +61,13 @@ const AdminTransferScheduler = () => {
     next_transfer_at: null,
     last_transfer_at: null,
     timezone: 'Asia/Dhaka'
+  });
+  const [commissionSchedule, setCommissionSchedule] = useState<CommissionSchedule>({
+    is_active: true,
+    delay_hours_after_transfer: 1,
+    next_run_at: null,
+    last_run_at: null,
+    last_result: null,
   });
   const [countdown, setCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [history, setHistory] = useState<TransferHistory[]>([]);
@@ -61,6 +77,7 @@ const AdminTransferScheduler = () => {
 
   useEffect(() => {
     fetchSchedule();
+    fetchCommissionSchedule();
     fetchHistory();
   }, []);
 
