@@ -61,7 +61,7 @@ export interface NativeLiveKitPlugin {
   setAudioMode(opts: { mode: 'voice' | 'video' | 'none' | 'off' | 'restore' }): Promise<{ mode: string }>;
 
   // --- Audio device routing (Step 13) --------------------------
-  getAudioDevices(): Promise<{ active: AudioDeviceType; devices: AudioDeviceInfo[] }>;
+  getAudioDevices(): Promise<{ active: AudioDeviceType; devices: NativeAudioDevice[] }>;
   setAudioDevice(opts: { type: AudioDeviceType }): Promise<{ type: AudioDeviceType; applied: boolean }>;
 
   addListener(eventName: 'participant-connected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
