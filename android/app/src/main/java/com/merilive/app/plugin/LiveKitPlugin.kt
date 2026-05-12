@@ -159,6 +159,35 @@ class LiveKitPlugin : Plugin() {
     private var inBackground: Boolean = false
     private var cameraOnBeforeBackground: Boolean = false
 
+    // --- Stall & black-frame recovery (Step 25) ------------------
+    //
+    // Watchdog tracks "last decoded frame timestamp" per attached video
+    // track via a tiny VideoSink wrapper installed alongside the renderer.
+    // Every 2 s a coroutine inspects the table:
+    //   • > STALL_WARN_MS (5 s) without a frame → emit "video-stall" and
+    //     attempt soft recovery (remote: unsubscribe + resubscribe;
+    //     local: stop+start capture).
+    //   • > STALL_HARD_MS (12 s) and recovery already attempted twice →
+    //     emit "video-stall-failed" so JS can show a banner / fall back.
+    // Counters reset on every successful frame and on attach/detach.
+    private data class StallEntry(
+        var lastFrameMs: Long,
+        var attempts: Int,
+        var lastAttemptMs: Long,
+        val isLocal: Boolean,
+        val sid: String, // participant sid; "local" for our own preview
+    )
+    private val stallTable = mutableMapOf<String, StallEntry>()
+    private val stallSinks = mutableMapOf<String, VideoSink>()
+    private var stallWatchdogJob: Job? = null
+    private var stallWatchdogEnabled: Boolean = true
+    companion object Watchdog {
+        private const val STALL_POLL_MS = 2_000L
+        private const val STALL_WARN_MS = 5_000L
+        private const val STALL_HARD_MS = 12_000L
+        private const val STALL_RECOVERY_COOLDOWN_MS = 6_000L
+    }
+
     // ------------------------------------------------------------
     // Public API
     // ------------------------------------------------------------
