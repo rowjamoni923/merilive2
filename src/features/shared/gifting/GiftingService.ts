@@ -8,6 +8,7 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
+import { callGiftService } from '@/utils/giftServiceClient';
 
 export interface GiftItem {
   id: string;
@@ -132,34 +133,14 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
       giftId, senderId, receiverId, quantity, context
     });
 
-    // Use atomic database function for secure gift transaction
-    const { data, error } = await supabase.rpc('process_gift_transaction', {
-      p_sender_id: senderId,
-      p_receiver_id: receiverId,
-      p_gift_id: giftId,
-      p_quantity: quantity,
-      p_stream_id: context === 'live' ? streamId : null,
-      p_party_room_id: context === 'party' ? roomId : null,
-      p_call_id: context === 'call' ? callId : null,
-      p_reel_id: context === 'reel' ? reelId : null,
-    } as any);
-
-    if (error) {
-      console.error('[GiftingService] RPC error:', error);
-      return { success: false, error: error.message };
-    }
-
-    const result = data as {
-      success: boolean;
-      error?: string;
-      transaction_id?: string;
-      coins_spent?: number;
-      beans_earned?: number;
-      host_percent?: number;
-      gift_name?: string;
-      gift_icon_url?: string;
-      gift_animation_url?: string;
-    };
+    const result = await callGiftService({
+      receiverId,
+      giftId,
+      quantity,
+      streamId: context === 'live' ? streamId : null,
+      partyRoomId: context === 'party' ? roomId : null,
+      callId: context === 'call' ? callId : null,
+    });
 
     if (!result.success) {
       console.error('[GiftingService] Transaction failed:', result.error);
@@ -167,32 +148,30 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
     }
 
     console.log('[GiftingService] ✅ Gift sent successfully:', {
-      transaction_id: result.transaction_id,
-      coins_spent: result.coins_spent,
-      beans_earned: result.beans_earned,
-      host_percent: result.host_percent
+      transaction_id: result.transactionId,
+      coins_spent: result.coinsSpent,
+      beans_earned: result.hostReceived,
+      host_percent: result.hostPercent
     });
 
     return {
       success: true,
       transaction: {
-        id: result.transaction_id || 'unknown',
-        coins_spent: result.coins_spent || 0,
-        beans_earned: result.beans_earned || 0,
+        id: result.transactionId || 'unknown',
+        coins_spent: result.coinsSpent || 0,
+        beans_earned: result.hostReceived || 0,
       },
       gift: {
         id: giftId,
-        name: result.gift_name || 'Gift',
-        coins: result.coins_spent || 0,
+        name: 'Gift',
+        coins: result.coinsSpent || 0,
         category: 'popular',
-        icon_url: result.gift_icon_url,
-        animation_url: result.gift_animation_url,
       },
     };
 
   } catch (error) {
     console.error('[GiftingService] Send gift error:', error);
-    return { success: false, error: 'An unexpected error occurred' };
+    return { success: false, error: error instanceof Error ? error.message : 'An unexpected error occurred' };
   }
 }
 
