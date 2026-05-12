@@ -327,6 +327,13 @@ const AdminTopupPaymentMethods = () => {
                         {!method.is_active && (
                           <Badge variant="outline" className="text-red-400 border-red-400">Inactive</Badge>
                         )}
+                        {method.country_codes && method.country_codes.length > 0 ? (
+                          <Badge variant="outline" className="text-emerald-300 border-emerald-500/40">
+                            🌍 {method.country_codes.join(', ')}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-blue-300 border-blue-500/40">🌐 Global</Badge>
+                        )}
                       </div>
                       {method.account_name && <p className="text-slate-400 text-sm">{method.account_name}</p>}
                       {(method.payment_number || method.account_number) && (
