@@ -2998,9 +2998,20 @@ const Recharge = () => {
                       "bg-gradient-to-br from-purple-500 to-indigo-600"
                     )}>
                       {gateway.logo_url ? (
-                        <img src={gateway.logo_url} alt={gateway.name} className="w-10 h-10 rounded-lg object-cover" />
+                        <>
+                          <img
+                            src={gateway.logo_url}
+                            alt={gateway.name}
+                            className="w-10 h-10 rounded-lg object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                            }}
+                          />
+                          <span className="hidden text-base font-black text-white">{paymentBrandFallback(gateway.name)}</span>
+                        </>
                       ) : (
-                        <span>💳</span>
+                        <span className="text-base font-black text-white">{paymentBrandFallback(gateway.name)}</span>
                       )}
                     </div>
                     <div className="flex-1 text-left">
