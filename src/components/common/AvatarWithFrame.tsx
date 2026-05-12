@@ -293,7 +293,8 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
       };
     }
 
-    // Use batch system for userId - defer network hit to idle frame to avoid initial UI jank
+    // Use batch system for userId - fetch IMMEDIATELY (no idle deferral)
+    // Idle deferral caused 100-250ms frame lag on Profile/Chat/etc. Frame must be instant.
     if (userId) {
       const cached = getUserFrameUrl(userId);
       if (cached) {
@@ -302,32 +303,15 @@ const AvatarWithFrame = memo(forwardRef<HTMLDivElement, AvatarWithFrameProps>(({
         return;
       }
 
-      const resolveFromBatch = () => {
-        requestUserFrame(userId).then(() => {
-          if (cancelled) return;
-          const result = getUserFrameUrl(userId);
-          if (result) {
-            setActiveFrameUrl(result.url);
-            setActiveFrameType(result.type);
-          }
-        });
-      };
-
-      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-        const idleId = (window as any).requestIdleCallback(resolveFromBatch, { timeout: 250 });
-        return () => {
-          cancelled = true;
-          if ('cancelIdleCallback' in window) {
-            (window as any).cancelIdleCallback(idleId);
-          }
-        };
-      }
-
-      const timerId = globalThis.setTimeout(resolveFromBatch, 0);
-      return () => {
-        cancelled = true;
-        globalThis.clearTimeout(timerId);
-      };
+      requestUserFrame(userId).then(() => {
+        if (cancelled) return;
+        const result = getUserFrameUrl(userId);
+        if (result) {
+          setActiveFrameUrl(result.url);
+          setActiveFrameType(result.type);
+        }
+      });
+      return () => { cancelled = true; };
     }
 
     // No userId or propFrameId - use level-based frame
