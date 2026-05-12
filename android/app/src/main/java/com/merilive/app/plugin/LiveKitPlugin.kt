@@ -454,6 +454,10 @@ class LiveKitPlugin : Plugin() {
         // Step 27 — listen for WiFi↔Cellular transitions for this session.
         if (!isReconnect) registerNetworkCallback()
 
+        // Step 28 — start periodic RTC stats / telemetry collector.
+        try { localSid = newRoom.localParticipant.sid.value } catch (_: Exception) {}
+        startStatsCollector()
+
         if (isReconnect) {
             // Step 26 — emit a "reconnected" event so JS knows our hard
             // reconnect succeeded and can re-attach renderers (the old
