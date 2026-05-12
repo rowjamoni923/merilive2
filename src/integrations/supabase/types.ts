@@ -16365,6 +16365,16 @@ export type Database = {
         }
         Returns: Json
       }
+      process_google_play_purchase: {
+        Args: {
+          p_google_order_id?: string
+          p_google_payload?: Json
+          p_product_id: string
+          p_purchase_token: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       process_live_game_round: {
         Args: { p_result?: string; p_round_id: string; p_winning_value: string }
         Returns: Json
