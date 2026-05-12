@@ -83,6 +83,7 @@ export function useAgoraCall(
     if (usingNativeRef.current) {
       nativeLiveKitController.disconnect().catch(() => {});
       usingNativeRef.current = false;
+      setNativeActive(false);
     }
 
     if (roomRef.current) {
@@ -159,6 +160,7 @@ export function useAgoraCall(
             });
 
             usingNativeRef.current = true;
+            setNativeActive(true);
             setState(p => ({
               ...p,
               isConnected: true,
@@ -171,6 +173,7 @@ export function useAgoraCall(
           } catch (nativeErr) {
             console.error('[LiveKitCall/Native] init failed, falling back to web:', nativeErr);
             usingNativeRef.current = false;
+            setNativeActive(false);
             // Fall through to web path.
           }
         }
