@@ -390,6 +390,22 @@ const queryClient = new QueryClient({
   },
 });
 
+// 🚀 INSTANT LOAD: Persist React Query cache to localStorage so on every app
+// launch / reload / route switch, all previously-fetched data appears in 0ms.
+// Realtime + background refetch silently update under the hood.
+const __queryPersister = (() => {
+  try {
+    if (typeof window === 'undefined') return undefined;
+    return createSyncStoragePersister({
+      storage: window.localStorage,
+      key: 'merilive-rq-cache-v1',
+      throttleTime: 1000,
+    });
+  } catch {
+    return undefined;
+  }
+})();
+
 // Export queryClient for use in app resume handler
 export { queryClient };
 
