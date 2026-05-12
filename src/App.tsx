@@ -1,6 +1,6 @@
 import { useEffect, useState, lazy, Suspense, memo } from "react";
 import { useLocation, useParams } from "react-router-dom";
-import { lazyRetry } from "@/utils/lazyRetry";
+import { lazyRetry, lazyRetryOptional } from "@/utils/lazyRetry";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
@@ -48,9 +48,10 @@ const DeepLinkHandler = lazy(lazyRetry(() => import("./components/common/DeepLin
 import ErrorBoundary from "./components/ErrorBoundary";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 const EventPopupBanner = lazy(lazyRetry(() => import("./components/common/EventPopupBanner")));
-const DailyLoginPopup = lazy(lazyRetry(() => import("./components/rewards/DailyLoginPopup")));
-const WelcomeOnboarding = lazy(lazyRetry(() => import("./components/onboarding/WelcomeOnboarding")));
-const RatingRewardPopup = lazy(lazyRetry(() => import("./components/rewards/RatingRewardPopup")));
+const OptionalOverlayFallback = () => null;
+const DailyLoginPopup = lazy(lazyRetryOptional(() => import("./components/rewards/DailyLoginPopup"), OptionalOverlayFallback));
+const WelcomeOnboarding = lazy(lazyRetryOptional(() => import("./components/onboarding/WelcomeOnboarding"), OptionalOverlayFallback));
+const RatingRewardPopup = lazy(lazyRetryOptional(() => import("./components/rewards/RatingRewardPopup"), OptionalOverlayFallback));
 const LandingPage = lazy(lazyRetry(() => import("./pages/LandingPage")));
 const Unsubscribe = lazy(lazyRetry(() => import("./pages/Unsubscribe")));
 // =============================================
@@ -449,7 +450,16 @@ const RouteScopedBackgroundHooks = memo(({ userId, hasSession }: { userId: strin
     <>
       {!isAdminRoute && <Suspense fallback={null}><RealtimeQuerySyncBridge /></Suspense>}
       <Suspense fallback={null}><DeferredAppHooks userId={userId} /></Suspense>
-      {showPopups ? <><WelcomeOnboarding /><EventPopupBanner /><DailyLoginPopup /><RatingRewardPopup /></> : null}
+      {showPopups ? (
+        <ErrorBoundary componentName="OptionalAppOverlays" fallback={null}>
+          <Suspense fallback={null}>
+            <WelcomeOnboarding />
+            <EventPopupBanner />
+            <DailyLoginPopup />
+            <RatingRewardPopup />
+          </Suspense>
+        </ErrorBoundary>
+      ) : null}
       {!isAdminRoute && (
         <>
           <AppUpdateChecker />

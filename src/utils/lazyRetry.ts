@@ -63,3 +63,19 @@ export function lazyRetry<T extends React.ComponentType<any>>(
     throw lastError;
   };
 }
+
+export function lazyRetryOptional<T extends React.ComponentType<any>>(
+  importFn: () => Promise<{ default: T }>,
+  fallback: React.ComponentType<any>,
+): () => Promise<{ default: React.ComponentType<any> }> {
+  const load = lazyRetry(importFn);
+
+  return async () => {
+    try {
+      return await load();
+    } catch (error) {
+      console.error('[LazyRetry] Optional module failed, continuing without it:', error);
+      return { default: fallback };
+    }
+  };
+}
