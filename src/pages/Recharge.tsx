@@ -603,19 +603,23 @@ const Recharge = () => {
       // Get unique helper IDs
       const helperIds = [...new Set(combinedMethodsData.map(m => m.helper_id).filter((id: string) => !id.startsWith('country-') && !id.startsWith('global-')))];
       
-      // Fetch helper data with profiles separately
+      // STRICT COUNTRY FILTER on the helper itself — guarantees BD methods only
+      // show in BD, IN methods only in IN, PK in PK, etc. Combined with the
+      // country filter on helper_country_payment_methods, leakage is impossible.
       const { data: helpersData, error: helpersError } = await supabase
         .from('topup_helpers')
         .select(`
           id,
           user_id,
           wallet_balance,
+          country_code,
           trader_level,
           payroll_enabled,
           is_active,
           is_verified
         `)
-        .in('id', helperIds);
+        .in('id', helperIds)
+        .eq('country_code', userCountryCode);
 
       if (helpersError) {
         console.error('[Recharge] Error fetching helpers:', helpersError);
