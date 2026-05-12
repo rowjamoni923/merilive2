@@ -815,25 +815,25 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     setSearchedUser(null);
     
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, display_name, avatar_url, app_uid, coins')
-        .eq('app_uid', transferSearchQuery.trim().toUpperCase())
-        .maybeSingle();
+        const { data, error } = await supabase.rpc('search_user_by_app_uid', {
+          _app_uid: transferSearchQuery.trim().toUpperCase()
+        });
 
       if (error) throw error;
       
-      if (!data) {
+      const foundUser = Array.isArray(data) ? data[0] : null;
+
+      if (!foundUser) {
         toast({ title: "Not Found", description: "No user found with this App UID", variant: "destructive" });
         return;
       }
 
-      if (data.id === currentUser.id) {
+      if (foundUser.id === currentUser.id) {
         toast({ title: "Invalid Receiver", description: "You cannot transfer diamonds to yourself from the User tab", variant: "destructive" });
         return;
       }
 
-      setSearchedUser(data);
+      setSearchedUser(foundUser);
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
@@ -2355,7 +2355,6 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                       <div className="flex-1">
                         <p className="text-white font-bold text-lg">{searchedUser.display_name}</p>
                         <p className="text-slate-400 text-sm">ID: {searchedUser.app_uid}</p>
-                        <p className="text-cyan-400 text-xs mt-0.5">Balance: {searchedUser.coins?.toLocaleString() || 0} 💎</p>
                       </div>
                     </div>
 
