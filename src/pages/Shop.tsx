@@ -157,21 +157,23 @@ const ShopItemCard = ({
             <img 
               src={item.preview_url} 
               alt={item.name}
-              className={`w-full h-full object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 ${isFullWidth ? 'scale-105' : ''}`}
+              className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
               onError={() => setImageError(true)}
             />
           ) : item.animation_file_url?.endsWith('.svga') || item.animation_file_url?.endsWith('.json') ? (
-            <UniversalAnimationPlayer
-              src={item.animation_file_url || ''}
-              className={`w-full h-full ${isFullWidth ? 'scale-110' : ''}`}
-              loop
-              autoPlay
-            />
+            <div className="w-full h-full flex items-center justify-center">
+              <UniversalAnimationPlayer
+                src={item.animation_file_url || ''}
+                className={`max-w-[85%] max-h-[85%] ${isFullWidth ? 'scale-110' : ''}`}
+                loop
+                autoPlay
+              />
+            </div>
           ) : (
             <img 
               src={item.animation_file_url || item.preview_url || ''} 
               alt={item.name}
-              className={`w-full h-full object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 ${isFullWidth ? 'scale-105' : ''}`}
+              className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
               onError={() => setImageError(true)}
             />
           )
@@ -628,25 +630,27 @@ const Shop = () => {
                       }>
                         <SVGAPlayerWithAudio
                           src={selectedItem.animation_file_url || ''}
-                          className="w-full h-full scale-110"
+                          className="max-w-[85%] max-h-[85%] object-contain"
                           loop={true}
                           autoPlay={true}
                           volume={0}
                         />
                       </Suspense>
                     ) : (
-                      <UniversalAnimationPlayer
-                        src={selectedItem.animation_file_url || ''}
-                        className={`w-full h-full ${isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}`}
-                        loop
-                        autoPlay
-                      />
+                      <div className="w-full h-full flex items-center justify-center">
+                        <UniversalAnimationPlayer
+                          src={selectedItem.animation_file_url || ''}
+                          className={`max-w-[85%] max-h-[85%] ${isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}`}
+                          loop
+                          autoPlay
+                        />
+                      </div>
                     )
                   ) : selectedItem.preview_url || selectedItem.animation_file_url ? (
                     <img 
                       src={selectedItem.animation_file_url || selectedItem.preview_url || ''} 
                       alt={selectedItem.name} 
-                      className={`max-w-full max-h-full object-contain drop-shadow-2xl ${isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}`}
+                      className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl mx-auto ${isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}`}
                       onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                     />
                   ) : (
