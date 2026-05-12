@@ -3300,6 +3300,7 @@ export type Database = {
           target_gender: string | null
           task_type: string
           title: string
+          updated_at: string
         }
         Insert: {
           created_at?: string | null
@@ -3322,6 +3323,7 @@ export type Database = {
           target_gender?: string | null
           task_type: string
           title: string
+          updated_at?: string
         }
         Update: {
           created_at?: string | null
@@ -3344,6 +3346,7 @@ export type Database = {
           target_gender?: string | null
           task_type?: string
           title?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -5903,6 +5906,7 @@ export type Database = {
           processed_at: string | null
           processed_by: string | null
           status: string | null
+          updated_at: string
         }
         Insert: {
           beans_amount: number
@@ -5915,6 +5919,7 @@ export type Database = {
           processed_at?: string | null
           processed_by?: string | null
           status?: string | null
+          updated_at?: string
         }
         Update: {
           beans_amount?: number
@@ -5927,6 +5932,7 @@ export type Database = {
           processed_at?: string | null
           processed_by?: string | null
           status?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -6359,6 +6365,7 @@ export type Database = {
           is_active: boolean | null
           level: number
           sound_url: string | null
+          updated_at: string
         }
         Insert: {
           animation_url?: string | null
@@ -6368,6 +6375,7 @@ export type Database = {
           is_active?: boolean | null
           level: number
           sound_url?: string | null
+          updated_at?: string
         }
         Update: {
           animation_url?: string | null
@@ -6377,6 +6385,7 @@ export type Database = {
           is_active?: boolean | null
           level?: number
           sound_url?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -6401,6 +6410,7 @@ export type Database = {
           privilege_type: string | null
           sound_url: string | null
           unlock_level: number | null
+          updated_at: string
         }
         Insert: {
           animation_url?: string | null
@@ -6422,6 +6432,7 @@ export type Database = {
           privilege_type?: string | null
           sound_url?: string | null
           unlock_level?: number | null
+          updated_at?: string
         }
         Update: {
           animation_url?: string | null
@@ -6443,6 +6454,7 @@ export type Database = {
           privilege_type?: string | null
           sound_url?: string | null
           unlock_level?: number | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -6488,6 +6500,7 @@ export type Database = {
           original_price: number
           starts_at: string
           title: string
+          updated_at: string
         }
         Insert: {
           coins_amount: number
@@ -6503,6 +6516,7 @@ export type Database = {
           original_price: number
           starts_at: string
           title: string
+          updated_at?: string
         }
         Update: {
           coins_amount?: number
@@ -6518,6 +6532,7 @@ export type Database = {
           original_price?: number
           starts_at?: string
           title?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -7984,6 +7999,7 @@ export type Database = {
           room_code: string | null
           room_type: string | null
           total_seats: number | null
+          updated_at: string
           welcome_message: string | null
         }
         Insert: {
@@ -8007,6 +8023,7 @@ export type Database = {
           room_code?: string | null
           room_type?: string | null
           total_seats?: number | null
+          updated_at?: string
           welcome_message?: string | null
         }
         Update: {
@@ -8030,6 +8047,7 @@ export type Database = {
           room_code?: string | null
           room_type?: string | null
           total_seats?: number | null
+          updated_at?: string
           welcome_message?: string | null
         }
         Relationships: [
@@ -9420,6 +9438,7 @@ export type Database = {
           reward_type: string
           screenshot_url: string | null
           status: string | null
+          updated_at: string
           user_id: string
         }
         Insert: {
@@ -9435,6 +9454,7 @@ export type Database = {
           reward_type?: string
           screenshot_url?: string | null
           status?: string | null
+          updated_at?: string
           user_id: string
         }
         Update: {
@@ -9450,6 +9470,7 @@ export type Database = {
           reward_type?: string
           screenshot_url?: string | null
           status?: string | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -10110,6 +10131,7 @@ export type Database = {
           is_active: boolean | null
           message_text: string
           room_id: string | null
+          updated_at: string
         }
         Insert: {
           created_at?: string
@@ -10117,6 +10139,7 @@ export type Database = {
           is_active?: boolean | null
           message_text: string
           room_id?: string | null
+          updated_at?: string
         }
         Update: {
           created_at?: string
@@ -10124,6 +10147,7 @@ export type Database = {
           is_active?: boolean | null
           message_text?: string
           room_id?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -11011,6 +11035,7 @@ export type Database = {
           support_admin_name: string | null
           ticket_id: string
           translated_content: string | null
+          updated_at: string
           voice_transcript: string | null
         }
         Insert: {
@@ -11026,6 +11051,7 @@ export type Database = {
           support_admin_name?: string | null
           ticket_id: string
           translated_content?: string | null
+          updated_at?: string
           voice_transcript?: string | null
         }
         Update: {
@@ -11041,6 +11067,7 @@ export type Database = {
           support_admin_name?: string | null
           ticket_id?: string
           translated_content?: string | null
+          updated_at?: string
           voice_transcript?: string | null
         }
         Relationships: []
@@ -14234,6 +14261,7 @@ export type Database = {
           privilege_type: string | null
           sound_url: string | null
           unlock_level: number | null
+          updated_at: string
         }[]
         SetofOptions: {
           from: "*"
@@ -15285,7 +15313,7 @@ export type Database = {
           }
         | { Args: { p_request_id: string }; Returns: boolean }
       approve_rating_reward: {
-        Args: { _admin_id: string; _reward_id: string }
+        Args: { p_admin_id: string; p_claim_id: string }
         Returns: Json
       }
       assign_payroll_to_trader: {

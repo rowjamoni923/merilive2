@@ -1,123 +1,100 @@
+# Admin Save Failures + Rating Reward Workflow — Phased Plan
 
-# Batch 6 — Schedule-Driven Agency Beans + Commission Distribution
+## Why a plan first
 
-## আপনার চাওয়া (সংক্ষেপে)
+You're describing 138+ admin pages where Save button fails ("RPC fail" / "save fail"), 7 specific named pages, missing Task Center tasks, and a brand-new Rating Reward proof verification flow. I checked the database: the unified "Admin session full access" RLS policy is already present on 277 tables — so the failures are NOT a single global RLS problem. They are page-specific issues (wrong column names, missing triggers, broken RPCs, schema drift, or wrong data shape on insert/update). 
 
-1. Agency Dashboard-এ **Total Beans** = প্রতি সপ্তাহে host থেকে agency-তে transfer হওয়া beans (admin schedule অনুযায়ী, ১০০% নিখুঁত)
-2. Host beans transfer হওয়ার **ঠিক ১ ঘণ্টা পর** → Agency Commission distribution চলবে (auto schedule + manual button দুটোই)
-3. Commission rule:
-   - প্রতিটা agency নিজের host এর beans থেকে নিজের level rate% commission পাবে
-   - Upper agency পাবে `(upper_rate − sub_rate)%` শুধু যখন `upper_rate > sub_rate` (strict)
-   - সব commission **Company পে করবে — host বা sub-agency থেকে কখনোই minus হবে না**
-4. সব transferred beans + commission → Agency Dashboard "My Beans" + Withdrawal page-এ show হবে
-5. Sub-agency নিজে owner-ও, একই rule তার host এর জন্য, এবং তারও যদি sub থাকে — chain চলবে
-
-## Current State (audited)
-
-- ✅ `process_weekly_agency_transfers()` exists — host pending_earnings → agency.beans_balance
-- ✅ `AdminTransferScheduler.tsx` exists — countdown, auto + manual button
-- ⚠️ Agency commission এখন **per-gift / per-call trigger** (`auto_credit_agency_commission`) দিয়ে real-time credit হয় — schedule-based না
-- ⚠️ এটা চললে scheduled commission run = **double credit**
-
-## Architectural Decision
-
-**Switch agency commission from REAL-TIME (per-gift trigger) → SCHEDULED (weekly batch on transferred beans).**
-
-- Per-gift / per-call commission triggers DROP করা হবে
-- Commission distribution হবে শুধু `agency_earnings_transfers` rows-এর উপর (weekly batch থেকে আসা)
-- Commission পেমেন্ট = company expense, কোনো host/sub থেকে deduct না (already true)
-
-## Implementation Plan
-
-### 1. Database Migration
-
-**A. Drop per-gift / per-call agency commission triggers**
-- Drop `auto_credit_agency_commission` trigger on `gift_transactions`
-- Drop `auto_credit_agency_commission_from_call` trigger on `call_transactions`
-- Functions থাকুক (rollback এর জন্য), শুধু trigger detach
-
-**B. New schedule settings key:** `app_settings.commission_schedule`
-```json
-{
-  "is_active": true,
-  "delay_hours_after_transfer": 1,
-  "next_run_at": "...",
-  "last_run_at": "..."
-}
-```
-
-**C. New RPC: `process_agency_commission_distribution(_period_start timestamptz, _period_end timestamptz)`**
-- Loop unprocessed rows from `agency_earnings_transfers` in that window
-- For each transfer (agency_id, host_id, amount):
-  - `own_rate = resolve_agency_commission_rate(agency_id)` → credit `agency.beans_balance += floor(amount * own_rate/100)` → log to `agency_commission_history` with `transaction_type='weekly_distribution'`, `source_transaction_id=transfer.id`
-  - Walk parent chain: while `parent_agency_id` exists → `parent_rate = resolve_agency_commission_rate(parent_id)`; if `parent_rate > child_rate`, credit parent `floor(amount * (parent_rate − child_rate)/100)` → log with `transaction_type='upper_referral_bonus'`; set `child_rate = parent_rate`, move up
-- Idempotent via existing UNIQUE on `agency_commission_history(source_transaction_id, transaction_type)`
-- Mark `agency_earnings_transfers.commission_processed_at = now()` (new column)
-
-**D. Add column:** `agency_earnings_transfers.commission_processed_at TIMESTAMPTZ`
-
-### 2. Edge Function: `agency-commission-distribute`
-
-- Same auth pattern as `agency-weekly-transfer` (cron secret + manual admin)
-- Calls `process_agency_commission_distribution(last_run_at, now())`
-- Returns `{success, agencies_credited, total_commission, upper_bonuses}`
-
-### 3. Admin UI — `AdminTransferScheduler.tsx`
-
-Add a **second card section** below existing scheduler:
-
-```
-┌──────────────────────────────────────────────┐
-│ ⚡ Agency Commission Distribution            │
-│                                              │
-│ ☑ Auto-run after host transfer              │
-│ Delay: [ 1 ] hours                           │
-│                                              │
-│ Last run: 12 May 2026 1:30 AM                │
-│ Next run: 19 May 2026 1:30 AM (auto)         │
-│                                              │
-│ [ ▶ Distribute Commission Now ]              │
-└──────────────────────────────────────────────┘
-```
-
-- Manual button → invokes `agency-commission-distribute` with `manual:true`
-- Auto-trigger: when `agency-weekly-transfer` finishes, schedule `next_run_at = now() + delay_hours`
-- Existing host-transfer countdown card stays as-is
-
-### 4. Agency Dashboard / Withdrawal Display
-
-Confirm both surfaces sum:
-- Weekly transferred host beans (from `agency_earnings_transfers`)
-- Commission credits (from `agency_commission_history` where `agency_id = self`)
-
-→ Both already credit `agencies.beans_balance`, so display already correct. Verify "My Beans" + "Withdrawal" pages read this column.
-
-### 5. Memory Update
-
-New entry: `mem://business/scheduled-agency-commission-pkg32` documenting:
-- Per-gift triggers DROPPED (Pkg32 supersedes Pkg27 real-time mode)
-- Commission now flows on weekly transferred beans only
-- Upper bonus chain logic + delay rule
-
-## Risk & Mitigation
-
-- **Risk:** Existing in-flight gifts already credited via old triggers. **Mitigation:** Add `WHERE created_at > <migration_time>` guard in distribution to prevent re-crediting historical transfers.
-- **Risk:** Sub-agency chain depth. **Mitigation:** Hard cap at 5 levels with cycle detection.
-
-## Out of Scope
-
-- Native Android UI changes (backend only — native reads same columns)
-- Helper diamond commission (separate Pkg33)
-- Currency conversion changes
-
-## Files to Edit
-
-- New migration (DROP triggers + add column + new RPC)
-- `supabase/functions/agency-commission-distribute/index.ts` (new)
-- `src/pages/admin/AdminTransferScheduler.tsx` (add commission section)
-- `mem://business/scheduled-agency-commission-pkg32` (new memory)
-- `mem://index.md` (add entry)
+Touching 138 pages blindly will create more bugs than it fixes. I need to audit and fix in tight phases, each verified end-to-end before moving on.
 
 ---
 
-**Approve করলে শুরু করব। কোনো adjustment চাইলে বলুন (যেমন delay default ভিন্ন, বা per-gift trigger keep করতে চান)।**
+## Phase 1 — Diagnose the 7 named failing pages (no code changes yet)
+
+For each page below I will:
+- Open the page, find every save / mutation call
+- Run the exact same insert/update against the DB to capture the real Postgres error
+- Confirm whether the failure is: (a) wrong column, (b) failing trigger, (c) missing RPC, (d) wrong RLS scope, (e) frontend payload shape
+
+Pages:
+1. AdminLevelPrivileges (Level progress)
+2. AdminCallSettings (Call price)
+3. AdminSupportTickets (Support ticket)
+4. AdminPartyRooms — message section (Party room message)
+5. AdminPartyRooms / AdminBanners — background section (Party room background)
+6. AdminRewardClaimsHistory (Reward claim history)
+7. AdminRatingRewards (Rating reward)
+
+Output: one root-cause line per page so you can see exactly what's wrong before I fix it.
+
+## Phase 2 — Fix the 7 pages
+
+Each fix is its own migration + frontend patch. After each: re-test the save in the actual admin UI (preview), confirm a row writes, confirm the audit log captures it. No "looks fine, moving on."
+
+## Phase 3 — Rating Reward — Task list parity with the main app
+
+Right now `AdminRatingRewards` does not show the same task list users see in the main app's Task Center. I will:
+- Locate the source of truth for the user-facing rating tasks (likely `tasks` / `daily_tasks` / `rating_tasks` table or an app_settings JSON)
+- Make the admin page read from the SAME source so every task the user sees is editable here
+- Add CRUD with proper admin RLS
+
+## Phase 4 — Rating Reward — Proof upload + instant verify workflow
+
+End-to-end flow:
+
+```text
+USER (main app)                  ADMIN (admin panel)
+─────────────────                ───────────────────
+Gives 5★ rating                  
+   │                             
+   ▼                             
+Uploads proof screenshot ───────►  Appears INSTANTLY in
+(stored in private bucket          AdminRatingRewards 
+ rating-proofs/{userId}/...)       "Pending Verification" tab
+   │                                      │
+   ▼                                      ▼
+Status: pending                    Admin clicks proof → opens preview
+                                          │
+                          ┌───────────────┴───────────────┐
+                          ▼                               ▼
+                       APPROVE                         REJECT
+                          │                               │
+        Female host → +beans (admin-set)    Task removed from user's
+        Male user   → +diamonds (admin-set) Task Center permanently
+        Task marked completed +              (status=rejected, hidden
+        removed from Task Center forever      forever, no re-attempt)
+        (status=approved, hidden forever)
+```
+
+What I'll build:
+- **DB:** `rating_reward_submissions` table (user_id, task_id, rating, proof_url, status enum pending/approved/rejected, reviewed_by, reviewed_at, payout_diamonds, payout_beans). Audit log via existing `balance_audit_log`.
+- **Storage:** private bucket `rating-proofs` with owner-scoped upload + admin read RLS.
+- **RPC:** `submit_rating_proof(p_task_id, p_rating, p_proof_url)` and `admin_review_rating_proof(p_submission_id, p_decision)` — atomic credit + task hide.
+- **Realtime:** insert into `rating_reward_submissions` triggers admin notification + the page's pending list updates instantly.
+- **Task Center filter:** any task with an approved OR rejected submission for that user is filtered out — never shown again.
+- **Admin UI:** Pending tab with image preview modal, Approve/Reject buttons, payout amount auto-shown from settings, audit history tab.
+
+## Phase 5 — Bulk audit of remaining ~131 admin pages
+
+Only after Phases 1–4 are confirmed working. I will:
+- Script a static analysis: find every `.from(...).insert/.update/.upsert/.delete` and every `.rpc(...)` in `src/pages/admin/**`
+- For each, verify the target table/RPC exists, the columns/params match the current schema, and the page imports `adminClient` not the user `supabase` client
+- Produce a list of ALL pages with mismatches; fix in batches of ~10 with per-batch verification
+- Add a single shared `adminMutate()` helper that wraps insert/update with consistent error toasts that show the actual Postgres error message (not a generic "Failed to save") so future failures are diagnosable in 1 second instead of needing forensics
+
+## What I need from you to start Phase 1 fastest
+
+If you have any of these, paste them — it cuts diagnosis time by 80%:
+- A screenshot of the red error toast on ANY failing page
+- The page URL where you clicked Save and it failed
+- Open browser DevTools → Network tab → click Save → screenshot the failed request (red row)
+
+If you don't have these, I'll start Phase 1 anyway by reproducing each of the 7 named pages in the preview and reading the real error from the network log.
+
+## Out of scope (will not change in this plan)
+
+- The financial commission system (Pkg23–Pkg34 logic stays exactly as-is)
+- Live streaming / WebRTC / native Android code
+- Combo gifting (just shipped in the previous turn)
+- Memory rules around admin session, RLS policies, and audit logging — all preserved
+
+Reply "go" to start Phase 1, or paste the error/network screenshot and I'll jump straight to Phase 2 on whichever page you show.
