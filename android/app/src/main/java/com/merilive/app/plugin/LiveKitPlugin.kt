@@ -188,12 +188,6 @@ class LiveKitPlugin : Plugin() {
     private val stallSinks = mutableMapOf<String, VideoSink>()
     private var stallWatchdogJob: Job? = null
     private var stallWatchdogEnabled: Boolean = true
-    companion object Watchdog {
-        private const val STALL_POLL_MS = 2_000L
-        private const val STALL_WARN_MS = 5_000L
-        private const val STALL_HARD_MS = 12_000L
-        private const val STALL_RECOVERY_COOLDOWN_MS = 6_000L
-    }
 
     // ------------------------------------------------------------
     // Public API
