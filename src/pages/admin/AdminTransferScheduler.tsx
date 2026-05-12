@@ -652,6 +652,13 @@ const AdminTransferScheduler = () => {
               {distributing ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Coins className="w-4 h-4 mr-2" />}
               Distribute Commission Now
             </Button>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => navigate('/admin/agency-commission-log')}
+            >
+              View Commission Log & Adjust
+            </Button>
           </CardContent>
         </Card>
 
