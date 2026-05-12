@@ -92,6 +92,15 @@ class LiveKitPlugin : Plugin() {
     private var audioModeApplied: Boolean = false
     private var proximityWakeLock: PowerManager.WakeLock? = null
 
+    // --- Audio focus + interruption state (Step 15) ---------------
+    private var audioFocusRequest: android.media.AudioFocusRequest? = null
+    private var audioFocusListener: AudioManager.OnAudioFocusChangeListener? = null
+    private var hasAudioFocus: Boolean = false
+    /** True when we ducked/paused mic ourselves due to a transient loss; resume on regain. */
+    private var micPausedByFocusLoss: Boolean = false
+    /** Snapshot of user's mic intent before interruption, restored on focus regain. */
+    private var micIntentBeforeLoss: Boolean = true
+
     // ------------------------------------------------------------
     // Public API
     // ------------------------------------------------------------
