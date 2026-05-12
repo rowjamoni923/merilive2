@@ -2,7 +2,6 @@ package com.merilive.app.plugin
 
 import android.Manifest
 import android.content.Context
-import android.media.AudioAttributes
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.os.Build
