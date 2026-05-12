@@ -99,6 +99,15 @@ export interface StallStatus {
   tracks: Array<{ sid: string; isLocal: boolean; silentMs: number; attempts: number }>;
 }
 
+/** Step 27 — physical network the device is using. */
+export type NetworkType = 'none' | 'wifi' | 'cellular' | 'ethernet' | 'other';
+export interface NetworkChangedEvent {
+  from: NetworkType;
+  to: NetworkType;
+  /** True when the new network is metered (cellular almost always, paid-WiFi sometimes). */
+  metered: boolean;
+}
+
 export interface NativeLiveKitPlugin {
   isAvailable(): Promise<{ available: boolean; backend: string; version: string }>;
   connect(opts: ConnectOptions): Promise<{ connected: boolean; sid: string; identity: string }>;
