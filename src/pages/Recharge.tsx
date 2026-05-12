@@ -3274,14 +3274,20 @@ const Recharge = () => {
                         {(() => {
                           const resolvedLogo = resolveMethodLogo(selectedHelperMethod.logo_url, selectedHelperMethod.method_name);
                           return resolvedLogo ? (
-                            <img
-                              src={resolvedLogo}
-                              alt={selectedHelperMethod.method_name}
-                              className="h-6 w-6 object-contain"
-                              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                            />
+                            <>
+                              <img
+                                src={resolvedLogo}
+                                alt={selectedHelperMethod.method_name}
+                                className="h-6 w-6 object-contain"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                                }}
+                              />
+                              <span className="hidden text-sm font-black text-amber-200">{paymentBrandFallback(selectedHelperMethod.method_name)}</span>
+                            </>
                           ) : (
-                            <span className="text-lg">{selectedHelperMethod.method_name.toLowerCase() === 'nagad' ? '🧡' : selectedHelperMethod.method_name.toLowerCase() === 'bkash' ? '💜' : '💳'}</span>
+                            <span className="text-sm font-black text-amber-200">{paymentBrandFallback(selectedHelperMethod.method_name)}</span>
                           );
                         })()}
                       </div>
