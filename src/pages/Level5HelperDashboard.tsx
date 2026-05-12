@@ -1343,15 +1343,15 @@ const Level5HelperDashboard = () => {
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 text-center overflow-hidden">
             <p className="text-xs font-bold text-white truncate">
               {(() => {
-                const totalWallet = (helperData?.wallet_balance || 0);
-                return totalWallet >= 1000000 
+                const totalWallet = (helperData?.wallet_balance || 0) + (agencyDiamondBalance || 0);
+                return totalWallet >= 1000000
                   ? `${(totalWallet / 1000000).toFixed(1)}M`
-                  : totalWallet >= 1000 
+                  : totalWallet >= 1000
                     ? `${(totalWallet / 1000).toFixed(0)}K`
                     : totalWallet.toLocaleString();
               })()}
             </p>
-            <p className="text-[9px] text-white/70">💎 Wallet</p>
+            <p className="text-[9px] text-white/70">💎 Trader Wallet</p>
           </div>
         </div>
 

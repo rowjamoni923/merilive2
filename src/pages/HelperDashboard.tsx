@@ -1053,10 +1053,15 @@ const HelperDashboard = () => {
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-white/80 text-xs">Wallet Balance</p>
+              <p className="text-white/80 text-xs">Trader Wallet</p>
               <p className="text-2xl font-bold text-white">
-                {(helperData?.wallet_balance || 0).toLocaleString()} 💎
+                {((helperData?.wallet_balance || 0) + (agencyDiamondBalance || 0)).toLocaleString()} 💎
               </p>
+              {agencyDiamondBalance > 0 && (
+                <p className="text-white/60 text-[10px] mt-0.5">
+                  Helper {(helperData?.wallet_balance || 0).toLocaleString()} + Agency {agencyDiamondBalance.toLocaleString()}
+                </p>
+              )}
               <p className="text-emerald-200 text-xs mt-1 flex items-center gap-1">
                 <Send className="w-3 h-3" />
                 Tap to transfer to User or Agency
@@ -2120,11 +2125,16 @@ const HelperDashboard = () => {
             {/* Current Balance */}
             <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-xl p-3 border border-emerald-500/30">
               <div className="flex items-center justify-between">
-                <span className="text-white/80 text-sm">Your Balance</span>
+                <span className="text-white/80 text-sm">Trader Wallet</span>
                 <span className="text-emerald-400 font-bold text-lg">
-                  {(helperData?.wallet_balance || 0).toLocaleString()} 💎
+                  {((helperData?.wallet_balance || 0) + (agencyDiamondBalance || 0)).toLocaleString()} 💎
                 </span>
               </div>
+              {agencyDiamondBalance > 0 && (
+                <p className="text-white/50 text-[10px] mt-1">
+                  Helper {(helperData?.wallet_balance || 0).toLocaleString()} + Agency {agencyDiamondBalance.toLocaleString()}
+                </p>
+              )}
             </div>
 
             {/* Tabs */}
