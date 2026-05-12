@@ -127,5 +127,3 @@ class NativeLiveKitController {
 }
 
 export const nativeLiveKitController = new NativeLiveKitController();
-
-export const nativeLiveKitController = new NativeLiveKitController();
