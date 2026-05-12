@@ -149,7 +149,7 @@ export const resolveLevelFromTiers = async (
   const weeklyEarnings = Number(profile.weekly_earnings ?? 0);
 
   const totalPoints = isFemaleHost
-    ? await resolveEffectiveHostEarnings(profile.id, profileTotalEarnings, weeklyEarnings)
+    ? weeklyEarnings
     : await resolveEffectiveUserRechargeTotal(profile.id, profileTotalRecharged);
 
   const derivedLevel = tiers.reduce((highest, tier) => {
