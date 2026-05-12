@@ -131,7 +131,7 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
     onConnectionState: (s) => {
       if (s === 'reconnecting') {
         toast.loading('Reconnecting to live…', { id: 'lk-live-reconnect' });
-        setConnectionState('RECONNECTING');
+        setConnectionState('CONNECTING');
       } else {
         toast.success('Reconnected', { id: 'lk-live-reconnect', duration: 1500 });
         setConnectionState('CONNECTED');
