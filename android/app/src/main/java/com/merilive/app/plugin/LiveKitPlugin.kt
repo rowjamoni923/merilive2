@@ -174,6 +174,12 @@ class LiveKitPlugin : Plugin() {
         val callType = call.getString("callType", if (enableVideo) "Video Call" else "Voice Call")
             ?: if (enableVideo) "Video Call" else "Voice Call"
 
+        // Step 23 — optional E2EE for 1:1 Private Calls. Both peers must
+        // pass the SAME e2eeKey (typically derived from the call session id
+        // via the signalling channel). When omitted, the room is plain.
+        val e2eeOn = call.getBoolean("e2eeEnabled", false) ?: false
+        val e2eeSharedKey = call.getString("e2eeKey", null)
+
         scope.launch {
             try {
                 // Tear down any previous room first.
@@ -210,6 +216,21 @@ class LiveKitPlugin : Plugin() {
                     simulcast = (resolution != "720p"),
                 )
 
+                // Step 23 — build the E2EE key provider once per session.
+                val e2eeOptions: E2EEOptions? = if (e2eeOn && !e2eeSharedKey.isNullOrBlank()) {
+                    val provider = BaseKeyProvider()
+                    provider.setSharedKey(e2eeSharedKey)
+                    e2eeKeyProvider = provider
+                    e2eeKey = e2eeSharedKey
+                    e2eeEnabled = true
+                    E2EEOptions(keyProvider = provider)
+                } else {
+                    e2eeKeyProvider = null
+                    e2eeKey = null
+                    e2eeEnabled = false
+                    null
+                }
+
                 val roomOptions = RoomOptions(
                     adaptiveStream = true,
                     dynacast = true,
@@ -218,6 +239,7 @@ class LiveKitPlugin : Plugin() {
                         captureParams = captureParams
                     ),
                     videoTrackPublishDefaults = publishDefaults,
+                    e2eeOptions = e2eeOptions,
                 )
 
                 val newRoom = LiveKit.create(
