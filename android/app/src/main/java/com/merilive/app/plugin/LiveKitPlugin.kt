@@ -223,6 +223,7 @@ class LiveKitPlugin : Plugin() {
                 setProximityMonitoringInternal(false)
                 applyAudioMode(false)
                 unregisterAudioDeviceListener()
+                abandonAudioFocusInternal()
                 stopCallForegroundService()
                 call.resolve()
             } catch (e: Exception) {
