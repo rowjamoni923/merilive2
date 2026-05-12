@@ -656,17 +656,7 @@ export function UnifiedPartyRoom({
     try {
       const { data, error } = await supabase
         .from("party_room_participants")
-        .select(`
-          user_id,
-          profiles_public!party_room_participants_user_id_fkey (
-            id,
-            app_uid,
-            display_name,
-            avatar_url,
-            user_level,
-            frame_id
-          )
-        `)
+        .select("user_id")
         .eq("room_id", currentRoomId)
         .is("left_at", null)
         .order("joined_at", { ascending: false });
@@ -679,15 +669,26 @@ export function UnifiedPartyRoom({
       if (data) {
         // Filter out host from viewer list - use ref to avoid stale closure
         const currentHostId = hostIdRef.current;
+        const userIds = data.map((p: any) => p.user_id).filter(Boolean);
+        const { data: publicProfiles } = userIds.length
+          ? await supabase
+              .from("profiles_public")
+              .select("id, app_uid, display_name, avatar_url, user_level, frame_id")
+              .in("id", userIds)
+          : { data: [] as any[] };
+        const profileMap = new Map((publicProfiles || []).map((profile: any) => [profile.id, profile]));
         const viewerList: RealtimeViewer[] = data
           .filter((p: any) => p.user_id !== currentHostId)
-          .map((pv: any) => ({
-            id: pv.profiles?.id || pv.user_id,
-            displayName: pv.profiles_public?.display_name || pv.profiles_public?.app_uid || "Anonymous",
-            avatarUrl: pv.profiles_public?.avatar_url,
-            level: pv.profiles_public?.user_level || 1,
-            frameId: pv.profiles_public?.frame_id || undefined,
-          }))
+          .map((pv: any) => {
+            const profile = profileMap.get(pv.user_id);
+            return {
+              id: profile?.id || pv.user_id,
+              displayName: profile?.display_name || profile?.app_uid || "Anonymous",
+              avatarUrl: profile?.avatar_url,
+              level: profile?.user_level || 1,
+              frameId: profile?.frame_id || undefined,
+            };
+          })
           .sort((a: RealtimeViewer, b: RealtimeViewer) => b.level - a.level); // Sort by level descending
         
         setRealtimeViewers(viewerList);
