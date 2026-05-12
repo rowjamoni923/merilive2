@@ -154,6 +154,55 @@ export interface RtcStatsEvent {
   e2ee: boolean;
 }
 
+/** Step 33 — pre-call bandwidth probe verdict. */
+export type QualityTier = 'high' | 'medium' | 'low' | 'voice' | 'poor';
+export interface QualityProbeResult {
+  /** Sample epoch (System.currentTimeMillis on Android). */
+  ts: number;
+  /** RTT statistics in milliseconds. -1 when no samples returned. */
+  rttAvg: number;
+  rttMin: number;
+  rttMax: number;
+  /** Mean-absolute-deviation jitter, in ms. */
+  jitter: number;
+  /** Estimated packet loss as a percentage (0-100). */
+  packetLoss: number;
+  /** RTT samples requested. */
+  samples: number;
+  /** RTT samples that came back successfully. */
+  samplesReceived: number;
+  /** Observed downlink throughput in kbps (kilobits/sec). -1 when no `downloadUrl` was provided. */
+  downKbps: number;
+  /** Verdict bucket. */
+  tier: QualityTier;
+  /** Suggested publisher ladder tier for this network. */
+  recommendedTier: AdaptiveTier;
+  /** True when the network is too weak for video — JS should disable camera. */
+  recommendedAudioOnly: boolean;
+  /** Suggested codec (`auto` for healthy networks, frugal codec on weak links when HW-encode is available). */
+  recommendedCodec: 'auto' | 'vp8' | 'vp9' | 'h264' | 'av1';
+  /** Human-readable warning to surface above the "Start Call" button (null when tier is high/medium). */
+  warning: string | null;
+  /** Physical network underneath the probe. */
+  networkType: NetworkType;
+  /** True when the OS has Background Data Saver enabled. */
+  dataSaver: boolean;
+}
+
+export interface QualityProbeProgressEvent {
+  stage:
+    | 'starting'
+    | 'rtt'
+    | 'rtt-done'
+    | 'throughput'
+    | 'throughput-done'
+    | 'throughput-skipped'
+    | 'done';
+  /** 0-100 progress for a UI bar. */
+  percent: number;
+  detail?: Record<string, unknown>;
+}
+
 export interface NativeLiveKitPlugin {
   isAvailable(): Promise<{ available: boolean; backend: string; version: string }>;
   connect(opts: ConnectOptions): Promise<{ connected: boolean; sid: string; identity: string }>;
@@ -363,6 +412,34 @@ export interface NativeLiveKitPlugin {
     hardwareAcceleration: boolean;
   }>;
 
+  // --- Bandwidth probe + pre-call quality test (Step 33) ------
+  /**
+   * Run a quick (≈1-2 s) bandwidth + RTT probe BEFORE calling
+   * `connect()`. Used by the Pre-Call screen to predict whether the
+   * device's current network can sustain a 1080p / 720p video call,
+   * and to auto-fall-back to voice-only when it can't.
+   *
+   * - `pingUrl` — HEAD endpoint for RTT samples. Default `https://www.gstatic.com/generate_204` (204 No Content, ~50 B response).
+   * - `downloadUrl` — Optional small payload (≤ 4 MB). Omit to skip the throughput stage and rely on RTT only.
+   * - `samples` — RTT sample count. Default 5, max 20.
+   * - `downloadBytes` — Cap on bytes pulled from `downloadUrl`. Default 512 KB.
+   * - `timeoutMs` — Per-request hard timeout. Default 6 s.
+   *
+   * Emits `quality-probe-progress` events while running. Resolves
+   * with the verdict and a recommended publish tier / codec.
+   */
+  runPreCallQualityProbe(opts?: {
+    pingUrl?: string;
+    downloadUrl?: string;
+    samples?: number;
+    downloadBytes?: number;
+    timeoutMs?: number;
+  }): Promise<QualityProbeResult>;
+  /** Cancel a probe currently in-flight (e.g. user backed out of Pre-Call). */
+  cancelPreCallQualityProbe(): Promise<{ cancelled: boolean }>;
+  /** Last completed result (cached per-process). */
+  getLastQualityProbe(): Promise<{ hasResult: boolean; result?: QualityProbeResult }>;
+
   addListener(eventName: 'participant-connected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'participant-disconnected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'track-subscribed', cb: (e: TrackEvent) => void): Promise<PluginListenerHandle>;
@@ -400,6 +477,11 @@ export interface NativeLiveKitPlugin {
   addListener(
     eventName: 'headset-button',
     cb: (e: { action: 'hook' | 'play' | 'pause' | 'next' | 'previous'; keyCode: number; repeatCount: number }) => void,
+  ): Promise<PluginListenerHandle>;
+  /** Step 33 — incremental progress while `runPreCallQualityProbe` is running. */
+  addListener(
+    eventName: 'quality-probe-progress',
+    cb: (e: QualityProbeProgressEvent) => void,
   ): Promise<PluginListenerHandle>;
 }
 
