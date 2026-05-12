@@ -2742,3 +2742,64 @@ input:focus-visible, textarea:focus-visible {
 #root {
   overscroll-behavior-y: none;
 }
+
+/* ============================================================
+ * Promo sticker animations — make every sticker feel like a GIF.
+ * Applied per-category via getStickerAnimationClass().
+ * ============================================================ */
+@keyframes sticker-float {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50%      { transform: translateY(-6px) rotate(2deg); }
+}
+@keyframes sticker-heartbeat {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 8px rgba(244,63,94,0.55)); }
+  20%      { transform: scale(1.12); filter: drop-shadow(0 0 16px rgba(244,63,94,0.85)); }
+  40%      { transform: scale(0.98); }
+  60%      { transform: scale(1.08); filter: drop-shadow(0 0 14px rgba(244,63,94,0.75)); }
+}
+@keyframes sticker-fire {
+  0%, 100% { transform: translateY(0) scale(1) rotate(-1.5deg); filter: drop-shadow(0 0 10px rgba(251,146,60,0.7)) hue-rotate(0deg); }
+  50%      { transform: translateY(-4px) scale(1.05) rotate(1.5deg); filter: drop-shadow(0 0 22px rgba(251,113,133,0.95)) hue-rotate(-8deg); }
+}
+@keyframes sticker-sway {
+  0%, 100% { transform: rotate(-4deg); }
+  50%      { transform: rotate(4deg); }
+}
+@keyframes sticker-bounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  30%      { transform: translateY(-10px) scale(1.05); }
+  60%      { transform: translateY(2px) scale(0.97); }
+}
+@keyframes sticker-shine {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(250,204,21,0.55)) brightness(1); }
+  50%      { filter: drop-shadow(0 0 22px rgba(250,204,21,1)) brightness(1.2); }
+}
+@keyframes sticker-pulse-glow {
+  0%, 100% { transform: scale(1);    filter: drop-shadow(0 0 8px rgba(168,85,247,0.55)); }
+  50%      { transform: scale(1.06); filter: drop-shadow(0 0 22px rgba(168,85,247,0.95)); }
+}
+@keyframes sticker-shimmer-overlay {
+  0%   { transform: translateX(-120%) skewX(-20deg); }
+  100% { transform: translateX(220%)  skewX(-20deg); }
+}
+
+.sticker-anim-float       { animation: sticker-float       3.2s ease-in-out infinite; transform-origin: center; }
+.sticker-anim-heartbeat   { animation: sticker-heartbeat   1.4s ease-in-out infinite; transform-origin: center; }
+.sticker-anim-fire        { animation: sticker-fire        1.6s ease-in-out infinite; transform-origin: center; }
+.sticker-anim-sway        { animation: sticker-sway        2.4s ease-in-out infinite; transform-origin: 50% 90%; }
+.sticker-anim-bounce      { animation: sticker-bounce      1.6s ease-in-out infinite; transform-origin: 50% 90%; }
+.sticker-anim-shine       { animation: sticker-shine       2.0s ease-in-out infinite; transform-origin: center; }
+.sticker-anim-pulse-glow  { animation: sticker-pulse-glow  1.8s ease-in-out infinite; transform-origin: center; }
+
+/* Shimmer band that sweeps across a sticker (added as ::after on wrapper) */
+.sticker-shimmer-wrap { position: relative; overflow: hidden; border-radius: 14px; }
+.sticker-shimmer-wrap::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 40%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent);
+  animation: sticker-shimmer-overlay 2.4s linear infinite;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
