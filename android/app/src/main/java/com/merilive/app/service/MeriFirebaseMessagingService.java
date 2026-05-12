@@ -75,7 +75,7 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
         String callType = data.containsKey("call_type") ? data.get("call_type") : "video";
         String callId = data.containsKey("call_id") ? data.get("call_id") : "";
 
-        // Launch full-screen incoming call activity
+        // Full-screen lock-screen activity.
         Intent fullScreenIntent = new Intent(this, IncomingCallActivity.class);
         fullScreenIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         fullScreenIntent.putExtra("caller_id", callerId);
@@ -85,28 +85,39 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
         fullScreenIntent.putExtra("call_id", callId);
 
         PendingIntent fullScreenPI = PendingIntent.getActivity(
-            this, 0, fullScreenIntent,
+            this, callId.hashCode(), fullScreenIntent,
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-        // Accept action
-        Intent acceptIntent = new Intent(this, MainActivity.class);
-        acceptIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        acceptIntent.putExtra("action", "accept_call");
+        // Step 31 — both Accept and Decline now go through the broadcast
+        // receiver so NativeCallPlugin can dispatch the action into JS
+        // BEFORE we launch MainActivity. The receiver itself launches
+        // MainActivity for Accept after dispatching.
+        Intent acceptIntent = new Intent(this, com.merilive.app.receiver.CallActionReceiver.class);
+        acceptIntent.setAction(com.merilive.app.receiver.CallActionReceiver.ACTION_ACCEPT);
         acceptIntent.putExtra("call_id", callId);
         acceptIntent.putExtra("caller_id", callerId);
-        PendingIntent acceptPI = PendingIntent.getActivity(
-            this, 1, acceptIntent,
+        acceptIntent.putExtra("caller_name", callerName);
+        acceptIntent.putExtra("call_type", callType);
+        PendingIntent acceptPI = PendingIntent.getBroadcast(
+            this, ("accept:" + callId).hashCode(), acceptIntent,
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-        // Decline action
         Intent declineIntent = new Intent(this, com.merilive.app.receiver.CallActionReceiver.class);
-        declineIntent.setAction("DECLINE_CALL");
+        declineIntent.setAction(com.merilive.app.receiver.CallActionReceiver.ACTION_DECLINE);
         declineIntent.putExtra("call_id", callId);
+        declineIntent.putExtra("caller_id", callerId);
+        declineIntent.putExtra("caller_name", callerName);
+        declineIntent.putExtra("call_type", callType);
         PendingIntent declinePI = PendingIntent.getBroadcast(
-            this, 2, declineIntent,
+            this, ("decline:" + callId).hashCode(), declineIntent,
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         String callLabel = "video".equals(callType) ? "📹 Video Call" : "📞 Audio Call";
+
+        Bitmap avatar = null;
+        if (callerAvatar != null && !callerAvatar.isEmpty()) {
+            avatar = loadBitmapFromUrl(callerAvatar);
+        }
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, NotificationHelper.CHANNEL_CALLS)
             .setSmallIcon(R.drawable.ic_notification)
@@ -116,19 +127,55 @@ public class MeriFirebaseMessagingService extends FirebaseMessagingService {
             .setCategory(NotificationCompat.CATEGORY_CALL)
             .setAutoCancel(true)
             .setOngoing(true)
+            .setShowWhen(true)
+            .setWhen(System.currentTimeMillis())
             .setFullScreenIntent(fullScreenPI, true)
-            .addAction(R.drawable.ic_call_accept, "Accept", acceptPI)
-            .addAction(R.drawable.ic_call_decline, "Decline", declinePI)
+            .setContentIntent(fullScreenPI)
             .setTimeoutAfter(30000)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setDefaults(NotificationCompat.DEFAULT_ALL);
 
-        if (callerAvatar != null && !callerAvatar.isEmpty()) {
-            Bitmap avatar = loadBitmapFromUrl(callerAvatar);
+        // Step 31 — use the Android 12+ CallStyle which renders an
+        // honest CallKit-style heads-up (large avatar, swipe-to-answer
+        // on lock screen, integrates with the system call UI).
+        boolean styleApplied = false;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            try {
+                androidx.core.app.Person.Builder personBuilder = new androidx.core.app.Person.Builder()
+                    .setName(callerName)
+                    .setImportant(true);
+                if (avatar != null) {
+                    personBuilder.setIcon(androidx.core.graphics.drawable.IconCompat.createWithBitmap(avatar));
+                }
+                androidx.core.app.Person person = personBuilder.build();
+                builder.setStyle(
+                    androidx.core.app.NotificationCompat.CallStyle.forIncomingCall(person, declinePI, acceptPI)
+                );
+                styleApplied = true;
+            } catch (Throwable t) {
+                Log.w(TAG, "CallStyle unavailable: " + t.getMessage());
+            }
+        }
+        if (!styleApplied) {
+            builder.addAction(R.drawable.ic_call_decline, "Decline", declinePI)
+                   .addAction(R.drawable.ic_call_accept, "Accept", acceptPI);
             if (avatar != null) builder.setLargeIcon(avatar);
         }
 
-        NotificationManagerCompat.from(this).notify(NotificationHelper.NOTIFICATION_CALL, builder.build());
-        startActivity(fullScreenIntent);
+        try {
+            NotificationManagerCompat.from(this).notify(NotificationHelper.NOTIFICATION_CALL, builder.build());
+        } catch (SecurityException se) {
+            // POST_NOTIFICATIONS not granted on Android 13+. The
+            // full-screen intent below still presents the activity.
+            Log.w(TAG, "notify rejected: " + se.getMessage());
+        }
+
+        // Step 31 — surface presented event + start the activity for the
+        // (relatively common) case where the OS suppresses heads-up but
+        // honours full-screen intent (e.g. screen off, DND off).
+        com.merilive.app.plugin.NativeCallPlugin.dispatch(
+            this, callId, callerId, callerName, callType, "presented");
+        try { startActivity(fullScreenIntent); } catch (Exception ignored) {}
     }
 
     private void handleMessage(Map<String, String> data, String title, String body) {
