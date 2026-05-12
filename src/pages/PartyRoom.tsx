@@ -1232,7 +1232,7 @@ const PartyRoom = () => {
         // 3. Save join message to DB (non-blocking)
         void supabase.from('party_room_messages').insert({
           room_id: roomId,
-          sender_id: data.userId,
+          user_id: data.userId,
           content: 'joined the room ✨',
           message_type: 'join'
         });
@@ -1331,10 +1331,7 @@ const PartyRoom = () => {
 
     const { data, error } = await supabase
       .from('party_room_participants')
-      .select(`
-        *,
-        user:profiles!party_room_participants_user_id_fkey(id, display_name, avatar_url, user_level, frame_id)
-      `)
+      .select('*')
       .eq('room_id', currentRoomId)
       .is('left_at', null)
       .order('position', { ascending: true });
@@ -1353,7 +1350,20 @@ const PartyRoom = () => {
     const currentUserId = currentUserRef.current?.id;
     
     if (data) {
-      setParticipants(data as Participant[]);
+      const userIds = [...new Set(data.map((p: any) => p.user_id).filter(Boolean))];
+      const { data: publicProfiles } = userIds.length
+        ? await supabase
+            .from('profiles_public')
+            .select('id, display_name, avatar_url, user_level, frame_id')
+            .in('id', userIds)
+        : { data: [] as any[] };
+      const profileMap = new Map((publicProfiles || []).map((profile: any) => [profile.id, profile]));
+      const hydratedParticipants = data.map((participant: any) => ({
+        ...participant,
+        user: profileMap.get(participant.user_id) || null,
+      }));
+
+      setParticipants(hydratedParticipants as Participant[]);
       
       // Update my position and role from DB
       if (currentUserId) {
