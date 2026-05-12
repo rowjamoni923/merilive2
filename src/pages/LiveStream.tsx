@@ -965,7 +965,24 @@ const LiveStream = () => {
         (payload: any) => {
           // Only count gifts for THIS stream session
           if (payload.new?.stream_id === id && payload.new?.receiver_id === streamData.host_id) {
-            const giftAmount = payload.new?.coin_amount || 0;
+            const giftAmount = Number(payload.new?.receiver_beans ?? payload.new?.coin_amount ?? 0);
+            const giftKey = getGiftRealtimeKey(
+              payload.new?.sender_id,
+              payload.new?.gift_id,
+              payload.new?.coin_amount,
+              payload.new?.quantity
+            );
+            const optimistic = recentBroadcastGiftKeysRef.current.get(giftKey);
+
+            if (optimistic) {
+              recentBroadcastGiftKeysRef.current.delete(giftKey);
+              if (optimistic.beans !== giftAmount) {
+                setTotalBeans(prev => Math.max(0, prev - optimistic.beans + giftAmount));
+              }
+              console.log('[LiveStream] Session beans confirmed by DB:', giftAmount);
+              return;
+            }
+
             setTotalBeans(prev => prev + giftAmount);
             console.log('[LiveStream] Session beans updated +', giftAmount);
           }
@@ -976,7 +993,7 @@ const LiveStream = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [streamData?.host_id, id]);
+  }, [streamData?.host_id, id, getGiftRealtimeKey]);
 
   // ========== INSTANT GIFT BROADCAST RECEIVER ==========
   // Uses Supabase broadcast (not postgres_changes) for sub-100ms delivery
@@ -1012,7 +1029,8 @@ const LiveStream = () => {
         
         // 2. INSTANT beans counter update for host
         if (isHost) {
-          const giftAmount = (data.giftCoins || 0) * (data.count || 1);
+          const giftAmount = Number(data.receiverBeans ?? (data.giftCoins || 0) * (data.count || 1));
+          if (data.giftKey) markOptimisticGiftCount(data.giftKey, giftAmount);
           setTotalBeans(prev => prev + giftAmount);
           
           // Track first gift received for task progress
@@ -1046,7 +1064,7 @@ const LiveStream = () => {
       giftBroadcastChannelRef.current = null;
       supabase.removeChannel(broadcastChannel);
     };
-  }, [id, currentUserId, addFlyingGift, playSound, isHost]);
+  }, [id, currentUserId, addFlyingGift, playSound, isHost, markOptimisticGiftCount]);
 
   // ========== INSTANT JOIN BROADCAST RECEIVER ==========
   // Uses Supabase broadcast for sub-100ms delivery of viewer join events
