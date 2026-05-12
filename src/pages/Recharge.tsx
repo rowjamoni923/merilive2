@@ -1143,6 +1143,13 @@ const Recharge = () => {
     }
   }, [geoLocation.countryCode, userCountryCode]);
 
+  // Re-fetch gateways when country changes (country-strict gateway list)
+  useEffect(() => {
+    if (userCountryCode) {
+      fetchGateways();
+    }
+  }, [userCountryCode]);
+
   // Fetch helpers when tab is selected OR country changes
   useEffect(() => {
     if (selectedTab === "helper" && userCountryCode) {
