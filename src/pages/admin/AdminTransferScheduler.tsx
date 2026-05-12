@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Clock, Play, Pause, RefreshCw, Calendar, Timer, Zap, CheckCircle, ChevronDown, ChevronUp, Building2, User } from 'lucide-react';
+import { ArrowLeft, Clock, Play, Pause, RefreshCw, Calendar, Timer, Zap, CheckCircle, ChevronDown, ChevronUp, Building2, User, Coins } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -40,11 +40,20 @@ interface BatchDetail {
   amount: number;
 }
 
+interface CommissionSchedule {
+  is_active: boolean;
+  delay_hours_after_transfer: number;
+  next_run_at: string | null;
+  last_run_at: string | null;
+  last_result: { transfers_processed?: number; own_commission_total?: number; upper_bonus_total?: number } | null;
+}
+
 const AdminTransferScheduler = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [distributing, setDistributing] = useState(false);
   const [schedule, setSchedule] = useState<TransferSchedule>({
     is_active: false,
     interval_days: 7,
@@ -52,6 +61,13 @@ const AdminTransferScheduler = () => {
     next_transfer_at: null,
     last_transfer_at: null,
     timezone: 'Asia/Dhaka'
+  });
+  const [commissionSchedule, setCommissionSchedule] = useState<CommissionSchedule>({
+    is_active: true,
+    delay_hours_after_transfer: 1,
+    next_run_at: null,
+    last_run_at: null,
+    last_result: null,
   });
   const [countdown, setCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [history, setHistory] = useState<TransferHistory[]>([]);
@@ -61,6 +77,7 @@ const AdminTransferScheduler = () => {
 
   useEffect(() => {
     fetchSchedule();
+    fetchCommissionSchedule();
     fetchHistory();
   }, []);
 
@@ -90,6 +107,20 @@ const AdminTransferScheduler = () => {
     return () => clearInterval(timer);
   }, [schedule.next_transfer_at, schedule.is_active]);
 
+  // Auto-run commission distribution when its scheduled time arrives
+  useEffect(() => {
+    if (!commissionSchedule.is_active || !commissionSchedule.next_run_at) return;
+    const target = new Date(commissionSchedule.next_run_at).getTime();
+    const ms = target - Date.now();
+    if (ms <= 0) {
+      distributeCommissionNow();
+      return;
+    }
+    const t = setTimeout(() => { distributeCommissionNow(); }, Math.min(ms, 2_147_000_000));
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [commissionSchedule.next_run_at, commissionSchedule.is_active]);
+
   const fetchSchedule = async () => {
     try {
       const { data, error } = await supabase
@@ -106,6 +137,63 @@ const AdminTransferScheduler = () => {
       recordAdminError({ kind: "rpc", label: "AdminTransferScheduler.ErrorFetchingSchedule", message: formatAdminError(error)});
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCommissionSchedule = async () => {
+    try {
+      const { data } = await supabase
+        .from('app_settings')
+        .select('setting_value')
+        .eq('setting_key', 'commission_schedule')
+        .maybeSingle();
+      if (data?.setting_value) {
+        const value = parseSettingValue<CommissionSchedule>(data.setting_value) as CommissionSchedule;
+        setCommissionSchedule({
+          is_active: value.is_active ?? true,
+          delay_hours_after_transfer: value.delay_hours_after_transfer ?? 1,
+          next_run_at: value.next_run_at ?? null,
+          last_run_at: value.last_run_at ?? null,
+          last_result: value.last_result ?? null,
+        });
+      }
+    } catch (error) {
+      recordAdminError({ kind: "rpc", label: "AdminTransferScheduler.ErrorFetchingCommissionSchedule", message: formatAdminError(error)});
+    }
+  };
+
+  const saveCommissionSchedule = async (next: CommissionSchedule) => {
+    try {
+      await saveAppSetting('commission_schedule', JSON.parse(JSON.stringify(next)), 'Agency commission distribution schedule');
+      setCommissionSchedule(next);
+    } catch (error) {
+      recordAdminError({ kind: "rpc", label: "AdminTransferScheduler.ErrorSavingCommissionSchedule", message: formatAdminError(error)});
+      toast.error('Failed to save commission schedule');
+    }
+  };
+
+  const distributeCommissionNow = async () => {
+    setDistributing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('agency-commission-distribute', {
+        body: { manual: true },
+      });
+      if (error) throw error;
+      const result = data?.result || {};
+      await saveCommissionSchedule({
+        ...commissionSchedule,
+        last_run_at: new Date().toISOString(),
+        next_run_at: null,
+        last_result: result,
+      });
+      toast.success(
+        `Commission distributed: ${result.transfers_processed ?? 0} transfers, ${formatNumber(result.own_commission_total ?? 0)} agency + ${formatNumber(result.upper_bonus_total ?? 0)} upper bonus`
+      );
+    } catch (error) {
+      recordAdminError({ kind: "rpc", label: "AdminTransferScheduler.ErrorDistributingCommission", message: formatAdminError(error)});
+      toast.error('Commission distribution failed');
+    } finally {
+      setDistributing(false);
     }
   };
 
@@ -287,6 +375,13 @@ const AdminTransferScheduler = () => {
       
       // Refetch history from actual transfers table
       await fetchHistory();
+
+      // Auto-schedule the agency commission distribution after the configured delay
+      if (commissionSchedule.is_active) {
+        const delayMs = (commissionSchedule.delay_hours_after_transfer || 1) * 60 * 60 * 1000;
+        const nextRun = new Date(Date.now() + delayMs).toISOString();
+        await saveCommissionSchedule({ ...commissionSchedule, next_run_at: nextRun });
+      }
 
       toast.success(`Transfer complete! ${data?.result?.total_transfers || 0} transfers processed`);
     } catch (error) {
@@ -489,7 +584,77 @@ const AdminTransferScheduler = () => {
           </CardContent>
         </Card>
 
-        {/* Last Transfer Info */}
+        {/* Agency Commission Distribution */}
+        <Card className="border-purple-500/30 bg-purple-500/5">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Coins className="w-5 h-5 text-purple-500" />
+              Agency Commission Distribution
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-xs text-muted-foreground">
+              Pays each agency its level commission on weekly host beans transferred. Upper agency receives the
+              (upper rate − sub rate) difference only when strictly greater. Company-paid — never deducted from
+              host or sub-agency.
+            </p>
+
+            <div className="flex items-center justify-between rounded-md border border-border p-3">
+              <div>
+                <Label className="text-sm">Auto-run after host transfer</Label>
+                <p className="text-xs text-muted-foreground">Runs automatically once delay elapses</p>
+              </div>
+              <Switch
+                checked={commissionSchedule.is_active}
+                onCheckedChange={(v) => saveCommissionSchedule({ ...commissionSchedule, is_active: v })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Delay after host transfer (hours)</Label>
+              <Select
+                value={String(commissionSchedule.delay_hours_after_transfer)}
+                onValueChange={(v) => saveCommissionSchedule({ ...commissionSchedule, delay_hours_after_transfer: parseInt(v) })}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {[1, 2, 3, 6, 12, 24].map(h => (
+                    <SelectItem key={h} value={String(h)}>{h} hour{h > 1 ? 's' : ''}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="rounded-md bg-muted/50 p-2">
+                <div className="text-muted-foreground">Last run</div>
+                <div className="font-medium">{commissionSchedule.last_run_at ? formatDate(commissionSchedule.last_run_at) : '—'}</div>
+              </div>
+              <div className="rounded-md bg-muted/50 p-2">
+                <div className="text-muted-foreground">Next auto run</div>
+                <div className="font-medium">{commissionSchedule.next_run_at ? formatDate(commissionSchedule.next_run_at) : '—'}</div>
+              </div>
+            </div>
+
+            {commissionSchedule.last_result && (
+              <div className="rounded-md border border-border p-2 text-xs space-y-1">
+                <div className="flex justify-between"><span className="text-muted-foreground">Transfers processed</span><span className="font-medium">{commissionSchedule.last_result.transfers_processed ?? 0}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Agency commission</span><span className="font-medium text-green-500">{formatNumber(commissionSchedule.last_result.own_commission_total ?? 0)} Beans</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Upper referral bonus</span><span className="font-medium text-purple-500">{formatNumber(commissionSchedule.last_result.upper_bonus_total ?? 0)} Beans</span></div>
+              </div>
+            )}
+
+            <Button
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+              onClick={distributeCommissionNow}
+              disabled={distributing}
+            >
+              {distributing ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Coins className="w-4 h-4 mr-2" />}
+              Distribute Commission Now
+            </Button>
+          </CardContent>
+        </Card>
+
         {schedule.last_transfer_at && (
           <Card>
             <CardContent className="py-4">
