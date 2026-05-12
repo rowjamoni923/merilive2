@@ -41,11 +41,15 @@ import io.livekit.android.room.track.VideoPreset169
 import io.livekit.android.room.track.VideoTrackPublishDefaults
 import io.livekit.android.e2ee.BaseKeyProvider
 import io.livekit.android.e2ee.E2EEOptions
+import io.livekit.android.room.participant.RemoteTrackPublication
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.webrtc.VideoFrame
+import org.webrtc.VideoSink
 
 /**
  * LiveKitPlugin — Step 2.
@@ -84,7 +88,14 @@ import kotlinx.coroutines.launch
 )
 class LiveKitPlugin : Plugin() {
 
-    companion object { private const val TAG = "LiveKitPlugin" }
+    companion object {
+        private const val TAG = "LiveKitPlugin"
+        // Step 25 — stall watchdog tunables.
+        private const val STALL_POLL_MS = 2_000L
+        private const val STALL_WARN_MS = 5_000L
+        private const val STALL_HARD_MS = 12_000L
+        private const val STALL_RECOVERY_COOLDOWN_MS = 6_000L
+    }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var eventJob: Job? = null
@@ -154,6 +165,29 @@ class LiveKitPlugin : Plugin() {
     private var pauseCameraOnBackground: Boolean = false
     private var inBackground: Boolean = false
     private var cameraOnBeforeBackground: Boolean = false
+
+    // --- Stall & black-frame recovery (Step 25) ------------------
+    //
+    // Watchdog tracks "last decoded frame timestamp" per attached video
+    // track via a tiny VideoSink wrapper installed alongside the renderer.
+    // Every 2 s a coroutine inspects the table:
+    //   • > STALL_WARN_MS (5 s) without a frame → emit "video-stall" and
+    //     attempt soft recovery (remote: unsubscribe + resubscribe;
+    //     local: stop+start capture).
+    //   • > STALL_HARD_MS (12 s) and recovery already attempted twice →
+    //     emit "video-stall-failed" so JS can show a banner / fall back.
+    // Counters reset on every successful frame and on attach/detach.
+    private data class StallEntry(
+        var lastFrameMs: Long,
+        var attempts: Int,
+        var lastAttemptMs: Long,
+        val isLocal: Boolean,
+        val sid: String, // participant sid; "local" for our own preview
+    )
+    private val stallTable = mutableMapOf<String, StallEntry>()
+    private val stallSinks = mutableMapOf<String, VideoSink>()
+    private var stallWatchdogJob: Job? = null
+    private var stallWatchdogEnabled: Boolean = true
 
     // ------------------------------------------------------------
     // Public API
@@ -296,6 +330,9 @@ class LiveKitPlugin : Plugin() {
                 // 14+ keeps mic/camera alive when the user backgrounds the app.
                 startCallForegroundService(callerName, callType)
 
+                // Step 25 — start the video stall watchdog for this session.
+                startStallWatchdog()
+
                 val ret = JSObject()
                 ret.put("connected", true)
                 ret.put("sid", newRoom.localParticipant.sid.value)
@@ -314,6 +351,7 @@ class LiveKitPlugin : Plugin() {
             try {
                 eventJob?.cancel()
                 eventJob = null
+                stopStallWatchdog()
                 room?.disconnect()
                 room = null
                 activity?.runOnUiThread { detachAllRenderersInternal() }
@@ -436,6 +474,7 @@ class LiveKitPlugin : Plugin() {
                 r.initVideoRenderer(localRenderer!!)
                 track.addRenderer(localRenderer!!)
                 mountBehindWebView(localRenderer!!)
+                installStallSink(track, key = "local", sid = "local", isLocal = true)
                 call.resolve()
             } catch (e: Exception) {
                 call.reject("attachLocal failed: ${e.message}")
@@ -460,6 +499,7 @@ class LiveKitPlugin : Plugin() {
                 r.initVideoRenderer(renderer)
                 track.addRenderer(renderer)
                 mountBehindWebView(renderer)
+                installStallSink(track, key = sid, sid = sid, isLocal = false)
                 call.resolve()
             } catch (e: Exception) {
                 call.reject("attachRemote failed: ${e.message}")
@@ -683,6 +723,8 @@ class LiveKitPlugin : Plugin() {
 
     private fun detachAllRenderersInternal() {
         val webView = bridge?.webView
+        // Step 25 — drop stall sinks before we release the underlying tracks.
+        try { clearStallSinks() } catch (_: Exception) {}
         localRenderer?.let { (it.parent as? ViewGroup)?.removeView(it); it.release() }
         localRenderer = null
         remoteRenderers.values.forEach {
@@ -972,6 +1014,10 @@ class LiveKitPlugin : Plugin() {
                 }
             }
             cameraOnBeforeBackground = false
+            // Step 25 — give the renderer time to start receiving frames
+            // again before the watchdog re-arms its stall timer.
+            val now = System.currentTimeMillis()
+            stallTable.values.forEach { it.lastFrameMs = now; it.attempts = 0 }
         } catch (e: Exception) {
             Log.w(TAG, "handleOnResume restore failed", e)
         }
@@ -981,6 +1027,7 @@ class LiveKitPlugin : Plugin() {
         super.handleOnDestroy()
         try {
             eventJob?.cancel()
+            stopStallWatchdog()
             scope.launch { room?.disconnect() }
             setKeepScreenOn(false)
             setProximityMonitoringInternal(false)
@@ -989,6 +1036,173 @@ class LiveKitPlugin : Plugin() {
             abandonAudioFocusInternal()
             stopCallForegroundService()
         } catch (_: Exception) {}
+    }
+
+    // ------------------------------------------------------------
+    // Step 25 — Video stall & black-frame recovery
+    //
+    // A WebRTC track can keep its ICE/DTLS state nominally "alive" while
+    // the decoded frame stream silently halts (broken keyframe sequence,
+    // PLI/NACK storm dropped, encoder thread starved on the publisher,
+    // hardware decoder hang on the subscriber). The signalling layer
+    // never notices, so the user just sees a frozen / black tile.
+    //
+    // We bolt a tiny VideoSink alongside each renderer that simply
+    // bumps a "last decoded frame at" timestamp. A coroutine polls every
+    // 2 s; when a tile goes silent for 5 s we attempt soft recovery:
+    //   • Remote tracks → setSubscribed(false) + setSubscribed(true)
+    //     forces the SFU to re-issue a keyframe and re-establish the
+    //     downstream RTP flow without dropping the room.
+    //   • Local camera  → toggle setCameraEnabled(false→true) which
+    //     republishes the camera track with a fresh encoder.
+    // After 12 s without recovery we emit "video-stall-failed" so the
+    // JS layer can show "Tap to retry" UI / fall back to a lower lane.
+    // ------------------------------------------------------------
+
+    private fun installStallSink(
+        track: io.livekit.android.room.track.VideoTrack,
+        key: String,
+        sid: String,
+        isLocal: Boolean,
+    ) {
+        if (!stallWatchdogEnabled) return
+        // Detach an old sink first so reattaches don't double-count.
+        stallSinks.remove(key)?.let { try { track.removeRenderer(it) } catch (_: Exception) {} }
+        val sink = object : VideoSink {
+            override fun onFrame(frame: VideoFrame?) {
+                val entry = stallTable[key] ?: return
+                entry.lastFrameMs = System.currentTimeMillis()
+                if (entry.attempts > 0) entry.attempts = 0
+            }
+        }
+        stallSinks[key] = sink
+        try { track.addRenderer(sink) } catch (e: Exception) {
+            Log.w(TAG, "installStallSink addRenderer failed: ${e.message}")
+            stallSinks.remove(key); return
+        }
+        stallTable[key] = StallEntry(
+            lastFrameMs = System.currentTimeMillis(),
+            attempts = 0,
+            lastAttemptMs = 0L,
+            isLocal = isLocal,
+            sid = sid,
+        )
+    }
+
+    private fun clearStallSinks() {
+        // We don't have the original tracks here (they may already be
+        // released by the SDK), so just drop our references — the WebRTC
+        // VideoSinks become unreachable and GC reclaims them.
+        stallSinks.clear()
+        stallTable.clear()
+    }
+
+    private fun startStallWatchdog() {
+        stopStallWatchdog()
+        if (!stallWatchdogEnabled) return
+        stallWatchdogJob = scope.launch {
+            while (true) {
+                delay(STALL_POLL_MS)
+                if (room == null) break
+                if (inBackground) continue   // Step 24 detached renderers — frames legitimately stop.
+                checkForStalls()
+            }
+        }
+    }
+
+    private fun stopStallWatchdog() {
+        stallWatchdogJob?.cancel()
+        stallWatchdogJob = null
+    }
+
+    private fun checkForStalls() {
+        val now = System.currentTimeMillis()
+        // Snapshot to avoid concurrent-modification while we iterate.
+        val snapshot = stallTable.entries.toList()
+        for ((key, entry) in snapshot) {
+            val silentMs = now - entry.lastFrameMs
+            if (silentMs < STALL_WARN_MS) continue
+            // Cooldown so each recovery attempt has time to settle.
+            if (now - entry.lastAttemptMs < STALL_RECOVERY_COOLDOWN_MS) continue
+
+            if (silentMs in STALL_WARN_MS until STALL_HARD_MS && entry.attempts < 2) {
+                emitStallEvent(entry, silentMs, "stalled")
+                entry.attempts += 1
+                entry.lastAttemptMs = now
+                attemptStallRecovery(key, entry)
+            } else if (silentMs >= STALL_HARD_MS) {
+                emitStallEvent(entry, silentMs, "failed")
+                // Reset so a future keyframe still re-arms the cycle, but
+                // back off attempt counter so we don't spam the SFU.
+                entry.attempts = 0
+                entry.lastAttemptMs = now
+            }
+        }
+    }
+
+    private fun attemptStallRecovery(key: String, entry: StallEntry) {
+        val r = room ?: return
+        scope.launch {
+            try {
+                if (entry.isLocal) {
+                    // Republish camera with a fresh encoder. Cheap and
+                    // doesn't disturb the room — peers see one black frame.
+                    Log.w(TAG, "Stall recovery (local): toggling camera")
+                    r.localParticipant.setCameraEnabled(false)
+                    delay(250L)
+                    r.localParticipant.setCameraEnabled(true)
+                } else {
+                    val participant = r.remoteParticipants.values.firstOrNull {
+                        it.sid.value == entry.sid
+                    } ?: return@launch
+                    val pub = participant.getTrackPublication(Track.Source.CAMERA)
+                        as? RemoteTrackPublication ?: return@launch
+                    Log.w(TAG, "Stall recovery (remote ${entry.sid}): unsubscribe + resubscribe")
+                    try { pub.setSubscribed(false) } catch (_: Exception) {}
+                    delay(400L)
+                    try { pub.setSubscribed(true) } catch (_: Exception) {}
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Stall recovery for $key failed: ${e.message}")
+            }
+        }
+    }
+
+    private fun emitStallEvent(entry: StallEntry, silentMs: Long, state: String) {
+        val data = JSObject()
+        data.put("sid", entry.sid)
+        data.put("isLocal", entry.isLocal)
+        data.put("silentMs", silentMs)
+        data.put("attempt", entry.attempts)
+        data.put("state", state) // "stalled" | "failed"
+        notifyListeners("video-stall", data)
+    }
+
+    @PluginMethod
+    fun setStallWatchdogEnabled(call: PluginCall) {
+        val enabled = call.getBoolean("enabled", true) ?: true
+        stallWatchdogEnabled = enabled
+        if (enabled && room != null && stallWatchdogJob == null) startStallWatchdog()
+        if (!enabled) stopStallWatchdog()
+        val ret = JSObject(); ret.put("enabled", enabled); call.resolve(ret)
+    }
+
+    @PluginMethod
+    fun getStallStatus(call: PluginCall) {
+        val now = System.currentTimeMillis()
+        val arr = org.json.JSONArray()
+        stallTable.forEach { (_, e) ->
+            val o = JSObject()
+            o.put("sid", e.sid)
+            o.put("isLocal", e.isLocal)
+            o.put("silentMs", now - e.lastFrameMs)
+            o.put("attempts", e.attempts)
+            arr.put(o)
+        }
+        val ret = JSObject()
+        ret.put("enabled", stallWatchdogEnabled)
+        ret.put("tracks", arr)
+        call.resolve(ret)
     }
 
     // ------------------------------------------------------------
