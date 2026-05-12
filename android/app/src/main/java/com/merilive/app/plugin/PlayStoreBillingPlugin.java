@@ -96,6 +96,8 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
 
     @PluginMethod
     public void getProducts(PluginCall call) {
+        if (!ensureReady(call)) return;
+
         List<String> productIds = new ArrayList<>();
         try {
             org.json.JSONArray arr = call.getArray("productIds");
@@ -144,7 +146,9 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
     }
 
     @PluginMethod
-    public void purchaseProduct(PluginCall call) {
+    public void purchase(PluginCall call) {
+        if (!ensureReady(call)) return;
+
         String productId = call.getString("productId");
         if (productId == null) {
             call.reject("productId is required");
@@ -251,5 +255,13 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
                 call.resolve(ret);
             }
         );
+    }
+
+    private boolean ensureReady(PluginCall call) {
+        if (billingClient == null || !billingClient.isReady()) {
+            call.reject("BillingClient not ready. Call initialize() first.", "NOT_CONNECTED");
+            return false;
+        }
+        return true;
     }
 }
