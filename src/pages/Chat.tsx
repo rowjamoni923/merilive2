@@ -34,6 +34,7 @@ import { useCall } from "@/components/call/CallProvider";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSound } from "@/hooks/useSound";
+import { getCachedHostGiftPercent, ensureHostGiftPercentLoaded } from "@/hooks/useHostGiftPercent";
 import {
   Sheet,
   SheetContent,
