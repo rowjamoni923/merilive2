@@ -52,17 +52,58 @@ export interface PurchaseResult {
 // ============================================
 // Play Store Product Mapping
 // ============================================
+// Source of truth = `recharge_packages` table (admin-editable).
+// The values below mirror the current DB rows so synchronous callers
+// (components reading PLAY_STORE_PRODUCTS directly) get correct data
+// even before loadPlayStoreProducts() finishes its async DB fetch.
+// loadPlayStoreProducts() refreshes this map at app start.
 
 export const PLAY_STORE_PRODUCTS: Record<number, { productId: string; priceUsd: number }> = {
-  7000: { productId: 'diamonds_7000_v2', priceUsd: 1.99 },
-  13200: { productId: 'diamonds_13200_v2', priceUsd: 3.99 },
-  56000: { productId: 'diamonds_56000_v2', priceUsd: 14.99 },
-  169000: { productId: 'diamonds_169000_v2', priceUsd: 23.99 },
-  470000: { productId: 'diamonds_470000_v2', priceUsd: 59.99 },
-  650000: { productId: 'diamonds_650000_v2', priceUsd: 129.99 },
+  7000:   { productId: 'diamonds_7000',   priceUsd: 1.29 },
+  13200:  { productId: 'diamonds_13200',  priceUsd: 2.49 },
+  56000:  { productId: 'diamonds_56000',  priceUsd: 9.99 },
+  169000: { productId: 'diamonds_169000', priceUsd: 30.99 },
+  470000: { productId: 'diamonds_470000', priceUsd: 72.99 },
+  650000: { productId: 'diamonds_650000', priceUsd: 89.99 },
 };
 
-export const ALL_PRODUCT_IDS = Object.values(PLAY_STORE_PRODUCTS).map(p => p.productId);
+export let ALL_PRODUCT_IDS: string[] = Object.values(PLAY_STORE_PRODUCTS).map(p => p.productId);
+
+/**
+ * Refresh PLAY_STORE_PRODUCTS from the `recharge_packages` DB table so
+ * admin price/product changes propagate without a code release.
+ * Call once at app start (after Supabase client is ready). Safe to fail —
+ * the hardcoded fallback above keeps the app working offline.
+ */
+export async function loadPlayStoreProducts(): Promise<void> {
+  try {
+    const { data, error } = await supabase
+      .from('recharge_packages')
+      .select('coins_amount, price_usd, product_id, is_active')
+      .eq('is_active', true);
+    if (error || !data?.length) return;
+
+    const next: Record<number, { productId: string; priceUsd: number }> = {};
+    for (const row of data) {
+      if (!row.coins_amount || !row.product_id || row.price_usd == null) continue;
+      next[row.coins_amount] = {
+        productId: row.product_id,
+        priceUsd: Number(row.price_usd),
+      };
+    }
+    if (Object.keys(next).length === 0) return;
+
+    // Mutate the exported map in place so existing imports stay valid.
+    for (const k of Object.keys(PLAY_STORE_PRODUCTS)) {
+      delete PLAY_STORE_PRODUCTS[Number(k)];
+    }
+    Object.assign(PLAY_STORE_PRODUCTS, next);
+    ALL_PRODUCT_IDS = Object.values(PLAY_STORE_PRODUCTS).map((p) => p.productId);
+    console.log('[PlayStoreBilling] Loaded', ALL_PRODUCT_IDS.length, 'packages from DB');
+  } catch (e) {
+    console.warn('[PlayStoreBilling] loadPlayStoreProducts failed (using fallback):', e);
+  }
+}
 
 // ============================================
 // SDK Class
