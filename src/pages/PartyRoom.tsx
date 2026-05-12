@@ -67,7 +67,7 @@ import { ProfessionalGameOverlay } from "@/components/party/ProfessionalGameOver
 import { GameFooterNew } from "@/components/games/GameFooterNew";
 // UNIFIED GIFTING - SINGLE LINK for all sections (Live, Party, Call, Chat, Profile)
 // Change @/features/shared/gifting = Change everywhere automatically
-import { GiftPanel, GiftData, FlyingGiftAnimation, useFlyingGifts } from "@/features/shared/gifting";
+import { GiftPanel, GiftData, FlyingGiftAnimation, useFlyingGifts, sendGift } from "@/features/shared/gifting";
 import { LevelBadge, InlineLevelBadge } from "@/components/common/LevelBadge";
 import FramedAvatar from "@/components/common/FramedAvatar";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
