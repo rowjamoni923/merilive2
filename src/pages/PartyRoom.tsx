@@ -67,7 +67,7 @@ import { ProfessionalGameOverlay } from "@/components/party/ProfessionalGameOver
 import { GameFooterNew } from "@/components/games/GameFooterNew";
 // UNIFIED GIFTING - SINGLE LINK for all sections (Live, Party, Call, Chat, Profile)
 // Change @/features/shared/gifting = Change everywhere automatically
-import { GiftPanel, GiftData, FlyingGiftAnimation, useFlyingGifts } from "@/features/shared/gifting";
+import { GiftPanel, GiftData, FlyingGiftAnimation, useFlyingGifts, sendGift } from "@/features/shared/gifting";
 import { LevelBadge, InlineLevelBadge } from "@/components/common/LevelBadge";
 import FramedAvatar from "@/components/common/FramedAvatar";
 import AvatarWithFrame from "@/components/common/AvatarWithFrame";
@@ -495,7 +495,7 @@ const PartyRoom = () => {
       try {
         const { data, error } = await supabase
           .from('gift_transactions')
-          .select('coin_amount, sender_id')
+          .select('coin_amount, receiver_beans, sender_id')
           .eq('party_room_id', roomId);
 
         if (error) {
@@ -506,7 +506,7 @@ const PartyRoom = () => {
 
         if (data && data.length > 0) {
           const totalGiftValue = data.reduce((sum, tx) => sum + (tx.coin_amount || 0), 0);
-          const hostBeans = Math.floor(totalGiftValue * hostCommissionPercent / 100);
+          const hostBeans = data.reduce((sum, tx) => sum + (tx.receiver_beans ?? Math.floor((tx.coin_amount || 0) * hostCommissionPercent / 100)), 0);
           console.log('[PartyRoom] Total beans calculated:', hostBeans, 'from', data.length, 'transactions, rate:', hostCommissionPercent);
           setTotalRoomBeans(hostBeans);
           
@@ -547,9 +547,8 @@ const PartyRoom = () => {
           // CLIENT-SIDE FILTER: Only count gifts for THIS party room
           if (payload.new?.party_room_id !== roomId) return;
           
-          // Apply commission rate to new gift
           const newGiftValue = payload.new?.coin_amount || 0;
-          const newHostBeans = Math.floor(newGiftValue * hostCommissionPercent / 100);
+          const newHostBeans = payload.new?.receiver_beans ?? Math.floor(newGiftValue * hostCommissionPercent / 100);
           const senderId = payload.new?.sender_id;
           console.log('[PartyRoom] New gift received! Adding beans:', newHostBeans, 'from:', senderId);
           setTotalRoomBeans(prev => prev + newHostBeans);
@@ -2381,28 +2380,19 @@ const PartyRoom = () => {
               // Process actual transaction in background - don't block UI
               (async () => {
                 try {
-                  // Send all gifts in parallel for faster processing
-                  const promises = Array.from({ length: count }, () => 
-                    supabase.functions.invoke('gift-service', {
-                      body: {
-                        receiverId: room.host!.id,
-                        giftId: gift.id,
-                        partyRoomId: room.id
-                      }
-                    })
-                  );
-                  
-                  const results = await Promise.allSettled(promises);
-                  const successCount = results.filter(r => r.status === 'fulfilled' && !(r.value as any).error).length;
-                  const failCount = count - successCount;
-                  
-                  console.log(`[PartyGift] Background: ${successCount}/${count} gifts processed`);
-                  
-                  // If some failed, refund the difference and notify
-                  if (failCount > 0) {
-                    const refundAmount = gift.coins * failCount;
-                    setUserCoins(prev => prev + refundAmount);
-                    toast.error(`${failCount} gift(s) failed - diamonds refunded`);
+                  const result = await sendGift({
+                    giftId: gift.id,
+                    senderId: currentUser.id,
+                    receiverId: room.host!.id,
+                    quantity: count,
+                    context: 'party',
+                    roomId: room.id,
+                  });
+
+                  if (!result.success) {
+                    setUserCoins(prev => prev + totalCost);
+                    toast.error(result.error || "Gift failed - diamonds refunded");
+                    return;
                   }
                   
                   // Refresh actual balance from server (in case of discrepancy)
@@ -2420,8 +2410,8 @@ const PartyRoom = () => {
                   }
                   
                   // Save gift message to party_room_messages
-                  if (successCount > 0) {
-                    const giftChatMessage = `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${successCount}`;
+                  if (result.success) {
+                    const giftChatMessage = `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${count}`;
                     await supabase.from("party_room_messages").insert({
                       room_id: room.id,
                       sender_id: currentUser.id,

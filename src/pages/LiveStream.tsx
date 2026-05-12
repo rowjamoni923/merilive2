@@ -65,7 +65,7 @@ import { GlobalGameOverlay, GlobalGameButton } from "@/components/games/GlobalGa
 import { LiveGameSelector } from "@/components/games/LiveGameSelector";
 // UNIFIED GIFTING - SINGLE LINK for all sections (Live, Party, Call, Chat, Profile)
 // Change @/features/shared/gifting = Change everywhere automatically
-import { GiftPanel, GiftData, FlyingGiftAnimation, useFlyingGifts } from "@/features/shared/gifting";
+import { GiftPanel, GiftData, FlyingGiftAnimation, useFlyingGifts, sendGift } from "@/features/shared/gifting";
 // UNIFIED Chat Overlay - ONE LINK for Live Stream + Party Room
 // Change RoomChatOverlay = Change everywhere (Live, Party Audio, Party Video, Party Game)
 import { RoomChatOverlay, type JoinNotification, type RoomChatMessage } from "@/features/shared/room";
@@ -296,6 +296,7 @@ const LiveStream = () => {
 
   // Deduplicate broadcast gift chat message vs DB stream_chat gift insert
   const recentBroadcastGiftKeysRef = useRef<Map<string, number>>(new Map());
+  const giftBroadcastChannelRef = useRef<any>(null);
 
   // Profile card states
   const [showProfileCard, setShowProfileCard] = useState(false);
@@ -1022,8 +1023,11 @@ const LiveStream = () => {
         playSound('gift');
       })
       .subscribe();
+
+    giftBroadcastChannelRef.current = broadcastChannel;
     
     return () => {
+      giftBroadcastChannelRef.current = null;
       supabase.removeChannel(broadcastChannel);
     };
   }, [id, currentUserId, addFlyingGift, playSound, isHost]);
@@ -3347,23 +3351,22 @@ const LiveStream = () => {
           // Gift animation is already playing - no toast needed
           
           // ========== INSTANT BROADCAST TO HOST & ALL VIEWERS (< 50ms) ==========
-          // This broadcasts BEFORE the DB write, so host sees it instantly
-          const broadcastChannel = supabase.channel(`gift_broadcast_${id}`);
-          broadcastChannel.send({
+          // Send on the already-subscribed room channel; creating a fresh channel here can drop broadcasts.
+          giftBroadcastChannelRef.current?.send({
             type: 'broadcast',
             event: 'gift_sent',
             payload: {
               senderId: currentUserId,
-              senderName: senderName,
-              senderAvatar: senderAvatar,
-              senderLevel: senderLevel,
+              senderName,
+              senderAvatar,
+              senderLevel,
               giftName: gift.name,
               giftIcon: gift.emoji || "🎁",
               giftIconUrl: gift.icon_url || undefined,
               giftAnimationUrl: gift.animation_url || gift.icon_url || undefined,
               giftSoundUrl: gift.sound_url || undefined,
               giftCoins: gift.coins,
-              count: count,
+              count,
               streamId: id,
               timestamp: Date.now(),
             }
@@ -3372,28 +3375,19 @@ const LiveStream = () => {
           // ========== BACKGROUND PROCESSING (fire-and-forget) ==========
           (async () => {
             try {
-              // Send all gifts in parallel for faster processing
-              const promises = Array.from({ length: count }, () => 
-                supabase.functions.invoke('gift-service', {
-                  body: {
-                    receiverId: hostInfo!.id,
-                    giftId: gift.id,
-                    streamId: id
-                  }
-                })
-              );
-              
-              const results = await Promise.allSettled(promises);
-              const successCount = results.filter(r => r.status === 'fulfilled' && !(r.value as any).error).length;
-              const failCount = count - successCount;
-              
-              console.log(`[Gift] Background: ${successCount}/${count} gifts processed`);
-              
-              // If some failed, refund the difference and notify
-              if (failCount > 0) {
-                const refundAmount = gift.coins * failCount;
-                setUserCoins(prev => prev + refundAmount);
-                toast.error(`${failCount} gift(s) failed - diamonds refunded`);
+              const result = await sendGift({
+                giftId: gift.id,
+                senderId: currentUserId,
+                receiverId: hostInfo!.id,
+                quantity: count,
+                context: 'live',
+                streamId: id,
+              });
+
+              if (!result.success) {
+                setUserCoins(prev => prev + totalCost);
+                toast.error(result.error || "Gift failed - diamonds refunded");
+                return;
               }
               
               // Refresh actual balance from server
@@ -3411,8 +3405,8 @@ const LiveStream = () => {
               }
               
               // Save gift message to database for other participants
-              if (successCount > 0) {
-                const finalGiftMessage = `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${successCount}`;
+              if (result.success) {
+                const finalGiftMessage = `[GIFT:${gift.icon_url || ''}] sent ${gift.name} x${count}`;
                 await supabase.from("stream_chat").insert({
                   stream_id: id,
                   user_id: currentUserId,

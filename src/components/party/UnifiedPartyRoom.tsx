@@ -595,6 +595,7 @@ export function UnifiedPartyRoom({
   // Unified chat format state - SAME as Live Stream (ONE LINK)
   // Only premiumMessages used - no separate joinNotifications (prevents duplicates)
   const [premiumMessages, setPremiumMessages] = useState<RoomChatMessage[]>([]);
+  const [currentUserProfile, setCurrentUserProfile] = useState<{ display_name?: string | null; avatar_url?: string | null; user_level?: number | null } | null>(null);
   
   // Join notifications for stacking display
   const [joinNotifications, setJoinNotifications] = useState<JoinNotification[]>([]);
@@ -641,6 +642,19 @@ export function UnifiedPartyRoom({
   useEffect(() => {
     hostIdRef.current = hostInfo?.id;
   }, [hostInfo?.id]);
+
+  useEffect(() => {
+    if (!currentUserId) {
+      setCurrentUserProfile(null);
+      return;
+    }
+    supabase
+      .from('profiles_public')
+      .select('display_name, avatar_url, user_level')
+      .eq('id', currentUserId)
+      .maybeSingle()
+      .then(({ data }) => setCurrentUserProfile(data || null));
+  }, [currentUserId]);
   
   // Store onTriggerEntryEffect in ref to avoid stale closures
   const onTriggerEntryEffectRef = useRef(onTriggerEntryEffect);
@@ -656,16 +670,7 @@ export function UnifiedPartyRoom({
     try {
       const { data, error } = await supabase
         .from("party_room_participants")
-        .select(`
-          user_id,
-          profiles!party_room_participants_user_id_fkey (
-            id,
-            display_name,
-            avatar_url,
-            user_level,
-            frame_id
-          )
-        `)
+        .select("user_id")
         .eq("room_id", currentRoomId)
         .is("left_at", null)
         .order("joined_at", { ascending: false });
@@ -678,15 +683,26 @@ export function UnifiedPartyRoom({
       if (data) {
         // Filter out host from viewer list - use ref to avoid stale closure
         const currentHostId = hostIdRef.current;
+        const userIds = data.map((p: any) => p.user_id).filter(Boolean);
+        const { data: publicProfiles } = userIds.length
+          ? await supabase
+              .from("profiles_public")
+              .select("id, app_uid, display_name, avatar_url, user_level, frame_id")
+              .in("id", userIds)
+          : { data: [] as any[] };
+        const profileMap = new Map((publicProfiles || []).map((profile: any) => [profile.id, profile]));
         const viewerList: RealtimeViewer[] = data
           .filter((p: any) => p.user_id !== currentHostId)
-          .map((pv: any) => ({
-            id: pv.profiles?.id || pv.user_id,
-            displayName: pv.profiles?.display_name || "Anonymous",
-            avatarUrl: pv.profiles?.avatar_url,
-            level: pv.profiles?.user_level || 1,
-            frameId: pv.profiles?.frame_id || undefined,
-          }))
+          .map((pv: any) => {
+            const profile = profileMap.get(pv.user_id);
+            return {
+              id: profile?.id || pv.user_id,
+              displayName: profile?.display_name || profile?.app_uid || "Anonymous",
+              avatarUrl: profile?.avatar_url,
+              level: profile?.user_level || 1,
+              frameId: profile?.frame_id || undefined,
+            };
+          })
           .sort((a: RealtimeViewer, b: RealtimeViewer) => b.level - a.level); // Sort by level descending
         
         setRealtimeViewers(viewerList);
@@ -786,7 +802,7 @@ export function UnifiedPartyRoom({
           
           // Fetch user profile with entry effect info for display
           const { data: profile } = await supabase
-            .from('profiles')
+            .from('profiles_public')
             .select('display_name, user_level, avatar_url, equipped_entrance_id, equipped_entry_name_bar_id')
             .eq('id', newParticipant.user_id)
             .single();
@@ -905,27 +921,39 @@ export function UnifiedPartyRoom({
     const loadMessages = async () => {
       const { data } = await supabase
         .from('party_room_messages')
-        .select('id, sender_id, content, message_type, created_at, profiles:sender_id(display_name, user_level, avatar_url, is_host)')
+        .select('id, sender_id, content, message_type, created_at')
         .eq('room_id', roomId)
         .order('created_at', { ascending: true })
         .limit(100);
       
       if (data) {
+        const senderIds = [...new Set(data.map((m: any) => m.sender_id).filter(Boolean))];
+        const { data: publicProfiles } = senderIds.length
+          ? await supabase
+              .from('profiles_public')
+              .select('id, display_name, user_level, avatar_url, is_host')
+              .in('id', senderIds)
+          : { data: [] as any[] };
+        const profileMap = new Map((publicProfiles || []).map((profile: any) => [profile.id, profile]));
+
         // Load directly to unified premiumMessages - NO duplicate chatMessages
-        const unifiedMsgs: RoomChatMessage[] = data.map((m: any) => ({
-          id: m.id,
-          userId: m.sender_id,
-          user: m.profiles?.display_name || 'User',
-          initial: (m.profiles?.display_name || 'U').charAt(0).toUpperCase(),
-          message: m.content,
-          color: m.message_type === 'gift' ? 'pink' : m.message_type === 'join' ? 'emerald' : 'white',
-          userLevel: m.profiles?.user_level || 1,
-          userAvatar: m.profiles?.avatar_url,
-          isHost: m.profiles?.is_host || (m.sender_id === hostInfo?.id),
-          isNewUser: false,
-          type: m.message_type || 'text',
-          bubbleUrl: null,
-        }));
+        const unifiedMsgs: RoomChatMessage[] = data.map((m: any) => {
+          const profile = profileMap.get(m.sender_id);
+          return {
+            id: m.id,
+            userId: m.sender_id,
+            user: profile?.display_name || 'User',
+            initial: (profile?.display_name || 'U').charAt(0).toUpperCase(),
+            message: m.content,
+            color: m.message_type === 'gift' ? 'pink' : m.message_type === 'join' ? 'emerald' : 'white',
+            userLevel: profile?.user_level || 1,
+            userAvatar: profile?.avatar_url,
+            isHost: profile?.is_host || (m.sender_id === hostInfo?.id),
+            isNewUser: false,
+            type: m.message_type || 'text',
+            bubbleUrl: null,
+          };
+        });
         setPremiumMessages(unifiedMsgs);
         unifiedMsgs.forEach(m => processedMsgIdsRef.current.add(m.id));
 
@@ -977,8 +1005,8 @@ export function UnifiedPartyRoom({
           
           // Fetch sender info with avatar
           const { data: senderData } = await supabase
-            .from('profiles')
-            .select('display_name, user_level, avatar_url, is_host')
+      .from('profiles_public')
+      .select('display_name, user_level, avatar_url, is_host')
             .eq('id', newMsg.sender_id)
             .single();
           
@@ -1067,7 +1095,7 @@ export function UnifiedPartyRoom({
     pendingMessagesRef.current.add(msgKey);
     
     // OPTIMISTIC UPDATE: Instantly show message in UI before DB save
-    const senderName = hostInfo?.displayName || 'You';
+    const senderName = currentUserProfile?.display_name || (isHost ? hostInfo?.displayName : null) || 'You';
     const ownBubble = await getEquippedBubble(currentUserId);
     const optimisticMessage: RoomChatMessage = {
       id: tempId,
@@ -1075,8 +1103,8 @@ export function UnifiedPartyRoom({
       user: senderName,
       initial: senderName.charAt(0).toUpperCase(),
       message: trimmedMessage,
-      userLevel: hostInfo?.level || 1,
-      userAvatar: hostInfo?.avatarUrl,
+      userLevel: currentUserProfile?.user_level || (isHost ? hostInfo?.level : 1) || 1,
+      userAvatar: currentUserProfile?.avatar_url || (isHost ? hostInfo?.avatarUrl : undefined),
       isHost: isHost,
       type: 'text',
       timestamp: new Date(),
