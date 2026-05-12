@@ -319,6 +319,21 @@ class LiveKitPlugin : Plugin() {
     private var pipAspectDenominator: Int = 16
 
     // ------------------------------------------------------------
+    // Lifecycle — register the singleton MainActivity bridges into.
+    // ------------------------------------------------------------
+
+    override fun load() {
+        super.load()
+        INSTANCE = this
+        // Cache the system feature so isPictureInPictureSupported() is free.
+        pipSupported = try {
+            context.packageManager.hasSystemFeature(
+                android.content.pm.PackageManager.FEATURE_PICTURE_IN_PICTURE
+            )
+        } catch (_: Exception) { false }
+    }
+
+    // ------------------------------------------------------------
     // Public API
     // ------------------------------------------------------------
 
