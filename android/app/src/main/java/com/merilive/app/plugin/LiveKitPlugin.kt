@@ -537,7 +537,120 @@ class LiveKitPlugin : Plugin() {
             setProximityMonitoringInternal(false)
             applyAudioMode(false)
             unregisterAudioDeviceListener()
+            abandonAudioFocusInternal()
             stopCallForegroundService()
+        } catch (_: Exception) {}
+    }
+
+    // ------------------------------------------------------------
+    // Audio focus + interruption handling (Step 15)
+    //
+    // When an incoming PSTN call / alarm / other media app takes audio
+    // focus mid-session, Android delivers AUDIOFOCUS_LOSS_TRANSIENT
+    // (or _LOSS for permanent steal). We pause our mic immediately and
+    // restore it on AUDIOFOCUS_GAIN — exact WhatsApp / Messenger parity.
+    // ------------------------------------------------------------
+
+    private fun requestAudioFocusInternal() {
+        val am = audioManager() ?: return
+        if (hasAudioFocus) return
+        try {
+            val listener = AudioManager.OnAudioFocusChangeListener { change ->
+                handleAudioFocusChange(change)
+            }
+            audioFocusListener = listener
+
+            val granted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val attrs = android.media.AudioAttributes.Builder()
+                    .setUsage(android.media.AudioAttributes.USAGE_VOICE_COMMUNICATION)
+                    .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SPEECH)
+                    .build()
+                val req = android.media.AudioFocusRequest.Builder(
+                        AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK
+                    )
+                    .setAudioAttributes(attrs)
+                    .setAcceptsDelayedFocusGain(true)
+                    .setWillPauseWhenDucked(true)
+                    .setOnAudioFocusChangeListener(listener)
+                    .build()
+                audioFocusRequest = req
+                am.requestAudioFocus(req)
+            } else {
+                @Suppress("DEPRECATION")
+                am.requestAudioFocus(
+                    listener,
+                    AudioManager.STREAM_VOICE_CALL,
+                    AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK
+                )
+            }
+            hasAudioFocus = granted == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+            if (!hasAudioFocus) {
+                Log.w(TAG, "requestAudioFocus not granted (=$granted) — continuing anyway")
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "requestAudioFocusInternal failed: ${e.message}")
+        }
+    }
+
+    private fun abandonAudioFocusInternal() {
+        val am = audioManager() ?: return
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                audioFocusRequest?.let { am.abandonAudioFocusRequest(it) }
+            } else {
+                @Suppress("DEPRECATION")
+                audioFocusListener?.let { am.abandonAudioFocus(it) }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "abandonAudioFocusInternal failed: ${e.message}")
+        }
+        audioFocusRequest = null
+        audioFocusListener = null
+        hasAudioFocus = false
+        micPausedByFocusLoss = false
+    }
+
+    private fun handleAudioFocusChange(change: Int) {
+        val r = room ?: return
+        when (change) {
+            AudioManager.AUDIOFOCUS_LOSS,
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT,
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
+                // Snapshot user intent and pause our mic so the interrupting
+                // app (PSTN call, alarm, voice assistant) gets clean audio.
+                if (!micPausedByFocusLoss) {
+                    val pub = r.localParticipant.getTrackPublication(Track.Source.MICROPHONE)
+                    micIntentBeforeLoss = pub?.track != null && !(pub.muted)
+                    micPausedByFocusLoss = true
+                    scope.launch {
+                        try { r.localParticipant.setMicrophoneEnabled(false) }
+                        catch (_: Exception) {}
+                    }
+                }
+                emitAudioInterruption("loss", change == AudioManager.AUDIOFOCUS_LOSS)
+            }
+            AudioManager.AUDIOFOCUS_GAIN -> {
+                if (micPausedByFocusLoss) {
+                    micPausedByFocusLoss = false
+                    val restore = micIntentBeforeLoss
+                    scope.launch {
+                        try { r.localParticipant.setMicrophoneEnabled(restore) }
+                        catch (_: Exception) {}
+                    }
+                }
+                // Re-apply our communication audio mode in case it was reset.
+                applyAudioMode(true)
+                emitAudioInterruption("gain", false)
+            }
+        }
+    }
+
+    private fun emitAudioInterruption(state: String, permanent: Boolean) {
+        try {
+            val data = JSObject()
+            data.put("state", state)         // "loss" | "gain"
+            data.put("permanent", permanent) // true only for AUDIOFOCUS_LOSS
+            notifyListeners("audio-interruption", data)
         } catch (_: Exception) {}
     }
 
