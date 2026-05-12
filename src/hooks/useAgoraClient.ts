@@ -710,6 +710,12 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
       });
       remoteAudioElementsRef.current.clear();
 
+      // 🛰️ Native publish path teardown.
+      if (usingNativeRef.current) {
+        try { await nativeLiveKitController.disconnect(); } catch { /* noop */ }
+        usingNativeRef.current = false;
+      }
+
       if (roomRef.current) {
         roomRef.current.disconnect(true);
         roomRef.current = null;
