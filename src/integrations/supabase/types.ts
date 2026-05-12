@@ -16160,18 +16160,32 @@ export type Database = {
             }
             Returns: Json
           }
-      process_gift_transaction: {
-        Args: {
-          p_call_id?: string
-          p_gift_id: string
-          p_party_room_id?: string
-          p_quantity?: number
-          p_receiver_id: string
-          p_sender_id: string
-          p_stream_id?: string
-        }
-        Returns: Json
-      }
+      process_gift_transaction:
+        | {
+            Args: {
+              p_call_id?: string
+              p_gift_id: string
+              p_party_room_id?: string
+              p_quantity?: number
+              p_receiver_id: string
+              p_sender_id: string
+              p_stream_id?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_call_id?: string
+              p_gift_id: string
+              p_party_room_id?: string
+              p_quantity?: number
+              p_receiver_id: string
+              p_reel_id?: string
+              p_sender_id: string
+              p_stream_id?: string
+            }
+            Returns: Json
+          }
       process_live_game_round: {
         Args: { p_result?: string; p_round_id: string; p_winning_value: string }
         Returns: Json

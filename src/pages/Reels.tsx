@@ -436,7 +436,8 @@ const Reels = () => {
         senderId: currentUserId,
         receiverId: currentReel.user_id,
         quantity: count,
-        context: 'profile',
+        context: 'reel',
+        reelId: currentReel.id,
       });
 
       if (!result.success) throw new Error(result.error || 'Failed to send gift');

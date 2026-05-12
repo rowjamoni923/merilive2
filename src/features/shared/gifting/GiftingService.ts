@@ -25,10 +25,11 @@ export interface GiftSendRequest {
   senderId: string;
   receiverId: string;
   quantity: number;
-  context: 'live' | 'party' | 'call' | 'chat' | 'profile';
+  context: 'live' | 'party' | 'call' | 'chat' | 'profile' | 'reel';
   roomId?: string;
   streamId?: string;
   callId?: string;
+  reelId?: string;
 }
 
 export interface GiftSendResult {
@@ -124,7 +125,7 @@ async function getHostCommissionRate(): Promise<number> {
  * Uses atomic database function for secure transaction
  */
 export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult> {
-  const { giftId, senderId, receiverId, quantity, context, streamId, roomId, callId } = request;
+  const { giftId, senderId, receiverId, quantity, context, streamId, roomId, callId, reelId } = request;
 
   try {
     console.log('[GiftingService] Processing gift transaction:', {
@@ -140,7 +141,8 @@ export async function sendGift(request: GiftSendRequest): Promise<GiftSendResult
       p_stream_id: context === 'live' ? streamId : null,
       p_party_room_id: context === 'party' ? roomId : null,
       p_call_id: context === 'call' ? callId : null,
-    });
+      p_reel_id: context === 'reel' ? reelId : null,
+    } as any);
 
     if (error) {
       console.error('[GiftingService] RPC error:', error);
