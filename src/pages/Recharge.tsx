@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useDiamondPackagesRealtime, useCurrencyRatesRealtime } from "@/hooks/useAdminSettingsRealtime";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Capacitor } from "@capacitor/core";
-import playStoreBilling, { PLAY_STORE_PRODUCTS } from "@/sdk/PlayStoreBillingSDK";
+import playStoreBilling, { PLAY_STORE_PRODUCTS, loadPlayStoreProducts } from "@/sdk/PlayStoreBillingSDK";
 import { useUserBalance, updateCachedBalance } from "@/hooks/useUserBalance";
 import { recordClientError } from "@/utils/clientErrorLog";
 import {
