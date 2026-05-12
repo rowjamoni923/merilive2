@@ -189,6 +189,36 @@ class LiveKitPlugin : Plugin() {
     private var stallWatchdogJob: Job? = null
     private var stallWatchdogEnabled: Boolean = true
 
+    // --- Network resilience (Step 26) ----------------------------
+    //
+    // LiveKit SDK already auto-recovers from short signal-channel drops
+    // (≤10 s) via WebSocket retry + ICE restart. This layer escalates
+    // when SDK recovery stalls:
+    //   • Reconnecting > 15 s   → emit "degraded", trigger a HARD
+    //     reconnect (build a fresh Room with the cached connect args).
+    //   • Disconnected with non-client reason → up to 3 hard reconnect
+    //     attempts with exponential backoff (3 / 6 / 12 s).
+    //   • Total recovery window > 60 s → emit "lost", give up.
+    // JS can also call reconnectNow() on a "Tap to retry" button.
+    private data class ConnectArgs(
+        val url: String,
+        val token: String,
+        val video: Boolean,
+        val audio: Boolean,
+        val lens: String,
+        val resolution: String,
+        val callerName: String,
+        val callType: String,
+        val e2eeOn: Boolean,
+        val e2eeKey: String?,
+    )
+    private var lastConnectArgs: ConnectArgs? = null
+    private var reconnectWatchdogJob: Job? = null
+    private var reconnectingSinceMs: Long = 0L
+    private var hardReconnectAttempts: Int = 0
+    private var hardReconnectInProgress: Boolean = false
+    private var resilienceEnabled: Boolean = true
+
     // ------------------------------------------------------------
     // Public API
     // ------------------------------------------------------------
