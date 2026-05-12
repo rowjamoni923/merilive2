@@ -3080,5 +3080,184 @@ class LiveKitPlugin : Plugin() {
             false
         }
     }
+
+    // ============================================================
+    // Step 34 — Screen-share publishing via MediaProjection.
+    //
+    // Wires up an Android system screen-capture permission flow and
+    // publishes the resulting display surface as a second video track
+    // on the active LiveKit room (alongside the camera track, NOT in
+    // place of it). Lets a host stream a game / browser / slideshow
+    // while their face stays visible in the corner — the LiveKit SDK
+    // handles all SFU plumbing (Track.Source.SCREEN_SHARE).
+    //
+    // Lifecycle:
+    //   1. JS calls `startScreenShare()` while a room is connected.
+    //   2. Plugin starts ScreenCaptureService (FGS type
+    //      "mediaProjection") so Android 14+ allows the projection.
+    //   3. We launch MediaProjectionManager.createScreenCaptureIntent
+    //      via Capacitor's startActivityForResult bridge.
+    //   4. On RESULT_OK, we hand the Intent to LiveKit's
+    //      `localParticipant.setScreenShareEnabled(true, data)` —
+    //      the SDK opens the VirtualDisplay and publishes a track.
+    //   5. `stopScreenShare()` (or the FGS notification button) calls
+    //      `setScreenShareEnabled(false)` and stops the FGS.
+    //
+    // Emits `screen-share-state` events: "starting" | "started" |
+    // "denied" | "stopped" | "error".
+    // ============================================================
+
+    private var isScreenSharing = false
+    private var screenShareStartedAt = 0L
+
+    private fun emitScreenShareState(state: String, error: String? = null) {
+        try {
+            val ev = JSObject()
+            ev.put("state", state)
+            if (error != null) ev.put("error", error)
+            ev.put("active", isScreenSharing)
+            ev.put("startedAt", screenShareStartedAt)
+            notifyListeners("screen-share-state", ev)
+        } catch (_: Exception) {}
+    }
+
+    @PluginMethod
+    fun isScreenShareSupported(call: PluginCall) {
+        val ret = JSObject()
+        // MediaProjection landed in API 21 (Android 5.0). Every supported
+        // device meets that bar — we keep the call so JS can future-proof
+        // against form factors (TVs, work-profile devices) that opt out.
+        ret.put("supported", Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+        ret.put("active", isScreenSharing)
+        call.resolve(ret)
+    }
+
+    @PluginMethod
+    fun isScreenSharing(call: PluginCall) {
+        val ret = JSObject()
+        ret.put("active", isScreenSharing)
+        ret.put("startedAt", screenShareStartedAt)
+        ret.put("hasRoom", room != null)
+        call.resolve(ret)
+    }
+
+    @PluginMethod
+    fun startScreenShare(call: PluginCall) {
+        if (room == null) {
+            call.reject("no-room", "Connect to a room before sharing the screen.")
+            return
+        }
+        if (isScreenSharing) {
+            // Idempotent — JS may double-tap the button; just resolve.
+            val ret = JSObject()
+            ret.put("active", true)
+            ret.put("alreadyOn", true)
+            call.resolve(ret)
+            return
+        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            call.reject("unsupported", "Screen sharing requires Android 5.0+.")
+            return
+        }
+
+        try {
+            // Start the FGS BEFORE issuing the projection request.
+            // Android 14+ enforces this ordering — getMediaProjection()
+            // throws SecurityException otherwise.
+            com.merilive.app.service.ScreenCaptureService.start(context)
+
+            val mpm = context.getSystemService(Context.MEDIA_PROJECTION_SERVICE)
+                as? android.media.projection.MediaProjectionManager
+            if (mpm == null) {
+                com.merilive.app.service.ScreenCaptureService.stop(context)
+                call.reject("no-projection-service", "MediaProjectionManager unavailable.")
+                return
+            }
+
+            emitScreenShareState("starting")
+            val intent = mpm.createScreenCaptureIntent()
+            // Save the call so the @ActivityCallback can resolve it.
+            startActivityForResult(call, intent, "handleScreenShareResult")
+        } catch (e: Exception) {
+            com.merilive.app.service.ScreenCaptureService.stop(context)
+            emitScreenShareState("error", e.message)
+            call.reject("screen-share-launch-failed", e)
+        }
+    }
+
+    @com.getcapacitor.annotation.ActivityCallback
+    private fun handleScreenShareResult(call: PluginCall?, result: androidx.activity.result.ActivityResult) {
+        val data = result.data
+        val ok = result.resultCode == android.app.Activity.RESULT_OK && data != null
+        if (!ok) {
+            com.merilive.app.service.ScreenCaptureService.stop(context)
+            emitScreenShareState("denied")
+            call?.reject("permission-denied", "User declined the screen-capture prompt.")
+            return
+        }
+
+        val r = room
+        if (r == null) {
+            com.merilive.app.service.ScreenCaptureService.stop(context)
+            emitScreenShareState("error", "Room disconnected before screen share could start.")
+            call?.reject("no-room", "Room disconnected before screen share could start.")
+            return
+        }
+
+        scope.launch {
+            try {
+                // LiveKit SDK 2.x: setScreenShareEnabled accepts the
+                // raw Intent from MediaProjectionManager and handles
+                // VirtualDisplay + WebRTC track plumbing internally.
+                r.localParticipant.setScreenShareEnabled(true, data)
+                isScreenSharing = true
+                screenShareStartedAt = System.currentTimeMillis()
+                emitScreenShareState("started")
+                val ret = JSObject()
+                ret.put("active", true)
+                ret.put("startedAt", screenShareStartedAt)
+                call?.resolve(ret)
+            } catch (e: Exception) {
+                Log.w(TAG, "setScreenShareEnabled(true) failed: ${e.message}")
+                isScreenSharing = false
+                screenShareStartedAt = 0L
+                com.merilive.app.service.ScreenCaptureService.stop(context)
+                emitScreenShareState("error", e.message)
+                call?.reject("screen-share-publish-failed", e)
+            }
+        }
+    }
+
+    @PluginMethod
+    fun stopScreenShare(call: PluginCall) {
+        val r = room
+        if (!isScreenSharing || r == null) {
+            // Always stop the FGS — defensive cleanup.
+            com.merilive.app.service.ScreenCaptureService.stop(context)
+            isScreenSharing = false
+            screenShareStartedAt = 0L
+            val ret = JSObject()
+            ret.put("active", false)
+            ret.put("alreadyOff", true)
+            call.resolve(ret)
+            return
+        }
+
+        scope.launch {
+            try {
+                r.localParticipant.setScreenShareEnabled(false)
+            } catch (e: Exception) {
+                Log.w(TAG, "setScreenShareEnabled(false) failed: ${e.message}")
+            } finally {
+                com.merilive.app.service.ScreenCaptureService.stop(context)
+                isScreenSharing = false
+                screenShareStartedAt = 0L
+                emitScreenShareState("stopped")
+                val ret = JSObject()
+                ret.put("active", false)
+                call.resolve(ret)
+            }
+        }
+    }
 }
-}
+
