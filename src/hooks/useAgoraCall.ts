@@ -25,6 +25,7 @@ import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tence
 import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
 import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
 import { useNativeLiveKitEvents } from '@/hooks/useNativeLiveKitEvents';
+import { useNativeLiveKitLifecycle } from '@/hooks/useNativeLiveKitLifecycle';
 
 interface LiveKitCallState {
   localStream: MediaStream | null;
@@ -74,6 +75,11 @@ export function useAgoraCall(
       setNativeActive(false);
     },
   });
+
+  // Pause camera + mic when the app is backgrounded; restore on resume.
+  // Releases the native camera handle to Android so the OS doesn't kill
+  // the app or freeze the published track.
+  useNativeLiveKitLifecycle(nativeActive);
 
   const cleanup = useCallback(() => {
     console.log('[LiveKitCall] cleanup');
