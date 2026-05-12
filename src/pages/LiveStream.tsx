@@ -1059,8 +1059,19 @@ const LiveStream = () => {
         
         console.log('[LiveStream] ⚡ INSTANT join broadcast received:', data.userName);
         
-        // 1. INSTANT viewer count increment
-        setViewerCount(prev => prev + 1);
+        // 1. INSTANT viewer count + avatar update (host sees visitor without refresh)
+        activeViewerIdsRef.current.add(data.userId);
+        setViewerCount(activeViewerIdsRef.current.size);
+        setRecentViewerAvatars(prev => [
+          {
+            id: data.userId,
+            app_uid: data.appUid || null,
+            avatar_url: data.userAvatar || null,
+            name: data.userName || "User",
+            user_level: data.userLevel || 1,
+          },
+          ...prev.filter(v => v.id !== data.userId),
+        ].slice(0, 5));
         
         // 2. INSTANT flying join banner
         addBigoJoinNotification({
@@ -1448,7 +1459,7 @@ const LiveStream = () => {
 
       if (viewerIds.length > 0) {
         const { data: profiles, error: profilesError } = await supabase
-          .from("profiles")
+          .from("profiles_public")
           .select("id, app_uid, display_name, avatar_url, user_level")
           .in("id", viewerIds);
 
@@ -1475,6 +1486,7 @@ const LiveStream = () => {
       });
 
       if (mountedRef.current) {
+        activeViewerIdsRef.current = new Set(viewerIds);
         setRecentViewerAvatars(avatars);
 
         if (typeof count === 'number') {
@@ -1511,7 +1523,7 @@ const LiveStream = () => {
       
       // Fetch viewer profile
         const { data: profile } = await supabase
-          .from('profiles')
+          .from('profiles_public')
           .select('display_name, avatar_url, user_level, equipped_entrance_id, equipped_entry_name_bar_id, equipped_vehicle_id')
           .eq('id', viewerId)
         .single();
