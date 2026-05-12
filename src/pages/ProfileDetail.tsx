@@ -1657,6 +1657,22 @@ const ProfileDetail = () => {
           const { updateCachedBalance, getCachedBalance } = await import("@/hooks/useUserBalance");
           updateCachedBalance(getCachedBalance() - totalCost);
 
+          // Trigger LOCAL full-screen SVGA animation INSTANTLY for the sender
+          addFlyingGift({
+            id: `local_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+            senderName: 'You',
+            receiverName: profile?.display_name || 'User',
+            giftName: gift.name,
+            giftIcon: '🎁',
+            giftImageUrl: gift.icon_url || undefined,
+            animationUrl: gift.animation_url || gift.icon_url || undefined,
+            soundUrl: (gift as any).sound_url || undefined,
+            giftColor: 'from-pink-500 to-purple-500',
+            count,
+            coins: gift.coins,
+            isOwnGift: true,
+          });
+
           const result = await sendGift({
             giftId: gift.id,
             senderId: currentUser.id,
@@ -1681,6 +1697,17 @@ const ProfileDetail = () => {
         }}
         userCoins={currentUserCoins}
       />
+
+      {/* Full-screen SVGA Gift Animations (own gift instant feedback) */}
+      <AnimatePresence>
+        {flyingGifts.map(g => (
+          <FlyingGiftAnimation
+            key={g.id}
+            gift={g}
+            onComplete={() => removeFlyingGift(g.id)}
+          />
+        ))}
+      </AnimatePresence>
       </div>
     </div>
   );
