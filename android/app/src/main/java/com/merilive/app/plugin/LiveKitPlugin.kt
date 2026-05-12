@@ -470,6 +470,7 @@ class LiveKitPlugin : Plugin() {
                 r.initVideoRenderer(localRenderer!!)
                 track.addRenderer(localRenderer!!)
                 mountBehindWebView(localRenderer!!)
+                installStallSink(track, key = "local", sid = "local", isLocal = true)
                 call.resolve()
             } catch (e: Exception) {
                 call.reject("attachLocal failed: ${e.message}")
@@ -494,6 +495,7 @@ class LiveKitPlugin : Plugin() {
                 r.initVideoRenderer(renderer)
                 track.addRenderer(renderer)
                 mountBehindWebView(renderer)
+                installStallSink(track, key = sid, sid = sid, isLocal = false)
                 call.resolve()
             } catch (e: Exception) {
                 call.reject("attachRemote failed: ${e.message}")
