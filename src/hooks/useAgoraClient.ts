@@ -19,6 +19,7 @@ import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tence
 import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
 import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
 import { useNativeLiveKitEvents } from '@/hooks/useNativeLiveKitEvents';
+import { useNativeLiveKitLifecycle } from '@/hooks/useNativeLiveKitLifecycle';
 
 interface AgoraConfig {
   channelName: string;
@@ -126,6 +127,11 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
       try { options.onError?.(new Error(`native_livekit_disconnected: ${reason}`)); } catch { /* noop */ }
     },
   });
+
+  // Pause camera + mic when the app is backgrounded; restore on resume.
+  // Releases the native camera handle to Android so the OS doesn't kill
+  // the broadcast or freeze the published video track.
+  useNativeLiveKitLifecycle(nativeActive);
 
   const getUidForParticipant = useCallback((identity: string): number => {
     if (participantUidMapRef.current.has(identity)) {
