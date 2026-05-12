@@ -87,10 +87,14 @@ const executeBatch = async () => {
         idChunks.push(uncachedIds.slice(i, i + MAX_IDS_PER_QUERY));
       }
 
+      // CRITICAL: Use profiles_public (RLS-safe view) — direct profiles
+      // SELECT is blocked for non-owner reads by hardened RLS, which
+      // would silently return zero rows and break frame loading on every
+      // surface (Chat list, message bubbles, profile headers, etc.).
       const chunkResults = await Promise.allSettled(
         idChunks.map((chunk) =>
           supabase
-            .from('profiles')
+            .from('profiles_public')
             .select('id, frame_id, equipped_frame_id')
             .in('id', chunk)
         )
