@@ -230,8 +230,7 @@ const PartyRoom = () => {
     currentUserRef.current = currentUser;
     roomRef.current = room;
     roomIdRef.current = roomId;
-    hostCommissionPercentRef.current = hostCommissionPercent;
-  }, [currentUser, room, roomId, hostCommissionPercent]);
+  }, [currentUser, room, roomId]);
   
   // Ref to track component mount status for async operations
   const isMountedRef = useRef(true);
@@ -351,6 +350,9 @@ const PartyRoom = () => {
   // Fetch total room beans from gift transactions
   // ✅ Using GLOBAL SETTINGS for commission rate - Real-time sync with Admin Panel
   const [hostCommissionPercent, setHostCommissionPercent] = useState<number>(55);
+  useEffect(() => {
+    hostCommissionPercentRef.current = hostCommissionPercent;
+  }, [hostCommissionPercent]);
   
   // ✅ UNIFIED SETTINGS SUBSCRIPTION - gift_commission + party_room_limits
   useEffect(() => {
