@@ -555,6 +555,10 @@ class LiveKitPlugin : Plugin() {
                 setProximityMonitoringInternal(false)
                 applyAudioMode(false)
                 unregisterAudioDeviceListener()
+                // Step 30 — release headset receivers + media-button session.
+                unregisterHeadsetReceivers()
+                stopHeadsetMediaSession()
+                stopBluetoothScoInternal()
                 abandonAudioFocusInternal()
                 stopCallForegroundService()
                 call.resolve()
