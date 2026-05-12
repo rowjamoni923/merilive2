@@ -6,7 +6,7 @@ import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Flame } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { PROMO_STICKERS, type PromoStickerCategory } from './stickerAssets';
+import { PROMO_STICKERS, type PromoStickerCategory, getStickerAnimationClass } from './stickerAssets';
 
 interface StickerPanelProps {
   isOpen: boolean;
@@ -127,7 +127,7 @@ export function StickerPanel({ isOpen, onClose, activeSticker, onStickerChange }
                         src={sticker.preview}
                         alt={sticker.name}
                         loading="lazy"
-                        className="h-full w-full object-contain drop-shadow-md"
+                        className={cn('h-full w-full object-contain drop-shadow-md', getStickerAnimationClass(sticker.name))}
                       />
                       {isActive && (
                         <div className="absolute top-1.5 right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-orange-500 shadow">

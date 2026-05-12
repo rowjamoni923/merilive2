@@ -13,7 +13,7 @@
 import { memo, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
-import { STICKER_ASSET_MAP } from './stickerAssets';
+import { STICKER_ASSET_MAP, getStickerAnimationClass, getStickerShimmer } from './stickerAssets';
 
 interface StickerOverlayProps {
   stickerName: string | null;
@@ -72,12 +72,12 @@ const StickerOverlay = memo(({ stickerName, onDismiss, className = '' }: Sticker
             maxWidth: 240,
           }}
         >
-          <div className="relative">
+          <div className={`relative ${getStickerShimmer(stickerName) ? 'sticker-shimmer-wrap' : ''}`}>
             <img
               src={asset}
               alt={stickerName}
               draggable={false}
-              className="w-full h-auto object-contain drop-shadow-[0_4px_14px_rgba(0,0,0,0.45)] pointer-events-none"
+              className={`w-full h-auto object-contain drop-shadow-[0_4px_14px_rgba(0,0,0,0.45)] pointer-events-none ${getStickerAnimationClass(stickerName)}`}
             />
             {onDismiss && (
               <button
