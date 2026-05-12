@@ -1631,12 +1631,18 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
   if (loading && !profile) {
     return (
-      <div className="mobile-page flex flex-col bg-background animate-pulse">
-        <div className="h-48 bg-muted" />
+      <div
+        className="mobile-page flex flex-col"
+        style={{
+          background:
+            'radial-gradient(ellipse at top, hsl(280 40% 14%) 0%, hsl(260 30% 8%) 55%, hsl(240 20% 4%) 100%)',
+        }}
+      >
+        <div className="h-48 bg-white/5 animate-pulse" />
         <div className="px-4 -mt-12 space-y-3">
-          <div className="w-24 h-24 rounded-full bg-muted border-4 border-background" />
-          <div className="h-5 w-32 bg-muted rounded" />
-          <div className="h-4 w-48 bg-muted rounded" />
+          <div className="w-24 h-24 rounded-full bg-white/10 border-4 border-white/5 animate-pulse" />
+          <div className="h-5 w-32 bg-white/10 rounded animate-pulse" />
+          <div className="h-4 w-48 bg-white/10 rounded animate-pulse" />
         </div>
       </div>
     );

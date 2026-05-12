@@ -1030,8 +1030,17 @@ const App = () => {
                        during route chunk loads. Background matches app theme so users
                        never see a black flash between sections. */}
                   <Suspense fallback={
-                    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-background">
-                      <div className="h-10 w-10 rounded-full border-2 border-muted border-t-primary animate-spin" />
+                    <div
+                      className="fixed inset-0 z-[60] flex items-center justify-center"
+                      style={{
+                        background:
+                          'radial-gradient(ellipse at center, hsl(280 40% 14%) 0%, hsl(260 30% 8%) 60%, hsl(240 20% 4%) 100%)',
+                      }}
+                    >
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="h-12 w-12 rounded-full border-[3px] border-white/15 border-t-amber-300 animate-spin shadow-[0_0_24px_rgba(251,191,36,0.35)]" />
+                        <div className="text-[11px] uppercase tracking-[0.25em] text-white/50">Loading</div>
+                      </div>
                     </div>
                   }>
                   <Routes>
