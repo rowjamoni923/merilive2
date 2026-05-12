@@ -658,8 +658,9 @@ export function UnifiedPartyRoom({
         .from("party_room_participants")
         .select(`
           user_id,
-          profiles!party_room_participants_user_id_fkey (
+          profiles_public!party_room_participants_user_id_fkey (
             id,
+            app_uid,
             display_name,
             avatar_url,
             user_level,
@@ -682,10 +683,10 @@ export function UnifiedPartyRoom({
           .filter((p: any) => p.user_id !== currentHostId)
           .map((pv: any) => ({
             id: pv.profiles?.id || pv.user_id,
-            displayName: pv.profiles?.display_name || "Anonymous",
-            avatarUrl: pv.profiles?.avatar_url,
-            level: pv.profiles?.user_level || 1,
-            frameId: pv.profiles?.frame_id || undefined,
+            displayName: pv.profiles_public?.display_name || pv.profiles_public?.app_uid || "Anonymous",
+            avatarUrl: pv.profiles_public?.avatar_url,
+            level: pv.profiles_public?.user_level || 1,
+            frameId: pv.profiles_public?.frame_id || undefined,
           }))
           .sort((a: RealtimeViewer, b: RealtimeViewer) => b.level - a.level); // Sort by level descending
         
