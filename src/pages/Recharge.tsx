@@ -1251,11 +1251,23 @@ const Recharge = () => {
     try {
       const { data, error } = await supabase
         .from('payment_gateways')
-        .select('id, name, gateway_type, config, supported_currencies')
+        .select('id, name, gateway_type, config, supported_currencies, country_codes, logo_url')
         .eq('is_active', true)
         .order('display_order', { ascending: true });
 
       if (error) throw error;
+
+      // STRICT country filter: gateway must contain user's country in country_codes
+      // (or have NULL/empty country_codes = treated as global, e.g. crypto/USDT)
+      const cc = (userCountryCode || '').toUpperCase();
+      const countryFiltered = (data || []).filter((g: any) => {
+        const codes: string[] = Array.isArray(g.country_codes) ? g.country_codes.map((c: string) => String(c).toUpperCase()) : [];
+        if (codes.length === 0) return true; // global
+        return cc ? codes.includes(cc) : false;
+      });
+      const dataFiltered = countryFiltered;
+      // Re-bind to keep downstream mapping unchanged
+      const _data = dataFiltered;
       
       // Map data to include payment_number and payment_instructions from settings
       const mappedGateways: PaymentGateway[] = (data || []).map((g: any) => ({
