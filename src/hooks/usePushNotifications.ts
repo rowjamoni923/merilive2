@@ -67,6 +67,11 @@ export function usePushNotifications(): UsePushNotificationsReturn {
       return;
     }
 
+    if (data?.type === 'gift' || data?.type === 'gift_received' || data?.type === 'gift_sent') {
+      console.log('[Push] Gift notification - handled by in-room gift feed');
+      return;
+    }
+
     // Show toast for other notifications
     toast({
       title: notification.title || 'Notification',

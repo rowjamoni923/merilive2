@@ -115,6 +115,8 @@ const getNotificationCategory = (type: string): string => {
   return 'general';
 };
 
+const ROOM_GIFT_NOTIFICATION_TYPES = new Set(['gift', 'gift_received', 'gift_sent']);
+
 // Get emoji icon based on notification type
 const getNotificationIcon = (type: string): string => {
   const iconMap: Record<string, string> = {
@@ -324,6 +326,13 @@ export const useNotifications = () => {
           const newNotification = { ...payload.new as Notification, source: 'regular' as const };
           // Skip admin-only notification types in the user app
           if (ADMIN_ONLY_TYPES.includes(newNotification.type) || newNotification.is_read) return;
+          // Live/party/chat gifts are rendered by the room/chat gift feed and animation system.
+          // Do not show the global top toast, otherwise one gift appears as a repeating notification banner.
+          if (ROOM_GIFT_NOTIFICATION_TYPES.has(newNotification.type)) {
+            setNotifications(prev => [newNotification, ...prev]);
+            setUnreadCount(prev => prev + 1);
+            return;
+          }
           console.log('New notification received:', payload);
           setNotifications(prev => [newNotification, ...prev]);
           setUnreadCount(prev => prev + 1);
