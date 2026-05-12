@@ -198,6 +198,7 @@ class LiveKitPlugin : Plugin() {
                 setKeepScreenOn(false)
                 setProximityMonitoringInternal(false)
                 applyAudioMode(false)
+                unregisterAudioDeviceListener()
                 call.resolve()
             } catch (e: Exception) {
                 call.reject("disconnect failed: ${e.message}")
