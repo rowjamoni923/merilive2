@@ -809,6 +809,12 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
     }
   }, []);
 
+  /** Toggle native speakerphone routing during a live broadcast. No-op on web/iOS. */
+  const setSpeakerOn = useCallback(async (on: boolean) => {
+    if (!usingNativeRef.current) return;
+    await nativeLiveKitController.setSpeakerphone(on);
+  }, []);
+
   // Screen share
   const startScreenShare = useCallback(async () => {
     const room = roomRef.current;
