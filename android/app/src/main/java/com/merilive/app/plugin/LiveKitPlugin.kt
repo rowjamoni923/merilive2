@@ -179,6 +179,10 @@ class LiveKitPlugin : Plugin() {
                 setProximityMonitoringInternal(!enableVideo)
                 registerAudioDeviceListener()
 
+                // Step 14 — promote process to a foreground service so Android
+                // 14+ keeps mic/camera alive when the user backgrounds the app.
+                startCallForegroundService(callerName, callType)
+
                 val ret = JSObject()
                 ret.put("connected", true)
                 ret.put("sid", newRoom.localParticipant.sid.value)
