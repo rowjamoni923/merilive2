@@ -189,9 +189,41 @@ export const ReelUploadModal = ({
         return;
       }
 
-      setUploadProgress(20);
+      // 🛡️ AI 18+ MODERATION (AWS Rekognition) — runs BEFORE upload so prohibited
+      // content never even touches storage. Frames are scanned in parallel-friendly
+      // batches; only HARD 18+ labels (Explicit Nudity, Sexual Activity, etc.)
+      // trigger a block. Suggestive / swimwear / partial-nudity are NOT blocked
+      // to avoid false positives on normal reels.
+      setUploadProgress(15);
+      toast.loading("Scanning video for prohibited content...", { id: 'mod-check' });
+      try {
+        const frames = await extractFramesForModeration(videoFile, 6);
+        const { data: modData, error: modError } = await supabase.functions.invoke(
+          'moderate-reel-rekognition',
+          { body: { frames } }
+        );
+        toast.dismiss('mod-check');
 
-      // Upload video
+        if (modError) {
+          // Fail-open on transient errors — log only.
+          console.warn('[Moderation] AWS check failed, allowing upload:', modError);
+        } else if (modData && modData.isSafe === false) {
+          toast.error("Upload blocked: 18+ content detected", {
+            description: modData.reason || "Your video appears to contain adult content and cannot be uploaded.",
+            duration: 7000,
+          });
+          setUploading(false);
+          setUploadProgress(0);
+          return;
+        }
+      } catch (modErr) {
+        toast.dismiss('mod-check');
+        console.warn('[Moderation] exception, allowing upload:', modErr);
+      }
+
+      setUploadProgress(35);
+
+      // Upload video (only after passing moderation)
       const sanitizedName = videoFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
       const videoFileName = `${user.id}/${Date.now()}_${sanitizedName}`;
       const { error: videoError } = await supabase.storage
@@ -202,7 +234,7 @@ export const ReelUploadModal = ({
         });
 
       if (videoError) throw videoError;
-      setUploadProgress(60);
+      setUploadProgress(70);
 
       const { data: videoUrlData } = supabase.storage
         .from('reels')
@@ -213,7 +245,7 @@ export const ReelUploadModal = ({
       try {
         const thumbnailBlob = await fetch(await generateThumbnail(videoFile)).then(r => r.blob());
         const thumbnailFileName = `${user.id}/${Date.now()}_thumb.jpg`;
-        
+
         const { error: thumbError } = await supabase.storage
           .from('reels')
           .upload(thumbnailFileName, thumbnailBlob, {
@@ -229,36 +261,6 @@ export const ReelUploadModal = ({
         }
       } catch (thumbErr) {
         console.error('Thumbnail generation failed:', thumbErr);
-      }
-      
-      setUploadProgress(75);
-
-      // 🛡️ NSFW MODERATION CHECK (Sightengine) — runs BEFORE creating reel record
-      toast.loading("Checking video for prohibited content...", { id: 'mod-check' });
-      try {
-        const { data: modData, error: modError } = await supabase.functions.invoke(
-          'moderate-video-sightengine',
-          { body: { videoUrl: videoUrlData.publicUrl, userId: user.id } }
-        );
-
-        if (modError) {
-          console.warn('[Moderation] check failed, allowing upload:', modError);
-        } else if (modData && modData.isSafe === false) {
-          // Delete uploaded video from storage
-          await supabase.storage.from('reels').remove([videoFileName]);
-          toast.dismiss('mod-check');
-          toast.error("Upload blocked", {
-            description: modData.reason || "Your video contains prohibited content.",
-            duration: 6000,
-          });
-          setUploading(false);
-          setUploadProgress(0);
-          return;
-        }
-        toast.dismiss('mod-check');
-      } catch (modErr) {
-        console.warn('[Moderation] exception, allowing upload:', modErr);
-        toast.dismiss('mod-check');
       }
 
       setUploadProgress(85);
