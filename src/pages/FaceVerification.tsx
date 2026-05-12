@@ -1202,15 +1202,22 @@ const FaceVerification = () => {
         .eq('id', userId);
 
       const videoUrl = await uploadFile(faceVerificationVideo, 'face-videos');
-      
-      // Insert submission with ALL user info (name, age, language, photo)
+
+      // Upload 3-angle stills (front/left/right) captured live for AWS Rekognition auto-approve
+      const angleUrls = await uploadCapturedAngles();
+
+      // Insert submission with ALL user info (name, age, language, photo) + 3 angles
       const { data: submissionData, error: submissionError } = await supabase
         .from('face_verification_submissions')
         .insert({
           user_id: userId,
           verification_type: 'face',
-          status: 'pending',
+          status: 'submitted', // ★ 'submitted' so service_auto_finalize_face_verification can pick it up
           face_image_url: videoUrl,
+          selfie_url: angleUrls.front_url || videoUrl || 'pending://no-image',
+          front_url: angleUrls.front_url ?? null,
+          left_url: angleUrls.left_url ?? null,
+          right_url: angleUrls.right_url ?? null,
           full_name: fullName.trim(),
           age: parseInt(age),
           language: language,
@@ -1218,13 +1225,27 @@ const FaceVerification = () => {
         })
         .select('id')
         .single();
-      
+
       if (submissionError) throw submissionError;
 
-      // ✅ NO AUTO-APPROVE — All submissions go to Admin Panel for manual review
+      // ★ AUTO-APPROVE via AWS Rekognition: DetectFaces (gender) + CompareFaces (front-vs-left/right)
+      // → service_auto_finalize_face_verification handles gender swap + is_host + status='approved'.
+      let autoApproved = false;
+      let autoMessage = "Your verification has been submitted. Admin will review and approve your account.";
+      if (submissionData?.id && angleUrls.front_url && angleUrls.left_url && angleUrls.right_url) {
+        const result = await triggerRekognitionAutoApprove(submissionData.id);
+        if (result?.autoFinalize?.success) {
+          autoApproved = true;
+          const detected = result.autoFinalize.gender;
+          autoMessage = detected === 'female'
+            ? "🎉 Auto-approved as Host! Welcome."
+            : "🎉 Auto-approved! Your account is verified.";
+        }
+      }
+
       toast({
-        title: "✅ Submission Successful!",
-        description: "Your verification has been submitted. Admin will review and approve your account.",
+        title: autoApproved ? "✅ Auto-Approved!" : "✅ Submission Successful!",
+        description: autoMessage,
       });
       navigate('/profile');
       return;
