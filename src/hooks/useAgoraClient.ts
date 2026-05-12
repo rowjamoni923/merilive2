@@ -16,6 +16,8 @@ import {
 } from 'livekit-client';
 import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
+import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
+import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
 
 interface AgoraConfig {
   channelName: string;
@@ -104,6 +106,10 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
   const lastForcedVideoResubscribeAtRef = useRef(0);
   const lastRetrySubscriptionAtRef = useRef(0);
   const preferredVideoQualityRef = useRef<VideoQuality>(VideoQuality.HIGH);
+  // True when this session was published via the native Android LiveKit
+  // plugin (Capacitor) instead of the browser livekit-client. Drives the
+  // native branch in joinChannel/leaveChannel/toggle*/switchCamera.
+  const usingNativeRef = useRef(false);
 
   const getUidForParticipant = useCallback((identity: string): number => {
     if (participantUidMapRef.current.has(identity)) {
@@ -176,6 +182,47 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
 
     const startTime = performance.now();
     console.log(`[LiveKitClient] Joining channel: ${normalizedChannel} as ${config.role}`);
+
+    // 🛰️ Native Android publish path (Capacitor + LiveKit Android SDK).
+    // Only host broadcasts are routed natively for now; viewers stay on
+    // web livekit-client (audience playback inside the WebView is fine).
+    // Web/iOS gate=false → falls through to web Room flow below.
+    if (
+      config.role === 'host' &&
+      !config.preloadedRoom &&
+      shouldUseNativeLiveKit({ feature: 'live-broadcast' })
+    ) {
+      try {
+        const roomType = 'host_stream';
+        warmLiveKitToken(normalizedChannel, roomType).catch(() => {});
+        const { token, url } = await getLiveKitToken(normalizedChannel, roomType);
+
+        await nativeLiveKitController.connectAndPublish({
+          url,
+          token,
+          video: true,
+          audio: true,
+          lens: 'front',
+          resolution: '1080p',
+          attachLocal: true,
+        });
+
+        usingNativeRef.current = true;
+        channelRef.current = normalizedChannel;
+        setIsJoined(true);
+        setConnectionState('CONNECTED');
+        setCurrentRole('host');
+        setIsLoading(false);
+        isJoiningRef.current = false;
+        const joinTime = performance.now() - startTime;
+        console.log(`[LiveKitClient/Native] ✅ Connected in ${joinTime.toFixed(0)}ms`);
+        return { uid: uidRef.current || 0, channel: normalizedChannel };
+      } catch (nativeErr) {
+        console.error('[LiveKitClient/Native] join failed, falling back to web:', nativeErr);
+        usingNativeRef.current = false;
+        // Fall through to web path.
+      }
+    }
 
     try {
       // Disconnect existing room if any
@@ -663,6 +710,12 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
       });
       remoteAudioElementsRef.current.clear();
 
+      // 🛰️ Native publish path teardown.
+      if (usingNativeRef.current) {
+        try { await nativeLiveKitController.disconnect(); } catch { /* noop */ }
+        usingNativeRef.current = false;
+      }
+
       if (roomRef.current) {
         roomRef.current.disconnect(true);
         roomRef.current = null;
@@ -687,6 +740,10 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
 
   // Toggle audio
   const toggleAudio = useCallback(async (enabled: boolean) => {
+    if (usingNativeRef.current) {
+      await nativeLiveKitController.setMicrophoneEnabled(enabled);
+      return;
+    }
     const room = roomRef.current;
     if (!room?.localParticipant) return;
     await room.localParticipant.setMicrophoneEnabled(enabled);
@@ -694,6 +751,10 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
 
   // Toggle video
   const toggleVideo = useCallback(async (enabled: boolean) => {
+    if (usingNativeRef.current) {
+      await nativeLiveKitController.setCameraEnabled(enabled);
+      return;
+    }
     const room = roomRef.current;
     if (!room?.localParticipant) return;
     await room.localParticipant.setCameraEnabled(enabled);
@@ -701,6 +762,10 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
 
   // Switch camera
   const switchCamera = useCallback(async () => {
+    if (usingNativeRef.current) {
+      await nativeLiveKitController.switchCamera();
+      return;
+    }
     const room = roomRef.current;
     if (!room?.localParticipant) return;
 
