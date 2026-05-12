@@ -1025,7 +1025,14 @@ const App = () => {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{
+        persister: __queryPersister as any,
+        maxAge: 1000 * 60 * 60 * 24 * 7, // keep cache 7 days
+        buster: 'merilive-v1',
+      }}
+    >
       {showSplash && (
         <Suspense fallback={null}>
           <SplashScreen onComplete={() => { try { sessionStorage.setItem('splash_shown', '1'); } catch {} setShowSplash(false); }} />
