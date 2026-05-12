@@ -309,7 +309,7 @@ export default function AdminLiveBans() {
         if (error) throw error;
         if (!(data as any)?.success) throw new Error('Unban failed');
       } else {
-        const { data: userData } = await supabase.auth.getUser();
+        const __as = getAdminSession(); const userData = { user: __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null };
         const { error } = await supabase
           .from('live_bans')
           .update({
@@ -642,7 +642,7 @@ export default function AdminLiveBans() {
                                       className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
                                       onClick={async () => {
                                         try {
-                                          const { data: userData } = await supabase.auth.getUser();
+                                          const __as = getAdminSession(); const userData = { user: __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null };
                                           const { error } = await supabase
                                             .from('live_bans')
                                             .update({
