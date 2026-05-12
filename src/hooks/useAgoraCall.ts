@@ -55,11 +55,20 @@ export function useAgoraCall(
   const roomRef = useRef<Room | null>(null);
   const isInitRef = useRef(false);
   const deadRef = useRef(false);
+  // True when this private call session is published via the native
+  // Android LiveKit plugin (Capacitor) instead of the browser
+  // livekit-client. Drives the native branch in cleanup/toggleAudio/toggleVideo.
+  const usingNativeRef = useRef(false);
 
   const cleanup = useCallback(() => {
     console.log('[LiveKitCall] cleanup');
     deadRef.current = true;
     isInitRef.current = false;
+
+    if (usingNativeRef.current) {
+      nativeLiveKitController.disconnect().catch(() => {});
+      usingNativeRef.current = false;
+    }
 
     if (roomRef.current) {
       roomRef.current.disconnect(true);
@@ -79,19 +88,27 @@ export function useAgoraCall(
   }, []);
 
   const toggleAudio = useCallback(() => {
+    const enabled = !state.isAudioEnabled;
+    if (usingNativeRef.current) {
+      nativeLiveKitController.setMicrophoneEnabled(enabled).catch(() => {});
+      setState(p => ({ ...p, isAudioEnabled: enabled }));
+      return;
+    }
     const room = roomRef.current;
     if (!room?.localParticipant) return;
-    
-    const enabled = !state.isAudioEnabled;
     room.localParticipant.setMicrophoneEnabled(enabled);
     setState(p => ({ ...p, isAudioEnabled: enabled }));
   }, [state.isAudioEnabled]);
 
   const toggleVideo = useCallback(() => {
+    const enabled = !state.isVideoEnabled;
+    if (usingNativeRef.current) {
+      nativeLiveKitController.setCameraEnabled(enabled).catch(() => {});
+      setState(p => ({ ...p, isVideoEnabled: enabled }));
+      return;
+    }
     const room = roomRef.current;
     if (!room?.localParticipant) return;
-    
-    const enabled = !state.isVideoEnabled;
     room.localParticipant.setCameraEnabled(enabled);
     setState(p => ({ ...p, isVideoEnabled: enabled }));
   }, [state.isVideoEnabled]);
