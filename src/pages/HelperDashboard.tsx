@@ -53,6 +53,8 @@ interface PaymentMethod {
   instructions: string | null;
   min_amount: number;
   max_amount: number;
+  logo_url: string | null;
+  country_codes: string[] | null;
 }
 
 // Normalize topup_payment_methods row → legacy PaymentMethod shape used by the UI
@@ -66,6 +68,8 @@ const normalizePaymentMethod = (row: any): PaymentMethod => ({
   instructions: row.payment_instructions ?? row.instructions ?? null,
   min_amount: row.min_amount ?? 0,
   max_amount: row.max_amount ?? 0,
+  logo_url: row.logo_url ?? row.icon_url ?? null,
+  country_codes: Array.isArray(row.country_codes) ? row.country_codes : null,
 });
 
 const getHelperPackageLevel = (pkg: { display_order?: number | null; description?: string | null }, index: number) => {
