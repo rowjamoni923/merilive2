@@ -330,6 +330,9 @@ class LiveKitPlugin : Plugin() {
                 // 14+ keeps mic/camera alive when the user backgrounds the app.
                 startCallForegroundService(callerName, callType)
 
+                // Step 25 — start the video stall watchdog for this session.
+                startStallWatchdog()
+
                 val ret = JSObject()
                 ret.put("connected", true)
                 ret.put("sid", newRoom.localParticipant.sid.value)
