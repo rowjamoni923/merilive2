@@ -249,6 +249,7 @@ const AdminFaceViolations = lazy(lazyRetry(() => import("./pages/admin/AdminFace
 const AdminCoins = lazy(lazyRetry(() => import("./pages/admin/AdminCoins")));
 const AdminPaymentGateways = lazy(lazyRetry(() => import("./pages/admin/AdminPaymentGateways")));
 const AdminTransferScheduler = lazy(lazyRetry(() => import("./pages/admin/AdminTransferScheduler")));
+const AdminAgencyCommissionLog = lazy(lazyRetry(() => import("./pages/admin/AdminAgencyCommissionLog")));
 const AdminTransferHistory = lazy(lazyRetry(() => import("./pages/admin/AdminTransferHistory")));
 const AdminRechargeHistory = lazy(lazyRetry(() => import("./pages/admin/AdminRechargeHistory")));
 const AdminRechargeCampaigns = lazy(lazyRetry(() => import("./pages/admin/AdminRechargeCampaigns")));
