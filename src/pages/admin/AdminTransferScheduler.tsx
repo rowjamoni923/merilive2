@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import useAdminRealtime from "@/hooks/useAdminRealtime";
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Clock, Play, Pause, RefreshCw, Calendar, Timer, Zap, CheckCircle, ChevronDown, ChevronUp, Building2, User } from 'lucide-react';
+import { ArrowLeft, Clock, Play, Pause, RefreshCw, Calendar, Timer, Zap, CheckCircle, ChevronDown, ChevronUp, Building2, User, Coins } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
