@@ -817,8 +817,6 @@ const Recharge = () => {
       console.log('[Recharge] Stable-sorted', sorted.length, 'payment methods for country:', userCountryCode, '| Breakdown:', methodBreakdown);
 
       setHelperPaymentMethods(sorted as Level5HelperPaymentMethod[]);
-
-      setHelperPaymentMethods(shuffled as Level5HelperPaymentMethod[]);
     } catch (error) {
       console.error('Error fetching level 5 helper payment methods:', error);
       recordClientError({ label: "Recharge.key", message: error instanceof Error ? error.message : String(error) });
