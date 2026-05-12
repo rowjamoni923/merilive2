@@ -630,25 +630,27 @@ const Shop = () => {
                       }>
                         <SVGAPlayerWithAudio
                           src={selectedItem.animation_file_url || ''}
-                          className="w-full h-full scale-110"
+                          className="max-w-[85%] max-h-[85%] object-contain"
                           loop={true}
                           autoPlay={true}
                           volume={0}
                         />
                       </Suspense>
                     ) : (
-                      <UniversalAnimationPlayer
-                        src={selectedItem.animation_file_url || ''}
-                        className={`w-full h-full ${isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}`}
-                        loop
-                        autoPlay
-                      />
+                      <div className="w-full h-full flex items-center justify-center">
+                        <UniversalAnimationPlayer
+                          src={selectedItem.animation_file_url || ''}
+                          className={`max-w-[85%] max-h-[85%] ${isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}`}
+                          loop
+                          autoPlay
+                        />
+                      </div>
                     )
                   ) : selectedItem.preview_url || selectedItem.animation_file_url ? (
                     <img 
                       src={selectedItem.animation_file_url || selectedItem.preview_url || ''} 
                       alt={selectedItem.name} 
-                      className={`max-w-full max-h-full object-contain drop-shadow-2xl ${isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}`}
+                      className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl mx-auto ${isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}`}
                       onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                     />
                   ) : (
