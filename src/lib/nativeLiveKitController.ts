@@ -124,6 +124,17 @@ class NativeLiveKitController {
       console.warn('[NativeLiveKitController] setAudioMode failed:', e);
     }
   }
+
+  // --- Audio device routing (Step 13) ----------------------------
+  async getAudioDevices(): Promise<{ active: AudioDeviceType; devices: NativeAudioDevice[] }> {
+    try { return await NativeLiveKit.getAudioDevices(); }
+    catch { return { active: 'unknown', devices: [] }; }
+  }
+
+  async setAudioDevice(type: AudioDeviceType): Promise<boolean> {
+    try { const r = await NativeLiveKit.setAudioDevice({ type }); return r.applied; }
+    catch (e) { console.warn('[NativeLiveKitController] setAudioDevice failed:', e); return false; }
+  }
 }
 
 export const nativeLiveKitController = new NativeLiveKitController();
