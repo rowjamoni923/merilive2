@@ -319,7 +319,7 @@ const FullScreenGiftAnimation = ({
               loop={false}
               autoPlay={true}
               muted={false}
-              onEnded={handleAnimationEnd}
+              onComplete={handleAnimationEnd}
             />
           </div>
         </Suspense>
