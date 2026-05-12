@@ -417,11 +417,13 @@ const HelperDashboard = () => {
       
       if (methods) {
         const normalized = (methods as any[]).map(normalizePaymentMethod);
-        console.log('[HelperDashboard] Payment methods loaded:', normalized.length, normalized.map((m) => m.method_name));
-        setPaymentMethods(normalized);
-        if (normalized.length > 0) {
-          setTopupPaymentMethod(normalized[0].method_name);
-          setSelectedPaymentMethod(normalized[0]);
+        const cc = (helper as any)?.country_code || null;
+        const filtered = filterMethodsByCountry(normalized, cc);
+        console.log('[HelperDashboard] Payment methods loaded:', filtered.length, 'country:', cc, filtered.map((m) => m.method_name));
+        setPaymentMethods(filtered);
+        if (filtered.length > 0) {
+          setTopupPaymentMethod(filtered[0].method_name);
+          setSelectedPaymentMethod(filtered[0]);
         }
       } else {
         console.log('[HelperDashboard] No payment methods found');
