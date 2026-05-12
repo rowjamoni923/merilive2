@@ -768,16 +768,16 @@ const HelperDashboard = () => {
     setSearchedUser(null);
     
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, display_name, avatar_url, app_uid, coins')
-        .eq('app_uid', transferSearchQuery.trim().toUpperCase())
-        .maybeSingle();
+      const { data, error } = await supabase.rpc('search_user_by_app_uid', {
+        _app_uid: transferSearchQuery.trim().toUpperCase()
+      });
 
       if (error) throw error;
       
-      if (data) {
-        setSearchedUser(data);
+      const foundUser = Array.isArray(data) ? data[0] : null;
+
+      if (foundUser) {
+        setSearchedUser(foundUser);
       } else {
         toast({ title: "Not Found", description: "No user found with this App UID", variant: "destructive" });
       }
@@ -797,9 +797,10 @@ const HelperDashboard = () => {
     
     try {
       const { data, error } = await supabase
-        .from('agencies')
-        .select('id, name, agency_code, wallet_balance, owner_id')
-        .eq('agency_code', transferSearchQuery.trim().toUpperCase())
+        .from('agencies_public')
+        .select('id, name, agency_code, diamond_balance, owner_id')
+        .or(`agency_code.eq.${transferSearchQuery.trim().toUpperCase()},owner_id.eq.${transferSearchQuery.trim()}`)
+        .limit(1)
         .maybeSingle();
 
       if (error) throw error;
@@ -807,13 +808,17 @@ const HelperDashboard = () => {
       if (data) {
         // Get owner name
         const { data: owner } = await supabase
-          .from('profiles')
+          .from('profiles_public')
           .select('display_name')
           .eq('id', data.owner_id)
-          .single();
+          .maybeSingle();
         
         setSearchedAgency({
-          ...data,
+          id: data.id,
+          name: data.name,
+          agency_code: data.agency_code,
+          wallet_balance: data.diamond_balance || 0,
+          owner_id: data.owner_id,
           owner_name: owner?.display_name || 'Unknown'
         });
       } else {
