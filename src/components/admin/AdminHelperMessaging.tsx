@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
+import { getAdminSession } from "@/utils/adminSession";
 import { useToast } from "@/hooks/use-toast";
 import { Send, Users, Crown, Loader2, MessageCircle, CheckCircle, Reply, Image, User, AlertCircle, Eye, Paperclip, X as XIcon } from "lucide-react";
 import { format } from "date-fns";
@@ -213,7 +214,7 @@ const AdminHelperMessaging = () => {
 
     setSending(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
       
       if (selectedHelper === "all") {
         const messages = helpers.map(helper => ({
@@ -271,7 +272,7 @@ const AdminHelperMessaging = () => {
 
     setSendingReply(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const __as = getAdminSession(); const user = __as?.admin_id ? ({ id: __as.admin_id } as { id: string }) : null;
       if (!user) throw new Error("Not authenticated");
 
       const { error } = await supabase

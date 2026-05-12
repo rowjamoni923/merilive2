@@ -57,6 +57,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
+import { getAdminSession } from "@/utils/adminSession";
 import { toast } from "sonner";
 import { defaultGiftAnimations, animationCategories, type DefaultAnimation } from "@/data/defaultGiftAnimations";
 import Lottie from "lottie-react";
@@ -377,7 +378,7 @@ export default function AdminGifts() {
         const filePath = `gifts/${fileName}`;
 
         // Get the current session for auth
-        const { data: { session } } = await supabase.auth.getSession();
+        const __as2 = getAdminSession(); const session = __as2?.admin_id ? ({ user: { id: __as2.admin_id } } as any) : null;
         if (!session?.access_token) {
           throw new Error('Not authenticated. Please login again.');
         }
