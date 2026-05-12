@@ -18,6 +18,7 @@ import { getLiveKitToken, warmLiveKitToken } from '@/services/livekitService';
 import { processTrackWithBeauty, destroyBeautyProcessor } from '@/services/tencentBeautyProcessor';
 import { shouldUseNativeLiveKit } from '@/lib/nativeLiveKitGate';
 import { nativeLiveKitController } from '@/lib/nativeLiveKitController';
+import { useNativeLiveKitEvents } from '@/hooks/useNativeLiveKitEvents';
 
 interface AgoraConfig {
   channelName: string;
@@ -110,6 +111,21 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
   // plugin (Capacitor) instead of the browser livekit-client. Drives the
   // native branch in joinChannel/leaveChannel/toggle*/switchCamera.
   const usingNativeRef = useRef(false);
+  // Mirror of usingNativeRef as state to drive the native event-listener
+  // subscription (must be a re-rendering value, not a ref).
+  const [nativeActive, setNativeActive] = useState(false);
+
+  // Subscribe to native plugin events while the host session is on the
+  // native Android publish path. Surface disconnects back into React.
+  useNativeLiveKitEvents(nativeActive, {
+    onDisconnected: (reason) => {
+      console.log('[LiveKitClient/Native] disconnected:', reason);
+      setNativeActive(false);
+      setIsJoined(false);
+      setConnectionState('DISCONNECTED');
+      try { options.onError?.(new Error(`native_livekit_disconnected: ${reason}`)); } catch { /* noop */ }
+    },
+  });
 
   const getUidForParticipant = useCallback((identity: string): number => {
     if (participantUidMapRef.current.has(identity)) {
@@ -208,6 +224,7 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
         });
 
         usingNativeRef.current = true;
+        setNativeActive(true);
         channelRef.current = normalizedChannel;
         setIsJoined(true);
         setConnectionState('CONNECTED');
@@ -220,6 +237,7 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
       } catch (nativeErr) {
         console.error('[LiveKitClient/Native] join failed, falling back to web:', nativeErr);
         usingNativeRef.current = false;
+        setNativeActive(false);
         // Fall through to web path.
       }
     }
@@ -714,6 +732,7 @@ export function useAgoraClient(options: UseAgoraClientOptions = {}) {
       if (usingNativeRef.current) {
         try { await nativeLiveKitController.disconnect(); } catch { /* noop */ }
         usingNativeRef.current = false;
+        setNativeActive(false);
       }
 
       if (roomRef.current) {
