@@ -99,6 +99,9 @@ class LiveKitPlugin : Plugin() {
         private const val STALL_WARN_MS = 5_000L
         private const val STALL_HARD_MS = 12_000L
         private const val STALL_RECOVERY_COOLDOWN_MS = 6_000L
+        // Step 28 — RTC stats / telemetry tunables.
+        private const val STATS_DEFAULT_INTERVAL_MS = 3_000L
+        private const val STATS_MIN_INTERVAL_MS = 1_000L
     }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -187,6 +190,10 @@ class LiveKitPlugin : Plugin() {
         var lastAttemptMs: Long,
         val isLocal: Boolean,
         val sid: String, // participant sid; "local" for our own preview
+        // Step 28 — running frame counter (monotonic) used to derive fps.
+        var frameCount: Long = 0L,
+        var lastSampleFrameCount: Long = 0L,
+        var lastSampleMs: Long = 0L,
     )
     private val stallTable = mutableMapOf<String, StallEntry>()
     private val stallSinks = mutableMapOf<String, VideoSink>()
@@ -242,6 +249,34 @@ class LiveKitPlugin : Plugin() {
     private var currentNetType: NetType = NetType.NONE
     private var dataSaverOnCellular: Boolean = false
     private var lastNetTransitionMs: Long = 0L
+
+    // --- RTC stats / telemetry (Step 28) -------------------------
+    //
+    // Periodically samples per-track + per-room health and emits an
+    // "rtc-stats" event so the JS layer (debug HUD, QoE analytics,
+    // adaptive UI badges like "Weak network") can react without
+    // polling the plugin every second.
+    //
+    // What we measure honestly (no fake numbers):
+    //   • fps  — derived from the same VideoSink frame counter the
+    //            stall watchdog already maintains, so it costs nothing
+    //            extra to read.
+    //   • silentMs — wall-clock since the last decoded frame.
+    //   • quality  — last ConnectionQuality reported by the SFU per
+    //                participant (EXCELLENT/GOOD/POOR/LOST).
+    //   • tier / maxBitrate / simulcast — current publisher ladder
+    //     position (Step 22 source of truth).
+    //   • network type + dataSaver (Step 27).
+    //   • reconnect state (Step 26).
+    //
+    // We deliberately do NOT poll WebRTC getStats() here — that API
+    // shape varies by livekit-android version and would silently
+    // return zeros on some devices. Frame-count based fps is exact.
+    private var statsCollectorJob: Job? = null
+    private var statsCollectorEnabled: Boolean = true
+    private var statsIntervalMs: Long = STATS_DEFAULT_INTERVAL_MS
+    private val qualityTable = mutableMapOf<String, String>() // sid → quality lowercase
+    private var localSid: String = "local"
 
     // ------------------------------------------------------------
     // Public API
@@ -419,6 +454,10 @@ class LiveKitPlugin : Plugin() {
         // Step 27 — listen for WiFi↔Cellular transitions for this session.
         if (!isReconnect) registerNetworkCallback()
 
+        // Step 28 — start periodic RTC stats / telemetry collector.
+        try { localSid = newRoom.localParticipant.sid.value } catch (_: Exception) {}
+        startStatsCollector()
+
         if (isReconnect) {
             // Step 26 — emit a "reconnected" event so JS knows our hard
             // reconnect succeeded and can re-attach renderers (the old
@@ -443,6 +482,8 @@ class LiveKitPlugin : Plugin() {
                 eventJob?.cancel()
                 eventJob = null
                 stopStallWatchdog()
+                stopStatsCollector()
+                qualityTable.clear()
                 unregisterNetworkCallback()
                 room?.disconnect()
                 room = null
@@ -763,9 +804,11 @@ class LiveKitPlugin : Plugin() {
                         }
                     }
                     is RoomEvent.ConnectionQualityChanged -> {
+                        val qLower = event.quality.name.lowercase()
+                        qualityTable[event.participant.sid.value] = qLower // Step 28 cache
                         val data = JSObject()
                         data.put("sid", event.participant.sid.value)
-                        data.put("quality", event.quality.name.lowercase())
+                        data.put("quality", qLower)
                         notifyListeners("connection-quality", data)
 
                         // Step 22 — react ONLY to our own uplink quality.
@@ -1442,6 +1485,7 @@ class LiveKitPlugin : Plugin() {
             override fun onFrame(frame: VideoFrame?) {
                 val entry = stallTable[key] ?: return
                 entry.lastFrameMs = System.currentTimeMillis()
+                entry.frameCount += 1L          // Step 28 — fps source.
                 if (entry.attempts > 0) entry.attempts = 0
             }
         }
@@ -1573,6 +1617,130 @@ class LiveKitPlugin : Plugin() {
         ret.put("enabled", stallWatchdogEnabled)
         ret.put("tracks", arr)
         call.resolve(ret)
+    }
+
+    // ------------------------------------------------------------
+    // RTC stats / telemetry collector (Step 28)
+    //
+    // Background coroutine emits an "rtc-stats" event every
+    // statsIntervalMs (default 3 s) so the JS layer can render a
+    // debug HUD and stream Quality-of-Experience metrics into
+    // analytics without polling. Per-track fps is derived from the
+    // VideoSink frame counter that the stall watchdog already
+    // maintains, so this collector adds zero per-frame overhead.
+    // ------------------------------------------------------------
+
+    private fun startStatsCollector() {
+        stopStatsCollector()
+        if (!statsCollectorEnabled) return
+        statsCollectorJob = scope.launch {
+            // Seed sample window so the first emit reports a sensible fps.
+            val now = System.currentTimeMillis()
+            stallTable.values.forEach {
+                it.lastSampleFrameCount = it.frameCount
+                it.lastSampleMs = now
+            }
+            while (true) {
+                delay(statsIntervalMs)
+                if (room == null) break
+                if (inBackground) continue
+                emitRtcStatsSnapshot()
+            }
+        }
+    }
+
+    private fun stopStatsCollector() {
+        statsCollectorJob?.cancel()
+        statsCollectorJob = null
+    }
+
+    private fun buildRtcStatsPayload(): JSObject {
+        val now = System.currentTimeMillis()
+        val tracks = org.json.JSONArray()
+        // Snapshot to avoid concurrent modification.
+        val entries = stallTable.entries.toList()
+        for ((_, e) in entries) {
+            val winMs = (now - e.lastSampleMs).coerceAtLeast(1L)
+            val deltaFrames = (e.frameCount - e.lastSampleFrameCount).coerceAtLeast(0L)
+            val fps = (deltaFrames.toDouble() * 1000.0 / winMs.toDouble())
+            // Slide the window for the next sample.
+            e.lastSampleFrameCount = e.frameCount
+            e.lastSampleMs = now
+
+            val sidKey = if (e.isLocal) localSid else e.sid
+            val o = JSObject()
+            o.put("sid", e.sid)
+            o.put("isLocal", e.isLocal)
+            o.put("fps", Math.round(fps * 10.0) / 10.0)
+            o.put("silentMs", now - e.lastFrameMs)
+            o.put("framesTotal", e.frameCount)
+            o.put("recoveryAttempts", e.attempts)
+            o.put("quality", qualityTable[sidKey] ?: "unknown")
+            tracks.put(o)
+        }
+        val payload = JSObject()
+        payload.put("ts", now)
+        payload.put("tracks", tracks)
+        // Publisher ladder (Step 22 source of truth).
+        payload.put("tier", currentTier.name.lowercase())
+        payload.put("baseTier", baseTier.name.lowercase())
+        payload.put("simulcast", currentTier != AdaptiveTier.LOW)
+        payload.put("maxBitrate", tierEncoding(currentTier).maxBitrate)
+        // Network + data-saver (Step 27).
+        payload.put("networkType", currentNetType.name.lowercase())
+        payload.put("dataSaver", dataSaverOnCellular)
+        // Local quality + reconnect state.
+        payload.put("localQuality", qualityTable[localSid] ?: "unknown")
+        payload.put("reconnecting", reconnectingSinceMs > 0L)
+        payload.put(
+            "reconnectingMs",
+            if (reconnectingSinceMs > 0L) now - reconnectingSinceMs else 0L
+        )
+        payload.put("hardReconnectAttempts", hardReconnectAttempts)
+        payload.put("remoteParticipantCount", room?.remoteParticipants?.size ?: 0)
+        payload.put("e2ee", e2eeEnabled)
+        return payload
+    }
+
+    private fun emitRtcStatsSnapshot() {
+        try {
+            notifyListeners("rtc-stats", buildRtcStatsPayload())
+        } catch (e: Exception) {
+            Log.w(TAG, "emitRtcStatsSnapshot failed: ${e.message}")
+        }
+    }
+
+    @PluginMethod
+    fun setStatsCollectorEnabled(call: PluginCall) {
+        val enabled = call.getBoolean("enabled", true) ?: true
+        val interval = call.getLong("intervalMs")
+        if (interval != null) {
+            statsIntervalMs = interval.coerceAtLeast(STATS_MIN_INTERVAL_MS)
+        }
+        statsCollectorEnabled = enabled
+        if (enabled && room != null && statsCollectorJob == null) startStatsCollector()
+        if (!enabled) stopStatsCollector()
+        val ret = JSObject()
+        ret.put("enabled", enabled)
+        ret.put("intervalMs", statsIntervalMs)
+        call.resolve(ret)
+    }
+
+    @PluginMethod
+    fun getRtcStats(call: PluginCall) {
+        if (room == null) {
+            val empty = JSObject()
+            empty.put("ts", System.currentTimeMillis())
+            empty.put("tracks", org.json.JSONArray())
+            empty.put("hasRoom", false)
+            call.resolve(empty)
+            return
+        }
+        val payload = buildRtcStatsPayload()
+        payload.put("hasRoom", true)
+        payload.put("enabled", statsCollectorEnabled)
+        payload.put("intervalMs", statsIntervalMs)
+        call.resolve(payload)
     }
 
     // ------------------------------------------------------------
