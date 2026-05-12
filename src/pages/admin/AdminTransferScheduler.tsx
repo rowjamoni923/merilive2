@@ -107,6 +107,20 @@ const AdminTransferScheduler = () => {
     return () => clearInterval(timer);
   }, [schedule.next_transfer_at, schedule.is_active]);
 
+  // Auto-run commission distribution when its scheduled time arrives
+  useEffect(() => {
+    if (!commissionSchedule.is_active || !commissionSchedule.next_run_at) return;
+    const target = new Date(commissionSchedule.next_run_at).getTime();
+    const ms = target - Date.now();
+    if (ms <= 0) {
+      distributeCommissionNow();
+      return;
+    }
+    const t = setTimeout(() => { distributeCommissionNow(); }, Math.min(ms, 2_147_000_000));
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [commissionSchedule.next_run_at, commissionSchedule.is_active]);
+
   const fetchSchedule = async () => {
     try {
       const { data, error } = await supabase
