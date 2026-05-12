@@ -87,7 +87,7 @@ export default function AdminUserReports() {
       let profileMap: Record<string, any> = {};
       if (userIds.length) {
         const { data: profs } = await supabase
-          .from("profiles")
+          .from("profiles_public")
           .select("id, display_name, avatar_url, is_host")
           .in("id", userIds);
         profileMap = Object.fromEntries((profs || []).map((p: any) => [p.id, p]));
