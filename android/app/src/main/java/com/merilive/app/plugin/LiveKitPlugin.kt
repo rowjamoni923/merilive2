@@ -41,11 +41,15 @@ import io.livekit.android.room.track.VideoPreset169
 import io.livekit.android.room.track.VideoTrackPublishDefaults
 import io.livekit.android.e2ee.BaseKeyProvider
 import io.livekit.android.e2ee.E2EEOptions
+import io.livekit.android.room.participant.RemoteTrackPublication
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.webrtc.VideoFrame
+import org.webrtc.VideoSink
 
 /**
  * LiveKitPlugin — Step 2.
