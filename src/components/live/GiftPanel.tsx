@@ -656,22 +656,69 @@ export const GiftPanel = React.forwardRef<HTMLDivElement, GiftPanelProps>(functi
               </div>
             </div>
 
-            {/* Send Button */}
-            <button
-              onClick={handleSend}
-              disabled={!hasBalance}
-              className={cn(
-                "w-full py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 active:scale-[0.98] transition-transform",
-                hasBalance
-                  ? "bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white"
-                  : "bg-white/10 text-white/30"
-              )}
-              style={{ WebkitTapHighlightColor: 'transparent' }}
-            >
-              <Send className="w-4 h-4" />
-              <span>Send</span>
-              <Sparkles className="w-3.5 h-3.5" />
-            </button>
+            {/* Send / COMBO Button — Bigo / TikTok Live style */}
+            {comboCount === 0 ? (
+              <button
+                onClick={handleSend}
+                disabled={!hasBalance}
+                className={cn(
+                  "w-full py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 active:scale-[0.98] transition-transform",
+                  hasBalance
+                    ? "bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white shadow-[0_4px_20px_rgba(236,72,153,0.35)]"
+                    : "bg-white/10 text-white/30"
+                )}
+                style={{ WebkitTapHighlightColor: 'transparent' }}
+              >
+                <Send className="w-4 h-4" />
+                <span>Send</span>
+                <Sparkles className="w-3.5 h-3.5" />
+              </button>
+            ) : (
+              <div className="flex items-center justify-end gap-3">
+                <div className="flex flex-col items-end leading-tight mr-1">
+                  <span className="text-[10px] text-white/50 font-medium">Combo</span>
+                  <span className="font-black text-lg bg-gradient-to-r from-amber-300 via-yellow-300 to-orange-400 bg-clip-text text-transparent tabular-nums">
+                    x{comboCount}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSend}
+                  disabled={!hasBalance}
+                  className={cn(
+                    "relative w-20 h-20 rounded-full flex items-center justify-center active:scale-95 transition-transform select-none",
+                    hasBalance ? "" : "opacity-50"
+                  )}
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
+                  aria-label="Combo send"
+                >
+                  {/* Countdown ring */}
+                  <svg className="absolute inset-0 -rotate-90" width="80" height="80" viewBox="0 0 80 80">
+                    <circle cx="40" cy="40" r="35" stroke="rgba(255,255,255,0.12)" strokeWidth="5" fill="none" />
+                    <circle
+                      cx="40" cy="40" r="35"
+                      stroke="url(#comboRingGrad)" strokeWidth="5" fill="none"
+                      strokeLinecap="round"
+                      strokeDasharray={2 * Math.PI * 35}
+                      strokeDashoffset={(1 - comboProgress) * 2 * Math.PI * 35}
+                      style={{ transition: 'stroke-dashoffset 60ms linear' }}
+                    />
+                    <defs>
+                      <linearGradient id="comboRingGrad" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="#fbbf24" />
+                        <stop offset="50%" stopColor="#ec4899" />
+                        <stop offset="100%" stopColor="#8b5cf6" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  {/* Inner button */}
+                  <div className="absolute inset-1.5 rounded-full bg-gradient-to-br from-pink-500 via-fuchsia-500 to-purple-600 flex flex-col items-center justify-center shadow-[0_6px_24px_rgba(236,72,153,0.45)]">
+                    <span className="text-white font-black text-base leading-none">COMBO</span>
+                    <span className="text-white/90 font-bold text-[10px] leading-none mt-0.5">Tap!</span>
+                  </div>
+                </button>
+              </div>
+            )}
 
             {/* Insufficient Balance Warning */}
             {!hasBalance && (
