@@ -259,6 +259,8 @@ const FaceVerification = () => {
   const poseCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const currentInstructionRef = useRef(0);
   const instructionsCompletedRef = useRef<boolean[]>([false, false, false, false, false]);
+  // 3-angle stills captured live during pose check (for AWS Rekognition auto-approve)
+  const capturedAnglesRef = useRef<{ center?: string; left?: string; right?: string }>({});
 
   const attachFacePreviewStream = useCallback((stream: MediaStream) => {
     const videoEl = faceVideoRef.current;
