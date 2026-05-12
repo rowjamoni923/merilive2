@@ -53,8 +53,24 @@ export interface AudioDeviceChangedEvent { active: AudioDeviceType; devices: Nat
 /** Step 15 — emitted when system audio focus is taken (PSTN call, alarm, etc.) and returned. */
 export interface AudioInterruptionEvent { state: 'loss' | 'gain'; permanent: boolean }
 
-/** Step 16 — emitted while LiveKit recovers from a transient network drop. */
-export interface ConnectionStateEvent { state: 'reconnecting' | 'reconnected' }
+/** Step 16/26 — emitted while LiveKit recovers from a network drop.
+ *  - "reconnecting"     SDK-level WebSocket retry / ICE restart in progress.
+ *  - "degraded"         SDK still hasn't recovered after 15 s — hard reconnect coming.
+ *  - "reconnected"      Back online (set `hard:true` when our hard reconnect succeeded).
+ *  - "reconnect-failed" One hard-reconnect attempt failed; another may follow.
+ *  - "lost"             All retries inside the 60 s window exhausted — UI must surface "Tap to retry".
+ */
+export interface ConnectionStateEvent {
+  state: 'reconnecting' | 'reconnected' | 'degraded' | 'reconnect-failed' | 'lost';
+  /** Time since `reconnecting` started, in ms (where applicable). */
+  elapsedMs?: number;
+  /** True when the event was produced by our hard-reconnect path (Step 26). */
+  hard?: boolean;
+  attempt?: number;
+  attempts?: number;
+  trigger?: string;
+  error?: string;
+}
 
 /** Step 22 — emitted when adaptive bitrate fallback steps the publish ladder. */
 export type AdaptiveTier = 'high' | 'medium' | 'low';
@@ -152,6 +168,26 @@ export interface NativeLiveKitPlugin {
    */
   setStallWatchdogEnabled(opts: { enabled: boolean }): Promise<{ enabled: boolean }>;
   getStallStatus(): Promise<StallStatus>;
+
+  // --- Network resilience (Step 26) ----------------------------
+  /**
+   * Force a hard reconnect right now (rebuilds the room from cached
+   * connect args). Use behind a "Tap to retry" button when the JS
+   * layer receives a `connection-state { state: "lost" }` event.
+   */
+  reconnectNow(): Promise<{ connected: boolean }>;
+  /**
+   * Toggle automatic hard-reconnect (default ON). Disable for unit
+   * tests or when JS wants to manage retry policy itself.
+   */
+  setResilienceEnabled(opts: { enabled: boolean }): Promise<{ enabled: boolean }>;
+  getConnectionState(): Promise<{
+    hasRoom: boolean;
+    hasSession: boolean;
+    reconnectingSinceMs: number;
+    hardReconnectAttempts: number;
+    resilienceEnabled: boolean;
+  }>;
 
   addListener(eventName: 'participant-connected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'participant-disconnected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;

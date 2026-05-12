@@ -189,6 +189,36 @@ class LiveKitPlugin : Plugin() {
     private var stallWatchdogJob: Job? = null
     private var stallWatchdogEnabled: Boolean = true
 
+    // --- Network resilience (Step 26) ----------------------------
+    //
+    // LiveKit SDK already auto-recovers from short signal-channel drops
+    // (≤10 s) via WebSocket retry + ICE restart. This layer escalates
+    // when SDK recovery stalls:
+    //   • Reconnecting > 15 s   → emit "degraded", trigger a HARD
+    //     reconnect (build a fresh Room with the cached connect args).
+    //   • Disconnected with non-client reason → up to 3 hard reconnect
+    //     attempts with exponential backoff (3 / 6 / 12 s).
+    //   • Total recovery window > 60 s → emit "lost", give up.
+    // JS can also call reconnectNow() on a "Tap to retry" button.
+    private data class ConnectArgs(
+        val url: String,
+        val token: String,
+        val video: Boolean,
+        val audio: Boolean,
+        val lens: String,
+        val resolution: String,
+        val callerName: String,
+        val callType: String,
+        val e2eeOn: Boolean,
+        val e2eeKey: String?,
+    )
+    private var lastConnectArgs: ConnectArgs? = null
+    private var reconnectWatchdogJob: Job? = null
+    private var reconnectingSinceMs: Long = 0L
+    private var hardReconnectAttempts: Int = 0
+    private var hardReconnectInProgress: Boolean = false
+    private var resilienceEnabled: Boolean = true
+
     // ------------------------------------------------------------
     // Public API
     // ------------------------------------------------------------
@@ -232,107 +262,18 @@ class LiveKitPlugin : Plugin() {
         val e2eeOn = call.getBoolean("e2eeEnabled", false) ?: false
         val e2eeSharedKey = call.getString("e2eeKey", null)
 
+        // Step 26 — cache args so reconnectInternal() / hard-reconnect
+        // watchdog can rebuild the room without re-prompting JS.
+        lastConnectArgs = ConnectArgs(
+            url, token, enableVideo, enableAudio, lens, resolution,
+            callerName, callType, e2eeOn, e2eeSharedKey,
+        )
+        hardReconnectAttempts = 0
+
         scope.launch {
             try {
-                // Tear down any previous room first.
-                room?.disconnect()
-                room = null
-
-                // Step 22 — reset adaptive ladder for this fresh session.
-                baseTier = if (resolution == "720p") AdaptiveTier.MEDIUM else AdaptiveTier.HIGH
-                currentTier = baseTier
-                baseLens = if (lens == "back") CameraPosition.BACK else CameraPosition.FRONT
-                consecutiveExcellent = 0
-                lastTierChangeMs = 0L
-                adaptiveBusy = false
-
-                val captureParams: VideoCaptureParameter = if (resolution == "720p") {
-                    VideoPreset169.H720.capture
-                } else {
-                    VideoPreset169.H1080.capture
-                }
-
-                val cameraPosition =
-                    if (lens == "back") CameraPosition.BACK else CameraPosition.FRONT
-
-                // Step 20 — explicit publish encoding ladder.
-                // 1080p/30fps live: 4 Mbps top layer + simulcast for viewer adaptation.
-                // 720p call:        2 Mbps single layer (no simulcast — peer-to-peer).
-                val publishEncoding: VideoEncoding = if (resolution == "720p") {
-                    VideoEncoding(maxBitrate = 2_000_000, maxFps = 30)
-                } else {
-                    VideoEncoding(maxBitrate = 4_000_000, maxFps = 30)
-                }
-                val publishDefaults = VideoTrackPublishDefaults(
-                    videoEncoding = publishEncoding,
-                    simulcast = (resolution != "720p"),
-                )
-
-                // Step 23 — build the E2EE key provider once per session.
-                val e2eeOptions: E2EEOptions? = if (e2eeOn && !e2eeSharedKey.isNullOrBlank()) {
-                    val provider = BaseKeyProvider()
-                    provider.setSharedKey(e2eeSharedKey)
-                    e2eeKeyProvider = provider
-                    e2eeKey = e2eeSharedKey
-                    e2eeEnabled = true
-                    E2EEOptions(keyProvider = provider)
-                } else {
-                    e2eeKeyProvider = null
-                    e2eeKey = null
-                    e2eeEnabled = false
-                    null
-                }
-
-                val roomOptions = RoomOptions(
-                    adaptiveStream = true,
-                    dynacast = true,
-                    videoTrackCaptureDefaults = LocalVideoTrackOptions(
-                        position = cameraPosition,
-                        captureParams = captureParams
-                    ),
-                    videoTrackPublishDefaults = publishDefaults,
-                    e2eeOptions = e2eeOptions,
-                )
-
-                val newRoom = LiveKit.create(
-                    appContext = context.applicationContext,
-                    options = roomOptions,
-                    overrides = LiveKitOverrides()
-                )
-                room = newRoom
-
-                attachEventListeners(newRoom)
-
-                newRoom.connect(url, token, ConnectOptions(autoSubscribe = true))
-
-                // Publish local tracks.
-                newRoom.localParticipant.setMicrophoneEnabled(enableAudio)
-                newRoom.localParticipant.setCameraEnabled(enableVideo)
-
-                // Keep screen on for the duration of the live/call session.
-                setKeepScreenOn(true)
-
-                // Apply communication audio mode + default routing:
-                //  - video session  → speaker ON, no proximity (Live broadcast / video call)
-                //  - audio-only call → speaker OFF (earpiece), proximity ON
-                applyAudioMode(true)
-                setSpeakerphoneInternal(enableVideo)
-                setProximityMonitoringInternal(!enableVideo)
-                registerAudioDeviceListener()
-
-                // Step 15 — request VoIP audio focus so an incoming PSTN
-                // call / alarm / other media auto-pauses our mic, then
-                // resumes when focus comes back. Track user mic intent.
-                micIntentBeforeLoss = enableAudio
-                requestAudioFocusInternal()
-
-                // Step 14 — promote process to a foreground service so Android
-                // 14+ keeps mic/camera alive when the user backgrounds the app.
-                startCallForegroundService(callerName, callType)
-
-                // Step 25 — start the video stall watchdog for this session.
-                startStallWatchdog()
-
+                connectInternal(lastConnectArgs!!, isReconnect = false)
+                val newRoom = room!!
                 val ret = JSObject()
                 ret.put("connected", true)
                 ret.put("sid", newRoom.localParticipant.sid.value)
@@ -345,10 +286,133 @@ class LiveKitPlugin : Plugin() {
         }
     }
 
+    /**
+     * Step 26 — shared connect path used by both the public connect()
+     * call and by hard-reconnect retries. Builds a fresh Room with the
+     * cached args, attaches event listeners, publishes mic/camera, and
+     * (re-)applies audio mode. Throws on failure so the caller can wrap
+     * it in retry/backoff logic.
+     */
+    private suspend fun connectInternal(args: ConnectArgs, isReconnect: Boolean) {
+        // Tear down any previous room first.
+        room?.disconnect()
+        room = null
+
+        // Step 22 — reset adaptive ladder for this fresh session.
+        baseTier = if (args.resolution == "720p") AdaptiveTier.MEDIUM else AdaptiveTier.HIGH
+        currentTier = baseTier
+        baseLens = if (args.lens == "back") CameraPosition.BACK else CameraPosition.FRONT
+        consecutiveExcellent = 0
+        lastTierChangeMs = 0L
+        adaptiveBusy = false
+
+        val captureParams: VideoCaptureParameter = if (args.resolution == "720p") {
+            VideoPreset169.H720.capture
+        } else {
+            VideoPreset169.H1080.capture
+        }
+        val cameraPosition =
+            if (args.lens == "back") CameraPosition.BACK else CameraPosition.FRONT
+
+        // Step 20 — explicit publish encoding ladder.
+        // 1080p/30fps live: 4 Mbps top layer + simulcast for viewer adaptation.
+        // 720p call:        2 Mbps single layer (no simulcast — peer-to-peer).
+        val publishEncoding: VideoEncoding = if (args.resolution == "720p") {
+            VideoEncoding(maxBitrate = 2_000_000, maxFps = 30)
+        } else {
+            VideoEncoding(maxBitrate = 4_000_000, maxFps = 30)
+        }
+        val publishDefaults = VideoTrackPublishDefaults(
+            videoEncoding = publishEncoding,
+            simulcast = (args.resolution != "720p"),
+        )
+
+        // Step 23 — build the E2EE key provider once per session.
+        val e2eeOptions: E2EEOptions? = if (args.e2eeOn && !args.e2eeKey.isNullOrBlank()) {
+            val provider = BaseKeyProvider()
+            provider.setSharedKey(args.e2eeKey)
+            e2eeKeyProvider = provider
+            e2eeKey = args.e2eeKey
+            e2eeEnabled = true
+            E2EEOptions(keyProvider = provider)
+        } else {
+            e2eeKeyProvider = null
+            e2eeKey = null
+            e2eeEnabled = false
+            null
+        }
+
+        val roomOptions = RoomOptions(
+            adaptiveStream = true,
+            dynacast = true,
+            videoTrackCaptureDefaults = LocalVideoTrackOptions(
+                position = cameraPosition,
+                captureParams = captureParams
+            ),
+            videoTrackPublishDefaults = publishDefaults,
+            e2eeOptions = e2eeOptions,
+        )
+
+        val newRoom = LiveKit.create(
+            appContext = context.applicationContext,
+            options = roomOptions,
+            overrides = LiveKitOverrides()
+        )
+        room = newRoom
+
+        attachEventListeners(newRoom)
+
+        newRoom.connect(args.url, args.token, ConnectOptions(autoSubscribe = true))
+
+        // Publish local tracks.
+        newRoom.localParticipant.setMicrophoneEnabled(args.audio)
+        newRoom.localParticipant.setCameraEnabled(args.video)
+
+        // Keep screen on for the duration of the live/call session.
+        setKeepScreenOn(true)
+
+        // Apply communication audio mode + default routing:
+        //  - video session  → speaker ON, no proximity (Live broadcast / video call)
+        //  - audio-only call → speaker OFF (earpiece), proximity ON
+        applyAudioMode(true)
+        setSpeakerphoneInternal(args.video)
+        setProximityMonitoringInternal(!args.video)
+        registerAudioDeviceListener()
+
+        // Step 15 — request VoIP audio focus so an incoming PSTN
+        // call / alarm / other media auto-pauses our mic, then
+        // resumes when focus comes back. Track user mic intent.
+        micIntentBeforeLoss = args.audio
+        requestAudioFocusInternal()
+
+        // Step 14 — promote process to a foreground service so Android
+        // 14+ keeps mic/camera alive when the user backgrounds the app.
+        startCallForegroundService(args.callerName, args.callType)
+
+        // Step 25 — start the video stall watchdog for this session.
+        startStallWatchdog()
+
+        if (isReconnect) {
+            // Step 26 — emit a "reconnected" event so JS knows our hard
+            // reconnect succeeded and can re-attach renderers (the old
+            // RTCVideoTrack instances were released with the prior room).
+            val data = JSObject()
+            data.put("state", "reconnected")
+            data.put("hard", true)
+            data.put("attempt", hardReconnectAttempts)
+            notifyListeners("connection-state", data)
+        }
+    }
+
     @PluginMethod
     fun disconnect(call: PluginCall) {
         scope.launch {
             try {
+                // Step 26 — user-initiated tear-down: prevent the
+                // resilience watchdog from auto-reconnecting us.
+                lastConnectArgs = null
+                stopReconnectWatchdog()
+                hardReconnectAttempts = 0
                 eventJob?.cancel()
                 eventJob = null
                 stopStallWatchdog()
@@ -661,6 +725,14 @@ class LiveKitPlugin : Plugin() {
                         notifyListeners("disconnected", data)
                         // Server-initiated / network drop — release the screen-on flag too.
                         setKeepScreenOn(false)
+                        // Step 26 — escalate to a hard reconnect when the
+                        // SDK's auto-recovery has fully given up. Skip when
+                        // the user (or our disconnect()) initiated it.
+                        if (resilienceEnabled && lastConnectArgs != null &&
+                            !isClientInitiatedDisconnect(event.reason.name)
+                        ) {
+                            scheduleHardReconnect("disconnected:${event.reason.name}")
+                        }
                     }
                     is RoomEvent.ConnectionQualityChanged -> {
                         val data = JSObject()
@@ -676,17 +748,31 @@ class LiveKitPlugin : Plugin() {
                     // Step 16 — connection lifecycle so JS can show
                     // "Reconnecting…" / "Reconnected" UI like WhatsApp.
                     is RoomEvent.Reconnecting -> {
+                        reconnectingSinceMs = System.currentTimeMillis()
                         val data = JSObject()
                         data.put("state", "reconnecting")
                         notifyListeners("connection-state", data)
+                        // Step 26 — if SDK can't recover within 15 s, we
+                        // tear the room down and rebuild from cached args.
+                        startReconnectWatchdog()
                     }
                     is RoomEvent.Reconnected -> {
+                        val elapsed = if (reconnectingSinceMs > 0)
+                            System.currentTimeMillis() - reconnectingSinceMs else 0L
+                        reconnectingSinceMs = 0L
+                        hardReconnectAttempts = 0
+                        stopReconnectWatchdog()
                         val data = JSObject()
                         data.put("state", "reconnected")
+                        data.put("elapsedMs", elapsed)
                         notifyListeners("connection-state", data)
                         // Re-apply our communication audio mode in case
                         // the OS reset it during the network drop.
                         applyAudioMode(true)
+                        // Step 25 — fresh keyframes will arrive shortly;
+                        // reset stall timers so we don't insta-recover.
+                        val now = System.currentTimeMillis()
+                        stallTable.values.forEach { it.lastFrameMs = now; it.attempts = 0 }
                     }
                     else -> { /* ignore */ }
                 }
@@ -1028,6 +1114,8 @@ class LiveKitPlugin : Plugin() {
         try {
             eventJob?.cancel()
             stopStallWatchdog()
+            stopReconnectWatchdog()
+            lastConnectArgs = null
             scope.launch { room?.disconnect() }
             setKeepScreenOn(false)
             setProximityMonitoringInternal(false)
@@ -1036,6 +1124,135 @@ class LiveKitPlugin : Plugin() {
             abandonAudioFocusInternal()
             stopCallForegroundService()
         } catch (_: Exception) {}
+    }
+
+    // ------------------------------------------------------------
+    // Step 26 — Network resilience (hard reconnect + ICE restart)
+    //
+    // The LiveKit Android SDK already handles short signal-channel
+    // drops automatically (~10 s window of WebSocket retry + WebRTC ICE
+    // restart). When that fails we don't sit on a frozen tile — we
+    // tear the room down and rebuild from cached connect args. JS
+    // sees a single `connection-state` { state:"reconnected", hard:true }
+    // event when we succeed, or `state:"lost"` after we've burned all
+    // attempts inside the 60 s recovery window.
+    // ------------------------------------------------------------
+
+    private fun isClientInitiatedDisconnect(reasonName: String): Boolean {
+        // LiveKit's DisconnectReason enum: CLIENT_INITIATED, DUPLICATE_IDENTITY,
+        // SERVER_SHUTDOWN, PARTICIPANT_REMOVED, ROOM_DELETED, STATE_MISMATCH,
+        // JOIN_FAILURE, UNKNOWN_REASON. We only suppress auto-reconnect for
+        // the explicitly intentional cases.
+        return reasonName.equals("CLIENT_INITIATED", ignoreCase = true) ||
+               reasonName.equals("PARTICIPANT_REMOVED", ignoreCase = true) ||
+               reasonName.equals("ROOM_DELETED", ignoreCase = true) ||
+               reasonName.equals("DUPLICATE_IDENTITY", ignoreCase = true)
+    }
+
+    private fun startReconnectWatchdog() {
+        if (!resilienceEnabled) return
+        stopReconnectWatchdog()
+        reconnectWatchdogJob = scope.launch {
+            // Give the SDK 15 s to recover on its own.
+            delay(15_000L)
+            if (room == null) return@launch
+            if (reconnectingSinceMs == 0L) return@launch // already recovered
+            // Emit "degraded" so JS can swap to a stronger UI affordance.
+            val data = JSObject()
+            data.put("state", "degraded")
+            data.put("elapsedMs", System.currentTimeMillis() - reconnectingSinceMs)
+            notifyListeners("connection-state", data)
+            scheduleHardReconnect("watchdog")
+        }
+    }
+
+    private fun stopReconnectWatchdog() {
+        reconnectWatchdogJob?.cancel()
+        reconnectWatchdogJob = null
+    }
+
+    private fun scheduleHardReconnect(trigger: String) {
+        if (!resilienceEnabled) return
+        if (hardReconnectInProgress) return
+        val args = lastConnectArgs ?: return
+        // 60 s total recovery window from the *first* time we noticed trouble.
+        val windowStart = if (reconnectingSinceMs > 0) reconnectingSinceMs
+                          else System.currentTimeMillis()
+        if (System.currentTimeMillis() - windowStart > 60_000L ||
+            hardReconnectAttempts >= 3
+        ) {
+            val data = JSObject()
+            data.put("state", "lost")
+            data.put("attempts", hardReconnectAttempts)
+            data.put("trigger", trigger)
+            notifyListeners("connection-state", data)
+            return
+        }
+        hardReconnectInProgress = true
+        scope.launch {
+            try {
+                // Exponential backoff — 3 s, 6 s, 12 s.
+                val backoffMs = 3_000L * (1L shl hardReconnectAttempts)
+                Log.w(TAG, "Hard reconnect attempt ${hardReconnectAttempts + 1} in ${backoffMs}ms (trigger=$trigger)")
+                delay(backoffMs)
+                hardReconnectAttempts += 1
+                connectInternal(args, isReconnect = true)
+            } catch (e: Exception) {
+                Log.e(TAG, "Hard reconnect failed", e)
+                val data = JSObject()
+                data.put("state", "reconnect-failed")
+                data.put("attempt", hardReconnectAttempts)
+                data.put("error", e.message ?: e.javaClass.simpleName)
+                notifyListeners("connection-state", data)
+                // Schedule the next attempt (re-enters the gate above).
+                hardReconnectInProgress = false
+                scheduleHardReconnect("retry")
+                return@launch
+            } finally {
+                hardReconnectInProgress = false
+            }
+        }
+    }
+
+    @PluginMethod
+    fun reconnectNow(call: PluginCall) {
+        val args = lastConnectArgs
+        if (args == null) {
+            call.reject("No active session to reconnect")
+            return
+        }
+        scope.launch {
+            try {
+                hardReconnectAttempts = 0
+                reconnectingSinceMs = System.currentTimeMillis()
+                stopReconnectWatchdog()
+                connectInternal(args, isReconnect = true)
+                val ret = JSObject()
+                ret.put("connected", true)
+                call.resolve(ret)
+            } catch (e: Exception) {
+                call.reject("reconnectNow failed: ${e.message}")
+            }
+        }
+    }
+
+    @PluginMethod
+    fun setResilienceEnabled(call: PluginCall) {
+        val enabled = call.getBoolean("enabled", true) ?: true
+        resilienceEnabled = enabled
+        if (!enabled) stopReconnectWatchdog()
+        val ret = JSObject(); ret.put("enabled", enabled); call.resolve(ret)
+    }
+
+    @PluginMethod
+    fun getConnectionState(call: PluginCall) {
+        val ret = JSObject()
+        ret.put("hasRoom", room != null)
+        ret.put("hasSession", lastConnectArgs != null)
+        ret.put("reconnectingSinceMs", reconnectingSinceMs)
+        ret.put("hardReconnectAttempts", hardReconnectAttempts)
+        ret.put("resilienceEnabled", resilienceEnabled)
+        call.resolve(ret)
     }
 
     // ------------------------------------------------------------
