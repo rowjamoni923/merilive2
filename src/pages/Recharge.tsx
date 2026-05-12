@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useDiamondPackagesRealtime, useCurrencyRatesRealtime } from "@/hooks/useAdminSettingsRealtime";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Capacitor } from "@capacitor/core";
-import playStoreBilling, { PLAY_STORE_PRODUCTS } from "@/sdk/PlayStoreBillingSDK";
+import playStoreBilling, { PLAY_STORE_PRODUCTS, loadPlayStoreProducts } from "@/sdk/PlayStoreBillingSDK";
 import { useUserBalance, updateCachedBalance } from "@/hooks/useUserBalance";
 import { recordClientError } from "@/utils/clientErrorLog";
 import {
@@ -895,7 +895,10 @@ const Recharge = () => {
     
     if (isAndroid) {
       console.log('[Recharge] Android detected, initializing PlayStoreBilling via registerPlugin...');
-      
+
+      // Refresh package map from DB before initializing — keeps Play Store
+      // product IDs/prices in sync with the admin-edited recharge_packages table.
+      loadPlayStoreProducts().finally(() => {
       playStoreBilling.initialize().then(async (available) => {
         console.log('[Recharge] Play Store Billing initialize result:', available);
         setIsPlayStoreAvailable(available);
@@ -936,6 +939,7 @@ const Recharge = () => {
         });
         setSelectedPaymentMethod('playstore');
       });
+      }); // close loadPlayStoreProducts().finally
     } else {
       console.log('[Recharge] Not Android - web mode');
       setSelectedPaymentMethod('playstore');
