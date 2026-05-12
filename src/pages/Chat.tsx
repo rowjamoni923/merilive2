@@ -754,7 +754,7 @@ const Chat = () => {
         // Refund on error
         setUserCoins(prev => prev + totalCost);
         setMessages(prev => prev.filter(m => m.id !== optimisticGiftRow.id));
-        toast.error("Gift failed - diamonds refunded");
+        toast.error(`Gift failed: ${error instanceof Error ? error.message : String(error)}`);
       }
     })();
   };
