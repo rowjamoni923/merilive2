@@ -314,93 +314,93 @@ class LiveKitPlugin : Plugin() {
         val cameraPosition =
             if (args.lens == "back") CameraPosition.BACK else CameraPosition.FRONT
 
-                // Step 20 — explicit publish encoding ladder.
-                // 1080p/30fps live: 4 Mbps top layer + simulcast for viewer adaptation.
-                // 720p call:        2 Mbps single layer (no simulcast — peer-to-peer).
-                val publishEncoding: VideoEncoding = if (resolution == "720p") {
-                    VideoEncoding(maxBitrate = 2_000_000, maxFps = 30)
-                } else {
-                    VideoEncoding(maxBitrate = 4_000_000, maxFps = 30)
-                }
-                val publishDefaults = VideoTrackPublishDefaults(
-                    videoEncoding = publishEncoding,
-                    simulcast = (resolution != "720p"),
-                )
+        // Step 20 — explicit publish encoding ladder.
+        // 1080p/30fps live: 4 Mbps top layer + simulcast for viewer adaptation.
+        // 720p call:        2 Mbps single layer (no simulcast — peer-to-peer).
+        val publishEncoding: VideoEncoding = if (args.resolution == "720p") {
+            VideoEncoding(maxBitrate = 2_000_000, maxFps = 30)
+        } else {
+            VideoEncoding(maxBitrate = 4_000_000, maxFps = 30)
+        }
+        val publishDefaults = VideoTrackPublishDefaults(
+            videoEncoding = publishEncoding,
+            simulcast = (args.resolution != "720p"),
+        )
 
-                // Step 23 — build the E2EE key provider once per session.
-                val e2eeOptions: E2EEOptions? = if (e2eeOn && !e2eeSharedKey.isNullOrBlank()) {
-                    val provider = BaseKeyProvider()
-                    provider.setSharedKey(e2eeSharedKey)
-                    e2eeKeyProvider = provider
-                    e2eeKey = e2eeSharedKey
-                    e2eeEnabled = true
-                    E2EEOptions(keyProvider = provider)
-                } else {
-                    e2eeKeyProvider = null
-                    e2eeKey = null
-                    e2eeEnabled = false
-                    null
-                }
+        // Step 23 — build the E2EE key provider once per session.
+        val e2eeOptions: E2EEOptions? = if (args.e2eeOn && !args.e2eeKey.isNullOrBlank()) {
+            val provider = BaseKeyProvider()
+            provider.setSharedKey(args.e2eeKey)
+            e2eeKeyProvider = provider
+            e2eeKey = args.e2eeKey
+            e2eeEnabled = true
+            E2EEOptions(keyProvider = provider)
+        } else {
+            e2eeKeyProvider = null
+            e2eeKey = null
+            e2eeEnabled = false
+            null
+        }
 
-                val roomOptions = RoomOptions(
-                    adaptiveStream = true,
-                    dynacast = true,
-                    videoTrackCaptureDefaults = LocalVideoTrackOptions(
-                        position = cameraPosition,
-                        captureParams = captureParams
-                    ),
-                    videoTrackPublishDefaults = publishDefaults,
-                    e2eeOptions = e2eeOptions,
-                )
+        val roomOptions = RoomOptions(
+            adaptiveStream = true,
+            dynacast = true,
+            videoTrackCaptureDefaults = LocalVideoTrackOptions(
+                position = cameraPosition,
+                captureParams = captureParams
+            ),
+            videoTrackPublishDefaults = publishDefaults,
+            e2eeOptions = e2eeOptions,
+        )
 
-                val newRoom = LiveKit.create(
-                    appContext = context.applicationContext,
-                    options = roomOptions,
-                    overrides = LiveKitOverrides()
-                )
-                room = newRoom
+        val newRoom = LiveKit.create(
+            appContext = context.applicationContext,
+            options = roomOptions,
+            overrides = LiveKitOverrides()
+        )
+        room = newRoom
 
-                attachEventListeners(newRoom)
+        attachEventListeners(newRoom)
 
-                newRoom.connect(url, token, ConnectOptions(autoSubscribe = true))
+        newRoom.connect(args.url, args.token, ConnectOptions(autoSubscribe = true))
 
-                // Publish local tracks.
-                newRoom.localParticipant.setMicrophoneEnabled(enableAudio)
-                newRoom.localParticipant.setCameraEnabled(enableVideo)
+        // Publish local tracks.
+        newRoom.localParticipant.setMicrophoneEnabled(args.audio)
+        newRoom.localParticipant.setCameraEnabled(args.video)
 
-                // Keep screen on for the duration of the live/call session.
-                setKeepScreenOn(true)
+        // Keep screen on for the duration of the live/call session.
+        setKeepScreenOn(true)
 
-                // Apply communication audio mode + default routing:
-                //  - video session  → speaker ON, no proximity (Live broadcast / video call)
-                //  - audio-only call → speaker OFF (earpiece), proximity ON
-                applyAudioMode(true)
-                setSpeakerphoneInternal(enableVideo)
-                setProximityMonitoringInternal(!enableVideo)
-                registerAudioDeviceListener()
+        // Apply communication audio mode + default routing:
+        //  - video session  → speaker ON, no proximity (Live broadcast / video call)
+        //  - audio-only call → speaker OFF (earpiece), proximity ON
+        applyAudioMode(true)
+        setSpeakerphoneInternal(args.video)
+        setProximityMonitoringInternal(!args.video)
+        registerAudioDeviceListener()
 
-                // Step 15 — request VoIP audio focus so an incoming PSTN
-                // call / alarm / other media auto-pauses our mic, then
-                // resumes when focus comes back. Track user mic intent.
-                micIntentBeforeLoss = enableAudio
-                requestAudioFocusInternal()
+        // Step 15 — request VoIP audio focus so an incoming PSTN
+        // call / alarm / other media auto-pauses our mic, then
+        // resumes when focus comes back. Track user mic intent.
+        micIntentBeforeLoss = args.audio
+        requestAudioFocusInternal()
 
-                // Step 14 — promote process to a foreground service so Android
-                // 14+ keeps mic/camera alive when the user backgrounds the app.
-                startCallForegroundService(callerName, callType)
+        // Step 14 — promote process to a foreground service so Android
+        // 14+ keeps mic/camera alive when the user backgrounds the app.
+        startCallForegroundService(args.callerName, args.callType)
 
-                // Step 25 — start the video stall watchdog for this session.
-                startStallWatchdog()
+        // Step 25 — start the video stall watchdog for this session.
+        startStallWatchdog()
 
-                val ret = JSObject()
-                ret.put("connected", true)
-                ret.put("sid", newRoom.localParticipant.sid.value)
-                ret.put("identity", newRoom.localParticipant.identity?.value ?: "")
-                call.resolve(ret)
-            } catch (e: Exception) {
-                Log.e(TAG, "connect failed", e)
-                call.reject("LiveKit connect failed: ${e.message}")
-            }
+        if (isReconnect) {
+            // Step 26 — emit a "reconnected" event so JS knows our hard
+            // reconnect succeeded and can re-attach renderers (the old
+            // RTCVideoTrack instances were released with the prior room).
+            val data = JSObject()
+            data.put("state", "reconnected")
+            data.put("hard", true)
+            data.put("attempt", hardReconnectAttempts)
+            notifyListeners("connection-state", data)
         }
     }
 
