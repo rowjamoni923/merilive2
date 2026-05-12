@@ -462,6 +462,57 @@ export interface NativeLiveKitPlugin {
   /** Stop the screen-share track and tear down the foreground service. */
   stopScreenShare(): Promise<{ active: boolean; alreadyOff?: boolean }>;
 
+  // --- Push-to-Talk (Step 35) ---------------------------------
+  /**
+   * Enter / leave PTT mode. While `enabled:true` the local mic is
+   * forced muted until `setPushToTalkHeld({held:true})` is called —
+   * use this for Party Rooms where everyone is spectating by default
+   * and only seat-holders broadcast.
+   */
+  setPushToTalkEnabled(opts: { enabled: boolean }): Promise<{ enabled: boolean; micOpen: boolean }>;
+  /**
+   * Press / release the PTT button. Bind to the on-screen mic-bubble
+   * `pointerdown` / `pointerup` (or a hardware key) for an instant
+   * gate — flips the LiveKit audio track's `enabled` flag in place,
+   * so there is no republish gap or audible "pop".
+   */
+  setPushToTalkHeld(opts: { held: boolean }): Promise<{ micOpen: boolean }>;
+  getPushToTalkState(): Promise<{ enabled: boolean; micOpen: boolean; hasRoom: boolean }>;
+
+  // --- Spatial audio (Step 35) ---------------------------------
+  /**
+   * Enable distance-attenuated remote-audio gain. Coordinates are
+   * in arbitrary "scene units" — JS picks the scale (1.0 = "1 metre"
+   * in the falloff math).
+   *
+   * - `nearMeters` — distance at which gain stays 1.0 (default 1.0)
+   * - `farMeters`  — distance at which gain bottoms out (default 8.0)
+   * - `minVolume`  — floor gain (0.0-1.0, default 0.05)
+   *
+   * Disabling this resets every remote audio track to unity gain.
+   */
+  setSpatialAudioEnabled(opts: {
+    enabled: boolean;
+    nearMeters?: number;
+    farMeters?: number;
+    minVolume?: number;
+  }): Promise<{ enabled: boolean; nearMeters: number; farMeters: number; minVolume: number }>;
+  /** Move the listener (the local user) — usually the seat they occupy on screen. */
+  setListenerPosition(opts: { x: number; y: number }): Promise<{ x: number; y: number }>;
+  /** Move a remote participant — call when a Party Room avatar drags between seats. */
+  setParticipantPosition(opts: { sid: string; x: number; y: number }): Promise<{ sid: string; x: number; y: number }>;
+  /** Drop a single participant (or all when `sid` is omitted) and reset their gain to unity. */
+  clearParticipantPosition(opts?: { sid?: string }): Promise<{ cleared: string }>;
+  getSpatialAudioState(): Promise<{
+    enabled: boolean;
+    nearMeters: number;
+    farMeters: number;
+    minVolume: number;
+    listenerX: number;
+    listenerY: number;
+    trackedParticipants: number;
+  }>;
+
   addListener(eventName: 'participant-connected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'participant-disconnected', cb: (e: ParticipantEvent) => void): Promise<PluginListenerHandle>;
   addListener(eventName: 'track-subscribed', cb: (e: TrackEvent) => void): Promise<PluginListenerHandle>;
