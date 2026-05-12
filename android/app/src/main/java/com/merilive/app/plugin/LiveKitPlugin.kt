@@ -102,6 +102,22 @@ class LiveKitPlugin : Plugin() {
         // Step 28 — RTC stats / telemetry tunables.
         private const val STATS_DEFAULT_INTERVAL_MS = 3_000L
         private const val STATS_MIN_INTERVAL_MS = 1_000L
+
+        // Step 29 — Picture-in-Picture bridge from MainActivity.
+        // MainActivity overrides onUserLeaveHint / onPictureInPictureModeChanged
+        // and forwards into these statics so the plugin can react without
+        // having to subclass BridgeActivity.
+        @Volatile private var INSTANCE: LiveKitPlugin? = null
+
+        @JvmStatic
+        fun notifyUserLeaveHint(activity: android.app.Activity) {
+            INSTANCE?.onUserLeaveHintInternal(activity)
+        }
+
+        @JvmStatic
+        fun notifyPipModeChanged(isInPip: Boolean) {
+            INSTANCE?.onPipModeChangedInternal(isInPip)
+        }
     }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -277,6 +293,45 @@ class LiveKitPlugin : Plugin() {
     private var statsIntervalMs: Long = STATS_DEFAULT_INTERVAL_MS
     private val qualityTable = mutableMapOf<String, String>() // sid → quality lowercase
     private var localSid: String = "local"
+
+    // --- Picture-in-Picture (Step 29) ----------------------------
+    //
+    // Industry standard for in-call apps (WhatsApp, Messenger, Meet):
+    // tap home → call shrinks to a floating PiP window so the user can
+    // multitask without dropping the broadcast/call. Renderers stay
+    // attached behind the WebView while PiP is active so the remote
+    // tile keeps updating; we just suppress the "background detach"
+    // path that Step 24 normally runs in handleOnPause.
+    //
+    //   • setAutoPipOnLeaveHint({enabled})  → opt-in per session
+    //     (Live broadcasters: usually false; 1:1 callers: true).
+    //   • enterPictureInPicture({aspect})    → manual entry from JS
+    //     (e.g. a "minimise" button in the call screen).
+    //   • pip-changed event {isInPip}        → JS toggles compact UI.
+    //
+    // Aspect must stay between 0.418 and 2.39 per Android contract;
+    // we clamp silently so callers can pass any sensible ratio.
+    private var pipSupported: Boolean = false
+    private var autoPipOnLeaveHint: Boolean = false
+    private var inPictureInPicture: Boolean = false
+    private var enteringPip: Boolean = false
+    private var pipAspectNumerator: Int = 9
+    private var pipAspectDenominator: Int = 16
+
+    // ------------------------------------------------------------
+    // Lifecycle — register the singleton MainActivity bridges into.
+    // ------------------------------------------------------------
+
+    override fun load() {
+        super.load()
+        INSTANCE = this
+        // Cache the system feature so isPictureInPictureSupported() is free.
+        pipSupported = try {
+            context.packageManager.hasSystemFeature(
+                android.content.pm.PackageManager.FEATURE_PICTURE_IN_PICTURE
+            )
+        } catch (_: Exception) { false }
+    }
 
     // ------------------------------------------------------------
     // Public API
@@ -1132,6 +1187,14 @@ class LiveKitPlugin : Plugin() {
     override fun handleOnPause() {
         super.handleOnPause()
         if (room == null) return
+        // Step 29 — entering Picture-in-Picture also fires onPause, but
+        // the activity stays visible. Keep renderers attached so the
+        // floating PiP window keeps showing the call. Likewise skip the
+        // camera auto-pause: the user is still on a call, just compact.
+        if (enteringPip || inPictureInPicture || isActivityInPip()) {
+            Log.d(TAG, "handleOnPause skipped — entering/in PiP")
+            return
+        }
         inBackground = true
         try {
             localRenderer?.let { (it.parent as? ViewGroup)?.removeView(it) }
@@ -1196,6 +1259,9 @@ class LiveKitPlugin : Plugin() {
             abandonAudioFocusInternal()
             stopCallForegroundService()
         } catch (_: Exception) {}
+        // Step 29 — release static bridge so a new plugin instance
+        // doesn't hand callbacks to a destroyed object.
+        if (INSTANCE === this) INSTANCE = null
     }
 
     // ------------------------------------------------------------
@@ -1741,6 +1807,137 @@ class LiveKitPlugin : Plugin() {
         payload.put("enabled", statsCollectorEnabled)
         payload.put("intervalMs", statsIntervalMs)
         call.resolve(payload)
+    }
+
+    // ------------------------------------------------------------
+    // Picture-in-Picture (Step 29)
+    //
+    // Enter PiP from JS or auto-enter on home button when caller opted
+    // in with setAutoPipOnLeaveHint({enabled:true}). Renderers stay
+    // attached during PiP so the floating window keeps painting frames.
+    // ------------------------------------------------------------
+
+    private fun isActivityInPip(): Boolean = try {
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.N &&
+            (activity?.isInPictureInPictureMode == true)
+    } catch (_: Exception) { false }
+
+    private fun clampPipRatio(num: Int, den: Int): Pair<Int, Int> {
+        // Android requires 0.418 ≤ ratio ≤ 2.39. Clamp gently.
+        if (num <= 0 || den <= 0) return 9 to 16
+        val r = num.toDouble() / den.toDouble()
+        return when {
+            r < 0.42 -> 42 to 100
+            r > 2.39 -> 239 to 100
+            else -> num to den
+        }
+    }
+
+    private fun enterPipInternal(num: Int, den: Int): Boolean {
+        if (!pipSupported) return false
+        val act = activity ?: return false
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return false
+        val (n, d) = clampPipRatio(num, den)
+        pipAspectNumerator = n
+        pipAspectDenominator = d
+        return try {
+            enteringPip = true
+            val params = android.app.PictureInPictureParams.Builder()
+                .setAspectRatio(android.util.Rational(n, d))
+                .build()
+            val ok = act.enterPictureInPictureMode(params)
+            if (!ok) enteringPip = false
+            ok
+        } catch (e: Exception) {
+            Log.w(TAG, "enterPictureInPictureMode failed: ${e.message}")
+            enteringPip = false
+            false
+        }
+    }
+
+    /** Called from MainActivity.onUserLeaveHint via the static bridge. */
+    internal fun onUserLeaveHintInternal(@Suppress("UNUSED_PARAMETER") activity: android.app.Activity) {
+        if (!autoPipOnLeaveHint || room == null) return
+        if (isActivityInPip()) return
+        // Pick a sensible default aspect from the local renderer if we have it.
+        val (n, d) = inferAspectFromLocal() ?: (pipAspectNumerator to pipAspectDenominator)
+        enterPipInternal(n, d)
+    }
+
+    /** Called from MainActivity.onPictureInPictureModeChanged via the static bridge. */
+    internal fun onPipModeChangedInternal(isInPip: Boolean) {
+        inPictureInPicture = isInPip
+        if (!isInPip) enteringPip = false
+        // When we leave PiP back to full-screen, Android delivers another
+        // onResume — Step 24's handleOnResume rewires renderers normally.
+        val data = JSObject()
+        data.put("isInPip", isInPip)
+        data.put("aspectNumerator", pipAspectNumerator)
+        data.put("aspectDenominator", pipAspectDenominator)
+        notifyListeners("pip-changed", data)
+        // Reset stall timers so the watchdog doesn't insta-fire after the
+        // surface re-attaches on PiP exit.
+        if (!isInPip) {
+            val now = System.currentTimeMillis()
+            stallTable.values.forEach { it.lastFrameMs = now; it.attempts = 0 }
+        }
+    }
+
+    private fun inferAspectFromLocal(): Pair<Int, Int>? {
+        val v = localRenderer ?: return null
+        val w = v.width; val h = v.height
+        return if (w > 0 && h > 0) w to h else null
+    }
+
+    @PluginMethod
+    fun isPictureInPictureSupported(call: PluginCall) {
+        val ret = JSObject()
+        ret.put("supported", pipSupported &&
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+        ret.put("inPip", isActivityInPip())
+        call.resolve(ret)
+    }
+
+    @PluginMethod
+    fun enterPictureInPicture(call: PluginCall) {
+        val aspect = call.getString("aspect", "9:16") ?: "9:16"
+        val (n, d) = parseAspect(aspect)
+        val ok = enterPipInternal(n, d)
+        val ret = JSObject()
+        ret.put("entered", ok)
+        ret.put("supported", pipSupported)
+        call.resolve(ret)
+    }
+
+    @PluginMethod
+    fun setAutoPipOnLeaveHint(call: PluginCall) {
+        autoPipOnLeaveHint = call.getBoolean("enabled", false) ?: false
+        val aspect = call.getString("aspect")
+        if (!aspect.isNullOrBlank()) {
+            val (n, d) = parseAspect(aspect)
+            pipAspectNumerator = n
+            pipAspectDenominator = d
+        }
+        val ret = JSObject()
+        ret.put("enabled", autoPipOnLeaveHint)
+        ret.put("supported", pipSupported)
+        call.resolve(ret)
+    }
+
+    @PluginMethod
+    fun getPipState(call: PluginCall) {
+        val ret = JSObject()
+        ret.put("supported", pipSupported)
+        ret.put("inPip", isActivityInPip())
+        ret.put("autoOnLeaveHint", autoPipOnLeaveHint)
+        ret.put("aspectNumerator", pipAspectNumerator)
+        ret.put("aspectDenominator", pipAspectDenominator)
+        call.resolve(ret)
+    }
+
+    private fun parseAspect(s: String): Pair<Int, Int> {
+        val parts = s.split(":", "/", "x", " ").mapNotNull { it.trim().toIntOrNull() }
+        return if (parts.size == 2) parts[0] to parts[1] else 9 to 16
     }
 
     // ------------------------------------------------------------

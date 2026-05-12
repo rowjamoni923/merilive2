@@ -1,9 +1,11 @@
 package com.merilive.app;
 
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.WindowManager;
 import com.getcapacitor.BridgeActivity;
+import com.merilive.app.plugin.LiveKitPlugin;
 import com.merilive.app.util.NotificationHelper;
 
 public class MainActivity extends BridgeActivity {
@@ -43,6 +45,22 @@ public class MainActivity extends BridgeActivity {
             WindowManager.LayoutParams.FLAG_SECURE,
             WindowManager.LayoutParams.FLAG_SECURE
         );
+    }
+
+    // Step 29 — Picture-in-Picture lifecycle. Forward both events to
+    // LiveKitPlugin so it can (a) auto-enter PiP on user-leave when the
+    // host opted in for an active call, and (b) emit pip-changed events
+    // to JS so the in-call UI can collapse/expand.
+    @Override
+    public void onUserLeaveHint() {
+        super.onUserLeaveHint();
+        LiveKitPlugin.notifyUserLeaveHint(this);
+    }
+
+    @Override
+    public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode, Configuration newConfig) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig);
+        LiveKitPlugin.notifyPipModeChanged(isInPictureInPictureMode);
     }
 
     private void handleNotificationRoute(Intent intent) {
