@@ -266,7 +266,7 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
 
     private boolean ensureReady(PluginCall call) {
         if (billingClient == null || !billingClient.isReady()) {
-            call.reject("BillingClient not ready. Call initialize() first.", "NOT_CONNECTED");
+            startBillingConnection(call);
             return false;
         }
         return true;
