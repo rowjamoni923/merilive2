@@ -153,6 +153,7 @@ class PlayStoreBillingSDK {
   private isInitialized: boolean = false;
   private lastError: string = '';
   private initPromise: Promise<boolean> | null = null;
+  private productDetailsCache: PlayStoreProduct[] = [];
 
   constructor() {
     this.isNative = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';
@@ -199,11 +200,23 @@ class PlayStoreBillingSDK {
     if (!this.isInitialized && !(await this.initialize())) return [];
     try {
       const result = await PlayStoreBillingBridge.getProducts({ productIds });
-      return result?.products || [];
-    } catch (error) {
+      const products = result?.products || [];
+      this.productDetailsCache = products;
+      return products;
+    } catch (error: any) {
+      this.lastError = error?.message || 'Could not load Play Store products';
       console.error('[PlayStoreBilling] getProducts error:', error);
       return [];
     }
+  }
+
+  private async resolveAvailableProductId(product: PlayStoreProductConfig): Promise<string | null> {
+    const candidates = uniqueIds([product.productId, ...product.aliases]);
+    const cached = this.productDetailsCache.find((p) => candidates.includes(p.productId));
+    if (cached) return cached.productId;
+
+    const products = await this.getProducts(candidates);
+    return products.find((p) => candidates.includes(p.productId))?.productId || null;
   }
 
   async purchase(productId: string, userId: string): Promise<PurchaseResult> {
@@ -214,12 +227,18 @@ class PlayStoreBillingSDK {
       if (!this.isInitialized && !(await this.initialize())) {
         return { success: false, error: this.lastError || 'Google Play Billing is not ready' };
       }
-      console.log('[PlayStoreBilling] Starting purchase:', productId);
-      const result = await PlayStoreBillingBridge.purchase({ productId, userId });
+      const configuredProduct = Object.values(PLAY_STORE_PRODUCTS).find((p) => p.aliases.includes(productId) || p.productId === productId);
+      const availableProductId = configuredProduct ? await this.resolveAvailableProductId(configuredProduct) : productId;
+      if (!availableProductId) {
+        return { success: false, error: 'This package is not active in Google Play Console yet' };
+      }
+
+      console.log('[PlayStoreBilling] Starting purchase:', availableProductId);
+      const result = await PlayStoreBillingBridge.purchase({ productId: availableProductId, userId });
 
       if (result?.success && result?.purchaseToken) {
         const verifyResult = await this.verifyPurchase(
-          result.purchaseToken, productId, userId, result.orderId
+          result.purchaseToken, result.productId || availableProductId, userId, result.orderId
         );
         if (verifyResult.success) {
           return { success: true, orderId: result.orderId, purchaseToken: result.purchaseToken, productId };
