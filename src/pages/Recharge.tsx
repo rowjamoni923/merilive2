@@ -927,7 +927,6 @@ const Recharge = () => {
       }).catch(err => {
         console.error('[Recharge] ❌ Play Store Billing error:', err);
         recordClientError({ label: "Recharge.errorMsg", message: err instanceof Error ? err.message : String(err) });
-        const errorMsg = err?.message || err?.toString() || 'Unknown error';
         setSelectedPaymentMethod('playstore');
       });
       }); // close loadPlayStoreProducts().finally
