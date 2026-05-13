@@ -6,7 +6,7 @@
  * Purchase verification is done SERVER-SIDE via Edge Function
  */
 
-import { Capacitor, registerPlugin } from '@capacitor/core';
+import { Capacitor, registerPlugin, type PluginListenerHandle } from '@capacitor/core';
 import { supabase } from '@/integrations/supabase/client';
 
 // ============================================
