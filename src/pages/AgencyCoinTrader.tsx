@@ -837,7 +837,13 @@ const AgencyCoinTrader = () => {
               {selectedUser && (
                 <Button
                   className="w-full bg-green-600 hover:bg-green-700"
-                  onClick={() => setShowConfirmDialog(true)}
+                  onClick={() => {
+                    if (!hasLevel1Helper) {
+                      setShowHelperUpgradeDialog(true);
+                      return;
+                    }
+                    setShowConfirmDialog(true);
+                  }}
                   disabled={!tradeAmount || parseFloat(tradeAmount) < tradeSettings.min_trade_amount || parseFloat(tradeAmount) > ((agency?.diamond_balance || 0) + (helperData?.wallet_balance || 0))}
                 >
                   <Banknote className="w-4 h-4 mr-2" />
