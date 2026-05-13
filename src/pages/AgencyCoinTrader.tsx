@@ -254,6 +254,13 @@ const AgencyCoinTrader = () => {
       return;
     }
 
+    // Trader Wallet gate: only Level 1+ Helpers can recharge users via Trader Wallet
+    if (activeTab === "sell" && !hasLevel1Helper) {
+      setShowConfirmDialog(false);
+      setShowHelperUpgradeDialog(true);
+      return;
+    }
+
     // Combined balance for sell validation
     const totalAvailable = (agency?.diamond_balance ?? 0) + (helperData?.wallet_balance ?? 0);
 
