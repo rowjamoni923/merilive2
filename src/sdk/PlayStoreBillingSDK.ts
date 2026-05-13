@@ -323,6 +323,7 @@ class PlayStoreBillingSDK {
     if (!this.isNative) {
       return { success: false, error: 'Play Store Billing is only available on Android' };
     }
+    this.currentUserId = userId;
     try {
       if (!this.isInitialized && !(await this.initialize())) {
         return { success: false, error: this.lastError || 'Google Play Billing is not ready' };
@@ -334,16 +335,40 @@ class PlayStoreBillingSDK {
       }
 
       console.log('[PlayStoreBilling] Starting purchase:', availableProductId);
-      const result = await this.purchaseWithReconnect(availableProductId, userId);
+      let result: any;
+      try {
+        result = await this.purchaseWithReconnect(availableProductId, userId);
+      } catch (nativeErr: any) {
+        const code = String(nativeErr?.code || '').toUpperCase();
+        const msg = String(nativeErr?.message || '');
+        if (code === 'PURCHASE_PENDING') {
+          // Auth-pending / SLOW-test card / family approval. Start polling so
+          // it auto-delivers when Google clears it.
+          this.startPendingPolling();
+          return { success: false, error: msg || 'Your purchase is pending Google approval. We will deliver it automatically.' };
+        }
+        if (code === 'ITEM_ALREADY_OWNED') {
+          // Native couldn't recover; fall back to restore flow.
+          const recovered = await this.retryPendingPurchases(userId);
+          if (recovered > 0) return { success: true, productId };
+          return { success: false, error: msg || 'You already own this item — please reopen Recharge.' };
+        }
+        throw nativeErr;
+      }
 
       if (result?.success && result?.purchaseToken) {
-        const verifyResult = await this.verifyPurchase(
-          result.purchaseToken, result.productId || availableProductId, userId, result.orderId
-        );
-        if (verifyResult.success) {
-          return { success: true, orderId: result.orderId, purchaseToken: result.purchaseToken, productId };
+        this.verifyingTokens.add(result.purchaseToken);
+        try {
+          const verifyResult = await this.verifyPurchase(
+            result.purchaseToken, result.productId || availableProductId, userId, result.orderId
+          );
+          if (verifyResult.success) {
+            return { success: true, orderId: result.orderId, purchaseToken: result.purchaseToken, productId };
+          }
+          return { success: false, error: verifyResult.error || 'Verification failed' };
+        } finally {
+          this.verifyingTokens.delete(result.purchaseToken);
         }
-        return { success: false, error: verifyResult.error || 'Verification failed' };
       }
       return { success: false, error: result?.error || 'Purchase failed' };
     } catch (error: any) {
