@@ -123,7 +123,7 @@ export function LiveTeenPattiGame({
 
   // Use centralized sound manager - only plays when this game is active
   const sounds = useGameSoundManager('teen-patti');
-  const liveEffects = useLiveGameEffects();
+  const { bindLayer, play: playLiveEffect } = useLiveGameEffects();
   const isMountedRef = useRef(true);
   const autoPlayTimerRef = useRef<NodeJS.Timeout | null>(null);
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -215,7 +215,7 @@ export function LiveTeenPattiGame({
   const runDeal = async () => {
     setIsDealing(true);
     sounds.playCardShuffle();
-    liveEffects.play('deal');
+    playLiveEffect('deal');
     
     if (navigator.vibrate) navigator.vibrate(100);
 
@@ -278,7 +278,7 @@ export function LiveTeenPattiGame({
       setShowWinPopup(true);
       sounds.playWinSound();
       sounds.playCoinSound();
-      liveEffects.play('win');
+      playLiveEffect('win');
       if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
       
       // Credit winnings
@@ -306,7 +306,7 @@ export function LiveTeenPattiGame({
       setWinAmount(currentTotalBetPlaced);
       setShowWinPopup(true);
       sounds.playLoseSound();
-      liveEffects.play('lose');
+      playLiveEffect('lose');
       setTimeout(() => { if (isMountedRef.current) setShowWinPopup(false); }, 2500);
     }
 
