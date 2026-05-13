@@ -99,7 +99,11 @@ const AgencyCoinTrader = () => {
   
   // Confirmation dialog
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showHelperUpgradeDialog, setShowHelperUpgradeDialog] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Trader Wallet gate: agency must own at least Level 1 Helper (verified topup_helper)
+  const hasLevel1Helper = !!helperData && helperData.is_verified === true;
 
   useEffect(() => {
     loadData();
