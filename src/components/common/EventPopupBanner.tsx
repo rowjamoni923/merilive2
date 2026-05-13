@@ -116,26 +116,32 @@ const EventPopupBanner = () => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className="fixed inset-0 z-[9999] bg-black"
+          className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center"
           onClick={canSkip ? handleDismiss : undefined}
+          style={{
+            paddingTop: 'max(env(safe-area-inset-top), 16px)',
+            paddingBottom: 'max(env(safe-area-inset-bottom), 16px)',
+            paddingLeft: 'max(env(safe-area-inset-left), 12px)',
+            paddingRight: 'max(env(safe-area-inset-right), 12px)',
+          }}
         >
           <motion.div
             initial={{ scale: 1.05, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="relative w-full h-full"
+            className="relative w-full h-full max-w-md max-h-full flex items-center justify-center"
             onClick={(e) => e.stopPropagation()}
           >
             <img
               src={banner.image_url}
               alt={banner.title}
               onClick={handleBannerClick}
-              className="absolute inset-0 w-full h-full object-cover cursor-pointer"
+              className="max-w-full max-h-full w-auto h-auto object-contain rounded-2xl cursor-pointer shadow-2xl"
             />
 
             {/* Countdown Timer Badge */}
-            <div className="absolute top-4 left-4 flex items-center gap-1.5 bg-black/60 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/10 z-10">
+            <div className="absolute top-2 left-2 flex items-center gap-1.5 bg-black/60 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/10 z-10">
               <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
               <span className="text-white text-xs font-medium">
                 {Math.max(0, autoDismiss - elapsed)}s
@@ -146,12 +152,12 @@ const EventPopupBanner = () => {
             {canSkip ? (
               <button
                 onClick={handleDismiss}
-                className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/70 border border-white/20 flex items-center justify-center shadow-lg text-white z-10"
+                className="absolute top-2 right-2 w-10 h-10 rounded-full bg-black/70 border border-white/20 flex items-center justify-center shadow-lg text-white z-10"
               >
                 <X className="w-5 h-5" />
               </button>
             ) : (
-              <div className="absolute top-4 right-4 px-3 py-1.5 rounded-full bg-black/60 border border-white/10 text-white/70 text-xs z-10">
+              <div className="absolute top-2 right-2 px-3 py-1.5 rounded-full bg-black/60 border border-white/10 text-white/70 text-xs z-10">
                 Skip in {Math.max(0, skipDelay - elapsed)}s
               </div>
             )}

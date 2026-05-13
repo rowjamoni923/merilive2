@@ -2957,7 +2957,7 @@ const Recharge = () => {
 
       {/* Payment Gateway Selection Modal */}
       <Dialog open={showGatewayModal} onOpenChange={setShowGatewayModal}>
-        <DialogContent className="max-w-md mx-4 rounded-3xl bg-gradient-to-b from-slate-900 to-slate-800 border-slate-700">
+        <DialogContent className="max-w-md mx-4 rounded-3xl max-h-[85dvh] overflow-y-auto overscroll-contain touch-pan-y bg-gradient-to-b from-slate-900 to-slate-800 border-slate-700" style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
           <DialogHeader>
             <DialogTitle className="text-center text-xl font-bold text-white flex items-center justify-center gap-2">
               <Wallet className="w-5 h-5 text-purple-400" />
@@ -3052,7 +3052,7 @@ const Recharge = () => {
           resetPaymentForm();
         }
       }}>
-        <DialogContent className="max-w-md mx-4 rounded-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md mx-4 rounded-3xl max-h-[90dvh] overflow-y-auto overscroll-contain touch-pan-y" style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
           {paymentStep === "form" && selectedGateway && selectedPackage && (
             <>
               <DialogHeader>
@@ -3238,10 +3238,10 @@ const Recharge = () => {
           resetHelperPaymentForm();
         }
       }}>
-        <DialogContent className="w-[calc(100vw-2rem)] max-w-md rounded-[2rem] max-h-[85vh] overflow-y-auto p-0 mx-auto border border-amber-400/60 bg-[#140d03] shadow-[0_0_60px_-12px_rgba(251,191,36,0.45)]">
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-md rounded-[2rem] max-h-[85dvh] overflow-y-auto overscroll-contain touch-pan-y p-0 mx-auto border border-amber-400/60 bg-[#140d03] shadow-[0_0_60px_-12px_rgba(251,191,36,0.45)]" style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
           {helperPaymentStep === "form" && selectedHelperMethod && selectedPackage && (
             <>
-              <div className="px-4 pt-4 pb-4" style={{ maxHeight: '80vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
+              <div className="px-4 pt-4 pb-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <div className="w-9 h-9 rounded-xl bg-purple-500/20 flex items-center justify-center">
