@@ -435,15 +435,22 @@ class PlayStoreBillingSDK {
 
   async restorePurchases(userId: string): Promise<PurchaseResult[]> {
     if (!this.isNative) return [];
+    this.currentUserId = userId;
     if (!this.isInitialized && !(await this.initialize())) return [];
     try {
       const result = await PlayStoreBillingBridge.restorePurchases();
       const purchases = result?.purchases || [];
-      
+
       // Auto-verify any unconsumed purchases (these are "paid but not delivered")
       const results: PurchaseResult[] = [];
       for (const p of purchases) {
-        if (p.purchaseToken && p.productId) {
+        if (!p.purchaseToken || !p.productId) continue;
+        if (this.verifyingTokens.has(p.purchaseToken)) {
+          console.log('[PlayStoreBilling] ⏭ Skip (already verifying):', p.productId);
+          continue;
+        }
+        this.verifyingTokens.add(p.purchaseToken);
+        try {
           console.log('[PlayStoreBilling] 🔄 Retrying undelivered purchase:', p.productId);
           const verifyResult = await this.verifyPurchase(
             p.purchaseToken, p.productId, userId, p.orderId
@@ -455,6 +462,8 @@ class PlayStoreBillingSDK {
             productId: p.productId,
             error: verifyResult.error,
           });
+        } finally {
+          this.verifyingTokens.delete(p.purchaseToken);
         }
       }
       return results;
