@@ -86,11 +86,7 @@ public class MainActivity extends BridgeActivity {
             navigateWebView(navigateTo);
             intent.removeExtra("navigate_to");
         } else if (intent.getBooleanExtra("open_call", false)) {
-            String callId = intent.getStringExtra("call_id");
-            String callerId = intent.getStringExtra("caller_id");
-            String callType = intent.getStringExtra("call_type");
-            if (callType == null) callType = "video";
-            navigateWebView("/call/" + callId + "?caller=" + callerId + "&type=" + callType);
+            navigateWebView("/");
             intent.removeExtra("open_call");
         }
     }
