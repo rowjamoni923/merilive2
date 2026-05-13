@@ -3052,7 +3052,7 @@ const Recharge = () => {
           resetPaymentForm();
         }
       }}>
-        <DialogContent className="max-w-md mx-4 rounded-3xl max-h-[90dvh] overflow-y-auto overscroll-contain touch-pan-y" style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
+        <DialogContent className="max-w-md mx-4 rounded-3xl max-h-[88svh] overflow-y-auto overscroll-contain touch-pan-y" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'env(safe-area-inset-bottom)' } as React.CSSProperties}>
           {paymentStep === "form" && selectedGateway && selectedPackage && (
             <>
               <DialogHeader>
