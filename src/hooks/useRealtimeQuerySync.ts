@@ -129,24 +129,22 @@ const TABLE_TO_QUERY_KEYS: Record<string, string[][]> = {
 // realtime guard into pressure mode and could prevent the home host feed from
 // receiving profile online/offline events reliably.
 const REALTIME_PUBLICATION_TABLES = new Set([
-  'messages',
+  'app_settings',
   'conversations',
+  'messages',
+  'notifications',
+  'private_calls',
   'live_streams',
   'party_rooms',
   'party_room_participants',
-  'notifications',
-  'profiles',
+  'party_room_messages',
+  'stream_chat',
   'gift_transactions',
-  'private_calls',
-  'app_settings',
-  'agencies',
-  'agency_withdrawals',
   'support_tickets',
   'support_messages',
-  'stream_chat',
-  'stream_viewers',
-  'rating_reward_claims',
   'face_verification_submissions',
+  'agencies',
+  'agency_withdrawals',
 ]);
 
 // Table-specific debounce tuning for near-instant cache sync
