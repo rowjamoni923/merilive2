@@ -199,6 +199,58 @@ serve(async (req: Request): Promise<Response> => {
     const projectId = credentials.project_id;
 
     let lastResults: unknown[] = [];
+    let anyFcmOk = false;
+
+    // ── ALT DELIVERY PATH #1: server-side Realtime broadcast (fires immediately,
+    // independent of FCM). Hits the same `incoming-call-{calleeId}` topic the
+    // host listens on, so foreground/recently-backgrounded apps ring instantly
+    // even when FCM is slow, throttled, or the device has no tokens yet.
+    const broadcastPayload = {
+      callId,
+      callerId,
+      callerName,
+      callerAvatar,
+      callerLevel: 1,
+      callType,
+      ts: Date.now(),
+    };
+    const broadcastOnce = async (label: string): Promise<boolean> => {
+      try {
+        const res = await fetch(`${supabaseUrl}/realtime/v1/api/broadcast`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: serviceKey,
+            Authorization: `Bearer ${serviceKey}`,
+          },
+          body: JSON.stringify({
+            messages: [{
+              topic: `incoming-call-${calleeId}`,
+              event: "incoming_call",
+              payload: broadcastPayload,
+              private: false,
+            }],
+          }),
+        });
+        const ok = res.ok;
+        await admin.from("call_delivery_log").insert({
+          call_id: callId,
+          callee_id: calleeId,
+          attempt_number: 0,
+          channel: "realtime_broadcast",
+          status: ok ? "sent" : "failed",
+          sent_at: ok ? new Date().toISOString() : null,
+          error_message: ok ? null : `realtime_broadcast http ${res.status} (${label})`,
+          device_info: { label },
+        });
+        return ok;
+      } catch (e) {
+        console.warn("[call-deliver] realtime broadcast failed:", e);
+        return false;
+      }
+    };
+    // Fire the first broadcast immediately, in parallel with FCM.
+    const earlyBroadcast = broadcastOnce("immediate");
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       const { data: deviceTokens, error: tokErr } = await admin
