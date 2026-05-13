@@ -1,0 +1,1 @@
+UPDATE shop_items SET category='entrance' WHERE id IN ('ea8c9938-6bcc-457f-8be8-3d66b76bd585','32c9e337-42dd-42a3-8cdd-3ea77a9fd78f','30ea8753-09ec-49d2-9589-d5d10ed6cff6');
