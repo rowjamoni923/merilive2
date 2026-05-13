@@ -290,8 +290,10 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
 
     @PluginMethod
     public void restorePurchases(PluginCall call) {
-        if (!ensureReady(call)) return;
+        runWhenReady(call, () -> queryExistingPurchases(call));
+    }
 
+    private void queryExistingPurchases(PluginCall call) {
         billingClient.queryPurchasesAsync(
             QueryPurchasesParams.newBuilder()
                 .setProductType(BillingClient.ProductType.INAPP)
@@ -312,14 +314,5 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
                 call.resolve(ret);
             }
         );
-    }
-
-    private boolean ensureReady(PluginCall call) {
-        if (billingClient == null || !billingClient.isReady()) {
-            startBillingConnection(null);
-            call.reject("BillingClient reconnecting. Please retry.", "NOT_CONNECTED");
-            return false;
-        }
-        return true;
     }
 }
