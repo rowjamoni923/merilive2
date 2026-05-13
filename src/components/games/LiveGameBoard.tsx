@@ -30,7 +30,6 @@ import {
 import { useLiveGameRound } from "@/hooks/useLiveGameRound";
 import { sendGameWinNotification } from "@/services/gameWinNotificationService";
 import { stopAllGameSounds } from "@/hooks/useGameSoundManager";
-import { RouletteGame } from "@/features/games/roulette";
 import { LiveGame3DStage } from "./LiveGame3DStage";
 import { LiveFerrisWheelGame } from "./live-games/LiveFerrisWheelGame";
 import { LiveTeenPattiGame } from "./live-games/LiveTeenPattiGame";
