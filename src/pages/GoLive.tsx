@@ -153,14 +153,13 @@ const GoLive = () => {
   }, [stopNativeCamera]);
 
   const openBeautyStudio = useCallback(async () => {
+    // Always open the panel — works on web (CSS/MediaPipe) and on Android
+    // (with optional native DeepAR enhancement when bridge is available).
+    setShowBeautyPanel(true);
     if (isNativeAndroid) {
-      const ok = await openBeautyPanel();
-      if (!ok) toast.error("Beauty filter failed to initialize");
-    } else {
-      // On web: just open the panel — Tencent SDK handles beauty
-      setShowBeautyPanel(true);
+      void openBeautyPanel().catch(() => { /* native optional */ });
     }
-  }, [isNativeAndroid, openBeautyPanel]);
+  }, [isNativeAndroid, openBeautyPanel, setShowBeautyPanel]);
 
   const [showStickerPanel, setShowStickerPanel] = useState(false);
 

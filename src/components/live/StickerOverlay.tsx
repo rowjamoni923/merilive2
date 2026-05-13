@@ -49,7 +49,7 @@ const StickerOverlay = memo(({ stickerName, onDismiss, className = '' }: Sticker
   return (
     <div
       ref={containerRef}
-      className={`absolute inset-0 z-[15] overflow-hidden pointer-events-none ${className}`}
+      className={`absolute inset-0 z-[40] overflow-hidden pointer-events-none ${className}`}
     >
       <AnimatePresence>
         <motion.div
@@ -82,12 +82,17 @@ const StickerOverlay = memo(({ stickerName, onDismiss, className = '' }: Sticker
             {onDismiss && (
               <button
                 type="button"
-                onPointerDown={(e) => e.stopPropagation()}
+                // Stop framer-motion drag from swallowing the tap on Android WebView.
+                onPointerDownCapture={(e) => { e.stopPropagation(); }}
+                onPointerUpCapture={(e) => { e.stopPropagation(); e.preventDefault(); onDismiss(); }}
+                onTouchStart={(e) => { e.stopPropagation(); }}
+                onTouchEnd={(e) => { e.stopPropagation(); e.preventDefault(); onDismiss(); }}
                 onClick={(e) => { e.stopPropagation(); onDismiss(); }}
                 aria-label="Remove sticker"
-                className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-black/80 border border-white/30 flex items-center justify-center shadow-lg hover:bg-black active:scale-95 transition"
+                style={{ touchAction: 'manipulation' }}
+                className="absolute -top-3 -right-3 w-9 h-9 rounded-full bg-black/85 border-2 border-white/40 flex items-center justify-center shadow-xl z-10 active:scale-95 transition pointer-events-auto"
               >
-                <X className="w-4 h-4 text-white" />
+                <X className="w-5 h-5 text-white" />
               </button>
             )}
           </div>

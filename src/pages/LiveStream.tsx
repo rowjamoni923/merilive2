@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { BeautyFilterPanel, generateBeautyCSS } from "@/components/live/BeautyFilterPanel";
 import type { BeautySettings } from "@/components/live/BeautyFilterPanel";
 import StickerOverlay from "@/components/live/StickerOverlay";
+import { StickerPanel } from "@/components/live/StickerPanel";
 import { useDeepARBeauty } from "@/hooks/useDeepARBeauty";
 import { detectAndProcessViolation } from "@/utils/contactDetection";
 import { scanImageForContactInfo } from "@/utils/imageContactDetection";
@@ -168,6 +169,7 @@ const LiveStream = () => {
   // REAL DeepAR native beauty integration
   const deepAR = useDeepARBeauty();
   const [showBeautyPanel, setShowBeautyPanel] = useState(false);
+  const [showStickerPanel, setShowStickerPanel] = useState(false);
   const [showLiveEndSummary, setShowLiveEndSummary] = useState(false);
   const [showCallConfirm, setShowCallConfirm] = useState(false);
   const [userCoins, setUserCoins] = useState(0);
@@ -2413,8 +2415,8 @@ const LiveStream = () => {
 
   // Host-only options: Flip
   const hostOnlyOptions = [
-    { id: "beauty", name: "Beauty", iconName: "Sparkles" as const, color: "from-pink-400 to-purple-500", shadowColor: "shadow-pink-500/40", action: () => { setShowMoreOptions(false); if (deepAR.isNativeAndroid) { void deepAR.openBeautyPanel().then(ok => { if (ok) setShowBeautyPanel(true); }); } else { setShowBeautyPanel(true); } } },
-    { id: "sticker", name: "Sticker", iconName: "Smile" as const, color: "from-orange-400 to-amber-500", shadowColor: "shadow-orange-500/40", action: () => { setShowMoreOptions(false); if (deepAR.isNativeAndroid) { void deepAR.toggleSticker(); } else { toast.info("AR Stickers are available in the Android app only"); } } },
+    { id: "beauty", name: "Beauty", iconName: "Sparkles" as const, color: "from-pink-400 to-purple-500", shadowColor: "shadow-pink-500/40", action: () => { setShowMoreOptions(false); setShowBeautyPanel(true); if (deepAR.isNativeAndroid) { void deepAR.openBeautyPanel().catch(() => { /* native optional */ }); } } },
+    { id: "sticker", name: "Sticker", iconName: "Smile" as const, color: "from-orange-400 to-amber-500", shadowColor: "shadow-orange-500/40", action: () => { setShowMoreOptions(false); setShowStickerPanel(true); } },
     { id: "flip", name: "Flip", iconName: "RotateCcw" as const, color: "from-blue-500 to-cyan-600", shadowColor: "shadow-blue-500/40", action: () => { setShowMoreOptions(false); switchCamera(); } },
   ];
 
@@ -3633,7 +3635,13 @@ const LiveStream = () => {
             onSettingsChange={deepAR.handleBeautySettingsChange}
             onEnabledChange={deepAR.handleBeautyEnabledChange}
           />
-          <StickerOverlay stickerName={deepAR.activeSticker} onDismiss={() => setActiveSticker(null)} />
+          <StickerOverlay stickerName={deepAR.activeSticker} onDismiss={() => { setActiveSticker(null); deepAR.handleStickerChange(null); }} />
+          <StickerPanel
+            isOpen={showStickerPanel}
+            onClose={() => setShowStickerPanel(false)}
+            activeSticker={deepAR.activeSticker}
+            onStickerChange={(name) => { setActiveSticker(name); deepAR.handleStickerChange(name); }}
+          />
         </>
       )}
     </div>
