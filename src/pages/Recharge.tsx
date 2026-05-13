@@ -211,6 +211,7 @@ const Recharge = () => {
   // Get currency rate for user's country
   const currencyRate = userCountryCode ? getRateForCountry(userCountryCode) : null;
   const isBangladesh = userCountryCode?.toUpperCase() === 'BD';
+  const isAndroidNative = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';
 
   
   // Fetch real international exchange rates for Google tab
@@ -886,7 +887,7 @@ const Recharge = () => {
     fetchGateways();
     
     // Initialize Play Store Billing on Android
-    const isAndroid = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';
+    const isAndroid = isAndroidNative;
     console.log('[Recharge] Platform check:', { 
       isNative: Capacitor.isNativePlatform(), 
       platform: Capacitor.getPlatform(),
@@ -934,7 +935,7 @@ const Recharge = () => {
       console.log('[Recharge] Not Android - web mode');
       setSelectedPaymentMethod('playstore');
     }
-  }, []);
+  }, [isAndroidNative]);
 
   // Fetch Level 1-4 diamond trader helpers (exclude Level 5 payroll helpers - they show in Local Pay)
   const fetchTopUpHelpers = useCallback(async () => {
@@ -1533,7 +1534,7 @@ const Recharge = () => {
     }
 
     // If Play Store is selected on Android, use Play Store Billing
-    if (selectedPaymentMethod === 'playstore' && isPlayStoreAvailable) {
+    if (selectedPaymentMethod === 'playstore' && (isPlayStoreAvailable || isAndroidNative)) {
       handlePlayStorePurchase();
       return;
     }
