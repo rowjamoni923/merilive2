@@ -8,7 +8,9 @@ import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @CapacitorPlugin(name = "PlayStoreBilling")
 public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedListener {
@@ -16,9 +18,12 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
     private static final String TAG = "PlayStoreBilling";
     private BillingClient billingClient;
     private PluginCall pendingCall;
+    private String pendingProductId;
     private boolean isConnecting = false;
     private final List<PluginCall> pendingInitializeCalls = new ArrayList<>();
     private final List<ReadyAction> readyQueue = new ArrayList<>();
+    // Tokens we've already broadcast so we don't double-fire purchaseCompleted
+    private final Set<String> broadcastedTokens = new HashSet<>();
 
     private static class ReadyAction {
         final PluginCall call;
@@ -35,6 +40,15 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
         super.load();
         createBillingClient();
         startBillingConnection(null);
+    }
+
+    @Override
+    protected void handleOnResume() {
+        super.handleOnResume();
+        // Whenever the app comes back to the foreground (e.g. after a Play UI
+        // pending purchase finally clears), sweep for unconsumed purchases
+        // and broadcast them so the WebView can verify+credit.
+        sweepUnconsumedPurchases();
     }
 
     @PluginMethod
@@ -71,6 +85,9 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
                 if (result.getResponseCode() == BillingClient.BillingResponseCode.OK) {
                     resolveAllInitialize(true, "BillingClient connected");
                     runReadyQueue();
+                    // Auto-sweep on (re)connect: any purchase that finished while
+                    // the app was killed/backgrounded gets re-broadcast.
+                    sweepUnconsumedPurchases();
                 } else {
                     rejectReadyQueue("Billing setup failed: " + result.getDebugMessage(), "BILLING_SETUP_FAILED");
                     rejectAllInitialize("Billing setup failed: " + result.getDebugMessage(), "BILLING_SETUP_FAILED");
@@ -133,6 +150,7 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
         if (pendingCall != null) {
             pendingCall.reject(message, code);
             pendingCall = null;
+            pendingProductId = null;
         }
     }
 
@@ -208,7 +226,47 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
         }
 
         pendingCall = call;
+        pendingProductId = productId;
 
+        // STEP 1: Pre-check existing purchases. If the user already owns this
+        // product (PURCHASED but unconsumed), resolve immediately with that
+        // token instead of launching the billing flow (which would fail with
+        // ITEM_ALREADY_OWNED and confuse the user).
+        billingClient.queryPurchasesAsync(
+            QueryPurchasesParams.newBuilder()
+                .setProductType(BillingClient.ProductType.INAPP)
+                .build(),
+            (preResult, prePurchases) -> {
+                if (preResult.getResponseCode() == BillingClient.BillingResponseCode.OK && prePurchases != null) {
+                    for (Purchase p : prePurchases) {
+                        if (p.getProducts().contains(productId)) {
+                            if (p.getPurchaseState() == Purchase.PurchaseState.PURCHASED) {
+                                Log.d(TAG, "Pre-existing PURCHASED found for " + productId + ", auto-resolving");
+                                resolvePendingWithPurchase(p);
+                                return;
+                            }
+                            if (p.getPurchaseState() == Purchase.PurchaseState.PENDING) {
+                                Log.d(TAG, "Pre-existing PENDING found for " + productId);
+                                if (pendingCall != null) {
+                                    pendingCall.reject(
+                                        "Your previous purchase is still pending in Google Play. It will be delivered automatically once Google approves it.",
+                                        "PURCHASE_PENDING"
+                                    );
+                                    pendingCall = null;
+                                    pendingProductId = null;
+                                }
+                                return;
+                            }
+                        }
+                    }
+                }
+                // STEP 2: No deliverable existing purchase → launch the flow.
+                launchBillingFlow(productId);
+            }
+        );
+    }
+
+    private void launchBillingFlow(String productId) {
         List<QueryProductDetailsParams.Product> products = new ArrayList<>();
         products.add(QueryProductDetailsParams.Product.newBuilder()
             .setProductId(productId)
@@ -235,20 +293,27 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
                 BillingResult launchResult = billingClient.launchBillingFlow(getActivity(), flowParams);
                 if (launchResult.getResponseCode() != BillingClient.BillingResponseCode.OK) {
                     if (launchResult.getResponseCode() == BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED) {
-                        resolveExistingPurchaseForProduct(productId, call);
+                        // Race: pre-check missed it. Try once more.
+                        resolveExistingPurchaseForProduct(productId);
                         return;
                     }
-                    call.reject("Purchase could not start: " + launchResult.getDebugMessage(), "BILLING_FLOW_FAILED");
-                    pendingCall = null;
+                    if (pendingCall != null) {
+                        pendingCall.reject("Purchase could not start: " + launchResult.getDebugMessage(), "BILLING_FLOW_FAILED");
+                        pendingCall = null;
+                        pendingProductId = null;
+                    }
                 }
             } else {
-                call.reject("Product not found: " + productId, "PRODUCT_NOT_FOUND");
-                pendingCall = null;
+                if (pendingCall != null) {
+                    pendingCall.reject("Product not found: " + productId, "PRODUCT_NOT_FOUND");
+                    pendingCall = null;
+                    pendingProductId = null;
+                }
             }
         });
     }
 
-    private void resolveExistingPurchaseForProduct(String productId, PluginCall call) {
+    private void resolveExistingPurchaseForProduct(String productId) {
         billingClient.queryPurchasesAsync(
             QueryPurchasesParams.newBuilder()
                 .setProductType(BillingClient.ProductType.INAPP)
@@ -258,63 +323,130 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
                     for (Purchase purchase : purchases) {
                         if (purchase.getProducts().contains(productId)
                                 && purchase.getPurchaseState() == Purchase.PurchaseState.PURCHASED) {
-                            JSObject ret = new JSObject();
-                            ret.put("success", true);
-                            ret.put("productId", productId);
-                            ret.put("purchaseToken", purchase.getPurchaseToken());
-                            ret.put("orderId", purchase.getOrderId());
-                            call.resolve(ret);
-                            pendingCall = null;
+                            resolvePendingWithPurchase(purchase);
                             return;
                         }
                     }
                 }
-                call.reject("You already own this item, but no deliverable purchase was found. Please reopen Recharge and try again.", "ITEM_ALREADY_OWNED");
-                pendingCall = null;
+                if (pendingCall != null) {
+                    pendingCall.reject("You already own this item, but no deliverable purchase was found. Please reopen Recharge and try again.", "ITEM_ALREADY_OWNED");
+                    pendingCall = null;
+                    pendingProductId = null;
+                }
+            }
+        );
+    }
+
+    private void resolvePendingWithPurchase(Purchase purchase) {
+        if (pendingCall == null) return;
+        JSObject ret = new JSObject();
+        ret.put("success", true);
+        ret.put("productId", purchase.getProducts().get(0));
+        ret.put("purchaseToken", purchase.getPurchaseToken());
+        ret.put("orderId", purchase.getOrderId());
+        pendingCall.resolve(ret);
+        pendingCall = null;
+        pendingProductId = null;
+        broadcastedTokens.add(purchase.getPurchaseToken());
+    }
+
+    /**
+     * Fire purchaseCompleted/purchasePending events for ANY unconsumed purchase
+     * found on the device. WebView listens and verifies them server-side.
+     * Idempotent via broadcastedTokens set.
+     */
+    private void sweepUnconsumedPurchases() {
+        if (billingClient == null || !billingClient.isReady()) return;
+        billingClient.queryPurchasesAsync(
+            QueryPurchasesParams.newBuilder()
+                .setProductType(BillingClient.ProductType.INAPP)
+                .build(),
+            (result, purchases) -> {
+                if (result.getResponseCode() != BillingClient.BillingResponseCode.OK || purchases == null) return;
+                for (Purchase p : purchases) {
+                    String token = p.getPurchaseToken();
+                    if (token == null || broadcastedTokens.contains(token)) continue;
+
+                    if (p.getPurchaseState() == Purchase.PurchaseState.PURCHASED) {
+                        Log.d(TAG, "Sweep: broadcasting unconsumed PURCHASED " + p.getProducts().get(0));
+                        broadcastedTokens.add(token);
+                        final Purchase pp = p;
+                        notifyListeners("purchaseCompleted", new JSObject() {{
+                            put("productId", pp.getProducts().get(0));
+                            put("purchaseToken", pp.getPurchaseToken());
+                            put("orderId", pp.getOrderId());
+                        }});
+                    } else if (p.getPurchaseState() == Purchase.PurchaseState.PENDING) {
+                        final Purchase pp = p;
+                        notifyListeners("purchasePending", new JSObject() {{
+                            put("productId", pp.getProducts().get(0));
+                            put("purchaseToken", pp.getPurchaseToken());
+                        }});
+                    }
+                }
             }
         );
     }
 
     @Override
     public void onPurchasesUpdated(BillingResult billingResult, List<Purchase> purchases) {
-        if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && purchases != null) {
+        int code = billingResult.getResponseCode();
+
+        if (code == BillingClient.BillingResponseCode.OK && purchases != null) {
             for (Purchase purchase : purchases) {
                 if (purchase.getPurchaseState() == Purchase.PurchaseState.PURCHASED) {
                     if (pendingCall != null) {
-                        JSObject ret = new JSObject();
-                        ret.put("success", true);
-                        ret.put("productId", purchase.getProducts().get(0));
-                        ret.put("purchaseToken", purchase.getPurchaseToken());
-                        ret.put("orderId", purchase.getOrderId());
-                        pendingCall.resolve(ret);
-                        pendingCall = null;
+                        resolvePendingWithPurchase(purchase);
+                    } else {
+                        // No active call (app reopened mid-flow). Broadcast.
+                        if (!broadcastedTokens.contains(purchase.getPurchaseToken())) {
+                            broadcastedTokens.add(purchase.getPurchaseToken());
+                            final Purchase pp = purchase;
+                            notifyListeners("purchaseCompleted", new JSObject() {{
+                                put("productId", pp.getProducts().get(0));
+                                put("purchaseToken", pp.getPurchaseToken());
+                                put("orderId", pp.getOrderId());
+                            }});
+                        }
                     }
-
-                    // Notify WebView without consuming locally. The server verifies
-                    // and consumes the purchase only after diamonds are credited.
-                    notifyListeners("purchaseCompleted", new JSObject() {{
-                        put("productId", purchase.getProducts().get(0));
-                        put("purchaseToken", purchase.getPurchaseToken());
-                        put("orderId", purchase.getOrderId());
-                    }});
-                } else {
+                } else if (purchase.getPurchaseState() == Purchase.PurchaseState.PENDING) {
                     Log.d(TAG, "Purchase pending: " + purchase.getProducts().get(0));
-
+                    final Purchase pp = purchase;
+                    notifyListeners("purchasePending", new JSObject() {{
+                        put("productId", pp.getProducts().get(0));
+                        put("purchaseToken", pp.getPurchaseToken());
+                    }});
                     if (pendingCall != null) {
-                        pendingCall.reject("Purchase is pending", "PURCHASE_PENDING");
+                        pendingCall.reject(
+                            "Your purchase is pending Google approval. It will auto-deliver once approved.",
+                            "PURCHASE_PENDING"
+                        );
                         pendingCall = null;
+                        pendingProductId = null;
                     }
                 }
             }
-        } else if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.USER_CANCELED) {
-            if (pendingCall != null) {
-                pendingCall.reject("Purchase cancelled by user");
+        } else if (code == BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED) {
+            // Recover: query purchases and auto-resolve the matching one.
+            String productId = pendingProductId;
+            if (productId != null) {
+                resolveExistingPurchaseForProduct(productId);
+            } else if (pendingCall != null) {
+                pendingCall.reject("Item already owned", "ITEM_ALREADY_OWNED");
                 pendingCall = null;
+                pendingProductId = null;
+            }
+        } else if (code == BillingClient.BillingResponseCode.USER_CANCELED) {
+            if (pendingCall != null) {
+                pendingCall.reject("Purchase cancelled by user", "USER_CANCELED");
+                pendingCall = null;
+                pendingProductId = null;
             }
         } else {
             if (pendingCall != null) {
-                pendingCall.reject("Purchase failed: " + billingResult.getDebugMessage());
+                pendingCall.reject("Purchase failed: " + billingResult.getDebugMessage(), "PURCHASE_FAILED");
                 pendingCall = null;
+                pendingProductId = null;
             }
         }
     }
@@ -334,6 +466,8 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
                 org.json.JSONArray arr = new org.json.JSONArray();
                 if (purchases != null) {
                     for (Purchase p : purchases) {
+                        // Only return PURCHASED — pending ones can't be verified yet.
+                        if (p.getPurchaseState() != Purchase.PurchaseState.PURCHASED) continue;
                         JSObject item = new JSObject();
                         item.put("productId", p.getProducts().get(0));
                         item.put("purchaseToken", p.getPurchaseToken());
