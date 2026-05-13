@@ -608,11 +608,12 @@ export function LiveTeenPattiGame({
 
   return (
     <div 
-      className="space-y-1 p-1 rounded-xl relative"
+      className="space-y-1 p-1 rounded-xl relative live-game-premium-panel"
       style={{
         background: "linear-gradient(180deg, rgba(139,0,0,0.3) 0%, rgba(92,0,0,0.3) 100%)"
       }}
     >
+      <div ref={bindLayer} className="live-game-fx-layer" aria-hidden="true" />
       {/* Timer and Betting Hint Bar */}
       <div className="flex items-center gap-2 px-2 py-1.5 bg-black/40 rounded-lg">
         {/* Large Premium Timer - Left Side */}
