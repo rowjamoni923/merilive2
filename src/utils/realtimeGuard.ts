@@ -25,24 +25,22 @@ import { supabase } from '@/integrations/supabase/client';
 // These are the ONLY tables in the supabase_realtime publication.
 // Subscribing to anything else wastes DB connections.
 const PUBLICATION_TABLES = new Set([
-  'messages',
+  'app_settings',
   'conversations',
+  'messages',
+  'notifications',
+  'private_calls',
   'live_streams',
   'party_rooms',
   'party_room_participants',
-  'notifications',
-  'profiles',
+  'party_room_messages',
+  'stream_chat',
   'gift_transactions',
-  'private_calls',
-  'app_settings',
-  'agencies',
-  'agency_withdrawals',
   'support_tickets',
   'support_messages',
-  'stream_chat',
-  'stream_viewers',
-  'rating_reward_claims',
   'face_verification_submissions',
+  'agencies',
+  'agency_withdrawals',
 ]);
 
 // During DB pressure we preserve only mission-critical realtime tables.
@@ -171,9 +169,11 @@ export function installRealtimeGuard() {
         return channel;
       }
 
-      // Publication whitelist is intentionally advisory-only now.
-      // The server publication already contains all realtime-enabled public tables.
-      // We avoid false blocking here and let pressure/circuit-breaker logic handle load.
+      if (table && !PUBLICATION_TABLES.has(table)) {
+        blockedPostgresBindings += 1;
+        debugLog(`[RealtimeGuard] 🚫 Blocked unpublished table "${table}" on "${name}"`);
+        return channel;
+      }
 
       if (table && ESSENTIAL_ONLY_MODE && !ESSENTIAL_TABLES.has(table)) {
         blockedPostgresBindings += 1;

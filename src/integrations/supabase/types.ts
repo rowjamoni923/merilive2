@@ -15000,6 +15000,12 @@ export type Database = {
         Args: { _notes?: string; _status: string; _withdrawal_id: string }
         Returns: Json
       }
+      admin_realtime_publication_status: {
+        Args: never
+        Returns: {
+          table_name: string
+        }[]
+      }
       admin_reject_pending_action: {
         Args: { _id: string; _notes?: string }
         Returns: Json
