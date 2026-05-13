@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { 
   ArrowLeft, 
@@ -186,6 +186,18 @@ const AgencyDashboard = () => {
   const [isLevel5Helper, setIsLevel5Helper] = useState(false);
   const [helperPendingApplication, setHelperPendingApplication] = useState(false);
   const [showHelperDialog, setShowHelperDialog] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Auto-open Helper application dialog when navigated with ?openHelper=1 (e.g., from Trader Wallet upgrade prompt)
+  useEffect(() => {
+    if (searchParams.get('openHelper') === '1') {
+      setShowHelperDialog(true);
+      // Clean the param so refresh doesn't re-trigger
+      const next = new URLSearchParams(searchParams);
+      next.delete('openHelper');
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
   const [helperContactInfo, setHelperContactInfo] = useState<{whatsapp?: string; email?: string; telegram?: string} | null>(null);
   const [applyingForHelper, setApplyingForHelper] = useState(false);
   const [helperPendingCount, setHelperPendingCount] = useState(0);
