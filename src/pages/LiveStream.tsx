@@ -3635,7 +3635,13 @@ const LiveStream = () => {
             onSettingsChange={deepAR.handleBeautySettingsChange}
             onEnabledChange={deepAR.handleBeautyEnabledChange}
           />
-          <StickerOverlay stickerName={deepAR.activeSticker} onDismiss={() => setActiveSticker(null)} />
+          <StickerOverlay stickerName={deepAR.activeSticker} onDismiss={() => { setActiveSticker(null); deepAR.handleStickerChange(null); }} />
+          <StickerPanel
+            isOpen={showStickerPanel}
+            onClose={() => setShowStickerPanel(false)}
+            activeSticker={deepAR.activeSticker}
+            onStickerChange={(name) => { setActiveSticker(name); deepAR.handleStickerChange(name); }}
+          />
         </>
       )}
     </div>
