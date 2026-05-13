@@ -2686,7 +2686,8 @@ const Recharge = () => {
                   
                   // Trigger payment flow immediately
                   if (selectedPaymentMethod === 'playstore') {
-                    if (isPlayStoreAvailable) {
+                      const isAndroid = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';
+                      if (isPlayStoreAvailable || isAndroid) {
                       // For Play Store, directly initiate purchase
                       setPlayStoreProcessing(true);
                       const productId = playStoreBilling.getProductIdForCoins(pkg.coins);
@@ -2726,7 +2727,6 @@ const Recharge = () => {
                       }
                     } else {
                       // Play Store not available - show appropriate message
-                      const isAndroid = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';
                       if (isAndroid) {
                         // On Android but Play Store plugin not initialized
                         toast({
