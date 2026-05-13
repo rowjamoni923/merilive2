@@ -4,12 +4,16 @@ type EffectPreset = "bet" | "spin" | "deal" | "launch" | "win" | "lose";
 
 let sharedContext: AudioContext | null = null;
 let sharedGain: GainNode | null = null;
+let sharedGainConnected = false;
 
 const ensureAudio = () => {
   if (typeof window === "undefined") return null;
   sharedContext ||= new (window.AudioContext || (window as any).webkitAudioContext)();
   sharedGain ||= sharedContext.createGain();
-  if (!sharedGain.numberOfOutputs) sharedGain.connect(sharedContext.destination);
+  if (!sharedGainConnected) {
+    sharedGain.connect(sharedContext.destination);
+    sharedGainConnected = true;
+  }
   sharedGain.gain.value = 0.55;
   if (sharedContext.state === "suspended") sharedContext.resume();
   return { ctx: sharedContext, gain: sharedGain };
