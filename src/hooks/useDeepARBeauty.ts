@@ -391,12 +391,15 @@ export function useDeepARBeauty() {
 
   // ========== BEAUTY & STICKER ==========
   const openBeautyPanel = useCallback(async () => {
-    if (!isNativeAndroid) return false;
-    const ready = await ensureDeepARReady();
-    if (!ready) return false;
+    // ALWAYS open the panel — beauty UI must work even if the native DeepAR
+    // bridge is missing. When native is available we initialise it in the
+    // background; otherwise the panel falls back to the CSS/MediaPipe pipeline.
     setShowBeautyPanel(true);
+    if (isNativeAndroid) {
+      void ensureDeepARReady().catch(() => { /* fallback handled by web pipeline */ });
+    }
     return true;
-  }, [ensureDeepARReady]);
+  }, [ensureDeepARReady, isNativeAndroid]);
 
   const toggleSticker = useCallback(async () => {
     if (!isNativeAndroid || !DeepARBridge) return;
