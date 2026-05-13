@@ -131,6 +131,7 @@ class PlayStoreBillingSDK {
   private isNative: boolean;
   private isInitialized: boolean = false;
   private lastError: string = '';
+  private initPromise: Promise<boolean> | null = null;
 
   constructor() {
     this.isNative = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';
@@ -150,6 +151,16 @@ class PlayStoreBillingSDK {
       this.lastError = 'Not Android platform';
       return false;
     }
+    if (this.isInitialized) return true;
+    if (this.initPromise) return this.initPromise;
+
+    this.initPromise = this.initializeBridge().finally(() => {
+      this.initPromise = null;
+    });
+    return this.initPromise;
+  }
+
+  private async initializeBridge(): Promise<boolean> {
     try {
       const result = await PlayStoreBillingBridge.initialize();
       this.isInitialized = result?.success || false;
@@ -163,7 +174,8 @@ class PlayStoreBillingSDK {
   }
 
   async getProducts(productIds: string[]): Promise<PlayStoreProduct[]> {
-    if (!this.isNative || !this.isInitialized) return [];
+    if (!this.isNative) return [];
+    if (!this.isInitialized && !(await this.initialize())) return [];
     try {
       const result = await PlayStoreBillingBridge.getProducts({ productIds });
       return result?.products || [];
@@ -178,6 +190,9 @@ class PlayStoreBillingSDK {
       return { success: false, error: 'Play Store Billing is only available on Android' };
     }
     try {
+      if (!this.isInitialized && !(await this.initialize())) {
+        return { success: false, error: this.lastError || 'Google Play Billing is not ready' };
+      }
       console.log('[PlayStoreBilling] Starting purchase:', productId);
       const result = await PlayStoreBillingBridge.purchase({ productId, userId });
 
