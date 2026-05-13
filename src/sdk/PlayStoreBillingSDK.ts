@@ -41,6 +41,12 @@ export interface PlayStoreProduct {
   priceCurrencyCode: string;
 }
 
+interface PlayStoreProductConfig {
+  productId: string;
+  priceUsd: number;
+  aliases: string[];
+}
+
 interface AdminPlayStoreProductRow {
   coins_amount: number | null;
   bonus_coins: number | null;
@@ -66,16 +72,34 @@ export interface PurchaseResult {
 // even before loadPlayStoreProducts() finishes its async DB fetch.
 // loadPlayStoreProducts() refreshes this map at app start.
 
-export const PLAY_STORE_PRODUCTS: Record<number, { productId: string; priceUsd: number }> = {
-  7000:   { productId: 'diamonds_7000',   priceUsd: 1.29 },
-  13200:  { productId: 'diamonds_13200',  priceUsd: 2.49 },
-  56000:  { productId: 'diamonds_56000',  priceUsd: 9.99 },
-  169000: { productId: 'diamonds_169000', priceUsd: 30.99 },
-  470000: { productId: 'diamonds_470000', priceUsd: 72.99 },
-  650000: { productId: 'diamonds_650000', priceUsd: 89.99 },
+const uniqueIds = (values: Array<string | null | undefined>): string[] =>
+  Array.from(new Set(values.map((v) => String(v || '').trim()).filter(Boolean)));
+
+const makeProductConfig = (baseCoins: number, bonusCoins: number, productId: string, priceUsd: number): PlayStoreProductConfig => {
+  const totalCoins = baseCoins + bonusCoins;
+  return {
+    productId,
+    priceUsd,
+    aliases: uniqueIds([
+      productId,
+      `diamonds_${baseCoins}`,
+      `coins_${baseCoins}`,
+      `diamonds_${totalCoins}`,
+      `coins_${totalCoins}`,
+    ]),
+  };
 };
 
-export let ALL_PRODUCT_IDS: string[] = Object.values(PLAY_STORE_PRODUCTS).map(p => p.productId);
+export const PLAY_STORE_PRODUCTS: Record<number, PlayStoreProductConfig> = {
+  7000:   makeProductConfig(7000, 3500, 'diamonds_7000', 1.29),
+  13200:  makeProductConfig(13200, 1320, 'diamonds_13200', 2.49),
+  56000:  makeProductConfig(56000, 42000, 'diamonds_56000', 9.99),
+  169000: makeProductConfig(169000, 42250, 'diamonds_169000', 30.99),
+  470000: makeProductConfig(470000, 352500, 'diamonds_470000', 72.99),
+  650000: makeProductConfig(650000, 487500, 'diamonds_650000', 89.99),
+};
+
+export let ALL_PRODUCT_IDS: string[] = uniqueIds(Object.values(PLAY_STORE_PRODUCTS).flatMap(p => p.aliases));
 
 /**
  * Refresh PLAY_STORE_PRODUCTS from the `coin_packages` DB table so
@@ -91,7 +115,7 @@ export async function loadPlayStoreProducts(): Promise<void> {
       .eq('is_active', true);
     if (error || !data?.length) return;
 
-    const next: Record<number, { productId: string; priceUsd: number }> = {};
+    const next: Record<number, PlayStoreProductConfig> = {};
     for (const row of data as AdminPlayStoreProductRow[]) {
       const baseCoins = Number(row.coins_amount || 0);
       const bonusCoins = Number(row.bonus_coins || 0);
@@ -99,10 +123,7 @@ export async function loadPlayStoreProducts(): Promise<void> {
       const productId = String(row.product_id || '').trim();
       if (!baseCoins || !productId || row.price_usd == null) continue;
 
-      const product = {
-        productId,
-        priceUsd: Number(row.price_usd),
-      };
+      const product = makeProductConfig(baseCoins, bonusCoins, productId, Number(row.price_usd));
 
       // Support both old UI lookups by base diamonds and new UI lookups by
       // total delivered diamonds (base + bonus) without breaking admin edits.
@@ -116,7 +137,7 @@ export async function loadPlayStoreProducts(): Promise<void> {
       delete PLAY_STORE_PRODUCTS[Number(k)];
     }
     Object.assign(PLAY_STORE_PRODUCTS, next);
-    ALL_PRODUCT_IDS = Object.values(PLAY_STORE_PRODUCTS).map((p) => p.productId);
+    ALL_PRODUCT_IDS = uniqueIds(Object.values(PLAY_STORE_PRODUCTS).flatMap((p) => p.aliases));
     console.log('[PlayStoreBilling] Loaded', ALL_PRODUCT_IDS.length, 'packages from DB');
   } catch (e) {
     console.warn('[PlayStoreBilling] loadPlayStoreProducts failed (using fallback):', e);
