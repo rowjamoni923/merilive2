@@ -62,6 +62,7 @@ document.addEventListener('touchstart', () => {}, { passive: true });
 const container = document.getElementById("root");
 if (container) {
   try {
+    try { (window as any).__meriliveBooted?.(); } catch { /* ignore */ }
     const root = createRoot(container);
     root.render(<App />);
     // Tell the boot watchdog (in index.html) that React mounted successfully —
