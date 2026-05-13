@@ -7,6 +7,7 @@ import { WinPopup } from "../common/WinPopup";
 import { formatBetAmount } from "../common/BetControls";
 import { PremiumRocket3D } from "./rocket-race/PremiumRocket3D";
 import { useGameSoundManager } from "@/hooks/useGameSoundManager";
+import { useLiveGameEffects } from "@/hooks/useLiveGameEffects";
 import { processWin } from "@/services/gameBalanceService";
 
 // Import rocket images for UI elements
@@ -102,6 +103,7 @@ export function LiveRocketRaceGame({
   
   // Sound manager for rocket race
   const sounds = useGameSoundManager('rocket-race');
+  const { bindLayer, play: playLiveEffect } = useLiveGameEffects();
 
   useEffect(() => { betOnRocketRef.current = betOnRocket; }, [betOnRocket]);
   useEffect(() => { totalBetPlacedRef.current = totalBetPlaced; }, [totalBetPlaced]);
@@ -168,6 +170,7 @@ export function LiveRocketRaceGame({
   const runLaunch = async () => {
     setIsLaunching(true);
     sounds.playRocketLaunch(); // 🔊 Launch sound!
+    playLiveEffect('launch');
     
     const winnerIndex = Math.floor(Math.random() * 3);
     const finalPositions = [0, 0, 0];
@@ -221,6 +224,7 @@ export function LiveRocketRaceGame({
       setWinAmount(totalWinnings);
       setShowWinPopup(true);
       sounds.playRocketWin(); // 🔊 Win sound!
+      playLiveEffect('win');
       
       const creditWinnings = async () => {
         try {
@@ -241,6 +245,7 @@ export function LiveRocketRaceGame({
       setWinAmount(currentTotalBet);
       setShowWinPopup(true);
       sounds.playLoseSound(); // 🔊 Lose sound
+      playLiveEffect('lose');
     }
 
     setTimeout(() => { if (isMountedRef.current) setShowWinPopup(false); }, 3000);
@@ -259,6 +264,7 @@ export function LiveRocketRaceGame({
     setBetOnRocket(prev => ({ ...prev, [rocketIndex]: (prev[rocketIndex] || 0) + betAmount }));
     setTotalBetPlaced(prev => prev + betAmount);
     sounds.playBetSound(); // 🔊 Bet sound!
+    playLiveEffect('bet');
     
     setIsPlacingBet(true);
 
@@ -273,7 +279,8 @@ export function LiveRocketRaceGame({
   };
 
   return (
-    <div className="space-y-2 p-2 relative">
+    <div className="space-y-2 p-2 relative live-game-premium-panel">
+      <div ref={bindLayer} className="live-game-fx-layer" aria-hidden="true" />
       <WinPopup 
         show={showWinPopup} 
         amount={winAmount} 
