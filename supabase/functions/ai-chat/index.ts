@@ -21,8 +21,8 @@ serve(async (req) => {
         Deno.env.get("SUPABASE_URL")!,
         Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
       );
-      const { data: ok } = await svc.rpc('is_admin_session_token_valid', { _token: adminToken });
-      if (ok === true) authorized = true;
+      const { data: rows } = await svc.rpc('get_admin_by_session_token', { _token: adminToken });
+      if (Array.isArray(rows) && rows.length > 0 && rows[0].is_active) authorized = true;
     }
 
     if (!authorized && authHeader) {
