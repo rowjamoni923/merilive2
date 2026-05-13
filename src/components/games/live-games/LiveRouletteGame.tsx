@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { ShimmerEffect, ParticleField } from "../common/ShimmerEffect";
 import { useGameSoundManager } from "@/hooks/useGameSoundManager";
+import { useLiveGameEffects } from "@/hooks/useLiveGameEffects";
 import { WinPopup, formatBetDisplay } from "../common/WinPopup";
 
 interface LiveRouletteGameProps {
@@ -146,6 +147,7 @@ export function LiveRouletteGame({
   
   // Use centralized sound manager - only plays when this game is active
   const sounds = useGameSoundManager('roulette');
+  const { bindLayer, play: playLiveEffect } = useLiveGameEffects();
   const isMountedRef = useRef(true);
   const autoPlayTimerRef = useRef<NodeJS.Timeout | null>(null);
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -281,6 +283,7 @@ export function LiveRouletteGame({
     
     setIsSpinning(true);
     sounds.playRouletteWheelSpin();
+    playLiveEffect('spin');
     
     // Generate random winning number using WHEEL_ORDER for authentic positioning
     const randomIndex = Math.floor(Math.random() * WHEEL_ORDER.length);
@@ -356,6 +359,7 @@ export function LiveRouletteGame({
         setShowWinPopup(true);
         sounds.playWinSound();
         sounds.playCoinSound();
+        playLiveEffect('win');
         if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
         
         // Credit winnings
@@ -384,6 +388,7 @@ export function LiveRouletteGame({
         setWinAmount(currentTotalBetPlaced);
         setShowWinPopup(true);
         sounds.playLoseSound();
+        playLiveEffect('lose');
         setTimeout(() => { if (isMountedRef.current) setShowWinPopup(false); }, 2000);
       }
       
@@ -416,6 +421,7 @@ export function LiveRouletteGame({
     
     setIsPlacingBet(true);
     sounds.playBetSound();
+    playLiveEffect('bet');
     
     // Fire API call in background - don't wait
     onPlaceBet('roulette', `${type}:${value}`).then(result => {
@@ -445,7 +451,8 @@ export function LiveRouletteGame({
   const isGreen = (num: number) => getNumberColor(num) === 'green';
 
   return (
-    <div className="space-y-2 p-1 relative">
+    <div className="space-y-2 p-1 relative live-game-premium-panel">
+      <div ref={bindLayer} className="live-game-fx-layer" aria-hidden="true" />
       {/* Win/Lose Popup - Enhanced with Game Logo */}
       <WinPopup 
         show={showWinPopup} 

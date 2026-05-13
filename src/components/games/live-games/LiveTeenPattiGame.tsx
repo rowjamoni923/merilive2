@@ -5,6 +5,7 @@ import { Coins } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ShimmerEffect, ParticleField } from "../common/ShimmerEffect";
 import { useGameSoundManager } from "@/hooks/useGameSoundManager";
+import { useLiveGameEffects } from "@/hooks/useLiveGameEffects";
 import { WinPopup, formatBetDisplay } from "../common/WinPopup";
 import { processWin } from "@/services/gameBalanceService";
 
@@ -122,6 +123,7 @@ export function LiveTeenPattiGame({
 
   // Use centralized sound manager - only plays when this game is active
   const sounds = useGameSoundManager('teen-patti');
+  const { bindLayer, play: playLiveEffect } = useLiveGameEffects();
   const isMountedRef = useRef(true);
   const autoPlayTimerRef = useRef<NodeJS.Timeout | null>(null);
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -213,6 +215,7 @@ export function LiveTeenPattiGame({
   const runDeal = async () => {
     setIsDealing(true);
     sounds.playCardShuffle();
+    playLiveEffect('deal');
     
     if (navigator.vibrate) navigator.vibrate(100);
 
@@ -275,6 +278,7 @@ export function LiveTeenPattiGame({
       setShowWinPopup(true);
       sounds.playWinSound();
       sounds.playCoinSound();
+      playLiveEffect('win');
       if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
       
       // Credit winnings
@@ -302,6 +306,7 @@ export function LiveTeenPattiGame({
       setWinAmount(currentTotalBetPlaced);
       setShowWinPopup(true);
       sounds.playLoseSound();
+      playLiveEffect('lose');
       setTimeout(() => { if (isMountedRef.current) setShowWinPopup(false); }, 2500);
     }
 
@@ -322,6 +327,7 @@ export function LiveTeenPattiGame({
     setIsDealing(true);
     sounds.playCardShuffle();
     sounds.playCardDeal();
+    playLiveEffect('deal');
     
     if (navigator.vibrate) navigator.vibrate(100);
 
@@ -369,6 +375,7 @@ export function LiveTeenPattiGame({
       setShowWinPopup(true);
       sounds.playWinSound();
       sounds.playCoinSound();
+      playLiveEffect('win');
       if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
       
       // IMPORTANT: Credit winnings to user's balance
@@ -394,12 +401,13 @@ export function LiveTeenPattiGame({
       setWinAmount(totalBetPlaced); // Show how much was lost
       setShowWinPopup(true);
       sounds.playLoseSound();
+      playLiveEffect('lose');
       setTimeout(() => setShowWinPopup(false), 2500);
     }
 
     onProcessResult(winningHand);
     setIsDealing(false);
-  }, [selectedHands, betAmounts, sounds, onProcessResult, isDealing, onGameWin, totalBetPlaced]);
+  }, [selectedHands, betAmounts, sounds, playLiveEffect, onProcessResult, isDealing, onGameWin, totalBetPlaced]);
   
   // Deal cards without user bet (just show result for spectators)
   const dealCardsWithoutBet = useCallback(async () => {
@@ -467,6 +475,7 @@ export function LiveTeenPattiGame({
     setTotalBetPlaced(prev => prev + currentBetAmount);
     
     sounds.playBetSound();
+    playLiveEffect('bet');
 
     // Fire API call in background - don't block UI
     onPlaceBet('teen_patti', hand)
@@ -599,11 +608,12 @@ export function LiveTeenPattiGame({
 
   return (
     <div 
-      className="space-y-1 p-1 rounded-xl relative"
+      className="space-y-1 p-1 rounded-xl relative live-game-premium-panel"
       style={{
         background: "linear-gradient(180deg, rgba(139,0,0,0.3) 0%, rgba(92,0,0,0.3) 100%)"
       }}
     >
+      <div ref={bindLayer} className="live-game-fx-layer" aria-hidden="true" />
       {/* Timer and Betting Hint Bar */}
       <div className="flex items-center gap-2 px-2 py-1.5 bg-black/40 rounded-lg">
         {/* Large Premium Timer - Left Side */}

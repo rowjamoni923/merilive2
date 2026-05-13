@@ -128,6 +128,12 @@ video::-ms-media-controls {
     --gradient-shine: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
     --gradient-live: linear-gradient(135deg, hsl(0 72% 51%) 0%, hsl(330 85% 55%) 100%);
     --gradient-online: linear-gradient(135deg, hsl(142 76% 45%) 0%, hsl(160 84% 39%) 100%);
+    --live-game-neon: 330 85% 58%;
+    --live-game-gold: 45 93% 58%;
+    --live-game-felt: 158 70% 24%;
+    --live-game-steel: 230 22% 72%;
+    --live-game-card: 0 0% 96%;
+    --live-game-flame: 18 94% 58%;
 
     /* Shadows - Dark */
     --shadow-glow: 0 0 30px -5px hsl(330 85% 55% / 0.3);
@@ -2802,4 +2808,123 @@ input:focus-visible, textarea:focus-visible {
   animation: sticker-shimmer-overlay 2.4s linear infinite;
   pointer-events: none;
   mix-blend-mode: screen;
+}
+
+@layer components {
+  .live-game-dock {
+    border-radius: 18px;
+    border: 1px solid hsl(var(--live-game-gold) / 0.32);
+    background:
+      linear-gradient(145deg, hsl(var(--background) / 0.96), hsl(var(--card) / 0.94)),
+      radial-gradient(circle at 50% 0%, hsl(var(--live-game-neon) / 0.22), transparent 58%);
+    box-shadow: 0 18px 60px hsl(var(--background) / 0.7), 0 0 34px hsl(var(--live-game-neon) / 0.22), inset 0 1px 0 hsl(var(--foreground) / 0.12);
+    backdrop-filter: blur(18px) saturate(1.25);
+  }
+
+  .live-game-shell {
+    min-height: 440px;
+    isolation: isolate;
+    border: 1px solid hsl(var(--live-game-gold) / 0.24);
+    background:
+      radial-gradient(circle at 18% 8%, hsl(var(--live-game-gold) / 0.18), transparent 34%),
+      radial-gradient(circle at 82% 12%, hsl(var(--live-game-neon) / 0.18), transparent 36%),
+      linear-gradient(150deg, hsl(var(--background) / 0.94), hsl(var(--card) / 0.88));
+    box-shadow: inset 0 0 0 1px hsl(var(--foreground) / 0.06);
+  }
+
+  .live-game-header {
+    position: relative;
+    z-index: 4;
+    background: linear-gradient(90deg, hsl(var(--background) / 0.72), hsl(var(--card) / 0.58), hsl(var(--background) / 0.72));
+    backdrop-filter: blur(12px);
+  }
+
+  .live-game-3d-stage {
+    position: absolute;
+    inset: 28px 0 auto 0;
+    height: 190px;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.92;
+  }
+
+  .live-game-stage-vignette,
+  .live-game-stage-scanline {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .live-game-stage-vignette {
+    background: radial-gradient(ellipse at center, transparent 32%, hsl(var(--background) / 0.68) 82%);
+  }
+
+  .live-game-stage-scanline {
+    opacity: 0.16;
+    background-image: linear-gradient(hsl(var(--foreground) / 0.18) 1px, transparent 1px);
+    background-size: 100% 6px;
+    mix-blend-mode: screen;
+  }
+
+  .live-game-premium-panel {
+    z-index: 2;
+  }
+
+  .live-game-premium-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background: linear-gradient(135deg, hsl(var(--foreground) / 0.10), transparent 34%, hsl(var(--live-game-gold) / 0.08));
+    mix-blend-mode: screen;
+  }
+
+  .live-game-fx-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 30;
+    overflow: hidden;
+    pointer-events: none;
+    border-radius: inherit;
+  }
+
+  .live-game-fx-layer[data-effect="spin"],
+  .live-game-fx-layer[data-effect="deal"],
+  .live-game-fx-layer[data-effect="launch"],
+  .live-game-fx-layer[data-effect="win"] {
+    animation: live-game-flash 520ms ease-out both;
+  }
+
+  .live-game-fx-particle {
+    position: absolute;
+    left: 50%;
+    top: 48%;
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: hsl(var(--live-game-gold));
+    box-shadow: 0 0 14px hsl(var(--live-game-gold) / 0.9), 0 0 26px hsl(var(--live-game-neon) / 0.45);
+    animation: live-game-particle 1050ms cubic-bezier(.16,.84,.36,1) var(--fx-delay) forwards;
+  }
+}
+
+@keyframes live-game-flash {
+  0% { background: hsl(var(--foreground) / 0); }
+  18% { background: hsl(var(--live-game-gold) / 0.18); }
+  100% { background: hsl(var(--foreground) / 0); }
+}
+
+@keyframes live-game-particle {
+  0% { transform: translate(-50%, -50%) scale(0.4); opacity: 0; }
+  12% { opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--fx-x)), calc(-50% + var(--fx-y))) scale(0); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-game-fx-layer[data-effect],
+  .live-game-fx-particle,
+  .live-game-stage-scanline {
+    animation: none !important;
+  }
 }

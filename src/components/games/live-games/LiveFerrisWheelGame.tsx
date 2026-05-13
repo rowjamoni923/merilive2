@@ -5,6 +5,7 @@ import { Coins } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ShimmerEffect, ParticleField } from "../common/ShimmerEffect";
 import { useGameSoundManager } from "@/hooks/useGameSoundManager";
+import { useLiveGameEffects } from "@/hooks/useLiveGameEffects";
 import { WinPopup, formatBetDisplay } from "../common/WinPopup";
 
 interface LiveFerrisWheelGameProps {
@@ -78,6 +79,7 @@ export function LiveFerrisWheelGame({
 
   // Use centralized sound manager - only plays when this game is active
   const sounds = useGameSoundManager('ferris-wheel');
+  const liveEffects = useLiveGameEffects();
   const isMountedRef = useRef(true);
   
   // CRITICAL: Use refs to access current state in autoSpinWheel (closure fix)
@@ -166,6 +168,7 @@ export function LiveFerrisWheelGame({
   const runSpin = async () => {
     setIsSpinning(true);
     sounds.playFerrisWheelSpin();
+    liveEffects.play('spin');
     
     if (navigator.vibrate) navigator.vibrate(100);
 
@@ -217,6 +220,7 @@ export function LiveFerrisWheelGame({
       setShowWinPopup(true);
       sounds.playWinSound();
       sounds.playCoinSound();
+      liveEffects.play('win');
       if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
       
       // Credit winnings
@@ -244,6 +248,7 @@ export function LiveFerrisWheelGame({
       setWinAmount(currentTotalBetPlaced);
       setShowWinPopup(true);
       sounds.playLoseSound();
+      liveEffects.play('lose');
       setTimeout(() => { if (isMountedRef.current) setShowWinPopup(false); }, 3000);
     }
 
@@ -271,6 +276,7 @@ export function LiveFerrisWheelGame({
     
     setIsPlacingBet(true);
     sounds.playBetSound();
+    liveEffects.play('bet');
 
     // Fire API call in background - don't wait
     onPlaceBet('ferris_wheel', index.toString()).then(result => {
@@ -290,7 +296,8 @@ export function LiveFerrisWheelGame({
   };
 
   return (
-    <div className="space-y-2 p-2 relative">
+    <div className="space-y-2 p-2 relative live-game-premium-panel">
+      <div ref={liveEffects.bindLayer} className="live-game-fx-layer" aria-hidden="true" />
       {/* Win/Lose Popup - Enhanced with Game Logo */}
       <WinPopup 
         show={showWinPopup} 
