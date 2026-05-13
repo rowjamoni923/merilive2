@@ -576,7 +576,7 @@ const navGroups: NavGroup[] = [
         icon: Sparkles,
         path: "/admin/beauty-filters",
         hubKey: "visual-hub",
-        description: "Manage MediaPipe/DeepAR beauty presets and AR stickers shown in the streaming filter panel.",
+        description: "Manage beauty presets and stickers shown in the streaming filter panel.",
       },
       {
         label: "Verified Badges",
