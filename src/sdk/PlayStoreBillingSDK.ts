@@ -195,6 +195,11 @@ class PlayStoreBillingSDK {
     }
   }
 
+  private isReconnectError(error: any): boolean {
+    const text = `${error?.code || ''} ${error?.message || ''}`.toLowerCase();
+    return text.includes('not_connected') || text.includes('service_disconnected') || text.includes('reconnecting');
+  }
+
   async getProducts(productIds: string[]): Promise<PlayStoreProduct[]> {
     if (!this.isNative) return [];
     if (!this.isInitialized && !(await this.initialize())) return [];
@@ -204,6 +209,15 @@ class PlayStoreBillingSDK {
       this.productDetailsCache = products;
       return products;
     } catch (error: any) {
+      if (this.isReconnectError(error)) {
+        this.isInitialized = false;
+        if (await this.initialize()) {
+          const retry = await PlayStoreBillingBridge.getProducts({ productIds });
+          const products = retry?.products || [];
+          this.productDetailsCache = products;
+          return products;
+        }
+      }
       this.lastError = error?.message || 'Could not load Play Store products';
       console.error('[PlayStoreBilling] getProducts error:', error);
       return [];
@@ -217,6 +231,20 @@ class PlayStoreBillingSDK {
 
     const products = await this.getProducts(candidates);
     return products.find((p) => candidates.includes(p.productId))?.productId || null;
+  }
+
+  private async purchaseWithReconnect(productId: string, userId: string) {
+    try {
+      return await PlayStoreBillingBridge.purchase({ productId, userId });
+    } catch (error: any) {
+      if (this.isReconnectError(error)) {
+        this.isInitialized = false;
+        if (await this.initialize()) {
+          return await PlayStoreBillingBridge.purchase({ productId, userId });
+        }
+      }
+      throw error;
+    }
   }
 
   async purchase(productId: string, userId: string): Promise<PurchaseResult> {
@@ -234,7 +262,7 @@ class PlayStoreBillingSDK {
       }
 
       console.log('[PlayStoreBilling] Starting purchase:', availableProductId);
-      const result = await PlayStoreBillingBridge.purchase({ productId: availableProductId, userId });
+      const result = await this.purchaseWithReconnect(availableProductId, userId);
 
       if (result?.success && result?.purchaseToken) {
         const verifyResult = await this.verifyPurchase(
