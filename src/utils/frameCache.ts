@@ -219,6 +219,57 @@ const executeBatch = async () => {
     }
   }
 
+  // Check role_frames for equipped frames not yet resolved (admin-gifted
+  // role frames live in role_frames, not avatar_frames or shop_items —
+  // without this lookup the gifted frame silently resolves to null and
+  // the user sees no frame, which looks identical to "equip failed").
+  const roleCheckIds = new Set<string>();
+  ids.forEach(userId => {
+    const cached = userFrameInfoCache.get(userId);
+    const equippedId = cached?.data.equipped_frame_id;
+    if (!equippedId) return;
+    const alreadyResolved = resolvedFrameUrlCache.has(userId)
+      && isValid(resolvedFrameUrlCache.get(userId)!.timestamp);
+    if (alreadyResolved) return;
+    // Not found in avatar_frames AND not resolved via shop_items → try role_frames
+    if (frameDataCache.get(equippedId) === null) {
+      roleCheckIds.add(equippedId);
+    }
+  });
+
+  if (roleCheckIds.size > 0) {
+    try {
+      const { data: roleFrames } = await supabase
+        .from('role_frames')
+        .select('id, frame_url, is_active')
+        .in('id', Array.from(roleCheckIds))
+        .eq('is_active', true);
+
+      const roleMap = new Map<string, string>();
+      roleFrames?.forEach((rf: any) => {
+        if (rf.frame_url) roleMap.set(rf.id, rf.frame_url);
+      });
+
+      const now = Date.now();
+      ids.forEach(userId => {
+        const cached = userFrameInfoCache.get(userId);
+        const equippedId = cached?.data.equipped_frame_id;
+        if (equippedId && roleMap.has(equippedId)) {
+          const url = roleMap.get(equippedId)!;
+          const urlPath = url.split('?')[0].toLowerCase();
+          let type = 'static';
+          if (urlPath.endsWith('.svga')) type = 'svga';
+          else if (urlPath.endsWith('.json')) type = 'lottie';
+          else if (urlPath.endsWith('.gif')) type = 'gif';
+          else if (urlPath.endsWith('.webp')) type = 'webp';
+          resolvedFrameUrlCache.set(userId, { url, type, timestamp: now });
+        }
+      });
+    } catch (err) {
+      console.error('[frameCache] Role frames fetch error:', err);
+    }
+  }
+
   // Resolve all remaining users
   const now = Date.now();
   ids.forEach(userId => {
