@@ -479,6 +479,7 @@ class PlayStoreBillingSDK {
    */
   async retryPendingPurchases(userId: string): Promise<number> {
     if (!this.isNative) return 0;
+    this.currentUserId = userId;
     if (!this.isInitialized && !(await this.initialize())) return 0;
     try {
       console.log('[PlayStoreBilling] 🔍 Checking for pending/undelivered purchases...');
