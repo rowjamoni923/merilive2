@@ -123,12 +123,44 @@ const AuthBackground = ({ branding }: { branding: AuthBranding }) => {
   }, [branding.background_url, branding.background_type]);
 
   const mediaStyle: React.CSSProperties = {
-    imageRendering: 'auto',
+    imageRendering: 'high-quality' as React.CSSProperties['imageRendering'],
     transform: 'translateZ(0)',
     backfaceVisibility: 'hidden',
     WebkitBackfaceVisibility: 'hidden',
-    filter: 'contrast(1.05) saturate(1.08)',
+    filter: 'contrast(1.06) saturate(1.12) brightness(1.02)',
+    willChange: 'transform',
   };
+
+  // Build HD URL via Supabase image transform CDN (auto-upscales delivery, sharper on high DPR screens).
+  // Falls back to original URL for non-Supabase hosts or GIFs (which the transform endpoint flattens).
+  const buildHdUrl = (url: string, width: number, quality = 90): string => {
+    if (!url) return url;
+    try {
+      // Skip transforms for animated GIFs to preserve animation
+      if (branding.background_type === 'gif' || /\.gif(\?|$)/i.test(url)) return url;
+      // Supabase Storage public URL → render/image/public for on-the-fly resize + AVIF/WebP
+      if (url.includes('/storage/v1/object/public/')) {
+        const transformed = url.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/');
+        const sep = transformed.includes('?') ? '&' : '?';
+        return `${transformed}${sep}width=${width}&quality=${quality}&resize=cover`;
+      }
+      return url;
+    } catch {
+      return url;
+    }
+  };
+
+  // Device pixel ratio aware: phones at 3x DPR get true ~1080-1440 source for crisp rendering
+  const dpr = typeof window !== 'undefined' ? Math.min(window.devicePixelRatio || 1, 3) : 2;
+  const baseW = typeof window !== 'undefined' ? window.innerWidth : 480;
+  const targetWidth = Math.min(2160, Math.ceil(baseW * dpr));
+
+  const hdSrc = showMedia ? buildHdUrl(branding.background_url, targetWidth, 92) : '';
+  const hdSrcSet = showMedia
+    ? [720, 1080, 1440, 1920, 2160]
+        .map((w) => `${buildHdUrl(branding.background_url, w, 90)} ${w}w`)
+        .join(', ')
+    : undefined;
 
   return (
     <>
@@ -154,10 +186,12 @@ const AuthBackground = ({ branding }: { branding: AuthBranding }) => {
         />
       ) : showMedia && (branding.background_type === 'image' || branding.background_type === 'gif') ? (
         <img
-          src={branding.background_url}
+          src={hdSrc}
+          srcSet={hdSrcSet}
+          sizes="100vw"
           alt="MeriLive background"
           className="absolute inset-0 w-full h-full object-cover"
-          decoding="sync"
+          decoding="async"
           loading="eager"
           fetchPriority="high"
           onError={() => setMediaFailed(true)}
