@@ -3238,10 +3238,10 @@ const Recharge = () => {
           resetHelperPaymentForm();
         }
       }}>
-        <DialogContent className="w-[calc(100vw-2rem)] max-w-md rounded-[2rem] max-h-[85vh] overflow-y-auto p-0 mx-auto border border-amber-400/60 bg-[#140d03] shadow-[0_0_60px_-12px_rgba(251,191,36,0.45)]">
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-md rounded-[2rem] max-h-[85dvh] overflow-y-auto overscroll-contain touch-pan-y p-0 mx-auto border border-amber-400/60 bg-[#140d03] shadow-[0_0_60px_-12px_rgba(251,191,36,0.45)]" style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
           {helperPaymentStep === "form" && selectedHelperMethod && selectedPackage && (
             <>
-              <div className="px-4 pt-4 pb-4" style={{ maxHeight: '80vh', overflowY: 'auto', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
+              <div className="px-4 pt-4 pb-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <div className="w-9 h-9 rounded-xl bg-purple-500/20 flex items-center justify-center">
