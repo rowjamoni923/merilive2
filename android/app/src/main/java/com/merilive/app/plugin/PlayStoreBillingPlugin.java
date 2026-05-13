@@ -18,6 +18,17 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
     private PluginCall pendingCall;
     private boolean isConnecting = false;
     private final List<PluginCall> pendingInitializeCalls = new ArrayList<>();
+    private final List<ReadyAction> readyQueue = new ArrayList<>();
+
+    private static class ReadyAction {
+        final PluginCall call;
+        final Runnable action;
+
+        ReadyAction(PluginCall call, Runnable action) {
+            this.call = call;
+            this.action = action;
+        }
+    }
 
     @Override
     public void load() {
@@ -59,7 +70,9 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
                 Log.d(TAG, "Billing setup finished: " + result.getResponseCode());
                 if (result.getResponseCode() == BillingClient.BillingResponseCode.OK) {
                     resolveAllInitialize(true, "BillingClient connected");
+                    runReadyQueue();
                 } else {
+                    rejectReadyQueue("Billing setup failed: " + result.getDebugMessage(), "BILLING_SETUP_FAILED");
                     rejectAllInitialize("Billing setup failed: " + result.getDebugMessage(), "BILLING_SETUP_FAILED");
                 }
             }
@@ -94,10 +107,41 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
         pendingInitializeCalls.clear();
     }
 
+    private void runWhenReady(PluginCall call, Runnable action) {
+        createBillingClient();
+        if (billingClient.isReady()) {
+            action.run();
+            return;
+        }
+
+        readyQueue.add(new ReadyAction(call, action));
+        startBillingConnection(null);
+    }
+
+    private void runReadyQueue() {
+        for (ReadyAction item : new ArrayList<>(readyQueue)) {
+            item.action.run();
+        }
+        readyQueue.clear();
+    }
+
+    private void rejectReadyQueue(String message, String code) {
+        for (ReadyAction item : new ArrayList<>(readyQueue)) {
+            item.call.reject(message, code);
+        }
+        readyQueue.clear();
+        if (pendingCall != null) {
+            pendingCall.reject(message, code);
+            pendingCall = null;
+        }
+    }
+
     @PluginMethod
     public void getProducts(PluginCall call) {
-        if (!ensureReady(call)) return;
+        runWhenReady(call, () -> queryProducts(call));
+    }
 
+    private void queryProducts(PluginCall call) {
         List<String> productIds = new ArrayList<>();
         try {
             org.json.JSONArray arr = call.getArray("productIds");
@@ -141,15 +185,17 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
                 ret.put("products", arr);
                 call.resolve(ret);
             } else {
-                call.reject("Failed to query products: " + result.getDebugMessage());
+                call.reject("Failed to query products: " + result.getDebugMessage(), "QUERY_PRODUCTS_FAILED");
             }
         });
     }
 
     @PluginMethod
     public void purchase(PluginCall call) {
-        if (!ensureReady(call)) return;
+        runWhenReady(call, () -> startPurchase(call));
+    }
 
+    private void startPurchase(PluginCall call) {
         String productId = call.getString("productId");
         if (productId == null) {
             call.reject("productId is required");
@@ -186,9 +232,13 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
                     .setProductDetailsParamsList(productDetailsParamsList)
                     .build();
 
-                billingClient.launchBillingFlow(getActivity(), flowParams);
+                BillingResult launchResult = billingClient.launchBillingFlow(getActivity(), flowParams);
+                if (launchResult.getResponseCode() != BillingClient.BillingResponseCode.OK) {
+                    call.reject("Purchase could not start: " + launchResult.getDebugMessage(), "BILLING_FLOW_FAILED");
+                    pendingCall = null;
+                }
             } else {
-                call.reject("Product not found: " + productId);
+                call.reject("Product not found: " + productId, "PRODUCT_NOT_FOUND");
                 pendingCall = null;
             }
         });
@@ -240,8 +290,10 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
 
     @PluginMethod
     public void restorePurchases(PluginCall call) {
-        if (!ensureReady(call)) return;
+        runWhenReady(call, () -> queryExistingPurchases(call));
+    }
 
+    private void queryExistingPurchases(PluginCall call) {
         billingClient.queryPurchasesAsync(
             QueryPurchasesParams.newBuilder()
                 .setProductType(BillingClient.ProductType.INAPP)
@@ -262,14 +314,5 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
                 call.resolve(ret);
             }
         );
-    }
-
-    private boolean ensureReady(PluginCall call) {
-        if (billingClient == null || !billingClient.isReady()) {
-            startBillingConnection(null);
-            call.reject("BillingClient reconnecting. Please retry.", "NOT_CONNECTED");
-            return false;
-        }
-        return true;
     }
 }

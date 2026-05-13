@@ -41,6 +41,12 @@ export interface PlayStoreProduct {
   priceCurrencyCode: string;
 }
 
+interface PlayStoreProductConfig {
+  productId: string;
+  priceUsd: number;
+  aliases: string[];
+}
+
 interface AdminPlayStoreProductRow {
   coins_amount: number | null;
   bonus_coins: number | null;
@@ -66,16 +72,34 @@ export interface PurchaseResult {
 // even before loadPlayStoreProducts() finishes its async DB fetch.
 // loadPlayStoreProducts() refreshes this map at app start.
 
-export const PLAY_STORE_PRODUCTS: Record<number, { productId: string; priceUsd: number }> = {
-  7000:   { productId: 'diamonds_7000',   priceUsd: 1.29 },
-  13200:  { productId: 'diamonds_13200',  priceUsd: 2.49 },
-  56000:  { productId: 'diamonds_56000',  priceUsd: 9.99 },
-  169000: { productId: 'diamonds_169000', priceUsd: 30.99 },
-  470000: { productId: 'diamonds_470000', priceUsd: 72.99 },
-  650000: { productId: 'diamonds_650000', priceUsd: 89.99 },
+const uniqueIds = (values: Array<string | null | undefined>): string[] =>
+  Array.from(new Set(values.map((v) => String(v || '').trim()).filter(Boolean)));
+
+const makeProductConfig = (baseCoins: number, bonusCoins: number, productId: string, priceUsd: number): PlayStoreProductConfig => {
+  const totalCoins = baseCoins + bonusCoins;
+  return {
+    productId,
+    priceUsd,
+    aliases: uniqueIds([
+      productId,
+      `diamonds_${baseCoins}`,
+      `coins_${baseCoins}`,
+      `diamonds_${totalCoins}`,
+      `coins_${totalCoins}`,
+    ]),
+  };
 };
 
-export let ALL_PRODUCT_IDS: string[] = Object.values(PLAY_STORE_PRODUCTS).map(p => p.productId);
+export const PLAY_STORE_PRODUCTS: Record<number, PlayStoreProductConfig> = {
+  7000:   makeProductConfig(7000, 3500, 'diamonds_7000', 1.29),
+  13200:  makeProductConfig(13200, 1320, 'diamonds_13200', 2.49),
+  56000:  makeProductConfig(56000, 42000, 'diamonds_56000', 9.99),
+  169000: makeProductConfig(169000, 42250, 'diamonds_169000', 30.99),
+  470000: makeProductConfig(470000, 352500, 'diamonds_470000', 72.99),
+  650000: makeProductConfig(650000, 487500, 'diamonds_650000', 89.99),
+};
+
+export let ALL_PRODUCT_IDS: string[] = uniqueIds(Object.values(PLAY_STORE_PRODUCTS).flatMap(p => p.aliases));
 
 /**
  * Refresh PLAY_STORE_PRODUCTS from the `coin_packages` DB table so
@@ -91,7 +115,7 @@ export async function loadPlayStoreProducts(): Promise<void> {
       .eq('is_active', true);
     if (error || !data?.length) return;
 
-    const next: Record<number, { productId: string; priceUsd: number }> = {};
+    const next: Record<number, PlayStoreProductConfig> = {};
     for (const row of data as AdminPlayStoreProductRow[]) {
       const baseCoins = Number(row.coins_amount || 0);
       const bonusCoins = Number(row.bonus_coins || 0);
@@ -99,10 +123,7 @@ export async function loadPlayStoreProducts(): Promise<void> {
       const productId = String(row.product_id || '').trim();
       if (!baseCoins || !productId || row.price_usd == null) continue;
 
-      const product = {
-        productId,
-        priceUsd: Number(row.price_usd),
-      };
+      const product = makeProductConfig(baseCoins, bonusCoins, productId, Number(row.price_usd));
 
       // Support both old UI lookups by base diamonds and new UI lookups by
       // total delivered diamonds (base + bonus) without breaking admin edits.
@@ -116,7 +137,7 @@ export async function loadPlayStoreProducts(): Promise<void> {
       delete PLAY_STORE_PRODUCTS[Number(k)];
     }
     Object.assign(PLAY_STORE_PRODUCTS, next);
-    ALL_PRODUCT_IDS = Object.values(PLAY_STORE_PRODUCTS).map((p) => p.productId);
+    ALL_PRODUCT_IDS = uniqueIds(Object.values(PLAY_STORE_PRODUCTS).flatMap((p) => p.aliases));
     console.log('[PlayStoreBilling] Loaded', ALL_PRODUCT_IDS.length, 'packages from DB');
   } catch (e) {
     console.warn('[PlayStoreBilling] loadPlayStoreProducts failed (using fallback):', e);
@@ -132,6 +153,7 @@ class PlayStoreBillingSDK {
   private isInitialized: boolean = false;
   private lastError: string = '';
   private initPromise: Promise<boolean> | null = null;
+  private productDetailsCache: PlayStoreProduct[] = [];
 
   constructor() {
     this.isNative = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';
@@ -173,15 +195,55 @@ class PlayStoreBillingSDK {
     }
   }
 
+  private isReconnectError(error: any): boolean {
+    const text = `${error?.code || ''} ${error?.message || ''}`.toLowerCase();
+    return text.includes('not_connected') || text.includes('service_disconnected') || text.includes('reconnecting');
+  }
+
   async getProducts(productIds: string[]): Promise<PlayStoreProduct[]> {
     if (!this.isNative) return [];
     if (!this.isInitialized && !(await this.initialize())) return [];
     try {
       const result = await PlayStoreBillingBridge.getProducts({ productIds });
-      return result?.products || [];
-    } catch (error) {
+      const products = result?.products || [];
+      this.productDetailsCache = products;
+      return products;
+    } catch (error: any) {
+      if (this.isReconnectError(error)) {
+        this.isInitialized = false;
+        if (await this.initialize()) {
+          const retry = await PlayStoreBillingBridge.getProducts({ productIds });
+          const products = retry?.products || [];
+          this.productDetailsCache = products;
+          return products;
+        }
+      }
+      this.lastError = error?.message || 'Could not load Play Store products';
       console.error('[PlayStoreBilling] getProducts error:', error);
       return [];
+    }
+  }
+
+  private async resolveAvailableProductId(product: PlayStoreProductConfig): Promise<string | null> {
+    const candidates = uniqueIds([product.productId, ...product.aliases]);
+    const cached = this.productDetailsCache.find((p) => candidates.includes(p.productId));
+    if (cached) return cached.productId;
+
+    const products = await this.getProducts(candidates);
+    return products.find((p) => candidates.includes(p.productId))?.productId || null;
+  }
+
+  private async purchaseWithReconnect(productId: string, userId: string) {
+    try {
+      return await PlayStoreBillingBridge.purchase({ productId, userId });
+    } catch (error: any) {
+      if (this.isReconnectError(error)) {
+        this.isInitialized = false;
+        if (await this.initialize()) {
+          return await PlayStoreBillingBridge.purchase({ productId, userId });
+        }
+      }
+      throw error;
     }
   }
 
@@ -193,12 +255,18 @@ class PlayStoreBillingSDK {
       if (!this.isInitialized && !(await this.initialize())) {
         return { success: false, error: this.lastError || 'Google Play Billing is not ready' };
       }
-      console.log('[PlayStoreBilling] Starting purchase:', productId);
-      const result = await PlayStoreBillingBridge.purchase({ productId, userId });
+      const configuredProduct = Object.values(PLAY_STORE_PRODUCTS).find((p) => p.aliases.includes(productId) || p.productId === productId);
+      const availableProductId = configuredProduct ? await this.resolveAvailableProductId(configuredProduct) : productId;
+      if (!availableProductId) {
+        return { success: false, error: 'This package is not active in Google Play Console yet' };
+      }
+
+      console.log('[PlayStoreBilling] Starting purchase:', availableProductId);
+      const result = await this.purchaseWithReconnect(availableProductId, userId);
 
       if (result?.success && result?.purchaseToken) {
         const verifyResult = await this.verifyPurchase(
-          result.purchaseToken, productId, userId, result.orderId
+          result.purchaseToken, result.productId || availableProductId, userId, result.orderId
         );
         if (verifyResult.success) {
           return { success: true, orderId: result.orderId, purchaseToken: result.purchaseToken, productId };
@@ -269,7 +337,8 @@ class PlayStoreBillingSDK {
   }
 
   async restorePurchases(userId: string): Promise<PurchaseResult[]> {
-    if (!this.isNative || !this.isInitialized) return [];
+    if (!this.isNative) return [];
+    if (!this.isInitialized && !(await this.initialize())) return [];
     try {
       const result = await PlayStoreBillingBridge.restorePurchases();
       const purchases = result?.purchases || [];
@@ -303,7 +372,8 @@ class PlayStoreBillingSDK {
    * Call this after initialize() succeeds
    */
   async retryPendingPurchases(userId: string): Promise<number> {
-    if (!this.isNative || !this.isInitialized) return 0;
+    if (!this.isNative) return 0;
+    if (!this.isInitialized && !(await this.initialize())) return 0;
     try {
       console.log('[PlayStoreBilling] 🔍 Checking for pending/undelivered purchases...');
       const results = await this.restorePurchases(userId);
