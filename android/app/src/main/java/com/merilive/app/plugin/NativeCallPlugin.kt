@@ -68,15 +68,16 @@ class NativeCallPlugin : Plugin() {
                 put("action", action)
                 put("ts", System.currentTimeMillis())
             }
+            pending.offer(payload)
+            trim()
+
             val plugin = INSTANCE
             if (plugin != null) {
                 try {
-                    plugin.notifyListeners("call-action", JSObject.fromJSONObject(payload))
+                    plugin.notifyListeners("call-action", JSObject.fromJSONObject(payload), true)
                     return
                 } catch (_: Exception) {}
             }
-            // No live plugin yet (cold start). Buffer for first listener.
-            pending.offer(payload)
         }
 
         /** Cap the queue so we don't OOM if many calls fire while app is dead. */
@@ -104,7 +105,7 @@ class NativeCallPlugin : Plugin() {
         try {
             while (true) {
                 val next = pending.poll() ?: break
-                notifyListeners("call-action", JSObject.fromJSONObject(next))
+                notifyListeners("call-action", JSObject.fromJSONObject(next), true)
             }
         } catch (_: Exception) {}
     }
