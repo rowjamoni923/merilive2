@@ -48,44 +48,14 @@ export function dispatchAdminTableUpdate(detail: AdminTableUpdateEvent) {
 // look like it was auto-refreshing. Admin pages load once and use manual
 // refresh unless a table below is a real pending/security/notification event.
 export const GLOBALLY_MONITORED_TABLES = new Set<string>([
-  // Pending action tables (drive badge counts + toast alerts only)
-  'helper_upgrade_requests',
-  'helper_topup_requests',
-  'helper_applications',
-  'helper_message_replies',
-  'helper_admin_messages',
-  'helper_withdrawal_requests',
-  'helper_orders',
+  // Strict low-cost realtime allowlist: only tables still published server-side.
+  // Everything else loads initially and uses manual refresh to prevent cost spikes.
   'support_tickets',
   'support_messages',
   'agency_withdrawals',
   'agencies',
-  'host_conversion_requests',
-  'host_applications',
-  'payroll_requests',
-  'user_reports',
   'face_verification_submissions',
-  'chat_moderation_logs',
-  'live_bans',
-  'live_face_violations',
   'notifications',
-  'admin_notices',
-  'admin_notifications',
-
-  // Admin session/security changes only
-  'admin_logs',
-  'admin_users',
-  'admin_allowed_devices',
-  'admin_section_permissions',
-
-  // Pending finance/content approvals
-  'rating_reward_claims',
-  'leaderboard_reward_history',
-  'agency_earnings_transfers',
-  'coin_transfers',
-
-  // Moderation/security queues
-  'banned_devices',
 ]);
 
 // ============= HOOK =============
