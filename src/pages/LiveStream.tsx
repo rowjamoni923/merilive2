@@ -169,6 +169,7 @@ const LiveStream = () => {
   // REAL DeepAR native beauty integration
   const deepAR = useDeepARBeauty();
   const [showBeautyPanel, setShowBeautyPanel] = useState(false);
+  const [showStickerPanel, setShowStickerPanel] = useState(false);
   const [showLiveEndSummary, setShowLiveEndSummary] = useState(false);
   const [showCallConfirm, setShowCallConfirm] = useState(false);
   const [userCoins, setUserCoins] = useState(0);
