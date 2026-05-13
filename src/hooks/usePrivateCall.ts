@@ -563,23 +563,54 @@ export function usePrivateCall(userId: string | null) {
         hostEarned: 0,
       }));
 
-      // Reliable native call delivery in background (closed/background app)
+      // Reliable native call delivery in background (closed/background app).
+      // 3-attempt retry with exponential backoff (1s, 2.5s) — aborts as soon
+      // as the call is no longer ringing, and treats any non-2xx / network
+      // failure as retryable. The edge function itself runs an additional
+      // FCM retry loop + server-side realtime broadcast fallback, so the
+      // call has 3 independent delivery paths (FCM, server broadcast,
+      // client broadcast) each retried multiple times.
       void (async () => {
-        try {
-          await supabase.functions.invoke('call-deliver', {
-            body: {
-              callId: resolvedCallId,
-              calleeId: hostId,
-              callerId: userId,
-              callType: 'video',
-              callerName: userProfile?.display_name || 'User',
-              callerAvatar: userProfile?.avatar_url || '',
-            }
-          });
-          console.log('[Call] Reliable call delivery invoked for host');
-        } catch (pushError) {
-          console.warn('[Call] Failed to invoke reliable call delivery:', pushError);
+        const deliveryBody = {
+          callId: resolvedCallId,
+          calleeId: hostId,
+          callerId: userId,
+          callType: 'video',
+          callerName: userProfile?.display_name || 'User',
+          callerAvatar: userProfile?.avatar_url || '',
+        };
+        const backoffsMs = [0, 1000, 2500];
+        for (let i = 0; i < backoffsMs.length; i++) {
+          if (backoffsMs[i] > 0) {
+            await new Promise(r => setTimeout(r, backoffsMs[i]));
+          }
+          if (
+            callEndedRef.current ||
+            currentCallIdRef.current !== resolvedCallId ||
+            billingStartedRef.current
+          ) {
+            console.log('[Call] call-deliver retry aborted — call no longer ringing');
+            return;
+          }
+          try {
+            const { data, error } = await supabase.functions.invoke('call-deliver', {
+              body: deliveryBody,
+            });
+            if (error) throw error;
+            const fcmOk = !!(data && (data as any).fcmDelivered);
+            const broadcastOk = !!(data && (data as any).broadcastDelivered);
+            console.log(
+              `[Call] call-deliver attempt ${i + 1} → fcm=${fcmOk} broadcast=${broadcastOk}`,
+            );
+            if (fcmOk || broadcastOk) return;
+          } catch (pushError) {
+            console.warn(
+              `[Call] call-deliver attempt ${i + 1} failed, will retry:`,
+              pushError,
+            );
+          }
         }
+        console.warn('[Call] call-deliver exhausted retries without delivery');
       })();
 
       toast({
