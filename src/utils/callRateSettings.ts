@@ -39,7 +39,7 @@ const DEFAULT_CALL_RATE_SETTINGS: ParsedCallRateSettings = {
 };
 
 export const getEffectiveHostLevel = (hostLevel: number | null | undefined) =>
-  Math.max(hostLevel ?? 0, 1);
+  Math.max(hostLevel ?? 0, 0);
 
 export const parseCallRateSettings = (value: unknown): ParsedCallRateSettings => {
   const parsed = parseSettingValue<Record<string, unknown>>(value) ?? {};

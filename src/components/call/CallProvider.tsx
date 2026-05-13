@@ -4,6 +4,7 @@ import { usePrivateCall } from '@/hooks/usePrivateCall';
 import { IncomingCallModal } from './IncomingCallModal';
 import { CallEndedModal } from './CallEndedModal';
 import { supabase } from '@/integrations/supabase/client';
+import { isNativeCallAvailable, NativeCall, type NativeCallActionEvent } from '@/plugins/NativeCall';
 
 // 🚀 Lazy-load ActiveCallScreen to defer 172KB livekit-client bundle
 const ActiveCallScreen = lazy(() => import('./ActiveCallScreen').then(m => ({ default: m.ActiveCallScreen })));
@@ -226,6 +227,75 @@ export function CallProvider({ children }: CallProviderProps) {
       await declineCall(incomingCall.callId);
     }
   };
+
+  // Native lock-screen / heads-up notification actions are authoritative.
+  // Without this bridge, tapping Accept/Decline natively only opened the app and
+  // the DB call stayed ringing until timeout, which appeared as host call failure.
+  useEffect(() => {
+    if (!userId || !isNativeCallAvailable()) return;
+
+    let disposed = false;
+    const handled = new Set<string>();
+
+    const handleNativeAction = async (event: NativeCallActionEvent) => {
+      if (disposed || !event?.callId) return;
+      const key = `${event.callId}:${event.action}:${event.ts || 0}`;
+      if (handled.has(key)) return;
+      handled.add(key);
+
+      if (event.action === 'presented') {
+        try {
+          await supabase.rpc('mark_call_delivered', {
+            p_call_id: event.callId,
+            p_channel: 'native_presented',
+            p_device_info: { source: 'NativeCall', action: event.action, ts: event.ts },
+          });
+        } catch (_) {}
+        return;
+      }
+
+      if (event.action === 'accept') {
+        callEndedRef.current = false;
+        setShowCallEndedModal(false);
+        setCallEndedInfo(null);
+        setAcceptedCallInfo({
+          callId: event.callId,
+          callerId: event.callerId,
+          callerName: event.callerName || 'User',
+          callerAvatar: null,
+        });
+        setIsHost(true);
+        try {
+          await supabase.rpc('mark_call_delivered', {
+            p_call_id: event.callId,
+            p_channel: 'native_action',
+            p_device_info: { source: 'NativeCall', action: 'accept', ts: event.ts },
+          });
+        } catch (_) {}
+        await acceptCall(event.callId);
+        await NativeCall.acknowledgeAction({ callId: event.callId, action: event.action }).catch(() => undefined);
+        return;
+      }
+
+      if (event.action === 'decline' || event.action === 'timeout') {
+        await declineCall(event.callId);
+        await NativeCall.acknowledgeAction({ callId: event.callId, action: event.action }).catch(() => undefined);
+      }
+    };
+
+    let listener: { remove: () => Promise<void> } | null = null;
+    void NativeCall.addListener('call-action', handleNativeAction).then((h) => {
+      listener = h;
+    }).catch(() => undefined);
+    void NativeCall.getLastAction().then(({ actions }) => {
+      actions?.forEach((action) => void handleNativeAction(action));
+    }).catch(() => undefined);
+
+    return () => {
+      disposed = true;
+      void listener?.remove().catch(() => undefined);
+    };
+  }, [userId, acceptCall, declineCall]);
 
   const handleEndCall = async () => {
     if (callEndedRef.current) {
