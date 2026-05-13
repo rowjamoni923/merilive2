@@ -309,7 +309,8 @@ class PlayStoreBillingSDK {
   }
 
   async restorePurchases(userId: string): Promise<PurchaseResult[]> {
-    if (!this.isNative || !this.isInitialized) return [];
+    if (!this.isNative) return [];
+    if (!this.isInitialized && !(await this.initialize())) return [];
     try {
       const result = await PlayStoreBillingBridge.restorePurchases();
       const purchases = result?.purchases || [];
@@ -343,7 +344,8 @@ class PlayStoreBillingSDK {
    * Call this after initialize() succeeds
    */
   async retryPendingPurchases(userId: string): Promise<number> {
-    if (!this.isNative || !this.isInitialized) return 0;
+    if (!this.isNative) return 0;
+    if (!this.isInitialized && !(await this.initialize())) return 0;
     try {
       console.log('[PlayStoreBilling] 🔍 Checking for pending/undelivered purchases...');
       const results = await this.restorePurchases(userId);
