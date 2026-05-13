@@ -18,7 +18,17 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
     private PluginCall pendingCall;
     private boolean isConnecting = false;
     private final List<PluginCall> pendingInitializeCalls = new ArrayList<>();
-    private final List<Runnable> readyQueue = new ArrayList<>();
+    private final List<ReadyAction> readyQueue = new ArrayList<>();
+
+    private static class ReadyAction {
+        final PluginCall call;
+        final Runnable action;
+
+        ReadyAction(PluginCall call, Runnable action) {
+            this.call = call;
+            this.action = action;
+        }
+    }
 
     @Override
     public void load() {
@@ -104,18 +114,21 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
             return;
         }
 
-        readyQueue.add(action);
+        readyQueue.add(new ReadyAction(call, action));
         startBillingConnection(null);
     }
 
     private void runReadyQueue() {
-        for (Runnable action : new ArrayList<>(readyQueue)) {
-            action.run();
+        for (ReadyAction item : new ArrayList<>(readyQueue)) {
+            item.action.run();
         }
         readyQueue.clear();
     }
 
     private void rejectReadyQueue(String message, String code) {
+        for (ReadyAction item : new ArrayList<>(readyQueue)) {
+            item.call.reject(message, code);
+        }
         readyQueue.clear();
         if (pendingCall != null) {
             pendingCall.reject(message, code);
