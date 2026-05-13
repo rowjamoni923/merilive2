@@ -244,11 +244,13 @@ export function CallProvider({ children }: CallProviderProps) {
       handled.add(key);
 
       if (event.action === 'presented') {
-        await supabase.rpc('mark_call_delivered', {
-          p_call_id: event.callId,
-          p_channel: 'native_presented',
-          p_device_info: { source: 'NativeCall', action: event.action, ts: event.ts },
-        }).catch(() => undefined);
+        try {
+          await supabase.rpc('mark_call_delivered', {
+            p_call_id: event.callId,
+            p_channel: 'native_presented',
+            p_device_info: { source: 'NativeCall', action: event.action, ts: event.ts },
+          });
+        } catch (_) {}
         return;
       }
 
@@ -263,11 +265,13 @@ export function CallProvider({ children }: CallProviderProps) {
           callerAvatar: null,
         });
         setIsHost(true);
-        await supabase.rpc('mark_call_delivered', {
-          p_call_id: event.callId,
-          p_channel: 'native_action',
-          p_device_info: { source: 'NativeCall', action: 'accept', ts: event.ts },
-        }).catch(() => undefined);
+        try {
+          await supabase.rpc('mark_call_delivered', {
+            p_call_id: event.callId,
+            p_channel: 'native_action',
+            p_device_info: { source: 'NativeCall', action: 'accept', ts: event.ts },
+          });
+        } catch (_) {}
         await acceptCall(event.callId);
         await NativeCall.acknowledgeAction({ callId: event.callId, action: event.action }).catch(() => undefined);
         return;
