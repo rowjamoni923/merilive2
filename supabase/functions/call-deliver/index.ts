@@ -178,26 +178,6 @@ serve(async (req: Request): Promise<Response> => {
       });
     }
 
-    if (!serviceAccountJson) {
-      await admin.from("call_delivery_log").insert({
-        call_id: callId,
-        callee_id: calleeId,
-        attempt_number: 1,
-        channel: "fcm",
-        status: "skipped_no_fcm",
-        error_message: "FIREBASE_SERVICE_ACCOUNT_JSON missing",
-        device_info: { reason: "FIREBASE_SERVICE_ACCOUNT_JSON missing" },
-      });
-      return new Response(JSON.stringify({ ok: false, reason: "fcm_not_configured" }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const credentials = JSON.parse(serviceAccountJson) as ServiceAccountCredentials;
-    const accessToken = await getAccessToken(credentials);
-    const projectId = credentials.project_id;
-
     let lastResults: unknown[] = [];
     let anyFcmOk = false;
 
@@ -251,6 +231,35 @@ serve(async (req: Request): Promise<Response> => {
     };
     // Fire the first broadcast immediately, in parallel with FCM.
     const earlyBroadcast = broadcastOnce("immediate");
+
+    if (!serviceAccountJson) {
+      await admin.from("call_delivery_log").insert({
+        call_id: callId,
+        callee_id: calleeId,
+        attempt_number: 1,
+        channel: "fcm",
+        status: "skipped_no_fcm",
+        error_message: "FIREBASE_SERVICE_ACCOUNT_JSON missing",
+        device_info: { reason: "FIREBASE_SERVICE_ACCOUNT_JSON missing" },
+      });
+      const earlyOk = await earlyBroadcast;
+      const lateBroadcastOk = earlyOk ? false : await broadcastOnce("recovery_no_fcm");
+      return new Response(JSON.stringify({
+        ok: true,
+        reason: "fcm_not_configured",
+        attempts: 0,
+        fcmDelivered: false,
+        broadcastDelivered: earlyOk || lateBroadcastOk,
+        lastResults,
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const credentials = JSON.parse(serviceAccountJson) as ServiceAccountCredentials;
+    const accessToken = await getAccessToken(credentials);
+    const projectId = credentials.project_id;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       const { data: deviceTokens, error: tokErr } = await admin
