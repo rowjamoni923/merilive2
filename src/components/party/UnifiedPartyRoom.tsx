@@ -1548,7 +1548,7 @@ export function UnifiedPartyRoom({
           <motion.div 
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className="absolute left-2 right-2 z-50 bg-gradient-to-br from-slate-900/98 via-purple-900/95 to-slate-900/98 rounded-2xl border border-purple-500/30 overflow-hidden"
+            className="absolute left-2 right-2 z-50 live-game-dock overflow-hidden"
             style={{ 
               bottom: '55px',
               // Same size for Audio and Video rooms
