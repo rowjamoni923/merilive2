@@ -245,8 +245,9 @@
   <body>
     <div id="root"></div>
 
-    <!-- Boot fallback: shown only if React fails to mount within 15s
-         (e.g. JS chunk 404 on slow/old WebView, OOM, network down). -->
+    <!-- Boot fallback: shown only if React truly fails to mount.
+         Mobile WebView / preview module loading can be slow, so the watchdog
+         intentionally waits longer than a normal route transition. -->
     <template id="boot-fallback-template">
       <div style="position:fixed;inset:0;background:#0a0a0f;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;text-align:center;z-index:2147483647">
         <div style="font-size:48px;margin-bottom:12px">🔄</div>
@@ -295,7 +296,11 @@
             } catch (_) {}
           } catch (_) {}
         }
-        window.__meriliveBootTimer = setTimeout(showFallback, 15000);
+        var ua = navigator.userAgent || '';
+        var isNativeShell = /MeriLive-(Android|iOS)-Native/i.test(ua) || !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+        var isSmallViewport = Math.min(window.innerWidth || 9999, window.innerHeight || 9999) <= 480;
+        var fallbackDelay = isNativeShell ? 60000 : (isSmallViewport ? 45000 : 30000);
+        window.__meriliveBootTimer = setTimeout(showFallback, fallbackDelay);
       })();
     </script>
 
