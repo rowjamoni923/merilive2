@@ -327,6 +327,7 @@ export function LiveTeenPattiGame({
     setIsDealing(true);
     sounds.playCardShuffle();
     sounds.playCardDeal();
+    playLiveEffect('deal');
     
     if (navigator.vibrate) navigator.vibrate(100);
 
@@ -374,6 +375,7 @@ export function LiveTeenPattiGame({
       setShowWinPopup(true);
       sounds.playWinSound();
       sounds.playCoinSound();
+      playLiveEffect('win');
       if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
       
       // IMPORTANT: Credit winnings to user's balance
@@ -399,12 +401,13 @@ export function LiveTeenPattiGame({
       setWinAmount(totalBetPlaced); // Show how much was lost
       setShowWinPopup(true);
       sounds.playLoseSound();
+      playLiveEffect('lose');
       setTimeout(() => setShowWinPopup(false), 2500);
     }
 
     onProcessResult(winningHand);
     setIsDealing(false);
-  }, [selectedHands, betAmounts, sounds, onProcessResult, isDealing, onGameWin, totalBetPlaced]);
+  }, [selectedHands, betAmounts, sounds, playLiveEffect, onProcessResult, isDealing, onGameWin, totalBetPlaced]);
   
   // Deal cards without user bet (just show result for spectators)
   const dealCardsWithoutBet = useCallback(async () => {
@@ -472,6 +475,7 @@ export function LiveTeenPattiGame({
     setTotalBetPlaced(prev => prev + currentBetAmount);
     
     sounds.playBetSound();
+    playLiveEffect('bet');
 
     // Fire API call in background - don't block UI
     onPlaceBet('teen_patti', hand)
