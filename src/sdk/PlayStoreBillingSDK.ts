@@ -154,6 +154,12 @@ class PlayStoreBillingSDK {
   private lastError: string = '';
   private initPromise: Promise<boolean> | null = null;
   private productDetailsCache: PlayStoreProduct[] = [];
+  private currentUserId: string | null = null;
+  private listenersAttached: boolean = false;
+  private listenerHandles: PluginListenerHandle[] = [];
+  private verifyingTokens: Set<string> = new Set();
+  private pendingPollTimer: ReturnType<typeof setInterval> | null = null;
+  private pendingPollDeadline: number = 0;
 
   constructor() {
     this.isNative = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';
@@ -187,6 +193,7 @@ class PlayStoreBillingSDK {
       const result = await PlayStoreBillingBridge.initialize();
       this.isInitialized = result?.success || false;
       if (!this.isInitialized) this.lastError = 'BillingClient returned false';
+      if (this.isInitialized) await this.attachNativeListeners();
       return this.isInitialized;
     } catch (error: any) {
       this.lastError = error?.message || 'Unknown initialize error';
@@ -194,6 +201,71 @@ class PlayStoreBillingSDK {
       return false;
     }
   }
+
+  /**
+   * Listen for purchaseCompleted / purchasePending events from the native
+   * plugin so purchases that finish while no `purchase()` call is pending
+   * (app reopen, foreground sweep, deferred PENDING approval) still get
+   * verified and credited automatically.
+   */
+  private async attachNativeListeners(): Promise<void> {
+    if (this.listenersAttached || !this.isNative) return;
+    this.listenersAttached = true;
+    try {
+      const completed = await (PlayStoreBillingBridge as any).addListener?.(
+        'purchaseCompleted',
+        async (evt: { productId: string; purchaseToken: string; orderId?: string }) => {
+          if (!evt?.purchaseToken || !this.currentUserId) return;
+          if (this.verifyingTokens.has(evt.purchaseToken)) return;
+          this.verifyingTokens.add(evt.purchaseToken);
+          console.log('[PlayStoreBilling] 🔔 Native purchaseCompleted →', evt.productId);
+          try {
+            await this.verifyPurchase(evt.purchaseToken, evt.productId, this.currentUserId, evt.orderId);
+          } finally {
+            this.verifyingTokens.delete(evt.purchaseToken);
+          }
+        }
+      );
+      const pending = await (PlayStoreBillingBridge as any).addListener?.(
+        'purchasePending',
+        (evt: { productId: string; purchaseToken: string }) => {
+          console.log('[PlayStoreBilling] 🕓 Native purchasePending →', evt.productId);
+          this.startPendingPolling();
+        }
+      );
+      if (completed) this.listenerHandles.push(completed);
+      if (pending) this.listenerHandles.push(pending);
+    } catch (e) {
+      console.warn('[PlayStoreBilling] attachNativeListeners failed:', e);
+    }
+  }
+
+  /**
+   * Poll restorePurchases for up to 10 minutes after a PENDING result so a
+   * purchase that finally clears in Google Play gets delivered without the
+   * user having to reopen anything.
+   */
+  private startPendingPolling(): void {
+    if (!this.isNative) return;
+    this.pendingPollDeadline = Date.now() + 10 * 60 * 1000;
+    if (this.pendingPollTimer) return;
+    console.log('[PlayStoreBilling] ⏳ Starting pending-purchase poll (10 min)');
+    this.pendingPollTimer = setInterval(async () => {
+      if (Date.now() > this.pendingPollDeadline || !this.currentUserId) {
+        if (this.pendingPollTimer) clearInterval(this.pendingPollTimer);
+        this.pendingPollTimer = null;
+        return;
+      }
+      try {
+        const recovered = await this.retryPendingPurchases(this.currentUserId);
+        if (recovered > 0) {
+          if (this.pendingPollTimer) clearInterval(this.pendingPollTimer);
+          this.pendingPollTimer = null;
+        }
+      } catch { /* keep polling */ }
+    }, 30_000);
+  }
+
 
   private isReconnectError(error: any): boolean {
     const text = `${error?.code || ''} ${error?.message || ''}`.toLowerCase();
