@@ -2957,7 +2957,7 @@ const Recharge = () => {
 
       {/* Payment Gateway Selection Modal */}
       <Dialog open={showGatewayModal} onOpenChange={setShowGatewayModal}>
-        <DialogContent className="max-w-md mx-4 rounded-3xl bg-gradient-to-b from-slate-900 to-slate-800 border-slate-700">
+        <DialogContent className="max-w-md mx-4 rounded-3xl max-h-[85dvh] overflow-y-auto overscroll-contain touch-pan-y bg-gradient-to-b from-slate-900 to-slate-800 border-slate-700" style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
           <DialogHeader>
             <DialogTitle className="text-center text-xl font-bold text-white flex items-center justify-center gap-2">
               <Wallet className="w-5 h-5 text-purple-400" />
