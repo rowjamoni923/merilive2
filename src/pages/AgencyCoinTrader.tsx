@@ -1028,6 +1028,44 @@ const AgencyCoinTrader = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {/* Helper Upgrade Required Dialog */}
+      <Dialog open={showHelperUpgradeDialog} onOpenChange={setShowHelperUpgradeDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-amber-500" />
+              Upgrade Required
+            </DialogTitle>
+            <DialogDescription>
+              Trader Wallet recharge is available only for verified Helpers.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="rounded-xl border border-amber-300/40 bg-gradient-to-br from-amber-50 to-orange-50 p-4 space-y-2">
+            <p className="text-sm font-semibold text-amber-800">
+              🚀 Become a Level 1 Helper
+            </p>
+            <p className="text-xs text-amber-700/80 leading-relaxed">
+              Your Trader Wallet is automatically created with your agency, but to use it for recharging users you must first take the Helper Section. Once your Level 1 Helper application is approved, the Trader Wallet will be fully unlocked.
+            </p>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowHelperUpgradeDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
+              onClick={() => {
+                setShowHelperUpgradeDialog(false);
+                navigate('/agency-dashboard?openHelper=1');
+              }}
+            >
+              Upgrade Now
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       </div>
     </div>
   );
