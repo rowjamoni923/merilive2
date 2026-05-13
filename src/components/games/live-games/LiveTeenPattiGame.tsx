@@ -5,6 +5,7 @@ import { Coins } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ShimmerEffect, ParticleField } from "../common/ShimmerEffect";
 import { useGameSoundManager } from "@/hooks/useGameSoundManager";
+import { useLiveGameEffects } from "@/hooks/useLiveGameEffects";
 import { WinPopup, formatBetDisplay } from "../common/WinPopup";
 import { processWin } from "@/services/gameBalanceService";
 
@@ -122,6 +123,7 @@ export function LiveTeenPattiGame({
 
   // Use centralized sound manager - only plays when this game is active
   const sounds = useGameSoundManager('teen-patti');
+  const liveEffects = useLiveGameEffects();
   const isMountedRef = useRef(true);
   const autoPlayTimerRef = useRef<NodeJS.Timeout | null>(null);
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -213,6 +215,7 @@ export function LiveTeenPattiGame({
   const runDeal = async () => {
     setIsDealing(true);
     sounds.playCardShuffle();
+    liveEffects.play('deal');
     
     if (navigator.vibrate) navigator.vibrate(100);
 
@@ -275,6 +278,7 @@ export function LiveTeenPattiGame({
       setShowWinPopup(true);
       sounds.playWinSound();
       sounds.playCoinSound();
+      liveEffects.play('win');
       if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
       
       // Credit winnings
@@ -302,6 +306,7 @@ export function LiveTeenPattiGame({
       setWinAmount(currentTotalBetPlaced);
       setShowWinPopup(true);
       sounds.playLoseSound();
+      liveEffects.play('lose');
       setTimeout(() => { if (isMountedRef.current) setShowWinPopup(false); }, 2500);
     }
 
