@@ -107,6 +107,7 @@ export const useAdminRealtime = (
   const isOnAdminRoute = isAdminRoute();
   const debounceMs = options.debounceMs ?? DEFAULT_DEBOUNCE_MS;
   const enableRealtimeRefresh = !isOnAdminRoute && (options.enableRealtimeRefresh ?? false);
+  const enableAdminDirectRealtime = isOnAdminRoute && options.enableRealtimeRefresh === true;
   const enableVisibilityRefresh = !isOnAdminRoute && (options.enableVisibilityRefresh ?? false);
   const enableStaleFallback = !isOnAdminRoute && (options.enableStaleFallback ?? false);
   const staleRefreshMs = options.staleRefreshMs ?? DEFAULT_STALE_REFRESH_MS;
@@ -194,7 +195,9 @@ export const useAdminRealtime = (
     //   2. Postgres pushes a real change to a tracked table.
     if (isOnAdminRoute) {
       const eventTables = trackedTables.filter((t) => GLOBALLY_MONITORED_TABLES.has(t));
-      const directTables = trackedTables.filter((t) => !GLOBALLY_MONITORED_TABLES.has(t));
+      const directTables = enableAdminDirectRealtime
+        ? trackedTables.filter((t) => !GLOBALLY_MONITORED_TABLES.has(t))
+        : [];
 
       const handleGlobalEvent = (e: Event) => {
         const detail = (e as CustomEvent<AdminTableUpdateEvent>).detail;
