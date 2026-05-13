@@ -234,6 +234,10 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
 
                 BillingResult launchResult = billingClient.launchBillingFlow(getActivity(), flowParams);
                 if (launchResult.getResponseCode() != BillingClient.BillingResponseCode.OK) {
+                    if (launchResult.getResponseCode() == BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED) {
+                        resolveExistingPurchaseForProduct(productId, call);
+                        return;
+                    }
                     call.reject("Purchase could not start: " + launchResult.getDebugMessage(), "BILLING_FLOW_FAILED");
                     pendingCall = null;
                 }
@@ -242,6 +246,33 @@ public class PlayStoreBillingPlugin extends Plugin implements PurchasesUpdatedLi
                 pendingCall = null;
             }
         });
+    }
+
+    private void resolveExistingPurchaseForProduct(String productId, PluginCall call) {
+        billingClient.queryPurchasesAsync(
+            QueryPurchasesParams.newBuilder()
+                .setProductType(BillingClient.ProductType.INAPP)
+                .build(),
+            (result, purchases) -> {
+                if (result.getResponseCode() == BillingClient.BillingResponseCode.OK && purchases != null) {
+                    for (Purchase purchase : purchases) {
+                        if (purchase.getProducts().contains(productId)
+                                && purchase.getPurchaseState() == Purchase.PurchaseState.PURCHASED) {
+                            JSObject ret = new JSObject();
+                            ret.put("success", true);
+                            ret.put("productId", productId);
+                            ret.put("purchaseToken", purchase.getPurchaseToken());
+                            ret.put("orderId", purchase.getOrderId());
+                            call.resolve(ret);
+                            pendingCall = null;
+                            return;
+                        }
+                    }
+                }
+                call.reject("You already own this item, but no deliverable purchase was found. Please reopen Recharge and try again.", "ITEM_ALREADY_OWNED");
+                pendingCall = null;
+            }
+        );
     }
 
     @Override

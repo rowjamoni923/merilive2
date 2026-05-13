@@ -8,7 +8,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version",
+    "authorization, x-client-info, apikey, content-type, x-client-platform, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 interface ServiceAccountCredentials {
@@ -181,11 +181,12 @@ serve(async (req: Request): Promise<Response> => {
     if (!serviceAccountJson) {
       await admin.from("call_delivery_log").insert({
         call_id: callId,
-        callee_user_id: calleeId,
-        attempt_no: 1,
+        callee_id: calleeId,
+        attempt_number: 1,
         channel: "fcm",
         status: "skipped_no_fcm",
-        detail: { reason: "FIREBASE_SERVICE_ACCOUNT_JSON missing" },
+        error_message: "FIREBASE_SERVICE_ACCOUNT_JSON missing",
+        device_info: { reason: "FIREBASE_SERVICE_ACCOUNT_JSON missing" },
       });
       return new Response(JSON.stringify({ ok: false, reason: "fcm_not_configured" }), {
         status: 200,
@@ -216,11 +217,12 @@ serve(async (req: Request): Promise<Response> => {
       if (!["ringing", "pending"].includes(fst)) {
         await admin.from("call_delivery_log").insert({
           call_id: callId,
-          callee_user_id: calleeId,
-          attempt_no: attempt,
+          callee_id: calleeId,
+          attempt_number: attempt,
           channel: "fcm",
           status: "aborted_call_ended",
-          detail: { remote_status: fresh?.status },
+          error_message: "Call ended before delivery",
+          device_info: { remote_status: fresh?.status },
         });
         break;
       }
@@ -228,11 +230,12 @@ serve(async (req: Request): Promise<Response> => {
       if (tokens.length === 0) {
         await admin.from("call_delivery_log").insert({
           call_id: callId,
-          callee_user_id: calleeId,
-          attempt_no: attempt,
+          callee_id: calleeId,
+          attempt_number: attempt,
           channel: "fcm",
           status: "no_tokens",
-          detail: {},
+          error_message: "No active device tokens",
+          device_info: {},
         });
         if (attempt < maxRetries) await sleep(gapMs * Math.pow(2, attempt - 1));
         continue;
@@ -305,11 +308,13 @@ serve(async (req: Request): Promise<Response> => {
 
       await admin.from("call_delivery_log").insert({
         call_id: callId,
-        callee_user_id: calleeId,
-        attempt_no: attempt,
+        callee_id: calleeId,
+        attempt_number: attempt,
         channel: "fcm",
         status: okCount > 0 ? "sent" : "failed",
-        detail: { tokens: tokens.length, success: okCount, results },
+        sent_at: okCount > 0 ? new Date().toISOString() : null,
+        error_message: okCount > 0 ? null : "FCM delivery failed",
+        device_info: { tokens: tokens.length, success: okCount, results },
       });
 
       if (okCount > 0) {

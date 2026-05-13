@@ -563,27 +563,22 @@ export function usePrivateCall(userId: string | null) {
         hostEarned: 0,
       }));
 
-      // Push notification in background (for closed/background app)
+      // Reliable native call delivery in background (closed/background app)
       void (async () => {
         try {
-          await supabase.functions.invoke('send-push-notification', {
+          await supabase.functions.invoke('call-deliver', {
             body: {
-              userId: hostId,
-              title: 'Incoming Call 📞',
-              body: `${userProfile?.display_name || 'Someone'} is calling you`,
-              type: 'incoming_call',
-              data: {
-                call_id: resolvedCallId,
-                caller_id: userId,
-                caller_name: userProfile?.display_name || 'User',
-                caller_avatar: userProfile?.avatar_url || '',
-                call_type: 'video',
-              }
+              callId: resolvedCallId,
+              calleeId: hostId,
+              callerId: userId,
+              callType: 'video',
+              callerName: userProfile?.display_name || 'User',
+              callerAvatar: userProfile?.avatar_url || '',
             }
           });
-          console.log('[Call] Push notification sent to host');
+          console.log('[Call] Reliable call delivery invoked for host');
         } catch (pushError) {
-          console.warn('[Call] Failed to send push notification:', pushError);
+          console.warn('[Call] Failed to invoke reliable call delivery:', pushError);
         }
       })();
 
