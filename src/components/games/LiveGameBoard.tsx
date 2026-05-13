@@ -31,6 +31,7 @@ import { useLiveGameRound } from "@/hooks/useLiveGameRound";
 import { sendGameWinNotification } from "@/services/gameWinNotificationService";
 import { stopAllGameSounds } from "@/hooks/useGameSoundManager";
 import { RouletteGame } from "@/features/games/roulette";
+import { LiveGame3DStage } from "./LiveGame3DStage";
 import { LiveFerrisWheelGame } from "./live-games/LiveFerrisWheelGame";
 import { LiveTeenPattiGame } from "./live-games/LiveTeenPattiGame";
 import { LiveLuckyNumberGame } from "./live-games/LiveLuckyNumberGame";
@@ -400,7 +401,7 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts }: Li
 
     switch (activeGame) {
       case 'roulette':
-        return <div className="min-h-[400px]"><RouletteGame embedded onWin={(amount) => handleGameWin(amount, currentGame?.game_name || 'Roulette', currentGame?.game_emoji || '🎰')} /></div>;
+        return <LiveRouletteGame {...gameProps} onUpdateCoins={(newBalance: number) => setUserCoins(newBalance)} onTimerUpdate={handleTimerUpdate} />;
       case 'ferris-wheel':
       case 'ferris_wheel':
         return <LiveFerrisWheelGame {...gameProps} onUpdateCoins={(newBalance: number) => setUserCoins(newBalance)} onTimerUpdate={handleTimerUpdate} />;
@@ -479,10 +480,17 @@ export function LiveGameBoard({ selectedGame, roomId, onClose, onOpenGifts }: Li
     currentGame.game_url?.startsWith('http');
 
   return (
-    <div className="w-full bg-gradient-to-br from-slate-900/95 via-purple-900/90 to-slate-900/95 backdrop-blur-xl rounded-xl border border-purple-500/30 overflow-hidden relative z-20 pointer-events-auto">
+    <div className="live-game-shell w-full rounded-xl overflow-hidden relative z-20 pointer-events-auto">
+      {!isCurrentGameExternal && (
+        <LiveGame3DStage
+          gameId={activeGame || currentGame?.game_id || 'ferris-wheel'}
+          phase={gamePhase}
+          intensity={gamePhase === 'betting' ? 'idle' : 'active'}
+        />
+      )}
       {/* Compact Header - HIDDEN for external/iframe games */}
       {!isCurrentGameExternal && (
-        <div className="flex items-center justify-between p-1.5 border-b border-white/10 bg-black/30">
+        <div className="live-game-header flex items-center justify-between p-1.5 border-b border-border/35">
           <div className="flex items-center gap-1">
             {currentGame && (
               <motion.div
