@@ -154,7 +154,7 @@ function RocketRaceModel({ active, win }: { active: boolean; win: boolean }) {
 function Scene({ gameId, phase, intensity }: Required<LiveGame3DStageProps>) {
   const active = phase !== "betting" || intensity === "active" || intensity === "win";
   const win = intensity === "win";
-  const normalized = gameId.replace("_", "-");
+  const normalized = (gameId || "ferris-wheel").replace("_", "-");
 
   return (
     <>
