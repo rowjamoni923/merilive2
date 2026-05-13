@@ -897,7 +897,7 @@ const Recharge = () => {
       console.log('[Recharge] Android detected, initializing PlayStoreBilling via registerPlugin...');
 
       // Refresh package map from DB before initializing — keeps Play Store
-      // product IDs/prices in sync with the admin-edited recharge_packages table.
+      // product IDs/prices in sync with the admin-edited coin_packages table.
       loadPlayStoreProducts().finally(() => {
       playStoreBilling.initialize().then(async (available) => {
         console.log('[Recharge] Play Store Billing initialize result:', available);
@@ -923,20 +923,11 @@ const Recharge = () => {
         } else {
           const errorMsg = playStoreBilling.getLastError();
           console.log('[Recharge] ⚠️ Play Store Billing init failed:', errorMsg);
-          toast({
-            title: "⚠️ Play Store Debug Info",
-            description: `Init failed: ${errorMsg}`,
-          });
         }
       }).catch(err => {
         console.error('[Recharge] ❌ Play Store Billing error:', err);
         recordClientError({ label: "Recharge.errorMsg", message: err instanceof Error ? err.message : String(err) });
         const errorMsg = err?.message || err?.toString() || 'Unknown error';
-        toast({
-          title: "❌ Play Store Error",
-          description: `Error: ${errorMsg}`,
-          variant: "destructive"
-        });
         setSelectedPaymentMethod('playstore');
       });
       }); // close loadPlayStoreProducts().finally
