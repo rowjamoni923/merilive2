@@ -2114,7 +2114,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
           {/* Menu Items - Compact */}
           {menuItems.length > 0 && (
-            <div className="bg-card/80 backdrop-blur-xl rounded-xl overflow-hidden shadow-elevated border border-white/10 mt-2">
+            <div className="profile-home-section rounded-xl overflow-hidden mt-2">
               {menuItems.map((item, index) => (
                 <button
                   key={index}
@@ -2127,13 +2127,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                       navigate(item.path);
                     }
                   }}
-                  className="w-full flex items-center justify-between p-2.5 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0"
+                  className="w-full flex items-center justify-between p-2.5 hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0"
                 >
                   <div className="flex items-center gap-2">
-                    <div className={`w-8 h-8 rounded-lg ${item.iconBg} flex items-center justify-center`}>
-                      <item.icon className={`w-4 h-4 ${item.iconColor}`} />
+                    <div className={cn("w-8 h-8 rounded-lg border flex items-center justify-center", getProfileIconTone(index))}>
+                      <item.icon className="w-4 h-4" />
                     </div>
-                    <span className={`font-medium text-sm text-white ${item.highlight ? '!text-purple-400' : ''}`}>{item.label}</span>
+                    <span className={`font-medium text-sm text-slate-900 ${item.highlight ? '!text-pink-600' : ''}`}>{item.label}</span>
                     {item.highlight && (
                       <span className="px-1 py-0.5 text-[8px] bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-full font-bold">NEW</span>
                     )}
@@ -2146,12 +2146,12 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                       </Badge>
                     )}
                     {item.rightText && (
-                      <span className="text-xs text-purple-400 font-medium">{item.rightText}</span>
+                      <span className="text-xs text-slate-500 font-medium">{item.rightText}</span>
                     )}
                     {item.hasNotification && (
                       <span className="w-1.5 h-1.5 bg-pink-500 rounded-full animate-pulse shadow-lg shadow-pink-500/50" />
                     )}
-                    <ChevronRight className="w-4 h-4 text-white/75" />
+                    <ChevronRight className="w-4 h-4 text-slate-400" />
                   </div>
                 </button>
               ))}
