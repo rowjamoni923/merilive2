@@ -1080,7 +1080,7 @@ const HelperDashboard = () => {
               className="font-black text-[18px] tracking-tight bg-clip-text text-transparent leading-none"
               style={{
                 backgroundImage:
-                  "linear-gradient(180deg, #fff7d6 0%, #fde68a 35%, #f59e0b 75%, #b45309 100%)",
+                  "linear-gradient(180deg, #92400e 0%, #b45309 35%, #d97706 75%, #92400e 100%)",
                 filter: "drop-shadow(0 1px 2px rgba(245,158,11,0.35))",
               }}
             >
@@ -1129,14 +1129,14 @@ const HelperDashboard = () => {
 
             <div className="relative flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-amber-300/70 text-[10px] font-bold uppercase tracking-[0.22em]">
+                <p className="text-amber-800/85 text-[10px] font-bold uppercase tracking-[0.22em]">
                   Trader Wallet
                 </p>
                 <p
                   className="mt-1 text-[28px] font-black leading-none tabular-nums bg-clip-text text-transparent"
                   style={{
                     backgroundImage:
-                      "linear-gradient(180deg, #fff7d6 0%, #fde68a 40%, #f59e0b 100%)",
+                      "linear-gradient(180deg, #b45309 0%, #d97706 50%, #92400e 100%)",
                     filter: "drop-shadow(0 2px 6px rgba(245,158,11,0.35))",
                   }}
                 >
@@ -1158,7 +1158,7 @@ const HelperDashboard = () => {
                     </span>
                   </p>
                 )}
-                <p className="text-emerald-300/80 text-[11px] mt-2 flex items-center gap-1.5 font-medium">
+                <p className="text-emerald-700 text-[11px] mt-2 flex items-center gap-1.5 font-medium">
                   <Send className="w-3 h-3" />
                   Tap to transfer to User or Agency
                 </p>
@@ -1189,7 +1189,7 @@ const HelperDashboard = () => {
                 <div
                   className="relative h-2.5 rounded-full overflow-hidden"
                   style={{
-                    background: "rgba(255,255,255,0.06)",
+                    background: "rgba(146,64,14,0.10)",
                     boxShadow:
                       "inset 0 1px 2px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(251,191,36,0.12)",
                   }}
@@ -1217,7 +1217,7 @@ const HelperDashboard = () => {
                       background:
                         "linear-gradient(180deg, rgba(251,191,36,0.25), rgba(180,83,9,0.10))",
                       border: "1px solid rgba(251,191,36,0.35)",
-                      color: "#fde68a",
+                      color: "#92400e",
                     }}
                   >
                     {levelProgress.toFixed(0)}%
@@ -1237,7 +1237,7 @@ const HelperDashboard = () => {
                     boxShadow: "inset 0 1px 0 rgba(255,255,255,0.10)",
                   }}
                 >
-                  <Gem className="w-4 h-4 text-amber-300" />
+                  <Gem className="w-4 h-4 text-amber-700" />
                   <span className="text-amber-900 text-xs font-bold tracking-wide uppercase">
                     Maximum Level Achieved
                   </span>
@@ -1256,7 +1256,7 @@ const HelperDashboard = () => {
             className="w-full mt-2.5 py-2 rounded-xl text-amber-700/80 text-[11px] font-semibold tracking-wide flex items-center justify-center gap-2 transition-all hover:text-amber-900"
             style={{
               background:
-                "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))",
+                "linear-gradient(180deg, rgba(251,191,36,0.18), rgba(251,191,36,0.06))",
               border: "1px solid rgba(251,191,36,0.18)",
               boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)",
             }}
@@ -1960,7 +1960,7 @@ const HelperDashboard = () => {
                         <Clock className="w-4 h-4 text-amber-400" />
                         <span className="text-amber-400 text-xs">Upgrade request pending...</span>
                       </div>
-                      <Badge className="bg-amber-500/30 text-amber-300 text-[10px]">Pending</Badge>
+                      <Badge className="bg-amber-500/30 text-amber-700 text-[10px]">Pending</Badge>
                     </div>
                   )}
                   
@@ -1998,7 +1998,7 @@ const HelperDashboard = () => {
                             <Clock className="w-4 h-4 text-amber-400" />
                             <span className="text-amber-400 text-xs">Payroll application pending...</span>
                           </div>
-                          <Badge className="bg-amber-500/30 text-amber-300 text-[10px]">Pending</Badge>
+                          <Badge className="bg-amber-500/30 text-amber-700 text-[10px]">Pending</Badge>
                         </div>
                       )}
                       
