@@ -60,51 +60,15 @@ const languages = [
   { code: "tl", name: "Filipino", flag: "🇵🇭" },
 ];
 
-// Default pose thresholds — these are now BASE values that get adapted at
-// runtime by `calibrateThresholds()` based on the user's natural head pose
-// + camera noise floor (different phones, front-cam angles, and how the user
-// holds the device produce very different baselines). The auto-calibration
-// runs for ~2s at the start of every verification and is then cached per
-// device in localStorage so subsequent attempts skip the wait.
-const POSE_BASE = {
-  CENTER_YAW: 22,
-  CENTER_PITCH: 22,
-  TURN_YAW: 14,
-  TILT_PITCH: 10,
-  // How long the user must HOLD a pose before it counts (seconds). Adapted
-  // by step difficulty + camera noise.
-  HOLD_SEC: 0.6,
-  // Per-step time window (seconds) before we widen tolerance.
-  STEP_WINDOW: 8,
-};
-
-export type PoseCalibration = {
-  baselineYaw: number;     // user's natural yaw at rest (camera mounting offset)
-  baselinePitch: number;   // user's natural pitch at rest (phone held below face)
-  noiseYaw: number;        // std-dev of yaw samples — proxy for camera shake
-  noisePitch: number;      // std-dev of pitch samples
-  centerYaw: number;       // adapted thresholds
-  centerPitch: number;
-  turnYaw: number;
-  tiltPitch: number;
-  holdSec: number;
-  stepWindowSec: number;
-  capturedAt: number;
-};
-
-const DEFAULT_CALIB: PoseCalibration = {
-  baselineYaw: 0,
-  baselinePitch: 0,
-  noiseYaw: 0,
-  noisePitch: 0,
-  centerYaw: POSE_BASE.CENTER_YAW,
-  centerPitch: POSE_BASE.CENTER_PITCH,
-  turnYaw: POSE_BASE.TURN_YAW,
-  tiltPitch: POSE_BASE.TILT_PITCH,
-  holdSec: POSE_BASE.HOLD_SEC,
-  stepWindowSec: POSE_BASE.STEP_WINDOW,
-  capturedAt: 0,
-};
+// Pure pose / threshold logic lives in `@/lib/face-pose` so the regression
+// test runner + dev replay tool can exercise the exact same functions.
+import {
+  POSE_BASE,
+  DEFAULT_CALIB,
+  calibrateThresholds,
+  evaluatePose,
+  type PoseCalibration,
+} from "@/lib/face-pose";
 
 const CALIB_STORAGE_KEY = 'face_verify_pose_calibration_v1';
 
@@ -113,8 +77,6 @@ function loadCachedCalibration(): PoseCalibration | null {
     const raw = localStorage.getItem(CALIB_STORAGE_KEY);
     if (!raw) return null;
     const c = JSON.parse(raw) as PoseCalibration;
-    // Expire after 30 days OR if user is on a different device shape (we
-    // can't easily detect that, so the 30-day window forces a fresh sample).
     if (Date.now() - c.capturedAt > 30 * 24 * 60 * 60 * 1000) return null;
     return c;
   } catch { return null; }
@@ -124,60 +86,6 @@ function saveCalibration(c: PoseCalibration) {
   try { localStorage.setItem(CALIB_STORAGE_KEY, JSON.stringify(c)); } catch { /* ignore */ }
 }
 
-/**
- * Compute calibrated thresholds + window time from raw pose samples taken
- * during the calibration phase. Wider thresholds when the camera is noisy,
- * baseline-shifted so a user whose neutral pose has a +12° pitch (phone on
- * lap) doesn't have to crane their neck just to count as "centered".
- */
-function calibrateThresholds(samples: { yaw: number; pitch: number }[]): PoseCalibration {
-  if (samples.length < 4) return { ...DEFAULT_CALIB, capturedAt: Date.now() };
-  const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
-  const std  = (xs: number[], m: number) => Math.sqrt(mean(xs.map(v => (v - m) ** 2)));
-  const yaws = samples.map(s => s.yaw);
-  const pitches = samples.map(s => s.pitch);
-  const baselineYaw = mean(yaws);
-  const baselinePitch = mean(pitches);
-  const noiseYaw = std(yaws, baselineYaw);
-  const noisePitch = std(pitches, baselinePitch);
-  // Pad thresholds by 2× noise floor so jitter alone doesn't trip pass/fail.
-  const padY = Math.min(10, Math.max(2, noiseYaw * 2));
-  const padP = Math.min(10, Math.max(2, noisePitch * 2));
-  // Noisy stream → user needs more time to hold steady, longer window.
-  const noisy = (noiseYaw + noisePitch) > 6;
-  return {
-    baselineYaw,
-    baselinePitch,
-    noiseYaw,
-    noisePitch,
-    centerYaw:  POSE_BASE.CENTER_YAW  + padY * 0.5,
-    centerPitch: POSE_BASE.CENTER_PITCH + padP * 0.5,
-    turnYaw:    POSE_BASE.TURN_YAW    + padY * 0.7,
-    tiltPitch:  POSE_BASE.TILT_PITCH  + padP * 0.7,
-    holdSec:    noisy ? 1.0 : POSE_BASE.HOLD_SEC,
-    stepWindowSec: noisy ? 12 : POSE_BASE.STEP_WINDOW,
-    capturedAt: Date.now(),
-  };
-}
-
-/** Pure pose evaluator that uses the live calibration. Returns whether the
- *  current pose satisfies the given step. */
-function evaluatePose(
-  stepId: string,
-  pose: { yaw: number; pitch: number },
-  c: PoseCalibration,
-): boolean {
-  const dy = pose.yaw - c.baselineYaw;
-  const dp = pose.pitch - c.baselinePitch;
-  switch (stepId) {
-    case 'center': return Math.abs(dy) < c.centerYaw && Math.abs(dp) < c.centerPitch;
-    case 'left':   return dy >  c.turnYaw;
-    case 'right':  return dy < -c.turnYaw;
-    case 'up':     return dp < -c.tiltPitch;
-    case 'down':   return dp >  c.tiltPitch;
-    default:       return false;
-  }
-}
 
 // Single English-only instruction set (per global English policy).
 // `checkPose` is preserved for any external callers but the live loop uses
