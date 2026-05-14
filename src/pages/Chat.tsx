@@ -2940,9 +2940,9 @@ const Chat = () => {
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col overflow-hidden" style={{ background: 'linear-gradient(180deg, #0d0618 0%, #0a0a14 30%, #0d0618 100%)' }}>
+    <div className="fixed inset-0 flex flex-col overflow-hidden profile-home-shell">
       {/* Header - Ultra Premium */}
-      <header className="flex-shrink-0 z-40 safe-area-top" style={{ background: 'linear-gradient(135deg, rgba(20,8,50,0.98) 0%, rgba(15,5,35,0.98) 100%)', borderBottom: '1px solid rgba(168,85,247,0.12)', boxShadow: '0 4px 30px rgba(0,0,0,0.5)' }}>
+      <header className="flex-shrink-0 z-40 safe-area-top profile-home-card" style={{ borderRadius: 0, borderLeft: 'none', borderRight: 'none', borderTop: 'none' }}>
         <div className="px-4 py-3 flex items-center justify-between">
           <h1 className="text-xl font-bold bg-gradient-to-r from-fuchsia-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">Messages</h1>
           <div className="flex items-center gap-2">
