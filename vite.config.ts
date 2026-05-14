@@ -10,7 +10,7 @@ import { componentTagger } from "lovable-tagger";
 const darkTokenScanner = () => ({
   name: "dark-token-scanner",
   apply: "build" as const,
-  buildStart() {
+  buildStart(this: { error: (msg: string) => never }) {
     const result = spawnSync(
       process.execPath,
       [path.resolve(__dirname, "scripts/scan-dark-tokens.mjs")],
