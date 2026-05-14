@@ -278,16 +278,16 @@ export const ProfileReelsSection = ({ userId, isOwnProfile }: ProfileReelsSectio
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteReelId} onOpenChange={() => setDeleteReelId(null)}>
-        <AlertDialogContent className="bg-slate-900 border-white/10">
+        <AlertDialogContent className="bg-white border border-slate-200">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Delete this reel?</AlertDialogTitle>
-            <AlertDialogDescription className="text-white/60">
+            <AlertDialogTitle className="text-slate-900">Delete this reel?</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-600">
               This reel will be permanently deleted and cannot be recovered. Are you sure?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel 
-              className="bg-slate-800 border-white/10 text-white hover:bg-slate-700"
+              className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-100"
               disabled={deleting}
             >
               Cancel
