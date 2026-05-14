@@ -802,7 +802,7 @@ const ProfileDetail = () => {
           </motion.div>
         </AnimatePresence>
         {/* Premium gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/10 to-[#f7f8fa]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/10 to-[#f7f8fa]" /> {/* dark-ok: intentional photo→footer overlay, no text inside */}
         {/* Subtle vignette */}
         <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at center, transparent 50%, rgba(15,23,42,0.22) 100%)' }} />
 
