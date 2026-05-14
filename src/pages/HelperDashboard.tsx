@@ -1037,112 +1037,272 @@ const HelperDashboard = () => {
   }
 
   return (
-    <div 
-      className="fixed inset-0 bg-gradient-to-b from-slate-900 to-slate-800 flex flex-col"
+    <div
+      className="fixed inset-0 flex flex-col"
+      style={{
+        background:
+          "radial-gradient(120% 80% at 50% 0%, #1a1330 0%, #0c0820 45%, #06030f 100%)",
+      }}
     >
-      {/* Fixed Header */}
-      <div className="flex-shrink-0 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 p-4 safe-area-top">
-        <div className="flex items-center gap-3 mb-3">
-          <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => navigate(-1)}>
+      {/* ============ LUXURIOUS HEADER ============ */}
+      <div
+        className="relative flex-shrink-0 px-4 pt-4 pb-5 safe-area-top overflow-hidden"
+        style={{
+          background:
+            "linear-gradient(180deg, #1a1230 0%, #110a26 60%, #0a0618 100%)",
+          borderBottom: "1px solid rgba(251,191,36,0.18)",
+          boxShadow:
+            "0 18px 40px -20px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.06)",
+        }}
+      >
+        {/* ambient blooms */}
+        <div className="pointer-events-none absolute -top-24 -left-12 w-64 h-64 bg-amber-500/15 rounded-full blur-[70px]" />
+        <div className="pointer-events-none absolute -top-24 -right-12 w-64 h-64 bg-fuchsia-600/12 rounded-full blur-[70px]" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/[0.06] to-transparent" />
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-px"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent, rgba(251,191,36,0.55), transparent)",
+          }}
+        />
+
+        {/* Top bar */}
+        <div className="relative flex items-center gap-3 mb-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-amber-100 hover:bg-white/10 rounded-full"
+            onClick={() => navigate(-1)}
+          >
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <div className="flex-1">
-            <h1 className="font-bold text-lg text-white">Trader Dashboard</h1>
-            <p className="text-white/80 text-xs">Level Upgrade & Manual Top-up</p>
+          <div className="flex-1 min-w-0">
+            <h1
+              className="font-black text-[18px] tracking-tight bg-clip-text text-transparent leading-none"
+              style={{
+                backgroundImage:
+                  "linear-gradient(180deg, #fff7d6 0%, #fde68a 35%, #f59e0b 75%, #b45309 100%)",
+                filter: "drop-shadow(0 1px 2px rgba(245,158,11,0.35))",
+              }}
+            >
+              Trader Dashboard
+            </h1>
+            <p className="text-amber-200/55 text-[10px] tracking-[0.2em] uppercase mt-1">
+              Level Upgrade · Manual Top-up
+            </p>
           </div>
-          {/* Level Badge */}
-          <div className={cn(
-            "flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r shadow-lg",
-            levelBadge.color
-          )}>
-            <LevelIcon className="w-4 h-4 text-white" />
-            <span className="text-white text-xs font-bold">Lv.{helperData?.trader_level || 1}</span>
+          <div
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
+            style={{
+              background:
+                "linear-gradient(180deg, #fde68a 0%, #f59e0b 50%, #92400e 100%)",
+              boxShadow:
+                "0 8px 20px -8px rgba(245,158,11,0.6), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 0 rgba(120,53,15,0.5)",
+            }}
+          >
+            <LevelIcon className="w-4 h-4 text-amber-950" />
+            <span className="text-amber-950 text-xs font-black tabular-nums">
+              Lv.{helperData?.trader_level || 1}
+            </span>
           </div>
         </div>
 
-        {/* Wallet Card */}
-        <div 
-          className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 cursor-pointer hover:bg-white/25 transition-all"
+        {/* ============ PREMIUM WALLET CARD ============ */}
+        <div
+          className="relative cursor-pointer rounded-[22px] p-[1.5px] transition-transform active:scale-[0.99]"
+          style={{
+            background:
+              "conic-gradient(from 140deg at 50% 50%, #fde68a 0deg, #b45309 70deg, #fbbf24 130deg, #92400e 200deg, #fde68a 260deg, #d97706 320deg, #fde68a 360deg)",
+            boxShadow:
+              "0 22px 48px -18px rgba(0,0,0,0.75), 0 0 60px rgba(245,158,11,0.18)",
+          }}
           onClick={() => setShowTransferModal(true)}
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-white/80 text-xs">Trader Wallet</p>
-              <p className="text-2xl font-bold text-white">
-                {((helperData?.wallet_balance || 0) + (agencyDiamondBalance || 0)).toLocaleString()} 💎
-              </p>
-              {agencyDiamondBalance > 0 && (
-                <p className="text-white/60 text-[10px] mt-0.5">
-                  Helper {(helperData?.wallet_balance || 0).toLocaleString()} + Agency {agencyDiamondBalance.toLocaleString()}
+          <div
+            className="relative rounded-[20px] p-4 overflow-hidden"
+            style={{
+              background:
+                "radial-gradient(140% 100% at 0% 0%, #1c1438 0%, #0e0824 55%, #07041a 100%)",
+            }}
+          >
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-white/[0.10] to-transparent" />
+            <div className="pointer-events-none absolute -bottom-12 -right-12 w-44 h-44 rounded-full bg-amber-500/15 blur-3xl" />
+
+            <div className="relative flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-amber-300/70 text-[10px] font-bold uppercase tracking-[0.22em]">
+                  Trader Wallet
                 </p>
-              )}
-              <p className="text-emerald-200 text-xs mt-1 flex items-center gap-1">
-                <Send className="w-3 h-3" />
-                Tap to transfer to User or Agency
-              </p>
-            </div>
-            <div className="bg-white/20 rounded-xl p-3">
-              <Wallet className="w-7 h-7 text-white" />
-            </div>
-          </div>
-          
-          {/* Level Progress with Animation */}
-          {nextLevel && (
-            <div className="mt-3">
-              <div className="flex justify-between text-xs text-white/70 mb-1">
-                <span>Level {helperData?.trader_level || 1}</span>
-                <span>Level {nextLevel.level_number}</span>
-              </div>
-              <div className="relative h-2.5 bg-white/20 rounded-full overflow-hidden">
-                <div 
-                  className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 rounded-full transition-all duration-1000 ease-out"
-                  style={{ width: `${levelProgress}%` }}
+                <p
+                  className="mt-1 text-[28px] font-black leading-none tabular-nums bg-clip-text text-transparent"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(180deg, #fff7d6 0%, #fde68a 40%, #f59e0b 100%)",
+                    filter: "drop-shadow(0 2px 6px rgba(245,158,11,0.35))",
+                  }}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse" />
+                  {(
+                    (helperData?.wallet_balance || 0) +
+                    (agencyDiamondBalance || 0)
+                  ).toLocaleString()}{" "}
+                  <span className="text-[20px]">💎</span>
+                </p>
+                {agencyDiamondBalance > 0 && (
+                  <p className="text-white/45 text-[10px] mt-1.5 leading-tight">
+                    Helper{" "}
+                    <span className="text-amber-200/80 font-semibold tabular-nums">
+                      {(helperData?.wallet_balance || 0).toLocaleString()}
+                    </span>{" "}
+                    + Agency{" "}
+                    <span className="text-amber-200/80 font-semibold tabular-nums">
+                      {agencyDiamondBalance.toLocaleString()}
+                    </span>
+                  </p>
+                )}
+                <p className="text-emerald-300/80 text-[11px] mt-2 flex items-center gap-1.5 font-medium">
+                  <Send className="w-3 h-3" />
+                  Tap to transfer to User or Agency
+                </p>
+              </div>
+              <div
+                className="shrink-0 grid place-items-center w-14 h-14 rounded-2xl"
+                style={{
+                  background:
+                    "linear-gradient(180deg, #fde68a 0%, #f59e0b 50%, #92400e 100%)",
+                  boxShadow:
+                    "0 10px 22px -8px rgba(245,158,11,0.6), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -2px 0 rgba(120,53,15,0.55)",
+                }}
+              >
+                <Wallet className="w-7 h-7 text-amber-950" />
+              </div>
+            </div>
+
+            {nextLevel && (
+              <div className="relative mt-4">
+                <div className="flex justify-between text-[10px] mb-1.5 font-bold tracking-wider uppercase">
+                  <span className="text-amber-200/85">
+                    Lv.{helperData?.trader_level || 1}
+                  </span>
+                  <span className="text-amber-200/55">
+                    Lv.{nextLevel.level_number}
+                  </span>
+                </div>
+                <div
+                  className="relative h-2.5 rounded-full overflow-hidden"
+                  style={{
+                    background: "rgba(255,255,255,0.06)",
+                    boxShadow:
+                      "inset 0 1px 2px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(251,191,36,0.12)",
+                  }}
+                >
+                  <div
+                    className="absolute inset-y-0 left-0 rounded-full transition-[width] duration-1000 ease-out"
+                    style={{
+                      width: `${levelProgress}%`,
+                      background:
+                        "linear-gradient(90deg, #fde68a 0%, #f59e0b 50%, #b45309 100%)",
+                      boxShadow:
+                        "0 0 14px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.45)",
+                    }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-pulse" />
+                  </div>
+                </div>
+                <div className="flex justify-between items-center mt-1.5">
+                  <p className="text-[10px] text-white/55 tabular-nums font-medium">
+                    ${currentCost.toFixed(0)} / ${nextLevelCost.toFixed(0)}
+                  </p>
+                  <Badge
+                    className="text-[9px] border-0 font-black tabular-nums px-2 py-0.5"
+                    style={{
+                      background:
+                        "linear-gradient(180deg, rgba(251,191,36,0.25), rgba(180,83,9,0.10))",
+                      border: "1px solid rgba(251,191,36,0.35)",
+                      color: "#fde68a",
+                    }}
+                  >
+                    {levelProgress.toFixed(0)}%
+                  </Badge>
                 </div>
               </div>
-              <div className="flex justify-between items-center mt-1">
-                <p className="text-[10px] text-white/60">
-                  ${currentCost.toFixed(0)} / ${nextLevelCost.toFixed(0)}
-                </p>
-                <Badge className="text-[9px] bg-white/20 text-white border-0">
-                  {levelProgress.toFixed(0)}%
-                </Badge>
+            )}
+
+            {!nextLevel && helperData?.trader_level === 5 && (
+              <div className="relative mt-4">
+                <div
+                  className="flex items-center justify-center gap-2 py-2 rounded-xl"
+                  style={{
+                    background:
+                      "linear-gradient(180deg, rgba(251,191,36,0.18), rgba(180,83,9,0.08))",
+                    border: "1px solid rgba(251,191,36,0.35)",
+                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.10)",
+                  }}
+                >
+                  <Gem className="w-4 h-4 text-amber-300" />
+                  <span className="text-amber-100 text-xs font-bold tracking-wide uppercase">
+                    Maximum Level Achieved
+                  </span>
+                </div>
               </div>
-            </div>
-          )}
-          
-          {/* Max Level Indicator */}
-          {!nextLevel && helperData?.trader_level === 5 && (
-            <div className="mt-3">
-              <div className="flex items-center justify-center gap-2 py-2 bg-gradient-to-r from-cyan-500/30 to-blue-500/30 rounded-lg">
-                <Gem className="w-4 h-4 text-cyan-300" />
-                <span className="text-white text-xs font-semibold">Maximum Level Achieved!</span>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
-        {/* Transfer History Button */}
         {transferHistory.length > 0 && (
           <button
-            onClick={(e) => { e.stopPropagation(); setShowTransferHistory(true); }}
-            className="w-full mt-2 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-white/80 text-xs flex items-center justify-center gap-2 transition-all"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowTransferHistory(true);
+            }}
+            className="w-full mt-2.5 py-2 rounded-xl text-amber-200/80 text-[11px] font-semibold tracking-wide flex items-center justify-center gap-2 transition-all hover:text-amber-100"
+            style={{
+              background:
+                "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))",
+              border: "1px solid rgba(251,191,36,0.18)",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)",
+            }}
           >
             <History className="w-3.5 h-3.5" />
             View Transfer History ({transferHistory.length})
           </button>
         )}
 
-        {/* WhatsApp Number Setting */}
-        <div className="mt-3 bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-green-400/20">
-          <div className="flex items-center gap-2 mb-2">
-            <svg viewBox="0 0 24 24" className="w-5 h-5 text-green-400" fill="currentColor">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-            </svg>
-            <div>
-              <p className="text-white font-semibold text-sm">WhatsApp Number</p>
-              <p className="text-white/60 text-[10px]">Visible to users in Recharge section</p>
+        <div
+          className="relative mt-3 rounded-2xl p-3.5 overflow-hidden"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(16,185,129,0.10), rgba(6,78,59,0.04))",
+            border: "1px solid rgba(16,185,129,0.28)",
+            boxShadow:
+              "inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 22px -16px rgba(16,185,129,0.4)",
+          }}
+        >
+          <div className="flex items-center gap-2.5 mb-2.5">
+            <div
+              className="grid place-items-center w-8 h-8 rounded-xl"
+              style={{
+                background:
+                  "linear-gradient(180deg, #34d399 0%, #059669 100%)",
+                boxShadow:
+                  "0 6px 14px -6px rgba(16,185,129,0.6), inset 0 1px 0 rgba(255,255,255,0.4)",
+              }}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                className="w-4 h-4 text-white"
+                fill="currentColor"
+              >
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+              </svg>
+            </div>
+            <div className="min-w-0">
+              <p className="text-emerald-100 font-bold text-[13px] leading-none">
+                WhatsApp Number
+              </p>
+              <p className="text-emerald-300/60 text-[10px] mt-1 tracking-wide">
+                Visible to users in Recharge section
+              </p>
             </div>
           </div>
           <div className="flex gap-2">
@@ -1151,30 +1311,62 @@ const HelperDashboard = () => {
               placeholder="+880XXXXXXXXXX"
               value={whatsappNumber}
               onChange={(e) => setWhatsappNumber(e.target.value)}
-              className="flex-1 bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white text-sm placeholder:text-white/40 focus:outline-none focus:border-green-400/50"
+              className="flex-1 rounded-xl px-3 py-2 text-amber-50 text-sm placeholder:text-white/30 focus:outline-none transition-colors"
+              style={{
+                background: "rgba(0,0,0,0.35)",
+                border: "1px solid rgba(16,185,129,0.30)",
+                boxShadow: "inset 0 1px 2px rgba(0,0,0,0.4)",
+              }}
             />
             <button
               onClick={saveWhatsappNumber}
               disabled={savingWhatsapp || !whatsappNumber.trim()}
-              className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg text-xs font-bold disabled:opacity-50 hover:shadow-lg transition-all active:scale-95"
+              className="px-4 py-2 rounded-xl text-emerald-950 text-xs font-black tracking-wider uppercase disabled:opacity-50 active:scale-95 transition-transform"
+              style={{
+                background:
+                  "linear-gradient(180deg, #6ee7b7 0%, #10b981 50%, #047857 100%)",
+                boxShadow:
+                  "0 8px 18px -8px rgba(16,185,129,0.6), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 0 rgba(6,78,59,0.55)",
+              }}
             >
-              {savingWhatsapp ? '...' : 'Save'}
+              {savingWhatsapp ? "..." : "Save"}
             </button>
           </div>
         </div>
 
         {helperData?.trader_level === 5 && helperData?.payroll_enabled && (
-          <div 
-            onClick={() => navigate('/level5-helper-dashboard')}
-            className="mt-3 bg-gradient-to-r from-purple-500/30 to-pink-500/30 backdrop-blur-sm rounded-xl p-3 border border-purple-400/30 cursor-pointer hover:bg-purple-500/40 transition-all"
+          <div
+            onClick={() => navigate("/level5-helper-dashboard")}
+            className="relative mt-3 rounded-2xl p-3.5 cursor-pointer overflow-hidden active:scale-[0.99] transition-transform"
+            style={{
+              background:
+                "linear-gradient(135deg, rgba(168,85,247,0.22), rgba(236,72,153,0.16))",
+              border: "1px solid rgba(168,85,247,0.40)",
+              boxShadow:
+                "0 14px 30px -16px rgba(168,85,247,0.55), inset 0 1px 0 rgba(255,255,255,0.10)",
+            }}
           >
-            <div className="flex items-center gap-2">
-              <Banknote className="w-5 h-5 text-purple-300" />
-              <div>
-                <p className="text-white font-semibold text-sm">💎 Level 5 Dashboard</p>
-                <p className="text-purple-200 text-xs">Access payroll & withdrawal processing</p>
+            <div className="flex items-center gap-3">
+              <div
+                className="grid place-items-center w-10 h-10 rounded-xl shrink-0"
+                style={{
+                  background:
+                    "linear-gradient(180deg, #c4b5fd 0%, #8b5cf6 50%, #6d28d9 100%)",
+                  boxShadow:
+                    "0 6px 14px -6px rgba(139,92,246,0.7), inset 0 1px 0 rgba(255,255,255,0.45)",
+                }}
+              >
+                <Banknote className="w-5 h-5 text-purple-50" />
               </div>
-              <ArrowLeft className="w-4 h-4 text-white/70 rotate-180 ml-auto" />
+              <div className="min-w-0 flex-1">
+                <p className="text-purple-50 font-bold text-sm leading-none">
+                  💎 Level 5 Dashboard
+                </p>
+                <p className="text-purple-200/75 text-[11px] mt-1">
+                  Access payroll & withdrawal processing
+                </p>
+              </div>
+              <ArrowLeft className="w-4 h-4 text-purple-100/70 rotate-180 shrink-0" />
             </div>
           </div>
         )}
