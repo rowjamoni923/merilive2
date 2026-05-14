@@ -7,7 +7,6 @@ import { ArrowRight, Sparkles, CheckCircle2, X, ArrowDownUp } from "lucide-react
 import Beans3DIcon from "@/components/common/Beans3DIcon";
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
 import { sendNotification } from "@/services/notificationService";
-import { parseSettingValue } from "@/utils/adminSettingsStorage";
 
 /**
  * Tier shape matches the current `user_beans_exchange_tiers` schema:
@@ -43,6 +42,20 @@ const normalizeCoinExchangeSettings = (value: any): CoinExchangeSettings | null 
     exchange_fee_percent: Number.isFinite(fee) && fee >= 0 ? fee : 0,
     min_exchange_amount: min,
   };
+};
+
+const parseAppSettingValue = (value: unknown) => {
+  if (typeof value !== "string") return value;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  if ((trimmed.startsWith("{") && trimmed.endsWith("}")) || (trimmed.startsWith("[") && trimmed.endsWith("]"))) {
+    try {
+      return JSON.parse(trimmed);
+    } catch {
+      return null;
+    }
+  }
+  return value;
 };
 
 interface UserBeansExchangeModalProps {
@@ -115,7 +128,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
       .select('setting_value')
       .eq('setting_key', 'coin_exchange')
       .maybeSingle();
-    const settingsValue = parseSettingValue(settingsRow?.setting_value);
+    const settingsValue = parseAppSettingValue(settingsRow?.setting_value);
     const settings = normalizeCoinExchangeSettings(settingsValue);
     setCoinExchangeSettings(settings);
 
