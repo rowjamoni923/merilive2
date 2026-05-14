@@ -1898,19 +1898,19 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               onClick={() => navigate("/recharge")}
               className="group relative"
             >
-              <div className="absolute inset-0 bg-cyan-500/20 rounded-xl translate-y-1 blur-md" />
-              <div className="relative bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 rounded-xl p-2.5 overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.6)] border border-white/10 group-active:scale-[0.97] transition-all">
+              <div className="absolute inset-0 bg-cyan-500/10 rounded-xl translate-y-1 blur-md" />
+              <div className="relative profile-home-card rounded-xl p-2.5 overflow-hidden group-active:scale-[0.97] transition-all">
                 <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-400/60 to-transparent" />
                 <div className="absolute -top-8 -right-8 w-20 h-20 bg-cyan-500/15 rounded-full blur-2xl" />
 
                 <div className="relative z-10">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-cyan-200/80 font-semibold text-[8px] tracking-[0.12em] uppercase">My Diamonds</p>
-                    <span className="text-[6px] bg-cyan-500/15 border border-cyan-400/30 text-cyan-100 px-1.5 py-0.5 rounded-full font-semibold tracking-wide">
+                    <p className="text-cyan-700 font-semibold text-[8px] tracking-[0.12em] uppercase">My Diamonds</p>
+                    <span className="text-[6px] bg-cyan-50 border border-cyan-100 text-cyan-700 px-1.5 py-0.5 rounded-full font-semibold tracking-wide">
                       Top Up
                     </span>
                   </div>
-                  <p className="text-xl font-bold text-white drop-shadow-[0_2px_8px_rgba(34,211,238,0.35)]">
+                  <p className="text-xl font-bold text-slate-950">
                      {resolvedDiamondBalance.toLocaleString()}
                   </p>
                 </div>
@@ -2006,23 +2006,23 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               }}
               className="group relative w-full text-left"
             >
-              <div className="absolute inset-0 bg-amber-500/20 rounded-xl translate-y-1 blur-md" />
-              <div className="relative bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 rounded-xl p-2.5 overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.6)] border border-white/10 group-active:scale-[0.97] transition-transform">
+              <div className="absolute inset-0 bg-amber-500/10 rounded-xl translate-y-1 blur-md" />
+              <div className="relative profile-home-card rounded-xl p-2.5 overflow-hidden group-active:scale-[0.97] transition-transform">
                 <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-400/60 to-transparent" />
                 <div className="absolute -top-8 -right-8 w-20 h-20 bg-amber-500/15 rounded-full blur-2xl" />
 
                 <div className="relative z-10">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-amber-200/80 font-semibold text-[8px] tracking-[0.12em] uppercase">My Beans</p>
+                    <p className="text-amber-700 font-semibold text-[8px] tracking-[0.12em] uppercase">My Beans</p>
                      {!profile?.is_host && !profile?.is_agency_owner ? (
-                       <span className="text-[6px] bg-amber-500/15 border border-amber-400/30 text-amber-100 px-1.5 py-0.5 rounded-full font-semibold tracking-wide">
+                       <span className="text-[6px] bg-amber-50 border border-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-semibold tracking-wide">
                          Exchange
                        </span>
                      ) : ((isHostPersona && isFemale) || isAgencyOwner) && (
-                      <ChevronRight className="w-3 h-3 text-amber-200/70" />
+                      <ChevronRight className="w-3 h-3 text-amber-600" />
                     )}
                   </div>
-                  <p className={`text-xl font-bold drop-shadow-[0_2px_8px_rgba(251,191,36,0.3)] ${beans < 0 ? 'text-red-400' : 'text-white'}`}>{beans.toLocaleString()}</p>
+                  <p className={`text-xl font-bold ${beans < 0 ? 'text-red-600' : 'text-slate-950'}`}>{beans.toLocaleString()}</p>
                 </div>
 
                 <div className="absolute right-1.5 bottom-1.5 opacity-90">
@@ -2046,23 +2046,23 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               }}
               className="w-full group relative"
             >
-              <div className="absolute inset-0 bg-emerald-500/20 rounded-xl translate-y-1 blur-md" />
-              <div className="relative bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 rounded-xl p-3 overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.6)] border border-white/10 group-active:scale-[0.98] transition-all">
+              <div className="absolute inset-0 bg-emerald-500/10 rounded-xl translate-y-1 blur-md" />
+              <div className="relative profile-home-card rounded-xl p-3 overflow-hidden group-active:scale-[0.98] transition-all">
                 <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-400/60 to-transparent" />
                 <div className="absolute -top-10 -right-10 w-28 h-28 bg-emerald-500/15 rounded-full blur-2xl" />
 
                 <div className="relative z-10 flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-1.5 mb-1">
-                      <p className="text-white font-semibold text-sm tracking-tight">Trader Wallet</p>
-                      <span className="text-[7px] bg-emerald-500/15 border border-emerald-400/30 text-emerald-100 px-1.5 py-0.5 rounded-full font-medium tracking-wide">
+                      <p className="text-slate-950 font-semibold text-sm tracking-tight">Trader Wallet</p>
+                      <span className="text-[7px] bg-emerald-50 border border-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full font-medium tracking-wide">
                         Diamond Trader
                       </span>
                     </div>
-                    <p className="text-xl font-bold text-white drop-shadow-[0_2px_8px_rgba(16,185,129,0.35)]">
+                    <p className="text-xl font-bold text-slate-950">
                       {(traderWallet + (agencyData?.diamond_balance || 0)).toLocaleString()} 💎
                     </p>
-                    <p className="text-[8px] text-emerald-200/70 mt-1 flex items-center gap-1">
+                    <p className="text-[8px] text-emerald-700 mt-1 flex items-center gap-1">
                       <Send className="w-2.5 h-2.5" />
                       Tap to transfer to User or Agency
                     </p>
@@ -2082,23 +2082,23 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               onClick={() => setShowTransferModal(true)}
               className="w-full group relative"
             >
-              <div className="absolute inset-0 bg-fuchsia-500/20 rounded-xl translate-y-1 blur-md" />
-              <div className="relative bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 rounded-xl p-3 overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.6)] border border-white/10 group-active:scale-[0.98] transition-all">
+              <div className="absolute inset-0 bg-fuchsia-500/10 rounded-xl translate-y-1 blur-md" />
+              <div className="relative profile-home-card rounded-xl p-3 overflow-hidden group-active:scale-[0.98] transition-all">
                 <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-fuchsia-400/60 to-transparent" />
                 <div className="absolute -top-10 -right-10 w-28 h-28 bg-fuchsia-500/15 rounded-full blur-2xl" />
 
                 <div className="relative z-10 flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-1.5 mb-1">
-                      <p className="text-white font-semibold text-sm tracking-tight">Trader Wallet</p>
-                      <span className="text-[7px] bg-fuchsia-500/15 border border-fuchsia-400/30 text-fuchsia-100 px-1.5 py-0.5 rounded-full font-medium tracking-wide">
+                      <p className="text-slate-950 font-semibold text-sm tracking-tight">Trader Wallet</p>
+                      <span className="text-[7px] bg-fuchsia-50 border border-fuchsia-100 text-fuchsia-700 px-1.5 py-0.5 rounded-full font-medium tracking-wide">
                         Agency
                       </span>
                     </div>
-                    <p className="text-xl font-bold text-white drop-shadow-[0_2px_8px_rgba(217,70,239,0.35)]">
+                    <p className="text-xl font-bold text-slate-950">
                       {selfRechargeSourceBalance.toLocaleString()} 💎
                     </p>
-                    <p className="text-[8px] text-fuchsia-200/70 mt-1 flex items-center gap-1">
+                    <p className="text-[8px] text-fuchsia-700 mt-1 flex items-center gap-1">
                       <Send className="w-2.5 h-2.5" />
                       Tap to transfer to User or Agency
                     </p>
