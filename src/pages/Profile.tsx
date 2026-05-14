@@ -2908,7 +2908,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
             {/* Amount Input */}
             <div className="space-y-2">
-              <Label className="text-amber-200 text-sm font-semibold uppercase tracking-wider">Beans Amount</Label>
+              <Label className="text-slate-700 text-sm font-semibold uppercase tracking-wider">Beans Amount</Label>
               <Input
                 type="number"
                 placeholder={`Min ${agencyExchangeSettings.min_exchange_amount}`}
@@ -2926,7 +2926,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   setExchangeDiamondsToGet(diamonds);
                   setExchangeFeeAmount(fee);
                 }}
-                className="bg-white border-amber-300/60 text-slate-800 placeholder:text-slate-600 text-lg h-12"
+                className="bg-white border border-amber-200/70 text-slate-800 placeholder:text-slate-400 text-lg h-12 rounded-xl focus-visible:ring-amber-400/40"
               />
               
               {/* Quick Amount Buttons */}
@@ -2946,7 +2946,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                       setExchangeDiamondsToGet(diamonds);
                       setExchangeFeeAmount(fee);
                     }}
-                    className="bg-slate-700/50 border-amber-300/60 text-amber-300 hover:bg-amber-500/20 text-xs"
+                    className="bg-white border border-amber-200/70 text-amber-700 hover:bg-amber-50 hover:text-amber-800 text-xs font-semibold rounded-lg shadow-sm"
                   >
                     {idx === 3 ? 'All' : amount.toLocaleString()}
                   </Button>
