@@ -155,9 +155,9 @@ export default function BlogPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF]">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-lg border-b border-white/10">
+      <header className="sticky top-0 z-50 bg-white/85 backdrop-blur-lg border-b border-amber-200/60 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div 
@@ -166,19 +166,19 @@ export default function BlogPage() {
             >
               <img src={meriliveLogo} alt="MeriLive" className="w-10 h-10 rounded-xl object-contain" />
               <div>
-                <h1 className="text-xl font-bold text-white">MeriLive</h1>
-                <p className="text-xs text-purple-300">Live Streaming & Video Calls</p>
+                <h1 className="text-xl font-bold text-slate-800">MeriLive</h1>
+                <p className="text-xs text-pink-600 font-medium">Live Streaming & Video Calls</p>
               </div>
             </div>
 
             {/* Section Toggle */}
-            <div className="hidden md:flex items-center gap-2 bg-white/5 rounded-full p-1">
+            <div className="hidden md:flex items-center gap-2 bg-amber-50/70 border border-amber-200/60 rounded-full p-1">
               <button
                 onClick={() => setActiveSection("about")}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                   activeSection === "about" 
-                    ? "bg-purple-500 text-white" 
-                    : "text-white/60 hover:text-white"
+                    ? "bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-md shadow-pink-500/30" 
+                    : "text-slate-600 hover:text-slate-900"
                 }`}
               >
                 About
@@ -187,8 +187,8 @@ export default function BlogPage() {
                 onClick={() => setActiveSection("blog")}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                   activeSection === "blog" 
-                    ? "bg-purple-500 text-white" 
-                    : "text-white/60 hover:text-white"
+                    ? "bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-md shadow-pink-500/30" 
+                    : "text-slate-600 hover:text-slate-900"
                 }`}
               >
                 Blog
