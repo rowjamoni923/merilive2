@@ -1905,7 +1905,7 @@ const Chat = () => {
                       Online
                     </span>
                   ) : (
-                    <span className="text-[10px] text-white/80 font-medium">
+                    <span className="text-[10px] text-slate-700 font-medium">
                       {formatLastSeen(selectedConversation?.other_user?.last_seen_at || null, false)}
                     </span>
                   )
@@ -1915,7 +1915,7 @@ const Chat = () => {
                 )}
               </div>
               {isGroup && (
-                <span className="text-[10px] text-white/80">{selectedGroup?.member_count || 0} members</span>
+                <span className="text-[10px] text-slate-700">{selectedGroup?.member_count || 0} members</span>
               )}
             </div>
 
@@ -1955,7 +1955,7 @@ const Chat = () => {
                       const otherId = selectedConversation?.other_user?.id;
                       if (otherId) navigate(`/profile-detail/${otherId}`);
                     }}
-                    className="text-white/80 hover:text-white hover:bg-white/[0.06] cursor-pointer gap-3 py-3 px-3 rounded-xl transition-all"
+                    className="text-slate-700 hover:text-white hover:bg-white/[0.06] cursor-pointer gap-3 py-3 px-3 rounded-xl transition-all"
                   >
                     <div className="w-8 h-8 rounded-lg bg-purple-500/15 border border-purple-500/20 flex items-center justify-center">
                       <Users className="w-4 h-4 text-purple-400" />
@@ -2059,7 +2059,7 @@ const Chat = () => {
                         onClick={() => senderUserId && navigate(`/profile-detail/${senderUserId}`)}
                         className={cn("mb-0.5", isMine ? "text-right" : "text-left")}
                       >
-                        <p className="font-semibold text-[11px] text-white/80">
+                        <p className="font-semibold text-[11px] text-slate-700">
                           {senderName}
                         </p>
                       </button>
@@ -2230,7 +2230,7 @@ const Chat = () => {
                               </div>
                               <p className={cn(
                                 "text-[10px] mt-1 flex items-center gap-0.5",
-                                isMine ? "text-white/90" : "text-muted-foreground"
+                                isMine ? "text-slate-900" : "text-muted-foreground"
                               )}>
                                 {formatTime(msg.created_at)}
                                 <MessageStatusIndicator status={msg.status || (msg.is_read ? 'read' : 'sent')} isMine={isMine} />
@@ -2257,7 +2257,7 @@ const Chat = () => {
                             <span className="break-words">{content}</span>
                             <span className={cn(
                               "text-[9px] ml-1 float-right mt-1.5 flex items-center gap-0.5",
-                              isMine ? "text-white/85" : "text-slate-500"
+                              isMine ? "text-slate-600" : "text-slate-500"
                             )}>
                               {formatTime(msg.created_at)}
                               <MessageStatusIndicator 
@@ -2348,7 +2348,7 @@ const Chat = () => {
           {inlineTranslateEnabled && !isGroup && (
             <div className="px-4 py-2 border-t border-white/[0.06]">
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-[10px] text-white/75 font-medium">Auto-translate to:</span>
+                <span className="text-[10px] text-slate-600 font-medium">Auto-translate to:</span>
                 <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
                   {languageOptions.slice(0, 8).map((lang) => (
                     <button
@@ -2357,7 +2357,7 @@ const Chat = () => {
                       className={`flex items-center gap-0.5 px-2.5 py-1 rounded-full text-[10px] whitespace-nowrap transition-all border ${
                         inlineTargetLang === lang.code
                           ? 'bg-gradient-to-r from-purple-500/80 to-pink-500/80 text-white border-purple-400/30'
-                          : 'bg-white/[0.06] text-white/80 border-white/[0.08] hover:bg-white/[0.1]'
+                          : 'bg-white/[0.06] text-slate-700 border-white/[0.08] hover:bg-white/[0.1]'
                       }`}
                     >
                       <span>{lang.flag}</span>
@@ -2370,7 +2370,7 @@ const Chat = () => {
                     setInlineTranslateEnabled(false);
                     setInlineTranslation("");
                   }}
-                  className="ml-auto p-1 rounded-full hover:bg-white/10 text-white/75"
+                  className="ml-auto p-1 rounded-full hover:bg-white/10 text-slate-600"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -2466,7 +2466,7 @@ const Chat = () => {
                     }}
                     className="flex-shrink-0 px-3 py-1.5 rounded-full bg-white/[0.06] border border-white/[0.1] backdrop-blur-xl"
                   >
-                    <span className="text-xs text-white/90 whitespace-nowrap">{quickMsg}</span>
+                    <span className="text-xs text-slate-900 whitespace-nowrap">{quickMsg}</span>
                   </motion.button>
                 ))}
               </div>
@@ -2671,7 +2671,7 @@ const Chat = () => {
                   }}
                   className="w-10 h-10 rounded-full bg-white/[0.06] border border-white/[0.08] flex items-center justify-center hover:bg-white/[0.1] transition-colors backdrop-blur-xl"
                 >
-                  <Camera className="w-5 h-5 text-white/80" />
+                  <Camera className="w-5 h-5 text-slate-700" />
                 </motion.button>
                 
                 {/* Text Input */}
@@ -2681,7 +2681,7 @@ const Chat = () => {
                     onChange={(e) => handleMessageChange(e.target.value)}
                     placeholder="Type something..."
                     className={cn(
-                      "rounded-full bg-white/[0.06] border border-white/[0.08] pr-20 text-white placeholder:text-white/85 focus-visible:ring-1 focus-visible:ring-purple-500/40 focus-visible:border-purple-500/30 backdrop-blur-xl",
+                      "rounded-full bg-white/[0.06] border border-white/[0.08] pr-20 text-white placeholder:text-slate-600 focus-visible:ring-1 focus-visible:ring-purple-500/40 focus-visible:border-purple-500/30 backdrop-blur-xl",
                       inlineTranslateEnabled && "ring-1 ring-purple-500/40 border-purple-500/30"
                     )}
                     onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
@@ -2699,7 +2699,7 @@ const Chat = () => {
                       }}
                       className="p-1.5 rounded-full hover:bg-white/[0.08] transition-colors"
                     >
-                      <Smile className="w-5 h-5 text-white/75" />
+                      <Smile className="w-5 h-5 text-slate-600" />
                     </motion.button>
                     {/* Voice Recording Button */}
                     <motion.button
@@ -2707,7 +2707,7 @@ const Chat = () => {
                       onClick={handleVoiceRecord}
                       className="p-1.5 rounded-full hover:bg-white/[0.08] transition-colors"
                     >
-                      <Mic className="w-5 h-5 text-white/75" />
+                      <Mic className="w-5 h-5 text-slate-600" />
                     </motion.button>
                   </div>
                 </div>
@@ -2752,12 +2752,12 @@ const Chat = () => {
                   )}>
                     <Languages className={cn(
                       "w-5 h-5",
-                      inlineTranslateEnabled ? "text-purple-300" : "text-white/80"
+                      inlineTranslateEnabled ? "text-purple-300" : "text-slate-700"
                     )} />
                   </div>
                   <span className={cn(
                     "text-[9px] font-semibold",
-                    inlineTranslateEnabled ? "text-purple-300" : "text-white/75"
+                    inlineTranslateEnabled ? "text-purple-300" : "text-slate-600"
                   )}>
                     {inlineTranslateEnabled ? "ON" : "Translate"}
                   </span>
@@ -2772,7 +2772,7 @@ const Chat = () => {
                   <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-pink-500/20 to-rose-500/20 border border-pink-500/25 backdrop-blur-xl hover:from-pink-500/30 hover:to-rose-500/30 transition-all duration-300">
                     <Gift className="w-5 h-5 text-pink-400" />
                   </div>
-                  <span className="text-[9px] font-semibold text-white/75">Gift</span>
+                  <span className="text-[9px] font-semibold text-slate-600">Gift</span>
                 </motion.button>
                 
                 {/* Games */}
@@ -2784,7 +2784,7 @@ const Chat = () => {
                   <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-indigo-500/20 to-blue-500/20 border border-indigo-500/25 backdrop-blur-xl hover:from-indigo-500/30 hover:to-blue-500/30 transition-all duration-300">
                     <Gamepad2 className="w-5 h-5 text-indigo-400" />
                   </div>
-                  <span className="text-[9px] font-semibold text-white/75">Games</span>
+                  <span className="text-[9px] font-semibold text-slate-600">Games</span>
                 </motion.button>
                 
                 {/* Video Call */}
@@ -2803,7 +2803,7 @@ const Chat = () => {
                       <VideoCallIcon className="w-5 h-5 text-rose-400 relative z-10" />
                     </div>
                     <div className="flex flex-col items-center">
-                      <span className="text-[9px] font-semibold text-white/75">Video Call</span>
+                      <span className="text-[9px] font-semibold text-slate-600">Video Call</span>
                       {selectedConversation.other_user.call_rate_per_minute && selectedConversation.other_user.call_rate_per_minute > 0 && (
                         <span className="text-[8px] text-amber-400/70 font-medium">💎 {selectedConversation.other_user.call_rate_per_minute}/min</span>
                       )}
@@ -2874,13 +2874,13 @@ const Chat = () => {
                         {languageOptions.find(l => l.code === selectedLanguage)?.flag} {selectedLanguage}
                       </span>
                       {isTranslating && (
-                        <span className="text-[10px] text-white/75 flex items-center gap-1">
+                        <span className="text-[10px] text-slate-600 flex items-center gap-1">
                           <span className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
                           Translating...
                         </span>
                       )}
                     </div>
-                    <p className={`min-h-[40px] ${translatedResult ? 'text-white/90' : 'text-white/85 text-sm'}`}>
+                    <p className={`min-h-[40px] ${translatedResult ? 'text-slate-900' : 'text-slate-600 text-sm'}`}>
                       {translatedResult || "Translation will appear here..."}
                     </p>
                   </div>
@@ -3043,10 +3043,10 @@ const Chat = () => {
         filteredConversations.length === 0 ? (
           <div className="text-center py-16">
             <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.2)' }}>
-              <MessageCircle className="w-10 h-10 text-purple-400/40" />
+              <MessageCircle className="w-10 h-10 text-purple-400" />
             </div>
-            <h3 className="text-lg font-semibold mb-2 text-white/80">No conversations yet</h3>
-            <p className="text-white/85 text-sm mb-4">Start a conversation with someone!</p>
+            <h3 className="text-lg font-semibold mb-2 text-slate-700">No conversations yet</h3>
+            <p className="text-slate-600 text-sm mb-4">Start a conversation with someone!</p>
             <Button
               className="rounded-full font-bold text-white"
               style={{ background: 'linear-gradient(135deg, #d946ef 0%, #a855f7 100%)', boxShadow: '0 4px 15px rgba(168,85,247,0.3)' }}
@@ -3056,12 +3056,12 @@ const Chat = () => {
             </Button>
           </div>
         ) : (
-          <div className="divide-y divide-white/[0.04]">
+          <div className="divide-y divide-amber-100/60">
             {filteredConversations.map((conv) => (
               <motion.button
                 key={conv.id}
                 onClick={() => handleSelectConversation(conv)}
-                className="w-full flex items-center gap-3 p-4 hover:bg-white/[0.04] transition-all duration-200 relative"
+                className="w-full flex items-center gap-3 p-4 hover:bg-amber-50/60 transition-all duration-200 relative"
                 whileTap={{ scale: 0.98 }}
               >
                 {/* Unread glow indicator */}
@@ -3087,22 +3087,22 @@ const Chat = () => {
                     </Avatar>
                   )}
                   {conv.other_user?.is_online && (
-                    <span className="absolute bottom-0 right-0 w-4 h-4 bg-gradient-to-r from-green-400 to-emerald-400 border-2 border-[#0d0618] rounded-full z-10 shadow-lg shadow-green-500/30" />
+                    <span className="absolute bottom-0 right-0 w-4 h-4 bg-gradient-to-r from-green-400 to-emerald-400 border-2 border-white rounded-full z-10 shadow-lg shadow-green-500/30" />
                   )}
                 </div>
                 <div className="flex-1 text-left min-w-0">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-semibold truncate text-white/90">{conv.other_user?.display_name || 'User'}</h3>
+                    <h3 className="font-semibold truncate text-slate-900">{conv.other_user?.display_name || 'User'}</h3>
                     {conv.other_user?.country_flag && (
                       <span className="text-xs">{conv.other_user.country_flag}</span>
                     )}
                     <LevelBadge level={conv.other_user?.user_level || 1} size="xs" />
-                    <span className="text-[10px] text-white/85 shrink-0 ml-auto font-medium">
+                    <span className="text-[10px] text-slate-600 shrink-0 ml-auto font-medium">
                       {conv.last_message_at ? formatTime(conv.last_message_at) : ''}
                     </span>
                   </div>
                   <div className="flex items-center justify-between mt-0.5">
-                    <p className="text-sm text-white/75 truncate">{conv.last_message || 'No messages yet'}</p>
+                    <p className="text-sm text-slate-600 truncate">{conv.last_message || 'No messages yet'}</p>
                     {conv.unread_count > 0 && (
                       <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 rounded-full ml-2 shrink-0 shadow-lg shadow-red-500/20 text-[10px] px-2">
                         {conv.unread_count}
@@ -3119,10 +3119,10 @@ const Chat = () => {
         filteredGroups.length === 0 ? (
           <div className="text-center py-16">
             <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.2)' }}>
-              <Users className="w-10 h-10 text-purple-400/40" />
+              <Users className="w-10 h-10 text-purple-400" />
             </div>
-            <h3 className="text-lg font-semibold mb-2 text-white/80">No groups yet</h3>
-            <p className="text-white/85 text-sm mb-4">Create or join a group!</p>
+            <h3 className="text-lg font-semibold mb-2 text-slate-700">No groups yet</h3>
+            <p className="text-slate-600 text-sm mb-4">Create or join a group!</p>
             <Button
               className="rounded-full font-bold text-white"
               style={{ background: 'linear-gradient(135deg, #d946ef 0%, #a855f7 100%)', boxShadow: '0 4px 15px rgba(168,85,247,0.3)' }}
@@ -3132,12 +3132,12 @@ const Chat = () => {
             </Button>
           </div>
         ) : (
-          <div className="divide-y divide-white/[0.04]">
+          <div className="divide-y divide-amber-100/60">
             {filteredGroups.map((group) => (
               <motion.button
                 key={group.id}
                 onClick={() => handleSelectGroup(group)}
-                className="w-full flex items-center gap-3 p-4 hover:bg-white/[0.04] transition-all duration-200"
+                className="w-full flex items-center gap-3 p-4 hover:bg-amber-50/60 transition-all duration-200"
                 whileTap={{ scale: 0.98 }}
               >
                 <Avatar className="w-14 h-14 ring-2 ring-purple-500/20">
@@ -3148,8 +3148,8 @@ const Chat = () => {
                 </Avatar>
                 <div className="flex-1 text-left min-w-0">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-semibold truncate text-white/90">{group.name}</h3>
-                    <span className="text-xs text-white/85">({group.member_count})</span>
+                    <h3 className="font-semibold truncate text-slate-900">{group.name}</h3>
+                    <span className="text-xs text-slate-600">({group.member_count})</span>
                   </div>
                   {group.is_owner && (
                     <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 text-xs mt-1">
@@ -3183,7 +3183,7 @@ const Chat = () => {
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-fuchsia-500/20 to-purple-500/20 border border-fuchsia-500/25 flex items-center justify-center backdrop-blur-xl">
                 <Users className="w-8 h-8 text-fuchsia-400" />
               </div>
-              <span className="text-sm font-medium text-white/80">Create</span>
+              <span className="text-sm font-medium text-slate-700">Create</span>
             </button>
             <button
               className="flex flex-col items-center gap-2"
@@ -3195,7 +3195,7 @@ const Chat = () => {
               <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-indigo-500/20 border border-purple-500/25 flex items-center justify-center backdrop-blur-xl">
                 <Search className="w-8 h-8 text-purple-400" />
               </div>
-              <span className="text-sm font-medium text-white/80">Search</span>
+              <span className="text-sm font-medium text-slate-700">Search</span>
             </button>
           </div>
         </SheetContent>
@@ -3209,13 +3209,13 @@ const Chat = () => {
           </DialogHeader>
           <div className="space-y-6 py-4">
             <div className="space-y-2">
-              <Label htmlFor="groupName" className="text-white/85">Group Name</Label>
+              <Label htmlFor="groupName" className="text-slate-600">Group Name</Label>
               <Input
                 id="groupName"
                 placeholder="Enter group name"
                 value={newGroupName}
                 onChange={(e) => setNewGroupName(e.target.value)}
-                className="bg-white/[0.06] border-white/[0.08] text-white placeholder:text-white/85 focus-visible:ring-1 focus-visible:ring-purple-500/40"
+                className="bg-white/[0.06] border-white/[0.08] text-white placeholder:text-slate-600 focus-visible:ring-1 focus-visible:ring-purple-500/40"
               />
             </div>
 
@@ -3252,7 +3252,7 @@ const Chat = () => {
                   <Label htmlFor="basic" className="flex-1 cursor-pointer">
                     <div className="flex items-center gap-2">
                       <Users className="w-5 h-5 text-purple-400" />
-                      <span className="font-medium text-white/80">Basic Group</span>
+                      <span className="font-medium text-slate-700">Basic Group</span>
                     </div>
                   </Label>
                 </div>
@@ -3261,9 +3261,9 @@ const Chat = () => {
                   <Label htmlFor="family" className="flex-1 cursor-pointer">
                     <div className="flex items-center gap-2">
                       <Users className="w-5 h-5 text-pink-400" />
-                      <span className="font-medium text-white/80">Family Group</span>
+                      <span className="font-medium text-slate-700">Family Group</span>
                     </div>
-                    <p className="text-xs text-white/85 mt-1">
+                    <p className="text-xs text-slate-600 mt-1">
                       One user can join one family group only
                     </p>
                   </Label>
@@ -3296,12 +3296,12 @@ const Chat = () => {
                 value={groupSearchQuery}
                 onChange={(e) => setGroupSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearchGroup()}
-                className="pr-12 bg-white/[0.06] border-white/[0.08] text-white placeholder:text-white/85 focus-visible:ring-1 focus-visible:ring-purple-500/40"
+                className="pr-12 bg-white/[0.06] border-white/[0.08] text-white placeholder:text-slate-600 focus-visible:ring-1 focus-visible:ring-purple-500/40"
               />
               <Button
                 size="icon"
                 variant="ghost"
-                className="absolute right-1 top-1/2 -translate-y-1/2 text-white/80 hover:text-white hover:bg-white/[0.08]"
+                className="absolute right-1 top-1/2 -translate-y-1/2 text-slate-700 hover:text-white hover:bg-white/[0.08]"
                 onClick={handleSearchGroup}
               >
                 <Search className="w-5 h-5" />
@@ -3322,8 +3322,8 @@ const Chat = () => {
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold truncate text-white/90">{group.name}</h4>
-                      <p className="text-xs text-white/85">
+                      <h4 className="font-semibold truncate text-slate-900">{group.name}</h4>
+                      <p className="text-xs text-slate-600">
                         {group.member_count} members • {group.group_type}
                       </p>
                     </div>
@@ -3341,7 +3341,7 @@ const Chat = () => {
             )}
 
             {groupSearchQuery && groupSearchResults.length === 0 && (
-              <p className="text-center text-white/85 py-8">No groups found</p>
+              <p className="text-center text-slate-600 py-8">No groups found</p>
             )}
           </div>
         </DialogContent>
