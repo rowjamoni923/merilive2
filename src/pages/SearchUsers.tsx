@@ -496,15 +496,15 @@ const SearchUsers = () => {
         )}
       </header>
 
-      <main className="mobile-page-scrollable px-4 py-4">
+      <main className="mobile-page-scrollable px-4 py-4 bg-[#F7F8FA]">
         {searchQuery || selectedTags.length > 0 ? (
           // Search Results
           <div className="space-y-3">
             {results.length === 0 ? (
               <div className="text-center py-16">
-                <Tag className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">No users found</h3>
-                <p className="text-muted-foreground text-sm">
+                <Tag className="w-16 h-16 mx-auto mb-4 text-slate-300" />
+                <h3 className="text-lg font-semibold mb-2 text-slate-900">No users found</h3>
+                <p className="text-slate-500 text-sm">
                   {selectedTags.length > 0 
                     ? "Try selecting different tags or removing some filters"
                     : "Try searching with a different name or ID"
@@ -513,7 +513,7 @@ const SearchUsers = () => {
               </div>
             ) : (
               <>
-                <p className="text-sm text-muted-foreground mb-3">
+                <p className="text-sm text-slate-500 mb-3">
                   {results.length} user{results.length !== 1 ? 's' : ''} found
                   {selectedTags.length > 0 && ` with ${selectedTags.length} tag${selectedTags.length > 1 ? 's' : ''}`}
                 </p>
@@ -527,8 +527,8 @@ const SearchUsers = () => {
             {recentSearches.length > 0 && (
               <>
                 <div className="flex items-center justify-between">
-                  <h2 className="font-semibold text-muted-foreground">Recent Searches</h2>
-                  <Button variant="ghost" size="sm" onClick={clearRecentSearches}>
+                  <h2 className="font-semibold text-slate-600">Recent Searches</h2>
+                  <Button variant="ghost" size="sm" onClick={clearRecentSearches} className="text-slate-600 hover:bg-slate-100">
                     Clear all
                   </Button>
                 </div>
@@ -540,9 +540,9 @@ const SearchUsers = () => {
 
             {recentSearches.length === 0 && (
               <div className="text-center py-16">
-                <Search className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">Search for users</h3>
-                <p className="text-muted-foreground text-sm max-w-xs mx-auto">
+                <Search className="w-16 h-16 mx-auto mb-4 text-slate-300" />
+                <h3 className="text-lg font-semibold mb-2 text-slate-900">Search for users</h3>
+                <p className="text-slate-500 text-sm max-w-xs mx-auto">
                   Find users by their display name, user ID, or filter by tags
                 </p>
               </div>
