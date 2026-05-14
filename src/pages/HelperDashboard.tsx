@@ -2638,7 +2638,6 @@ const HelperDashboard = () => {
           </div>
         </DialogContent>
       </Dialog>
-      </div>
     </div>
   );
 };
