@@ -494,9 +494,9 @@ const Tasks = () => {
             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
               <Star className="w-5 h-5 text-slate-800" />
             </div>
-            <div>
+          <div>
               <h1 className="text-xl font-bold">Task Center</h1>
-              <p className="text-xs text-slate-600">Complete daily tasks, earn rewards</p>
+              <p className="text-xs text-white/85">Complete daily tasks, earn rewards</p>
             </div>
           </div>
         </div>
