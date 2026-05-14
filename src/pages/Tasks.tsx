@@ -707,12 +707,12 @@ const Tasks = () => {
                       ) : (
                         <>
                           {task.reward_beans > 0 && (
-                            <span className="text-xs bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-400 px-2 py-0.5 rounded-full font-medium">
+                            <span className="text-xs bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 px-2 py-0.5 rounded-full font-medium">
                               +{task.reward_beans} Beans
                             </span>
                           )}
                           {task.reward_coins > 0 && (
-                            <span className="text-xs bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-400 px-2 py-0.5 rounded-full font-medium">
+                            <span className="text-xs bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 px-2 py-0.5 rounded-full font-medium">
                               +{task.reward_coins} 💎 Diamonds
                             </span>
                           )}
