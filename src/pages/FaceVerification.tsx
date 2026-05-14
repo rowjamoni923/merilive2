@@ -1457,7 +1457,7 @@ const FaceVerification = () => {
         </div>
         <div>
           <h2 className="font-bold text-slate-800 text-lg">Live Face Scan</h2>
-          <p className="text-slate-400 text-sm">
+          <p className="text-slate-600 text-sm">
             {verificationRecording ? `Step ${currentInstruction + 1} of ${faceInstructions.length}` : 'AI-powered identity verification'}
           </p>
         </div>
@@ -1501,11 +1501,11 @@ const FaceVerification = () => {
                 transition={{ duration: 2, repeat: Infinity, delay: 0.3 }}
               />
               <div className="absolute inset-4 rounded-full bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center">
-                <ScanFace className="w-12 h-12 text-cyan-400" />
+                <ScanFace className="w-12 h-12 text-cyan-600" />
               </div>
             </motion.div>
             <p className="text-slate-700 text-center font-medium mb-1">Ready to Scan</p>
-            <p className="text-slate-400 text-xs text-center max-w-[200px]">Position your face in the oval and follow each instruction</p>
+            <p className="text-slate-600 text-xs text-center max-w-[200px]">Position your face in the oval and follow each instruction</p>
           </div>
         ) : faceVerified ? (
           <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-emerald-900/60 to-green-900/40">
@@ -1553,7 +1553,7 @@ const FaceVerification = () => {
             {faceStream && !cameraReady && (
               <div className="absolute inset-0 flex items-center justify-center bg-white/80">
                 <div className="flex flex-col items-center">
-                  <Loader2 className="w-12 h-12 text-cyan-400 animate-spin mb-2" />
+                  <Loader2 className="w-12 h-12 text-cyan-600 animate-spin mb-2" />
                   <p className="text-slate-600 text-sm">Initializing camera...</p>
                 </div>
               </div>
@@ -1685,12 +1685,12 @@ const FaceVerification = () => {
                   initial={{ scale: 0 }} 
                   animate={{ scale: 1 }} 
                   transition={{ type: "spring" }}
-                  className="w-20 h-20 rounded-full bg-red-500/20 flex items-center justify-center mb-4"
+                  className="w-20 h-20 rounded-full bg-red-100 border border-red-200 flex items-center justify-center mb-4"
                 >
-                  <XCircle className="w-12 h-12 text-red-400" />
+                  <XCircle className="w-12 h-12 text-red-600" />
                 </motion.div>
                 <p className="text-slate-800 font-bold text-lg mb-1">{localizedMsg.failed}</p>
-                <p className="text-slate-500 text-sm text-center px-6 mb-1">
+                <p className="text-slate-600 text-sm text-center px-6 mb-1">
                   {localizedMsg.failedDesc}
                 </p>
                 <p className="text-slate-500 text-xs">Attempt {failedAttempts}</p>
@@ -1704,8 +1704,8 @@ const FaceVerification = () => {
 
       {/* Tips */}
       {!faceStream && !faceVerified && (
-        <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-xl p-3 mb-4">
-          <p className="text-cyan-300 text-xs text-center">
+        <div className="bg-cyan-50 border border-cyan-200 rounded-xl p-3 mb-4">
+          <p className="text-cyan-800 text-xs text-center">
             {localizedMsg.tips}
           </p>
         </div>
@@ -1814,7 +1814,7 @@ const FaceVerification = () => {
           </motion.div>
           <h2 className="text-2xl font-bold text-slate-800 mb-2">Verification Rejected</h2>
           {rejectionReason && (
-            <p className="text-red-300 text-center px-6 mb-2 text-sm">Reason: {rejectionReason}</p>
+            <p className="text-red-700 bg-red-50 border border-red-200 rounded-xl mx-6 px-4 py-2 text-center mb-2 text-sm">Reason: {rejectionReason}</p>
           )}
           
           {isContactSupportRequired ? (
@@ -1847,7 +1847,7 @@ const FaceVerification = () => {
               >
                 🔄 Try Again
               </Button>
-              <p className="text-slate-400 text-xs text-center mt-3 px-8">
+              <p className="text-slate-600 text-xs text-center mt-3 px-8">
                 Please ensure good lighting and remove any face coverings before retrying.
               </p>
             </>
@@ -1866,10 +1866,10 @@ const FaceVerification = () => {
         <div className="flex flex-col items-center justify-center mt-12">
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring" }}
             className="w-28 h-28 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 flex items-center justify-center mb-4 shadow-2xl shadow-amber-500/20">
-            <Loader2 className="w-14 h-14 text-slate-800 animate-spin" />
+            <Loader2 className="w-14 h-14 text-white animate-spin" />
           </motion.div>
           <h2 className="text-2xl font-bold text-slate-800 mb-2">Under Review</h2>
-          <p className="text-slate-500 text-center px-6">Your face verification has already been submitted and is pending admin review. Please wait for approval.</p>
+          <p className="text-slate-600 text-center px-6">Your face verification has already been submitted and is pending admin review. Please wait for approval.</p>
           <Button className="mt-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl px-8 shadow-lg shadow-purple-500/20" onClick={() => navigate('/profile')}>
             Back to Profile
           </Button>
