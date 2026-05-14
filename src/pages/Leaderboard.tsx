@@ -295,7 +295,8 @@ const Leaderboard = () => {
     : activeCategory === "game_ranking" ? gameRankings 
     : activeCategory === "top_gifter" ? gifterRankings 
     : pkParticipants;
-  const rankings = allRankings.filter(r => !EXCLUDED_IDS.includes(r.id));
+  // Show Top 50 (1-50) — rewards distribute to ranks 1..50
+  const rankings = allRankings.filter(r => !EXCLUDED_IDS.includes(r.id)).slice(0, 50);
   
   const top3 = rankings.slice(0, 3);
   const restRankings = rankings.slice(3);
