@@ -1866,10 +1866,10 @@ const FaceVerification = () => {
         <div className="flex flex-col items-center justify-center mt-12">
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring" }}
             className="w-28 h-28 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 flex items-center justify-center mb-4 shadow-2xl shadow-amber-500/20">
-            <Loader2 className="w-14 h-14 text-slate-800 animate-spin" />
+            <Loader2 className="w-14 h-14 text-white animate-spin" />
           </motion.div>
           <h2 className="text-2xl font-bold text-slate-800 mb-2">Under Review</h2>
-          <p className="text-slate-500 text-center px-6">Your face verification has already been submitted and is pending admin review. Please wait for approval.</p>
+          <p className="text-slate-600 text-center px-6">Your face verification has already been submitted and is pending admin review. Please wait for approval.</p>
           <Button className="mt-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl px-8 shadow-lg shadow-purple-500/20" onClick={() => navigate('/profile')}>
             Back to Profile
           </Button>
