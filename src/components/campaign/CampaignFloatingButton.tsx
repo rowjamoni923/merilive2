@@ -195,6 +195,10 @@ function CampaignFloatingButton() {
     void fetchCampaign(true);
   }, [appState.isActive, appState.backgroundDuration, fetchCampaign]);
 
+  // Whether Google Play in-app billing is actually usable on this device.
+  // On web/iOS we surface a clean inline banner instead of failing on Continue.
+  const isPlayStoreNative = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';
+
   useEffect(() => {
     if (!campaign || remainingSeconds <= 0) return;
     timerRef.current = setInterval(() => {
