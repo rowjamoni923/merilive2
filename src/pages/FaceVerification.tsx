@@ -1685,12 +1685,12 @@ const FaceVerification = () => {
                   initial={{ scale: 0 }} 
                   animate={{ scale: 1 }} 
                   transition={{ type: "spring" }}
-                  className="w-20 h-20 rounded-full bg-red-500/20 flex items-center justify-center mb-4"
+                  className="w-20 h-20 rounded-full bg-red-100 border border-red-200 flex items-center justify-center mb-4"
                 >
-                  <XCircle className="w-12 h-12 text-red-400" />
+                  <XCircle className="w-12 h-12 text-red-600" />
                 </motion.div>
                 <p className="text-slate-800 font-bold text-lg mb-1">{localizedMsg.failed}</p>
-                <p className="text-slate-500 text-sm text-center px-6 mb-1">
+                <p className="text-slate-600 text-sm text-center px-6 mb-1">
                   {localizedMsg.failedDesc}
                 </p>
                 <p className="text-slate-500 text-xs">Attempt {failedAttempts}</p>
