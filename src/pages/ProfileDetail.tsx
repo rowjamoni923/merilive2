@@ -695,7 +695,7 @@ const ProfileDetail = () => {
             transition={{ delay: 0.2, type: "spring" }}
             className="mx-auto w-24 h-24 rounded-full bg-gradient-to-br from-red-500/30 to-red-900/30 border-2 border-red-500/50 flex items-center justify-center"
           >
-            <ShieldX className="w-12 h-12 text-red-400" />
+            <ShieldX className="w-12 h-12 text-red-600" />
           </motion.div>
           <motion.h1 initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }}
             className="text-xl font-bold text-white">
@@ -816,13 +816,13 @@ const ProfileDetail = () => {
                 className={`rounded-full transition-all ${
                   index === currentSlideIndex 
                     ? "w-6 h-2 bg-gradient-to-r from-fuchsia-400 to-purple-400" 
-                    : "w-2 h-2 bg-white/30 hover:bg-white/50"
+                    : "w-2 h-2 bg-white/30 hover:bg-white"
                 }`}
               />
             ))}
               <button
               onClick={() => setIsPaused(!isPaused)}
-                className="ml-2 w-7 h-7 rounded-full bg-white/90 backdrop-blur-xl border border-slate-200 flex items-center justify-center shadow-sm"
+                className="ml-2 w-7 h-7 rounded-full bg-white backdrop-blur-xl border border-slate-200 flex items-center justify-center shadow-sm"
             >
               {isPaused ? (
                 <Play className="w-3 h-3 text-slate-700" />
@@ -873,7 +873,7 @@ const ProfileDetail = () => {
                   <DropdownMenuContent align="end" className="w-48 bg-[#1a1a2e] border-white/10">
                     <DropdownMenuItem 
                       onClick={() => setShowBlockDialog(true)}
-                      className="text-red-400 focus:text-red-300"
+                      className="text-red-600 focus:text-red-700"
                     >
                       <Ban className="w-4 h-4 mr-2" />
                       {isBlocked ? "Unblock" : "Block"}
@@ -926,11 +926,11 @@ const ProfileDetail = () => {
           {profile.is_blocked && (
             <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-2xl flex items-center gap-3 backdrop-blur-sm">
               <div className="w-10 h-10 bg-red-500/20 rounded-full flex items-center justify-center flex-shrink-0">
-                <Ban className="w-5 h-5 text-red-400" />
+                <Ban className="w-5 h-5 text-red-600" />
               </div>
               <div>
-                <p className="text-red-300 font-semibold text-sm">This account has been banned</p>
-                <p className="text-red-400/70 text-xs mt-0.5">
+                <p className="text-red-700 font-semibold text-sm">This account has been banned</p>
+                <p className="text-red-600/70 text-xs mt-0.5">
                   {(profile as any).blocked_reason || 'This account was suspended for violating community guidelines.'}
                 </p>
               </div>
@@ -1121,7 +1121,7 @@ const ProfileDetail = () => {
                         )
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-amber-500/30 to-orange-500/30 flex items-center justify-center">
-                          <Play className="w-4 h-4 text-amber-400/60" />
+                          <Play className="w-4 h-4 text-amber-600/60" />
                         </div>
                       )}
                     </motion.div>
@@ -1166,7 +1166,7 @@ const ProfileDetail = () => {
                             )
                           ) : (
                             <div className="w-full h-full bg-gradient-to-br from-amber-500/30 to-purple-500/30 flex items-center justify-center">
-                              <Play className="w-4 h-4 text-amber-400/60" />
+                              <Play className="w-4 h-4 text-amber-600/60" />
                             </div>
                           )}
                           {/* Type badge */}
@@ -1177,7 +1177,7 @@ const ProfileDetail = () => {
                           )}
                         </div>
                         {/* Countdown timer */}
-                        <span className="text-[8px] text-amber-400/80 font-medium whitespace-nowrap">
+                        <span className="text-[8px] text-amber-600/80 font-medium whitespace-nowrap">
                           ⏳ {timeStr}
                         </span>
                       </motion.div>
@@ -1291,7 +1291,7 @@ const ProfileDetail = () => {
             >
               <div className={cn(
                 "w-2.5 h-2.5 rounded-full",
-                hostAvailability === 'online' ? "bg-white animate-pulse" : "bg-white/60"
+                hostAvailability === 'online' ? "bg-white animate-pulse" : "bg-white"
               )} />
               {hostAvailability === 'online' ? 'Go Offline' : 'Go Online'}
             </motion.button>
@@ -1409,7 +1409,7 @@ const ProfileDetail = () => {
                             <span className="text-4xl">{gift.icon || '🎁'}</span>
                           )}
                         </div>
-                        <span className="text-xs font-bold text-fuchsia-400">×{gift.count}</span>
+                        <span className="text-xs font-bold text-fuchsia-600">×{gift.count}</span>
                       </motion.button>
                     ))}
                   </div>
@@ -1492,7 +1492,7 @@ const ProfileDetail = () => {
                     </div>
                     
                     <div className="text-right">
-                      <div className="flex items-center gap-1 text-amber-400 font-bold">
+                      <div className="flex items-center gap-1 text-amber-600 font-bold">
                         <span className="text-lg">💎</span>
                         <span className="text-sm">{gift.coin_amount}</span>
                       </div>
@@ -1569,7 +1569,7 @@ const ProfileDetail = () => {
             </ScrollArea>
           ) : (
             <div className="rounded-2xl p-6 text-center profile-home-section">
-              <Users className="w-10 h-10 text-slate-400 mx-auto mb-2" />
+              <Users className="w-10 h-10 text-slate-500 mx-auto mb-2" />
               <p className="text-sm text-slate-500">No groups joined yet</p>
             </div>
           )}

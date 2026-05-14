@@ -112,7 +112,7 @@ export function TopUpCampaignBanner({ location, compact = false, className }: To
           </div>
           <div className="flex-1 text-left">
             <p className="text-white text-xs font-semibold truncate">{campaign.campaign_name}</p>
-            <p className="text-amber-300 text-[10px]">
+            <p className="text-amber-700 text-[10px]">
               {campaign.bonus_diamonds > 0 && `+${campaign.bonus_diamonds.toLocaleString()} bonus 💎`}
               {discountPercent > 0 && ` • ${discountPercent}% OFF`}
             </p>
@@ -153,7 +153,7 @@ export function TopUpCampaignBanner({ location, compact = false, className }: To
               <div className="absolute inset-0 flex items-center justify-between px-4">
                 <div>
                   <p className="text-white font-bold text-sm">{campaign.campaign_name}</p>
-                  <p className="text-amber-300 text-xs mt-0.5">
+                  <p className="text-amber-700 text-xs mt-0.5">
                     💎 {campaign.diamonds_amount.toLocaleString()}
                     {campaign.bonus_diamonds > 0 && ` +${campaign.bonus_diamonds.toLocaleString()} Bonus`}
                   </p>

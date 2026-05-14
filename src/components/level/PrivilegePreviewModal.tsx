@@ -226,11 +226,11 @@ const PrivilegePreviewModal = ({ privilege, currentLevel, isOpen, onClose }: Pri
 const FeatureItem = ({ text, isUnlocked }: { text: string; isUnlocked: boolean }) => (
   <div className="flex items-center gap-3">
     <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
-      isUnlocked ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
+      isUnlocked ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-slate-500'
     }`}>
       <Check className="w-3 h-3" />
     </div>
-    <span className={`text-sm ${isUnlocked ? 'text-gray-700' : 'text-gray-400'}`}>
+    <span className={`text-sm ${isUnlocked ? 'text-gray-700' : 'text-slate-500'}`}>
       {text}
     </span>
   </div>

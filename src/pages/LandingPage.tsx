@@ -464,7 +464,7 @@ const LandingPage = () => {
                     
                     {/* Icon */}
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20 border border-blue-400/20 flex items-center justify-center flex-shrink-0 shadow-[0_4px_20px_rgba(59,130,246,0.15)] group-hover:scale-110 group-hover:shadow-[0_4px_30px_rgba(59,130,246,0.25)] transition-all duration-300">
-                      <IconComp className="w-5 h-5 text-blue-400" />
+                      <IconComp className="w-5 h-5 text-blue-600" />
                     </div>
                     
                     {/* Content */}
@@ -475,7 +475,7 @@ const LandingPage = () => {
                     
                     {/* Badge */}
                     {item.badge_text && (
-                      <span className="px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-500/15 to-indigo-500/15 border border-blue-400/20 text-blue-300 text-xs font-bold flex-shrink-0 shadow-[0_2px_12px_rgba(59,130,246,0.1)]">
+                      <span className="px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-500/15 to-indigo-500/15 border border-blue-400/20 text-blue-700 text-xs font-bold flex-shrink-0 shadow-[0_2px_12px_rgba(59,130,246,0.1)]">
                         {item.badge_text}
                       </span>
                     )}
@@ -503,7 +503,7 @@ const LandingPage = () => {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <span className="text-xs font-bold uppercase tracking-[0.25em] text-pink-400/50 mb-4 block">Features</span>
+            <span className="text-xs font-bold uppercase tracking-[0.25em] text-pink-600/50 mb-4 block">Features</span>
             <h2 className="text-4xl md:text-6xl font-black mb-5 tracking-tight">
               Everything in{" "}
               <span className="bg-gradient-to-r from-pink-400 via-rose-400 to-purple-400 bg-clip-text text-transparent">One App</span>
@@ -531,7 +531,7 @@ const LandingPage = () => {
                     <IconComp className="w-7 h-7 text-white" />
                   </div>
                   <h3 className="text-lg font-bold mb-1.5 text-white/90 relative z-10">{feature.title}</h3>
-                  {feature.subtitle && <p className="text-xs text-pink-400/60 mb-2 relative z-10">{feature.subtitle}</p>}
+                  {feature.subtitle && <p className="text-xs text-pink-600/60 mb-2 relative z-10">{feature.subtitle}</p>}
                   <p className="text-sm text-white/35 leading-relaxed relative z-10">{feature.description}</p>
                 </motion.div>
               );
@@ -719,7 +719,7 @@ const LandingPage = () => {
                         {agency.logo_url ? (
                           <img src={agency.logo_url} alt={agency.name} className="w-full h-full rounded-xl object-cover" />
                         ) : (
-                          <Building2 className="w-6 h-6 text-amber-400" />
+                          <Building2 className="w-6 h-6 text-amber-600" />
                         )}
                       </div>
 
@@ -727,7 +727,7 @@ const LandingPage = () => {
                       <div className="flex-1 min-w-0">
                         <h4 className="text-white font-semibold text-sm truncate">{agency.country_flag && <span className="mr-1">{agency.country_flag}</span>}{agency.name}</h4>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 font-mono font-bold border border-amber-500/20">
+                          <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 font-mono font-bold border border-amber-500/20">
                             {agency.agency_code}
                           </span>
                           <span className="text-[11px] text-white/30">
@@ -739,7 +739,7 @@ const LandingPage = () => {
                       {/* Copy Button */}
                       <button
                         onClick={() => copyCode(agency.agency_code)}
-                        className="flex-shrink-0 px-3 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-400 text-xs font-semibold transition-all duration-200 flex items-center gap-1.5"
+                        className="flex-shrink-0 px-3 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-600 text-xs font-semibold transition-all duration-200 flex items-center gap-1.5"
                       >
                         {copiedCode === agency.agency_code ? (
                           <><Check className="w-3.5 h-3.5" /> Copied</>

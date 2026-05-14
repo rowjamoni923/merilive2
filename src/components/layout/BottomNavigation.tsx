@@ -305,7 +305,7 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
                   <Icon
                     className={cn(
                       "w-[22px] h-[22px] transition-all duration-300 relative z-10",
-                      isActive ? "text-pink-600" : "text-slate-400"
+                      isActive ? "text-pink-600" : "text-slate-500"
                     )}
                     strokeWidth={isActive ? 2.4 : 2}
                   />
@@ -319,7 +319,7 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
 
                 <span className={cn(
                   "text-[10px] font-semibold transition-all duration-300",
-                  isActive ? "text-pink-600" : "text-slate-400"
+                  isActive ? "text-pink-600" : "text-slate-500"
                 )}>
                   {item.label}
                 </span>
