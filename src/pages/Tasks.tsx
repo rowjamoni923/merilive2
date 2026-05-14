@@ -544,23 +544,23 @@ const Tasks = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-fuchsia-500 to-purple-600 flex items-center justify-center shadow-lg shadow-fuchsia-500/30">
-                    <Flame className="w-5 h-5 text-slate-800" />
+                    <Flame className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                    <h3 className="font-bold text-white text-sm flex items-center gap-1.5">
                       🔥 New Host Live Bonus
-                      <span className="text-[9px] bg-gradient-to-r from-amber-400 to-orange-500 px-1.5 py-0.5 rounded-full font-bold">
+                      <span className="text-[9px] bg-gradient-to-r from-amber-400 to-orange-500 px-1.5 py-0.5 rounded-full font-bold text-slate-900">
                         LIMITED
                       </span>
                     </h3>
-                    <p className="text-[11px] text-purple-300/70">
+                    <p className="text-[11px] text-purple-200/80">
                       {bonusDaysRemaining} day{bonusDaysRemaining !== 1 ? 's' : ''} remaining
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-amber-400 font-bold text-lg">{bonusSettings.beans_per_hour.toLocaleString()}</p>
-                  <p className="text-[10px] text-purple-300/60">beans/hour</p>
+                  <p className="text-amber-300 font-bold text-lg">{bonusSettings.beans_per_hour.toLocaleString()}</p>
+                  <p className="text-[10px] text-purple-200/70">beans/hour</p>
                 </div>
               </div>
             </div>
