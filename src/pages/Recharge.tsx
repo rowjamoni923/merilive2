@@ -2064,7 +2064,7 @@ const Recharge = () => {
                   <Diamond3DIcon size={24} />
                 </div>
                 <div>
-                  <p className="text-slate-500 text-[10px] font-medium">Your Balance</p>
+                  <p className="text-white/85 text-[10px] font-semibold uppercase tracking-wider">Your Balance</p>
                   <span className="text-xl font-bold text-white">
                     {formatNumber(currentBalance)}
                   </span>
