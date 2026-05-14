@@ -639,7 +639,7 @@ const AgencyDashboard = () => {
       });
       if (error) throw error;
       if (data) {
-        toast({ title: "✅ Host Approved", description: "Host has been added to your agency!" });
+        toast({ title: "Host Approved", description: "Host has been added to your agency!" });
         const approvedHost = pendingHosts.find(h => h.host_id === hostId);
         setPendingHosts(prev => prev.filter(h => h.host_id !== hostId));
         setHosts(prev => [...prev, { host_id: hostId, status: 'active', joined_at: new Date().toISOString(), id: '', profile: approvedHost?.profile }]);
@@ -694,12 +694,12 @@ const AgencyDashboard = () => {
 
   const copySubAgentLink = () => {
     navigator.clipboard.writeText(subAgentLink);
-    toast({ title: "✅ Link Copied", description: "Sub-agent referral link copied" });
+    toast({ title: "Link Copied", description: "Sub-agent referral link copied" });
   };
 
   const copyHostJoinLink = () => {
     navigator.clipboard.writeText(hostJoinLink);
-    toast({ title: "✅ Link Copied", description: "Host join link copied" });
+    toast({ title: "Link Copied", description: "Host join link copied" });
   };
 
   const shareSubAgentLink = async () => {
@@ -951,7 +951,7 @@ const AgencyDashboard = () => {
                   </div>
                   <div className="flex-1">
                     <p className="text-foreground text-xs font-bold">
-                      ⚠️ {daysRemaining} Days Remaining
+                      {daysRemaining} Days Remaining
                     </p>
                     <p className="text-muted-foreground text-[10px]">
                       Minimum 10 active hosts required within 30 days
@@ -966,7 +966,7 @@ const AgencyDashboard = () => {
                 <Progress value={progress} className="h-2 bg-white/70" />
                 <p className="text-muted-foreground text-[9px] mt-1.5 text-center">
                   {daysRemaining <= 5 
-                    ? '⛔ Agency will be auto-deactivated if target not met!'
+                    ? 'Agency will be auto-deactivated if target is not met'
                     : `Add ${10 - activeHostCount} more hosts to secure your agency`
                   }
                 </p>
@@ -987,7 +987,7 @@ const AgencyDashboard = () => {
               </div>
               <div>
                 <p className="font-bold text-amber-900 text-sm">
-                  🔔 {pendingHosts.length} Pending Host Request{pendingHosts.length > 1 ? 's' : ''}
+                  {pendingHosts.length} Pending Host Request{pendingHosts.length > 1 ? 's' : ''}
                 </p>
                 <p className="text-[10px] text-amber-700">Approve or reject host join requests</p>
               </div>
