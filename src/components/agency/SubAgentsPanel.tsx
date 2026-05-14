@@ -169,10 +169,10 @@ const SubAgentsPanel = ({ agencyId, agencyCode, isOpen, onClose }: SubAgentsPane
 
   const getLevelColor = (level: string) => {
     switch (level) {
-      case "A5": return "from-purple-500 to-pink-500";
-      case "A4": return "from-yellow-400 to-amber-500";
+      case "A5": return "from-brand-500 to-brand-500";
+      case "A4": return "from-warning-400 to-warning-500";
       case "A3": return "from-gray-300 to-gray-400";
-      case "A2": return "from-orange-400 to-red-400";
+      case "A2": return "from-warning-400 to-danger-400";
       case "A1": 
       default: return "from-slate-400 to-slate-500";
     }
@@ -186,7 +186,7 @@ const SubAgentsPanel = ({ agencyId, agencyCode, isOpen, onClose }: SubAgentsPane
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-brand-500 to-brand-500 rounded-xl flex items-center justify-center">
               <Users className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -200,7 +200,7 @@ const SubAgentsPanel = ({ agencyId, agencyCode, isOpen, onClose }: SubAgentsPane
         </div>
 
         {/* Share Link Section */}
-        <div className="p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border-b border-border">
+        <div className="p-4 bg-gradient-to-r from-brand-500/10 to-brand-500/10 border-b border-border">
           <p className="text-sm font-medium mb-2 flex items-center gap-2">
             <UserPlus className="w-4 h-4" />
             Recruit New Sub-Agents
@@ -220,7 +220,7 @@ const SubAgentsPanel = ({ agencyId, agencyCode, isOpen, onClose }: SubAgentsPane
             <Button 
               size="sm"
               onClick={shareReferralLink}
-              className="shrink-0 bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+              className="shrink-0 bg-gradient-to-r from-brand-500 to-brand-500 text-white"
             >
               <Share2 className="w-4 h-4" />
             </Button>
@@ -242,7 +242,7 @@ const SubAgentsPanel = ({ agencyId, agencyCode, isOpen, onClose }: SubAgentsPane
               <p className="text-sm text-muted-foreground mb-4">
                 Share your referral link to recruit sub-agents
               </p>
-              <Button onClick={shareReferralLink} className="bg-gradient-to-r from-purple-500 to-pink-500">
+              <Button onClick={shareReferralLink} className="bg-gradient-to-r from-brand-500 to-brand-500">
                 <Share2 className="w-4 h-4 mr-2" />
                 Share Referral Link
               </Button>

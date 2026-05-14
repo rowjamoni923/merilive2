@@ -459,7 +459,7 @@ const AgencyCoinTrader = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-background">
       {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r from-emerald-600 to-teal-600 text-white safe-area-top">
+      <header className="flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r from-success-600 to-success-600 text-white safe-area-top">
         <div className="px-4 py-3 flex items-center gap-3">
           <Button variant="ghost" size="icon" className="text-slate-800 hover:bg-white/20" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-5 h-5" />
@@ -475,7 +475,7 @@ const AgencyCoinTrader = () => {
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
         <main className="px-4 py-4 space-y-4">
         {/* Trader Wallet — unified diamond pool (helper + agency) */}
-        <Card className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white border-0">
+        <Card className="bg-gradient-to-br from-success-500 to-success-600 text-white border-0">
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
@@ -496,24 +496,24 @@ const AgencyCoinTrader = () => {
 
         {/* Trade Rates */}
         <div className="grid grid-cols-2 gap-3">
-          <Card className="bg-blue-50 border-blue-200">
+          <Card className="bg-info-50 border-info-200">
             <CardContent className="p-3">
               <div className="flex items-center gap-2 mb-1">
-                <ShoppingCart className="w-4 h-4 text-blue-600" />
-                <span className="text-xs text-blue-600 font-medium">Buy Rate</span>
+                <ShoppingCart className="w-4 h-4 text-info-600" />
+                <span className="text-xs text-info-600 font-medium">Buy Rate</span>
               </div>
-              <p className="text-lg font-bold text-blue-700">{tradeSettings.buy_rate.toLocaleString()}</p>
-              <p className="text-xs text-blue-500">Diamonds / $1</p>
+              <p className="text-lg font-bold text-info-700">{tradeSettings.buy_rate.toLocaleString()}</p>
+              <p className="text-xs text-info-500">Diamonds / $1</p>
             </CardContent>
           </Card>
-          <Card className="bg-green-50 border-green-200">
+          <Card className="bg-success-50 border-success-200">
             <CardContent className="p-3">
               <div className="flex items-center gap-2 mb-1">
-                <Banknote className="w-4 h-4 text-green-600" />
-                <span className="text-xs text-green-600 font-medium">Sell Rate</span>
+                <Banknote className="w-4 h-4 text-success-600" />
+                <span className="text-xs text-success-600 font-medium">Sell Rate</span>
               </div>
-              <p className="text-lg font-bold text-green-700">{tradeSettings.sell_rate.toLocaleString()}</p>
-              <p className="text-xs text-green-500">Diamonds / $1</p>
+              <p className="text-lg font-bold text-success-700">{tradeSettings.sell_rate.toLocaleString()}</p>
+              <p className="text-xs text-success-500">Diamonds / $1</p>
             </CardContent>
           </Card>
         </div>
@@ -533,19 +533,19 @@ const AgencyCoinTrader = () => {
             </TabsList>
 
             <TabsContent value="buy" className="p-4 space-y-4">
-              <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg p-4 text-sm text-emerald-800 border border-emerald-200">
+              <div className="bg-gradient-to-r from-success-50 to-success-50 rounded-lg p-4 text-sm text-success-800 border border-success-200">
                 <div className="flex items-center gap-2 mb-2">
-                  <Coins className="w-5 h-5 text-emerald-600" />
+                  <Coins className="w-5 h-5 text-success-600" />
                   <span className="font-semibold">Official Diamond Purchase</span>
                 </div>
-                <p className="text-emerald-600">Add diamonds to your agency wallet. Pay via ePay or Binance.</p>
+                <p className="text-success-600">Add diamonds to your agency wallet. Pay via ePay or Binance.</p>
               </div>
 
               {/* Diamond Purchase Input */}
               <div className="space-y-3">
                 <Label className="text-base font-semibold">How many diamonds do you want to buy?</Label>
                 <div className="relative">
-                  <Coins className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-amber-500" />
+                  <Coins className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-warning-500" />
                   <Input
                     type="number"
                     placeholder="e.g. 100000"
@@ -573,37 +573,37 @@ const AgencyCoinTrader = () => {
 
               {/* Price Calculator */}
               {buyCoinsAmount && parseFloat(buyCoinsAmount) > 0 && (
-                <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">
+                <Card className="bg-gradient-to-br from-warning-50 to-warning-50 border-warning-200">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm text-amber-700 font-medium">Price Calculation</span>
-                      <Badge className="bg-amber-100 text-amber-800 border-amber-300">
+                      <span className="text-sm text-warning-700 font-medium">Price Calculation</span>
+                      <Badge className="bg-warning-100 text-warning-800 border-warning-300">
                         {tradeSettings.buy_rate.toLocaleString()} Diamonds/$1
                       </Badge>
                     </div>
                     
                     <div className="space-y-2">
-                      <div className="flex justify-between items-center py-2 border-b border-amber-200">
-                        <span className="text-amber-600">Diamond Amount:</span>
-                        <span className="font-bold text-lg text-amber-800">
+                      <div className="flex justify-between items-center py-2 border-b border-warning-200">
+                        <span className="text-warning-600">Diamond Amount:</span>
+                        <span className="font-bold text-lg text-warning-800">
                           {parseFloat(buyCoinsAmount).toLocaleString()} <span className="text-sm">Diamonds</span>
                         </span>
                       </div>
                       
-                      <div className="flex justify-between items-center py-2 border-b border-amber-200">
-                        <span className="text-amber-600">Rate per 100K:</span>
-                        <span className="font-semibold text-amber-700">
+                      <div className="flex justify-between items-center py-2 border-b border-warning-200">
+                        <span className="text-warning-600">Rate per 100K:</span>
+                        <span className="font-semibold text-warning-700">
                           ${((100000 / tradeSettings.buy_rate)).toFixed(2)} / 100K
                         </span>
                       </div>
                       
                       <div className="flex justify-between items-center pt-2">
-                        <span className="text-amber-700 font-medium">Total Payment:</span>
+                        <span className="text-warning-700 font-medium">Total Payment:</span>
                         <div className="text-right">
-                          <p className="font-bold text-2xl text-green-600">
+                          <p className="font-bold text-2xl text-success-600">
                             ${(parseFloat(buyCoinsAmount) / tradeSettings.buy_rate).toFixed(2)}
                           </p>
-                          <p className="text-xs text-amber-600">USD</p>
+                          <p className="text-xs text-warning-600">USD</p>
                         </div>
                       </div>
                     </div>
@@ -615,7 +615,7 @@ const AgencyCoinTrader = () => {
               {buyCoinsAmount && parseFloat(buyCoinsAmount) >= tradeSettings.min_trade_amount && (
                 <div className="space-y-3">
                   <Label className="text-base font-semibold flex items-center gap-2">
-                    <Banknote className="w-5 h-5 text-green-600" />
+                    <Banknote className="w-5 h-5 text-success-600" />
                     Select Payment Method
                   </Label>
                   
@@ -625,15 +625,15 @@ const AgencyCoinTrader = () => {
                       onClick={() => setSelectedPaymentMethod('epay')}
                       className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
                         selectedPaymentMethod === 'epay' 
-                          ? 'border-purple-500 bg-purple-50' 
-                          : 'border-muted hover:border-purple-300'
+                          ? 'border-brand-500 bg-brand-50' 
+                          : 'border-muted hover:border-brand-300'
                       }`}
                     >
                       <div className="text-center">
                         <div className={`w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center ${
-                          selectedPaymentMethod === 'epay' ? 'bg-purple-500' : 'bg-purple-100'
+                          selectedPaymentMethod === 'epay' ? 'bg-brand-500' : 'bg-brand-100'
                         }`}>
-                          <span className={`text-xl font-bold ${selectedPaymentMethod === 'epay' ? 'text-slate-800' : 'text-purple-600'}`}>e</span>
+                          <span className={`text-xl font-bold ${selectedPaymentMethod === 'epay' ? 'text-slate-800' : 'text-brand-600'}`}>e</span>
                         </div>
                         <p className="font-semibold text-sm">ePay</p>
                         <p className="text-xs text-muted-foreground">E-Payment</p>
@@ -645,15 +645,15 @@ const AgencyCoinTrader = () => {
                       onClick={() => setSelectedPaymentMethod('binance')}
                       className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
                         selectedPaymentMethod === 'binance' 
-                          ? 'border-yellow-500 bg-yellow-50' 
-                          : 'border-muted hover:border-yellow-300'
+                          ? 'border-warning-500 bg-warning-50' 
+                          : 'border-muted hover:border-warning-300'
                       }`}
                     >
                       <div className="text-center">
                         <div className={`w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center ${
-                          selectedPaymentMethod === 'binance' ? 'bg-yellow-500' : 'bg-yellow-100'
+                          selectedPaymentMethod === 'binance' ? 'bg-warning-500' : 'bg-warning-100'
                         }`}>
-                          <span className={`text-xl font-bold ${selectedPaymentMethod === 'binance' ? 'text-slate-800' : 'text-yellow-600'}`}>₿</span>
+                          <span className={`text-xl font-bold ${selectedPaymentMethod === 'binance' ? 'text-slate-800' : 'text-warning-600'}`}>₿</span>
                         </div>
                         <p className="font-semibold text-sm">Binance</p>
                         <p className="text-xs text-muted-foreground">Crypto</p>
@@ -664,17 +664,17 @@ const AgencyCoinTrader = () => {
                   {/* Payment Info */}
                   {selectedPaymentMethod && (
                     <Card className={`${
-                      selectedPaymentMethod === 'epay' ? 'bg-purple-50 border-purple-200' : 'bg-yellow-50 border-yellow-200'
+                      selectedPaymentMethod === 'epay' ? 'bg-brand-50 border-brand-200' : 'bg-warning-50 border-warning-200'
                     }`}>
                       <CardContent className="p-4">
                         <div className="text-center mb-3">
-                          <p className={`font-medium ${selectedPaymentMethod === 'epay' ? 'text-purple-700' : 'text-yellow-700'}`}>
+                          <p className={`font-medium ${selectedPaymentMethod === 'epay' ? 'text-brand-700' : 'text-warning-700'}`}>
                             {selectedPaymentMethod === 'epay' ? 'ePay Payment Details' : 'Binance Pay Details'}
                           </p>
                         </div>
                         
                         <div className={`p-3 rounded-lg mb-3 ${
-                          selectedPaymentMethod === 'epay' ? 'bg-purple-100' : 'bg-yellow-100'
+                          selectedPaymentMethod === 'epay' ? 'bg-brand-100' : 'bg-warning-100'
                         }`}>
                           <p className="text-xs text-muted-foreground mb-1">Make payment to this ID:</p>
                           <p className="font-mono font-bold text-lg">
@@ -689,7 +689,7 @@ const AgencyCoinTrader = () => {
                           </div>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Coins you'll get:</span>
-                            <span className="font-bold text-amber-600">{parseFloat(buyCoinsAmount).toLocaleString()}</span>
+                            <span className="font-bold text-warning-600">{parseFloat(buyCoinsAmount).toLocaleString()}</span>
                           </div>
                         </div>
                         
@@ -706,9 +706,9 @@ const AgencyCoinTrader = () => {
                   <Button
                     className={`w-full h-12 text-base ${
                       selectedPaymentMethod === 'epay' 
-                        ? 'bg-purple-600 hover:bg-purple-700' 
+                        ? 'bg-brand-600 hover:bg-brand-700' 
                         : selectedPaymentMethod === 'binance'
-                        ? 'bg-yellow-500 hover:bg-yellow-600 text-black'
+                        ? 'bg-warning-500 hover:bg-warning-600 text-black'
                         : ''
                     }`}
                     onClick={() => setShowBuyConfirmDialog(true)}
@@ -722,7 +722,7 @@ const AgencyCoinTrader = () => {
 
               {/* Minimum Amount Notice */}
               {buyCoinsAmount && parseFloat(buyCoinsAmount) > 0 && parseFloat(buyCoinsAmount) < tradeSettings.min_trade_amount && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-600 flex items-center gap-2">
+                <div className="bg-danger-50 border border-danger-200 rounded-lg p-3 text-sm text-danger-600 flex items-center gap-2">
                   <AlertCircle className="w-4 h-4" />
                   Minimum {tradeSettings.min_trade_amount.toLocaleString()} coins required
                 </div>
@@ -730,7 +730,7 @@ const AgencyCoinTrader = () => {
             </TabsContent>
 
             <TabsContent value="sell" className="p-4 space-y-4">
-              <div className="bg-green-50 rounded-lg p-3 text-sm text-green-700">
+              <div className="bg-success-50 rounded-lg p-3 text-sm text-success-700">
                 <TrendingUp className="w-4 h-4 inline mr-2" />
                 Sell coins to users and receive payment
               </div>
@@ -819,14 +819,14 @@ const AgencyCoinTrader = () => {
                     Trader Wallet: {((agency?.diamond_balance || 0) + (helperData?.wallet_balance || 0)).toLocaleString()}
                   </p>
                   {tradeAmount && (
-                    <div className="bg-green-50 rounded-lg p-3">
+                    <div className="bg-success-50 rounded-lg p-3">
                       <div className="flex justify-between text-sm">
                         <span>Coins:</span>
                         <span className="font-bold">{parseFloat(tradeAmount).toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between text-sm mt-1">
                         <span>Dollar Value:</span>
-                        <span className="font-bold text-green-600">${tradeCalc.dollars.toFixed(2)}</span>
+                        <span className="font-bold text-success-600">${tradeCalc.dollars.toFixed(2)}</span>
                       </div>
                     </div>
                   )}
@@ -836,7 +836,7 @@ const AgencyCoinTrader = () => {
               {/* Sell Button */}
               {selectedUser && (
                 <Button
-                  className="w-full bg-green-600 hover:bg-green-700"
+                  className="w-full bg-success-600 hover:bg-success-700"
                   onClick={() => {
                     if (!hasLevel1Helper) {
                       setShowHelperUpgradeDialog(true);
@@ -877,12 +877,12 @@ const AgencyCoinTrader = () => {
                   >
                     <div className="flex items-center gap-3">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                        trade.sender_type === 'agency_buy' ? 'bg-blue-100' : 'bg-green-100'
+                        trade.sender_type === 'agency_buy' ? 'bg-info-100' : 'bg-success-100'
                       }`}>
                         {trade.sender_type === 'agency_buy' ? (
-                          <ArrowDownRight className="w-5 h-5 text-blue-600" />
+                          <ArrowDownRight className="w-5 h-5 text-info-600" />
                         ) : (
-                          <ArrowUpRight className="w-5 h-5 text-green-600" />
+                          <ArrowUpRight className="w-5 h-5 text-success-600" />
                         )}
                       </div>
                       <div>
@@ -895,7 +895,7 @@ const AgencyCoinTrader = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className={`font-bold ${trade.sender_type === 'agency_buy' ? 'text-blue-600' : 'text-green-600'}`}>
+                      <p className={`font-bold ${trade.sender_type === 'agency_buy' ? 'text-info-600' : 'text-success-600'}`}>
                         {trade.sender_type === 'agency_buy' ? '+' : '-'}{trade.amount.toLocaleString()}
                       </p>
                       <p className="text-xs text-muted-foreground">Diamonds</p>
@@ -938,11 +938,11 @@ const AgencyCoinTrader = () => {
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Dollar Value:</span>
-              <span className="font-bold text-green-600">${tradeCalc.dollars.toFixed(2)}</span>
+              <span className="font-bold text-success-600">${tradeCalc.dollars.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Type:</span>
-              <Badge className={activeTab === "buy" ? "bg-blue-100 text-blue-700" : "bg-green-100 text-green-700"}>
+              <Badge className={activeTab === "buy" ? "bg-info-100 text-info-700" : "bg-success-100 text-success-700"}>
                 {activeTab === "buy" ? "Buy" : "Sell"}
               </Badge>
             </div>
@@ -965,7 +965,7 @@ const AgencyCoinTrader = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <ShoppingCart className="w-5 h-5 text-emerald-600" />
+              <ShoppingCart className="w-5 h-5 text-success-600" />
               Confirm Diamond Order
             </DialogTitle>
             <DialogDescription>
@@ -973,34 +973,34 @@ const AgencyCoinTrader = () => {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-lg p-4 space-y-3">
-            <div className="flex justify-between items-center pb-3 border-b border-emerald-200">
-              <span className="text-emerald-700">Diamond Amount:</span>
-              <span className="font-bold text-lg text-emerald-800">
+          <div className="bg-gradient-to-br from-success-50 to-success-50 rounded-lg p-4 space-y-3">
+            <div className="flex justify-between items-center pb-3 border-b border-success-200">
+              <span className="text-success-700">Diamond Amount:</span>
+              <span className="font-bold text-lg text-success-800">
                 {parseFloat(buyCoinsAmount || '0').toLocaleString()} Diamonds
               </span>
             </div>
             
             <div className="flex justify-between items-center">
-              <span className="text-emerald-700">Payment Method:</span>
+              <span className="text-success-700">Payment Method:</span>
               <Badge className={`${
                 selectedPaymentMethod === 'epay' 
-                  ? 'bg-purple-100 text-purple-700' 
-                  : 'bg-yellow-100 text-yellow-700'
+                  ? 'bg-brand-100 text-brand-700' 
+                  : 'bg-warning-100 text-warning-700'
               }`}>
                 {selectedPaymentMethod === 'epay' ? 'ePay' : 'Binance Pay'}
               </Badge>
             </div>
             
-            <div className="flex justify-between items-center pt-2 border-t border-emerald-200">
-              <span className="text-emerald-700 font-medium">Total Payment:</span>
-              <span className="font-bold text-xl text-green-600">
+            <div className="flex justify-between items-center pt-2 border-t border-success-200">
+              <span className="text-success-700 font-medium">Total Payment:</span>
+              <span className="font-bold text-xl text-success-600">
                 ${(parseFloat(buyCoinsAmount || '0') / tradeSettings.buy_rate).toFixed(2)}
               </span>
             </div>
           </div>
           
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-700">
+          <div className="bg-warning-50 border border-warning-200 rounded-lg p-3 text-sm text-warning-700">
             <p className="font-medium mb-1">Important:</p>
             <ul className="list-disc list-inside space-y-1 text-xs">
               <li>Send the exact amount to the payment ID</li>
@@ -1018,8 +1018,8 @@ const AgencyCoinTrader = () => {
               disabled={isBuyProcessing}
               className={`${
                 selectedPaymentMethod === 'epay' 
-                  ? 'bg-purple-600 hover:bg-purple-700' 
-                  : 'bg-yellow-500 hover:bg-yellow-600 text-black'
+                  ? 'bg-brand-600 hover:bg-brand-700' 
+                  : 'bg-warning-500 hover:bg-warning-600 text-black'
               }`}
             >
               {isBuyProcessing && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
@@ -1033,7 +1033,7 @@ const AgencyCoinTrader = () => {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-amber-500" />
+              <AlertCircle className="w-5 h-5 text-warning-500" />
               Upgrade Required
             </DialogTitle>
             <DialogDescription>
@@ -1041,11 +1041,11 @@ const AgencyCoinTrader = () => {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="rounded-xl border border-amber-300/40 bg-gradient-to-br from-amber-50 to-orange-50 p-4 space-y-2">
-            <p className="text-sm font-semibold text-amber-800">
+          <div className="rounded-xl border border-warning-300/40 bg-gradient-to-br from-warning-50 to-warning-50 p-4 space-y-2">
+            <p className="text-sm font-semibold text-warning-800">
               Become a Level 1 Helper
             </p>
-            <p className="text-xs text-amber-700/80 leading-relaxed">
+            <p className="text-xs text-warning-700/80 leading-relaxed">
               Your Trader Wallet is automatically created with your agency, but to use it for recharging users you must first take the Helper Section. Once your Level 1 Helper application is approved, the Trader Wallet will be fully unlocked.
             </p>
           </div>
@@ -1055,7 +1055,7 @@ const AgencyCoinTrader = () => {
               Cancel
             </Button>
             <Button
-              className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
+              className="bg-gradient-to-r from-warning-500 to-warning-500 hover:from-warning-600 hover:to-warning-600 text-white"
               onClick={() => {
                 setShowHelperUpgradeDialog(false);
                 navigate('/agency-dashboard?openHelper=1');

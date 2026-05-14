@@ -359,7 +359,7 @@ const AgencySignup = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-white/90">
       {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-purple-600 to-indigo-600 text-white safe-area-top">
+      <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-brand-600 to-info-600 text-white safe-area-top">
         <div className="flex items-center h-14 px-4">
           <button onClick={() => navigate(-1)} className="p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors">
             <ArrowLeft className="w-5 h-5" />
@@ -371,7 +371,7 @@ const AgencySignup = () => {
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
         {/* Hero */}
-        <div className="mx-4 mt-4 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl p-6 text-white">
+        <div className="mx-4 mt-4 bg-gradient-to-br from-brand-600 to-info-600 rounded-2xl p-6 text-white">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
               <Building2 className="w-6 h-6" />
@@ -384,32 +384,32 @@ const AgencySignup = () => {
         </div>
 
         {/* Form */}
-        <div className="mx-4 mt-4 bg-white/90 rounded-2xl p-5 shadow-sm border border-amber-200/60 space-y-6">
+        <div className="mx-4 mt-4 bg-white/90 rounded-2xl p-5 shadow-sm border border-warning-200/60 space-y-6">
           
           {/* Agency Name */}
           <div className="space-y-3">
             <Label className="text-sm font-semibold flex items-center gap-2 text-slate-800">
-              <Building2 className="w-4 h-4 text-purple-400" />
-              Agency Name <span className="text-red-400">*</span>
+              <Building2 className="w-4 h-4 text-brand-400" />
+              Agency Name <span className="text-danger-400">*</span>
             </Label>
             <Input placeholder="Enter your agency name" value={formData.agencyName}
               onChange={(e) => setFormData(prev => ({ ...prev, agencyName: e.target.value }))}
-              className={`bg-white/80 border-slate-600 text-slate-800 placeholder:text-slate-400 ${formData.agencyName.trim() === "" ? '' : 'border-green-500 focus:border-green-400'}`} />
+              className={`bg-white/80 border-slate-600 text-slate-800 placeholder:text-slate-400 ${formData.agencyName.trim() === "" ? '' : 'border-success-500 focus:border-success-400'}`} />
             {formData.agencyName.trim() !== "" && (
-              <div className="flex items-center gap-1 text-green-600">
+              <div className="flex items-center gap-1 text-success-600">
                 <CheckCircle2 className="w-4 h-4" />
                 <span className="text-xs">Agency name is valid</span>
               </div>
             )}
           </div>
 
-          <div className="border-t border-amber-200/60" />
+          <div className="border-t border-warning-200/60" />
 
           {/* App UID */}
           <div className="space-y-3">
             <Label className="text-sm font-semibold flex items-center gap-2 text-slate-800">
-              <User className="w-4 h-4 text-purple-400" />
-              App UID <span className="text-red-400">*</span>
+              <User className="w-4 h-4 text-brand-400" />
+              App UID <span className="text-danger-400">*</span>
             </Label>
             <div className="flex items-center gap-2">
               <Input placeholder="LV1234567890" value={formData.userId}
@@ -421,23 +421,23 @@ const AgencySignup = () => {
             </div>
 
             {foundUser && (
-              <div className="p-3 bg-green-900/30 border border-green-700/50 rounded-xl">
+              <div className="p-3 bg-success-900/30 border border-success-700/50 rounded-xl">
                 <div className="flex items-center gap-3">
-                  <Avatar className="w-10 h-10 border-2 border-green-300">
+                  <Avatar className="w-10 h-10 border-2 border-success-300">
                     <AvatarImage src={foundUser.avatar_url || undefined} />
-                    <AvatarFallback className="bg-green-800 text-green-300">{foundUser.display_name?.charAt(0) || "U"}</AvatarFallback>
+                    <AvatarFallback className="bg-success-800 text-success-300">{foundUser.display_name?.charAt(0) || "U"}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <p className="font-semibold text-green-300">{foundUser.display_name || "Unknown User"}</p>
-                    <p className="text-xs text-green-400">{foundUser.app_uid}</p>
+                    <p className="font-semibold text-success-300">{foundUser.display_name || "Unknown User"}</p>
+                    <p className="text-xs text-success-400">{foundUser.app_uid}</p>
                   </div>
-                  {emailVerified ? <Badge className="bg-green-500 text-slate-800">✓ Verified</Badge> : <CheckCircle2 className="w-5 h-5 text-green-500" />}
+                  {emailVerified ? <Badge className="bg-success-500 text-slate-800">✓ Verified</Badge> : <CheckCircle2 className="w-5 h-5 text-success-500" />}
                 </div>
               </div>
             )}
 
             {userNotFound && (
-              <div className="p-3 bg-red-900/30 border border-red-700/50 rounded-xl flex items-center gap-2 text-red-400">
+              <div className="p-3 bg-danger-900/30 border border-danger-700/50 rounded-xl flex items-center gap-2 text-danger-400">
                 <AlertCircle className="w-5 h-5" />
                 <span className="text-sm">User not found or not eligible for agency</span>
               </div>
@@ -447,22 +447,22 @@ const AgencySignup = () => {
           {/* In-App Notification OTP (shown after user found) */}
           {foundUser && !appVerified && (
             <>
-              <div className="border-t border-amber-200/60" />
+              <div className="border-t border-warning-200/60" />
               <div className="space-y-3">
                 <Label className="text-sm font-semibold flex items-center gap-2 text-slate-800">
-                  <MessageCircle className="w-4 h-4 text-orange-400" />
+                  <MessageCircle className="w-4 h-4 text-warning-400" />
                   App Notification OTP <span className="text-slate-500 text-xs">(Optional)</span>
                 </Label>
-                <div className="p-4 bg-orange-900/30 rounded-xl space-y-3 border border-orange-700/30">
+                <div className="p-4 bg-warning-900/30 rounded-xl space-y-3 border border-warning-700/30">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-orange-300">Send OTP to App</span>
+                    <span className="text-sm font-medium text-warning-300">Send OTP to App</span>
                     {!appOtpSent ? (
-                      <Button size="sm" onClick={sendAppOtp} disabled={sendingAppOtp} className="bg-orange-600 hover:bg-orange-700">
+                      <Button size="sm" onClick={sendAppOtp} disabled={sendingAppOtp} className="bg-warning-600 hover:bg-warning-700">
                         {sendingAppOtp ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Send className="w-4 h-4 mr-1" />}
                         Send to App
                       </Button>
                     ) : (
-                      <Badge className={`cursor-pointer ${appOtpTimer > 0 ? 'bg-green-500' : 'bg-red-500'}`}
+                      <Badge className={`cursor-pointer ${appOtpTimer > 0 ? 'bg-success-500' : 'bg-danger-500'}`}
                         onClick={() => { if (appOtpTimer <= 0) { setAppOtpSent(false); setAppOtp(""); } }}>
                         <Timer className="w-3 h-3 mr-1" />
                         {appOtpTimer > 0 ? `${Math.floor(appOtpTimer / 60)}:${(appOtpTimer % 60).toString().padStart(2, '0')}` : 'Resend'}
@@ -471,8 +471,8 @@ const AgencySignup = () => {
                   </div>
                   {appOtpSent && (
                     <>
-                      <div className="p-3 bg-orange-900/40 rounded-lg border border-orange-700/50">
-                        <p className="text-xs text-orange-300 flex items-center gap-1">
+                      <div className="p-3 bg-warning-900/40 rounded-lg border border-warning-700/50">
+                        <p className="text-xs text-warning-300 flex items-center gap-1">
                           <MessageCircle className="w-3 h-3" />
                           OTP sent to {foundUser.display_name || 'user'}'s in-app notifications
                         </p>
@@ -485,7 +485,7 @@ const AgencySignup = () => {
                             ))}
                           </InputOTPGroup>
                         </InputOTP>
-                        <Button size="sm" onClick={verifyAppOtp} disabled={appOtp.length !== 6 || appOtpTimer <= 0 || verifyingAppOtp} className="bg-orange-600 hover:bg-orange-700">
+                        <Button size="sm" onClick={verifyAppOtp} disabled={appOtp.length !== 6 || appOtpTimer <= 0 || verifyingAppOtp} className="bg-warning-600 hover:bg-warning-700">
                           {verifyingAppOtp ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify"}
                         </Button>
                       </div>
@@ -497,31 +497,31 @@ const AgencySignup = () => {
           )}
 
           {foundUser && appVerified && (
-            <div className="p-3 bg-green-900/30 rounded-xl flex items-center gap-3 text-green-300 border border-green-700/50">
-              <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+            <div className="p-3 bg-success-900/30 rounded-xl flex items-center gap-3 text-success-300 border border-success-700/50">
+              <div className="w-8 h-8 bg-success-500 rounded-full flex items-center justify-center">
                 <CheckCircle2 className="w-5 h-5 text-slate-800" />
               </div>
               <div>
                 <p className="font-semibold text-sm">App OTP Verified ✓</p>
-                <p className="text-xs text-green-400">In-app notification verified</p>
+                <p className="text-xs text-success-400">In-app notification verified</p>
               </div>
             </div>
           )}
 
           {foundUser && (
             <>
-              <div className="border-t border-amber-200/60" />
+              <div className="border-t border-warning-200/60" />
               <div className="space-y-3">
                 <Label className="text-sm font-semibold flex items-center gap-2 text-slate-800">
-                  <Phone className="w-4 h-4 text-cyan-400" />
+                  <Phone className="w-4 h-4 text-info-400" />
                   Phone Number <span className="text-slate-500 text-xs">(Optional)</span>
                 </Label>
                 <Input type="tel" placeholder="+880 1XXXXXXXXX" value={formData.phone}
                   onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                  className={`bg-white/80 border-slate-600 text-slate-800 placeholder:text-slate-400 ${formData.phone && !isValidPhone(formData.phone) ? 'border-red-500' : formData.phone && isValidPhone(formData.phone) ? 'border-green-500' : ''}`} />
-                {formData.phone && !isValidPhone(formData.phone) && <p className="text-xs text-red-500">Enter a valid phone number (10-15 digits)</p>}
+                  className={`bg-white/80 border-slate-600 text-slate-800 placeholder:text-slate-400 ${formData.phone && !isValidPhone(formData.phone) ? 'border-danger-500' : formData.phone && isValidPhone(formData.phone) ? 'border-success-500' : ''}`} />
+                {formData.phone && !isValidPhone(formData.phone) && <p className="text-xs text-danger-500">Enter a valid phone number (10-15 digits)</p>}
                 {formData.phone && isValidPhone(formData.phone) && (
-                  <div className="flex items-center gap-1 text-green-600">
+                  <div className="flex items-center gap-1 text-success-600">
                     <CheckCircle2 className="w-4 h-4" />
                     <span className="text-xs">Phone number is valid</span>
                   </div>
@@ -533,35 +533,35 @@ const AgencySignup = () => {
           {/* Email (mandatory, with OTP verification) */}
           {foundUser && (
             <>
-              <div className="border-t border-amber-200/60" />
+              <div className="border-t border-warning-200/60" />
               <div className="space-y-3">
                 <Label className="text-sm font-semibold flex items-center gap-2 text-slate-800">
-                  <Mail className="w-4 h-4 text-blue-400" />
-                  Email Address <span className="text-red-400">*</span>
+                  <Mail className="w-4 h-4 text-info-400" />
+                  Email Address <span className="text-danger-400">*</span>
                 </Label>
                 <div className="flex items-center gap-2">
                   <Input type="email" placeholder="example@gmail.com" value={formData.email}
                     onChange={(e) => { setFormData(prev => ({ ...prev, email: e.target.value })); setEmailVerified(false); setEmailOtpSent(false); setEmailOtp(""); }}
-                    className={`flex-1 bg-white/80 border-slate-600 text-slate-800 placeholder:text-slate-400 ${formData.email && !isValidEmail(formData.email) ? 'border-red-500' : emailVerified ? 'border-green-500' : ''}`}
+                    className={`flex-1 bg-white/80 border-slate-600 text-slate-800 placeholder:text-slate-400 ${formData.email && !isValidEmail(formData.email) ? 'border-danger-500' : emailVerified ? 'border-success-500' : ''}`}
                     disabled={emailVerified} />
                 </div>
-                {formData.email && !isValidEmail(formData.email) && <p className="text-xs text-red-500">Enter a valid email address</p>}
+                {formData.email && !isValidEmail(formData.email) && <p className="text-xs text-danger-500">Enter a valid email address</p>}
 
                 {/* Email OTP Section */}
                 {formData.email && isValidEmail(formData.email) && !emailVerified && (
-                  <div className="p-4 bg-blue-900/30 rounded-xl space-y-3 border border-blue-700/30">
+                  <div className="p-4 bg-info-900/30 rounded-xl space-y-3 border border-info-700/30">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Mail className="w-4 h-4 text-blue-400" />
-                        <span className="text-sm font-medium text-blue-300">Email OTP Verification</span>
+                        <Mail className="w-4 h-4 text-info-400" />
+                        <span className="text-sm font-medium text-info-300">Email OTP Verification</span>
                       </div>
                       {!emailOtpSent ? (
-                        <Button size="sm" onClick={sendEmailOtp} disabled={sendingEmailOtp} className="bg-blue-600 hover:bg-blue-700">
+                        <Button size="sm" onClick={sendEmailOtp} disabled={sendingEmailOtp} className="bg-info-600 hover:bg-info-700">
                           {sendingEmailOtp ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Send className="w-4 h-4 mr-1" />}
                           Send Code
                         </Button>
                       ) : (
-                        <Badge className={`cursor-pointer ${emailOtpTimer > 0 ? 'bg-green-500' : 'bg-red-500'}`}
+                        <Badge className={`cursor-pointer ${emailOtpTimer > 0 ? 'bg-success-500' : 'bg-danger-500'}`}
                           onClick={() => { if (emailOtpTimer <= 0) { setEmailOtpSent(false); setEmailOtp(""); } }}>
                           <Timer className="w-3 h-3 mr-1" />
                           {emailOtpTimer > 0 ? `${Math.floor(emailOtpTimer / 60)}:${(emailOtpTimer % 60).toString().padStart(2, '0')}` : 'Resend'}
@@ -570,8 +570,8 @@ const AgencySignup = () => {
                     </div>
                     {emailOtpSent && (
                       <>
-                        <div className="p-3 bg-blue-900/40 rounded-lg border border-blue-700/50">
-                          <p className="text-xs text-blue-300 flex items-center gap-1">
+                        <div className="p-3 bg-info-900/40 rounded-lg border border-info-700/50">
+                          <p className="text-xs text-info-300 flex items-center gap-1">
                             <Mail className="w-3 h-3" />
                             A 6-digit code has been sent to your email. Check your inbox/spam folder.
                           </p>
@@ -587,7 +587,7 @@ const AgencySignup = () => {
                               <InputOTPSlot index={5} className="bg-white/80 text-slate-800 border-slate-600" />
                             </InputOTPGroup>
                           </InputOTP>
-                          <Button size="sm" onClick={verifyEmailOtp} disabled={emailOtp.length !== 6 || emailOtpTimer <= 0 || verifyingEmailOtp} className="bg-blue-600 hover:bg-blue-700">
+                          <Button size="sm" onClick={verifyEmailOtp} disabled={emailOtp.length !== 6 || emailOtpTimer <= 0 || verifyingEmailOtp} className="bg-info-600 hover:bg-info-700">
                             {verifyingEmailOtp ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify"}
                           </Button>
                         </div>
@@ -597,13 +597,13 @@ const AgencySignup = () => {
                 )}
 
                 {emailVerified && (
-                  <div className="p-3 bg-green-900/30 rounded-xl flex items-center gap-3 text-green-300 border border-green-700/50">
-                    <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                  <div className="p-3 bg-success-900/30 rounded-xl flex items-center gap-3 text-success-300 border border-success-700/50">
+                    <div className="w-8 h-8 bg-success-500 rounded-full flex items-center justify-center">
                       <CheckCircle2 className="w-5 h-5 text-slate-800" />
                     </div>
                     <div>
                       <p className="font-semibold text-sm">Email Verified ✓</p>
-                      <p className="text-xs text-green-400">{formData.email}</p>
+                      <p className="text-xs text-success-400">{formData.email}</p>
                     </div>
                   </div>
                 )}
@@ -614,20 +614,20 @@ const AgencySignup = () => {
           {/* WhatsApp Number */}
           {emailVerified && (
             <>
-              <div className="border-t border-amber-200/60" />
+              <div className="border-t border-warning-200/60" />
               <div className="space-y-3">
                 <Label className="text-sm font-semibold flex items-center gap-2 text-slate-800">
-                  <svg className="w-4 h-4 text-green-400" viewBox="0 0 24 24" fill="currentColor">
+                  <svg className="w-4 h-4 text-success-400" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                   </svg>
                   WhatsApp Number <span className="text-slate-500 text-xs">(Optional)</span>
                 </Label>
                 <Input type="tel" placeholder="+880 1XXXXXXXXX" value={formData.whatsapp}
                   onChange={(e) => setFormData(prev => ({ ...prev, whatsapp: e.target.value }))}
-                  className={`bg-white/80 border-slate-600 text-slate-800 placeholder:text-slate-400 ${formData.whatsapp && !isValidWhatsApp(formData.whatsapp) ? 'border-red-500' : formData.whatsapp && isValidWhatsApp(formData.whatsapp) ? 'border-green-500' : ''}`} />
-                {formData.whatsapp && !isValidWhatsApp(formData.whatsapp) && <p className="text-xs text-red-500">Enter a valid WhatsApp number (10-15 digits)</p>}
+                  className={`bg-white/80 border-slate-600 text-slate-800 placeholder:text-slate-400 ${formData.whatsapp && !isValidWhatsApp(formData.whatsapp) ? 'border-danger-500' : formData.whatsapp && isValidWhatsApp(formData.whatsapp) ? 'border-success-500' : ''}`} />
+                {formData.whatsapp && !isValidWhatsApp(formData.whatsapp) && <p className="text-xs text-danger-500">Enter a valid WhatsApp number (10-15 digits)</p>}
                 {formData.whatsapp && isValidWhatsApp(formData.whatsapp) && (
-                  <div className="flex items-center gap-1 text-green-600">
+                  <div className="flex items-center gap-1 text-success-600">
                     <CheckCircle2 className="w-4 h-4" />
                     <span className="text-xs">WhatsApp number is valid</span>
                   </div>
@@ -657,8 +657,8 @@ const AgencySignup = () => {
             submitAgencyRegistration();
           }} disabled={isSubmitting}
             className={`w-full h-14 text-lg ${isFormValid 
-              ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700' 
-              : 'bg-gradient-to-r from-purple-600/50 to-indigo-600/50'}`}>
+              ? 'bg-gradient-to-r from-brand-600 to-info-600 hover:from-brand-700 hover:to-info-700' 
+              : 'bg-gradient-to-r from-brand-600/50 to-info-600/50'}`}>
             {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Sparkles className="w-5 h-5 mr-2" />}
             Create Agency
           </Button>
@@ -673,9 +673,9 @@ const AgencySignup = () => {
         </div>
 
         {/* Instructions */}
-        <div className="mx-4 mb-8 bg-amber-900/20 rounded-2xl p-4 border border-amber-700/30">
-          <h3 className="font-semibold text-amber-300 mb-2">📋 Instructions</h3>
-          <ul className="text-sm text-amber-200/80 space-y-2">
+        <div className="mx-4 mb-8 bg-warning-900/20 rounded-2xl p-4 border border-warning-700/30">
+          <h3 className="font-semibold text-warning-300 mb-2">📋 Instructions</h3>
+          <ul className="text-sm text-warning-200/80 space-y-2">
             {[
               "Enter agency name",
               "Enter your App UID and search",
@@ -686,13 +686,13 @@ const AgencySignup = () => {
               "Click Create Agency button"
             ].map((text, i) => (
               <li key={i} className="flex items-start gap-2">
-                <span className="bg-amber-700/50 text-amber-200 rounded-full w-5 h-5 flex items-center justify-center text-xs shrink-0">{i + 1}</span>
+                <span className="bg-warning-700/50 text-warning-200 rounded-full w-5 h-5 flex items-center justify-center text-xs shrink-0">{i + 1}</span>
                 <span>{text}</span>
               </li>
             ))}
           </ul>
-          <div className="mt-3 p-2 bg-amber-800/30 rounded-lg">
-            <p className="text-xs text-amber-300/80 flex items-center gap-1">
+          <div className="mt-3 p-2 bg-warning-800/30 rounded-lg">
+            <p className="text-xs text-warning-300/80 flex items-center gap-1">
               <Timer className="w-3 h-3" /> Email OTP is valid for 5 minutes
             </p>
           </div>

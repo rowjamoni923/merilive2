@@ -142,12 +142,12 @@ const PayrollHelperWelcomeModal = ({ agencyId, userId }: PayrollHelperWelcomeMod
   if (!isOpen) return null;
 
   const benefits = [
-    { icon: Coins, title: "Process Top-ups", desc: "Handle user diamond recharge requests", color: "text-amber-500" },
-    { icon: Gift, title: "Manage Withdrawals", desc: "Process agency withdrawal requests", color: "text-emerald-500" },
-    { icon: DollarSign, title: "Diamond Operations", desc: "Manage diamond balance transactions", color: "text-cyan-500" },
-    { icon: TrendingUp, title: "Earn Commission", desc: "Get % on every transaction you process", color: "text-purple-500" },
-    { icon: Globe, title: "Global Network", desc: "Serve users from multiple countries", color: "text-blue-500" },
-    { icon: Star, title: "Level Up System", desc: "Higher levels = Higher commission rates", color: "text-pink-500" },
+    { icon: Coins, title: "Process Top-ups", desc: "Handle user diamond recharge requests", color: "text-warning-500" },
+    { icon: Gift, title: "Manage Withdrawals", desc: "Process agency withdrawal requests", color: "text-success-500" },
+    { icon: DollarSign, title: "Diamond Operations", desc: "Manage diamond balance transactions", color: "text-info-500" },
+    { icon: TrendingUp, title: "Earn Commission", desc: "Get % on every transaction you process", color: "text-brand-500" },
+    { icon: Globe, title: "Global Network", desc: "Serve users from multiple countries", color: "text-info-500" },
+    { icon: Star, title: "Level Up System", desc: "Higher levels = Higher commission rates", color: "text-brand-500" },
   ];
 
   return (
@@ -160,10 +160,10 @@ const PayrollHelperWelcomeModal = ({ agencyId, userId }: PayrollHelperWelcomeMod
             alt="Payroll Helper System" 
             className="w-full h-44 object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-amber-50 via-rose-50 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-warning-50 via-danger-50 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-4">
             <div className="flex items-center gap-2 mb-1">
-              <Badge className="bg-emerald-500/90 text-white border-0 text-xs">
+              <Badge className="bg-success-500/90 text-white border-0 text-xs">
                 💰 Exclusive Opportunity
               </Badge>
             </div>
@@ -179,7 +179,7 @@ const PayrollHelperWelcomeModal = ({ agencyId, userId }: PayrollHelperWelcomeMod
           {/* Benefits Grid */}
           <div className="space-y-2">
             <h3 className="font-semibold text-sm flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-amber-500" />
+              <Sparkles className="w-4 h-4 text-warning-500" />
               What You Can Do
             </h3>
             <div className="grid grid-cols-2 gap-2">
@@ -197,30 +197,30 @@ const PayrollHelperWelcomeModal = ({ agencyId, userId }: PayrollHelperWelcomeMod
           </div>
 
           {/* Key Advantages */}
-          <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 rounded-xl p-3 border border-emerald-200 dark:border-emerald-800">
-            <h4 className="font-medium text-sm mb-2 flex items-center gap-2 text-emerald-900 dark:text-emerald-100">
-              <Zap className="w-4 h-4 text-emerald-600" />
+          <div className="bg-gradient-to-r from-success-50 to-success-50 dark:from-success-900/30 dark:to-success-900/30 rounded-xl p-3 border border-success-200 dark:border-success-800">
+            <h4 className="font-medium text-sm mb-2 flex items-center gap-2 text-success-900 dark:text-success-100">
+              <Zap className="w-4 h-4 text-success-600" />
               Key Advantages
             </h4>
-            <ul className="space-y-1.5 text-emerald-800 dark:text-emerald-200">
+            <ul className="space-y-1.5 text-success-800 dark:text-success-200">
               <li className="flex items-start gap-2 text-xs">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-success-500 mt-0.5 shrink-0" />
                 <span>Earn commission on every top-up, withdrawal, and diamond transaction</span>
               </li>
               <li className="flex items-start gap-2 text-xs">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-success-500 mt-0.5 shrink-0" />
                 <span>Receive diamond rewards for completing withdrawal orders</span>
               </li>
               <li className="flex items-start gap-2 text-xs">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-success-500 mt-0.5 shrink-0" />
                 <span>Level up by processing more orders and unlock higher commissions</span>
               </li>
               <li className="flex items-start gap-2 text-xs">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-success-500 mt-0.5 shrink-0" />
                 <span>Access orders from users worldwide - no geographical limits</span>
               </li>
               <li className="flex items-start gap-2 text-xs">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-success-500 mt-0.5 shrink-0" />
                 <span>Trusted role with verified badge and priority support</span>
               </li>
             </ul>
@@ -228,9 +228,9 @@ const PayrollHelperWelcomeModal = ({ agencyId, userId }: PayrollHelperWelcomeMod
 
           {/* Commission Tiers */}
           {helperTiers.length > 0 && (
-            <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 rounded-xl p-3 border border-amber-200 dark:border-amber-800">
-              <h4 className="font-medium text-sm mb-2 flex items-center gap-2 text-amber-900 dark:text-amber-100">
-                <TrendingUp className="w-4 h-4 text-amber-600" />
+            <div className="bg-gradient-to-r from-warning-50 to-warning-50 dark:from-warning-900/30 dark:to-warning-900/30 rounded-xl p-3 border border-warning-200 dark:border-warning-800">
+              <h4 className="font-medium text-sm mb-2 flex items-center gap-2 text-warning-900 dark:text-warning-100">
+                <TrendingUp className="w-4 h-4 text-warning-600" />
                 Commission Tiers (Level Up & Earn More!)
               </h4>
               <div className="flex gap-1.5 flex-wrap">
@@ -238,13 +238,13 @@ const PayrollHelperWelcomeModal = ({ agencyId, userId }: PayrollHelperWelcomeMod
                   <Badge 
                     key={tier.level_number}
                     variant="outline" 
-                    className="bg-white dark:bg-white/80 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 text-[10px]"
+                    className="bg-white dark:bg-white/80 border-warning-300 dark:border-warning-700 text-warning-700 dark:text-warning-300 text-[10px]"
                   >
                     L{tier.level_number}: {tier.commission_rate}%
                   </Badge>
                 ))}
               </div>
-              <p className="text-[10px] text-amber-700 dark:text-amber-300 mt-2">
+              <p className="text-[10px] text-warning-700 dark:text-warning-300 mt-2">
                 Start at Level 1 and progress by completing more transactions!
               </p>
             </div>
@@ -253,7 +253,7 @@ const PayrollHelperWelcomeModal = ({ agencyId, userId }: PayrollHelperWelcomeMod
           {/* Responsibilities */}
           <div className="bg-muted/30 rounded-xl p-3 border border-border">
             <h4 className="font-medium text-sm mb-2 flex items-center gap-2">
-              <Shield className="w-4 h-4 text-blue-500" />
+              <Shield className="w-4 h-4 text-info-500" />
               Your Responsibilities
             </h4>
             <ul className="grid grid-cols-1 gap-1">
@@ -284,7 +284,7 @@ const PayrollHelperWelcomeModal = ({ agencyId, userId }: PayrollHelperWelcomeMod
             <Button
               onClick={handleApply}
               disabled={isApplying}
-              className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white"
+              className="flex-1 bg-gradient-to-r from-success-500 to-success-500 hover:from-success-600 hover:to-success-600 text-white"
             >
               {isApplying ? (
                 <>

@@ -158,9 +158,9 @@ const Agency = () => {
 
   // User doesn't have an approved agency - show Apply/Join options
   return (
-    <div className="fixed inset-0 flex flex-col bg-gradient-to-br from-purple-50 via-white to-indigo-50 overflow-hidden">
+    <div className="fixed inset-0 flex flex-col bg-gradient-to-br from-brand-50 via-white to-info-50 overflow-hidden">
       {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 text-white safe-area-top shadow-lg">
+      <header className="flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r from-brand-600 via-info-600 to-brand-700 text-white safe-area-top shadow-lg">
         <div className="flex items-center h-14 px-4">
           <button 
             onClick={() => navigate(-1)}
@@ -181,7 +181,7 @@ const Agency = () => {
         {/* Main Content */}
         <div className="p-4 space-y-4">
         {/* Hero Banner */}
-        <div className="bg-gradient-to-br from-purple-600 via-indigo-600 to-purple-700 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
+        <div className="bg-gradient-to-br from-brand-600 via-info-600 to-brand-700 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2 blur-xl" />
           
@@ -208,7 +208,7 @@ const Agency = () => {
           className="bg-white rounded-2xl p-5 shadow-lg border cursor-pointer hover:shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
         >
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/25">
+            <div className="w-14 h-14 bg-gradient-to-br from-brand-500 to-info-600 rounded-2xl flex items-center justify-center shadow-lg shadow-brand-500/25">
               <Building2 className="w-7 h-7 text-slate-800" />
             </div>
             <div className="flex-1">
@@ -225,7 +225,7 @@ const Agency = () => {
           className="bg-white rounded-2xl p-5 shadow-lg border cursor-pointer hover:shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
         >
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/25">
+            <div className="w-14 h-14 bg-gradient-to-br from-success-500 to-success-600 rounded-2xl flex items-center justify-center shadow-lg shadow-success-500/25">
               <UserPlus className="w-7 h-7 text-slate-800" />
             </div>
             <div className="flex-1">
@@ -240,14 +240,14 @@ const Agency = () => {
       {/* Benefits Section */}
       <div className="mx-4 mt-2">
         <h3 className="text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wide flex items-center gap-2">
-          <Gift className="w-4 h-4 text-purple-500" />
+          <Gift className="w-4 h-4 text-brand-500" />
           Agency Benefits
         </h3>
         
         <div className="bg-white rounded-2xl p-5 shadow-lg border space-y-4">
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center shrink-0">
-              <TrendingUp className="w-5 h-5 text-purple-600" />
+            <div className="w-10 h-10 bg-brand-100 rounded-xl flex items-center justify-center shrink-0">
+              <TrendingUp className="w-5 h-5 text-brand-600" />
             </div>
             <div>
               <h4 className="font-semibold text-gray-800">Earn Commission</h4>
@@ -256,8 +256,8 @@ const Agency = () => {
           </div>
           
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center shrink-0">
-              <Users className="w-5 h-5 text-emerald-600" />
+            <div className="w-10 h-10 bg-success-100 rounded-xl flex items-center justify-center shrink-0">
+              <Users className="w-5 h-5 text-success-600" />
             </div>
             <div>
               <h4 className="font-semibold text-gray-800">Unlimited Hosts</h4>
@@ -266,8 +266,8 @@ const Agency = () => {
           </div>
           
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center shrink-0">
-              <Crown className="w-5 h-5 text-amber-600" />
+            <div className="w-10 h-10 bg-warning-100 rounded-xl flex items-center justify-center shrink-0">
+              <Crown className="w-5 h-5 text-warning-600" />
             </div>
             <div>
               <h4 className="font-semibold text-gray-800">Ranking Rewards</h4>
@@ -276,8 +276,8 @@ const Agency = () => {
           </div>
           
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
-              <Shield className="w-5 h-5 text-blue-600" />
+            <div className="w-10 h-10 bg-info-100 rounded-xl flex items-center justify-center shrink-0">
+              <Shield className="w-5 h-5 text-info-600" />
             </div>
             <div>
               <h4 className="font-semibold text-gray-800">Sub-Agent System</h4>
@@ -290,13 +290,13 @@ const Agency = () => {
       {/* Payroll Helper System Section */}
       <div className="mx-4 mt-4">
         <h3 className="text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wide flex items-center gap-2">
-          <Wallet className="w-4 h-4 text-emerald-500" />
+          <Wallet className="w-4 h-4 text-success-500" />
           Payroll Helper System
         </h3>
         
-        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-5 shadow-lg border border-emerald-200 space-y-4">
+        <div className="bg-gradient-to-br from-success-50 to-success-50 rounded-2xl p-5 shadow-lg border border-success-200 space-y-4">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg">
+            <div className="w-12 h-12 bg-gradient-to-br from-success-500 to-success-600 rounded-xl flex items-center justify-center shadow-lg">
               <BadgeDollarSign className="w-6 h-6 text-slate-800" />
             </div>
             <div>
@@ -311,26 +311,26 @@ const Agency = () => {
           </p>
 
           {/* Helper Responsibilities */}
-          <div className="bg-white rounded-xl p-4 border border-emerald-100">
+          <div className="bg-white rounded-xl p-4 border border-success-100">
             <h5 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-              <HeadphonesIcon className="w-4 h-4 text-emerald-600" />
+              <HeadphonesIcon className="w-4 h-4 text-success-600" />
               Helper Responsibilities
             </h5>
             <ul className="space-y-2 text-sm text-gray-600">
               <li className="flex items-start gap-2">
-                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-1.5 shrink-0" />
+                <span className="w-1.5 h-1.5 bg-success-500 rounded-full mt-1.5 shrink-0" />
                 Process user diamond top-up requests
               </li>
               <li className="flex items-start gap-2">
-                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-1.5 shrink-0" />
+                <span className="w-1.5 h-1.5 bg-success-500 rounded-full mt-1.5 shrink-0" />
                 Handle agency withdrawal payments
               </li>
               <li className="flex items-start gap-2">
-                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-1.5 shrink-0" />
+                <span className="w-1.5 h-1.5 bg-success-500 rounded-full mt-1.5 shrink-0" />
                 Verify payment screenshots & transaction IDs
               </li>
               <li className="flex items-start gap-2">
-                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-1.5 shrink-0" />
+                <span className="w-1.5 h-1.5 bg-success-500 rounded-full mt-1.5 shrink-0" />
                 Maintain minimum wallet balance of 300,000 diamonds
               </li>
             </ul>
@@ -338,33 +338,33 @@ const Agency = () => {
 
           {/* Helper Benefits */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white rounded-xl p-3 border border-emerald-100">
-              <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center mb-2">
-                <Banknote className="w-4 h-4 text-emerald-600" />
+            <div className="bg-white rounded-xl p-3 border border-success-100">
+              <div className="w-8 h-8 bg-success-100 rounded-lg flex items-center justify-center mb-2">
+                <Banknote className="w-4 h-4 text-success-600" />
               </div>
               <h6 className="font-semibold text-gray-800 text-sm">Earn Rewards</h6>
               <p className="text-xs text-gray-500">Get diamond rewards per transaction</p>
             </div>
             
-            <div className="bg-white rounded-xl p-3 border border-emerald-100">
-              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mb-2">
-                <Clock className="w-4 h-4 text-blue-600" />
+            <div className="bg-white rounded-xl p-3 border border-success-100">
+              <div className="w-8 h-8 bg-info-100 rounded-lg flex items-center justify-center mb-2">
+                <Clock className="w-4 h-4 text-info-600" />
               </div>
               <h6 className="font-semibold text-gray-800 text-sm">Flexible Hours</h6>
               <p className="text-xs text-gray-500">Work anytime, anywhere</p>
             </div>
             
-            <div className="bg-white rounded-xl p-3 border border-emerald-100">
-              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mb-2">
-                <Globe className="w-4 h-4 text-purple-600" />
+            <div className="bg-white rounded-xl p-3 border border-success-100">
+              <div className="w-8 h-8 bg-brand-100 rounded-lg flex items-center justify-center mb-2">
+                <Globe className="w-4 h-4 text-brand-600" />
               </div>
               <h6 className="font-semibold text-gray-800 text-sm">Global Reach</h6>
               <p className="text-xs text-gray-500">Serve users worldwide</p>
             </div>
             
-            <div className="bg-white rounded-xl p-3 border border-emerald-100">
-              <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center mb-2">
-                <TrendingUp className="w-4 h-4 text-amber-600" />
+            <div className="bg-white rounded-xl p-3 border border-success-100">
+              <div className="w-8 h-8 bg-warning-100 rounded-lg flex items-center justify-center mb-2">
+                <TrendingUp className="w-4 h-4 text-warning-600" />
               </div>
               <h6 className="font-semibold text-gray-800 text-sm">Level Up</h6>
               <p className="text-xs text-gray-500">Higher levels = better rates</p>
@@ -372,7 +372,7 @@ const Agency = () => {
           </div>
 
           {/* Helper Levels Info - Dynamic from Database */}
-          <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl p-4 text-white">
+          <div className="bg-gradient-to-r from-success-500 to-success-500 rounded-xl p-4 text-white">
             <h5 className="font-semibold mb-3 flex items-center gap-2">
               <Crown className="w-4 h-4" />
               Helper Level Commission Rates
@@ -413,19 +413,19 @@ const Agency = () => {
       <div className="mx-4 mt-4 mb-8">
         <h3 className="text-sm font-semibold text-gray-600 mb-3 uppercase tracking-wide">Commission Tiers</h3>
         
-        <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-4 border border-amber-200">
+        <div className="bg-gradient-to-br from-warning-50 to-warning-50 rounded-2xl p-4 border border-warning-200">
           {regularTiers.length > 0 ? (
             <>
               <div className="grid grid-cols-2 gap-3">
                 {regularTiers.map((tier) => (
-                  <div key={tier.id} className="bg-white rounded-xl p-3 text-center border border-amber-100">
+                  <div key={tier.id} className="bg-white rounded-xl p-3 text-center border border-warning-100">
                     <p className="text-xs text-gray-500 mb-1">{tier.level_name} ({tier.level_code})</p>
-                    <p className="text-xl font-bold text-amber-600">{tier.commission_rate}%</p>
+                    <p className="text-xl font-bold text-warning-600">{tier.commission_rate}%</p>
                   </div>
                 ))}
               </div>
               {diamondTier && (
-                <div className="mt-3 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-xl p-3 text-center text-white">
+                <div className="mt-3 bg-gradient-to-r from-brand-500 to-info-500 rounded-xl p-3 text-center text-white">
                   <p className="text-xs mb-1">{diamondTier.level_name} ({diamondTier.level_code})</p>
                   <p className="text-2xl font-bold">{diamondTier.commission_rate}%</p>
                 </div>

@@ -340,7 +340,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
   // Loading
   if (loadingAgency) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-purple-800 to-orange-50 flex flex-col items-center justify-center p-6">
+      <div className="min-h-screen bg-gradient-to-br from-danger-50 via-brand-800 to-warning-50 flex flex-col items-center justify-center p-6">
         <img src={meriliveLogo} alt="MeriLive" className="w-20 h-20 mb-4 animate-pulse" />
         <Loader2 className="w-8 h-8 text-white animate-spin" />
         <p className="text-slate-600 text-sm mt-3">Loading...</p>
@@ -351,7 +351,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
   // Agency not found
   if (!agency) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-900 via-red-800 to-orange-900 flex flex-col items-center justify-center p-6">
+      <div className="min-h-screen bg-gradient-to-br from-danger-900 via-danger-800 to-warning-900 flex flex-col items-center justify-center p-6">
         <img src={meriliveLogo} alt="MeriLive" className="w-20 h-20 mb-4" />
         <AlertCircle className="w-12 h-12 text-white mb-4" />
         <h1 className="text-xl font-bold text-white mb-2">Agency Not Found</h1>
@@ -360,7 +360,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
         </p>
         <Button
           onClick={() => window.location.href = PLAY_STORE_URL}
-          className="mt-6 bg-white text-red-700 hover:bg-white/90"
+          className="mt-6 bg-white text-danger-700 hover:bg-white/90"
         >
           <Download className="w-4 h-4 mr-2" />
           Download App
@@ -372,9 +372,9 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
   // Success state
   if (formState === 'success') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-800 via-emerald-700 to-teal-800 flex flex-col items-center justify-center p-6">
-        <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 max-w-sm w-full text-center border border-amber-200/60">
-          <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
+      <div className="min-h-screen bg-gradient-to-br from-success-800 via-success-700 to-success-800 flex flex-col items-center justify-center p-6">
+        <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 max-w-sm w-full text-center border border-warning-200/60">
+          <div className="w-20 h-20 bg-gradient-to-br from-success-400 to-success-500 rounded-full flex items-center justify-center mx-auto mb-4">
             <PartyPopper className="w-10 h-10 text-white" />
           </div>
           
@@ -390,8 +390,8 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
             <p className="text-2xl font-mono font-bold text-white">{agency.agency_code}</p>
           </div>
           
-          <div className="bg-amber-500/20 rounded-xl p-3 mb-6 border border-amber-400/30">
-            <p className="text-amber-200 text-sm">
+          <div className="bg-warning-500/20 rounded-xl p-3 mb-6 border border-warning-400/30">
+            <p className="text-warning-200 text-sm">
               ⚠️ Open the app to access your agency dashboard.
             </p>
           </div>
@@ -399,7 +399,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
           <div className="space-y-3">
             <Button
               onClick={tryOpenApp}
-              className="w-full h-12 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-semibold rounded-xl"
+              className="w-full h-12 bg-gradient-to-r from-brand-500 to-info-600 hover:from-brand-600 hover:to-info-700 text-white font-semibold rounded-xl"
             >
               <ArrowRight className="w-5 h-5 mr-2" />
               Open App
@@ -407,7 +407,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
             
             <Button
               onClick={() => window.location.href = PLAY_STORE_URL}
-              className="w-full h-12 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold rounded-xl"
+              className="w-full h-12 bg-gradient-to-r from-success-500 to-success-600 hover:from-success-600 hover:to-success-700 text-white font-semibold rounded-xl"
             >
               <Download className="w-5 h-5 mr-2" />
               Download from Play Store
@@ -416,7 +416,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
             <Button
               onClick={() => window.location.href = APK_DOWNLOAD_URL}
               variant="outline"
-              className="w-full h-11 border-amber-200/60 text-white hover:bg-white/10 rounded-xl"
+              className="w-full h-11 border-warning-200/60 text-white hover:bg-white/10 rounded-xl"
             >
               Direct APK Download
             </Button>
@@ -428,7 +428,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
 
   // Form state
   return (
-    <div className="min-h-[100dvh] bg-gradient-to-br from-rose-50 via-purple-800 to-orange-50 py-6 px-4 safe-area-inset overflow-x-hidden">
+    <div className="min-h-[100dvh] bg-gradient-to-br from-danger-50 via-brand-800 to-warning-50 py-6 px-4 safe-area-inset overflow-x-hidden">
       <div className="max-w-md mx-auto">
         {/* Header */}
         <div className="text-center mb-6">
@@ -438,7 +438,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
         </div>
 
         {/* Agency Info Card with Parent Code */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-amber-200/60 mb-5">
+        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-warning-200/60 mb-5">
           <div className="flex items-center gap-3">
             {agency.logo_url ? (
               <img 
@@ -447,7 +447,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
                 className="w-14 h-14 rounded-xl object-cover"
               />
             ) : (
-              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-brand-500 to-info-600 flex items-center justify-center">
                 <Building2 className="w-7 h-7 text-white" />
               </div>
             )}
@@ -455,7 +455,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
               <p className="text-slate-500 text-xs">Parent Agency</p>
               <h3 className="text-white font-bold text-lg">{agency.name}</h3>
               <div className="flex items-center gap-2 mt-1">
-                <Badge className="bg-amber-500/20 text-amber-300 border-amber-400/30 text-xs">
+                <Badge className="bg-warning-500/20 text-warning-300 border-warning-400/30 text-xs">
                   <Crown className="w-3 h-3 mr-1" />
                   Level {agency.level}
                 </Badge>
@@ -476,9 +476,9 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
             </a>
           </div>
           
-          <div className="mt-3 pt-3 border-t border-amber-200/60">
-            <p className="text-purple-300 text-sm text-center">
-              <Sparkles className="w-4 h-4 inline mr-1 text-yellow-400" />
+          <div className="mt-3 pt-3 border-t border-warning-200/60">
+            <p className="text-brand-300 text-sm text-center">
+              <Sparkles className="w-4 h-4 inline mr-1 text-warning-400" />
               Join as a Sub-Agent of this agency
             </p>
           </div>
@@ -491,8 +491,8 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
             {/* ===== STEP 1: App UID Verification ===== */}
             <div className="space-y-3">
               <Label className="text-sm font-semibold flex items-center gap-2 text-gray-800">
-                <User className="w-4 h-4 text-purple-600" />
-                App UID - Verification <span className="text-red-500">*</span>
+                <User className="w-4 h-4 text-brand-600" />
+                App UID - Verification <span className="text-danger-500">*</span>
               </Label>
               
               <div className="flex items-center gap-2">
@@ -527,28 +527,28 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
 
               {/* Found User Display */}
               {foundUser && (
-                <div className="p-3 bg-green-50 border border-green-200 rounded-xl">
+                <div className="p-3 bg-success-50 border border-success-200 rounded-xl">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-green-200 rounded-full flex items-center justify-center text-green-700 font-bold">
+                    <div className="w-10 h-10 bg-success-200 rounded-full flex items-center justify-center text-success-700 font-bold">
                       {foundUser.display_name?.charAt(0) || "U"}
                     </div>
                     <div className="flex-1">
-                      <p className="font-semibold text-green-800">
+                      <p className="font-semibold text-success-800">
                         {foundUser.display_name || "Unknown User"}
                       </p>
-                      <p className="text-xs text-green-600">{foundUser.app_uid}</p>
+                      <p className="text-xs text-success-600">{foundUser.app_uid}</p>
                     </div>
                     {appVerified ? (
-                      <Badge className="bg-green-500 text-white">✓ Verified</Badge>
+                      <Badge className="bg-success-500 text-white">✓ Verified</Badge>
                     ) : (
-                      <CheckCircle2 className="w-5 h-5 text-green-500" />
+                      <CheckCircle2 className="w-5 h-5 text-success-500" />
                     )}
                   </div>
                 </div>
               )}
 
               {userNotFound && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2 text-red-600">
+                <div className="p-3 bg-danger-50 border border-danger-200 rounded-xl flex items-center gap-2 text-danger-600">
                   <AlertCircle className="w-5 h-5" />
                   <span className="text-sm">User not found or not eligible</span>
                 </div>
@@ -556,8 +556,8 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
 
               {/* App OTP Section */}
               {foundUser && !appVerified && (
-                <div className="bg-purple-50 rounded-xl p-4 border border-purple-200 space-y-3">
-                  <div className="flex items-center gap-2 text-purple-700">
+                <div className="bg-brand-50 rounded-xl p-4 border border-brand-200 space-y-3">
+                  <div className="flex items-center gap-2 text-brand-700">
                     <Bell className="w-4 h-4" />
                     <span className="font-medium text-sm">App Notification Verification</span>
                   </div>
@@ -566,7 +566,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
                     <Button
                       onClick={sendAppVerificationCode}
                       disabled={sendingAppCode}
-                      className="w-full bg-purple-600 hover:bg-purple-700"
+                      className="w-full bg-brand-600 hover:bg-brand-700"
                     >
                       {sendingAppCode ? (
                         <>
@@ -583,9 +583,9 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
                   ) : (
                     <div className="space-y-3">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-purple-600">Enter code from app notification</span>
+                        <span className="text-brand-600">Enter code from app notification</span>
                         {appCodeTimer > 0 ? (
-                          <span className="flex items-center gap-1 text-amber-600">
+                          <span className="flex items-center gap-1 text-warning-600">
                             <Timer className="w-3 h-3" />
                             {appCodeTimer}s
                           </span>
@@ -595,7 +595,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
                             size="sm"
                             onClick={sendAppVerificationCode}
                             disabled={sendingAppCode}
-                            className="text-purple-600 p-0 h-auto"
+                            className="text-brand-600 p-0 h-auto"
                           >
                             Resend
                           </Button>
@@ -618,7 +618,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
                       <Button
                         onClick={verifyAppCode}
                         disabled={appCode.length < 4}
-                        className="w-full bg-green-600 hover:bg-green-700"
+                        className="w-full bg-success-600 hover:bg-success-700"
                       >
                         <CheckCircle2 className="w-4 h-4 mr-2" />
                         Verify Code
@@ -630,7 +630,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
 
               {/* Verified Badge */}
               {appVerified && (
-                <div className="p-3 bg-green-50 border border-green-200 rounded-xl flex items-center gap-2 text-green-700">
+                <div className="p-3 bg-success-50 border border-success-200 rounded-xl flex items-center gap-2 text-success-700">
                   <CheckCircle2 className="w-5 h-5" />
                   <span className="font-medium">App verification completed!</span>
                 </div>
@@ -644,8 +644,8 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
             {/* Name */}
             <div>
               <Label className="text-sm font-semibold flex items-center gap-2 text-gray-800">
-                <User className="w-4 h-4 text-purple-600" />
-                Your Name <span className="text-red-500">*</span>
+                <User className="w-4 h-4 text-brand-600" />
+                Your Name <span className="text-danger-500">*</span>
               </Label>
               <Input
                 placeholder="Your full name"
@@ -659,8 +659,8 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
             {/* Email */}
             <div>
               <Label className="text-sm font-semibold flex items-center gap-2 text-gray-800">
-                <Mail className="w-4 h-4 text-purple-600" />
-                Email Address <span className="text-red-500">*</span>
+                <Mail className="w-4 h-4 text-brand-600" />
+                Email Address <span className="text-danger-500">*</span>
               </Label>
               <Input
                 type="email"
@@ -670,18 +670,18 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
                 className="mt-1.5"
               />
               {formData.email && !isValidEmail(formData.email) && (
-                <p className="text-xs text-red-500 mt-1">Please enter a valid email</p>
+                <p className="text-xs text-danger-500 mt-1">Please enter a valid email</p>
               )}
               {formData.email && isValidEmail(formData.email) && (
-                <p className="text-xs text-green-500 mt-1">✓ Valid email</p>
+                <p className="text-xs text-success-500 mt-1">✓ Valid email</p>
               )}
             </div>
 
             {/* Phone */}
             <div>
               <Label className="text-sm font-semibold flex items-center gap-2 text-gray-800">
-                <Phone className="w-4 h-4 text-purple-600" />
-                Phone Number <span className="text-red-500">*</span>
+                <Phone className="w-4 h-4 text-brand-600" />
+                Phone Number <span className="text-danger-500">*</span>
               </Label>
               <Input
                 type="tel"
@@ -692,18 +692,18 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
                 maxLength={15}
               />
               {formData.phone && !isValidPhone(formData.phone) && (
-                <p className="text-xs text-red-500 mt-1">Please enter a valid phone number</p>
+                <p className="text-xs text-danger-500 mt-1">Please enter a valid phone number</p>
               )}
               {formData.phone && isValidPhone(formData.phone) && (
-                <p className="text-xs text-green-500 mt-1">✓ Valid phone number</p>
+                <p className="text-xs text-success-500 mt-1">✓ Valid phone number</p>
               )}
             </div>
 
             {/* Error Message */}
             {errorMessage && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
-                <p className="text-sm text-red-600">{errorMessage}</p>
+              <div className="bg-danger-50 border border-danger-200 rounded-lg p-3 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-danger-500 shrink-0" />
+                <p className="text-sm text-danger-600">{errorMessage}</p>
               </div>
             )}
 
@@ -711,7 +711,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
             <Button
               onClick={handleSubmit}
               disabled={formState === 'submitting' || !appVerified}
-              className="w-full h-12 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold rounded-xl mt-2"
+              className="w-full h-12 bg-gradient-to-r from-brand-600 to-info-600 hover:from-brand-700 hover:to-info-700 text-white font-semibold rounded-xl mt-2"
             >
               {formState === 'submitting' ? (
                 <>
@@ -729,26 +729,26 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
         </div>
 
         {/* Benefits */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-amber-200/60 mt-5">
+        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-warning-200/60 mt-5">
           <h3 className="text-white font-semibold flex items-center gap-2 mb-3">
-            <Crown className="w-5 h-5 text-amber-400" />
+            <Crown className="w-5 h-5 text-warning-400" />
             Sub-Agent Benefits
           </h3>
           <ul className="space-y-2">
             <li className="flex items-center gap-2 text-slate-700 text-sm">
-              <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-success-400 shrink-0" />
               <span>Earn commission from host earnings</span>
             </li>
             <li className="flex items-center gap-2 text-slate-700 text-sm">
-              <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-success-400 shrink-0" />
               <span>Recruit hosts under your agency</span>
             </li>
             <li className="flex items-center gap-2 text-slate-700 text-sm">
-              <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-success-400 shrink-0" />
               <span>Agency dashboard & analytics</span>
             </li>
             <li className="flex items-center gap-2 text-slate-700 text-sm">
-              <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-success-400 shrink-0" />
               <span>Weekly automatic payments</span>
             </li>
           </ul>

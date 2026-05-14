@@ -180,24 +180,24 @@ const AgencyCommissionHistory = () => {
   const getTransactionIcon = (type: string) => {
     switch (type) {
       case 'gift':
-        return <Gift className="w-4 h-4 text-pink-500" />;
+        return <Gift className="w-4 h-4 text-brand-500" />;
       case 'call':
-        return <Phone className="w-4 h-4 text-blue-500" />;
+        return <Phone className="w-4 h-4 text-info-500" />;
       case 'game':
-        return <Gamepad2 className="w-4 h-4 text-purple-500" />;
+        return <Gamepad2 className="w-4 h-4 text-brand-500" />;
       default:
-        return <Coins className="w-4 h-4 text-amber-500" />;
+        return <Coins className="w-4 h-4 text-warning-500" />;
     }
   };
 
   const getTransactionBadge = (type: string) => {
     switch (type) {
       case 'gift':
-        return <Badge className="bg-pink-500/20 text-pink-600 border-pink-500/30 text-[10px]">Gift</Badge>;
+        return <Badge className="bg-brand-500/20 text-brand-600 border-brand-500/30 text-[10px]">Gift</Badge>;
       case 'call':
-        return <Badge className="bg-blue-500/20 text-blue-600 border-blue-500/30 text-[10px]">Call</Badge>;
+        return <Badge className="bg-info-500/20 text-info-600 border-info-500/30 text-[10px]">Call</Badge>;
       case 'game':
-        return <Badge className="bg-purple-500/20 text-purple-600 border-purple-500/30 text-[10px]">Game</Badge>;
+        return <Badge className="bg-brand-500/20 text-brand-600 border-brand-500/30 text-[10px]">Game</Badge>;
       default:
         return <Badge variant="outline" className="text-[10px]">{type}</Badge>;
     }
@@ -214,7 +214,7 @@ const AgencyCommissionHistory = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-background">
       {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r from-emerald-600 to-teal-600 text-white safe-area-top">
+      <header className="flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r from-success-600 to-success-600 text-white safe-area-top">
         <div className="px-4 py-3 flex items-center gap-3">
           <Button variant="ghost" size="icon" className="text-slate-800 hover:bg-white/20" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-5 h-5" />
@@ -234,68 +234,68 @@ const AgencyCommissionHistory = () => {
         <main className="px-4 py-4 space-y-4">
         {/* Stats Cards */}
         <div className="grid grid-cols-2 gap-3">
-          <Card className="bg-gradient-to-br from-emerald-500/20 to-green-500/20 border-emerald-500/30">
+          <Card className="bg-gradient-to-br from-success-500/20 to-success-500/20 border-success-500/30">
             <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-emerald-600 mb-2">
+              <div className="flex items-center gap-2 text-success-600 mb-2">
                 <TrendingUp className="w-5 h-5" />
                 <span className="text-sm">Total Commission</span>
               </div>
-              <p className="text-2xl font-bold text-emerald-600">
+              <p className="text-2xl font-bold text-success-600">
                 {stats.totalCommission.toLocaleString()}
               </p>
-              <p className="text-xs text-emerald-500">${beansToUsd(stats.totalCommission)}</p>
+              <p className="text-xs text-success-500">${beansToUsd(stats.totalCommission)}</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-amber-500/20 to-orange-500/20 border-amber-500/30">
+          <Card className="bg-gradient-to-br from-warning-500/20 to-warning-500/20 border-warning-500/30">
             <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-amber-600 mb-2">
+              <div className="flex items-center gap-2 text-warning-600 mb-2">
                 <Clock className="w-5 h-5" />
                 <span className="text-sm">Today</span>
               </div>
-              <p className="text-2xl font-bold text-amber-600">
+              <p className="text-2xl font-bold text-warning-600">
                 {stats.todayCommission.toLocaleString()}
               </p>
-              <p className="text-xs text-amber-500">${beansToUsd(stats.todayCommission)}</p>
+              <p className="text-xs text-warning-500">${beansToUsd(stats.todayCommission)}</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border-blue-500/30">
+          <Card className="bg-gradient-to-br from-info-500/20 to-info-500/20 border-info-500/30">
             <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-blue-600 mb-2">
+              <div className="flex items-center gap-2 text-info-600 mb-2">
                 <Calendar className="w-5 h-5" />
                 <span className="text-sm">This Week</span>
               </div>
-              <p className="text-2xl font-bold text-blue-600">
+              <p className="text-2xl font-bold text-info-600">
                 {stats.thisWeekCommission.toLocaleString()}
               </p>
-              <p className="text-xs text-blue-500">${beansToUsd(stats.thisWeekCommission)}</p>
+              <p className="text-xs text-info-500">${beansToUsd(stats.thisWeekCommission)}</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-purple-500/30">
+          <Card className="bg-gradient-to-br from-brand-500/20 to-brand-500/20 border-brand-500/30">
             <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-purple-600 mb-2">
+              <div className="flex items-center gap-2 text-brand-600 mb-2">
                 <Coins className="w-5 h-5" />
                 <span className="text-sm">This Month</span>
               </div>
-              <p className="text-2xl font-bold text-purple-600">
+              <p className="text-2xl font-bold text-brand-600">
                 {stats.thisMonthCommission.toLocaleString()}
               </p>
-              <p className="text-xs text-purple-500">${beansToUsd(stats.thisMonthCommission)}</p>
+              <p className="text-xs text-brand-500">${beansToUsd(stats.thisMonthCommission)}</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Info Banner */}
-        <Card className="bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border-emerald-500/30">
+        <Card className="bg-gradient-to-r from-success-500/10 to-success-500/10 border-success-500/30">
           <CardContent className="p-4">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                <Percent className="w-5 h-5 text-emerald-600" />
+              <div className="w-10 h-10 rounded-full bg-success-500/20 flex items-center justify-center">
+                <Percent className="w-5 h-5 text-success-600" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-emerald-700 dark:text-emerald-400 text-sm">Company Commission Bonus</h3>
+                <h3 className="font-semibold text-success-700 dark:text-success-400 text-sm">Company Commission Bonus</h3>
                 <p className="text-xs text-muted-foreground mt-1">
                   Based on your hosts' weekly earnings, the company provides level-based commission bonuses. This commission is not deducted from host earnings.
                 </p>
@@ -308,7 +308,7 @@ const AgencyCommissionHistory = () => {
         <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-emerald-600" />
+              <TrendingUp className="w-5 h-5 text-success-600" />
               Commission Transactions ({stats.totalTransactions})
             </CardTitle>
           </CardHeader>
@@ -354,7 +354,7 @@ const AgencyCommissionHistory = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-emerald-600">
+                      <p className="font-bold text-success-600">
                         +{Number(commission.commission_amount).toLocaleString()}
                       </p>
                       <p className="text-xs text-muted-foreground">
