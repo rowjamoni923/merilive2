@@ -249,14 +249,14 @@
          Mobile WebView / preview module loading can be slow, so the watchdog
          intentionally waits longer than a normal route transition. -->
     <template id="boot-fallback-template">
-      <div style="position:fixed;inset:0;background:#0a0a0f;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;text-align:center;z-index:2147483647">
+      <div style="position:fixed;inset:0;background:linear-gradient(135deg,#FFFBF2,#FAF5EA,#F5EFDF);color:#1f2937;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;text-align:center;z-index:2147483647">
         <div style="font-size:48px;margin-bottom:12px">🔄</div>
-        <div style="font-size:18px;font-weight:700;margin-bottom:6px">Couldn't load MeriLive</div>
-        <div style="font-size:13px;color:#9ca3af;max-width:320px;line-height:1.45;margin-bottom:20px">
+        <div style="font-size:18px;font-weight:700;margin-bottom:6px;color:#1e293b">Couldn't load MeriLive</div>
+        <div style="font-size:13px;color:#64748b;max-width:320px;line-height:1.45;margin-bottom:20px">
           Please check your internet connection and try again. If the problem persists, please update <b>Android System WebView</b> from Google Play.
         </div>
-        <button id="boot-fallback-reload" style="background:linear-gradient(135deg,#e91e63,#9c27b0);color:#fff;border:0;border-radius:999px;padding:12px 28px;font-size:14px;font-weight:700;cursor:pointer">Reload App</button>
-        <div id="boot-fallback-err" style="margin-top:18px;font-size:10px;color:#6b7280;max-width:320px;word-break:break-word"></div>
+        <button id="boot-fallback-reload" style="background:linear-gradient(135deg,#e91e63,#9c27b0);color:#fff;border:0;border-radius:999px;padding:12px 28px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 8px 24px rgba(233,30,99,0.35)">Reload App</button>
+        <div id="boot-fallback-err" style="margin-top:18px;font-size:10px;color:#94a3b8;max-width:320px;word-break:break-word"></div>
       </div>
     </template>
 
