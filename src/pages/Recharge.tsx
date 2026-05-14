@@ -2073,7 +2073,7 @@ const Recharge = () => {
               
               {currencyRate && (
                 <div className="bg-white/20 backdrop-blur-sm rounded-lg px-2.5 py-1.5 text-right">
-                  <p className="text-slate-700 text-[9px] font-medium">Currency</p>
+                  <p className="text-white/85 text-[9px] font-semibold uppercase tracking-wider">Currency</p>
                   <p className="text-white font-bold text-sm">
                     {currencyRate.currency_symbol} {currencyRate.currency_code}
                   </p>
