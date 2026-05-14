@@ -1814,7 +1814,7 @@ const FaceVerification = () => {
           </motion.div>
           <h2 className="text-2xl font-bold text-slate-800 mb-2">Verification Rejected</h2>
           {rejectionReason && (
-            <p className="text-red-300 text-center px-6 mb-2 text-sm">Reason: {rejectionReason}</p>
+            <p className="text-red-700 bg-red-50 border border-red-200 rounded-xl mx-6 px-4 py-2 text-center mb-2 text-sm">Reason: {rejectionReason}</p>
           )}
           
           {isContactSupportRequired ? (
