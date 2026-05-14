@@ -10,7 +10,9 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "scan:dark": "node scripts/scan-dark-tokens.mjs",
+    "scan:dark:baseline": "node scripts/scan-dark-tokens.mjs --update-baseline"
   },
   "dependencies": {
     "@capacitor-firebase/authentication": "^8.0.1",
