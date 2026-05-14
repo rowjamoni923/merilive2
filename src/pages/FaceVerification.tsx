@@ -936,6 +936,14 @@ const FaceVerification = () => {
         setVerificationTime(elapsed);
         if (elapsed >= overallSec) {
           const allDone = instructionsCompletedRef.current.every(Boolean);
+          pushDebug({
+            kind: 'timeout',
+            elapsedSec: elapsed,
+            overallSec,
+            stepsCompleted: [...instructionsCompletedRef.current],
+            stuckOnStep: currentInstructionRef.current,
+            stuckOnInstruction: faceInstructions[currentInstructionRef.current]?.id,
+          });
           finishVerification(allDone);
         }
       }, 1000);
