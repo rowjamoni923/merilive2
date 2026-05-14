@@ -558,7 +558,7 @@ const Reels = () => {
                   {/* User Avatar with Follow Badge - TikTok Style */}
                   <div className="mb-2">
                     <button onClick={() => navigate(`/profile/${currentReel.user_id}`)} className="block">
-                      <div className="w-[50px] h-[50px] rounded-full ring-[2.5px] ring-white/80 shadow-[0_0_16px_rgba(255,255,255,0.15)] overflow-hidden">
+                      <div className="w-[50px] h-[50px] flex items-center justify-center">
                         <FramedAvatarWithPrivileges
                           userId={currentReel.user_id}
                           src={currentReel.user?.avatar_url || ''}
