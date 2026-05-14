@@ -1121,7 +1121,7 @@ const HelperDashboard = () => {
             className="relative rounded-[20px] p-4 overflow-hidden"
             style={{
               background:
-                "radial-gradient(140% 100% at 0% 0%, #1c1438 0%, #0e0824 55%, #07041a 100%)",
+                "radial-gradient(140% 100% at 0% 0%, #FFFEF8 0%, #FFFBEC 55%, #FFF5D6 100%)",
             }}
           >
             <div className="pointer-events-none absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-white/[0.10] to-transparent" />
