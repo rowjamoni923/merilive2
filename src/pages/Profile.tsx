@@ -2956,23 +2956,23 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
             {/* Preview */}
             {parseInt(exchangeBeansAmount) > 0 && (
-              <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-xl p-4 border border-emerald-500/30">
+              <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-4 border border-emerald-200/70">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-emerald-200 text-sm font-semibold">You'll Get</span>
-                  <span className="text-2xl font-bold text-emerald-400 flex items-center gap-1">
+                  <span className="text-emerald-700 text-sm font-semibold">You'll Get</span>
+                  <span className="text-2xl font-bold text-emerald-600 flex items-center gap-1">
                     💎 {exchangeDiamondsToGet.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-orange-200">Fee ({agencyExchangeSettings.exchange_fee_percent}%)</span>
-                  <span className="text-orange-400 flex items-center gap-1">-{exchangeFeeAmount.toLocaleString()} <BeansIcon size={12} /></span>
+                  <span className="text-orange-600">Fee ({agencyExchangeSettings.exchange_fee_percent}%)</span>
+                  <span className="text-orange-600 flex items-center gap-1 font-medium">-{exchangeFeeAmount.toLocaleString()} <BeansIcon size={12} /></span>
                 </div>
                 <div className="flex items-center justify-between text-sm mt-1">
-                  <span className="text-slate-700">Beans After Fee</span>
-                  <span className="text-slate-600 flex items-center gap-1">{(parseInt(exchangeBeansAmount) - exchangeFeeAmount).toLocaleString()} <BeansIcon size={12} /></span>
+                  <span className="text-slate-600">Beans After Fee</span>
+                  <span className="text-slate-700 flex items-center gap-1">{(parseInt(exchangeBeansAmount) - exchangeFeeAmount).toLocaleString()} <BeansIcon size={12} /></span>
                 </div>
-                <div className="flex items-center justify-between text-sm mt-1 pt-2 border-t border-emerald-500/30">
-                  <span className="text-slate-700">Total Beans Deducted</span>
+                <div className="flex items-center justify-between text-sm mt-1 pt-2 border-t border-emerald-200/70">
+                  <span className="text-slate-600">Total Beans Deducted</span>
                   <span className="text-slate-800 font-semibold flex items-center gap-1">{parseInt(exchangeBeansAmount).toLocaleString()} <BeansIcon size={12} /></span>
                 </div>
               </div>
