@@ -2811,9 +2811,9 @@ const Auth = () => {
 
                   {/* Country Dropdown */}
                   {showCountryPicker && (
- <div className="absolute top-full left-0 right-0 mt-2 bg-[#1a1a2e] border border-slate-200/10 rounded-2xl shadow-2xl shadow-black/50 z-50 max-h-64 overflow-hidden">
- <div className="p-2 border-b border-slate-200/10">
-                        <div className="flex items-center bg-white border border-amber-200/70 rounded-xl px-3">
+ <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl shadow-2xl shadow-slate-900/15 z-50 max-h-64 overflow-hidden">
+ <div className="p-2 border-b border-slate-200">
+                        <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3">
                           <Search className="w-4 h-4 text-slate-500" />
                           <input
                             type="text"
@@ -2835,13 +2835,13 @@ const Auth = () => {
                               setShowCountryPicker(false);
                               setCountrySearch("");
                             }}
-                            className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-white/[0.08] transition-colors ${
-                              selectedCountryCode === country.code ? 'bg-green-500/10' : ''
+                            className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-emerald-50 transition-colors ${
+                              selectedCountryCode === country.code ? 'bg-emerald-100' : ''
                             }`}
                           >
                             <span className="text-xl">{country.flag}</span>
                             <span className="text-slate-700 text-sm flex-1 text-left">{country.name}</span>
-                            <span className="text-green-400/70 text-sm font-mono">{country.code}</span>
+                            <span className="text-emerald-700 text-sm font-mono">{country.code}</span>
                           </button>
                         ))}
                       </div>
