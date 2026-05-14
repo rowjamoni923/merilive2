@@ -1806,7 +1806,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           {/* City - Only show if own profile OR profile owner hasn't hidden location */}
           {(isOwnProfile || !profile?.hide_location) && (
             <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 px-3 py-1.5 rounded-full backdrop-blur-sm shadow-md">
-              <MapPin className="w-3.5 h-3.5 text-white/60" />
+              <MapPin className="w-3.5 h-3.5 text-white/85" />
               <span className="font-medium text-white/70 text-xs">
                 {geoLocation.city || "Location"}
               </span>
@@ -1825,17 +1825,17 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         >
           <div className="text-center">
             <p className="text-2xl font-bold text-white drop-shadow-lg">{stats.friendsCount}</p>
-            <p className="text-xs text-white/50 font-medium">Friends</p>
+            <p className="text-xs text-white/80 font-medium">Friends</p>
           </div>
           <div className="w-px h-10 bg-gradient-to-b from-transparent via-white/20 to-transparent" />
           <div className="text-center">
             <p className="text-2xl font-bold text-white drop-shadow-lg">{stats.followingCount}</p>
-            <p className="text-xs text-white/50 font-medium">Following</p>
+            <p className="text-xs text-white/80 font-medium">Following</p>
           </div>
           <div className="w-px h-10 bg-gradient-to-b from-transparent via-white/20 to-transparent" />
           <div className="text-center">
             <p className="text-2xl font-bold text-white drop-shadow-lg">{stats.followersCount}</p>
-            <p className="text-xs text-white/50 font-medium">Followers</p>
+            <p className="text-xs text-white/80 font-medium">Followers</p>
           </div>
         </div>
 
@@ -2140,7 +2140,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     {item.hasNotification && (
                       <span className="w-1.5 h-1.5 bg-pink-500 rounded-full animate-pulse shadow-lg shadow-pink-500/50" />
                     )}
-                    <ChevronRight className="w-4 h-4 text-white/40" />
+                    <ChevronRight className="w-4 h-4 text-white/75" />
                   </div>
                 </button>
               ))}
@@ -2486,25 +2486,25 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
                   <div className="bg-slate-800/60 rounded-xl p-3 border border-slate-700 space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-white/60 text-sm">Recharge Source Balance</span>
+                      <span className="text-white/85 text-sm">Recharge Source Balance</span>
                       <span className="text-emerald-400 font-bold text-lg">
                         {selfRechargeSourceBalance.toLocaleString()} 💎
                       </span>
                     </div>
                     <div className="flex justify-between items-center pt-2 border-t border-slate-700">
-                      <span className="text-white/60 text-sm">Agency Balance</span>
+                      <span className="text-white/85 text-sm">Agency Balance</span>
                       <span className="text-purple-400 font-semibold">
                         {(agencyData?.diamond_balance || 0).toLocaleString()} 💎
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-white/60 text-sm">Trader Wallet</span>
+                      <span className="text-white/85 text-sm">Trader Wallet</span>
                       <span className="text-amber-400 font-semibold">
                         {(traderWallet || 0).toLocaleString()} 💎
                       </span>
                     </div>
                     <div className="flex justify-between items-center pt-2 border-t border-slate-700">
-                      <span className="text-white/60 text-sm">My Diamond Balance</span>
+                      <span className="text-white/85 text-sm">My Diamond Balance</span>
                       <span className="text-cyan-400 font-bold text-lg">
                         {(profile?.coins || 0).toLocaleString()} 💎
                       </span>
