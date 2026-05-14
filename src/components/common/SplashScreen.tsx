@@ -34,22 +34,23 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
           className="fixed inset-0 z-[99999] flex flex-col items-center justify-center overflow-hidden"
           style={{
             background:
-              'radial-gradient(ellipse at top, hsl(280 60% 14%) 0%, hsl(240 30% 6%) 55%, hsl(240 30% 3%) 100%)',
+              'radial-gradient(ellipse at top, #FFFBF2 0%, #FAF5EA 55%, #F5EFDF 100%)',
           }}
         >
-          {/* Animated stars */}
+          {/* Animated soft particles */}
           {[...Array(18)].map((_, i) => (
             <motion.div
               key={i}
-              className="absolute rounded-full bg-white"
+              className="absolute rounded-full"
               style={{
-                width: Math.random() * 3 + 1,
-                height: Math.random() * 3 + 1,
+                width: Math.random() * 4 + 2,
+                height: Math.random() * 4 + 2,
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
+                background: i % 2 === 0 ? 'rgba(236,72,153,0.35)' : 'rgba(168,85,247,0.3)',
               }}
               initial={{ opacity: 0 }}
-              animate={{ opacity: [0, 0.9, 0.2] }}
+              animate={{ opacity: [0, 0.7, 0.1] }}
               transition={{
                 duration: 2 + Math.random() * 2,
                 repeat: Infinity,
@@ -61,12 +62,12 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
           {/* Glow halo */}
           <motion.div
             initial={{ scale: 0.4, opacity: 0 }}
-            animate={{ scale: 1.1, opacity: 0.5 }}
+            animate={{ scale: 1.1, opacity: 0.55 }}
             transition={{ duration: 1.2, ease: 'easeOut' }}
             className="absolute w-[420px] h-[420px] rounded-full pointer-events-none"
             style={{
               background:
-                'radial-gradient(circle, hsl(330 90% 60% / 0.45) 0%, hsl(280 80% 55% / 0.18) 45%, transparent 75%)',
+                'radial-gradient(circle, rgba(236,72,153,0.35) 0%, rgba(168,85,247,0.18) 45%, transparent 75%)',
               filter: 'blur(20px)',
             }}
           />
@@ -79,10 +80,10 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
             className="relative z-10"
           >
             <div
-              className="w-32 h-32 rounded-[28px] overflow-hidden ring-2 ring-white/15"
+              className="w-32 h-32 rounded-[28px] overflow-hidden ring-2 ring-pink-300/40"
               style={{
                 boxShadow:
-                  '0 20px 60px rgba(236,72,153,0.45), 0 0 0 1px rgba(255,255,255,0.08), inset 0 0 0 1px rgba(255,255,255,0.1)',
+                  '0 20px 60px rgba(236,72,153,0.35), 0 0 0 1px rgba(236,72,153,0.12), inset 0 0 0 1px rgba(255,255,255,0.5)',
               }}
             >
               <img src={appLogo} alt="MeriLive" className="w-full h-full object-cover" />
@@ -100,7 +101,7 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
               className="text-[40px] font-extrabold tracking-tight text-transparent bg-clip-text"
               style={{
                 backgroundImage:
-                  'linear-gradient(110deg, #ffffff 0%, #ffd6f5 25%, #ff7eb6 50%, #ffd6f5 75%, #ffffff 100%)',
+                  'linear-gradient(110deg, #be185d 0%, #ec4899 25%, #a855f7 50%, #ec4899 75%, #be185d 100%)',
                 backgroundSize: '200% auto',
                 animation: 'splash-shimmer 2.4s linear infinite',
                 letterSpacing: '-0.02em',
@@ -113,9 +114,9 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
           {/* Tagline */}
           <motion.p
             initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 0.7, y: 0 }}
+            animate={{ opacity: 0.85, y: 0 }}
             transition={{ delay: 0.75, duration: 0.4 }}
-            className="relative z-10 mt-1 text-[12px] text-white/70 tracking-[0.25em] uppercase"
+            className="relative z-10 mt-1 text-[12px] text-slate-600 tracking-[0.25em] uppercase font-semibold"
           >
             Live · Connect · Earn
           </motion.p>
@@ -131,7 +132,7 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
               <motion.div
                 key={i}
                 className="w-2 h-2 rounded-full"
-                style={{ background: 'hsl(330 90% 65%)' }}
+                style={{ background: '#ec4899' }}
                 animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.2, 0.8] }}
                 transition={{ duration: 1, repeat: Infinity, delay: i * 0.15 }}
               />
@@ -141,9 +142,9 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
           {/* Version */}
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.6 }}
+            animate={{ opacity: 0.7 }}
             transition={{ delay: 1.1, duration: 0.5 }}
-            className="absolute bottom-8 text-[11px] text-white/55 tracking-wider"
+            className="absolute bottom-8 text-[11px] text-slate-500 tracking-wider font-medium"
           >
             Version {APP_VERSION}
           </motion.div>

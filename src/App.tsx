@@ -1070,12 +1070,12 @@ const App = () => {
                       className="fixed inset-0 z-[60] flex items-center justify-center"
                       style={{
                         background:
-                          'radial-gradient(ellipse at center, hsl(280 40% 14%) 0%, hsl(260 30% 8%) 60%, hsl(240 20% 4%) 100%)',
+                          'radial-gradient(ellipse at center, #FFFBF2 0%, #FAF5EA 60%, #F5EFDF 100%)',
                       }}
                     >
                       <div className="flex flex-col items-center gap-3">
-                        <div className="h-12 w-12 rounded-full border-[3px] border-white/15 border-t-amber-300 animate-spin shadow-[0_0_24px_rgba(251,191,36,0.35)]" />
-                        <div className="text-[11px] uppercase tracking-[0.25em] text-white/50">Loading</div>
+                        <div className="h-12 w-12 rounded-full border-[3px] border-pink-200 border-t-pink-500 animate-spin shadow-[0_0_24px_rgba(236,72,153,0.25)]" />
+                        <div className="text-[11px] uppercase tracking-[0.25em] text-slate-500 font-semibold">Loading</div>
                       </div>
                     </div>
                   }>
