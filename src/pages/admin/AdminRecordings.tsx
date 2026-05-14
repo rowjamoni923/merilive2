@@ -182,9 +182,9 @@ export default function AdminRecordings() {
       case "failed":
         return <Badge className="bg-red-600 text-white">✗ Failed</Badge>;
       case "expired":
-        return <Badge className="bg-slate-500 text-white">Expired</Badge>;
+        return <Badge className="bg-slate-500 text-slate-900">Expired</Badge>;
       default:
-        return <Badge className="bg-slate-500 text-white">{status}</Badge>;
+        return <Badge className="bg-slate-500 text-slate-900">{status}</Badge>;
     }
   };
 

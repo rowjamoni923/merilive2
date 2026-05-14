@@ -527,10 +527,10 @@ export default function BlogPage() {
                         <h3 className="text-lg font-semibold text-slate-800 mb-2 group-hover:text-pink-600 transition-colors">
                           {post.title}
                         </h3>
-                        <p className="text-sm text-slate-600 mb-4 line-clamp-2">
+                        <p className="text-sm text-white/80 mb-4 line-clamp-2">
                           {post.excerpt}
                         </p>
-                        <div className="flex items-center justify-between text-xs text-slate-500">
+                        <div className="flex items-center justify-between text-xs text-white/80">
                           <div className="flex items-center gap-2">
                             <User className="w-3 h-3" />
                             <span>{post.author}</span>

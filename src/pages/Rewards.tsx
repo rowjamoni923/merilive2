@@ -338,13 +338,13 @@ const Rewards = () => {
                           <Badge className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-[10px] border-0">
                             {offer.badge_text}
                           </Badge>
-                          <span className="flex items-center gap-1 text-xs text-slate-500">
+                          <span className="flex items-center gap-1 text-xs text-white/80">
                             <Timer className="w-3 h-3" />
                             {getTimeRemaining(offer.ends_at)}
                           </span>
                         </div>
                         <h3 className="text-base font-bold text-slate-800">{offer.title}</h3>
-                        <p className="text-xs text-slate-500 mt-1">{offer.description}</p>
+                        <p className="text-xs text-white/80 mt-1">{offer.description}</p>
                       </div>
                       <div className="text-right ml-3">
                         <p className="text-2xl font-black text-amber-400">+{offer.bonus_percentage}%</p>

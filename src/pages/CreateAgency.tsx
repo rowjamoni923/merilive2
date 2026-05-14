@@ -314,7 +314,7 @@ const CreateAgency = () => {
         <div className="grid grid-cols-3 gap-3 mt-4">
           <div className="bg-white/10 rounded-xl p-3 text-center">
             <p className="text-2xl font-bold">4%</p>
-            <p className="text-xs text-slate-600">Commission</p>
+            <p className="text-xs text-white/80">Commission</p>
           </div>
           <div className="bg-white/10 rounded-xl p-3 text-center">
             <p className="text-2xl font-bold">∞</p>

@@ -1516,7 +1516,7 @@ const Level5HelperDashboard = () => {
                             handleSelectAgencyWithdrawal(withdrawal);
                           }}
                           disabled={claimingWithdrawalId === withdrawal.id}
- className="w-full mt-3 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-slate-900 font-semibold disabled:opacity-50"
+ className="w-full mt-3 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white font-semibold disabled:opacity-50"
                         >
                           {claimingWithdrawalId === withdrawal.id ? (
                             <>

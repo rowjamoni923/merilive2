@@ -741,7 +741,7 @@ const ProfileDetail = () => {
           <Button variant="outline" onClick={() => navigate(-1)}>Go Back</Button>
           {isOwnProfile && (
             <Button 
- className="bg-gradient-to-r from-purple-500 to-pink-500 text-slate-900"
+ className="bg-gradient-to-r from-purple-500 to-pink-500 text-white"
               onClick={handleLogoutAndReregister}
             >
               Create New Account
@@ -980,7 +980,7 @@ const ProfileDetail = () => {
                 
                 {/* Status: Live > Busy (in call) > Online */}
                 {activeLiveStream ? (
- <Badge className="bg-gradient-to-r from-red-500 to-rose-500 text-slate-900 border-0 text-[10px] shadow-lg shadow-red-500/30 px-2 py-0.5 animate-pulse">
+ <Badge className="bg-gradient-to-r from-red-500 to-rose-500 text-white border-0 text-[10px] shadow-lg shadow-red-500/30 px-2 py-0.5 animate-pulse">
                     <div className="w-1.5 h-1.5 bg-white rounded-full mr-1" />
                     🔴 Live
                   </Badge>
@@ -990,7 +990,7 @@ const ProfileDetail = () => {
                     Busy
                   </Badge>
                 ) : profile.is_online ? (
- <Badge className="bg-gradient-to-r from-emerald-500 to-green-500 text-slate-900 border-0 text-[10px] shadow-lg shadow-emerald-500/20 px-2 py-0.5">
+ <Badge className="bg-gradient-to-r from-emerald-500 to-green-500 text-white border-0 text-[10px] shadow-lg shadow-emerald-500/20 px-2 py-0.5">
                     <div className="w-1.5 h-1.5 bg-white rounded-full mr-1 animate-pulse" />
                     Online
                   </Badge>
@@ -1548,7 +1548,7 @@ const ProfileDetail = () => {
                     <div className="flex items-center gap-3">
  <Avatar className="w-12 h-12 border border-slate-200/10">
                         <AvatarImage src={group.avatar_url || undefined} />
- <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-slate-900">
+ <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white">
                           {group.name.charAt(0)}
                         </AvatarFallback>
                       </Avatar>
@@ -1557,7 +1557,7 @@ const ProfileDetail = () => {
                           <span>👨‍👩‍👧‍👦</span>
                           {group.name}
                         </p>
-                        <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+                        <p className="text-xs text-white/80 flex items-center gap-1 mt-0.5">
                           <Users className="w-3 h-3" />
                           ({group.member_count || 0})
                         </p>

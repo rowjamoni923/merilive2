@@ -314,7 +314,7 @@ const AgencyPolicy = () => {
 
         {/* Exchange Rate Card */}
         <div className="mx-4 mt-4">
- <Card className="border-0 shadow-lg bg-gradient-to-br from-success-500 to-success-600 text-slate-900">
+ <Card className="border-0 shadow-lg bg-gradient-to-br from-success-500 to-success-600 text-white">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">

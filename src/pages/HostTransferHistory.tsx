@@ -178,7 +178,7 @@ const HostTransferHistory = () => {
           </button>
           <div>
             <h1 className="text-lg font-bold">Weekly Earnings Report</h1>
-            <p className="text-xs text-slate-700">Your weekly income details</p>
+            <p className="text-xs text-white/80">Your weekly income details</p>
           </div>
         </div>
       </div>
