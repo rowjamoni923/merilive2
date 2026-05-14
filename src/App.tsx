@@ -1094,23 +1094,9 @@ const App = () => {
               {/* Deferred hooks - route scoped so admin pages stay static */}
               <RouteScopedBackgroundHooks userId={session?.user?.id || null} hasSession={!!session} />
               <CallProvider>
-                  {/* Suspense fallback shows a themed spinner instead of a black screen
-                       during route chunk loads. Background matches app theme so users
-                       never see a black flash between sections. */}
-                  <Suspense fallback={
-                    <div
-                      className="fixed inset-0 z-[60] flex items-center justify-center"
-                      style={{
-                        background:
-                          'radial-gradient(ellipse at center, #FFFBF2 0%, #FAF5EA 60%, #F5EFDF 100%)',
-                      }}
-                    >
-                      <div className="flex flex-col items-center gap-3">
-                        <div className="h-12 w-12 rounded-full border-[3px] border-pink-200 border-t-pink-500 animate-spin shadow-[0_0_24px_rgba(236,72,153,0.25)]" />
-                        <div className="text-[11px] uppercase tracking-[0.25em] text-slate-500 font-semibold">Loading</div>
-                      </div>
-                    </div>
-                  }>
+                  {/* Stable, light-themed Suspense fallback. Memoized identity
+                       prevents flicker on parent re-renders during route swaps. */}
+                  <Suspense fallback={<RouteSuspenseFallback />}>
                   <Routes>
                 {/* ============================================= */}
                 {/* PUBLIC ROUTES - No authentication required */}
