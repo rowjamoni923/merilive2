@@ -737,20 +737,20 @@ const Leaderboard = () => {
                     key={item.id}
                     initial={{ opacity: 0, x: -15 }} animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.02, duration: 0.3 }}
-                    className="flex items-center gap-3 rounded-xl p-3 transition-all touch-manipulation"
+                    className="flex items-center gap-3 rounded-xl p-3 transition-all touch-manipulation bg-white"
                     style={{
-                      background: rank <= 10 
-                        ? 'linear-gradient(135deg, rgba(251,191,36,0.08) 0%, rgba(217,119,6,0.04) 100%)'
-                        : 'rgba(251,191,36,0.03)',
                       border: rank <= 10 
-                        ? '1px solid rgba(251,191,36,0.15)'
-                        : '1px solid rgba(251,191,36,0.06)',
+                        ? '1px solid rgba(251,191,36,0.30)'
+                        : '1px solid rgba(15,23,42,0.08)',
+                      boxShadow: rank <= 10
+                        ? '0 2px 10px rgba(251,191,36,0.10)'
+                        : '0 1px 4px rgba(15,23,42,0.04)',
                     }}
                   >
                     {/* Rank number */}
                     <span className={cn(
                       "w-7 text-center font-bold text-sm",
-                      rank <= 10 ? "text-amber-400" : "text-amber-400/30"
+                      rank <= 10 ? "text-amber-600" : "text-slate-400"
                     )}>
                       {rank}
                     </span>
@@ -760,20 +760,20 @@ const Leaderboard = () => {
                     
                     {/* Name & info */}
                     <div className="flex-1 min-w-0">
-                      <p className="text-amber-100 font-semibold text-sm truncate">{getDisplayId(item)}</p>
-                      <div className="flex items-center gap-1.5">
+                      <p className="text-slate-900 font-semibold text-sm truncate">{getDisplayId(item)}</p>
+                      <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="text-[10px]">{item.country_flag || "🌍"}</span>
-                        <span className="text-amber-400/40 text-[10px]">Lv.{getLevel(item)}</span>
+                        <span className="text-slate-500 text-[10px] font-medium">Lv.{getLevel(item)}</span>
                         {reward && (
-                          <span className="text-[9px] text-amber-400/50">🎁 {getRewardLabel(reward)}</span>
+                          <span className="text-[9px] text-amber-600 font-semibold">🎁 {getRewardLabel(reward)}</span>
                         )}
                       </div>
                     </div>
                     
                     {/* Value */}
                     <div 
-                      className="px-2.5 py-1 rounded-full text-xs font-bold"
-                      style={{ background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.15)', color: '#fbbf24' }}
+                      className="px-2.5 py-1 rounded-full text-xs font-bold text-amber-700"
+                      style={{ background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.30)' }}
                     >
                       {getMetricLabel()} {formatNumber(item.stat_value)}
                     </div>
