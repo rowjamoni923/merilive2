@@ -1,0 +1,2494 @@
+{
+  "generatedAt": "2026-05-14T23:54:29.217Z",
+  "totals": {
+    "findings": 340,
+    "files": 36,
+    "byRule": {
+      "M3": 44,
+      "M6": 26,
+      "M5": 234,
+      "M1": 23,
+      "M2": 13
+    }
+  },
+  "rules": [
+    {
+      "id": "M1",
+      "label": "Pure dark surface in modal"
+    },
+    {
+      "id": "M2",
+      "label": "Glass white/5-10 with light text"
+    },
+    {
+      "id": "M3",
+      "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)"
+    },
+    {
+      "id": "M4",
+      "label": "Mixed light→dark→light gradient"
+    },
+    {
+      "id": "M5",
+      "label": "Pale 300/400 accent icon"
+    },
+    {
+      "id": "M6",
+      "label": "Glass border on dialog"
+    }
+  ],
+  "files": {
+    "src/pages/Level5HelperDashboard.tsx": [
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1412,
+        "snippet": "<Building2 className=\"w-4 h-4 text-orange-400\" />"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1422,
+        "snippet": "<p className=\"text-cyan-400 text-xs text-center\">"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1463,
+        "snippet": "<Building2 className=\"w-5 h-5 text-orange-400\" />"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1554,
+        "snippet": "<Loader2 className=\"w-4 h-4 animate-spin text-orange-400\" />"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1556,
+        "snippet": "<p className=\"text-orange-400 text-xs font-medium\">"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1559,
+        "snippet": "<p className=\"text-orange-300 text-sm font-bold\">"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1570,
+        "snippet": "<p className=\"text-blue-400 text-xs flex items-center justify-center gap-1\">"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1587,
+        "snippet": "<Package className=\"w-4 h-4 text-blue-400\" />"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1590,
+        "snippet": "<Badge className=\"bg-blue-500/20 text-blue-400 text-xs\">"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1620,
+        "snippet": "<AvatarFallback className=\"bg-blue-500/20 text-blue-400\">"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1662,
+        "snippet": "<span className=\"text-yellow-400 font-mono text-sm font-bold\">"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1669,
+        "snippet": "<span className=\"inline-block px-2 py-0.5 rounded bg-amber-100 border border-amber-500/40 text-amber-300 text-[10px] font-bold\">"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1696,
+        "snippet": "className=\"w-full text-xs text-blue-400 border-blue-500/50\""
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1786,
+        "snippet": "className=\"flex-1 text-red-400 border-red-500/50 hover:bg-red-500/20 text-xs\""
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1888,
+        "snippet": "<Badge className=\"bg-amber-100 text-amber-300 text-[10px] px-1.5 py-0\">⚡ Merchant</Badge>"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1900,
+        "snippet": "className=\"text-red-400 hover:bg-red-500/20\""
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1968,
+        "snippet": "<Gem className=\"w-4 h-4 text-cyan-400\" />"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1969,
+        "snippet": "<span className=\"text-xs text-cyan-400\">+{request.diamond_reward.toLocaleString()} diamonds reward</span>"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2015,
+        "snippet": "<Badge className=\"bg-blue-500/20 text-blue-400 text-[10px]\">{method.country_code}</Badge>"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2053,
+        "snippet": "className=\"text-red-400 hover:text-red-300 hover:bg-red-500/20 flex-shrink-0\""
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2070,
+        "snippet": "<Clock className=\"w-4 h-4 text-cyan-400\" />"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2073,
+        "snippet": "<Badge className=\"bg-cyan-500/20 text-cyan-400 text-xs\">"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2093,
+        "snippet": "<p className=\"text-xs text-orange-400 font-medium\">💰 Agency Withdrawal History</p>"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2113,
+        "snippet": "amount: 'text-blue-400',"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2119,
+        "snippet": "amount: 'text-red-400',"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2131,
+        "snippet": "<AvatarFallback className=\"bg-slate-200 text-orange-400\">"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2145,
+        "snippet": "<span className=\"text-yellow-400 text-[10px] font-mono truncate max-w-[130px]\">"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2155,
+        "snippet": "<p className=\"text-cyan-400 text-[10px]\">Net diamonds after admin fee</p>"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2171,
+        "snippet": "<p className=\"text-xs text-blue-400 font-medium mt-4\">📦 Payroll Orders</p>"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2178,
+        "snippet": "<AvatarFallback className=\"bg-blue-500/20 text-blue-400\">"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2364,
+        "snippet": "<User className=\"w-3 h-3 text-cyan-400\" />"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2370,
+        "snippet": "reply.sender_type === 'helper' ? \"text-cyan-400\" : \"text-purple-700\""
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2571,
+        "snippet": "<Label htmlFor=\"is-merchant-legacy\" className=\"text-amber-300 font-medium text-sm cursor-pointer\">"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2629,
+        "snippet": "<Gem className=\"w-5 h-5 text-cyan-400\" />"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2630,
+        "snippet": "<span className=\"text-cyan-400 font-semibold\">"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2757,
+        "snippet": "<p className=\"text-green-300 font-semibold\">Approved!</p>"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2903,
+        "snippet": "⚡ {g.name} <span className=\"text-[10px] text-amber-300/70 ml-1\">(Auto Pay)</span>"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2995,
+        "snippet": "<p className=\"text-emerald-300 font-semibold text-sm\">ZiniPay Auto Pay Setup</p>"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 3043,
+        "snippet": "<p className=\"text-[10px] text-yellow-300\">"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 3117,
+        "snippet": "<p className=\"text-cyan-300 font-semibold text-sm\">"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 3121,
+        "snippet": "<p className=\"text-xs text-cyan-400/70 mb-2\">"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 3153,
+        "snippet": "<p className=\"text-[10px] text-cyan-400/50 mb-2\">🔒 Gateway Credentials (hidden from users)</p>"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 3177,
+        "snippet": "<p className=\"text-[10px] text-yellow-300\">"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 3248,
+        "snippet": "<Label htmlFor=\"is-merchant-country\" className=\"text-amber-300 font-medium text-sm cursor-pointer\">"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 3295,
+        "snippet": "<Building2 className=\"w-5 h-5 text-orange-400\" />"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 3307,
+        "snippet": "<Building2 className=\"w-6 h-6 text-orange-400\" />"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 3346,
+        "snippet": "<CreditCard className=\"w-4 h-4 text-cyan-400\" />"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 3355,
+        "snippet": "<span className=\"text-yellow-400 font-mono text-lg font-bold\">"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 3382,
+        "snippet": "<span className=\"text-pink-300 font-bold text-sm\">"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 3419,
+        "snippet": "<span className=\"text-cyan-400 font-bold\">"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 3450,
+        "snippet": "<Copy className=\"w-3.5 h-3.5 text-cyan-400\" />"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 3483,
+        "snippet": "<Eye className=\"w-4 h-4 text-blue-400\" />"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 3587,
+        "snippet": "<Clock className=\"w-8 h-8 text-blue-400 mx-auto mb-2\" />"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 3588,
+        "snippet": "<p className=\"text-blue-300 font-semibold\">Waiting for Admin Approval</p>"
+      },
+      {
+        "file": "src/pages/Level5HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 3589,
+        "snippet": "<p className=\"text-xs text-blue-400 mt-1\">Agency has been notified</p>"
+      }
+    ],
+    "src/components/games/CompactGameFooter.tsx": [
+      {
+        "file": "src/components/games/CompactGameFooter.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 295,
+        "snippet": "crashed ? \"text-red-500\" : cashedOut ? \"text-green-400\" : \"text-amber-400\""
+      },
+      {
+        "file": "src/components/games/CompactGameFooter.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 301,
+        "snippet": "<motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className=\"text-green-400 font-bold text-xs\">"
+      },
+      {
+        "file": "src/components/games/CompactGameFooter.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 323,
+        "snippet": "<span className=\"text-green-400 font-bold text-xs\">✓ Bet Placed!</span>"
+      },
+      {
+        "file": "src/components/games/CompactGameFooter.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 340,
+        "snippet": "<span className=\"text-red-400 font-bold text-xs\">💥 -{formatBet(betAmount)}</span>"
+      },
+      {
+        "file": "src/components/games/CompactGameFooter.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 405,
+        "snippet": "<span className=\"text-xl font-black text-amber-400\">{result}</span>"
+      },
+      {
+        "file": "src/components/games/CompactGameFooter.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 407,
+        "snippet": "<span className={cn(\"text-[7px] font-bold px-1.5 py-0.5 rounded\", isBig ? \"bg-red-500/30 text-red-400\" : \"bg-blue-500/30 text-blue-400\")}>"
+      },
+      {
+        "file": "src/components/games/CompactGameFooter.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 410,
+        "snippet": "<span className={cn(\"text-[7px] font-bold px-1.5 py-0.5 rounded\", isOdd ? \"bg-purple-500/30 text-purple-400\" : \"bg-green-500/30 text-green-4"
+      },
+      {
+        "file": "src/components/games/CompactGameFooter.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 437,
+        "snippet": "<div className=\"text-center text-green-400 font-bold text-[10px]\">✓ {selectedBet.toUpperCase()}</div>"
+      },
+      {
+        "file": "src/components/games/CompactGameFooter.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 512,
+        "snippet": "<span className=\"text-lg font-black text-amber-400\">{multiplier}x</span>"
+      },
+      {
+        "file": "src/components/games/CompactGameFooter.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 513,
+        "snippet": "<span className=\"text-green-400 text-xs ml-1\">+{(betAmount * multiplier).toLocaleString()}</span>"
+      },
+      {
+        "file": "src/components/games/CompactGameFooter.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 523,
+        "snippet": "<div className=\"text-center text-green-400 font-bold text-[10px]\">✓ Ready!</div>"
+      },
+      {
+        "file": "src/components/games/CompactGameFooter.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 589,
+        "snippet": "<p className=\"text-blue-400 font-bold text-[8px] mb-0.5\">ANDAR</p>"
+      },
+      {
+        "file": "src/components/games/CompactGameFooter.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 599,
+        "snippet": "<p className=\"text-orange-400 font-bold text-[8px] mb-0.5\">BAHAR</p>"
+      },
+      {
+        "file": "src/components/games/CompactGameFooter.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 622,
+        "snippet": "<div className=\"text-center text-green-400 font-bold text-[10px]\">✓ {selectedSide.toUpperCase()}</div>"
+      },
+      {
+        "file": "src/components/games/CompactGameFooter.tsx",
+        "id": "M1",
+        "label": "Pure dark surface in modal",
+        "line": 905,
+        "snippet": "<div className=\"flex items-center justify-between px-2 py-1 bg-black/40\">"
+      },
+      {
+        "file": "src/components/games/CompactGameFooter.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 929,
+        "snippet": "timeLeft <= 5 ? \"bg-red-500/30 text-red-400\" : \"bg-green-500/20 text-green-400\""
+      },
+      {
+        "file": "src/components/games/CompactGameFooter.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 942,
+        "snippet": "<Coins className=\"w-2.5 h-2.5 text-amber-400\" />"
+      },
+      {
+        "file": "src/components/games/CompactGameFooter.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 943,
+        "snippet": "<span className=\"text-amber-300 font-bold\">"
+      },
+      {
+        "file": "src/components/games/CompactGameFooter.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 970,
+        "snippet": "<X className=\"w-2.5 h-2.5 text-red-400\" />"
+      },
+      {
+        "file": "src/components/games/CompactGameFooter.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 979,
+        "snippet": "phase === 'betting' && \"bg-green-500/15 text-green-400\","
+      },
+      {
+        "file": "src/components/games/CompactGameFooter.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 981,
+        "snippet": "phase === 'result' && \"bg-amber-500/15 text-amber-400\","
+      },
+      {
+        "file": "src/components/games/CompactGameFooter.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 982,
+        "snippet": "phase === 'waiting' && \"bg-slate-500/15 text-slate-400\""
+      },
+      {
+        "file": "src/components/games/CompactGameFooter.tsx",
+        "id": "M1",
+        "label": "Pure dark surface in modal",
+        "line": 997,
+        "snippet": "<div className=\"flex justify-center gap-1 px-2 py-1.5 bg-black/30 border-t border-white/5\">"
+      },
+      {
+        "file": "src/components/games/CompactGameFooter.tsx",
+        "id": "M6",
+        "label": "Glass border on dialog",
+        "line": 997,
+        "snippet": "<div className=\"flex justify-center gap-1 px-2 py-1.5 bg-black/30 border-t border-white/5\">"
+      },
+      {
+        "file": "src/components/games/CompactGameFooter.tsx",
+        "id": "M2",
+        "label": "Glass white/5-10 with light text",
+        "line": 1009,
+        "snippet": "? \"bg-white/5 text-white/20\""
+      },
+      {
+        "file": "src/components/games/CompactGameFooter.tsx",
+        "id": "M2",
+        "label": "Glass white/5-10 with light text",
+        "line": 1010,
+        "snippet": ": \"bg-white/10 text-white/70\""
+      },
+      {
+        "file": "src/components/games/CompactGameFooter.tsx",
+        "id": "M1",
+        "label": "Pure dark surface in modal",
+        "line": 1020,
+        "snippet": "<div className=\"flex items-center justify-between px-1.5 py-0.5 bg-black/30 border-t border-white/5\">"
+      },
+      {
+        "file": "src/components/games/CompactGameFooter.tsx",
+        "id": "M6",
+        "label": "Glass border on dialog",
+        "line": 1020,
+        "snippet": "<div className=\"flex items-center justify-between px-1.5 py-0.5 bg-black/30 border-t border-white/5\">"
+      },
+      {
+        "file": "src/components/games/CompactGameFooter.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1023,
+        "snippet": "<Coins className=\"w-1.5 h-1.5 text-amber-400\" />"
+      },
+      {
+        "file": "src/components/games/CompactGameFooter.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1024,
+        "snippet": "<span className=\"text-amber-300 font-bold text-[8px]\">{betAmount.toLocaleString()}</span>"
+      }
+    ],
+    "src/pages/EditProfile.tsx": [
+      {
+        "file": "src/pages/EditProfile.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 443,
+        "snippet": "<Crown className=\"w-3.5 h-3.5 text-amber-400\" />"
+      },
+      {
+        "file": "src/pages/EditProfile.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 444,
+        "snippet": "<span className=\"text-xs font-semibold text-amber-400\">Host Account</span>"
+      },
+      {
+        "file": "src/pages/EditProfile.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 487,
+        "snippet": "<Image className=\"w-5 h-5 text-fuchsia-400\" />"
+      },
+      {
+        "file": "src/pages/EditProfile.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 504,
+        "snippet": "<Hash className=\"w-5 h-5 text-blue-400\" />"
+      },
+      {
+        "file": "src/pages/EditProfile.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 522,
+        "snippet": "<User className=\"w-5 h-5 text-violet-400\" />"
+      },
+      {
+        "file": "src/pages/EditProfile.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 562,
+        "snippet": "<User className=\"w-5 h-5 text-rose-400\" />"
+      },
+      {
+        "file": "src/pages/EditProfile.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 567,
+        "snippet": "<span className={`text-sm font-medium ${profile.gender.toLowerCase() === \"female\" ? \"text-pink-400\" : \"text-blue-400\"}`}>"
+      },
+      {
+        "file": "src/pages/EditProfile.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 582,
+        "snippet": "<User className=\"w-5 h-5 text-rose-400\" />"
+      },
+      {
+        "file": "src/pages/EditProfile.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 587,
+        "snippet": "<span className=\"text-sm text-amber-400 animate-pulse\">⚠️ Required</span>"
+      },
+      {
+        "file": "src/pages/EditProfile.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 596,
+        "snippet": "<p className=\"text-center text-xs text-amber-400 mt-2\">"
+      },
+      {
+        "file": "src/pages/EditProfile.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 620,
+        "snippet": "? \"bg-blue-600/20 border-blue-500 text-blue-400\""
+      },
+      {
+        "file": "src/pages/EditProfile.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 648,
+        "snippet": "? \"bg-pink-600/20 border-pink-500 text-pink-400\""
+      },
+      {
+        "file": "src/pages/EditProfile.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 654,
+        "snippet": "<p className=\"text-[10px] mt-1 text-amber-400 flex items-center justify-center gap-1\">"
+      },
+      {
+        "file": "src/pages/EditProfile.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 672,
+        "snippet": "<Star className=\"w-5 h-5 text-amber-400\" />"
+      },
+      {
+        "file": "src/pages/EditProfile.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 711,
+        "snippet": "<MapPin className=\"w-5 h-5 text-emerald-400\" />"
+      },
+      {
+        "file": "src/pages/EditProfile.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 728,
+        "snippet": "<EyeOff className=\"w-5 h-5 text-red-400\" />"
+      },
+      {
+        "file": "src/pages/EditProfile.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 730,
+        "snippet": "<Eye className=\"w-5 h-5 text-orange-400\" />"
+      },
+      {
+        "file": "src/pages/EditProfile.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 767,
+        "snippet": "<Globe className=\"w-5 h-5 text-cyan-400\" />"
+      },
+      {
+        "file": "src/pages/EditProfile.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 854,
+        "snippet": "<Hash className=\"w-5 h-5 text-indigo-400\" />"
+      },
+      {
+        "file": "src/pages/EditProfile.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 879,
+        "snippet": "<MessageCircle className=\"w-5 h-5 text-teal-400\" />"
+      },
+      {
+        "file": "src/pages/EditProfile.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 923,
+        "snippet": "<Palette className=\"w-5 h-5 text-amber-400\" />"
+      },
+      {
+        "file": "src/pages/EditProfile.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 951,
+        "snippet": "<Mail className=\"w-5 h-5 text-blue-400\" />"
+      },
+      {
+        "file": "src/pages/EditProfile.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 970,
+        "snippet": "<Phone className=\"w-5 h-5 text-green-400\" />"
+      },
+      {
+        "file": "src/pages/EditProfile.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 986,
+        "snippet": "<p className=\"text-xs font-semibold text-blue-400 uppercase tracking-wider\">"
+      },
+      {
+        "file": "src/pages/EditProfile.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 997,
+        "snippet": "<Lock className=\"w-5 h-5 text-indigo-400\" />"
+      },
+      {
+        "file": "src/pages/EditProfile.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1033,
+        "snippet": "<Phone className=\"w-5 h-5 text-green-400\" />"
+      },
+      {
+        "file": "src/pages/EditProfile.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1066,
+        "snippet": "<Lock className=\"w-5 h-5 text-indigo-400\" />"
+      },
+      {
+        "file": "src/pages/EditProfile.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1118,
+        "snippet": "<Mail className=\"w-5 h-5 text-blue-400\" />"
+      }
+    ],
+    "src/pages/Auth.tsx": [
+      {
+        "file": "src/pages/Auth.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2121,
+        "snippet": "<Sparkles className=\"w-5 h-5 text-yellow-300 animate-pulse\" />"
+      },
+      {
+        "file": "src/pages/Auth.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2232,
+        "snippet": "<Gift className=\"absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-400/70\" />"
+      },
+      {
+        "file": "src/pages/Auth.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2269,
+        "snippet": "<CheckCircle className=\"w-3.5 h-3.5 text-emerald-300\" />"
+      },
+      {
+        "file": "src/pages/Auth.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 2332,
+        "snippet": "<User className=\"absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400\" />"
+      },
+      {
+        "file": "src/pages/Auth.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 2337,
+        "snippet": "className=\"pl-10 h-11 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 rounded-xl focus:border-pink-400 focus:ring-1 focu"
+      },
+      {
+        "file": "src/pages/Auth.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 2491,
+        "snippet": "className=\"h-14 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl text-base focus-visible:ring-0 focus-visible:r"
+      },
+      {
+        "file": "src/pages/Auth.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2520,
+        "snippet": "Already have an account? <span className=\"text-pink-400 font-semibold hover:text-pink-300\">Login</span>"
+      },
+      {
+        "file": "src/pages/Auth.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2553,
+        "snippet": "6-digit code sent to <span className=\"text-emerald-400 font-medium\">{email}</span>"
+      },
+      {
+        "file": "src/pages/Auth.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2599,
+        "snippet": "className=\"text-emerald-400 text-sm font-semibold hover:text-emerald-300 transition-all disabled:opacity-40 hover:underline underline-offset"
+      },
+      {
+        "file": "src/pages/Auth.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 2637,
+        "snippet": "<Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder=\"Your name\" className=\"h-13 bg-transparent border-0 "
+      },
+      {
+        "file": "src/pages/Auth.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 2645,
+        "snippet": "<Input type={showPassword ? \"text\" : \"password\"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder=\"Password (min 6"
+      },
+      {
+        "file": "src/pages/Auth.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 2656,
+        "snippet": "<Input type={showPassword ? \"text\" : \"password\"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder=\"C"
+      },
+      {
+        "file": "src/pages/Auth.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2693,
+        "snippet": "<DialogDescription className=\"text-slate-600 text-center text-sm mt-1\">Enter the 6-digit code sent to <span className=\"text-pink-400 font-me"
+      },
+      {
+        "file": "src/pages/Auth.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2717,
+        "snippet": "<button onClick={handleResendOtp} disabled={otpLoading} className=\"text-pink-400 text-sm font-semibold hover:text-pink-300 transition-all di"
+      },
+      {
+        "file": "src/pages/Auth.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2741,
+        "snippet": "<div className=\"pl-4 pr-2\"><Mail className=\"w-5 h-5 text-indigo-400/70\" /></div>"
+      },
+      {
+        "file": "src/pages/Auth.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 2742,
+        "snippet": "<Input type=\"email\" value={email} onChange={(e) => setEmail(e.target.value)} placeholder=\"Email address\" className=\"h-13 bg-transparent bord"
+      },
+      {
+        "file": "src/pages/Auth.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2749,
+        "snippet": "<div className=\"pl-4 pr-2\"><Lock className=\"w-5 h-5 text-indigo-400/70\" /></div>"
+      },
+      {
+        "file": "src/pages/Auth.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 2750,
+        "snippet": "<Input type=\"password\" value={password} onChange={(e) => setPassword(e.target.value)} placeholder=\"Password\" className=\"h-13 bg-transparent "
+      },
+      {
+        "file": "src/pages/Auth.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2764,
+        "snippet": "Don't have an account? <span className=\"text-pink-400 font-semibold hover:text-pink-300\">Sign Up</span>"
+      },
+      {
+        "file": "src/pages/Auth.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 2826,
+        "snippet": "className=\"w-full h-10 bg-transparent border-0 text-slate-800 text-sm placeholder:text-slate-400 outline-none px-2\""
+      },
+      {
+        "file": "src/pages/Auth.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 2871,
+        "snippet": "className=\"h-14 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl text-base focus-visible:ring-0 focus-visible:r"
+      },
+      {
+        "file": "src/pages/Auth.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 3011,
+        "snippet": "<div className=\"pl-4 pr-2\"><User className=\"w-5 h-5 text-green-400/70\" /></div>"
+      },
+      {
+        "file": "src/pages/Auth.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 3012,
+        "snippet": "<Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder=\"Your name\" className=\"h-13 bg-transparent border-0 "
+      },
+      {
+        "file": "src/pages/Auth.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 3019,
+        "snippet": "<div className=\"pl-4 pr-2\"><Lock className=\"w-5 h-5 text-green-400/70\" /></div>"
+      },
+      {
+        "file": "src/pages/Auth.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 3020,
+        "snippet": "<Input type={showPassword ? \"text\" : \"password\"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder=\"Password (min 6"
+      },
+      {
+        "file": "src/pages/Auth.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 3030,
+        "snippet": "<div className=\"pl-4 pr-2\"><Lock className=\"w-5 h-5 text-green-400/70\" /></div>"
+      },
+      {
+        "file": "src/pages/Auth.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 3031,
+        "snippet": "<Input type={showPassword ? \"text\" : \"password\"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder=\"C"
+      }
+    ],
+    "src/components/games/GameFooterNew.tsx": [
+      {
+        "file": "src/components/games/GameFooterNew.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 122,
+        "snippet": "<Star className=\"w-6 h-6 text-yellow-400 fill-yellow-400\" />"
+      },
+      {
+        "file": "src/components/games/GameFooterNew.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 138,
+        "snippet": "<Trophy className=\"w-12 h-12 text-yellow-300 mx-auto mb-2\" />"
+      },
+      {
+        "file": "src/components/games/GameFooterNew.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 144,
+        "snippet": "className=\"text-yellow-300 text-3xl font-black mt-2\""
+      },
+      {
+        "file": "src/components/games/GameFooterNew.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 274,
+        "snippet": "<p className=\"text-red-400 font-bold text-[10px] mb-1\">🐉 DRAGON</p>"
+      },
+      {
+        "file": "src/components/games/GameFooterNew.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 298,
+        "snippet": "<p className=\"text-orange-400 font-bold text-[10px] mb-1\">🐅 TIGER</p>"
+      },
+      {
+        "file": "src/components/games/GameFooterNew.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 321,
+        "snippet": "winner === selectedBet ? \"bg-green-500/20 text-green-400\" : \"bg-red-500/20 text-red-400\""
+      },
+      {
+        "file": "src/components/games/GameFooterNew.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 373,
+        "snippet": "<p className=\"text-green-400 font-bold text-[10px] flex items-center justify-center gap-1\">"
+      },
+      {
+        "file": "src/components/games/GameFooterNew.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 516,
+        "snippet": "crashed ? \"text-red-500\" : cashedOut ? \"text-green-400\" : \"text-amber-400\""
+      },
+      {
+        "file": "src/components/games/GameFooterNew.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 523,
+        "snippet": "<motion.p initial={{ scale: 0 }} animate={{ scale: 1 }} className=\"text-green-400 font-bold text-sm mt-1\">"
+      },
+      {
+        "file": "src/components/games/GameFooterNew.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 546,
+        "snippet": "<p className=\"text-green-400 font-bold text-xs\">✓ Waiting for takeoff...</p>"
+      },
+      {
+        "file": "src/components/games/GameFooterNew.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 563,
+        "snippet": "<p className=\"text-red-400 font-bold text-xs\">💥 Crashed! -{formatBet(betAmount)}</p>"
+      },
+      {
+        "file": "src/components/games/GameFooterNew.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 622,
+        "snippet": "result === 'win' ? \"text-green-400\" : result === 'lose' ? \"text-red-400\" : \"text-amber-400\""
+      },
+      {
+        "file": "src/components/games/GameFooterNew.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 645,
+        "snippet": "<p className=\"text-green-400 font-bold text-xs\">✓ Waiting...</p>"
+      },
+      {
+        "file": "src/components/games/GameFooterNew.tsx",
+        "id": "M1",
+        "label": "Pure dark surface in modal",
+        "line": 1034,
+        "snippet": "<div className=\"flex items-center justify-between px-2 py-1 bg-black/40\">"
+      },
+      {
+        "file": "src/components/games/GameFooterNew.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1058,
+        "snippet": "timeLeft <= 5 ? \"bg-red-500/30 text-red-400\" : \"bg-green-500/20 text-green-400\""
+      },
+      {
+        "file": "src/components/games/GameFooterNew.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1074,
+        "snippet": "<Coins className=\"w-2.5 h-2.5 text-amber-400\" />"
+      },
+      {
+        "file": "src/components/games/GameFooterNew.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1079,
+        "snippet": "className=\"text-amber-300 font-bold\""
+      },
+      {
+        "file": "src/components/games/GameFooterNew.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1107,
+        "snippet": "<X className=\"w-2.5 h-2.5 text-red-400\" />"
+      },
+      {
+        "file": "src/components/games/GameFooterNew.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1116,
+        "snippet": "phase === 'betting' && \"bg-green-500/20 text-green-400\","
+      },
+      {
+        "file": "src/components/games/GameFooterNew.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1118,
+        "snippet": "phase === 'result' && \"bg-amber-500/20 text-amber-400\""
+      },
+      {
+        "file": "src/components/games/GameFooterNew.tsx",
+        "id": "M1",
+        "label": "Pure dark surface in modal",
+        "line": 1151,
+        "snippet": "<div className=\"px-4 py-3 bg-black/20 border-t border-white/10\">"
+      },
+      {
+        "file": "src/components/games/GameFooterNew.tsx",
+        "id": "M6",
+        "label": "Glass border on dialog",
+        "line": 1151,
+        "snippet": "<div className=\"px-4 py-3 bg-black/20 border-t border-white/10\">"
+      },
+      {
+        "file": "src/components/games/GameFooterNew.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1155,
+        "snippet": "<Coins className=\"w-4 h-4 text-amber-400\" />"
+      },
+      {
+        "file": "src/components/games/GameFooterNew.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1156,
+        "snippet": "<span className=\"text-amber-300 font-bold\">{betAmount.toLocaleString()}</span>"
+      },
+      {
+        "file": "src/components/games/GameFooterNew.tsx",
+        "id": "M2",
+        "label": "Glass white/5-10 with light text",
+        "line": 1171,
+        "snippet": "? \"bg-white/5 text-white/30\""
+      },
+      {
+        "file": "src/components/games/GameFooterNew.tsx",
+        "id": "M2",
+        "label": "Glass white/5-10 with light text",
+        "line": 1172,
+        "snippet": ": \"bg-white/10 text-white/80 hover:bg-white/20\""
+      }
+    ],
+    "src/pages/AgentRank.tsx": [
+      {
+        "file": "src/pages/AgentRank.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 253,
+        "snippet": "<Trophy className=\"w-5 h-5 text-yellow-400\" />"
+      },
+      {
+        "file": "src/pages/AgentRank.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 281,
+        "snippet": "<Clock className=\"w-3.5 h-3.5 text-amber-400\" />"
+      },
+      {
+        "file": "src/pages/AgentRank.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 282,
+        "snippet": "<span className=\"text-xs font-mono text-amber-300 font-bold tracking-wider\">"
+      },
+      {
+        "file": "src/pages/AgentRank.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 292,
+        "snippet": "<span className=\"text-[10px] text-emerald-400 font-bold tracking-wide\">LIVE</span>"
+      },
+      {
+        "file": "src/pages/AgentRank.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 313,
+        "snippet": "<Sparkles className=\"w-4 h-4 text-yellow-400\" />"
+      },
+      {
+        "file": "src/pages/AgentRank.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 338,
+        "snippet": "<Gem className=\"w-3.5 h-3.5 text-cyan-400\" />"
+      },
+      {
+        "file": "src/pages/AgentRank.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 339,
+        "snippet": "<span className={`text-sm font-black ${isFirst ? 'text-yellow-300' : 'text-cyan-300'}`}>"
+      },
+      {
+        "file": "src/pages/AgentRank.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 344,
+        "snippet": "<p className=\"text-[9px] text-slate-400 mt-1 truncate font-medium\">{reward.reward_badge}</p>"
+      },
+      {
+        "file": "src/pages/AgentRank.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 384,
+        "snippet": "<Crown className=\"w-8 h-8 text-yellow-400 drop-shadow-[0_0_8px_rgba(255,215,0,0.6)]\" />"
+      },
+      {
+        "file": "src/pages/AgentRank.tsx",
+        "id": "M6",
+        "label": "Glass border on dialog",
+        "line": 423,
+        "snippet": ": 'bg-white/[0.06] border-white/20'"
+      },
+      {
+        "file": "src/pages/AgentRank.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 425,
+        "snippet": "<Gem className={`${isChamp ? 'w-4 h-4' : 'w-3.5 h-3.5'} text-cyan-400`} />"
+      },
+      {
+        "file": "src/pages/AgentRank.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 426,
+        "snippet": "<span className={`font-black ${isChamp ? 'text-sm text-yellow-300' : 'text-xs text-cyan-300'}`}>"
+      },
+      {
+        "file": "src/pages/AgentRank.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 434,
+        "snippet": "<Gift className=\"w-3 h-3 text-yellow-400/70\" />"
+      },
+      {
+        "file": "src/pages/AgentRank.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 435,
+        "snippet": "<span className=\"text-[9px] text-yellow-400/70 font-bold\">+{formatNumber(reward.reward_coins)}</span>"
+      },
+      {
+        "file": "src/pages/AgentRank.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 506,
+        "snippet": "<Gem className=\"w-3.5 h-3.5 text-cyan-400\" />"
+      },
+      {
+        "file": "src/pages/AgentRank.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 507,
+        "snippet": "<span className=\"text-cyan-300 font-black text-sm\">{formatNumber(agency.metric_value)}</span>"
+      },
+      {
+        "file": "src/pages/AgentRank.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 511,
+        "snippet": "<Gift className=\"w-2.5 h-2.5 text-yellow-400/60\" />"
+      },
+      {
+        "file": "src/pages/AgentRank.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 512,
+        "snippet": "<span className=\"text-[9px] text-yellow-400/60 font-bold\">+{formatNumber(reward.reward_coins)}</span>"
+      },
+      {
+        "file": "src/pages/AgentRank.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 548,
+        "snippet": "<Gem className=\"w-3.5 h-3.5 text-cyan-300\" />"
+      },
+      {
+        "file": "src/pages/AgentRank.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 568,
+        "snippet": "<Trophy className=\"w-4 h-4 text-yellow-400\" /> How Rankings Work"
+      },
+      {
+        "file": "src/pages/AgentRank.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 579,
+        "snippet": "<Gift className=\"w-4 h-4 text-cyan-400\" /> Rewards"
+      },
+      {
+        "file": "src/pages/AgentRank.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 589,
+        "snippet": "<Wifi className=\"w-4 h-4 text-emerald-400\" /> Real-time Updates"
+      }
+    ],
+    "src/pages/LiveStream.tsx": [
+      {
+        "file": "src/pages/LiveStream.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 704,
+        "snippet": "color: \"text-green-400\","
+      },
+      {
+        "file": "src/pages/LiveStream.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1046,
+        "snippet": "color: \"text-pink-400\","
+      },
+      {
+        "file": "src/pages/LiveStream.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1124,
+        "snippet": "color: \"text-green-400\","
+      },
+      {
+        "file": "src/pages/LiveStream.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1586,
+        "snippet": "color: \"text-green-400\","
+      },
+      {
+        "file": "src/pages/LiveStream.tsx",
+        "id": "M1",
+        "label": "Pure dark surface in modal",
+        "line": 2525,
+        "snippet": "className=\"absolute top-4 right-4 w-10 h-10 rounded-full bg-black/40 text-white hover:bg-black/60 z-10\""
+      },
+      {
+        "file": "src/pages/LiveStream.tsx",
+        "id": "M6",
+        "label": "Glass border on dialog",
+        "line": 2545,
+        "snippet": "<div className=\"relative w-28 h-28 rounded-full overflow-hidden border-4 border-white/20 shadow-2xl\">"
+      },
+      {
+        "file": "src/pages/LiveStream.tsx",
+        "id": "M2",
+        "label": "Glass white/5-10 with light text",
+        "line": 2564,
+        "snippet": "<Badge className=\"bg-white/10 text-white border-white/10\">"
+      },
+      {
+        "file": "src/pages/LiveStream.tsx",
+        "id": "M6",
+        "label": "Glass border on dialog",
+        "line": 2564,
+        "snippet": "<Badge className=\"bg-white/10 text-white border-white/10\">"
+      },
+      {
+        "file": "src/pages/LiveStream.tsx",
+        "id": "M2",
+        "label": "Glass white/5-10 with light text",
+        "line": 2567,
+        "snippet": "<Badge className=\"bg-white/10 text-white border-white/10\">"
+      },
+      {
+        "file": "src/pages/LiveStream.tsx",
+        "id": "M6",
+        "label": "Glass border on dialog",
+        "line": 2567,
+        "snippet": "<Badge className=\"bg-white/10 text-white border-white/10\">"
+      },
+      {
+        "file": "src/pages/LiveStream.tsx",
+        "id": "M6",
+        "label": "Glass border on dialog",
+        "line": 2588,
+        "snippet": "className=\"w-full max-w-sm bg-gradient-to-br from-purple-600/90 via-purple-700/90 to-purple-800/90 rounded-3xl p-6 border border-white/10 sh"
+      },
+      {
+        "file": "src/pages/LiveStream.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2611,
+        "snippet": "<span className=\"text-2xl font-bold text-amber-400\">{liveEndStats.giftEarnings}</span>"
+      },
+      {
+        "file": "src/pages/LiveStream.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2620,
+        "snippet": "<span className=\"text-2xl font-bold text-amber-400\">{liveEndStats.callEarnings}</span>"
+      },
+      {
+        "file": "src/pages/LiveStream.tsx",
+        "id": "M6",
+        "label": "Glass border on dialog",
+        "line": 2764,
+        "snippet": "className=\"w-24 h-24 rounded-full object-cover border border-white/20\""
+      },
+      {
+        "file": "src/pages/LiveStream.tsx",
+        "id": "M6",
+        "label": "Glass border on dialog",
+        "line": 2769,
+        "snippet": "<div className=\"w-24 h-24 rounded-full bg-white/10 border border-white/20 flex items-center justify-center\">"
+      },
+      {
+        "file": "src/pages/LiveStream.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 3390,
+        "snippet": "color: \"text-pink-400\","
+      },
+      {
+        "file": "src/pages/LiveStream.tsx",
+        "id": "M1",
+        "label": "Pure dark surface in modal",
+        "line": 3502,
+        "snippet": "className=\"absolute inset-0 z-40 flex flex-col items-center justify-center bg-black/80\""
+      },
+      {
+        "file": "src/pages/LiveStream.tsx",
+        "id": "M6",
+        "label": "Glass border on dialog",
+        "line": 3538,
+        "snippet": "className=\"w-24 h-32 rounded-xl overflow-hidden border-2 border-white/20 shadow-lg\""
+      },
+      {
+        "file": "src/pages/LiveStream.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 3553,
+        "snippet": "className=\"mt-8 flex items-center gap-2 text-amber-400 text-sm\""
+      }
+    ],
+    "src/pages/HelperDashboard.tsx": [
+      {
+        "file": "src/pages/HelperDashboard.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 1152,
+        "snippet": "<p className=\"text-slate-400 text-[10px] mt-1.5 leading-tight\">"
+      },
+      {
+        "file": "src/pages/HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1548,
+        "snippet": "<CheckCircle className=\"w-4 h-4 text-cyan-400\" />"
+      },
+      {
+        "file": "src/pages/HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1597,
+        "snippet": "<p className=\"text-red-400 text-xs text-center\">"
+      },
+      {
+        "file": "src/pages/HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1686,
+        "snippet": "<span className=\"text-emerald-300 font-mono text-sm\">{selectedPaymentMethod.account_number}</span>"
+      },
+      {
+        "file": "src/pages/HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1722,
+        "snippet": "className=\"w-full mt-3 border-emerald-500/50 text-emerald-300 hover:bg-emerald-100\""
+      },
+      {
+        "file": "src/pages/HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1740,
+        "snippet": "Transaction ID <span className=\"text-red-400\">*</span>"
+      },
+      {
+        "file": "src/pages/HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1752,
+        "snippet": "<p className=\"text-red-400 text-xs mt-1\">Transaction ID is required</p>"
+      },
+      {
+        "file": "src/pages/HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1758,
+        "snippet": "Payment Screenshot <span className=\"text-red-400\">*</span>"
+      },
+      {
+        "file": "src/pages/HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1783,
+        "snippet": "<p className=\"text-red-400 text-xs mt-1\">Payment screenshot is required</p>"
+      },
+      {
+        "file": "src/pages/HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1912,
+        "snippet": "<p className=\"text-cyan-400 font-bold\">{level.commission_rate || 0}%</p>"
+      },
+      {
+        "file": "src/pages/HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1944,
+        "snippet": "<p className=\"text-emerald-300 text-xs\">"
+      },
+      {
+        "file": "src/pages/HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1967,
+        "snippet": "<Badge className=\"bg-green-500/30 text-green-300 text-[10px]\">Approved</Badge>"
+      },
+      {
+        "file": "src/pages/HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2003,
+        "snippet": "<span className=\"text-red-400 text-xs\">❌ Application rejected. You can apply again.</span>"
+      },
+      {
+        "file": "src/pages/HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2519,
+        "snippet": "<p className=\"text-emerald-300 text-xs\">Transfer from wallet to your own diamond balance</p>"
+      },
+      {
+        "file": "src/pages/HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2563,
+        "snippet": "<History className=\"w-5 h-5 text-cyan-400\" />"
+      },
+      {
+        "file": "src/pages/HelperDashboard.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2610,
+        "snippet": "? \"bg-cyan-500/20 text-cyan-300\""
+      }
+    ],
+    "src/pages/Chat.tsx": [
+      {
+        "file": "src/pages/Chat.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1980,
+        "snippet": "className=\"text-red-400 hover:text-red-300 hover:bg-red-500/[0.08] cursor-pointer gap-3 py-3 px-3 rounded-xl transition-all\""
+      },
+      {
+        "file": "src/pages/Chat.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1983,
+        "snippet": "<X className=\"w-4 h-4 text-red-400\" />"
+      },
+      {
+        "file": "src/pages/Chat.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1993,
+        "snippet": "className=\"text-amber-400 hover:text-amber-300 hover:bg-amber-500/[0.08] cursor-pointer gap-3 py-3 px-3 rounded-xl transition-all\""
+      },
+      {
+        "file": "src/pages/Chat.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1996,
+        "snippet": "<ShieldAlert className=\"w-4 h-4 text-amber-400\" />"
+      },
+      {
+        "file": "src/pages/Chat.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 2684,
+        "snippet": "\"rounded-full bg-white/[0.06] border border-amber-200/60 pr-20 text-slate-900 placeholder:text-slate-400 focus-visible:ring-1 focus-visible:"
+      },
+      {
+        "file": "src/pages/Chat.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2773,
+        "snippet": "<Gift className=\"w-5 h-5 text-pink-400\" />"
+      },
+      {
+        "file": "src/pages/Chat.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2785,
+        "snippet": "<Gamepad2 className=\"w-5 h-5 text-indigo-400\" />"
+      },
+      {
+        "file": "src/pages/Chat.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2803,
+        "snippet": "<VideoCallIcon className=\"w-5 h-5 text-rose-400 relative z-10\" />"
+      },
+      {
+        "file": "src/pages/Chat.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 2808,
+        "snippet": "<span className=\"text-[8px] text-amber-400/70 font-medium\">💎 {selectedConversation.other_user.call_rate_per_minute}/min</span>"
+      },
+      {
+        "file": "src/pages/Chat.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 3008,
+        "snippet": "<Search className=\"absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400\" />"
+      },
+      {
+        "file": "src/pages/Chat.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 3013,
+        "snippet": "className=\"pl-10 rounded-full bg-white/90 border border-amber-200/60 text-slate-900 placeholder:text-slate-400 focus-visible:ring-2 focus-vi"
+      },
+      {
+        "file": "src/pages/Chat.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 3184,
+        "snippet": "<Users className=\"w-8 h-8 text-fuchsia-400\" />"
+      },
+      {
+        "file": "src/pages/Chat.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 3218,
+        "snippet": "className=\"bg-white border-amber-200/60 text-slate-800 placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-purple-500/40\""
+      },
+      {
+        "file": "src/pages/Chat.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 3263,
+        "snippet": "<Users className=\"w-5 h-5 text-pink-400\" />"
+      },
+      {
+        "file": "src/pages/Chat.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 3299,
+        "snippet": "className=\"pr-12 bg-white/[0.06] border-slate-200/[0.08] text-slate-900 placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-p"
+      }
+    ],
+    "src/components/party/PartyGiftPanel.tsx": [
+      {
+        "file": "src/components/party/PartyGiftPanel.tsx",
+        "id": "M6",
+        "label": "Glass border on dialog",
+        "line": 206,
+        "snippet": "<SheetContent side=\"bottom\" className=\"h-[55vh] rounded-t-3xl bg-gradient-to-b from-slate-900 to-slate-950 border-t border-white/10 p-0 pb-s"
+      },
+      {
+        "file": "src/components/party/PartyGiftPanel.tsx",
+        "id": "M6",
+        "label": "Glass border on dialog",
+        "line": 208,
+        "snippet": "<div className=\"flex items-center justify-between px-4 py-2 border-b border-white/10\">"
+      },
+      {
+        "file": "src/components/party/PartyGiftPanel.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 215,
+        "snippet": "<Coins className=\"w-3 h-3 text-amber-400\" />"
+      },
+      {
+        "file": "src/components/party/PartyGiftPanel.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 216,
+        "snippet": "<span className=\"text-xs font-bold text-amber-300\">{formatCoins(userCoins)}</span>"
+      },
+      {
+        "file": "src/components/party/PartyGiftPanel.tsx",
+        "id": "M6",
+        "label": "Glass border on dialog",
+        "line": 225,
+        "snippet": "<div className=\"border-b border-white/10\">"
+      },
+      {
+        "file": "src/components/party/PartyGiftPanel.tsx",
+        "id": "M2",
+        "label": "Glass white/5-10 with light text",
+        "line": 236,
+        "snippet": ": \"bg-white/5 text-white/60 hover:bg-white/10\""
+      },
+      {
+        "file": "src/components/party/PartyGiftPanel.tsx",
+        "id": "M2",
+        "label": "Glass white/5-10 with light text",
+        "line": 242,
+        "snippet": "activeCategory === category.id ? \"bg-white/25 text-white\" : \"bg-white/10 text-white/40\""
+      },
+      {
+        "file": "src/components/party/PartyGiftPanel.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 350,
+        "snippet": "<span className=\"text-[10px] text-amber-400 flex items-center gap-0.5 font-bold\">"
+      },
+      {
+        "file": "src/components/party/PartyGiftPanel.tsx",
+        "id": "M6",
+        "label": "Glass border on dialog",
+        "line": 388,
+        "snippet": "className=\"absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-slate-900 to-slate-900/90 border-t border-white/10 safe-area-bottom\""
+      },
+      {
+        "file": "src/components/party/PartyGiftPanel.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 423,
+        "snippet": "<p className=\"text-amber-400 text-xs\">{formatCoins(selectedGift.coins * sendCount)} coins</p>"
+      },
+      {
+        "file": "src/components/party/PartyGiftPanel.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 454,
+        "snippet": ": \"bg-gray-600 text-gray-400\""
+      },
+      {
+        "file": "src/components/party/PartyGiftPanel.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 462,
+        "snippet": "<p className=\"text-xs text-red-400 text-center mt-1\">Insufficient coins</p>"
+      }
+    ],
+    "src/components/rewards/DailyLoginPopup.tsx": [
+      {
+        "file": "src/components/rewards/DailyLoginPopup.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 141,
+        "snippet": "<Sparkles className=\"w-3 h-3 text-amber-300\" />"
+      },
+      {
+        "file": "src/components/rewards/DailyLoginPopup.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 161,
+        "snippet": "<Sparkles className=\"absolute top-1/2 -left-2 -translate-y-1/2 w-3 h-3 text-fuchsia-300 drop-shadow-[0_0_8px_rgba(232,121,249,0.9)]\" />"
+      },
+      {
+        "file": "src/components/rewards/DailyLoginPopup.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 217,
+        "snippet": "<p className=\"mt-1 text-[11px] text-slate-400 tracking-wider\">"
+      },
+      {
+        "file": "src/components/rewards/DailyLoginPopup.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 241,
+        "snippet": "<Flame className=\"w-3 h-3 text-orange-300\" />"
+      },
+      {
+        "file": "src/components/rewards/DailyLoginPopup.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 299,
+        "snippet": "? \"text-emerald-300/70\""
+      },
+      {
+        "file": "src/components/rewards/DailyLoginPopup.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 300,
+        "snippet": ": \"text-slate-400\""
+      },
+      {
+        "file": "src/components/rewards/DailyLoginPopup.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 327,
+        "snippet": "className=\"w-6 h-6 text-amber-300 drop-shadow-[0_0_10px_rgba(245,158,11,0.8)]\""
+      },
+      {
+        "file": "src/components/rewards/DailyLoginPopup.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 343,
+        "snippet": ": \"text-slate-400\""
+      },
+      {
+        "file": "src/components/rewards/DailyLoginPopup.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 380,
+        "snippet": "<p className=\"text-[9px] font-bold uppercase tracking-[0.24em] text-amber-300/80 mb-1.5\">"
+      },
+      {
+        "file": "src/components/rewards/DailyLoginPopup.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 408,
+        "snippet": "<Gem className=\"w-4 h-4 text-cyan-300\" />"
+      },
+      {
+        "file": "src/components/rewards/DailyLoginPopup.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 500,
+        "snippet": "className=\"text-center text-[11px] text-amber-300/75 mt-3 font-semibold tracking-wide\""
+      }
+    ],
+    "src/pages/Reels.tsx": [
+      {
+        "file": "src/pages/Reels.tsx",
+        "id": "M1",
+        "label": "Pure dark surface in modal",
+        "line": 475,
+        "snippet": "<div className=\"fixed inset-0 bg-black flex flex-col overflow-hidden\">"
+      },
+      {
+        "file": "src/pages/Reels.tsx",
+        "id": "M2",
+        "label": "Glass white/5-10 with light text",
+        "line": 484,
+        "snippet": "className=\"flex items-center gap-1 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full px-3.5 py-1.5 text-[11px] font-semibold text-"
+      },
+      {
+        "file": "src/pages/Reels.tsx",
+        "id": "M1",
+        "label": "Pure dark surface in modal",
+        "line": 549,
+        "snippet": "<div className=\"w-20 h-20 rounded-full bg-black/50 flex items-center justify-center\">"
+      },
+      {
+        "file": "src/pages/Reels.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 751,
+        "snippet": "<span className=\"text-pink-400 text-[10px] font-bold whitespace-nowrap flex-shrink-0 bg-pink-500/15 px-1.5 py-0.5 rounded-full border border"
+      },
+      {
+        "file": "src/pages/Reels.tsx",
+        "id": "M6",
+        "label": "Glass border on dialog",
+        "line": 855,
+        "snippet": "<SheetContent side=\"bottom\" className=\"rounded-t-3xl border-t border-white/10 bg-gradient-to-b from-zinc-900 to-black p-0 max-h-[80vh]\">"
+      },
+      {
+        "file": "src/pages/Reels.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 947,
+        "snippet": "<User className=\"w-5 h-5 text-rose-400\" />"
+      },
+      {
+        "file": "src/pages/Reels.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 950,
+        "snippet": "<div className=\"text-rose-300 text-sm font-semibold\">Block User</div>"
+      },
+      {
+        "file": "src/pages/Reels.tsx",
+        "id": "M2",
+        "label": "Glass white/5-10 with light text",
+        "line": 987,
+        "snippet": "className=\"flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 active:bg-white/15 border border-white"
+      },
+      {
+        "file": "src/pages/Reels.tsx",
+        "id": "M6",
+        "label": "Glass border on dialog",
+        "line": 987,
+        "snippet": "className=\"flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 active:bg-white/15 border border-white"
+      }
+    ],
+    "src/components/party/ProfessionalBottomBar.tsx": [
+      {
+        "file": "src/components/party/ProfessionalBottomBar.tsx",
+        "id": "M1",
+        "label": "Pure dark surface in modal",
+        "line": 184,
+        "snippet": "className=\"absolute inset-0 -bottom-2 rounded-2xl bg-black blur-xl -z-10\""
+      },
+      {
+        "file": "src/components/party/ProfessionalBottomBar.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 298,
+        "snippet": "<Sparkles className=\"w-5 h-5 text-yellow-400\" />"
+      },
+      {
+        "file": "src/components/party/ProfessionalBottomBar.tsx",
+        "id": "M2",
+        "label": "Glass white/5-10 with light text",
+        "line": 307,
+        "snippet": "className=\"w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white\""
+      },
+      {
+        "file": "src/components/party/ProfessionalBottomBar.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 320,
+        "snippet": "<Sparkles className=\"w-4 h-4 text-green-400\" />"
+      },
+      {
+        "file": "src/components/party/ProfessionalBottomBar.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 322,
+        "snippet": "<span className=\"text-green-400 font-semibold text-sm\">Live Games</span>"
+      },
+      {
+        "file": "src/components/party/ProfessionalBottomBar.tsx",
+        "id": "M6",
+        "label": "Glass border on dialog",
+        "line": 390,
+        "snippet": "className=\"flex flex-col items-center gap-0.5 h-auto py-2 px-3 rounded-xl bg-white/10 border border-white/10\""
+      },
+      {
+        "file": "src/components/party/ProfessionalBottomBar.tsx",
+        "id": "M6",
+        "label": "Glass border on dialog",
+        "line": 402,
+        "snippet": "className=\"flex flex-col items-center gap-0.5 h-auto py-2 px-3 rounded-xl bg-white/10 border border-white/10\""
+      }
+    ],
+    "src/pages/Tasks.tsx": [
+      {
+        "file": "src/pages/Tasks.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 562,
+        "snippet": "<p className=\"text-amber-300 font-bold text-lg\">{bonusSettings.beans_per_hour.toLocaleString()}</p>"
+      },
+      {
+        "file": "src/pages/Tasks.tsx",
+        "id": "M6",
+        "label": "Glass border on dialog",
+        "line": 579,
+        "snippet": ": 'bg-white/5 border border-white/10'"
+      },
+      {
+        "file": "src/pages/Tasks.tsx",
+        "id": "M6",
+        "label": "Glass border on dialog",
+        "line": 597,
+        "snippet": "<div className=\"mx-4 mb-4 p-3 rounded-xl bg-white/5 border border-white/10\">"
+      },
+      {
+        "file": "src/pages/Tasks.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 601,
+        "snippet": "<p className=\"text-amber-300 font-bold text-sm\">{(bonusProgress?.beans_earned || 0).toLocaleString()}</p>"
+      },
+      {
+        "file": "src/pages/Tasks.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 611,
+        "snippet": "<p className=\"text-fuchsia-300 font-bold text-sm\">Day {bonusProgress?.day_number || 1}/{bonusSettings.eligible_days}</p>"
+      },
+      {
+        "file": "src/pages/Tasks.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 795,
+        "snippet": "<Star className=\"w-16 h-16 text-amber-300 mx-auto mb-4\" />"
+      }
+    ],
+    "src/components/report/ReportUserDialog.tsx": [
+      {
+        "file": "src/components/report/ReportUserDialog.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 26,
+        "snippet": "iconColor: \"text-pink-400\","
+      },
+      {
+        "file": "src/components/report/ReportUserDialog.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 37,
+        "snippet": "iconColor: \"text-red-400\","
+      },
+      {
+        "file": "src/components/report/ReportUserDialog.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 48,
+        "snippet": "iconColor: \"text-orange-400\","
+      },
+      {
+        "file": "src/components/report/ReportUserDialog.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 70,
+        "snippet": "iconColor: \"text-amber-400\","
+      },
+      {
+        "file": "src/components/report/ReportUserDialog.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 144,
+        "snippet": "<ShieldAlert className=\"w-5 h-5 text-red-400\" />"
+      },
+      {
+        "file": "src/components/report/ReportUserDialog.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 208,
+        "snippet": "className=\"bg-white/70 border-amber-200/60 text-slate-800 placeholder:text-slate-400 min-h-[80px] resize-none rounded-xl focus:border-purple"
+      }
+    ],
+    "src/components/games/LiveGameSelector.tsx": [
+      {
+        "file": "src/components/games/LiveGameSelector.tsx",
+        "id": "M1",
+        "label": "Pure dark surface in modal",
+        "line": 80,
+        "snippet": "<div className=\"absolute top-2 right-2 flex items-center gap-1 bg-black/40 backdrop-blur-sm px-1.5 py-0.5 rounded-full z-10\">"
+      },
+      {
+        "file": "src/components/games/LiveGameSelector.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 227,
+        "snippet": "<Sparkles className=\"w-5 h-5 text-yellow-400\" />"
+      },
+      {
+        "file": "src/components/games/LiveGameSelector.tsx",
+        "id": "M2",
+        "label": "Glass white/5-10 with light text",
+        "line": 237,
+        "snippet": "className=\"w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/20\""
+      },
+      {
+        "file": "src/components/games/LiveGameSelector.tsx",
+        "id": "M6",
+        "label": "Glass border on dialog",
+        "line": 282,
+        "snippet": "className=\"px-5 py-4 border-t border-white/10\""
+      },
+      {
+        "file": "src/components/games/LiveGameSelector.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 292,
+        "snippet": "<Coins className=\"w-5 h-5 text-yellow-400\" />"
+      }
+    ],
+    "src/pages/Leaderboard.tsx": [
+      {
+        "file": "src/pages/Leaderboard.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 372,
+        "snippet": "<HelpCircle className=\"w-5 h-5 text-slate-400\" />"
+      },
+      {
+        "file": "src/pages/Leaderboard.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 470,
+        "snippet": "<Swords className=\"w-6 h-6 mx-auto mb-1 text-slate-400\" />"
+      },
+      {
+        "file": "src/pages/Leaderboard.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 511,
+        "snippet": "<p className=\"text-slate-400 text-sm mt-1\">Be the first to climb!</p>"
+      },
+      {
+        "file": "src/pages/Leaderboard.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 754,
+        "snippet": "rank <= 10 ? \"text-amber-600\" : \"text-slate-400\""
+      }
+    ],
+    "src/components/auth/PhoneSignInButton.tsx": [
+      {
+        "file": "src/components/auth/PhoneSignInButton.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 260,
+        "snippet": "className=\"pl-10 h-12 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 rounded-xl\""
+      },
+      {
+        "file": "src/components/auth/PhoneSignInButton.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 323,
+        "snippet": "className=\"flex-1 h-14 text-lg bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 rounded-xl\""
+      },
+      {
+        "file": "src/components/auth/PhoneSignInButton.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 397,
+        "snippet": "className=\"h-14 text-lg bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 rounded-xl text-center\""
+      },
+      {
+        "file": "src/components/auth/PhoneSignInButton.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 442,
+        "snippet": "className=\"h-16 w-48 text-center text-3xl font-bold tracking-[0.5em] bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 rou"
+      }
+    ],
+    "src/components/profile/ProfileReelsSection.tsx": [
+      {
+        "file": "src/components/profile/ProfileReelsSection.tsx",
+        "id": "M1",
+        "label": "Pure dark surface in modal",
+        "line": 210,
+        "snippet": "<div className=\"absolute inset-0 flex items-center justify-center pointer-events-none bg-black/10 group-hover:bg-black/30 transition-colors\""
+      },
+      {
+        "file": "src/components/profile/ProfileReelsSection.tsx",
+        "id": "M1",
+        "label": "Pure dark surface in modal",
+        "line": 217,
+        "snippet": "<div className=\"absolute bottom-1 left-1 flex items-center gap-0.5 text-white text-[9px] font-bold bg-black/60 rounded px-1.5 py-0.5\">"
+      },
+      {
+        "file": "src/components/profile/ProfileReelsSection.tsx",
+        "id": "M1",
+        "label": "Pure dark surface in modal",
+        "line": 224,
+        "snippet": "<div className=\"absolute top-1 left-1 w-5 h-5 rounded-full bg-black/70 flex items-center justify-center\">"
+      },
+      {
+        "file": "src/components/profile/ProfileReelsSection.tsx",
+        "id": "M1",
+        "label": "Pure dark surface in modal",
+        "line": 236,
+        "snippet": "className=\"absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 flex items-center justify-center hover:bg-black/80 active:scale-95 transi"
+      }
+    ],
+    "src/components/profile/ProfileReelsTab.tsx": [
+      {
+        "file": "src/components/profile/ProfileReelsTab.tsx",
+        "id": "M1",
+        "label": "Pure dark surface in modal",
+        "line": 172,
+        "snippet": "<div className=\"w-6 h-6 rounded-full bg-black/40 flex items-center justify-center\">"
+      },
+      {
+        "file": "src/components/profile/ProfileReelsTab.tsx",
+        "id": "M1",
+        "label": "Pure dark surface in modal",
+        "line": 178,
+        "snippet": "<div className=\"absolute bottom-0.5 left-0.5 flex items-center gap-0.5 text-white text-[8px] font-medium bg-black/50 rounded px-1\">"
+      },
+      {
+        "file": "src/components/profile/ProfileReelsTab.tsx",
+        "id": "M1",
+        "label": "Pure dark surface in modal",
+        "line": 220,
+        "snippet": "\"absolute inset-0 bg-black/40 flex flex-col items-center justify-center transition-opacity pointer-events-none\","
+      },
+      {
+        "file": "src/components/profile/ProfileReelsTab.tsx",
+        "id": "M1",
+        "label": "Pure dark surface in modal",
+        "line": 242,
+        "snippet": "className=\"p-1.5 bg-black/50 rounded-full hover:bg-black/70 transition-colors\""
+      }
+    ],
+    "src/components/rewards/RatingRewardPopup.tsx": [
+      {
+        "file": "src/components/rewards/RatingRewardPopup.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 297,
+        "snippet": "<Gift className=\"w-7 h-7 text-amber-400\" />"
+      },
+      {
+        "file": "src/components/rewards/RatingRewardPopup.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 299,
+        "snippet": "<p className=\"text-amber-300 font-bold text-lg tracking-wide\">Claim Your Reward</p>"
+      },
+      {
+        "file": "src/components/rewards/RatingRewardPopup.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 385,
+        "snippet": "<CheckCircle className=\"w-9 h-9 text-emerald-400\" />"
+      },
+      {
+        "file": "src/components/rewards/RatingRewardPopup.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 394,
+        "snippet": "<div className=\"flex items-center justify-center gap-2 text-amber-400/50 text-xs\">"
+      }
+    ],
+    "src/pages/GoogleLibraryOrderRules.tsx": [
+      {
+        "file": "src/pages/GoogleLibraryOrderRules.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 284,
+        "snippet": "<p className=\"text-slate-400 text-xs\">© MeriLive — All Rights Reserved</p>"
+      },
+      {
+        "file": "src/pages/GoogleLibraryOrderRules.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 349,
+        "snippet": "className=\"bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 rounded-xl mb-3 text-sm h-11\""
+      },
+      {
+        "file": "src/pages/GoogleLibraryOrderRules.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 358,
+        "snippet": "className=\"bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 min-h-[80px] resize-none rounded-xl mb-4 text-sm\""
+      }
+    ],
+    "src/pages/Settings.tsx": [
+      {
+        "file": "src/pages/Settings.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1001,
+        "snippet": "<Camera className=\"w-5 h-5 text-pink-400\" />"
+      },
+      {
+        "file": "src/pages/Settings.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1028,
+        "snippet": "<Mic className=\"w-5 h-5 text-blue-400\" />"
+      },
+      {
+        "file": "src/pages/Settings.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 1055,
+        "snippet": "<MapPin className=\"w-5 h-5 text-green-400\" />"
+      }
+    ],
+    "src/pages/AgencyHostManagement.tsx": [
+      {
+        "file": "src/pages/AgencyHostManagement.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 428,
+        "snippet": "<Search className=\"absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400\" />"
+      },
+      {
+        "file": "src/pages/AgencyHostManagement.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 475,
+        "snippet": "<Badge className={hostData.host?.is_online ? \"bg-success-500/20 text-success-400\" : \"bg-gray-500/20 text-gray-400\"}>"
+      }
+    ],
+    "src/pages/AgencyWithdrawal.tsx": [
+      {
+        "file": "src/pages/AgencyWithdrawal.tsx",
+        "id": "M6",
+        "label": "Glass border on dialog",
+        "line": 2903,
+        "snippet": "<DialogContent className=\"mx-4 rounded-2xl bg-gradient-to-br from-warning-50 via-white to-warning-50 border-white/20\">"
+      },
+      {
+        "file": "src/pages/AgencyWithdrawal.tsx",
+        "id": "M6",
+        "label": "Glass border on dialog",
+        "line": 2989,
+        "snippet": "<DialogContent className=\"mx-4 rounded-2xl bg-gradient-to-br from-warning-50 via-white to-warning-50 border-white/20 max-h-[85vh] overflow-y"
+      }
+    ],
+    "src/pages/Profile.tsx": [
+      {
+        "file": "src/pages/Profile.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 2154,
+        "snippet": "<ChevronRight className=\"w-4 h-4 text-slate-400\" />"
+      },
+      {
+        "file": "src/pages/Profile.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 2929,
+        "snippet": "className=\"bg-white border border-amber-200/70 text-slate-800 placeholder:text-slate-400 text-lg h-12 rounded-xl focus-visible:ring-amber-40"
+      }
+    ],
+    "src/pages/SearchUsers.tsx": [
+      {
+        "file": "src/pages/SearchUsers.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 398,
+        "snippet": "<Search className=\"absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400\" />"
+      },
+      {
+        "file": "src/pages/SearchUsers.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 407,
+        "snippet": "className=\"pl-10 pr-10 rounded-full bg-slate-100 border border-slate-200 text-slate-900 placeholder:text-slate-400 focus-visible:ring-1 focu"
+      }
+    ],
+    "src/components/auth/BanPopupDialog.tsx": [
+      {
+        "file": "src/components/auth/BanPopupDialog.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 66,
+        "snippet": "<ShieldX className=\"w-9 h-9 text-red-400\" />"
+      },
+      {
+        "file": "src/components/auth/BanPopupDialog.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 69,
+        "snippet": "<AlertDialogTitle className=\"text-red-300 text-center text-lg\">"
+      }
+    ],
+    "src/components/games/GlobalGameOverlay.tsx": [
+      {
+        "file": "src/components/games/GlobalGameOverlay.tsx",
+        "id": "M1",
+        "label": "Pure dark surface in modal",
+        "line": 65,
+        "snippet": "className=\"w-8 h-8 rounded-full bg-black/50 text-white hover:bg-black/70\""
+      },
+      {
+        "file": "src/components/games/GlobalGameOverlay.tsx",
+        "id": "M6",
+        "label": "Glass border on dialog",
+        "line": 95,
+        "snippet": "className=\"relative w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 shadow-xl border-2 border-white/20 fl"
+      }
+    ],
+    "src/components/party/AdvancedPartyBottomBar.tsx": [
+      {
+        "file": "src/components/party/AdvancedPartyBottomBar.tsx",
+        "id": "M1",
+        "label": "Pure dark surface in modal",
+        "line": 132,
+        "snippet": "className=\"absolute inset-0 -bottom-2 rounded-2xl bg-black blur-xl -z-10\""
+      },
+      {
+        "file": "src/components/party/AdvancedPartyBottomBar.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 359,
+        "snippet": "<Sparkles className=\"w-4 h-4 text-yellow-400\" />"
+      }
+    ],
+    "src/pages/Index.tsx": [
+      {
+        "file": "src/pages/Index.tsx",
+        "id": "M1",
+        "label": "Pure dark surface in modal",
+        "line": 440,
+        "snippet": "<div className=\"flex items-center gap-1 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1\">"
+      }
+    ],
+    "src/pages/ProfileDetail.tsx": [
+      {
+        "file": "src/pages/ProfileDetail.tsx",
+        "id": "M2",
+        "label": "Glass white/5-10 with light text",
+        "line": 711,
+        "snippet": "className=\"bg-white/5 border-slate-200/10 text-white hover:bg-white/10\">"
+      }
+    ],
+    "src/components/chat/ChatGiftPanel.tsx": [
+      {
+        "file": "src/components/chat/ChatGiftPanel.tsx",
+        "id": "M3",
+        "label": "Faint body text (slate-400/gray-400/zinc-400/muted/50)",
+        "line": 341,
+        "snippet": "<Gift className=\"w-10 h-10 text-muted-foreground/50\" />"
+      }
+    ],
+    "src/components/games/GameSelector.tsx": [
+      {
+        "file": "src/components/games/GameSelector.tsx",
+        "id": "M6",
+        "label": "Glass border on dialog",
+        "line": 38,
+        "snippet": "className=\"fixed bottom-24 right-4 z-40 w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-500 shadow-xl border-2 border-white/"
+      }
+    ],
+    "src/components/home/Header.tsx": [
+      {
+        "file": "src/components/home/Header.tsx",
+        "id": "M5",
+        "label": "Pale 300/400 accent icon",
+        "line": 83,
+        "snippet": "<Trophy className=\"w-5 h-5 text-amber-400\" />"
+      }
+    ],
+    "src/components/reels/ReelUploadModal.tsx": [
+      {
+        "file": "src/components/reels/ReelUploadModal.tsx",
+        "id": "M1",
+        "label": "Pure dark surface in modal",
+        "line": 375,
+        "snippet": "className=\"absolute top-2 right-2 p-1 bg-black/60 rounded-full\""
+      }
+    ]
+  }
+}
