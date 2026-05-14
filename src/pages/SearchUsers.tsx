@@ -275,7 +275,7 @@ const SearchUsers = () => {
     return (
       <div
         key={user.id}
-        className="flex items-center gap-3 p-4 bg-card rounded-xl border border-border/50 cursor-pointer hover:bg-muted/50 transition-colors"
+        className="flex items-center gap-3 p-4 bg-white rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors text-slate-900"
         onClick={() => handleUserClick(user)}
       >
         {/* Avatar */}
