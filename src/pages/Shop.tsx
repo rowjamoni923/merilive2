@@ -118,16 +118,16 @@ const ShopItemCard = ({
       onClick={onPreview}
       className="relative rounded-2xl overflow-hidden cursor-pointer group"
       style={{
-        background: 'linear-gradient(160deg, rgba(88,28,135,0.5) 0%, rgba(30,10,60,0.9) 50%, rgba(15,5,30,0.95) 100%)',
-        border: '1px solid rgba(168,85,247,0.25)',
-        boxShadow: '0 8px 32px rgba(88,28,135,0.3), inset 0 1px 0 rgba(255,255,255,0.08)',
+        background: 'linear-gradient(160deg, #FFFFFF 0%, #FFFBF2 50%, #FAF3E0 100%)',
+        border: '1px solid rgba(217,182,107,0.35)',
+        boxShadow: '0 6px 22px rgba(180,140,40,0.10), inset 0 1px 0 rgba(255,255,255,0.6)',
       }}
     >
       {/* Featured indicator */}
       {item.is_featured && (
         <div className="absolute top-2 right-2 z-10">
           <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/40">
-            <Zap className="w-3.5 h-3.5 text-slate-800" />
+            <Zap className="w-3.5 h-3.5 text-white" />
           </div>
         </div>
       )}
@@ -136,7 +136,7 @@ const ShopItemCard = ({
       {owned && (
         <div className="absolute top-2 left-2 z-10">
           <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center shadow-lg shadow-green-500/40">
-            <Check className="w-3.5 h-3.5 text-slate-800" />
+            <Check className="w-3.5 h-3.5 text-white" />
           </div>
         </div>
       )}
@@ -144,18 +144,18 @@ const ShopItemCard = ({
       {/* Preview Area */}
       <div className={`${isFullWidth ? 'aspect-[16/10] min-h-[160px]' : 'aspect-square'} flex items-center justify-center p-3 relative overflow-hidden`}>
         {/* Subtle radial glow */}
-        <div 
-          className="absolute inset-0 opacity-40"
+        <div
+          className="absolute inset-0 opacity-50"
           style={{
-            background: 'radial-gradient(circle at center, rgba(168,85,247,0.2) 0%, transparent 70%)',
+            background: 'radial-gradient(circle at center, rgba(251,191,36,0.18) 0%, transparent 70%)',
           }}
         />
-        
+
         {(item.animation_file_url || item.preview_url) && !imageError ? (
           // If preview_url exists and is a real image (not SVGA/Lottie), show static preview
           item.preview_url && !item.preview_url.endsWith('.svga') && !item.preview_url.endsWith('.json') ? (
-            <img 
-              src={item.preview_url} 
+            <img
+              src={item.preview_url}
               alt={item.name}
               className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
               onError={() => setImageError(true)}
@@ -170,16 +170,16 @@ const ShopItemCard = ({
               />
             </div>
           ) : (
-            <img 
-              src={item.animation_file_url || item.preview_url || ''} 
+            <img
+              src={item.animation_file_url || item.preview_url || ''}
               alt={item.name}
               className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
               onError={() => setImageError(true)}
             />
           )
         ) : (
-          <div className="w-16 h-16 rounded-2xl bg-purple-500/10 flex items-center justify-center">
-            <Shield className="w-10 h-10 text-purple-400/60" strokeWidth={1.5} />
+          <div className="w-16 h-16 rounded-2xl bg-amber-100/60 flex items-center justify-center">
+            <Shield className="w-10 h-10 text-amber-500/60" strokeWidth={1.5} />
           </div>
         )}
       </div>
@@ -188,36 +188,36 @@ const ShopItemCard = ({
       <div className="px-3 pb-3 space-y-2">
         {/* Name */}
         <p className="text-slate-800 text-sm font-semibold truncate text-center">{item.name}</p>
-        
+
         {/* Price with diamond icon */}
         <div className="flex items-center justify-center gap-1.5">
           <Diamond3DIcon size={14} />
-          <span className="text-amber-400 text-xs font-bold">
+          <span className="text-amber-700 text-xs font-bold">
             {item.price_diamonds.toLocaleString()}
             {item.duration_days && (
-              <span className="text-amber-400/70 font-normal">/{item.duration_days}day</span>
+              <span className="text-amber-600/80 font-normal">/{item.duration_days}day</span>
             )}
           </span>
         </div>
 
         {/* Purchase / Owned Button */}
         {owned ? (
-          <div 
-            className="w-full py-2 rounded-full text-center text-xs font-bold text-emerald-300"
+          <div
+            className="w-full py-2 rounded-full text-center text-xs font-bold text-emerald-700"
             style={{
-              background: 'linear-gradient(135deg, rgba(16,185,129,0.25) 0%, rgba(5,150,105,0.2) 100%)',
-              border: '1px solid rgba(16,185,129,0.3)',
+              background: 'linear-gradient(135deg, rgba(16,185,129,0.18) 0%, rgba(5,150,105,0.12) 100%)',
+              border: '1px solid rgba(16,185,129,0.35)',
             }}
           >
             ✓ Owned
           </div>
         ) : (
-          <button 
+          <button
             onClick={(e) => { e.stopPropagation(); onPreview(); }}
-            className="w-full py-2 rounded-full text-xs font-bold text-slate-800 transition-all active:scale-95"
+            className="w-full py-2 rounded-full text-xs font-bold text-white transition-all active:scale-95"
             style={{
-              background: 'linear-gradient(135deg, #d946ef 0%, #a855f7 50%, #7c3aed 100%)',
-              boxShadow: '0 4px 15px rgba(168,85,247,0.4), inset 0 1px 0 rgba(255,255,255,0.15)',
+              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%)',
+              boxShadow: '0 4px 14px rgba(217,119,6,0.45), inset 0 1px 0 rgba(255,255,255,0.25)',
             }}
           >
             Purchase
