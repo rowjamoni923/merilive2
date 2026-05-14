@@ -725,14 +725,14 @@ const Tasks = () => {
                   <div className="flex-shrink-0">
                     {task.requirement_type === 'play_store_rating' ? (
                       ratingAlreadyClaimed ? (
-                      <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
-                        <Check className="w-5 h-5 text-green-400" />
+                      <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                        <Check className="w-5 h-5 text-green-700" />
                         </div>
                       ) : (
                         <div className="flex flex-col gap-1.5">
                           <Button
                             size="sm"
-                            className="text-slate-800 text-xs h-8 gap-1 rounded-lg font-bold border-0"
+                            className="text-white text-xs h-8 gap-1 rounded-lg font-bold border-0"
                             style={{
                               background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
                               boxShadow: '0 3px 12px rgba(245,158,11,0.4)',
@@ -756,8 +756,8 @@ const Tasks = () => {
                         </div>
                       )
                     ) : status === 'claimed' ? (
-                      <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
-                        <Check className="w-5 h-5 text-green-400" />
+                      <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                        <Check className="w-5 h-5 text-green-700" />
                       </div>
                     ) : status === 'completed' ? (
                       <Button
@@ -772,7 +772,7 @@ const Tasks = () => {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="border-amber-200/60 text-slate-500 hover:bg-white/10"
+                        className="border-amber-300 text-amber-800 hover:bg-amber-50 active:bg-amber-100"
                         onClick={() => {
                           const route = taskNavigationMap[task.requirement_type];
                           if (route) {
