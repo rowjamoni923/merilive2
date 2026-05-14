@@ -261,7 +261,7 @@ const RechargeHistory = () => {
    const completedCount = rechargeOrders.filter(r => ['completed', 'approved', 'rejected', 'failed', 'cancelled'].includes(r.status)).length;
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-slate-900 via-purple-900/20 to-slate-900 overflow-hidden">
+    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-amber-50 via-amber-50 to-orange-50 overflow-hidden">
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 via-pink-500 to-rose-500 pb-6">
         <header className="safe-area-top">
@@ -281,17 +281,17 @@ const RechargeHistory = () => {
         {/* Stats Summary */}
         <div className="px-4 mt-2">
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-amber-200/60">
               <div className="flex items-center gap-2 mb-1">
                 <Clock className="w-4 h-4 text-amber-300" />
-                <span className="text-white/70 text-xs">Pending</span>
+                <span className="text-slate-600 text-xs">Pending</span>
               </div>
               <p className="text-2xl font-bold text-white">{pendingCount}</p>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-amber-200/60">
               <div className="flex items-center gap-2 mb-1">
                 <Check className="w-4 h-4 text-green-300" />
-                <span className="text-white/70 text-xs">Processed</span>
+                <span className="text-slate-600 text-xs">Processed</span>
               </div>
               <p className="text-2xl font-bold text-white">{completedCount}</p>
             </div>
@@ -302,7 +302,7 @@ const RechargeHistory = () => {
       {/* Tabs */}
       <div className="px-4 -mt-3">
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
-          <TabsList className="w-full bg-slate-800/80 backdrop-blur-sm border border-slate-700 rounded-2xl p-1 h-auto">
+          <TabsList className="w-full bg-white/80 backdrop-blur-sm border border-amber-200/60 rounded-2xl p-1 h-auto">
             <TabsTrigger 
               value="all" 
               className="flex-1 rounded-xl py-2.5 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white"
@@ -333,7 +333,7 @@ const RechargeHistory = () => {
           </div>
         ) : filteredRequests.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <div className="w-20 h-20 rounded-full bg-slate-800/50 flex items-center justify-center mb-4">
+            <div className="w-20 h-20 rounded-full bg-white/80 flex items-center justify-center mb-4">
               <Receipt className="w-10 h-10 text-slate-500" />
             </div>
             <p className="text-slate-400 font-medium text-lg">No recharge history</p>
@@ -351,7 +351,7 @@ const RechargeHistory = () => {
             {filteredRequests.map((request, index) => (
               <div
                 key={request.id}
-                className="bg-slate-800/60 backdrop-blur-sm rounded-2xl p-4 border border-slate-700/50 hover:border-purple-500/30 transition-all duration-300"
+                className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 border border-amber-200/60 hover:border-purple-500/30 transition-all duration-300"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 <div className="flex items-start justify-between">
@@ -379,7 +379,7 @@ const RechargeHistory = () => {
                   </Badge>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-slate-700/50 flex items-center justify-between">
+                <div className="mt-4 pt-3 border-t border-amber-200/60 flex items-center justify-between">
                   <div className="flex items-center gap-2 text-slate-500 text-sm">
                     <Calendar className="w-4 h-4" />
                     {formatDate(request.created_at)}

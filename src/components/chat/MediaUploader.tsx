@@ -107,7 +107,7 @@ export const MediaUploader = ({ isOpen, onClose, onMediaSelect, directGallery = 
           accept="image/*,video/*,audio/*"
         />
         {uploading && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-white/80 flex items-center justify-center z-50">
             <div className="bg-background rounded-xl p-6 flex flex-col items-center gap-3">
               <div className="w-8 h-8 border-3 border-purple-500 border-t-transparent rounded-full animate-spin" />
               <p className="text-sm text-muted-foreground">Uploading...</p>

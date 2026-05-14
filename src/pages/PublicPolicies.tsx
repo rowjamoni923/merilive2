@@ -58,7 +58,7 @@ const PublicPolicies = () => {
     {/* Header */}
     <div className="bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 py-5 px-4 text-center sticky top-0 z-50">
       <h1 className="text-xl font-bold text-white">MeriLive — Policies & Benefits</h1>
-      <p className="text-white/70 text-xs mt-1">All Policies in One Place</p>
+      <p className="text-slate-600 text-xs mt-1">All Policies in One Place</p>
     </div>
 
     {/* All banners */}
@@ -81,7 +81,7 @@ const PublicPolicies = () => {
 
       {/* Footer */}
       <div className="text-center py-6">
-        <p className="text-white/40 text-xs">© MeriLive — All Rights Reserved</p>
+        <p className="text-slate-400 text-xs">© MeriLive — All Rights Reserved</p>
       </div>
     </div>
   </div>

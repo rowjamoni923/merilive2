@@ -17,13 +17,13 @@ export const MessageStatusIndicator = ({ status, isMine, className }: MessageSta
   return (
     <span className={cn("inline-flex items-center ml-1", className)}>
       {status === 'sending' && (
-        <Clock className="w-3 h-3 text-white/30 animate-pulse" />
+        <Clock className="w-3 h-3 text-slate-500 animate-pulse" />
       )}
       {status === 'sent' && (
-        <Check className="w-3 h-3 text-white/40" />
+        <Check className="w-3 h-3 text-slate-400" />
       )}
       {status === 'delivered' && (
-        <CheckCheck className="w-3 h-3 text-white/40" />
+        <CheckCheck className="w-3 h-3 text-slate-400" />
       )}
       {status === 'read' && (
         <CheckCheck className="w-3 h-3 text-blue-400" />

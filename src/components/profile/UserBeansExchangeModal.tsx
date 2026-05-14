@@ -169,9 +169,9 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
             </div>
             <button
               onClick={() => onOpenChange(false)}
-              className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center transition-all"
+              className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 border border-amber-200/60 flex items-center justify-center transition-all"
             >
-              <X className="w-4 h-4 text-white/60" />
+              <X className="w-4 h-4 text-slate-500" />
             </button>
           </div>
         </div>
@@ -185,7 +185,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
                 <span className="text-amber-400 font-bold text-3xl tracking-tight">
                   {currentBeans.toLocaleString()}
                 </span>
-                <p className="text-white/40 text-xs font-medium mt-0.5">Available Beans</p>
+                <p className="text-slate-400 text-xs font-medium mt-0.5">Available Beans</p>
               </div>
             </div>
           </div>
@@ -196,7 +196,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
               className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all duration-300 border ${
                 !useCustom
                   ? 'bg-amber-500/15 border-amber-500/40 text-amber-400 shadow-[0_0_20px_-5px_rgba(245,158,11,0.3)]'
-                  : 'bg-white/3 border-white/8 text-white/40 hover:text-white/60 hover:border-white/15'
+                  : 'bg-white/3 border-amber-200/60 text-slate-400 hover:text-slate-500 hover:border-amber-200/60'
               }`}
             >
               <Sparkles className="w-3.5 h-3.5 inline mr-1.5" />
@@ -207,7 +207,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
               className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all duration-300 border ${
                 useCustom
                   ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-400 shadow-[0_0_20px_-5px_rgba(6,182,212,0.3)]'
-                  : 'bg-white/3 border-white/8 text-white/40 hover:text-white/60 hover:border-white/15'
+                  : 'bg-white/3 border-amber-200/60 text-slate-400 hover:text-slate-500 hover:border-amber-200/60'
               }`}
             >
               ✏️ Custom Amount
@@ -219,7 +219,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
               <div className="w-8 h-8 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
             </div>
           ) : tiers.length === 0 ? (
-            <div className="py-10 text-center text-white/50 text-sm">
+            <div className="py-10 text-center text-slate-500 text-sm">
               No exchange tiers available right now.
             </div>
           ) : useCustom ? (
@@ -233,7 +233,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
                   placeholder="Enter beans amount..."
                   value={customBeans}
                   onChange={(e) => setCustomBeans(e.target.value)}
-                  className="w-full h-14 pl-12 pr-4 rounded-2xl bg-white/5 border border-white/10 text-white text-lg font-semibold placeholder:text-white/20 focus:outline-none focus:border-cyan-500/50 focus:bg-cyan-500/5 transition-all"
+                  className="w-full h-14 pl-12 pr-4 rounded-2xl bg-white/5 border border-amber-200/60 text-white text-lg font-semibold placeholder:text-slate-400 focus:outline-none focus:border-cyan-500/50 focus:bg-cyan-500/5 transition-all"
                 />
               </div>
 
@@ -243,7 +243,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
                     <Beans3DIcon size={18} />
                     <span className="text-amber-400 font-bold">{customBeansNum.toLocaleString()}</span>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-white/30" />
+                  <ArrowRight className="w-4 h-4 text-slate-500" />
                   <div className="flex items-center gap-1.5">
                     <Diamond3DIcon size={18} />
                     <span className="text-cyan-400 font-bold">{customDiamonds.toLocaleString()}</span>
@@ -279,8 +279,8 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
                       isSelected
                         ? 'border-cyan-400/60 bg-gradient-to-br from-cyan-500/15 to-blue-600/10 shadow-[0_0_30px_-8px_rgba(6,182,212,0.4)] scale-[1.02]'
                         : canAfford
-                          ? 'border-white/8 bg-white/[0.02] hover:border-amber-500/30 hover:bg-amber-500/5'
-                          : 'border-white/5 bg-white/[0.01] opacity-35 cursor-not-allowed'
+                          ? 'border-amber-200/60 bg-white/[0.02] hover:border-amber-500/30 hover:bg-amber-500/5'
+                          : 'border-amber-200/60 bg-white/[0.01] opacity-35 cursor-not-allowed'
                     }`}
                   >
                     {isSelected && (
@@ -291,7 +291,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
 
                     <div className="text-center space-y-1.5">
                       {tier.tier_name && (
-                        <p className="text-[10px] uppercase tracking-wide text-white/40">{tier.tier_name}</p>
+                        <p className="text-[10px] uppercase tracking-wide text-slate-400">{tier.tier_name}</p>
                       )}
                       <div className="flex items-center justify-center gap-1.5">
                         <Beans3DIcon size={18} />
@@ -340,7 +340,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
             )}
           </Button>
 
-          <p className="text-center text-white/30 text-[11px]">
+          <p className="text-center text-slate-500 text-[11px]">
             Exchanged diamonds will be added to your My Diamonds balance
           </p>
         </div>

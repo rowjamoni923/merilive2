@@ -360,12 +360,12 @@ const Discover = () => {
           {/* Search */}
           <div className="px-4 mt-1">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search rooms..."
-                className="w-full pl-9 h-9 bg-white/20 border-white/30 text-white placeholder:text-white/50 rounded-full text-sm"
+                className="w-full pl-9 h-9 bg-white/20 border-amber-200/60 text-white placeholder:text-slate-400 rounded-full text-sm"
               />
             </div>
           </div>
@@ -477,7 +477,7 @@ const Discover = () => {
                       )}
                       
                       {/* Dark overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/40" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-amber-50 via-rose-50 to-orange-50" />
                       
                       {/* Room type badge & participant count */}
                       <div className="absolute top-1.5 left-1.5 right-1.5 flex items-center justify-between">
@@ -485,7 +485,7 @@ const Discover = () => {
                           <TypeIcon className="w-2.5 h-2.5 mr-0.5" />
                           {room.room_type}
                         </Badge>
-                        <div className="flex items-center gap-0.5 bg-black/60 backdrop-blur-sm px-1.5 py-0.5 rounded-full">
+                        <div className="flex items-center gap-0.5 bg-white/80 backdrop-blur-sm px-1.5 py-0.5 rounded-full">
                           <Users className="w-2.5 h-2.5 text-white" />
                           <span className="text-[10px] text-white font-medium">{room.current_participants}</span>
                         </div>
@@ -495,7 +495,7 @@ const Discover = () => {
                       {gameEmoji && (
                         <div className="absolute bottom-1.5 left-1.5">
                           <div className={cn(
-                            "w-8 h-8 rounded-lg flex items-center justify-center text-lg shadow-lg border border-white/20 bg-gradient-to-br",
+                            "w-8 h-8 rounded-lg flex items-center justify-center text-lg shadow-lg border border-amber-200/60 bg-gradient-to-br",
                             gameColor
                           )}>
                             {gameEmoji}
@@ -506,7 +506,7 @@ const Discover = () => {
                       {/* Lock icon */}
                       {room.is_private && (
                         <div className="absolute bottom-1.5 right-1.5">
-                          <div className="w-5 h-5 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center">
+                          <div className="w-5 h-5 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center">
                             <Lock className="w-2.5 h-2.5 text-yellow-400" />
                           </div>
                         </div>

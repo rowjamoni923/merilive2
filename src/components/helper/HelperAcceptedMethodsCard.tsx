@@ -124,7 +124,7 @@ export const HelperAcceptedMethodsCard = ({ helperId, helperCountryCode }: Helpe
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <p className="text-white/80 text-xs">
+        <p className="text-slate-700 text-xs">
           Tick the methods you accept. Users will see these logos on your card in the Recharge page.
         </p>
 
@@ -137,7 +137,7 @@ export const HelperAcceptedMethodsCard = ({ helperId, helperCountryCode }: Helpe
             <p className="text-amber-400 text-sm font-medium">
               No payment gateways available for {helperCountryCode || "your country"}
             </p>
-            <p className="text-slate-300 text-xs mt-1">Admin has not enabled any methods yet.</p>
+            <p className="text-slate-500 text-xs mt-1">Admin has not enabled any methods yet.</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-2 max-h-96 overflow-y-auto pr-1">
@@ -154,7 +154,7 @@ export const HelperAcceptedMethodsCard = ({ helperId, helperCountryCode }: Helpe
                     "relative flex items-center gap-2 p-2.5 rounded-xl border-2 transition-all text-left",
                     checked
                       ? "bg-cyan-500/25 border-cyan-400 ring-2 ring-cyan-400/30"
-                      : "bg-slate-800/60 border-slate-700 hover:border-cyan-400/40",
+                      : "bg-white/80 border-amber-200/60 hover:border-cyan-400/40",
                     saving && "opacity-60"
                   )}
                 >

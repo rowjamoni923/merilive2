@@ -350,10 +350,10 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
   // Loading parent agency
   if (loadingParent) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 flex flex-col items-center justify-center p-6">
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-purple-800 to-orange-50 flex flex-col items-center justify-center p-6">
         <img src={meriliveLogo} alt="MeriLive" className="w-20 h-20 mb-4 animate-pulse" />
         <Loader2 className="w-8 h-8 text-white animate-spin" />
-        <p className="text-white/70 text-sm mt-3">Loading...</p>
+        <p className="text-slate-600 text-sm mt-3">Loading...</p>
       </div>
     );
   }
@@ -365,7 +365,7 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
         <img src={meriliveLogo} alt="MeriLive" className="w-20 h-20 mb-4" />
         <AlertCircle className="w-12 h-12 text-white mb-4" />
         <h1 className="text-xl font-bold text-white mb-2">Agency Not Found</h1>
-        <p className="text-white/70 text-center text-sm">
+        <p className="text-slate-600 text-center text-sm">
           No agency found with code "{parentAgencyCode}".
         </p>
         <Button
@@ -383,7 +383,7 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
   if (formState === 'success') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-800 via-emerald-700 to-teal-800 flex flex-col items-center justify-center p-6">
-        <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 max-w-sm w-full text-center border border-white/20">
+        <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 max-w-sm w-full text-center border border-amber-200/60">
           <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
             <PartyPopper className="w-10 h-10 text-white" />
           </div>
@@ -391,12 +391,12 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
           <h1 className="text-2xl font-bold text-white mb-2">
             🎉 Congratulations!
           </h1>
-          <p className="text-white/80 mb-4">
+          <p className="text-slate-700 mb-4">
             Your sub-agency has been created successfully!
           </p>
           
           <div className="bg-white/20 rounded-xl p-4 mb-6">
-            <p className="text-white/60 text-xs mb-1">Your Agency Code</p>
+            <p className="text-slate-500 text-xs mb-1">Your Agency Code</p>
             <p className="text-2xl font-mono font-bold text-white">{createdAgencyCode}</p>
           </div>
           
@@ -418,7 +418,7 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
             <Button
               onClick={() => window.location.href = APK_DOWNLOAD_URL}
               variant="outline"
-              className="w-full h-11 border-white/30 text-white hover:bg-white/10 rounded-xl"
+              className="w-full h-11 border-amber-200/60 text-white hover:bg-white/10 rounded-xl"
             >
               Direct APK Download
             </Button>
@@ -430,29 +430,29 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
 
   // Form state
   return (
-    <div className="min-h-[100dvh] bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 py-6 px-4 safe-area-inset overflow-x-hidden">
+    <div className="min-h-[100dvh] bg-gradient-to-br from-rose-50 via-purple-800 to-orange-50 py-6 px-4 safe-area-inset overflow-x-hidden">
       <div className="max-w-md mx-auto">
         {/* Header */}
         <div className="text-center mb-6">
           <img src={meriliveLogo} alt="MeriLive" className="w-16 h-16 mx-auto mb-3" />
           <h1 className="text-2xl font-bold text-white">Create Sub-Agency</h1>
-          <p className="text-white/60 text-sm mt-1">Fill the form and start your agency</p>
+          <p className="text-slate-500 text-sm mt-1">Fill the form and start your agency</p>
         </div>
 
         {/* Parent Agency Info */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20 mb-5">
+        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-amber-200/60 mb-5">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
                 <LinkIcon className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1">
-                <p className="text-white/60 text-xs">Parent Agency</p>
+                <p className="text-slate-500 text-xs">Parent Agency</p>
                 <p className="text-white font-semibold">{parentAgency.name}</p>
                 <div className="flex items-center gap-2 mt-1">
                   <Badge className="bg-purple-500/30 text-purple-200 text-xs border-purple-400/30">
                     {parentAgency.level}
                   </Badge>
-                  <span className="text-white/50 text-xs font-mono">{parentAgencyCode}</span>
+                  <span className="text-slate-500 text-xs font-mono">{parentAgencyCode}</span>
                 </div>
               </div>
               <a
@@ -719,25 +719,25 @@ const BrowserAgencyForm = ({ parentAgencyCode }: BrowserAgencyFormProps) => {
         </div>
 
         {/* Benefits */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20 mt-5">
+        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-amber-200/60 mt-5">
           <h3 className="text-white font-semibold flex items-center gap-2 mb-3">
             <Crown className="w-5 h-5 text-amber-400" />
             Agency Benefits
           </h3>
           <ul className="space-y-2">
-            <li className="flex items-center gap-2 text-white/80 text-sm">
+            <li className="flex items-center gap-2 text-slate-700 text-sm">
               <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />
               <span>4-20% commission from host earnings</span>
             </li>
-            <li className="flex items-center gap-2 text-white/80 text-sm">
+            <li className="flex items-center gap-2 text-slate-700 text-sm">
               <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />
               <span>Unlimited hosts under your agency</span>
             </li>
-            <li className="flex items-center gap-2 text-white/80 text-sm">
+            <li className="flex items-center gap-2 text-slate-700 text-sm">
               <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />
               <span>Agency dashboard & analytics</span>
             </li>
-            <li className="flex items-center gap-2 text-white/80 text-sm">
+            <li className="flex items-center gap-2 text-slate-700 text-sm">
               <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />
               <span>Weekly automatic payments</span>
             </li>

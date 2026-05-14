@@ -24,9 +24,9 @@ export default function Parcels() {
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
-      <div className="sticky top-0 z-30 bg-gradient-to-b from-[#1a0e2e] to-background border-b border-white/5">
+      <div className="sticky top-0 z-30 bg-gradient-to-b from-[#1a0e2e] to-background border-b border-amber-200/60">
         <div className="flex items-center gap-3 px-4 py-3">
-          <button onClick={() => navigate(-1)} className="text-white/70 hover:text-white">
+          <button onClick={() => navigate(-1)} className="text-slate-600 hover:text-white">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2">

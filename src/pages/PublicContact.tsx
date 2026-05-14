@@ -23,7 +23,7 @@ const PublicContact = () => {
         {/* Hero */}
         <div className="text-center space-y-2">
           <h2 className="text-2xl font-extrabold">Get in Touch</h2>
-          <p className="text-white/60 text-sm">
+          <p className="text-slate-500 text-sm">
             We'd love to hear from you. Reach out through any of the channels below.
           </p>
         </div>
@@ -36,7 +36,7 @@ const PublicContact = () => {
             </div>
             <div>
               <h3 className="font-bold text-[15px]">Email Support</h3>
-              <p className="text-white/60 text-sm mt-1">For general inquiries and support</p>
+              <p className="text-slate-500 text-sm mt-1">For general inquiries and support</p>
               <a
                 href="mailto:support@merilive.com"
                 className="text-purple-400 text-sm mt-2 inline-block hover:underline"
@@ -52,7 +52,7 @@ const PublicContact = () => {
             </div>
             <div>
               <h3 className="font-bold text-[15px]">In-App Support</h3>
-              <p className="text-white/60 text-sm mt-1">
+              <p className="text-slate-500 text-sm mt-1">
                 Open the app and go to Settings → Customer Service for live chat support.
               </p>
             </div>
@@ -64,7 +64,7 @@ const PublicContact = () => {
             </div>
             <div>
               <h3 className="font-bold text-[15px]">Website</h3>
-              <p className="text-white/60 text-sm mt-1">Visit our website for more information</p>
+              <p className="text-slate-500 text-sm mt-1">Visit our website for more information</p>
               <a
                 href="https://merilive.com"
                 target="_blank"
@@ -79,7 +79,7 @@ const PublicContact = () => {
 
         {/* Footer */}
         <div className="text-center pt-4">
-          <p className="text-white/30 text-xs">© MeriLive — All Rights Reserved</p>
+          <p className="text-slate-500 text-xs">© MeriLive — All Rights Reserved</p>
         </div>
       </div>
     </div>

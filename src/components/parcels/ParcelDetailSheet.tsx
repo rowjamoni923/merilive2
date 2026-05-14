@@ -69,7 +69,7 @@ export default function ParcelDetailSheet({ parcel, isOpen, onClose, onClaim, is
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={handleClose}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50"
           />
 
           {/* Sheet */}
@@ -80,12 +80,12 @@ export default function ParcelDetailSheet({ parcel, isOpen, onClose, onClaim, is
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className="fixed bottom-0 left-0 right-0 z-50 max-h-[85vh] overflow-y-auto"
           >
-            <div className="relative rounded-t-3xl border-t border-white/10 bg-gradient-to-b from-[#1a1025] to-[#0d0d0d] p-6 pb-10">
+            <div className="relative rounded-t-3xl border-t border-amber-200/60 bg-gradient-to-b from-[#1a1025] to-[#0d0d0d] p-6 pb-10">
               {/* Handle */}
               <div className="absolute top-3 left-1/2 -translate-x-1/2 w-10 h-1 rounded-full bg-white/20" />
               
               {/* Close */}
-              <button onClick={handleClose} className="absolute top-4 right-4 text-white/40 hover:text-white">
+              <button onClick={handleClose} className="absolute top-4 right-4 text-slate-400 hover:text-white">
                 <X className="w-5 h-5" />
               </button>
 
@@ -96,7 +96,7 @@ export default function ParcelDetailSheet({ parcel, isOpen, onClose, onClaim, is
                     initial={{ opacity: 0, scale: 0.5 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 1.5 }}
-                    className="absolute inset-0 z-20 flex items-center justify-center rounded-t-3xl bg-black/80"
+                    className="absolute inset-0 z-20 flex items-center justify-center rounded-t-3xl bg-white/80"
                   >
                     <motion.div
                       animate={{
@@ -168,7 +168,7 @@ export default function ParcelDetailSheet({ parcel, isOpen, onClose, onClaim, is
                         <Gift className="w-12 h-12" style={{ color: glowColor }} />
                       )}
                       {isLocked && (
-                        <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-background rounded-full flex items-center justify-center border border-white/10">
+                        <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-background rounded-full flex items-center justify-center border border-amber-200/60">
                           <Lock className="w-4 h-4 text-orange-400" />
                         </div>
                       )}
@@ -180,7 +180,7 @@ export default function ParcelDetailSheet({ parcel, isOpen, onClose, onClaim, is
                   <p className="text-sm text-muted-foreground text-center mt-1">{template.description}</p>
 
                   {/* Reward Preview */}
-                  <div className="mt-5 p-4 rounded-xl bg-white/5 border border-white/10">
+                  <div className="mt-5 p-4 rounded-xl bg-white/5 border border-amber-200/60">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-muted-foreground">Reward</span>
                       <span className="text-lg font-bold text-amber-400">

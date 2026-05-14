@@ -242,7 +242,7 @@ function ChatGiftPanelComponent({ isOpen, onClose, onSendGift, userCoins: propUs
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent 
         side="bottom" 
-        className="h-[60vh] rounded-t-[28px] p-0 border-0 bg-gradient-to-b from-slate-900 via-slate-950 to-black"
+        className="h-[60vh] rounded-t-[28px] p-0 border-0 bg-gradient-to-b from-amber-50 via-rose-50 to-orange-50"
         style={{ 
           paddingBottom: 'env(safe-area-inset-bottom, 0px)', 
           zIndex: 9999,

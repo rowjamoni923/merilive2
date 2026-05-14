@@ -340,10 +340,10 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
   // Loading
   if (loadingAgency) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 flex flex-col items-center justify-center p-6">
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-purple-800 to-orange-50 flex flex-col items-center justify-center p-6">
         <img src={meriliveLogo} alt="MeriLive" className="w-20 h-20 mb-4 animate-pulse" />
         <Loader2 className="w-8 h-8 text-white animate-spin" />
-        <p className="text-white/70 text-sm mt-3">Loading...</p>
+        <p className="text-slate-600 text-sm mt-3">Loading...</p>
       </div>
     );
   }
@@ -355,7 +355,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
         <img src={meriliveLogo} alt="MeriLive" className="w-20 h-20 mb-4" />
         <AlertCircle className="w-12 h-12 text-white mb-4" />
         <h1 className="text-xl font-bold text-white mb-2">Agency Not Found</h1>
-        <p className="text-white/70 text-center text-sm">
+        <p className="text-slate-600 text-center text-sm">
           No agency found with code "{agencyCode}".
         </p>
         <Button
@@ -373,7 +373,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
   if (formState === 'success') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-800 via-emerald-700 to-teal-800 flex flex-col items-center justify-center p-6">
-        <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 max-w-sm w-full text-center border border-white/20">
+        <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 max-w-sm w-full text-center border border-amber-200/60">
           <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
             <PartyPopper className="w-10 h-10 text-white" />
           </div>
@@ -381,12 +381,12 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
           <h1 className="text-2xl font-bold text-white mb-2">
             🎉 Registration Complete!
           </h1>
-          <p className="text-white/80 mb-4">
+          <p className="text-slate-700 mb-4">
             You are now registered as a Sub-Agent of <strong>{agency.name}</strong>
           </p>
           
           <div className="bg-white/20 rounded-xl p-4 mb-4">
-            <p className="text-white/60 text-xs mb-1">Agency Code</p>
+            <p className="text-slate-500 text-xs mb-1">Agency Code</p>
             <p className="text-2xl font-mono font-bold text-white">{agency.agency_code}</p>
           </div>
           
@@ -416,7 +416,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
             <Button
               onClick={() => window.location.href = APK_DOWNLOAD_URL}
               variant="outline"
-              className="w-full h-11 border-white/30 text-white hover:bg-white/10 rounded-xl"
+              className="w-full h-11 border-amber-200/60 text-white hover:bg-white/10 rounded-xl"
             >
               Direct APK Download
             </Button>
@@ -428,17 +428,17 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
 
   // Form state
   return (
-    <div className="min-h-[100dvh] bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 py-6 px-4 safe-area-inset overflow-x-hidden">
+    <div className="min-h-[100dvh] bg-gradient-to-br from-rose-50 via-purple-800 to-orange-50 py-6 px-4 safe-area-inset overflow-x-hidden">
       <div className="max-w-md mx-auto">
         {/* Header */}
         <div className="text-center mb-6">
           <img src={meriliveLogo} alt="MeriLive" className="w-16 h-16 mx-auto mb-3" />
           <h1 className="text-2xl font-bold text-white">Become Sub-Agent</h1>
-          <p className="text-white/60 text-sm mt-1">Verify your identity and join the agency</p>
+          <p className="text-slate-500 text-sm mt-1">Verify your identity and join the agency</p>
         </div>
 
         {/* Agency Info Card with Parent Code */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20 mb-5">
+        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-amber-200/60 mb-5">
           <div className="flex items-center gap-3">
             {agency.logo_url ? (
               <img 
@@ -452,14 +452,14 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
               </div>
             )}
             <div className="flex-1">
-              <p className="text-white/60 text-xs">Parent Agency</p>
+              <p className="text-slate-500 text-xs">Parent Agency</p>
               <h3 className="text-white font-bold text-lg">{agency.name}</h3>
               <div className="flex items-center gap-2 mt-1">
                 <Badge className="bg-amber-500/20 text-amber-300 border-amber-400/30 text-xs">
                   <Crown className="w-3 h-3 mr-1" />
                   Level {agency.level}
                 </Badge>
-                <span className="text-white/50 text-xs font-mono">{agency.agency_code}</span>
+                <span className="text-slate-500 text-xs font-mono">{agency.agency_code}</span>
               </div>
             </div>
             <a
@@ -476,7 +476,7 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
             </a>
           </div>
           
-          <div className="mt-3 pt-3 border-t border-white/10">
+          <div className="mt-3 pt-3 border-t border-amber-200/60">
             <p className="text-purple-300 text-sm text-center">
               <Sparkles className="w-4 h-4 inline mr-1 text-yellow-400" />
               Join as a Sub-Agent of this agency
@@ -729,25 +729,25 @@ const BrowserSubAgentForm = ({ agencyCode }: BrowserSubAgentFormProps) => {
         </div>
 
         {/* Benefits */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20 mt-5">
+        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-amber-200/60 mt-5">
           <h3 className="text-white font-semibold flex items-center gap-2 mb-3">
             <Crown className="w-5 h-5 text-amber-400" />
             Sub-Agent Benefits
           </h3>
           <ul className="space-y-2">
-            <li className="flex items-center gap-2 text-white/80 text-sm">
+            <li className="flex items-center gap-2 text-slate-700 text-sm">
               <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />
               <span>Earn commission from host earnings</span>
             </li>
-            <li className="flex items-center gap-2 text-white/80 text-sm">
+            <li className="flex items-center gap-2 text-slate-700 text-sm">
               <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />
               <span>Recruit hosts under your agency</span>
             </li>
-            <li className="flex items-center gap-2 text-white/80 text-sm">
+            <li className="flex items-center gap-2 text-slate-700 text-sm">
               <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />
               <span>Agency dashboard & analytics</span>
             </li>
-            <li className="flex items-center gap-2 text-white/80 text-sm">
+            <li className="flex items-center gap-2 text-slate-700 text-sm">
               <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />
               <span>Weekly automatic payments</span>
             </li>

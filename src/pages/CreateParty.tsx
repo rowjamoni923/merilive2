@@ -382,7 +382,7 @@ const CreateParty = () => {
           )}
         />
       ) : (
-        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-700/50 to-purple-900/50">
+        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-700/50 to-orange-50">
           <AvatarWithFrame
             userId={currentUser?.id}
             src={currentUser?.profile?.avatar_url}
@@ -420,7 +420,7 @@ const CreateParty = () => {
           showGlow={true}
         />
         {/* Mic badge */}
-        <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center border-2 border-purple-900">
+        <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center border-2 border-amber-200/60">
           <Mic className="w-3 h-3 text-white" />
         </div>
       </div>
@@ -479,7 +479,7 @@ const CreateParty = () => {
               delay: Math.random() * 2
             }}
           >
-            <Sparkles className="w-3 h-3 text-white/70" />
+            <Sparkles className="w-3 h-3 text-slate-600" />
           </motion.div>
         ))}
 
@@ -522,7 +522,7 @@ const CreateParty = () => {
         <Button
           variant="ghost"
           size="icon"
-          className="w-12 h-12 rounded-full bg-gray-800/50 text-white backdrop-blur-md hover:bg-gray-700/50"
+          className="w-12 h-12 rounded-full bg-white/80 text-white backdrop-blur-md hover:bg-gray-700/50"
           onClick={handleClose}
         >
           <X className="w-6 h-6" />
@@ -544,7 +544,7 @@ const CreateParty = () => {
               className="flex items-center justify-center gap-2"
             >
               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-300/40 to-transparent" />
-              <span className="text-white/70 text-xs font-medium tracking-wider uppercase flex items-center gap-1.5">
+              <span className="text-slate-600 text-xs font-medium tracking-wider uppercase flex items-center gap-1.5">
                 <Mic className="w-3.5 h-3.5 text-green-400" />
                 Audio Party
               </span>
@@ -555,7 +555,7 @@ const CreateParty = () => {
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="flex justify-center items-center gap-4 p-4 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10"
+              className="flex justify-center items-center gap-4 p-4 rounded-2xl bg-white/5 backdrop-blur-md border border-amber-200/60"
             >
               <HostAudioSeat />
               {[...Array(4)].map((_, i) => (
@@ -570,7 +570,7 @@ const CreateParty = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.15 }}
-              className="flex justify-center items-center gap-4 p-4 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10"
+              className="flex justify-center items-center gap-4 p-4 rounded-2xl bg-white/5 backdrop-blur-md border border-amber-200/60"
             >
               {[...Array(5)].map((_, i) => (
                 <motion.div key={`row2-${i}`} initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 + i * 0.05 }}>
@@ -589,7 +589,7 @@ const CreateParty = () => {
               className="flex items-center justify-center gap-2"
             >
               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-300/40 to-transparent" />
-              <span className="text-white/70 text-xs font-medium tracking-wider uppercase flex items-center gap-1.5">
+              <span className="text-slate-600 text-xs font-medium tracking-wider uppercase flex items-center gap-1.5">
                 <Radio className="w-3.5 h-3.5 text-blue-400" />
                 Video Party
               </span>
@@ -599,7 +599,7 @@ const CreateParty = () => {
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="grid grid-cols-2 gap-2.5 aspect-square p-3 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 shadow-2xl"
+              className="grid grid-cols-2 gap-2.5 aspect-square p-3 rounded-2xl bg-white/5 backdrop-blur-md border border-amber-200/60 shadow-2xl"
             >
               {/* Host Video */}
               <HostVideoCell className="aspect-square rounded-xl shadow-lg" />
@@ -622,7 +622,7 @@ const CreateParty = () => {
               className="flex items-center justify-center gap-2"
             >
               <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-300/40 to-transparent" />
-              <span className="text-white/70 text-xs font-medium tracking-wider uppercase flex items-center gap-1.5">
+              <span className="text-slate-600 text-xs font-medium tracking-wider uppercase flex items-center gap-1.5">
                 <Gamepad2 className="w-3.5 h-3.5 text-orange-400" />
                 Game Party
               </span>
@@ -632,7 +632,7 @@ const CreateParty = () => {
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="grid grid-cols-2 gap-2.5 aspect-square p-3 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 shadow-2xl"
+              className="grid grid-cols-2 gap-2.5 aspect-square p-3 rounded-2xl bg-white/5 backdrop-blur-md border border-amber-200/60 shadow-2xl"
             >
               {/* Host Video */}
               <HostVideoCell className="aspect-square rounded-xl shadow-lg" />
@@ -664,7 +664,7 @@ const CreateParty = () => {
                     "flex-shrink-0 flex flex-col items-center gap-2 p-3 rounded-2xl transition-all",
                     selectedGame === game.id 
                       ? "bg-purple-500/30 ring-2 ring-purple-400 shadow-lg shadow-purple-500/20" 
-                      : "bg-white/10 backdrop-blur-sm border border-white/10"
+                      : "bg-white/10 backdrop-blur-sm border border-amber-200/60"
                   )}
                 >
                   <div className="w-20 h-20 rounded-xl flex items-center justify-center overflow-hidden">
@@ -690,7 +690,7 @@ const CreateParty = () => {
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={() => setShowSettingsPanel(true)}
-            className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/20"
+            className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center border border-amber-200/60"
           >
             <Wand2 className="w-7 h-7 text-white" />
           </motion.button>
@@ -710,7 +710,7 @@ const CreateParty = () => {
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={() => setShowEmojiPicker(true)}
-            className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/20"
+            className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center border border-amber-200/60"
           >
             <Smile className="w-7 h-7 text-white" />
           </motion.button>
@@ -733,7 +733,7 @@ const CreateParty = () => {
               >
                 <span className={cn(
                   "text-lg font-semibold transition-colors",
-                  isActive ? "text-white" : "text-white/60"
+                  isActive ? "text-white" : "text-slate-500"
                 )}>
                   {item.label}
                 </span>
@@ -815,7 +815,7 @@ const CreateParty = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] flex items-end justify-center bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-[60] flex items-end justify-center bg-white/80 backdrop-blur-sm"
             onClick={() => setShowEmojiPicker(false)}
           >
             <motion.div

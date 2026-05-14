@@ -442,7 +442,7 @@ const OfficialNoticeItem = ({ notice, isRead, onRead, delay = 0 }: OfficialNotic
                 className={cn(
                   "text-[13px] whitespace-pre-wrap leading-[1.6] rounded-xl p-3 mt-1",
                   !isRead 
-                    ? "text-foreground/85 bg-black/10 dark:bg-white/5" 
+                    ? "text-foreground/85 bg-white/80 dark:bg-white/5" 
                     : "text-muted-foreground bg-muted/30"
                 )}
               >
@@ -474,7 +474,7 @@ const OfficialNoticeItem = ({ notice, isRead, onRead, delay = 0 }: OfficialNotic
                     src={getProxiedUrl(url)} 
                     alt={`Notice attachment ${idx + 1}`} 
                     className={cn(
-                      "rounded-xl object-cover border border-white/10 shadow-md cursor-pointer hover:opacity-90 transition-opacity",
+                      "rounded-xl object-cover border border-amber-200/60 shadow-md cursor-pointer hover:opacity-90 transition-opacity",
                       urls.length === 1 ? "max-h-52 w-full" : "h-28 w-full"
                     )}
                     onClick={(e) => {

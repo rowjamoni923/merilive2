@@ -161,10 +161,10 @@ export function AIChatbot() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 100, scale: 0.9 }}
             transition={{ type: "spring", damping: 25 }}
-            className="fixed inset-x-2 bottom-16 top-16 z-50 flex flex-col bg-background/95 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden"
+            className="fixed inset-x-2 bottom-16 top-16 z-50 flex flex-col bg-background/95 backdrop-blur-xl rounded-2xl border border-amber-200/60 shadow-2xl overflow-hidden"
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-pink-500/20 to-purple-500/20 border-b border-white/10">
+            <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-pink-500/20 to-purple-500/20 border-b border-amber-200/60">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center">
                   <Bot className="w-4 h-4 text-white" />
@@ -193,7 +193,7 @@ export function AIChatbot() {
                       <button
                         key={q}
                         onClick={() => { setInput(q); }}
-                        className="px-3 py-1.5 text-xs rounded-full bg-white/5 border border-white/10 text-muted-foreground hover:bg-white/10 transition-colors"
+                        className="px-3 py-1.5 text-xs rounded-full bg-white/5 border border-amber-200/60 text-muted-foreground hover:bg-white/10 transition-colors"
                       >
                         {q}
                       </button>
@@ -213,7 +213,7 @@ export function AIChatbot() {
                     "max-w-[80%] rounded-2xl px-3 py-2 text-sm",
                     msg.role === "user"
                       ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white"
-                      : "bg-white/5 border border-white/10 text-foreground"
+                      : "bg-white/5 border border-amber-200/60 text-foreground"
                   )}>
                     {msg.role === "assistant" ? (
                       <div className="prose prose-sm prose-invert max-w-none [&>p]:m-0 [&>ul]:m-0 [&>ol]:m-0">
@@ -225,7 +225,7 @@ export function AIChatbot() {
                   </div>
                   {msg.role === "user" && (
                     <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0 mt-1">
-                      <User className="w-3 h-3 text-white/70" />
+                      <User className="w-3 h-3 text-slate-600" />
                     </div>
                   )}
                 </div>
@@ -236,7 +236,7 @@ export function AIChatbot() {
                   <div className="w-6 h-6 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center flex-shrink-0">
                     <Bot className="w-3 h-3 text-white" />
                   </div>
-                  <div className="bg-white/5 border border-white/10 rounded-2xl px-3 py-2">
+                  <div className="bg-white/5 border border-amber-200/60 rounded-2xl px-3 py-2">
                     <Loader2 className="w-4 h-4 animate-spin text-pink-400" />
                   </div>
                 </div>
@@ -244,7 +244,7 @@ export function AIChatbot() {
             </div>
 
             {/* Input */}
-            <div className="p-3 border-t border-white/10">
+            <div className="p-3 border-t border-amber-200/60">
               <div className="flex gap-2">
                 <input
                   ref={inputRef}
@@ -252,7 +252,7 @@ export function AIChatbot() {
                   onChange={e => setInput(e.target.value)}
                   onKeyDown={e => e.key === "Enter" && !e.shiftKey && sendMessage()}
                   placeholder="Type a message..."
-                  className="flex-1 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-pink-500/50"
+                  className="flex-1 bg-white/5 border border-amber-200/60 rounded-full px-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-pink-500/50"
                   disabled={isLoading}
                 />
                 <Button
