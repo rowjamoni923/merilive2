@@ -2265,13 +2265,13 @@ const Auth = () => {
 
           {/* Referral code applied indicator */}
           {referralCode && !agencyInfo && (
-            <div className="flex items-center justify-center gap-2 py-1.5 px-3 bg-green-500/15 border border-green-400/30 rounded-xl">
-              <CheckCircle className="w-3.5 h-3.5 text-green-400" />
-              <span className="text-green-300 text-[11px] font-medium">Referral: {referralCode}</span>
+            <div className="flex items-center justify-center gap-2 py-1.5 px-3 bg-emerald-500/15 border border-emerald-400/30 rounded-xl">
+              <CheckCircle className="w-3.5 h-3.5 text-emerald-300" />
+              <span className="text-emerald-200 text-[11px] font-medium tracking-wide">Referral applied: {referralCode}</span>
             </div>
           )}
 
-          {/* Compact Luxurious Agreement */}
+          {/* Terms agreement */}
           <button
             onClick={() => setAgreed(!agreed)}
             className={`
@@ -2279,7 +2279,7 @@ const Auth = () => {
               transition-all duration-300 backdrop-blur-md
               ${agreed 
                 ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-400/40 shadow-[0_0_20px_-5px_rgba(16,185,129,0.3)]' 
- :'bg-white/5 border border-slate-200/10 hover:border-slate-200/20'
+                : 'bg-white/5 border border-white/15 hover:border-white/25'
               }
             `}
           >
@@ -2287,18 +2287,19 @@ const Auth = () => {
               w-4 h-4 rounded-md flex items-center justify-center transition-all duration-300
               ${agreed 
                 ? 'bg-gradient-to-br from-emerald-400 to-teal-500 shadow-lg' 
- :'bg-white/10 border border-slate-200/30'
+                : 'bg-white/10 border border-white/30'
               }
             `}>
               {agreed && (
- <Check className="w-3 h-3 text-slate-900" />
+                <Check className="w-3 h-3 text-white" /> /* dark-ok */
               )}
             </div>
-            <span className={`text-[10px] leading-tight transition-colors ${agreed ? 'text-slate-800' : 'text-slate-600'}`}>
-              <span className="underline decoration-white/30">Terms</span>
-              {" & "}
-              <span className="underline decoration-white/30">Privacy</span>
-              {" • 18+"}
+            <span className={`text-[10px] leading-tight transition-colors tracking-wide ${agreed ? 'text-white/95' : 'text-white/70'}`}> {/* dark-ok */}
+              I agree to the{' '}
+              <span className="underline decoration-white/40">Terms of Service</span>
+              {' & '}
+              <span className="underline decoration-white/40">Privacy Policy</span>
+              {' • 18+'}
             </span>
           </button>
         </div>
