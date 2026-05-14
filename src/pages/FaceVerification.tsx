@@ -182,6 +182,18 @@ const FaceVerification = () => {
   const [scanningStatus, setScanningStatus] = useState<'idle' | 'scanning' | 'pass' | 'fail'>('idle');
   const [poseHistory, setPoseHistory] = useState<{yaw:number,pitch:number}[]>([]);
   const [failedAttempts, setFailedAttempts] = useState(0);
+  // Live diagnostics — shown to the user during scanning so they understand
+  // exactly why the current step is not passing yet.
+  type LiveDiag = {
+    faceDetected: boolean;
+    eyesOpen: boolean;
+    yaw: number;
+    pitch: number;
+    progress: number;       // 0..1 how close current pose is to target
+    hint: string;           // short user-facing instruction
+    severity: 'ok' | 'warn' | 'error';
+  };
+  const [liveDiag, setLiveDiag] = useState<LiveDiag | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const instructionTimerRef = useRef<NodeJS.Timeout | null>(null);
   const poseCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -740,6 +752,7 @@ const FaceVerification = () => {
     setVerificationTime(0);
     setScanningStatus('idle');
     setPoseHistory([]);
+    setLiveDiag(null);
     faceChunksRef.current = [];
     capturedAnglesRef.current = {};
 
@@ -788,6 +801,63 @@ const FaceVerification = () => {
     }
   };
 
+  // Compute a precise, user-facing hint about why the current step is not
+  // yet passing. Returns the hint text + severity + a 0..1 closeness score
+  // that drives the on-screen alignment meter.
+  const computeStepDiag = (
+    instrId: string,
+    pose: { yaw: number; pitch: number },
+    faceDetected: boolean,
+    eyesOpen: boolean,
+  ): { hint: string; severity: LiveDiag['severity']; progress: number } => {
+    if (!faceDetected) {
+      return { hint: 'Face not detected — center your face in the oval', severity: 'error', progress: 0 };
+    }
+    if (!eyesOpen) {
+      return { hint: 'Keep your eyes open and look at the camera', severity: 'warn', progress: 0.3 };
+    }
+    const ay = Math.abs(pose.yaw);
+    const ap = Math.abs(pose.pitch);
+    const clamp = (n: number) => Math.max(0, Math.min(1, n));
+    switch (instrId) {
+      case 'center': {
+        const need = Math.max(ay - POSE.CENTER_YAW + 4, ap - POSE.CENTER_PITCH + 4, 0);
+        const progress = clamp(1 - Math.max(ay, ap) / POSE.CENTER_YAW);
+        if (ay < POSE.CENTER_YAW && ap < POSE.CENTER_PITCH)
+          return { hint: 'Hold steady — looks great', severity: 'ok', progress: 1 };
+        if (ay >= POSE.CENTER_YAW)
+          return { hint: `Face the camera straight (turn ${ay > 0 ? 'right' : 'left'} ~${Math.round(ay - POSE.CENTER_YAW + 4)}°)`, severity: 'warn', progress };
+        return { hint: `Level your head (tilt ${pose.pitch > 0 ? 'up' : 'down'} ~${Math.round(ap - POSE.CENTER_PITCH + 4)}°)`, severity: 'warn', progress };
+      }
+      case 'left': {
+        const progress = clamp(pose.yaw / (POSE.TURN_YAW + 6));
+        if (pose.yaw > POSE.TURN_YAW) return { hint: 'Hold — capturing left angle', severity: 'ok', progress: 1 };
+        const need = Math.max(POSE.TURN_YAW - pose.yaw, 0);
+        return { hint: `Turn ~${Math.round(need + 4)}° more to your left`, severity: 'warn', progress };
+      }
+      case 'right': {
+        const progress = clamp(-pose.yaw / (POSE.TURN_YAW + 6));
+        if (pose.yaw < -POSE.TURN_YAW) return { hint: 'Hold — capturing right angle', severity: 'ok', progress: 1 };
+        const need = Math.max(POSE.TURN_YAW + pose.yaw, 0);
+        return { hint: `Turn ~${Math.round(need + 4)}° more to your right`, severity: 'warn', progress };
+      }
+      case 'up': {
+        const progress = clamp(-pose.pitch / (POSE.TILT_PITCH + 6));
+        if (pose.pitch < -POSE.TILT_PITCH) return { hint: 'Hold — capturing up angle', severity: 'ok', progress: 1 };
+        const need = Math.max(POSE.TILT_PITCH + pose.pitch, 0);
+        return { hint: `Tilt your head up ~${Math.round(need + 3)}° more`, severity: 'warn', progress };
+      }
+      case 'down': {
+        const progress = clamp(pose.pitch / (POSE.TILT_PITCH + 6));
+        if (pose.pitch > POSE.TILT_PITCH) return { hint: 'Hold — capturing down angle', severity: 'ok', progress: 1 };
+        const need = Math.max(POSE.TILT_PITCH - pose.pitch, 0);
+        return { hint: `Tilt your head down ~${Math.round(need + 3)}° more`, severity: 'warn', progress };
+      }
+      default:
+        return { hint: 'Follow the on-screen instruction', severity: 'warn', progress: 0 };
+    }
+  };
+
   // Real pose checking - captures frame & sends to face-check API
   const startRealPoseChecking = () => {
     let consecutiveFails = 0;
@@ -806,6 +876,13 @@ const FaceVerification = () => {
       if (!result || !result.faceDetected) {
         consecutiveFails++;
         setScanningStatus('fail');
+        setLiveDiag({
+          faceDetected: false, eyesOpen: false, yaw: 0, pitch: 0, progress: 0,
+          hint: consecutiveFails > 3
+            ? 'Still no face — improve lighting and hold the phone at eye level'
+            : 'Face not detected — center your face in the oval',
+          severity: 'error',
+        });
         if (consecutiveFails >= 15) {
           // ~15s of no face → give up
           finishVerification(false);
@@ -825,6 +902,14 @@ const FaceVerification = () => {
       
       if (instruction && !instructionsCompletedRef.current[instrIdx]) {
         const passed = instruction.checkPose({ yaw: pose.yaw, pitch: pose.pitch });
+        const diag = computeStepDiag(instruction.id, pose, true, result.eyesOpen);
+        setLiveDiag({
+          faceDetected: true, eyesOpen: result.eyesOpen,
+          yaw: pose.yaw, pitch: pose.pitch,
+          progress: passed ? 1 : diag.progress,
+          hint: passed ? 'Perfect — locking in…' : diag.hint,
+          severity: passed ? 'ok' : diag.severity,
+        });
         
         if (passed) {
           setScanningStatus('pass');
@@ -932,6 +1017,7 @@ const FaceVerification = () => {
     setFaceVerified(false);
     setScanningStatus('idle');
     setPoseHistory([]);
+    setLiveDiag(null);
     if (poseCheckIntervalRef.current) {
       clearInterval(poseCheckIntervalRef.current);
       poseCheckIntervalRef.current = null;
@@ -1640,31 +1726,112 @@ const FaceVerification = () => {
               </AnimatePresence>
             )}
             
+            {/* Live diagnostics panel — tells the user EXACTLY why the
+                current step is not passing yet (face presence, eyes, angle). */}
+            {verificationRecording && liveDiag && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="absolute left-3 right-3 bottom-[120px]"
+              >
+                <div className={`rounded-2xl backdrop-blur-xl px-3.5 py-3 border shadow-lg ${
+                  liveDiag.severity === 'ok'
+                    ? 'bg-emerald-50/95 border-emerald-300'
+                    : liveDiag.severity === 'error'
+                      ? 'bg-rose-50/95 border-rose-300'
+                      : 'bg-white/95 border-amber-200'
+                }`}>
+                  {/* Hint line */}
+                  <div className="flex items-center gap-2">
+                    {liveDiag.severity === 'ok' ? (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    ) : liveDiag.severity === 'error' ? (
+                      <XCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                    ) : (
+                      <Loader2 className="w-4 h-4 text-amber-600 animate-spin shrink-0" />
+                    )}
+                    <p className={`text-[13px] font-semibold leading-snug ${
+                      liveDiag.severity === 'ok' ? 'text-emerald-800'
+                      : liveDiag.severity === 'error' ? 'text-rose-800'
+                      : 'text-slate-800'
+                    }`}>
+                      {liveDiag.hint}
+                    </p>
+                  </div>
+
+                  {/* Alignment meter */}
+                  <div className="mt-2 h-1.5 rounded-full bg-slate-200 overflow-hidden">
+                    <motion.div
+                      className={`h-full rounded-full ${
+                        liveDiag.severity === 'ok' ? 'bg-emerald-500'
+                        : liveDiag.severity === 'error' ? 'bg-rose-500'
+                        : 'bg-gradient-to-r from-amber-400 to-amber-600'
+                      }`}
+                      animate={{ width: `${Math.round(liveDiag.progress * 100)}%` }}
+                      transition={{ duration: 0.25 }}
+                    />
+                  </div>
+
+                  {/* Live signal chips */}
+                  <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] font-medium">
+                    <span className={`px-2 py-0.5 rounded-full border ${
+                      liveDiag.faceDetected
+                        ? 'bg-emerald-100 text-emerald-700 border-emerald-300'
+                        : 'bg-rose-100 text-rose-700 border-rose-300'
+                    }`}>
+                      Face {liveDiag.faceDetected ? '✓' : '✗'}
+                    </span>
+                    <span className={`px-2 py-0.5 rounded-full border ${
+                      liveDiag.eyesOpen
+                        ? 'bg-emerald-100 text-emerald-700 border-emerald-300'
+                        : 'bg-amber-100 text-amber-700 border-amber-300'
+                    }`}>
+                      Eyes {liveDiag.eyesOpen ? 'open' : 'closed'}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300 font-mono">
+                      Yaw {liveDiag.yaw >= 0 ? '+' : ''}{liveDiag.yaw.toFixed(0)}°
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300 font-mono">
+                      Pitch {liveDiag.pitch >= 0 ? '+' : ''}{liveDiag.pitch.toFixed(0)}°
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
             {/* Bottom: Timer + Step indicators */}
             {verificationRecording && (
               <div className="absolute bottom-3 left-3 right-3">
-                {/* Step dots */}
+                {/* Step dots — show pending/active/done with icon for active */}
                 <div className="flex justify-center gap-2 mb-2">
-                  {instructionsCompleted.map((completed, idx) => (
-                    <motion.div
-                      key={idx}
-                      className={`w-9 h-9 rounded-full flex items-center justify-center border-2 ${
-                        completed 
-                          ? 'bg-green-500 border-green-400' 
-                          : idx === currentInstruction 
-                            ? 'border-cyan-400 bg-cyan-500/20' 
-                            : 'border-amber-200/60 bg-white/5'
-                      }`}
-                      animate={completed ? { scale: [1, 1.15, 1] } : idx === currentInstruction ? { borderColor: ['#22d3ee', '#a855f7', '#22d3ee'] } : {}}
-                      transition={{ duration: 1.5, repeat: Infinity }}
-                    >
-                      {completed ? (
-                        <CheckCircle2 className="w-5 h-5 text-slate-800" />
-                      ) : (
-                        <span className="text-slate-600 text-xs font-bold">{idx + 1}</span>
-                      )}
-                    </motion.div>
-                  ))}
+                  {faceInstructions.map((instr, idx) => {
+                    const completed = instructionsCompleted[idx];
+                    const isActive = idx === currentInstruction && !completed;
+                    const Icon = instr.icon;
+                    return (
+                      <motion.div
+                        key={instr.id}
+                        title={instr.direction}
+                        className={`w-9 h-9 rounded-full flex items-center justify-center border-2 ${
+                          completed
+                            ? 'bg-green-500 border-green-400'
+                            : isActive
+                              ? 'border-cyan-400 bg-cyan-500/20'
+                              : 'border-amber-200/80 bg-white/80'
+                        }`}
+                        animate={completed ? { scale: [1, 1.15, 1] } : isActive ? { borderColor: ['#22d3ee', '#a855f7', '#22d3ee'] } : {}}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                      >
+                        {completed ? (
+                          <CheckCircle2 className="w-5 h-5 text-white" />
+                        ) : isActive ? (
+                          <Icon className="w-4 h-4 text-cyan-700" />
+                        ) : (
+                          <span className="text-slate-500 text-xs font-bold">{idx + 1}</span>
+                        )}
+                      </motion.div>
+                    );
+                  })}
                 </div>
                 
                 {/* Timer bar */}
@@ -1672,8 +1839,11 @@ const FaceVerification = () => {
                   <div className="flex items-center gap-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
                     <span className="text-slate-500 text-xs">{localizedMsg.recording}</span>
+                    <span className="text-slate-700 text-xs font-semibold">
+                      · Step {currentInstruction + 1}/{faceInstructions.length}: {faceInstructions[currentInstruction]?.direction}
+                    </span>
                   </div>
-                  <span className="text-slate-800 font-mono font-bold text-sm">{Math.max(0, 30 - verificationTime)}s</span>
+                  <span className="text-slate-800 font-mono font-bold text-sm">{Math.max(0, 60 - verificationTime)}s</span>
                 </div>
               </div>
             )}
