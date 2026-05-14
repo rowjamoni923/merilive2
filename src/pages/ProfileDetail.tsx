@@ -1245,30 +1245,30 @@ const ProfileDetail = () => {
           {/* Stats Row - Only visible to profile owner */}
           {isOwnProfile && (
             <>
-              <div className="mt-4 grid grid-cols-3 gap-px p-1 rounded-2xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <div className="mt-4 grid grid-cols-3 gap-px p-1 rounded-2xl profile-home-section">
                 <motion.button 
                   whileTap={{ scale: 0.95 }}
                   onClick={() => navigate(`/following?type=friends&user=${userId}`)}
-                  className="text-center py-3 rounded-xl hover:bg-white/5 transition-colors"
+                  className="text-center py-3 rounded-xl hover:bg-slate-50 transition-colors"
                 >
                   <p className="text-2xl font-bold bg-gradient-to-r from-fuchsia-400 to-pink-400 bg-clip-text text-transparent">{friendsCount}</p>
-                  <p className="text-[11px] text-white/75 font-medium mt-0.5">Friends</p>
+                  <p className="text-[11px] text-slate-500 font-medium mt-0.5">Friends</p>
                 </motion.button>
                 <motion.button 
                   whileTap={{ scale: 0.95 }}
                   onClick={() => navigate(`/following?type=following&user=${userId}`)}
-                  className="text-center py-3 rounded-xl hover:bg-white/5 transition-colors border-x border-white/5"
+                  className="text-center py-3 rounded-xl hover:bg-slate-50 transition-colors border-x border-slate-100"
                 >
                   <p className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">{followingCount}</p>
-                  <p className="text-[11px] text-white/75 font-medium mt-0.5">Following</p>
+                  <p className="text-[11px] text-slate-500 font-medium mt-0.5">Following</p>
                 </motion.button>
                 <motion.button 
                   whileTap={{ scale: 0.95 }}
                   onClick={() => navigate(`/following?type=followers&user=${userId}`)}
-                  className="text-center py-3 rounded-xl hover:bg-white/5 transition-colors"
+                  className="text-center py-3 rounded-xl hover:bg-slate-50 transition-colors"
                 >
                   <p className="text-2xl font-bold bg-gradient-to-r from-pink-400 to-rose-400 bg-clip-text text-transparent">{followersCount}</p>
-                  <p className="text-[11px] text-white/75 font-medium mt-0.5">Followers</p>
+                  <p className="text-[11px] text-slate-500 font-medium mt-0.5">Followers</p>
                 </motion.button>
               </div>
             </>
