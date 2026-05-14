@@ -1372,14 +1372,6 @@ const HelperDashboard = () => {
         )}
       </div>
 
-      {/* Scrollable Content */}
-      <div 
-        className="flex-1 overflow-y-auto overscroll-contain"
-        style={{ 
-          WebkitOverflowScrolling: 'touch',
-          paddingBottom: 'var(--content-bottom-padding)'
-        }}
-      >
       {/* Main Content */}
       <div className="px-4 mt-4 space-y-4">
       {/* Payroll Helper Guide Card */}
