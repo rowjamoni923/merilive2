@@ -169,9 +169,9 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
             </div>
             <button
               onClick={() => onOpenChange(false)}
-              className="w-8 h-8 rounded-full bg-white/5 hover:bg-amber-50/70 border border-amber-200/60 flex items-center justify-center transition-all"
+              className="w-8 h-8 rounded-full bg-white hover:bg-amber-50/70 border border-amber-200/60 flex items-center justify-center transition-all"
             >
-              <X className="w-4 h-4 text-slate-500" />
+              <X className="w-4 h-4 text-slate-600" />
             </button>
           </div>
         </div>
@@ -182,10 +182,10 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
             <div className="relative flex items-center justify-center gap-3">
               <Beans3DIcon size={36} />
               <div className="text-center">
-                <span className="text-amber-400 font-bold text-3xl tracking-tight">
+                <span className="text-amber-700 font-bold text-3xl tracking-tight">
                   {currentBeans.toLocaleString()}
                 </span>
-                <p className="text-slate-400 text-xs font-medium mt-0.5">Available Beans</p>
+                <p className="text-slate-600 text-xs font-medium mt-0.5">Available Beans</p>
               </div>
             </div>
           </div>
@@ -195,8 +195,8 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
               onClick={() => { setUseCustom(false); setCustomBeans(""); }}
               className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all duration-300 border ${
                 !useCustom
-                  ? 'bg-amber-500/15 border-amber-500/40 text-amber-400 shadow-[0_0_20px_-5px_rgba(245,158,11,0.3)]'
-                  : 'bg-white/3 border-amber-200/60 text-slate-400 hover:text-slate-500 hover:border-amber-200/60'
+                  ? 'bg-amber-500/15 border-amber-500/40 text-amber-700 shadow-[0_0_20px_-5px_rgba(245,158,11,0.3)]'
+                  : 'bg-white border-amber-200/60 text-slate-600 hover:text-slate-600 hover:border-amber-200/60'
               }`}
             >
               <Sparkles className="w-3.5 h-3.5 inline mr-1.5" />
@@ -206,11 +206,11 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
               onClick={() => { setUseCustom(true); setSelectedTier(null); }}
               className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all duration-300 border ${
                 useCustom
-                  ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-400 shadow-[0_0_20px_-5px_rgba(6,182,212,0.3)]'
-                  : 'bg-white/3 border-amber-200/60 text-slate-400 hover:text-slate-500 hover:border-amber-200/60'
+                  ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-700 shadow-[0_0_20px_-5px_rgba(6,182,212,0.3)]'
+                  : 'bg-white border-amber-200/60 text-slate-600 hover:text-slate-600 hover:border-amber-200/60'
               }`}
             >
-              ✏️ Custom Amount
+              Custom Amount
             </button>
           </div>
 
@@ -219,7 +219,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
               <div className="w-8 h-8 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
             </div>
           ) : tiers.length === 0 ? (
-            <div className="py-10 text-center text-slate-500 text-sm">
+            <div className="py-10 text-center text-slate-600 text-sm">
               No exchange tiers available right now.
             </div>
           ) : useCustom ? (
@@ -233,7 +233,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
                   placeholder="Enter beans amount..."
                   value={customBeans}
                   onChange={(e) => setCustomBeans(e.target.value)}
-                  className="w-full h-14 pl-12 pr-4 rounded-2xl bg-white/5 border border-amber-200/60 text-white text-lg font-semibold placeholder:text-slate-400 focus:outline-none focus:border-cyan-500/50 focus:bg-cyan-500/5 transition-all"
+                  className="w-full h-14 pl-12 pr-4 rounded-2xl bg-white border border-amber-200/60 text-slate-800 text-lg font-semibold placeholder:text-slate-600 focus:outline-none focus:border-cyan-500/50 focus:bg-cyan-500/5 transition-all"
                 />
               </div>
 
@@ -241,23 +241,23 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
                 <div className="flex items-center justify-center gap-3 py-3 px-4 rounded-2xl bg-gradient-to-r from-cyan-500/5 to-blue-500/5 border border-cyan-500/15">
                   <div className="flex items-center gap-1.5">
                     <Beans3DIcon size={18} />
-                    <span className="text-amber-400 font-bold">{customBeansNum.toLocaleString()}</span>
+                    <span className="text-amber-700 font-bold">{customBeansNum.toLocaleString()}</span>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-slate-500" />
+                  <ArrowRight className="w-4 h-4 text-slate-600" />
                   <div className="flex items-center gap-1.5">
                     <Diamond3DIcon size={18} />
-                    <span className="text-cyan-400 font-bold">{customDiamonds.toLocaleString()}</span>
+                    <span className="text-cyan-700 font-bold">{customDiamonds.toLocaleString()}</span>
                   </div>
                 </div>
               )}
 
               {customBeansNum > 0 && !customTier && (
-                <p className="text-amber-400/80 text-xs text-center">
+                <p className="text-amber-700/80 text-xs text-center">
                   Amount doesn't match any active tier range.
                 </p>
               )}
               {customBeansNum > 0 && customTier && currentBeans < customBeansNum && (
-                <p className="text-red-400/80 text-xs text-center">
+                <p className="text-red-600/80 text-xs text-center">
                   Insufficient beans. You need {(customBeansNum - currentBeans).toLocaleString()} more.
                 </p>
               )}
@@ -279,8 +279,8 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
                       isSelected
                         ? 'border-cyan-400/60 bg-gradient-to-br from-cyan-500/15 to-blue-600/10 shadow-[0_0_30px_-8px_rgba(6,182,212,0.4)] scale-[1.02]'
                         : canAfford
-                          ? 'border-amber-200/60 bg-white/70 hover:border-amber-500/30 hover:bg-amber-500/5'
-                          : 'border-amber-200/60 bg-white/70 opacity-35 cursor-not-allowed'
+                          ? 'border-amber-200/60 bg-white hover:border-amber-500/30 hover:bg-amber-500/5'
+                          : 'border-amber-200/60 bg-white opacity-35 cursor-not-allowed'
                     }`}
                   >
                     {isSelected && (
@@ -291,21 +291,21 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
 
                     <div className="text-center space-y-1.5">
                       {tier.tier_name && (
-                        <p className="text-[10px] uppercase tracking-wide text-slate-400">{tier.tier_name}</p>
+                        <p className="text-[10px] uppercase tracking-wide text-slate-600">{tier.tier_name}</p>
                       )}
                       <div className="flex items-center justify-center gap-1.5">
                         <Beans3DIcon size={18} />
-                        <span className="text-amber-400 font-bold text-base">{tierBeans.toLocaleString()}</span>
+                        <span className="text-amber-700 font-bold text-base">{tierBeans.toLocaleString()}</span>
                       </div>
 
-                      <div className="text-slate-400 text-[10px]">→</div>
+                      <div className="text-slate-600 text-[10px]">→</div>
 
                       <div className="flex items-center justify-center gap-1.5">
                         <Diamond3DIcon size={18} />
-                        <span className="text-cyan-400 font-bold text-base">{tierDiamonds.toLocaleString()}</span>
+                        <span className="text-cyan-700 font-bold text-base">{tierDiamonds.toLocaleString()}</span>
                       </div>
                       {(tier.bonus_percent ?? 0) > 0 && (
-                        <p className="text-[10px] text-emerald-400">+{tier.bonus_percent}% bonus</p>
+                        <p className="text-[10px] text-emerald-700">+{tier.bonus_percent}% bonus</p>
                       )}
                     </div>
                   </button>
@@ -320,7 +320,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
             className={`w-full h-14 rounded-2xl text-base font-bold transition-all duration-300 border-0 ${
               isReady
                 ? 'bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 text-black shadow-[0_4px_30px_-5px_rgba(245,158,11,0.5)] hover:shadow-[0_4px_40px_-5px_rgba(245,158,11,0.7)]'
-                : 'bg-white/5 text-slate-400 cursor-not-allowed'
+                : 'bg-white text-slate-600 cursor-not-allowed'
             }`}
           >
             {processing ? (
@@ -340,7 +340,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
             )}
           </Button>
 
-          <p className="text-center text-slate-500 text-[11px]">
+          <p className="text-center text-slate-600 text-[11px]">
             Exchanged diamonds will be added to your My Diamonds balance
           </p>
         </div>

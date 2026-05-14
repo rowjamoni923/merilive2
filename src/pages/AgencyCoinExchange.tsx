@@ -695,7 +695,7 @@ const AgencyCoinExchange = () => {
         <div className="flex items-center h-14 px-4">
           <button 
             onClick={() => navigate(-1)}
-            className="p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors"
+            className="p-2 -ml-2 hover:bg-amber-50 rounded-full transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -715,9 +715,9 @@ const AgencyCoinExchange = () => {
               <Coins className="w-5 h-5" />
             </div>
           </div>
-          <p className="text-slate-600 text-xs">Total Beans</p>
+          <p className="text-white/85 text-xs">Total Beans</p>
           <p className="text-2xl font-bold">{(agency.beans_balance || 0).toLocaleString()}</p>
-          <p className="text-slate-500 text-[10px] mt-1">Exchangeable to Diamonds</p>
+          <p className="text-white/70 text-[10px] mt-1">Exchangeable to Diamonds</p>
         </div>
 
         {/* Diamond Balance */}
@@ -728,13 +728,13 @@ const AgencyCoinExchange = () => {
               <Diamond className="w-5 h-5" />
             </div>
           </div>
-          <p className="text-slate-600 text-xs">Diamond Balance</p>
+          <p className="text-white/85 text-xs">Diamond Balance</p>
           <p className="text-2xl font-bold">{agency.diamond_balance.toLocaleString()}</p>
         </div>
       </div>
 
       {/* Exchange Info */}
-      <div className="mx-4 mt-3 bg-white/5 backdrop-blur rounded-xl p-3 border border-amber-200/60">
+      <div className="mx-4 mt-3 bg-white rounded-xl p-3 border border-amber-200 shadow-sm">
         <div className="flex items-center justify-between text-sm">
           <span className="text-slate-500">Exchange Rate:</span>
           <div className="flex items-center gap-1">
@@ -753,7 +753,7 @@ const AgencyCoinExchange = () => {
         <Button
           variant={activeTab === "exchange" ? "default" : "outline"}
           onClick={() => setActiveTab("exchange")}
-          className={`flex-1 ${activeTab === "exchange" ? "bg-gradient-to-r from-amber-500 to-orange-600 border-0" : "border-white/20 text-white hover:bg-white/10"}`}
+          className={`flex-1 ${activeTab === "exchange" ? "bg-gradient-to-r from-amber-500 to-orange-600 border-0" : "border-amber-300 text-amber-700 hover:bg-amber-50"}`}
         >
           <ArrowRightLeft className="w-4 h-4 mr-2" />
           Beans → Diamond
@@ -761,7 +761,7 @@ const AgencyCoinExchange = () => {
         <Button
           variant={activeTab === "send" ? "default" : "outline"}
           onClick={() => setActiveTab("send")}
-          className={`flex-1 ${activeTab === "send" ? "bg-gradient-to-r from-cyan-500 to-blue-600 border-0" : "border-white/20 text-white hover:bg-white/10"}`}
+          className={`flex-1 ${activeTab === "send" ? "bg-gradient-to-r from-cyan-500 to-blue-600 border-0" : "border-amber-300 text-amber-700 hover:bg-amber-50"}`}
         >
           <Send className="w-4 h-4 mr-2" />
           Send Diamond
@@ -771,7 +771,7 @@ const AgencyCoinExchange = () => {
       {/* Exchange Tab */}
       {activeTab === "exchange" && (
         <div className="mx-4 mt-4 space-y-4">
-          <div className="bg-white/5 backdrop-blur rounded-2xl p-5 border border-amber-200/60">
+          <div className="bg-white rounded-2xl p-5 border border-amber-200 shadow-sm">
             <h3 className="font-semibold mb-4 flex items-center gap-2 text-slate-800">
               <Calculator className="w-5 h-5 text-amber-600" />
               Convert Beans to Diamonds
@@ -787,7 +787,7 @@ const AgencyCoinExchange = () => {
                     placeholder="Enter beans amount"
                     value={beansAmount}
                     onChange={(e) => setBeansAmount(e.target.value)}
-                    className="pl-10 text-lg h-12 bg-white/5 border-amber-200/60 text-slate-800 placeholder:text-slate-500"
+                    className="pl-10 text-lg h-12 bg-white border-amber-200 text-slate-800 placeholder:text-slate-500"
                   />
                 </div>
                 <p className="text-xs text-slate-500 mt-1">
@@ -846,7 +846,7 @@ const AgencyCoinExchange = () => {
 
               {/* Insufficient Balance Warning */}
               {totalBeansNeeded > ownerBeans && beansAmount && parseInt(beansAmount) > 0 && (
-                <div className="flex items-center gap-2 p-3 bg-red-500/20 rounded-lg border border-red-500/30">
+                <div className="flex items-center gap-2 p-3 bg-red-50 rounded-lg border border-red-200">
                   <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
                   <p className="text-sm text-red-700">
                     Insufficient My Beans. Required: {totalBeansNeeded.toLocaleString()} | Available: {ownerBeans.toLocaleString()}
@@ -880,7 +880,7 @@ const AgencyCoinExchange = () => {
       {activeTab === "send" && (
         <div className="mx-4 mt-4 space-y-4">
           {/* Sub-tabs: User Top-up | Agency */}
-          <div className="flex gap-2 bg-white/5 p-1 rounded-xl">
+          <div className="flex gap-2 bg-slate-100 p-1 rounded-xl">
             <button
               onClick={() => {
                 setSendSubTab("user");
@@ -890,7 +890,7 @@ const AgencyCoinExchange = () => {
               className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
                 sendSubTab === "user"
                   ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg"
-                  : "text-white/70 hover:text-white hover:bg-white/5"
+                  : "text-slate-500 hover:text-slate-700 hover:bg-amber-50"
               }`}
             >
               <Users className="w-4 h-4" />
@@ -905,7 +905,7 @@ const AgencyCoinExchange = () => {
               className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
                 sendSubTab === "agency"
                   ? "bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg"
-                  : "text-white/70 hover:text-white hover:bg-white/5"
+                  : "text-slate-500 hover:text-slate-700 hover:bg-amber-50"
               }`}
             >
               <Diamond className="w-4 h-4" />
@@ -915,7 +915,7 @@ const AgencyCoinExchange = () => {
 
           {/* USER TOP-UP SUB-TAB */}
           {sendSubTab === "user" && (
-            <div className="bg-white/5 backdrop-blur rounded-2xl p-5 border border-amber-200/60">
+            <div className="bg-white rounded-2xl p-5 border border-amber-200 shadow-sm">
               <h3 className="font-semibold mb-4 flex items-center gap-2 text-slate-800">
                 <Send className="w-5 h-5 text-cyan-600" />
                 Send Diamonds to User
@@ -932,7 +932,7 @@ const AgencyCoinExchange = () => {
                       placeholder="Enter App UID or name"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10 bg-white/5 border-amber-200/60 text-slate-800 placeholder:text-slate-500"
+                      className="pl-10 bg-white border-amber-200 text-slate-800 placeholder:text-slate-500"
                     />
                   </div>
                 </div>
@@ -948,7 +948,7 @@ const AgencyCoinExchange = () => {
                           setSearchQuery("");
                           setSearchResults([]);
                         }}
-                        className="flex items-center gap-3 p-3 bg-white/5 rounded-xl cursor-pointer hover:bg-white/10 transition-colors"
+                        className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl cursor-pointer hover:bg-amber-50 transition-colors"
                       >
                         <Avatar className="w-10 h-10 border border-amber-200/60">
                           <AvatarImage src={user.avatar_url || ""} />
@@ -962,7 +962,7 @@ const AgencyCoinExchange = () => {
                             UID: {user.app_uid || user.id.slice(0, 8)}
                           </p>
                         </div>
-                        <Badge className="bg-cyan-500/20 text-cyan-700 border-cyan-500/30">
+                        <Badge className="bg-cyan-100 text-cyan-700 border-cyan-500/30">
                           UID
                         </Badge>
                       </div>
@@ -1010,7 +1010,7 @@ const AgencyCoinExchange = () => {
                           placeholder="Enter diamond amount"
                           value={diamondsToSend}
                           onChange={(e) => setDiamondsToSend(e.target.value)}
-                          className="pl-10 text-lg h-12 bg-white/5 border-amber-200/60 text-slate-800 placeholder:text-slate-500"
+                          className="pl-10 text-lg h-12 bg-white border-amber-200 text-slate-800 placeholder:text-slate-500"
                         />
                       </div>
                       <p className="text-xs text-slate-500 mt-1">
@@ -1066,7 +1066,7 @@ const AgencyCoinExchange = () => {
 
           {/* AGENCY SUB-TAB */}
           {sendSubTab === "agency" && (
-            <div className="bg-white/5 backdrop-blur rounded-2xl p-5 border border-amber-200/60">
+            <div className="bg-white rounded-2xl p-5 border border-amber-200 shadow-sm">
               <h3 className="font-semibold mb-4 flex items-center gap-2 text-slate-800">
                 <Diamond className="w-5 h-5 text-purple-600" />
                 Send Diamonds to Agency
@@ -1088,7 +1088,7 @@ const AgencyCoinExchange = () => {
                         placeholder="Enter Owner's App UID"
                         value={agencySearchQuery}
                         onChange={(e) => setAgencySearchQuery(e.target.value)}
-                        className="pl-10 bg-white/5 border-amber-200/60 text-slate-800 placeholder:text-slate-500"
+                        className="pl-10 bg-white border-amber-200 text-slate-800 placeholder:text-slate-500"
                       />
                     </div>
                     <Button
@@ -1145,7 +1145,7 @@ const AgencyCoinExchange = () => {
                           placeholder="Enter diamond amount"
                           value={diamondsToSend}
                           onChange={(e) => setDiamondsToSend(e.target.value)}
-                          className="pl-10 text-lg h-12 bg-white/5 border-amber-200/60 text-slate-800 placeholder:text-slate-500"
+                          className="pl-10 text-lg h-12 bg-white border-amber-200 text-slate-800 placeholder:text-slate-500"
                         />
                       </div>
                       <p className="text-xs text-slate-500 mt-1">
@@ -1212,13 +1212,13 @@ const AgencyCoinExchange = () => {
             <History className="w-5 h-5 text-purple-600" />
             Recent Transactions
           </h3>
-          <div className="bg-white/5 backdrop-blur rounded-xl border border-amber-200/60 divide-y divide-white/5">
+          <div className="bg-white rounded-xl border border-amber-200 shadow-sm divide-y divide-slate-200">
             {recentTransactions.slice(0, 5).map((tx) => (
               <div key={tx.id} className="p-3 flex items-center gap-3">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
                   tx.transaction_type === 'exchange' 
-                    ? 'bg-amber-500/20' 
-                    : 'bg-cyan-500/20'
+                    ? 'bg-amber-100' 
+                    : 'bg-cyan-100'
                 }`}>
                   {tx.transaction_type === 'exchange' ? (
                     <ArrowRightLeft className="w-5 h-5 text-amber-600" />
@@ -1306,7 +1306,7 @@ const AgencyCoinExchange = () => {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowConfirmDialog(false)} className="border-amber-200/60 text-slate-800 hover:bg-white/10">
+            <Button variant="outline" onClick={() => setShowConfirmDialog(false)} className="border-amber-200/60 text-slate-800 hover:bg-amber-50">
               Cancel
             </Button>
             <Button 
