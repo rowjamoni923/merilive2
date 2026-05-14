@@ -576,15 +576,15 @@ const Tasks = () => {
                       className={`flex-1 h-10 rounded-xl flex flex-col items-center justify-center ${
                         completed
                           ? 'bg-gradient-to-b from-fuchsia-500 to-purple-600 shadow-lg shadow-fuchsia-500/30'
-                          : 'bg-white/5 border border-amber-200/40'
+                          : 'bg-white/5 border border-white/10'
                       }`}
                     >
                       {completed ? (
-                        <Check className="w-4 h-4 text-slate-800" />
+                        <Check className="w-4 h-4 text-white" />
                       ) : (
-                        <Clock className="w-3.5 h-3.5 text-slate-600" />
+                        <Clock className="w-3.5 h-3.5 text-purple-200/70" />
                       )}
-                      <span className={`text-[8px] font-bold mt-0.5 ${completed ? 'text-slate-800' : 'text-slate-600'}`}>
+                      <span className={`text-[8px] font-bold mt-0.5 ${completed ? 'text-white' : 'text-purple-200/70'}`}>
                         {i + 1}h
                       </span>
                     </div>
