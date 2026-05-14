@@ -1,21 +1,20 @@
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Check, Crown, Sparkles, Gift, Gem, Star } from "lucide-react";
+import { Check, Crown, Sparkles, Gem, Flame } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDailyLoginReward } from "@/hooks/useDailyLoginReward";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
+import treasureChest3D from "@/assets/rewards/treasure-chest-3d.png";
 
 /**
- * Ultra-Premium Daily Login Reward Popup
- * 
- * Features:
- * - Cinematic entrance animation
- * - Floating diamond particles
- * - Glow effects and premium gradients
- * - 7-day reward grid with glass-morphism cards
- * - Animated claim button with shimmer
+ * Ultra-Premium HD 3D Daily Login Reward Popup
+ *
+ * - Photoreal 3D treasure-chest hero render
+ * - Conic-gradient gilded frame, deep obsidian glass surface
+ * - Embossed reward day cells with metallic finishes
+ * - Cinematic motion + ambient particle field
  */
 const DailyLoginPopup = () => {
   const {
@@ -35,351 +34,475 @@ const DailyLoginPopup = () => {
 
   return (
     <Dialog open={showPopup} onOpenChange={setShowPopup}>
-      <DialogContent className="bg-transparent border-0 shadow-none max-w-[380px] mx-auto p-0 overflow-visible [&>button]:hidden">
+      <DialogContent className="bg-transparent border-0 shadow-none max-w-[376px] mx-auto p-0 overflow-visible [&>button]:hidden">
         <VisuallyHidden><DialogTitle>Daily Login Reward</DialogTitle></VisuallyHidden>
-        
+
         <motion.div
-          initial={{ scale: 0.6, opacity: 0, y: 60, rotateX: 15 }}
+          initial={{ scale: 0.7, opacity: 0, y: 50, rotateX: 18 }}
           animate={{ scale: 1, opacity: 1, y: 0, rotateX: 0 }}
-          transition={{ type: "spring", damping: 18, stiffness: 200 }}
-          className="relative rounded-[28px] overflow-hidden"
-          style={{ perspective: 1000 }}
+          transition={{ type: "spring", damping: 19, stiffness: 220 }}
+          className="relative"
+          style={{ perspective: 1400, transformStyle: "preserve-3d" }}
         >
-          {/* Animated gradient border */}
-          <div className="absolute inset-0 rounded-[28px] p-[2px]" 
-            style={{ background: 'linear-gradient(135deg, #fbbf24, #f59e0b, #ec4899, #8b5cf6, #06b6d4, #fbbf24)' }}
+          {/* === Outer ambient halo === */}
+          <div className="pointer-events-none absolute -inset-12 opacity-80">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(251,191,36,0.18),transparent_60%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(168,85,247,0.16),transparent_55%)]" />
+          </div>
+
+          {/* === Conic gilded frame === */}
+          <div
+            className="relative rounded-[30px] p-[1.5px]"
+            style={{
+              background:
+                "conic-gradient(from 140deg at 50% 50%, #fde68a 0deg, #b45309 70deg, #fbbf24 130deg, #92400e 200deg, #fde68a 260deg, #d97706 320deg, #fde68a 360deg)",
+              boxShadow:
+                "0 30px 60px -20px rgba(0,0,0,0.7), 0 0 0 1px rgba(251,191,36,0.25), 0 0 80px rgba(245,158,11,0.18)",
+            }}
           >
-            <div className="w-full h-full rounded-[28px] bg-[#0a0a1a]" />
-          </div>
-
-          {/* Background glow effects */}
-          <div className="absolute inset-0 rounded-[28px] overflow-hidden">
-            <div className="absolute -top-20 -left-20 w-60 h-60 bg-amber-500/15 rounded-full blur-3xl animate-pulse" />
-            <div className="absolute -bottom-20 -right-20 w-60 h-60 bg-purple-600/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-cyan-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '0.5s' }} />
-          </div>
-
-          {/* Content */}
-          <div className="relative z-10 rounded-[28px]">
-            
-            {/* Close button */}
-            <button
-              onClick={() => setShowPopup(false)}
-              className="absolute top-4 right-4 z-30 w-8 h-8 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/15 transition-all duration-300"
+            {/* === Obsidian glass body === */}
+            <div
+              className="relative rounded-[28px] overflow-hidden"
+              style={{
+                background:
+                  "radial-gradient(120% 80% at 50% 0%, #1a1330 0%, #0c0820 45%, #06030f 100%)",
+              }}
             >
-              ✕
-            </button>
+              {/* Inner top sheen */}
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/[0.07] to-transparent" />
+              {/* Vignette */}
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_80%_at_50%_120%,rgba(0,0,0,0.6),transparent_60%)]" />
 
-            {/* Floating particles */}
-            {[...Array(8)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute w-1 h-1 rounded-full"
-                style={{
-                  left: `${15 + Math.random() * 70}%`,
-                  top: `${10 + Math.random() * 30}%`,
-                  background: ['#fbbf24', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#a855f7', '#f97316', '#10b981'][i],
-                }}
-                animate={{
-                  y: [0, -20, 0],
-                  opacity: [0.3, 0.8, 0.3],
-                  scale: [0.8, 1.2, 0.8],
-                }}
-                transition={{
-                  duration: 2 + Math.random() * 2,
-                  repeat: Infinity,
-                  delay: i * 0.3,
-                }}
-              />
-            ))}
+              {/* Soft color blooms */}
+              <div className="pointer-events-none absolute -top-24 -left-16 w-64 h-64 bg-amber-500/20 rounded-full blur-[60px]" />
+              <div className="pointer-events-none absolute -bottom-24 -right-16 w-64 h-64 bg-fuchsia-600/15 rounded-full blur-[70px]" />
+              <div className="pointer-events-none absolute top-1/3 left-1/2 -translate-x-1/2 w-48 h-48 bg-cyan-500/10 rounded-full blur-[60px]" />
 
-            {/* ===== HEADER SECTION ===== */}
-            <div className="text-center pt-6 pb-5 px-6">
-              {/* Ultra-Premium Treasure Chest Icon */}
-              <motion.div 
-                className="relative w-[120px] h-[120px] mx-auto mb-4"
-                animate={{ y: [0, -6, 0] }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              >
-                {/* Outer radiant glow layers */}
-                <div className="absolute inset-0 scale-[2] rounded-full bg-gradient-to-b from-amber-400/30 via-amber-500/10 to-transparent blur-3xl" />
-                <div className="absolute inset-0 scale-[1.6] rounded-full bg-gradient-to-tr from-cyan-400/20 via-purple-500/15 to-amber-400/20 blur-2xl animate-pulse" />
-                <div className="absolute inset-0 scale-[1.3] rounded-full bg-gradient-to-br from-amber-500/25 to-orange-400/15 blur-xl" />
-
-                {/* Main treasure container with glass card */}
-                <div className="relative w-[120px] h-[120px] rounded-[24px] flex items-center justify-center overflow-hidden"
+              {/* Floating particles */}
+              {[...Array(14)].map((_, i) => (
+                <motion.span
+                  key={i}
+                  className="pointer-events-none absolute rounded-full"
                   style={{
-                    background: 'linear-gradient(145deg, rgba(15,15,40,0.95), rgba(10,10,30,0.98))',
-                    border: '1.5px solid rgba(251,191,36,0.35)',
-                    boxShadow: '0 0 40px rgba(245,158,11,0.2), 0 0 80px rgba(168,85,247,0.1), inset 0 1px 0 rgba(255,255,255,0.08)',
+                    left: `${5 + (i * 7) % 90}%`,
+                    top: `${8 + (i * 11) % 70}%`,
+                    width: i % 3 === 0 ? 2.5 : 1.5,
+                    height: i % 3 === 0 ? 2.5 : 1.5,
+                    background:
+                      ["#fde68a", "#fbbf24", "#a78bfa", "#67e8f9", "#fb7185"][i % 5],
+                    boxShadow: "0 0 8px currentColor",
+                    color: ["#fde68a", "#fbbf24", "#a78bfa", "#67e8f9", "#fb7185"][i % 5],
+                  }}
+                  animate={{
+                    y: [0, -14 - (i % 5) * 4, 0],
+                    opacity: [0.15, 0.9, 0.15],
+                    scale: [0.6, 1.2, 0.6],
+                  }}
+                  transition={{
+                    duration: 2.4 + (i % 4) * 0.6,
+                    repeat: Infinity,
+                    delay: (i % 7) * 0.3,
+                    ease: "easeInOut",
+                  }}
+                />
+              ))}
+
+              {/* === Close === */}
+              <button
+                onClick={() => setShowPopup(false)}
+                aria-label="Close"
+                className="absolute top-3.5 right-3.5 z-30 w-8 h-8 rounded-full grid place-items-center text-white/55 hover:text-white transition-all"
+                style={{
+                  background:
+                    "linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))",
+                  border: "1px solid rgba(255,255,255,0.10)",
+                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)",
+                  backdropFilter: "blur(10px)",
+                }}
+              >
+                ✕
+              </button>
+
+              {/* ===================== HERO ===================== */}
+              <div className="relative pt-7 pb-3 px-6 text-center">
+                {/* Premium ribbon */}
+                <motion.div
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15 }}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full mb-3"
+                  style={{
+                    background:
+                      "linear-gradient(180deg, rgba(251,191,36,0.18), rgba(245,158,11,0.06))",
+                    border: "1px solid rgba(251,191,36,0.35)",
+                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.10)",
                   }}
                 >
-                  {/* Inner glow effect */}
-                  <div className="absolute inset-0 bg-gradient-to-b from-amber-400/10 via-transparent to-purple-500/5" />
-                  
-                  {/* Treasure chest emoji + diamonds burst */}
-                  <div className="relative z-10 flex flex-col items-center">
-                    {/* Premium Diamond Icon */}
+                  <Sparkles className="w-3 h-3 text-amber-300" />
+                  <span className="text-[10px] font-bold tracking-[0.22em] uppercase bg-gradient-to-b from-amber-100 to-amber-300 bg-clip-text text-transparent">
+                    Premium Daily Reward
+                  </span>
+                </motion.div>
+
+                {/* === 3D Treasure Hero === */}
+                <div className="relative mx-auto" style={{ width: 200, height: 168 }}>
+                  {/* Pedestal glow */}
+                  <div className="absolute left-1/2 -translate-x-1/2 bottom-0 w-44 h-6 rounded-[50%] bg-amber-500/40 blur-2xl" />
+                  <div className="absolute left-1/2 -translate-x-1/2 bottom-2 w-32 h-3 rounded-[50%] bg-amber-300/50 blur-md" />
+
+                  {/* Orbiting halo ring */}
+                  <motion.div
+                    className="absolute inset-0"
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
+                  >
+                    <Sparkles className="absolute -top-1 left-1/2 -translate-x-1/2 w-4 h-4 text-amber-200 drop-shadow-[0_0_10px_rgba(251,191,36,0.95)]" />
+                    <Sparkles className="absolute top-1/2 -right-2 -translate-y-1/2 w-3 h-3 text-cyan-200 drop-shadow-[0_0_8px_rgba(103,232,249,0.9)]" />
+                    <Sparkles className="absolute top-1/2 -left-2 -translate-y-1/2 w-3 h-3 text-fuchsia-300 drop-shadow-[0_0_8px_rgba(232,121,249,0.9)]" />
+                  </motion.div>
+
+                  {/* Floating chest */}
+                  <motion.img
+                    src={treasureChest3D}
+                    alt="Treasure chest"
+                    width={400}
+                    height={400}
+                    className="relative z-10 mx-auto w-[180px] h-[180px] object-contain"
+                    style={{
+                      filter:
+                        "drop-shadow(0 14px 22px rgba(0,0,0,0.55)) drop-shadow(0 0 28px rgba(245,158,11,0.45))",
+                    }}
+                    animate={{ y: [0, -6, 0] }}
+                    transition={{ duration: 3.4, repeat: Infinity, ease: "easeInOut" }}
+                  />
+
+                  {/* Diamond burst */}
+                  {[...Array(6)].map((_, i) => (
                     <motion.div
-                      animate={{ scale: [1, 1.08, 1], rotate: [0, 3, -3, 0] }}
-                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                      className="relative"
+                      key={`burst-${i}`}
+                      className="absolute left-1/2 top-[42%] z-20"
+                      animate={{
+                        x: [(i - 2.5) * 3, (i - 2.5) * 26],
+                        y: [0, -36 - (i % 3) * 8],
+                        opacity: [0, 1, 0],
+                        scale: [0.4, 1, 0.4],
+                        rotate: [0, (i - 2.5) * 25],
+                      }}
+                      transition={{
+                        duration: 2.4,
+                        repeat: Infinity,
+                        delay: i * 0.32,
+                        ease: "easeOut",
+                      }}
                     >
-                      <Diamond3DIcon size={56} />
-                      {/* Golden glow behind diamond */}
-                      <div className="absolute inset-0 bg-gradient-to-b from-amber-400/40 to-cyan-400/20 blur-lg rounded-full scale-150 -z-10" />
+                      <Diamond3DIcon size={i % 2 ? 14 : 18} />
                     </motion.div>
-                    
-                    {/* Flying diamonds from chest */}
-                    {[...Array(5)].map((_, i) => (
-                      <motion.div
-                        key={`chest-diamond-${i}`}
-                        className="absolute"
+                  ))}
+                </div>
+
+                {/* Title */}
+                <h2 className="mt-1 text-[30px] font-black leading-none tracking-tight">
+                  <span
+                    className="bg-clip-text text-transparent"
+                    style={{
+                      backgroundImage:
+                        "linear-gradient(180deg, #fff7d6 0%, #fde68a 30%, #f59e0b 60%, #92400e 100%)",
+                      WebkitTextStroke: "0.4px rgba(120,53,15,0.4)",
+                      filter: "drop-shadow(0 2px 6px rgba(245,158,11,0.35))",
+                    }}
+                  >
+                    Daily Reward
+                  </span>
+                </h2>
+                <p className="mt-1 text-[11px] text-white/45 tracking-wider">
+                  Sign in every day to climb the streak
+                </p>
+
+                {/* Pills */}
+                <div className="flex items-center justify-center gap-2 mt-3">
+                  <span
+                    className="text-[10px] font-bold tracking-wider px-3 py-1 rounded-full text-amber-100"
+                    style={{
+                      background:
+                        "linear-gradient(180deg, rgba(251,191,36,0.18), rgba(180,83,9,0.10))",
+                      border: "1px solid rgba(251,191,36,0.35)",
+                    }}
+                  >
+                    DAY {currentDay} / 7
+                  </span>
+                  <span
+                    className="inline-flex items-center gap-1 text-[10px] font-bold tracking-wider px-3 py-1 rounded-full text-orange-100"
+                    style={{
+                      background:
+                        "linear-gradient(180deg, rgba(249,115,22,0.20), rgba(127,29,29,0.10))",
+                      border: "1px solid rgba(249,115,22,0.35)",
+                    }}
+                  >
+                    <Flame className="w-3 h-3 text-orange-300" />
+                    {streak.current_streak} STREAK
+                  </span>
+                </div>
+              </div>
+
+              {/* ===================== 7-DAY GRID ===================== */}
+              <div className="grid grid-cols-7 gap-1.5 px-4 pt-4 pb-3">
+                {rewardDays.map((day, i) => {
+                  const isToday = day.day_number === currentDay;
+                  const isPast = day.day_number < currentDay;
+                  const isClaimed = day.is_claimed || isPast;
+                  const isDay7 = day.day_number === 7;
+
+                  return (
+                    <motion.div
+                      key={day.day_number}
+                      initial={{ opacity: 0, scale: 0.5, y: 14 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      transition={{ delay: 0.28 + i * 0.05, type: "spring", damping: 16 }}
+                      className={cn(
+                        "relative flex flex-col items-center justify-between py-2.5 px-0.5 rounded-2xl overflow-hidden",
+                        isToday ? "scale-[1.06]" : ""
+                      )}
+                      style={{
+                        background: isToday
+                          ? "linear-gradient(180deg, rgba(251,191,36,0.28) 0%, rgba(180,83,9,0.18) 100%)"
+                          : isClaimed
+                          ? "linear-gradient(180deg, rgba(16,185,129,0.14) 0%, rgba(6,78,59,0.10) 100%)"
+                          : "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)",
+                        border: isToday
+                          ? "1px solid rgba(251,191,36,0.55)"
+                          : isClaimed
+                          ? "1px solid rgba(16,185,129,0.30)"
+                          : "1px solid rgba(255,255,255,0.06)",
+                        boxShadow: isToday
+                          ? "0 8px 22px -8px rgba(245,158,11,0.55), inset 0 1px 0 rgba(255,255,255,0.18)"
+                          : "inset 0 1px 0 rgba(255,255,255,0.04)",
+                      }}
+                    >
+                      {isToday && (
+                        <motion.span
+                          className="absolute -top-px left-1/2 -translate-x-1/2 w-7 h-1 rounded-full"
+                          style={{
+                            background:
+                              "linear-gradient(90deg, transparent, #fde68a, #f59e0b, #fde68a, transparent)",
+                          }}
+                          animate={{ opacity: [0.5, 1, 0.5] }}
+                          transition={{ duration: 1.6, repeat: Infinity }}
+                        />
+                      )}
+
+                      <span
+                        className={cn(
+                          "text-[8px] font-extrabold uppercase tracking-[0.18em]",
+                          isToday
+                            ? "text-amber-200"
+                            : isClaimed
+                            ? "text-emerald-300/70"
+                            : "text-white/35"
+                        )}
+                      >
+                        D{day.day_number}
+                      </span>
+
+                      <div className="my-1.5 relative grid place-items-center h-7">
+                        {isClaimed && !isToday ? (
+                          <motion.div
+                            initial={{ scale: 0, rotate: -90 }}
+                            animate={{ scale: 1, rotate: 0 }}
+                            className="w-6 h-6 rounded-full grid place-items-center"
+                            style={{
+                              background:
+                                "linear-gradient(180deg, #34d399, #059669)",
+                              boxShadow:
+                                "0 4px 10px rgba(16,185,129,0.45), inset 0 1px 0 rgba(255,255,255,0.4)",
+                            }}
+                          >
+                            <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+                          </motion.div>
+                        ) : isDay7 ? (
+                          <motion.div
+                            animate={{ rotate: [0, -6, 6, 0] }}
+                            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                          >
+                            <Crown
+                              className="w-6 h-6 text-amber-300 drop-shadow-[0_0_10px_rgba(245,158,11,0.8)]"
+                              fill="currentColor"
+                            />
+                          </motion.div>
+                        ) : (
+                          <Diamond3DIcon size={22} />
+                        )}
+                      </div>
+
+                      <span
+                        className={cn(
+                          "text-[10px] font-black tabular-nums tracking-wide",
+                          isToday
+                            ? "text-amber-100"
+                            : isClaimed
+                            ? "text-emerald-200/70"
+                            : "text-white/45"
+                        )}
+                      >
+                        {day.reward_coins}
+                      </span>
+                    </motion.div>
+                  );
+                })}
+              </div>
+
+              {/* ===================== TODAY DETAIL ===================== */}
+              {todayReward && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.65 }}
+                  className="mx-4 mb-4 relative overflow-hidden rounded-2xl"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, rgba(245,158,11,0.14), rgba(168,85,247,0.10) 55%, rgba(6,182,212,0.10))",
+                    border: "1px solid rgba(251,191,36,0.25)",
+                    boxShadow:
+                      "inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 24px -12px rgba(0,0,0,0.6)",
+                  }}
+                >
+                  <motion.div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      background:
+                        "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.07) 50%, transparent 100%)",
+                    }}
+                    animate={{ x: ["-100%", "200%"] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                  />
+
+                  <div className="relative z-10 flex items-center justify-between p-3.5">
+                    <div className="min-w-0">
+                      <p className="text-[9px] font-bold uppercase tracking-[0.24em] text-amber-300/80 mb-1.5">
+                        Today's Reward
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl"
+                          style={{
+                            background:
+                              "linear-gradient(180deg, rgba(251,191,36,0.20), rgba(180,83,9,0.10))",
+                            border: "1px solid rgba(251,191,36,0.30)",
+                            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.12)",
+                          }}
+                        >
+                          <Diamond3DIcon size={20} />
+                          <span className="text-xl font-black text-white tabular-nums">
+                            {todayReward.reward_coins}
+                          </span>
+                        </div>
+                        {todayReward.reward_diamonds > 0 && (
+                          <div
+                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl"
+                            style={{
+                              background:
+                                "linear-gradient(180deg, rgba(6,182,212,0.20), rgba(15,118,110,0.10))",
+                              border: "1px solid rgba(6,182,212,0.30)",
+                              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.10)",
+                            }}
+                          >
+                            <Gem className="w-4 h-4 text-cyan-300" />
+                            <span className="text-lg font-black text-cyan-200 tabular-nums">
+                              +{todayReward.reward_diamonds}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <motion.div
+                      animate={{ y: [0, -4, 0], rotate: [0, 6, -6, 0] }}
+                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                      className="shrink-0"
+                    >
+                      <img
+                        src={treasureChest3D}
+                        alt=""
+                        width={96}
+                        height={96}
+                        loading="lazy"
+                        className="w-12 h-12 object-contain"
                         style={{
-                          top: '20%',
-                          left: '50%',
+                          filter:
+                            "drop-shadow(0 6px 10px rgba(0,0,0,0.55)) drop-shadow(0 0 14px rgba(245,158,11,0.5))",
                         }}
-                        animate={{
-                          x: [0, (i - 2) * 18],
-                          y: [0, -20 - i * 6, -15 - i * 4],
-                          opacity: [0, 1, 0],
-                          scale: [0.3, 0.8, 0.4],
-                        }}
-                        transition={{
-                          duration: 2,
-                          repeat: Infinity,
-                          delay: i * 0.35,
-                          ease: "easeOut",
+                      />
+                    </motion.div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* ===================== CLAIM BUTTON ===================== */}
+              <div className="px-4 pb-6">
+                <motion.div
+                  whileTap={{ scale: 0.97 }}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.85 }}
+                >
+                  <Button
+                    onClick={claimReward}
+                    disabled={claiming}
+                    className="group w-full h-14 text-[15px] font-black tracking-wider rounded-2xl border-0 relative overflow-hidden"
+                    style={{
+                      background:
+                        "linear-gradient(180deg, #fde68a 0%, #f59e0b 38%, #b45309 100%)",
+                      boxShadow:
+                        "0 14px 34px -10px rgba(245,158,11,0.65), inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -2px 0 rgba(120,53,15,0.55)",
+                    }}
+                  >
+                    {/* Top gloss */}
+                    <span className="pointer-events-none absolute inset-x-0 top-0 h-1/2 rounded-t-2xl bg-gradient-to-b from-white/40 to-transparent" />
+                    {/* Shimmer sweep */}
+                    <motion.span
+                      className="pointer-events-none absolute inset-y-0 w-1/3"
+                      style={{
+                        background:
+                          "linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent)",
+                      }}
+                      animate={{ x: ["-120%", "320%"] }}
+                      transition={{ duration: 2.4, repeat: Infinity, ease: "linear", repeatDelay: 0.8 }}
+                    />
+
+                    {claiming ? (
+                      <span className="relative z-10 flex items-center justify-center gap-2 text-amber-950">
+                        <motion.span
+                          className="w-5 h-5 border-2 border-amber-950/30 border-t-amber-950 rounded-full"
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        />
+                        CLAIMING…
+                      </span>
+                    ) : (
+                      <span
+                        className="relative z-10 flex items-center justify-center gap-2 uppercase"
+                        style={{
+                          color: "#3b1e05",
+                          textShadow: "0 1px 0 rgba(255,255,255,0.45)",
                         }}
                       >
-                        <span className="text-[10px]">💎</span>
-                      </motion.div>
-                    ))}
-                  </div>
-
-                  {/* Corner sparkle accents */}
-                  <motion.div
-                    className="absolute top-2 right-2"
-                    animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.2, 0.8] }}
-                    transition={{ duration: 1.5, repeat: Infinity, delay: 0 }}
-                  >
-                    <Sparkles className="w-4 h-4 text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.9)]" />
-                  </motion.div>
-                  <motion.div
-                    className="absolute bottom-3 left-2"
-                    animate={{ opacity: [0.2, 0.9, 0.2], scale: [0.7, 1.1, 0.7] }}
-                    transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-                  >
-                    <Star className="w-3 h-3 text-cyan-300 fill-cyan-300 drop-shadow-[0_0_6px_rgba(6,182,212,0.8)]" />
-                  </motion.div>
-                </div>
-
-                {/* Orbiting sparkle ring */}
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
-                  className="absolute inset-[-8px]"
-                >
-                  <Sparkles className="absolute top-0 left-1/2 -translate-x-1/2 w-3.5 h-3.5 text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.9)]" />
-                  <Star className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3 h-3 text-purple-400 fill-purple-400 drop-shadow-[0_0_6px_rgba(168,85,247,0.8)]" />
+                        <Diamond3DIcon size={22} />
+                        Claim Reward
+                      </span>
+                    )}
+                  </Button>
                 </motion.div>
-                <motion.div
-                  animate={{ rotate: -360 }}
-                  transition={{ duration: 7, repeat: Infinity, ease: "linear" }}
-                  className="absolute inset-[-12px]"
-                >
-                  <Star className="absolute top-1/2 right-0 w-2.5 h-2.5 text-cyan-300 fill-cyan-300 drop-shadow-[0_0_6px_rgba(6,182,212,0.8)]" />
-                </motion.div>
-              </motion.div>
 
-              {/* Title with premium gradient */}
-              <h2 className="text-[28px] font-black tracking-tight leading-tight">
-                <span className="bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-300 bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(251,191,36,0.3)]">
-                  Daily Reward
-                </span>
-              </h2>
-              <div className="flex items-center justify-center gap-3 mt-2">
-                <span className="text-xs font-bold text-purple-300/80 bg-purple-500/10 px-3 py-1 rounded-full border border-purple-500/20">
-                  Day {currentDay}/7
-                </span>
-                <span className="text-xs font-bold text-cyan-300/80 bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/20">
-                  🔥 {streak.current_streak} Streak
-                </span>
+                {streak.current_streak >= 6 && (
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 1.15 }}
+                    className="text-center text-[11px] text-amber-300/75 mt-3 font-semibold tracking-wide"
+                  >
+                    🏆 Complete 7 days for the MEGA bonus
+                  </motion.p>
+                )}
               </div>
-            </div>
-
-            {/* ===== 7-DAY REWARD GRID ===== */}
-            <div className="grid grid-cols-7 gap-1.5 px-4 pb-4">
-              {rewardDays.map((day, i) => {
-                const isToday = day.day_number === currentDay;
-                const isPast = day.day_number < currentDay;
-                const isClaimed = day.is_claimed || isPast;
-                const isDay7 = day.day_number === 7;
-
-                return (
-                  <motion.div
-                    key={day.day_number}
-                    initial={{ opacity: 0, scale: 0.5, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ delay: 0.3 + i * 0.07, type: "spring", damping: 15 }}
-                    className={cn(
-                      "flex flex-col items-center py-2.5 px-0.5 rounded-2xl border relative overflow-hidden transition-all duration-300",
-                      isToday
-                        ? "border-amber-400/60 bg-gradient-to-b from-amber-500/20 via-amber-600/10 to-orange-600/5 scale-[1.05] shadow-[0_0_20px_rgba(245,158,11,0.25)] ring-1 ring-amber-400/30"
-                        : isClaimed
-                        ? "border-emerald-500/20 bg-emerald-500/5"
-                        : "border-white/[0.05] bg-white/[0.02] hover:bg-white/[0.04]"
-                    )}
-                  >
-                    {/* Today indicator dot */}
-                    {isToday && (
-                      <motion.div 
-                        className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-5 h-1 rounded-full bg-gradient-to-r from-amber-400 to-orange-400"
-                        animate={{ opacity: [0.5, 1, 0.5] }}
-                        transition={{ duration: 1.5, repeat: Infinity }}
-                      />
-                    )}
-
-                    {/* Day label */}
-                    <span className={cn(
-                      "text-[8px] font-extrabold uppercase tracking-[0.15em]",
-                      isToday ? "text-amber-300" : isClaimed ? "text-emerald-400/60" : "text-white/30"
-                    )}>
-                      D{day.day_number}
-                    </span>
-
-                    {/* Icon */}
-                    <div className="my-1.5 relative">
-                      {isClaimed && !isToday ? (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-lg shadow-emerald-500/30"
-                        >
-                          <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
-                        </motion.div>
-                      ) : isDay7 ? (
-                        <div className="relative">
-                          <Crown className="w-5 h-5 text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.6)]" fill="currentColor" />
-                        </div>
-                      ) : (
-                        <Diamond3DIcon size={20} />
-                      )}
-                    </div>
-
-                    {/* Reward amount */}
-                    <span className={cn(
-                      "text-[10px] font-black tabular-nums",
-                      isToday ? "text-amber-200" : isClaimed ? "text-emerald-400/60" : "text-white/40"
-                    )}>
-                      {day.reward_coins}
-                    </span>
-                  </motion.div>
-                );
-              })}
-            </div>
-
-            {/* ===== TODAY'S REWARD DETAIL CARD ===== */}
-            {todayReward && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7 }}
-                className="mx-4 mb-4 p-4 rounded-2xl relative overflow-hidden"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(245,158,11,0.12), rgba(168,85,247,0.08), rgba(6,182,212,0.08))',
-                  border: '1px solid rgba(245,158,11,0.15)',
-                }}
-              >
-                {/* Animated shimmer overlay */}
-                <motion.div
-                  className="absolute inset-0"
-                  style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.04) 50%, transparent 100%)' }}
-                  animate={{ x: ['-100%', '200%'] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                />
-                
-                <div className="flex items-center justify-between relative z-10">
-                  <div>
-                    <p className="text-[10px] text-amber-400/70 font-bold uppercase tracking-[0.2em] mb-1">Today's Reward</p>
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1.5 bg-gradient-to-r from-amber-500/15 to-orange-500/10 px-3 py-1.5 rounded-xl border border-amber-500/20">
-                        <Diamond3DIcon size={20} />
-                        <span className="text-xl font-black text-white">{todayReward.reward_coins}</span>
-                      </div>
-                      {todayReward.reward_diamonds > 0 && (
-                        <div className="flex items-center gap-1 bg-cyan-500/10 px-2.5 py-1.5 rounded-xl border border-cyan-500/20">
-                          <Gem className="w-4 h-4 text-cyan-400" />
-                          <span className="text-lg font-black text-cyan-300">+{todayReward.reward_diamonds}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <motion.div
-                    animate={{ rotate: [0, 10, -10, 0], scale: [1, 1.1, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
-                    <Gift className="w-10 h-10 text-amber-400/80 drop-shadow-[0_0_12px_rgba(245,158,11,0.4)]" />
-                  </motion.div>
-                </div>
-              </motion.div>
-            )}
-
-            {/* ===== CLAIM BUTTON ===== */}
-            <div className="px-4 pb-7">
-              <motion.div 
-                whileTap={{ scale: 0.96 }}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.9 }}
-              >
-                <Button
-                  onClick={claimReward}
-                  disabled={claiming}
-                  className="w-full h-14 text-lg font-black rounded-2xl border-0 shadow-[0_8px_32px_rgba(245,158,11,0.35)] transition-all duration-300 relative overflow-hidden group"
-                  style={{
-                    background: 'linear-gradient(135deg, #f59e0b, #f97316, #ef4444, #f59e0b)',
-                    backgroundSize: '200% 200%',
-                  }}
-                >
-                  {/* Shimmer effect on button */}
-                  <motion.div
-                    className="absolute inset-0 opacity-30"
-                    style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)' }}
-                    animate={{ x: ['-100%', '200%'] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "linear", repeatDelay: 1 }}
-                  />
-                  
-                  {claiming ? (
-                    <span className="flex items-center gap-2 relative z-10">
-                      <motion.div 
-                        className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                      />
-                      Claiming...
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-2 relative z-10 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]">
-                      <Diamond3DIcon size={24} />
-                      Claim Reward
-                    </span>
-                  )}
-                </Button>
-              </motion.div>
-
-              {/* Streak bonus hint */}
-              {streak.current_streak >= 6 && (
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 1.2 }}
-                  className="text-center text-[11px] text-amber-400/60 mt-3 font-medium"
-                >
-                  🏆 Complete 7 days for MEGA bonus!
-                </motion.p>
-              )}
             </div>
           </div>
         </motion.div>
