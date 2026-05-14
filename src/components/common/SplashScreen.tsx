@@ -80,10 +80,10 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
             className="relative z-10"
           >
             <div
-              className="w-32 h-32 rounded-[28px] overflow-hidden ring-2 ring-white/15"
+              className="w-32 h-32 rounded-[28px] overflow-hidden ring-2 ring-pink-300/40"
               style={{
                 boxShadow:
-                  '0 20px 60px rgba(236,72,153,0.45), 0 0 0 1px rgba(255,255,255,0.08), inset 0 0 0 1px rgba(255,255,255,0.1)',
+                  '0 20px 60px rgba(236,72,153,0.35), 0 0 0 1px rgba(236,72,153,0.12), inset 0 0 0 1px rgba(255,255,255,0.5)',
               }}
             >
               <img src={appLogo} alt="MeriLive" className="w-full h-full object-cover" />
@@ -101,7 +101,7 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
               className="text-[40px] font-extrabold tracking-tight text-transparent bg-clip-text"
               style={{
                 backgroundImage:
-                  'linear-gradient(110deg, #ffffff 0%, #ffd6f5 25%, #ff7eb6 50%, #ffd6f5 75%, #ffffff 100%)',
+                  'linear-gradient(110deg, #be185d 0%, #ec4899 25%, #a855f7 50%, #ec4899 75%, #be185d 100%)',
                 backgroundSize: '200% auto',
                 animation: 'splash-shimmer 2.4s linear infinite',
                 letterSpacing: '-0.02em',
@@ -114,9 +114,9 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
           {/* Tagline */}
           <motion.p
             initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 0.7, y: 0 }}
+            animate={{ opacity: 0.85, y: 0 }}
             transition={{ delay: 0.75, duration: 0.4 }}
-            className="relative z-10 mt-1 text-[12px] text-white/70 tracking-[0.25em] uppercase"
+            className="relative z-10 mt-1 text-[12px] text-slate-600 tracking-[0.25em] uppercase font-semibold"
           >
             Live · Connect · Earn
           </motion.p>
@@ -132,7 +132,7 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
               <motion.div
                 key={i}
                 className="w-2 h-2 rounded-full"
-                style={{ background: 'hsl(330 90% 65%)' }}
+                style={{ background: '#ec4899' }}
                 animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.2, 0.8] }}
                 transition={{ duration: 1, repeat: Infinity, delay: i * 0.15 }}
               />
@@ -142,9 +142,9 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
           {/* Version */}
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.6 }}
+            animate={{ opacity: 0.7 }}
             transition={{ delay: 1.1, duration: 0.5 }}
-            className="absolute bottom-8 text-[11px] text-white/55 tracking-wider"
+            className="absolute bottom-8 text-[11px] text-slate-500 tracking-wider font-medium"
           >
             Version {APP_VERSION}
           </motion.div>
