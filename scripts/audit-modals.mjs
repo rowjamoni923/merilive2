@@ -100,8 +100,84 @@ for (const [file, list] of sortedFiles) {
   if (list.length > 5) console.log(`  … +${list.length - 5} more`);
 }
 
-// JSON report
-const out = "/tmp/modal-audit.json";
-fs.writeFileSync(out, JSON.stringify({ totalByRule, files: Object.fromEntries(sortedFiles) }, null, 2));
-console.log(`\nJSON report: ${out}`);
-process.exit(findings.length > 0 ? 0 : 0);
+// Reports: JSON + Markdown, both saved to docs/ for review and committed alongside the codebase
+const docsDir = "docs";
+if (!fs.existsSync(docsDir)) fs.mkdirSync(docsDir, { recursive: true });
+
+const jsonOut = path.join(docsDir, "modal-audit.json");
+fs.writeFileSync(
+  jsonOut,
+  JSON.stringify(
+    {
+      generatedAt: new Date().toISOString(),
+      totals: { findings: findings.length, files: sortedFiles.length, byRule: totalByRule },
+      rules: RULES.map(({ id, label }) => ({ id, label })),
+      files: Object.fromEntries(sortedFiles),
+    },
+    null,
+    2,
+  ),
+);
+
+// Markdown report
+const pad = (n) => String(n).padStart(2, "0");
+const d = new Date();
+const stamp = `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} UTC`;
+
+const md = [];
+md.push("# Modal Light-Premium Audit");
+md.push("");
+md.push(`_Generated ${stamp}_`);
+md.push("");
+md.push(`- **Files with findings:** ${sortedFiles.length}`);
+md.push(`- **Total findings:** ${findings.length}`);
+md.push("");
+md.push("## Rules");
+md.push("");
+md.push("| Rule | Description | Count |");
+md.push("|------|-------------|------:|");
+for (const r of RULES) {
+  md.push(`| **${r.id}** | ${r.label} | ${totalByRule[r.id] || 0} |`);
+}
+md.push("");
+md.push("## Top files");
+md.push("");
+md.push("| File | Findings | Breakdown |");
+md.push("|------|---------:|-----------|");
+for (const [file, list] of sortedFiles.slice(0, 30)) {
+  const counts = {};
+  for (const f of list) counts[f.id] = (counts[f.id] || 0) + 1;
+  const tag = Object.entries(counts).map(([k, v]) => `${k}:${v}`).join(" ");
+  md.push(`| \`${file}\` | ${list.length} | ${tag} |`);
+}
+md.push("");
+md.push("## Findings by file");
+md.push("");
+for (const [file, list] of sortedFiles) {
+  md.push(`### \`${file}\` — ${list.length}`);
+  md.push("");
+  md.push("| Line | Rule | Issue | Class snippet |");
+  md.push("|-----:|------|-------|---------------|");
+  for (const f of list) {
+    const safeSnippet = f.snippet.replace(/\|/g, "\\|").replace(/`/g, "\\`");
+    md.push(`| ${f.line} | ${f.id} | ${f.label} | \`${safeSnippet}\` |`);
+  }
+  md.push("");
+}
+md.push("---");
+md.push("");
+md.push("**Fix workflow**");
+md.push("");
+md.push("1. Open the file at the listed line.");
+md.push("2. Replace the dark-theme class with a light-premium token (e.g. `bg-white text-slate-800`, `border-amber-200/60`, `text-emerald-700`).");
+md.push("3. If the case is intentional (e.g. dark surface used by design), append `// dark-ok` on the same line.");
+md.push("4. Re-run `node scripts/audit-modals.mjs` to confirm the count drops.");
+md.push("");
+
+const mdOut = path.join(docsDir, "modal-audit.md");
+fs.writeFileSync(mdOut, md.join("\n"));
+
+console.log(`\nReports written:`);
+console.log(`  JSON:     ${jsonOut}`);
+console.log(`  Markdown: ${mdOut}`);
+process.exit(0);
