@@ -802,7 +802,7 @@ const ProfileDetail = () => {
           </motion.div>
         </AnimatePresence>
         {/* Premium gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-[#f7f8fa]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-black/10 to-[#f7f8fa]" />
         {/* Subtle vignette */}
         <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at center, transparent 50%, rgba(15,23,42,0.22) 100%)' }} />
 
@@ -838,9 +838,9 @@ const ProfileDetail = () => {
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate(-1)}
-            className="w-10 h-10 rounded-full profile-home-icon-button flex items-center justify-center"
+            className="w-10 h-10 rounded-full bg-black/35 backdrop-blur-xl border border-white/10 flex items-center justify-center"
           >
-            <ArrowLeft className="w-5 h-5 text-slate-700" />
+            <ArrowLeft className="w-5 h-5 text-white" />
           </motion.button>
 
           <div className="flex items-center gap-2">
@@ -848,26 +848,26 @@ const ProfileDetail = () => {
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={() => navigate("/edit-profile")}
-                  className="w-10 h-10 rounded-full profile-home-icon-button flex items-center justify-center"
+                  className="w-10 h-10 rounded-full bg-black/35 backdrop-blur-xl border border-white/10 flex items-center justify-center"
               >
-                  <Edit2 className="w-5 h-5 text-slate-700" />
+                  <Edit2 className="w-5 h-5 text-white" />
               </motion.button>
             ) : (
               <>
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setShowReportDialog(true)}
-                    className="w-10 h-10 rounded-full profile-home-icon-button flex items-center justify-center"
+                    className="w-10 h-10 rounded-full bg-black/35 backdrop-blur-xl border border-white/10 flex items-center justify-center"
                 >
-                    <Flag className="w-5 h-5 text-slate-700" />
+                    <Flag className="w-5 h-5 text-white" />
                 </motion.button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <motion.button
                       whileTap={{ scale: 0.95 }}
-                      className="w-10 h-10 rounded-full profile-home-icon-button flex items-center justify-center"
+                      className="w-10 h-10 rounded-full bg-black/35 backdrop-blur-xl border border-white/10 flex items-center justify-center"
                     >
-                      <MoreVertical className="w-5 h-5 text-slate-700" />
+                      <MoreVertical className="w-5 h-5 text-white" />
                     </motion.button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48 bg-[#1a1a2e] border-white/10">
