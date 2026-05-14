@@ -2089,7 +2089,7 @@ const Auth = () => {
              <div className="flex items-center gap-3 mt-1">
                <div className="h-px w-10 bg-gradient-to-r from-transparent via-white/60 to-transparent" />
                <h2 
- className="text-3xl font-bold text-slate-900 uppercase"
+                 className="text-3xl font-bold text-white uppercase" /* dark-ok */
                  style={{ 
                    fontFamily: "'Montserrat', sans-serif",
                    letterSpacing: '0.5em',
@@ -2098,7 +2098,7 @@ const Auth = () => {
                   {branding.logo_text_secondary}
                 </h2>
                <div className="h-px w-10 bg-gradient-to-r from-transparent via-white/60 to-transparent" />
-              </div>
+             </div>
             </>
           )}
         </div>
