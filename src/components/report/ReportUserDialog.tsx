@@ -131,7 +131,7 @@ export const ReportUserDialog = forwardRef<HTMLDivElement, ReportUserDialogProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent ref={ref} className="bg-gradient-to-b from-[#FAF5EA]/98 via-[#FFFBF2]/98 to-[#FFFBF2]/98 backdrop-blur-3xl border border-amber-200/60 text-white max-w-[360px] rounded-2xl p-0 overflow-hidden shadow-2xl shadow-purple-900/40 [&>button]:hidden">
+      <DialogContent ref={ref} className="bg-gradient-to-b from-[#FAF5EA]/98 via-[#FFFBF2]/98 to-[#FFFBF2]/98 backdrop-blur-3xl border border-amber-200/60 text-slate-800 max-w-[360px] rounded-2xl p-0 overflow-hidden shadow-2xl shadow-purple-900/20 [&>button]:hidden">
         
         {/* Decorative top glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-[2px] bg-gradient-to-r from-transparent via-red-500/60 to-transparent" />
