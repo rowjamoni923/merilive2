@@ -791,7 +791,7 @@ const Leaderboard = () => {
           className="max-h-[85vh] border-0 bg-white"
         >
           <DrawerHeader className="pb-3 border-b border-slate-200 bg-white">
-            <DrawerTitle className="text-slate-900 text-center text-base font-bold">
+            <DrawerTitle className="text-center text-base font-bold" style={{ color: '#0f172a' }}>
               {activeCategory === "host_earning" ? "Host Earning · Rules & Rewards" 
                 : activeCategory === "game_ranking" ? "Game Ranking · Rules & Rewards"
                 : activeCategory === "top_gifter" ? "Top Gifter · Rules & Rewards"
@@ -800,7 +800,7 @@ const Leaderboard = () => {
           </DrawerHeader>
           <div
             className="p-4 space-y-3 overflow-y-auto bg-white"
-            style={{ paddingBottom: isMobile ? `${safeAreaInsets.bottom + 16}px` : undefined }}
+            style={{ paddingBottom: isMobile ? `${safeAreaInsets.bottom + 16}px` : undefined, color: '#0f172a' }}
           >
             {/* Category info card */}
             <div className="rounded-2xl bg-white border-2 border-slate-200 shadow-sm overflow-hidden">
@@ -816,13 +816,13 @@ const Leaderboard = () => {
                   }}
                 />
                 <div className="p-4 flex-1">
-                  <h3 className="font-bold text-slate-900 mb-1.5 flex items-center gap-2 text-[15px]">
-                    {activeCategory === "host_earning" ? <><Sparkles className="w-4 h-4 text-pink-500" /> Host Earning</>
-                      : activeCategory === "game_ranking" ? <><Gamepad2 className="w-4 h-4 text-purple-500" /> Game Ranking</>
-                      : activeCategory === "top_gifter" ? <><Gift className="w-4 h-4 text-emerald-500" /> Top Gifter</>
-                      : <><Swords className="w-4 h-4 text-red-500" /> PK Competition</>}
+                  <h3 className="font-bold mb-1.5 flex items-center gap-2 text-[15px]" style={{ color: '#0f172a' }}>
+                    {activeCategory === "host_earning" ? <><Sparkles className="w-4 h-4" style={{ color: '#ec4899' }} /> Host Earning</>
+                      : activeCategory === "game_ranking" ? <><Gamepad2 className="w-4 h-4" style={{ color: '#a855f7' }} /> Game Ranking</>
+                      : activeCategory === "top_gifter" ? <><Gift className="w-4 h-4" style={{ color: '#10b981' }} /> Top Gifter</>
+                      : <><Swords className="w-4 h-4" style={{ color: '#ef4444' }} /> PK Competition</>}
                   </h3>
-                  <p className="text-slate-700 text-[12.5px] leading-relaxed">
+                  <p className="text-[12.5px] leading-relaxed" style={{ color: '#334155' }}>
                     {activeCategory === "host_earning" ? "Rankings based on Gift + Call earnings. Top 50 receive rewards."
                       : activeCategory === "game_ranking" ? "Rankings based on game wins & earnings. Top 50 receive rewards."
                       : activeCategory === "top_gifter" ? "Rankings based on total gifts sent (diamonds spent). Top 50 receive bonus rewards!"
@@ -835,9 +835,9 @@ const Leaderboard = () => {
             {/* Rewards card */}
             {activeRewardTiers.length > 0 && (
               <div className="rounded-2xl bg-white border-2 border-amber-200 shadow-sm overflow-hidden">
-                <div className="flex items-center gap-2 px-4 py-3 border-b-2 border-amber-200 bg-gradient-to-r from-amber-50 to-amber-100/60">
-                  <Gift className="w-4 h-4 text-amber-700" />
-                  <span className="text-slate-900 font-bold text-[13px]">
+                <div className="flex items-center gap-2 px-4 py-3 border-b-2 border-amber-200" style={{ background: 'linear-gradient(to right, #fffbeb, #fef3c7)' }}>
+                  <Gift className="w-4 h-4" style={{ color: '#b45309' }} />
+                  <span className="font-bold text-[13px]" style={{ color: '#0f172a' }}>
                     {activeCategory === "pk_competition" ? "Competition" : getPeriodLabel()} Rewards
                   </span>
                 </div>
@@ -845,8 +845,9 @@ const Leaderboard = () => {
                   {activeRewardTiers.map((tier, i) => (
                     <div key={i} className="flex items-center justify-between px-4 py-3 bg-white">
                       <span
-                        className="inline-flex items-center justify-center min-w-[52px] px-2.5 py-1 rounded-lg text-white font-bold text-[12px] shadow-sm"
+                        className="inline-flex items-center justify-center min-w-[52px] px-2.5 py-1 rounded-lg font-bold text-[12px] shadow-sm"
                         style={{
+                          color: '#ffffff',
                           background: i === 0 ? 'linear-gradient(135deg,#f59e0b,#d97706)'
                             : i === 1 ? 'linear-gradient(135deg,#94a3b8,#64748b)'
                             : i === 2 ? 'linear-gradient(135deg,#b45309,#92400e)'
@@ -855,7 +856,7 @@ const Leaderboard = () => {
                       >
                         #{tier.rank_from}{tier.rank_to !== tier.rank_from ? `-${tier.rank_to}` : ''}
                       </span>
-                      <span className="text-slate-900 text-[13px] font-bold text-right">
+                      <span className="text-[13px] font-bold text-right" style={{ color: '#0f172a' }}>
                         {getRewardLabel(tier)}
                       </span>
                     </div>
