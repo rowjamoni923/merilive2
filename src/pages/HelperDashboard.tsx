@@ -1038,15 +1038,17 @@ const HelperDashboard = () => {
 
   return (
     <div
-      className="fixed inset-0 flex flex-col"
+      className="fixed inset-0 overflow-y-auto overscroll-contain"
       style={{
         background:
           "radial-gradient(120% 80% at 50% 0%, #FFFBF2 0%, #FAF5EA 45%, #F5EFDF 100%)",
+        WebkitOverflowScrolling: 'touch',
+        paddingBottom: 'var(--content-bottom-padding)',
       }}
     >
       {/* ============ LUXURIOUS HEADER ============ */}
       <div
-        className="relative flex-shrink-0 px-4 pt-4 pb-5 safe-area-top overflow-hidden"
+        className="relative px-4 pt-4 pb-5 safe-area-top overflow-hidden"
         style={{
           background:
             "linear-gradient(180deg, #FFFEF8 0%, #FFFBEC 60%, #FFF5D6 100%)",
@@ -1370,14 +1372,6 @@ const HelperDashboard = () => {
         )}
       </div>
 
-      {/* Scrollable Content */}
-      <div 
-        className="flex-1 overflow-y-auto overscroll-contain"
-        style={{ 
-          WebkitOverflowScrolling: 'touch',
-          paddingBottom: 'var(--content-bottom-padding)'
-        }}
-      >
       {/* Main Content */}
       <div className="px-4 mt-4 space-y-4">
       {/* Payroll Helper Guide Card */}
@@ -2644,7 +2638,6 @@ const HelperDashboard = () => {
           </div>
         </DialogContent>
       </Dialog>
-      </div>
     </div>
   );
 };
