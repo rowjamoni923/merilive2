@@ -1770,7 +1770,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           {/* Verified Badge - Premium - Bottom Right Position */}
           {(profile?.is_verified || isFaceVerified) && (
             <div className="absolute -bottom-1 -right-1 z-40">
-              <div className="w-7 h-7 rounded-full bg-gradient-to-r from-blue-400 to-cyan-400 border-2 border-[#1a0a2e] flex items-center justify-center shadow-lg shadow-cyan-500/40">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-r from-blue-400 to-cyan-400 border-2 border-white flex items-center justify-center shadow-lg shadow-cyan-500/40">
                 <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
@@ -2170,7 +2170,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
       {/* Transfer to User/Agency Modal */}
       <Dialog open={showTransferModal} onOpenChange={setShowTransferModal}>
-        <DialogContent className="bg-gradient-to-b from-slate-900 to-slate-800 border-slate-700 max-w-md mx-4 rounded-3xl">
+        <DialogContent className="bg-gradient-to-b from-white to-amber-50 border-amber-200 max-w-md mx-4 rounded-3xl">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center justify-center gap-2 text-lg">
               <Send className="w-5 h-5 text-emerald-400" />
@@ -2433,7 +2433,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
                 {/* Agency Found */}
                 {searchedAgency && (
-                  <div className="bg-white/60 rounded-2xl p-4 border border-purple-500/30 space-y-4">
+                  <div className="bg-white/60 rounded-2xl p-4 border border-amber-300/60 space-y-4">
                     <div className="flex items-center gap-3">
                       <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
                         <Building2 className="w-7 h-7 text-white" />
@@ -2484,7 +2484,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
               <TabsContent value="self" className="mt-4 space-y-4">
                 {/* Self Recharge - Trader Wallet to My Diamond Balance */}
-                <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-2xl p-4 border border-amber-500/30 space-y-4">
+                <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-2xl p-4 border border-amber-300/60 space-y-4">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
                       <Gem className="w-6 h-6 text-white" />
@@ -2495,14 +2495,14 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     </div>
                   </div>
 
-                  <div className="bg-white/60 rounded-xl p-3 border border-slate-700 space-y-2">
+                  <div className="bg-white/60 rounded-xl p-3 border border-amber-200 space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="text-white/85 text-sm">Recharge Source Balance</span>
                       <span className="text-emerald-400 font-bold text-lg">
                         {selfRechargeSourceBalance.toLocaleString()} 💎
                       </span>
                     </div>
-                    <div className="flex justify-between items-center pt-2 border-t border-slate-700">
+                    <div className="flex justify-between items-center pt-2 border-t border-amber-200">
                       <span className="text-white/85 text-sm">Agency Balance</span>
                       <span className="text-purple-600 font-semibold">
                         {(agencyData?.diamond_balance || 0).toLocaleString()} 💎
@@ -2514,7 +2514,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                         {(traderWallet || 0).toLocaleString()} 💎
                       </span>
                     </div>
-                    <div className="flex justify-between items-center pt-2 border-t border-slate-700">
+                    <div className="flex justify-between items-center pt-2 border-t border-amber-200">
                       <span className="text-white/85 text-sm">My Diamond Balance</span>
                       <span className="text-cyan-400 font-bold text-lg">
                         {(profile?.coins || 0).toLocaleString()} 💎
@@ -2584,7 +2584,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                       tx.status === 'failed' || tx.status === 'cancelled' ? 'text-rose-400' :
                       'text-slate-200';
                     return (
-                      <div key={tx.id} className="bg-white/60 rounded-2xl p-3 border border-slate-700">
+                      <div key={tx.id} className="bg-white/60 rounded-2xl p-3 border border-amber-200">
                         <div className="flex items-center justify-between gap-3">
                           <div className="flex items-center gap-3 min-w-0 flex-1">
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
@@ -2637,7 +2637,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
       {/* Transfer Confirmation Dialog */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-purple-500/30 max-w-sm rounded-3xl">
+        <AlertDialogContent className="bg-gradient-to-br from-white via-amber-50 to-white border border-amber-300/60 max-w-sm rounded-3xl">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white text-xl font-bold text-center flex flex-col items-center gap-3">
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
@@ -2646,7 +2646,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               Confirm Transfer
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center space-y-3 pt-4">
-              <div className="bg-white/60 rounded-xl p-4 border border-slate-700">
+              <div className="bg-white/60 rounded-xl p-4 border border-amber-200">
                 <p className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">
                   {transferAmount ? parseInt(transferAmount).toLocaleString() : 0} 💎
                 </p>
@@ -2693,7 +2693,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
       {/* Call Price Update Modal */}
       <Dialog open={showCallPriceModal} onOpenChange={setShowCallPriceModal}>
-        <DialogContent className="bg-gradient-to-b from-slate-900 to-slate-800 border-slate-700 max-w-md mx-4 rounded-3xl">
+        <DialogContent className="bg-gradient-to-b from-white to-amber-50 border-amber-200 max-w-md mx-4 rounded-3xl">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center justify-center gap-2 text-lg">
               <PhoneCall className="w-5 h-5 text-emerald-400" />
@@ -2714,7 +2714,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             return (
               <div className="space-y-5 py-4">
                 {/* Current Level Info */}
-                <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl p-4 border border-purple-500/30">
+                <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl p-4 border border-amber-300/60">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-white/70 text-xs mb-1">Your Level</p>
@@ -2730,7 +2730,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                 </div>
 
                 {!canCustomize && (
-                  <div className="bg-white/50 rounded-xl p-3 border border-slate-700">
+                  <div className="bg-white/50 rounded-xl p-3 border border-amber-200">
                     <p className="text-slate-200 text-xs text-center">🔒 Reach Level {minCustomLevel} or higher to customize your rate</p>
                   </div>
                 )}
@@ -2867,7 +2867,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
       {/* Agency Beans Exchange Modal */}
       <Dialog open={showAgencyExchangeModal} onOpenChange={setShowAgencyExchangeModal}>
-        <DialogContent className="max-w-md bg-gradient-to-b from-slate-900 to-slate-950 border-amber-500/30 text-white p-0 max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md bg-gradient-to-b from-white to-amber-50 border-amber-300/60 text-white p-0 max-h-[90vh] overflow-y-auto">
           <div className="bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-yellow-500/20 p-6 border-b border-amber-500/20">
             <DialogHeader>
               <DialogTitle className="text-xl font-bold text-amber-400 flex items-center gap-2">
@@ -2895,7 +2895,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
           <div className="p-6 space-y-4">
             {/* Exchange Rate Info */}
-            <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl p-4 border border-purple-500/30">
+            <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl p-4 border border-amber-300/60">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-purple-200/95 font-medium">Exchange Rate</span>
                 <span className="text-white font-semibold">{agencyExchangeSettings.beans_to_diamonds_rate} Beans = 1 💎</span>
@@ -2926,7 +2926,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   setExchangeDiamondsToGet(diamonds);
                   setExchangeFeeAmount(fee);
                 }}
-                className="bg-white border-amber-500/30 text-white placeholder:text-slate-300 text-lg h-12"
+                className="bg-white border-amber-300/60 text-white placeholder:text-slate-300 text-lg h-12"
               />
               
               {/* Quick Amount Buttons */}
@@ -2946,7 +2946,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                       setExchangeDiamondsToGet(diamonds);
                       setExchangeFeeAmount(fee);
                     }}
-                    className="bg-slate-700/50 border-amber-500/30 text-amber-300 hover:bg-amber-500/20 text-xs"
+                    className="bg-slate-700/50 border-amber-300/60 text-amber-300 hover:bg-amber-500/20 text-xs"
                   >
                     {idx === 3 ? 'All' : amount.toLocaleString()}
                   </Button>

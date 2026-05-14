@@ -439,7 +439,7 @@ const EditProfile = () => {
               </button>
             </div>
             {profile?.is_host && (
-              <div className="mt-3 flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-amber-600/20 to-orange-600/20 border border-amber-500/30 rounded-full">
+              <div className="mt-3 flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-amber-600/20 to-orange-600/20 border border-amber-300/60 rounded-full">
                 <Crown className="w-3.5 h-3.5 text-amber-400" />
                 <span className="text-xs font-semibold text-amber-400">Host Account</span>
               </div>

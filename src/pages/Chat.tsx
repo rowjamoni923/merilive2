@@ -2681,8 +2681,8 @@ const Chat = () => {
                     onChange={(e) => handleMessageChange(e.target.value)}
                     placeholder="Type something..."
                     className={cn(
-                      "rounded-full bg-white/[0.06] border border-amber-200/60 pr-20 text-white placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-purple-500/40 focus-visible:border-purple-500/30 backdrop-blur-xl",
-                      inlineTranslateEnabled && "ring-1 ring-purple-500/40 border-purple-500/30"
+                      "rounded-full bg-white/[0.06] border border-amber-200/60 pr-20 text-white placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-purple-500/40 focus-visible:border-amber-300/60 backdrop-blur-xl",
+                      inlineTranslateEnabled && "ring-1 ring-purple-500/40 border-amber-300/60"
                     )}
                     onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
                     disabled={sending}
@@ -2865,7 +2865,7 @@ const Chat = () => {
                 {/* Translation Result - Shows below input */}
                 <div className={`rounded-xl border-2 border-dashed transition-all ${
                   translatedResult 
-                    ? 'border-purple-500/30 bg-purple-500/10' 
+                    ? 'border-amber-300/60 bg-purple-500/10' 
                     : 'border-white/[0.08] bg-white/[0.04]'
                 }`}>
                   <div className="p-3">
@@ -3221,7 +3221,7 @@ const Chat = () => {
 
             <div className="flex justify-center">
               <button 
-                className="w-20 h-20 rounded-full border-2 border-dashed border-purple-500/30 flex items-center justify-center hover:bg-white/[0.06] transition-colors overflow-hidden"
+                className="w-20 h-20 rounded-full border-2 border-dashed border-amber-300/60 flex items-center justify-center hover:bg-white/[0.06] transition-colors overflow-hidden"
                 onClick={() => groupPhotoInputRef.current?.click()}
               >
                 {newGroupPhotoPreview ? (

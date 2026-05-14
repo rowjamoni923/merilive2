@@ -951,7 +951,7 @@ const Settings = () => {
               </button>
             )}
             {isInIframe && (
-              <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
+              <div className="rounded-2xl border border-amber-300/60 bg-amber-500/10 p-3 text-xs text-amber-200">
                 <p className="font-semibold mb-1">⚠️ Preview Mode Limitation</p>
                 <p className="text-amber-200/80 mb-2">
                   Camera, Microphone & Location can't be granted inside this preview frame. Open the app in a full browser tab or in the installed Android app to enable them.
