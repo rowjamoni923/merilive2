@@ -126,6 +126,9 @@ function scanFile(file) {
     if (SATURATED_GRADIENT.test(cls) && FAINT_TEXT_ON_DARK.test(cls)) {
       findings.push({ file, line: lineNo, rule: 'C3', detail: 'faint text on saturated gradient', cls });
     }
+    if (MIXED_DARK_VIA.test(cls)) {
+      findings.push({ file, line: lineNo, rule: 'C4', detail: 'dark gradient stop between light stops (text disappears in middle)', cls });
+    }
   }
   return findings;
 }
