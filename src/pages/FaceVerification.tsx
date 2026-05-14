@@ -328,6 +328,63 @@ const FaceVerification = () => {
     log.push({ t, ...entry } as DebugEntry);
     if (log.length > 800) log.splice(0, log.length - 800);
   }, []);
+  // Build a self-contained JSON report (calibration + every poll tick + counters)
+  // and stash it in state so the failure overlay can offer a Download button.
+  const buildAndStoreDebugReport = useCallback((reason: 'failed' | 'antispoof') => {
+    const entries = debugLogRef.current;
+    const ticks = entries.filter(e => e.kind === 'tick');
+    const noFace = entries.filter(e => e.kind === 'no_face');
+    const stepPasses = entries.filter(e => e.kind === 'step_pass');
+    const timeout = entries.find(e => e.kind === 'timeout');
+    const yawVals = ticks.map(e => e.yaw as number).filter(n => typeof n === 'number');
+    const pitchVals = ticks.map(e => e.pitch as number).filter(n => typeof n === 'number');
+    const stat = (arr: number[]) => arr.length ? {
+      min: +Math.min(...arr).toFixed(2),
+      max: +Math.max(...arr).toFixed(2),
+      avg: +(arr.reduce((s, v) => s + v, 0) / arr.length).toFixed(2),
+    } : null;
+    const report = {
+      schema: 'face-verify-debug/v1',
+      generatedAt: new Date().toISOString(),
+      durationMs: sessionStartRef.current ? Date.now() - sessionStartRef.current : 0,
+      reason,
+      summary: {
+        totalPolls: ticks.length,
+        noFacePolls: noFace.length,
+        stepsPassed: stepPasses.length,
+        stepsTotal: faceInstructions.length,
+        stuckOnStep: currentInstructionRef.current,
+        stuckOnInstruction: faceInstructions[currentInstructionRef.current]?.id,
+        timedOut: !!timeout,
+        yawStats: stat(yawVals),
+        pitchStats: stat(pitchVals),
+        lastConsecutiveNoFace: consecutiveFailsRef.current,
+      },
+      calibration: { ...calibrationRef.current },
+      env: {
+        ua: typeof navigator !== 'undefined' ? navigator.userAgent : 'n/a',
+        platform: typeof navigator !== 'undefined' ? (navigator as any).platform : 'n/a',
+        viewport: typeof window !== 'undefined' ? { w: window.innerWidth, h: window.innerHeight, dpr: window.devicePixelRatio } : null,
+      },
+      events: entries,
+    };
+    const json = JSON.stringify(report, null, 2);
+    setLastDebugReport(json);
+    try { localStorage.setItem('face_verify_last_debug_v1', json); } catch {}
+    return json;
+  }, []);
+  const downloadDebugReport = useCallback(() => {
+    const json = lastDebugReport ?? buildAndStoreDebugReport('failed');
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `face-verify-debug-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }, [lastDebugReport, buildAndStoreDebugReport]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const instructionTimerRef = useRef<NodeJS.Timeout | null>(null);
   const poseCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
