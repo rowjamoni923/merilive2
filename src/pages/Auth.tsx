@@ -2415,7 +2415,7 @@ const Auth = () => {
                 }
               }}
               disabled={loading || !displayName.trim() || !selectedGender}
-              className="w-full h-12 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold text-base disabled:opacity-50"
+              className="w-full h-12 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-bold text-base disabled:opacity-50 shadow-lg shadow-pink-500/30"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
