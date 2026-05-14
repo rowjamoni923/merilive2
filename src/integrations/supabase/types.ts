@@ -1567,6 +1567,7 @@ export type Database = {
           processed_by: string | null
           requested_at: string
           status: string
+          updated_at: string
           usd_amount: number | null
         }
         Insert: {
@@ -1593,6 +1594,7 @@ export type Database = {
           processed_by?: string | null
           requested_at?: string
           status?: string
+          updated_at?: string
           usd_amount?: number | null
         }
         Update: {
@@ -1619,6 +1621,7 @@ export type Database = {
           processed_by?: string | null
           requested_at?: string
           status?: string
+          updated_at?: string
           usd_amount?: number | null
         }
         Relationships: [
