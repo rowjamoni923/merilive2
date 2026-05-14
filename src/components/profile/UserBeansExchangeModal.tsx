@@ -30,11 +30,12 @@ interface CoinExchangeSettings {
   min_exchange_amount: number;
 }
 
-const normalizeCoinExchangeSettings = (value: any): CoinExchangeSettings | null => {
+const normalizeCoinExchangeSettings = (value: unknown): CoinExchangeSettings | null => {
   if (!value || typeof value !== "object") return null;
-  const rate = Number(value.beans_to_diamonds_rate ?? 0);
-  const fee = Number(value.exchange_fee_percent ?? 0);
-  const min = Number(value.min_exchange_amount ?? 0);
+  const raw = value as Partial<Record<keyof CoinExchangeSettings, unknown>>;
+  const rate = Number(raw.beans_to_diamonds_rate ?? 0);
+  const fee = Number(raw.exchange_fee_percent ?? 0);
+  const min = Number(raw.min_exchange_amount ?? 0);
   if (!Number.isFinite(rate) || rate <= 0 || !Number.isFinite(min) || min <= 0) return null;
 
   return {
@@ -215,8 +216,8 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
       setSelectedTier(null);
       setCustomBeans("");
       setUseCustom(false);
-    } catch (error: any) {
-      toast({ title: "Exchange Failed", description: error.message || "Failed to exchange beans", variant: "destructive" });
+    } catch (error: unknown) {
+      toast({ title: "Exchange Failed", description: error instanceof Error ? error.message : "Failed to exchange beans", variant: "destructive" });
     } finally {
       setProcessing(false);
     }
