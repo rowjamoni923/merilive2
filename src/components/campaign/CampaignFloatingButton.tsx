@@ -331,9 +331,16 @@ function CampaignFloatingButton() {
   };
 
   const handleBuyNow = async () => {
-    setSelectedPaymentTab('google');
+    // On web, Google Play is not available — start the user on the Recommend
+    // (Local Pay) tab so helper numbers (bKash/Nagad/etc.) are shown immediately.
+    const initialTab: PaymentTab = isPlayStoreNative ? 'google' : 'recommend';
+    setSelectedPaymentTab(initialTab);
     setPopupView('payment_select');
-    await fetchMatchedPackage(campaign);
+    await Promise.all([
+      fetchMatchedPackage(campaign),
+      // Eagerly prefetch local methods so the Recommend tab never appears empty.
+      fetchHelperPaymentMethods(),
+    ]);
   };
 
   const resetHelperForm = () => {
