@@ -90,6 +90,14 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
     }
   }, [open]);
 
+  const getDiamondsForTier = (tier: ExchangeTier | null, beans: number) => {
+    if (!tier) return 0;
+    if (tier.id.startsWith('settings-') && coinExchangeSettings) {
+      return diamondsForSettings(coinExchangeSettings, beans);
+    }
+    return diamondsFor(tier, beans);
+  };
+
   const fetchTiers = async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -135,7 +143,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
       tiers.find(t => customBeansNum >= t.min_beans && (t.max_beans == null || customBeansNum <= t.max_beans)) || null
     );
   }, [customBeansNum, tiers]);
-  const customDiamonds = customTier ? diamondsFor(customTier, customBeansNum) : 0;
+  const customDiamonds = customTier ? getDiamondsForTier(customTier, customBeansNum) : 0;
   const canAffordCustom = customBeansNum > 0 && currentBeans >= customBeansNum && !!customTier;
 
   const handleExchange = async () => {
@@ -150,15 +158,15 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
       }
       beansToExchange = customBeansNum;
       diamondsToReceive = customDiamonds;
-      tierId = customTier.id;
+      tierId = customTier.id.startsWith('settings-') ? undefined : customTier.id;
     } else if (selectedTier) {
       // Quick-select uses tier's min_beans as the exchange amount.
       beansToExchange = selectedTier.min_beans;
-      diamondsToReceive = diamondsFor(selectedTier, selectedTier.min_beans);
-      tierId = selectedTier.id;
+      diamondsToReceive = getDiamondsForTier(selectedTier, selectedTier.min_beans);
+      tierId = selectedTier.id.startsWith('settings-') ? undefined : selectedTier.id;
     }
 
-    if (!beansToExchange || !diamondsToReceive || !tierId || !userId) return;
+    if (!beansToExchange || !diamondsToReceive || !userId) return;
 
     if (currentBeans < beansToExchange) {
       toast({ title: "Insufficient Beans", description: `You need ${beansToExchange.toLocaleString()} beans`, variant: "destructive" });
@@ -171,7 +179,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
         _user_id: userId,
         _beans_amount: beansToExchange,
         _diamonds_reward: diamondsToReceive,
-        _tier_id: tierId,
+        _tier_id: tierId ?? null,
       });
       if (error) throw error;
       const result = data as { success?: boolean; error?: string } | null;
@@ -198,7 +206,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
     }
   };
 
-  const selectedDiamonds = selectedTier ? diamondsFor(selectedTier, selectedTier.min_beans) : 0;
+  const selectedDiamonds = selectedTier ? getDiamondsForTier(selectedTier, selectedTier.min_beans) : 0;
   const isReady = useCustom ? canAffordCustom : !!selectedTier;
   const exchangeLabel = useCustom
     ? `Exchange ${customBeansNum.toLocaleString()} Beans`
