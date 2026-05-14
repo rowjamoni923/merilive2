@@ -889,6 +889,18 @@ const FaceVerification = () => {
     setLiveDiag(null); setCalibrating(false);
     faceChunksRef.current = [];
     capturedAnglesRef.current = {};
+    // Reset debug log for this attempt
+    debugLogRef.current = [];
+    sessionStartRef.current = Date.now();
+    consecutiveFailsRef.current = 0;
+    setLastDebugReport(null);
+    pushDebug({
+      kind: 'start',
+      attempt: failedAttempts + 1,
+      calibration: { ...calibrationRef.current },
+      ua: typeof navigator !== 'undefined' ? navigator.userAgent : 'n/a',
+      viewport: typeof window !== 'undefined' ? { w: window.innerWidth, h: window.innerHeight, dpr: window.devicePixelRatio } : null,
+    });
 
     try {
       const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') 
