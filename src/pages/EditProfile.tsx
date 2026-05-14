@@ -372,7 +372,7 @@ const EditProfile = () => {
         <div className="relative flex items-center justify-between px-4 h-14">
           <button
             onClick={() => navigate(-1)}
-            className="w-10 h-10 rounded-xl bg-white/5 border border-amber-200/40 flex items-center justify-center active:scale-95 transition-transform"
+            className="w-10 h-10 rounded-xl bg-white/80 border border-amber-200/60 flex items-center justify-center active:scale-95 transition-transform shadow-sm"
           >
             <ArrowLeft className="w-5 h-5 text-slate-800" />
           </button>
