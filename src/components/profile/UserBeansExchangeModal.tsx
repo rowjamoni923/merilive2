@@ -324,7 +324,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
             <div className="grid grid-cols-2 gap-2.5">
               {tiers.map((tier) => {
                 const tierBeans = tier.min_beans;
-                const tierDiamonds = diamondsFor(tier, tierBeans);
+                const tierDiamonds = getDiamondsForTier(tier, tierBeans);
                 const canAfford = currentBeans >= tierBeans;
                 const isSelected = selectedTier?.id === tier.id;
 
@@ -335,28 +335,28 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
                     disabled={!canAfford}
                     className={`relative p-3.5 rounded-2xl border transition-all duration-300 group ${
                       isSelected
-                        ? 'border-info-400/60 bg-gradient-to-br from-info-500/15 to-info-600/10 shadow-[0_0_30px_-8px_rgba(6,182,212,0.4)] scale-[1.02]'
+                        ? 'border-info-300 bg-info-50 shadow-md shadow-info-900/10 scale-[1.02]'
                         : canAfford
-                          ? 'border-warning-200/60 bg-white hover:border-warning-500/30 hover:bg-warning-500/5'
-                          : 'border-warning-200/60 bg-white opacity-35 cursor-not-allowed'
+                          ? 'border-warning-200 bg-card hover:border-warning-300 hover:bg-warning-50'
+                          : 'border-border bg-muted opacity-50 cursor-not-allowed'
                     }`}
                   >
                     {isSelected && (
                       <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-info-500 flex items-center justify-center shadow-lg shadow-info-500/50">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-slate-800" />
+                        <CheckCircle2 className="w-3.5 h-3.5 text-primary-foreground" />
                       </div>
                     )}
 
                     <div className="text-center space-y-1.5">
                       {tier.tier_name && (
-                        <p className="text-[10px] uppercase tracking-wide text-slate-600">{tier.tier_name}</p>
+                        <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{tier.tier_name}</p>
                       )}
                       <div className="flex items-center justify-center gap-1.5">
                         <Beans3DIcon size={18} />
                         <span className="text-warning-700 font-bold text-base">{tierBeans.toLocaleString()}</span>
                       </div>
 
-                      <div className="text-slate-600 text-[10px]">→</div>
+                      <div className="text-muted-foreground text-[10px]">→</div>
 
                       <div className="flex items-center justify-center gap-1.5">
                         <Diamond3DIcon size={18} />
