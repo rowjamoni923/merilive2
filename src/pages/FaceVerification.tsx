@@ -1107,6 +1107,19 @@ const FaceVerification = () => {
           hint: passed ? 'Perfect — locking in…' : diag.hint,
           severity: passed ? 'ok' : diag.severity,
         });
+        pushDebug({
+          kind: 'tick',
+          step: instrIdx,
+          instruction: instruction.id,
+          yaw: +pose.yaw.toFixed(2),
+          pitch: +pose.pitch.toFixed(2),
+          eyesOpen: result.eyesOpen,
+          passed,
+          progress: +(passed ? 1 : diag.progress).toFixed(2),
+          hint: diag.hint,
+          baselineYaw: +calib.baselineYaw.toFixed(2),
+          baselinePitch: +calib.baselinePitch.toFixed(2),
+        });
         
         if (passed) {
           setScanningStatus('pass');
@@ -1121,6 +1134,7 @@ const FaceVerification = () => {
           newCompleted[instrIdx] = true;
           instructionsCompletedRef.current = newCompleted;
           setInstructionsCompleted([...newCompleted]);
+          pushDebug({ kind: 'step_pass', step: instrIdx, instruction: instruction.id });
           
           const nextIdx = instrIdx + 1;
           if (nextIdx < faceInstructions.length) {
