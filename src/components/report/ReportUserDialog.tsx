@@ -186,13 +186,13 @@ export const ReportUserDialog = forwardRef<HTMLDivElement, ReportUserDialogProps
                   
                   <div className={cn(
                     "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all",
-                    isSelected ? "bg-white/[0.12]" : "bg-white/70"
+                    isSelected ? "bg-white/90 shadow-sm" : "bg-white/70 border border-amber-100"
                   )}>
                     <Icon className={cn("w-4 h-4", cat.iconColor)} />
                   </div>
                   <span className={cn(
                     "font-medium text-xs leading-tight transition-colors",
-                    isSelected ? "text-slate-800" : "text-slate-600"
+                    isSelected ? "text-slate-900" : "text-slate-600"
                   )}>
                     {cat.label}
                   </span>
