@@ -1255,17 +1255,17 @@ const AgencyDashboard = () => {
       <div className="mx-4 mt-3">
         <div 
           onClick={() => navigate('/payroll-helper-guide')}
-          className="bg-gradient-to-r from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 rounded-xl p-3 cursor-pointer hover:from-indigo-500/30 hover:to-purple-500/30 transition-all active:scale-[0.98]"
+          className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100 rounded-2xl p-3 cursor-pointer hover:shadow-lg transition-all active:scale-[0.98]"
         >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
               <FileText className="w-5 h-5 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-white font-semibold text-sm">📖 Payroll Helper Guide</p>
-              <p className="text-white/85 text-[11px]">Learn roles, benefits & diamond trading</p>
+              <p className="text-foreground font-semibold text-sm">📖 Payroll Helper Guide</p>
+              <p className="text-muted-foreground text-[11px]">Learn roles, benefits & diamond trading</p>
             </div>
-            <ArrowRight className="w-4 h-4 text-white/75" />
+            <ArrowRight className="w-4 h-4 text-indigo-500" />
           </div>
         </div>
       </div>
@@ -1276,21 +1276,21 @@ const AgencyDashboard = () => {
         <div className="grid grid-cols-4 gap-3">
           <button
             onClick={() => navigate("/agency-host-management")}
-            className="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+            className={`${premiumActionClass} bg-gradient-to-br from-blue-500 to-cyan-500`}
           >
             <HostsIcon3D />
             <span className="text-xs font-medium mt-1">Hosts</span>
           </button>
           <button
             onClick={() => navigate("/agency-withdrawal")}
-            className="bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+            className={`${premiumActionClass} bg-gradient-to-br from-green-500 to-emerald-500`}
           >
             <WithdrawIcon3D />
             <span className="text-xs font-medium mt-1">Withdraw</span>
           </button>
           <button
             onClick={() => navigate("/agent-rank")}
-            className="bg-gradient-to-br from-yellow-500 to-orange-500 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+            className={`${premiumActionClass} bg-gradient-to-br from-yellow-500 to-orange-500`}
           >
             <RankingIcon3D />
             <span className="text-xs font-medium mt-1">Ranking</span>
@@ -1303,7 +1303,7 @@ const AgencyDashboard = () => {
                 setShowHelperDialog(true);
               }
             }}
-            className={`bg-gradient-to-br ${hasHelperAccess ? 'from-green-500 to-emerald-500' : helperPendingApplication ? 'from-yellow-500 to-orange-500' : 'from-purple-500 to-pink-500'} rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform relative flex flex-col items-center justify-center`}
+            className={`${premiumActionClass} bg-gradient-to-br ${hasHelperAccess ? 'from-green-500 to-emerald-500' : helperPendingApplication ? 'from-yellow-500 to-orange-500' : 'from-purple-500 to-pink-500'} relative`}
           >
             {hasHelperAccess && helperPendingCount > 0 && (
               <div className="absolute -top-2 -right-2 min-w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold px-1.5 shadow-lg animate-pulse border-2 border-white">
@@ -1324,21 +1324,21 @@ const AgencyDashboard = () => {
         <div className="grid grid-cols-3 gap-3 mt-3">
           <button
             onClick={() => navigate("/agency-coin-exchange")}
-            className="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+            className={`${premiumActionClass} bg-gradient-to-br from-orange-500 to-red-500`}
           >
             <DiamondExchangeIcon3D />
             <span className="text-xs font-medium mt-1">Diamond Exchange</span>
           </button>
           <button
             onClick={() => navigate("/agency-policy")}
-            className="bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+            className={`${premiumActionClass} bg-gradient-to-br from-cyan-500 to-blue-600`}
           >
             <PolicyIcon3D />
             <span className="text-xs font-medium mt-1">Policy</span>
           </button>
           <button
             onClick={() => navigate("/agency-transfer-history")}
-            className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+            className={`${premiumActionClass} bg-gradient-to-br from-indigo-500 to-purple-600`}
           >
             <HistoryIcon3D />
             <span className="text-xs font-medium mt-1">History</span>
