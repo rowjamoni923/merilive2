@@ -1,0 +1,105 @@
+{
+  "$schema": "../../lib/face-pose.ts",
+  "description": "Recorded face-verify sample sets for regression testing across pose / light / distance / device-angle conditions. Each set goes through calibrateThresholds() then evaluatePose() per tick — `expected.stepsPassed` lists the step ids that MUST reach a pass at least once for the run to be considered correct.",
+  "sets": [
+    {
+      "id": "ideal-eye-level-good-light",
+      "label": "Ideal — phone at eye level, good light, steady",
+      "conditions": { "light": "bright", "distance": "30cm", "angle": "eye-level", "device": "Pixel-7" },
+      "calibrationSamples": [
+        { "yaw": 0.5, "pitch": 1.0 }, { "yaw": -0.2, "pitch": 0.8 },
+        { "yaw": 0.1, "pitch": 1.2 }, { "yaw": 0.3, "pitch": 0.9 },
+        { "yaw": -0.1, "pitch": 1.1 }, { "yaw": 0.4, "pitch": 1.0 },
+        { "yaw": 0.0, "pitch": 0.7 }, { "yaw": 0.2, "pitch": 1.0 }
+      ],
+      "ticks": [
+        { "step": "center", "yaw": 0.5, "pitch": 1.2 },
+        { "step": "center", "yaw": 1.0, "pitch": 0.5 },
+        { "step": "left",   "yaw": 18.0, "pitch": 0.0 },
+        { "step": "left",   "yaw": 22.0, "pitch": -1.0 },
+        { "step": "right",  "yaw": -19.0, "pitch": 0.5 },
+        { "step": "right",  "yaw": -24.0, "pitch": 1.0 },
+        { "step": "up",     "yaw": 0.0,  "pitch": -14.0 },
+        { "step": "down",   "yaw": 0.0,  "pitch": 14.5 }
+      ],
+      "expected": { "stepsPassed": ["center", "left", "right", "up", "down"], "minPassRate": 0.7 }
+    },
+    {
+      "id": "phone-on-lap-low-angle",
+      "label": "Phone on lap — natural pitch baseline ≈ +12°",
+      "conditions": { "light": "ok", "distance": "40cm", "angle": "below-eye", "device": "iPhone-13" },
+      "calibrationSamples": [
+        { "yaw": 0.0, "pitch": 11.5 }, { "yaw": 0.5, "pitch": 12.2 },
+        { "yaw": -0.3, "pitch": 12.0 }, { "yaw": 0.1, "pitch": 11.8 },
+        { "yaw": 0.4, "pitch": 12.4 }, { "yaw": -0.2, "pitch": 12.1 },
+        { "yaw": 0.2, "pitch": 11.7 }, { "yaw": 0.0, "pitch": 12.3 }
+      ],
+      "ticks": [
+        { "step": "center", "yaw": 0.5, "pitch": 12.0 },
+        { "step": "center", "yaw": -0.2, "pitch": 13.0 },
+        { "step": "left",   "yaw": 19.0, "pitch": 11.0 },
+        { "step": "right",  "yaw": -20.0, "pitch": 12.5 },
+        { "step": "up",     "yaw": 0.0, "pitch": -1.0 },
+        { "step": "down",   "yaw": 0.0, "pitch": 25.0 }
+      ],
+      "expected": { "stepsPassed": ["center", "left", "right", "up", "down"] }
+    },
+    {
+      "id": "noisy-shaky-handheld",
+      "label": "Shaky handheld — high noise widens thresholds",
+      "conditions": { "light": "ok", "distance": "35cm", "angle": "eye-level", "device": "Galaxy-A14" },
+      "calibrationSamples": [
+        { "yaw": 3.0, "pitch": 4.0 },  { "yaw": -2.5, "pitch": -3.0 },
+        { "yaw": 4.5, "pitch": 3.5 },  { "yaw": -3.0, "pitch": -2.0 },
+        { "yaw": 2.8, "pitch": 4.2 },  { "yaw": -3.5, "pitch": -3.5 },
+        { "yaw": 3.2, "pitch": 3.0 },  { "yaw": -2.8, "pitch": -2.5 }
+      ],
+      "ticks": [
+        { "step": "center", "yaw": 5.0, "pitch": 4.0 },
+        { "step": "center", "yaw": -4.0, "pitch": -3.0 },
+        { "step": "left",   "yaw": 25.0, "pitch": 2.0 },
+        { "step": "right",  "yaw": -26.0, "pitch": 1.0 },
+        { "step": "up",     "yaw": 1.0, "pitch": -16.0 },
+        { "step": "down",   "yaw": -1.0, "pitch": 18.0 }
+      ],
+      "expected": { "stepsPassed": ["center", "left", "right", "up", "down"] }
+    },
+    {
+      "id": "far-distance-small-face",
+      "label": "Far distance — user only manages partial turns",
+      "conditions": { "light": "bright", "distance": "80cm", "angle": "eye-level" },
+      "calibrationSamples": [
+        { "yaw": 0.0, "pitch": 0.0 }, { "yaw": 0.2, "pitch": 0.1 },
+        { "yaw": -0.1, "pitch": 0.0 }, { "yaw": 0.0, "pitch": -0.1 },
+        { "yaw": 0.1, "pitch": 0.2 }, { "yaw": -0.2, "pitch": 0.0 },
+        { "yaw": 0.0, "pitch": 0.1 }, { "yaw": 0.1, "pitch": 0.0 }
+      ],
+      "ticks": [
+        { "step": "center", "yaw": 0.0, "pitch": 0.0 },
+        { "step": "left",   "yaw": 8.0,  "pitch": 0.0 },
+        { "step": "left",   "yaw": 10.0, "pitch": 0.0 },
+        { "step": "right",  "yaw": -9.0, "pitch": 0.0 }
+      ],
+      "expected": { "stepsPassed": ["center"] }
+    },
+    {
+      "id": "low-light-jitter",
+      "label": "Low light — pose readings drift, requires noisy calibration",
+      "conditions": { "light": "low", "distance": "30cm", "angle": "eye-level" },
+      "calibrationSamples": [
+        { "yaw": 1.0, "pitch": 2.0 },  { "yaw": -1.0, "pitch": -1.5 },
+        { "yaw": 1.5, "pitch": 2.2 },  { "yaw": -1.2, "pitch": -1.8 },
+        { "yaw": 1.1, "pitch": 2.0 },  { "yaw": -0.9, "pitch": -1.6 },
+        { "yaw": 1.3, "pitch": 1.9 },  { "yaw": -1.0, "pitch": -1.7 }
+      ],
+      "ticks": [
+        { "step": "center", "yaw": 0.0, "pitch": 0.5 },
+        { "step": "left",   "yaw": 20.0, "pitch": 1.0 },
+        { "step": "right",  "yaw": -20.0, "pitch": 0.0 },
+        { "step": "up",     "yaw": 0.0, "pitch": -13.0 },
+        { "step": "down",   "yaw": 0.0, "pitch": 14.0 }
+      ],
+      "expected": { "stepsPassed": ["center", "left", "right", "up", "down"] }
+    }
+  ]
+}
