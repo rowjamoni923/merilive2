@@ -1747,7 +1747,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       
 
       {/* Header Section - Premium Design */}
-      <div className="relative mx-3 mt-3 pt-10 pb-5 px-4 flex flex-col items-center profile-hero-panel rounded-2xl overflow-hidden">
+      <div className="relative mx-3 mt-3 pt-10 pb-5 px-4 flex flex-col items-center profile-home-card rounded-2xl overflow-hidden">
         {/* Avatar with Level-Based Frame */}
         <div 
           className="relative mb-3 cursor-pointer group"
@@ -1780,14 +1780,14 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         </div>
 
         {/* Name - Elegant Typography */}
-        <h1 className="text-xl font-bold text-white tracking-wide">
+        <h1 className="text-xl font-bold text-slate-950 tracking-wide">
           {resolvedProfileName}
         </h1>
         
         {/* UID Badge - Glass Morphism */}
         {profile?.app_uid && (
           <button 
-            className="mt-2 flex items-center gap-2 bg-white/10 hover:bg-white/15 border border-white/10 px-4 py-2 rounded-full transition-all"
+            className="mt-2 flex items-center gap-2 profile-home-pill hover:bg-slate-50 px-4 py-2 rounded-full transition-all"
             onClick={() => {
               navigator.clipboard.writeText(profile.app_uid);
               toast({ title: "UID Copied!", description: profile.app_uid });
@@ -1796,7 +1796,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             <span className="w-5 h-5 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center shadow-md">
               <span className="text-white font-bold text-[8px]">ID</span>
             </span>
-            <span className="font-semibold text-sm text-white/90">{profile.app_uid}</span>
+            <span className="font-semibold text-sm text-slate-800">{profile.app_uid}</span>
           </button>
         )}
         
@@ -1804,25 +1804,25 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         {/* Country ALWAYS visible, City hidden if profile owner has hide_location enabled */}
         <div className="flex items-center justify-center gap-2 flex-wrap mt-4 px-3">
           {/* Country - ALWAYS visible */}
-          <div className="flex items-center gap-1.5 bg-white/10 border border-white/10 px-3 py-1.5 rounded-full">
+          <div className="flex items-center gap-1.5 profile-home-pill px-3 py-1.5 rounded-full">
             <span className="text-base leading-none">{geoLocation.countryFlag || profile?.country_flag || "🌍"}</span>
-            <span className="font-semibold text-white/90 text-xs tracking-wide">
+            <span className="font-semibold text-slate-700 text-xs tracking-wide">
               {geoLocation.country || profile?.country_name || ""}
             </span>
           </div>
 
           {/* City - Only show if own profile OR profile owner hasn't hidden location */}
           {(isOwnProfile || !profile?.hide_location) && (
-            <div className="flex items-center gap-1.5 bg-white/10 border border-white/10 px-3 py-1.5 rounded-full">
-              <MapPin className="w-3.5 h-3.5 text-white/70" />
-              <span className="font-medium text-white/85 text-xs tracking-wide">
+            <div className="flex items-center gap-1.5 profile-home-pill px-3 py-1.5 rounded-full">
+              <MapPin className="w-3.5 h-3.5 text-slate-500" />
+              <span className="font-medium text-slate-700 text-xs tracking-wide">
                 {geoLocation.city || "Location"}
               </span>
             </div>
           )}
 
-          <div className="flex items-center gap-1.5 bg-white/10 border border-white/10 px-3 py-1.5 rounded-full">
-            <span className="font-semibold text-white/90 text-xs tracking-wide">Bengali</span>
+          <div className="flex items-center gap-1.5 profile-home-pill px-3 py-1.5 rounded-full">
+            <span className="font-semibold text-slate-700 text-xs tracking-wide">Bengali</span>
           </div>
         </div>
 
@@ -1832,18 +1832,18 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           onClick={() => isOwnProfile && navigate('/following')}
         >
           <div className="text-center">
-            <p className="text-2xl font-bold text-white">{stats.friendsCount}</p>
-            <p className="text-xs text-white/85 font-medium">Friends</p>
+            <p className="text-2xl font-bold text-slate-950">{stats.friendsCount}</p>
+            <p className="text-xs text-slate-500 font-medium">Friends</p>
           </div>
-          <div className="w-px h-10 bg-gradient-to-b from-transparent via-white/15 to-transparent" />
+          <div className="w-px h-10 bg-gradient-to-b from-transparent via-slate-200 to-transparent" />
           <div className="text-center">
-            <p className="text-2xl font-bold text-white">{stats.followingCount}</p>
-            <p className="text-xs text-white/85 font-medium">Following</p>
+            <p className="text-2xl font-bold text-slate-950">{stats.followingCount}</p>
+            <p className="text-xs text-slate-500 font-medium">Following</p>
           </div>
-          <div className="w-px h-10 bg-gradient-to-b from-transparent via-white/15 to-transparent" />
+          <div className="w-px h-10 bg-gradient-to-b from-transparent via-slate-200 to-transparent" />
           <div className="text-center">
-            <p className="text-2xl font-bold text-white">{stats.followersCount}</p>
-            <p className="text-xs text-white/85 font-medium">Followers</p>
+            <p className="text-2xl font-bold text-slate-950">{stats.followersCount}</p>
+            <p className="text-xs text-slate-500 font-medium">Followers</p>
           </div>
         </div>
 
