@@ -474,19 +474,20 @@ const Shop = () => {
   if (loading) return <LoadingSpinner fullScreen />;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 flex flex-col overflow-hidden"
       style={{
-        background: 'linear-gradient(180deg, #1a0533 0%, #0d0118 40%, #0a0014 100%)',
+        background: 'linear-gradient(180deg, #FFFBF2 0%, #FAF5EA 40%, #F5EFDF 100%)',
       }}
     >
-      {/* Header - Deep purple luxury */}
-      <div 
+      {/* Header - Light luxury cream */}
+      <div
         className="sticky top-0 z-50 safe-area-top"
         style={{
-          background: 'linear-gradient(135deg, rgba(88,28,135,0.9) 0%, rgba(49,10,100,0.95) 50%, rgba(30,5,70,0.9) 100%)',
-          borderBottom: '1px solid rgba(168,85,247,0.2)',
-          boxShadow: '0 4px 30px rgba(88,28,135,0.4)',
+          background: 'linear-gradient(135deg, rgba(255,251,242,0.95) 0%, rgba(250,243,224,0.95) 100%)',
+          borderBottom: '1px solid rgba(217,182,107,0.25)',
+          boxShadow: '0 4px 24px rgba(180,140,40,0.08)',
+          backdropFilter: 'blur(12px)',
         }}
       >
         <div className="flex items-center justify-between px-4 py-3">
@@ -494,33 +495,33 @@ const Shop = () => {
             size="icon"
             variant="ghost"
             onClick={() => navigate(-1)}
-            className="text-slate-800 hover:bg-white/10 w-9 h-9 rounded-full"
+            className="text-slate-700 hover:bg-amber-100/60 w-9 h-9 rounded-full"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          
+
           <h1 className="text-lg font-bold text-slate-800 tracking-wide">My Store</h1>
-          
+
           <div className="flex items-center gap-2">
-            <div 
+            <div
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
               style={{
-                background: 'linear-gradient(135deg, rgba(251,191,36,0.15) 0%, rgba(245,158,11,0.1) 100%)',
-                border: '1px solid rgba(251,191,36,0.3)',
+                background: 'linear-gradient(135deg, rgba(251,191,36,0.18) 0%, rgba(245,158,11,0.12) 100%)',
+                border: '1px solid rgba(217,119,6,0.35)',
               }}
             >
               <Diamond3DIcon size={14} />
-              <span className="text-amber-400 text-sm font-bold">{userDiamonds.toLocaleString()}</span>
+              <span className="text-amber-700 text-sm font-bold">{userDiamonds.toLocaleString()}</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Category Tabs - Pill style like reference */}
-      <div 
+      {/* Category Tabs - Pill style */}
+      <div
         className="px-4 py-3"
         style={{
-          background: 'linear-gradient(180deg, rgba(30,5,70,0.8) 0%, transparent 100%)',
+          background: 'linear-gradient(180deg, rgba(250,243,224,0.7) 0%, transparent 100%)',
         }}
       >
         <ScrollArea className="w-full whitespace-nowrap">
@@ -532,14 +533,14 @@ const Shop = () => {
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
                   className={`rounded-full flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 px-5 py-2 text-sm font-semibold transition-all duration-300 ${
-                    isActive ? 'text-slate-800' : 'text-purple-300/70'
+                    isActive ? 'text-white' : 'text-slate-700'
                   }`}
                   style={isActive ? {
-                    background: 'linear-gradient(135deg, #d946ef 0%, #a855f7 50%, #7c3aed 100%)',
-                    boxShadow: '0 4px 20px rgba(168,85,247,0.5), inset 0 1px 0 rgba(255,255,255,0.2)',
+                    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%)',
+                    boxShadow: '0 4px 18px rgba(217,119,6,0.45), inset 0 1px 0 rgba(255,255,255,0.25)',
                   } : {
-                    background: 'rgba(168,85,247,0.1)',
-                    border: '1px solid rgba(168,85,247,0.2)',
+                    background: 'rgba(255,255,255,0.85)',
+                    border: '1px solid rgba(217,182,107,0.35)',
                   }}
                 >
                   <cat.icon className="w-3.5 h-3.5" />
