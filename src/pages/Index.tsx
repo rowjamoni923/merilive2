@@ -550,14 +550,18 @@ const Index = () => {
       >
         <div className="flex items-center justify-center px-3 py-2.5 relative">
           {/* Search Button - Left Side */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute left-3 rounded-full h-8 w-8 active:scale-95 touch-manipulation text-slate-700 hover:text-slate-900 hover:bg-slate-100"
+          <button
+            aria-label="Search"
             onClick={() => navigate('/search')}
+            className="absolute left-3 h-9 w-9 rounded-full flex items-center justify-center active:scale-95 touch-manipulation transition-transform"
+            style={{
+              background: 'linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)',
+              border: '1px solid rgba(15, 23, 42, 0.10)',
+              boxShadow: '0 2px 6px -2px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255,255,255,0.9)',
+            }}
           >
-            <Search className="w-4 h-4" />
-          </Button>
+            <Search className="w-[18px] h-[18px] text-slate-700" strokeWidth={2.5} />
+          </button>
 
           {/* Sub Tabs - Centered */}
           <div className="flex items-center gap-0.5 bg-slate-100 rounded-full p-0.5">
@@ -590,14 +594,18 @@ const Index = () => {
           </div>
 
           {/* Leaderboard Button - Right Side */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-3 rounded-full h-8 w-8 active:scale-95 touch-manipulation text-amber-500 hover:text-amber-600 hover:bg-amber-50"
+          <button
+            aria-label="Leaderboard"
             onClick={() => navigate('/leaderboard')}
+            className="absolute right-3 h-9 w-9 rounded-full flex items-center justify-center active:scale-95 touch-manipulation transition-transform"
+            style={{
+              background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 60%, #d97706 100%)',
+              border: '1px solid rgba(217, 119, 6, 0.45)',
+              boxShadow: '0 4px 10px -2px rgba(245, 158, 11, 0.45), inset 0 1px 0 rgba(255,255,255,0.55)',
+            }}
           >
-            <Trophy className="w-4 h-4" />
-          </Button>
+            <Trophy className="w-[18px] h-[18px] text-white drop-shadow-[0_1px_1px_rgba(120,53,15,0.5)]" strokeWidth={2.5} fill="rgba(255,255,255,0.25)" />
+          </button>
         </div>
 
         {/* Country Filter - Compact */}
