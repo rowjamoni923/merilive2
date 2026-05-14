@@ -904,7 +904,9 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       const isAgencyOwner = latestBalances.agencyBalance > 0 || Boolean(agencyData);
 
       if (!isAgencyOwner && latestBalances.traderWallet <= 0) {
-        toast({ title: "Error", description: "No wallet found for transfer", variant: "destructive" });
+        toast({ title: "Trader Wallet Empty", description: "Redirecting to Helper Dashboard for manual recharge." });
+        setShowTransferModal(false);
+        navigate('/helper-dashboard');
         return;
       }
 
@@ -935,7 +937,9 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       const isAgencyOwner = latestBalances.agencyBalance > 0 || Boolean(agencyData);
 
       if (!isAgencyOwner && latestBalances.traderWallet <= 0) {
-        toast({ title: "Error", description: "No wallet found for transfer", variant: "destructive" });
+        toast({ title: "Trader Wallet Empty", description: "Redirecting to Helper Dashboard for manual recharge." });
+        setShowTransferModal(false);
+        navigate('/helper-dashboard');
         return;
       }
 
@@ -975,6 +979,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
     try {
       const latestBalances = await refreshTransferBalances();
+      const isAgencyOwner = latestBalances.agencyBalance > 0 || Boolean(agencyData);
+      if (!isAgencyOwner && latestBalances.selfRechargeTotal <= 0) {
+        toast({ title: "Trader Wallet Empty", description: "Redirecting to Helper Dashboard for manual recharge." });
+        setShowTransferModal(false);
+        navigate('/helper-dashboard');
+        return;
+      }
       if (amount > latestBalances.selfRechargeTotal) {
         toast({ title: "Insufficient Balance", description: `You need ${amount.toLocaleString()} but have ${latestBalances.selfRechargeTotal.toLocaleString()} available for self recharge`, variant: "destructive" });
         return;
@@ -2030,7 +2041,15 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           {/* Trader Wallet Card for Diamond Traders - Opens Transfer Modal directly */}
           {isCoinTrader && !isAgencyOwner && (
             <button 
-              onClick={() => setShowTransferModal(true)}
+              onClick={() => {
+                const combined = Number(traderWallet || 0) + Number(agencyData?.diamond_balance || 0);
+                if (combined <= 0) {
+                  toast({ title: "Trader Wallet Empty", description: "Recharge from the Helper Dashboard to continue trading." });
+                  navigate('/helper-dashboard');
+                  return;
+                }
+                setShowTransferModal(true);
+              }}
               className="w-full group relative"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/30 to-teal-500/30 rounded-xl translate-y-0.5 blur-sm" />
