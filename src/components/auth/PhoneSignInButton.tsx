@@ -357,23 +357,23 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
                  </DialogDescription>
                </DialogHeader>
                
-               <div className="flex gap-4 py-6">
-                 <button
-                   onClick={() => handleGenderSelect("male")}
-                   className="flex-1 p-6 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border-2 border-blue-500/30 hover:border-blue-400 hover:bg-blue-500/30 transition-all flex flex-col items-center gap-3"
-                 >
-                   <span className="text-5xl">👨</span>
-                   <span className="text-slate-800 font-semibold">Male</span>
-                 </button>
-                 
-                 <button
-                   onClick={() => handleGenderSelect("female")}
-                   className="flex-1 p-6 rounded-2xl bg-gradient-to-br from-pink-500/20 to-rose-500/20 border-2 border-pink-500/30 hover:border-pink-400 hover:bg-pink-500/30 transition-all flex flex-col items-center gap-3"
-                 >
-                   <span className="text-5xl">👩</span>
-                   <span className="text-slate-800 font-semibold">Female</span>
-                 </button>
-               </div>
+                 <div className="flex gap-4 py-6">
+                   <button
+                     onClick={() => handleGenderSelect("male")}
+                     className="flex-1 p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-cyan-50 border-2 border-blue-200 hover:border-blue-400 hover:from-blue-100 hover:to-cyan-100 transition-all flex flex-col items-center gap-3 shadow-sm hover:shadow-md"
+                   >
+                     <span className="text-5xl">👨</span>
+                     <span className="text-slate-900 font-semibold">Male</span>
+                   </button>
+
+                   <button
+                     onClick={() => handleGenderSelect("female")}
+                     className="flex-1 p-6 rounded-2xl bg-gradient-to-br from-pink-50 to-rose-50 border-2 border-pink-200 hover:border-pink-400 hover:from-pink-100 hover:to-rose-100 transition-all flex flex-col items-center gap-3 shadow-sm hover:shadow-md"
+                   >
+                     <span className="text-5xl">👩</span>
+                     <span className="text-slate-900 font-semibold">Female</span>
+                   </button>
+                 </div>
              </>
            )}
  
