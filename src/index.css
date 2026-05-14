@@ -85,15 +85,15 @@ video::-ms-media-controls {
 
 @layer base {
   :root {
-    /* Dark base theme - App default */
-    --background: 240 20% 4%;
-    --foreground: 0 0% 95%;
+    /* Pearl-cream luxurious LIGHT theme — App default */
+    --background: 42 100% 98%;
+    --foreground: 222 35% 18%;
 
-    --card: 240 15% 8%;
-    --card-foreground: 0 0% 95%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 35% 18%;
 
-    --popover: 240 15% 8%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 35% 18%;
 
     /* Vibrant Pink Primary */
     --primary: 330 85% 55%;
@@ -103,8 +103,8 @@ video::-ms-media-controls {
     --secondary: 270 70% 55%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 240 10% 14%;
-    --muted-foreground: 215 16% 65%;
+    --muted: 42 60% 95%;
+    --muted-foreground: 215 16% 42%;
 
     /* Gold Accent */
     --accent: 45 93% 58%;
@@ -113,19 +113,19 @@ video::-ms-media-controls {
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 10% 18%;
-    --input: 240 10% 18%;
+    --border: 42 60% 88%;
+    --input: 42 60% 90%;
     --ring: 330 85% 55%;
 
     --radius: 1rem;
 
-    /* Premium Gradients - Dark */
+    /* Premium Gradients - Light luxury */
     --gradient-primary: linear-gradient(135deg, hsl(330 85% 55%) 0%, hsl(270 70% 55%) 50%, hsl(220 80% 55%) 100%);
     --gradient-gold: linear-gradient(135deg, hsl(45 93% 58%) 0%, hsl(35 90% 55%) 50%, hsl(25 85% 50%) 100%);
-    --gradient-dark: linear-gradient(180deg, hsl(240 20% 6%) 0%, hsl(240 20% 3%) 100%);
-    --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(240 15% 10%) 0%, hsl(240 15% 6%) 100%);
-    --gradient-shine: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
+    --gradient-dark: linear-gradient(180deg, hsl(42 100% 98%) 0%, hsl(42 80% 94%) 100%);
+    --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.55) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(42 60% 96%) 100%);
+    --gradient-shine: linear-gradient(90deg, transparent 0%, rgba(180,140,60,0.12) 50%, transparent 100%);
     --gradient-live: linear-gradient(135deg, hsl(0 72% 51%) 0%, hsl(330 85% 55%) 100%);
     --gradient-online: linear-gradient(135deg, hsl(142 76% 45%) 0%, hsl(160 84% 39%) 100%);
     --live-game-neon: 330 85% 58%;
@@ -135,21 +135,21 @@ video::-ms-media-controls {
     --live-game-card: 0 0% 96%;
     --live-game-flame: 18 94% 58%;
 
-    /* Shadows - Dark */
-    --shadow-glow: 0 0 30px -5px hsl(330 85% 55% / 0.3);
-    --shadow-card: 0 4px 20px -4px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
-    --shadow-elevated: 0 20px 50px -15px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
-    --shadow-pink: 0 0 40px -10px hsl(330 85% 55% / 0.35);
-    --shadow-purple: 0 0 40px -10px hsl(270 70% 55% / 0.35);
+    /* Shadows - Light luxury (warm gold-tinted) */
+    --shadow-glow: 0 0 30px -5px hsl(330 85% 55% / 0.25);
+    --shadow-card: 0 4px 20px -4px rgba(180, 140, 60, 0.18), 0 0 0 1px rgba(180, 140, 60, 0.06);
+    --shadow-elevated: 0 20px 50px -15px rgba(180, 140, 60, 0.22), 0 0 0 1px rgba(180, 140, 60, 0.06);
+    --shadow-pink: 0 0 40px -10px hsl(330 85% 55% / 0.3);
+    --shadow-purple: 0 0 40px -10px hsl(270 70% 55% / 0.3);
     --shadow-gold: 0 0 40px -10px hsl(45 93% 58% / 0.35);
 
-    --sidebar-background: 240 15% 8%;
-    --sidebar-foreground: 0 0% 95%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 35% 18%;
     --sidebar-primary: 330 85% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 10% 14%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 240 10% 18%;
+    --sidebar-accent: 42 60% 95%;
+    --sidebar-accent-foreground: 222 35% 18%;
+    --sidebar-border: 42 60% 88%;
     --sidebar-ring: 330 85% 55%;
   }
 
