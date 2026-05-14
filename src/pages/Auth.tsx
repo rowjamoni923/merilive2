@@ -2209,10 +2209,10 @@ const Auth = () => {
               setEmail("");
               setAuthStep("email");
             }}
- className="w-full h-11 rounded-2xl bg-gradient-to-r from-white via-gray-50 to-white hover:from-gray-50 hover:via-white hover:to-gray-50 text-gray-700 text-sm font-semibold shadow-[0_6px_24px_-6px_rgba(255,255,255,0.3)] border border-slate-200/60 transition-all duration-300 active:scale-[0.98] backdrop-blur-md"
+  className="w-full h-11 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 text-sm font-semibold shadow-[0_6px_24px_-6px_rgba(15,23,42,0.35)] border border-slate-200/80 transition-all duration-300 active:scale-[0.98]"
           >
-            <Mail className="w-5 h-5 mr-2 text-gray-600" />
-            <span>Email</span>
+            <Mail className="w-5 h-5 mr-2 text-slate-600" />
+            <span>Continue with Email</span>
           </Button>
 
 
