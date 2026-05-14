@@ -326,28 +326,28 @@ const FollowingList = () => {
 
   const renderEmptyState = (type: string) => (
     <div className="text-center py-16">
-      <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
+      <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-amber-50 border border-amber-200/60 flex items-center justify-center">
         {type === 'following' ? (
-          <Heart className="w-10 h-10 text-muted-foreground" />
+          <Heart className="w-10 h-10 text-amber-500" />
         ) : type === 'friends' ? (
-          <Users className="w-10 h-10 text-muted-foreground" />
+          <Users className="w-10 h-10 text-amber-500" />
         ) : (
-          <UserPlus className="w-10 h-10 text-muted-foreground" />
+          <UserPlus className="w-10 h-10 text-amber-500" />
         )}
       </div>
-      <h3 className="text-lg font-semibold mb-2">
+      <h3 className="text-lg font-semibold mb-2 text-slate-800">
         {type === 'following' ? 'Not following anyone yet' :
          type === 'friends' ? 'No friends yet' :
          'No followers yet'}
       </h3>
-      <p className="text-muted-foreground text-sm max-w-xs mx-auto">
+      <p className="text-slate-500 text-sm max-w-xs mx-auto">
         {type === 'following' ? 'Discover and follow hosts you like!' :
          type === 'friends' ? 'Friends are people you follow who also follow you back.' :
          'Share your profile to get more followers!'}
       </p>
       {type === 'following' && (
         <Button 
-          className="mt-4 bg-gradient-to-r from-purple-500 to-pink-500"
+          className="mt-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white"
           onClick={() => navigate('/discover')}
         >
           Discover Hosts
@@ -357,18 +357,19 @@ const FollowingList = () => {
   );
 
   return (
-    <div className="mobile-page bg-background">
+    <div className="mobile-page bg-gradient-to-br from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF]">
       {/* Header */}
-      <header className="sticky top-0 z-40 glass-card border-b border-border/50 safe-area-top">
+      <header className="sticky top-0 z-40 bg-white/85 backdrop-blur-xl border-b border-amber-200/60 safe-area-top">
         <div className="px-4 py-3 flex items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => navigate(-1)}
+            className="text-slate-700 hover:bg-amber-100/60"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-xl font-bold">Following & Friends</h1>
+          <h1 className="text-xl font-bold text-slate-800">Following & Friends</h1>
         </div>
       </header>
 
