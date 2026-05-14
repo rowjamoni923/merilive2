@@ -391,11 +391,11 @@ const Index = () => {
     const isActuallyBusy = user.actuallyBusy ?? !!user.is_in_call;
 
     const getBorderGlow = () => {
-      if (user.isLive) return "shadow-[0_0_12px_rgba(239,68,68,0.4)] border-red-500/40";
-      if (displayLevel >= 40) return "shadow-[0_0_12px_rgba(251,191,36,0.35)] border-amber-400/30";
-      if (displayLevel >= 20) return "shadow-[0_0_10px_rgba(168,85,247,0.3)] border-purple-500/25";
-      if (displayLevel >= 10) return "shadow-[0_0_8px_rgba(59,130,246,0.25)] border-blue-500/20";
-      return "border-white/[0.06]";
+      if (user.isLive) return "shadow-[0_4px_18px_-4px_rgba(239,68,68,0.45)] border-red-300";
+      if (displayLevel >= 40) return "shadow-[0_4px_18px_-6px_rgba(245,158,11,0.40)] border-amber-200";
+      if (displayLevel >= 20) return "shadow-[0_4px_18px_-6px_rgba(168,85,247,0.32)] border-purple-200";
+      if (displayLevel >= 10) return "shadow-[0_4px_18px_-6px_rgba(59,130,246,0.28)] border-blue-200";
+      return "border-slate-200 shadow-[0_4px_14px_-8px_rgba(15,23,42,0.18)]";
     };
 
     
@@ -404,7 +404,7 @@ const Index = () => {
         onClick={() => handleUserClick(user.id, user.isLive || false, user.liveStreamId)}
         className={cn(
           "relative overflow-hidden rounded-2xl cursor-pointer group active:scale-[0.97]",
-          "bg-card/60 border",
+          "bg-white border",
           getBorderGlow()
         )}
         style={{ contain: 'layout style paint' }}
@@ -538,22 +538,29 @@ const Index = () => {
 
   // Native mobile optimized render
   return (
-    <div className="fixed inset-0 flex flex-col bg-background overflow-hidden" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
-      {/* Header - FIXED at top, never scrolls */}
-      <header className="shrink-0 header-glass" style={{ zIndex: 40 }}>
+    <div className="fixed inset-0 flex flex-col bg-[#F7F8FA] overflow-hidden" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+      {/* Header — clean white, hairline border, dark icons */}
+      <header
+        className="shrink-0"
+        style={{
+          zIndex: 40,
+          background: '#ffffff',
+          borderBottom: '1px solid rgba(15, 23, 42, 0.06)',
+        }}
+      >
         <div className="flex items-center justify-center px-3 py-2.5 relative">
           {/* Search Button - Left Side */}
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="absolute left-3 rounded-full h-8 w-8 active:scale-95 touch-manipulation text-white/70 hover:text-white hover:bg-white/10" 
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute left-3 rounded-full h-8 w-8 active:scale-95 touch-manipulation text-slate-700 hover:text-slate-900 hover:bg-slate-100"
             onClick={() => navigate('/search')}
           >
             <Search className="w-4 h-4" />
           </Button>
-          
+
           {/* Sub Tabs - Centered */}
-          <div className="flex items-center gap-0.5 bg-white/5 rounded-full p-0.5">
+          <div className="flex items-center gap-0.5 bg-slate-100 rounded-full p-0.5">
             {(["popular", "live", "new", "following"] as SubTab[]).map((tab) => {
               const labels: Record<SubTab, string> = { popular: "Popular", live: "Live", new: "New", following: "Follow" };
               const isActive = subTab === tab;
@@ -570,12 +577,12 @@ const Index = () => {
                     setSubTab(tab);
                   }}
                   className={cn(
-                    "px-2.5 py-1 rounded-full text-xs font-medium transition-all active:scale-95 touch-manipulation flex items-center gap-1",
-                    isActive ? "text-white shadow-lg" : "text-white/60 hover:text-white"
+                    "px-2.5 py-1 rounded-full text-xs font-semibold transition-all active:scale-95 touch-manipulation flex items-center gap-1",
+                    isActive ? "text-white shadow-md" : "text-slate-500 hover:text-slate-800"
                   )}
                   style={isActive ? { background: gradients[tab] } : undefined}
                 >
-                  {tab === "live" && <span className="w-1.5 h-1.5 bg-red-500 rounded-full" />}
+                  {tab === "live" && <span className={cn("w-1.5 h-1.5 rounded-full", isActive ? "bg-white" : "bg-red-500 animate-pulse")} />}
                   {labels[tab]}
                 </button>
               );
@@ -583,10 +590,10 @@ const Index = () => {
           </div>
 
           {/* Leaderboard Button - Right Side */}
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="absolute right-3 rounded-full h-8 w-8 active:scale-95 touch-manipulation text-amber-400 hover:text-amber-300 hover:bg-white/10" 
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-3 rounded-full h-8 w-8 active:scale-95 touch-manipulation text-amber-500 hover:text-amber-600 hover:bg-amber-50"
             onClick={() => navigate('/leaderboard')}
           >
             <Trophy className="w-4 h-4" />
@@ -601,10 +608,10 @@ const Index = () => {
                   key={country.code}
                   onClick={() => setSelectedCountry(country.code)}
                   className={cn(
-                    "flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap active:scale-95 touch-manipulation",
+                    "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-all whitespace-nowrap active:scale-95 touch-manipulation border",
                     selectedCountry === country.code
-                      ? "text-white shadow-lg"
-                      : "bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
+                      ? "text-white shadow-md border-transparent"
+                      : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
                   )}
                   style={selectedCountry === country.code ? { background: 'linear-gradient(to right, #ec4899, #a855f7)' } : undefined}
                 >
@@ -650,7 +657,7 @@ const Index = () => {
             {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
-                className="aspect-[3/4] rounded-2xl bg-white/5 animate-pulse border border-white/[0.04]"
+                className="aspect-[3/4] rounded-2xl bg-slate-200 animate-pulse border border-slate-200"
               />
             ))}
           </div>
@@ -658,16 +665,16 @@ const Index = () => {
           <div className="flex flex-col items-center justify-center py-12 px-6 min-h-[60vh]">
             {/* Text content only - no icons */}
             <div className="text-center relative z-10">
-              <h3 className="text-lg font-semibold text-white mb-2">
+              <h3 className="text-lg font-bold text-slate-900 mb-2">
                 {subTab === "live" ? "No Live Streams" : "No Hosts Available"}
               </h3>
-              <p className="text-sm text-white/60 max-w-[200px]">
+              <p className="text-sm text-slate-500 max-w-[220px]">
                 {getEmptyMessage()}
               </p>
             </div>
-            
+
             {/* Refresh hint */}
-            <p className="mt-4 text-xs text-white/40">
+            <p className="mt-4 text-xs text-slate-400">
               Pull down to refresh
             </p>
           </div>
