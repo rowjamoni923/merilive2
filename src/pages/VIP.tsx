@@ -1084,25 +1084,25 @@ const VIP = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-[#F7F8FA] overflow-hidden">
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-gradient-to-r from-purple-900/95 via-pink-900/95 to-purple-900/95 backdrop-blur-xl safe-area-top border-b border-white/10">
+      <div className="sticky top-0 z-50 bg-gradient-to-r from-amber-50/95 via-white/95 to-amber-50/95 backdrop-blur-xl safe-area-top border-b border-amber-200/50 shadow-sm">
         <div className="flex items-center justify-between px-4 py-3">
           <Button
             size="icon"
             variant="ghost"
             onClick={() => navigate(-1)}
-            className="text-slate-800 hover:bg-white/10 w-9 h-9 rounded-full"
+            className="text-slate-700 hover:bg-amber-100/60 w-9 h-9 rounded-full"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          
+
           <h1 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-            <Crown className="w-5 h-5 text-amber-400" />
+            <Crown className="w-5 h-5 text-amber-500" />
             VIP Membership
           </h1>
-          
-          <div className="flex items-center gap-1.5 bg-amber-500/20 px-2.5 py-1 rounded-full border border-amber-500/30">
+
+          <div className="flex items-center gap-1.5 bg-amber-100/80 px-2.5 py-1 rounded-full border border-amber-300/60">
             <Diamond3DIcon size={14} />
-            <span className="text-amber-400 text-sm font-bold">{userDiamonds.toLocaleString()}</span>
+            <span className="text-amber-700 text-sm font-bold">{userDiamonds.toLocaleString()}</span>
           </div>
         </div>
       </div>
