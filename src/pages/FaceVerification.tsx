@@ -303,6 +303,12 @@ const FaceVerification = () => {
     severity: 'ok' | 'warn' | 'error';
   };
   const [liveDiag, setLiveDiag] = useState<LiveDiag | null>(null);
+  // Per-device pose calibration. Loaded from cache on mount (skips wait on
+  // repeat attempts), recalibrated at the start of every verification using
+  // the first ~2s of pose samples.
+  const calibrationRef = useRef<PoseCalibration>(loadCachedCalibration() ?? DEFAULT_CALIB);
+  const calibSamplesRef = useRef<{ yaw: number; pitch: number }[]>([]);
+  const [calibrating, setCalibrating] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const instructionTimerRef = useRef<NodeJS.Timeout | null>(null);
   const poseCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
