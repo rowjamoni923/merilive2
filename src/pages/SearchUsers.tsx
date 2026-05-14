@@ -134,13 +134,18 @@ const SearchUsers = () => {
       // Clean the query - only digits allowed for app_uid search
       const cleanQuery = query.replace(/\D/g, '');
 
-      const uidPromise = cleanQuery.length > 0
-        ? supabase
-            .from('profiles_public')
-            .select('id, display_name, username, avatar_url, is_online, is_verified, is_host, country_flag, bio, tags, app_uid')
-            .eq('app_uid', cleanQuery)
-            .limit(50)
-        : Promise.resolve({ data: [] as UserProfile[] });
+      let uidPromise: Promise<{ data: UserProfile[] | null }>;
+      if (cleanQuery.length === 0) {
+        uidPromise = Promise.resolve({ data: [] as UserProfile[] });
+      } else {
+        // app_uid is 10-digit zero-padded text. Try exact (padded) + partial match.
+        const padded = cleanQuery.padStart(10, '0');
+        uidPromise = supabase
+          .from('profiles_public')
+          .select('id, display_name, username, avatar_url, is_online, is_verified, is_host, country_flag, bio, tags, app_uid')
+          .or(`app_uid.eq.${padded},app_uid.ilike.%${cleanQuery}%`)
+          .limit(50);
+      }
 
       const tagPromise = tags.length > 0
         ? supabase
