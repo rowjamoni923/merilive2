@@ -23,7 +23,8 @@ import {
   ArrowRightIcon,
   Play,
   XCircle,
-  Settings
+  Settings,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -309,6 +310,82 @@ const FaceVerification = () => {
   const calibrationRef = useRef<PoseCalibration>(loadCachedCalibration() ?? DEFAULT_CALIB);
   const calibSamplesRef = useRef<{ yaw: number; pitch: number }[]>([]);
   const [calibrating, setCalibrating] = useState(false);
+  // ── Debug log: ring buffer of every poll tick + lifecycle event. Surfaced
+  // as a downloadable JSON report on failure so the user / support can see
+  // exactly which threshold (yaw/pitch/eyes/no-face) blocked verification
+  // and how many polls/timeouts occurred.
+  type DebugEntry = {
+    t: number; // ms since session start
+    kind: 'start' | 'tick' | 'no_face' | 'calib_done' | 'step_pass' | 'timeout' | 'finish' | 'antispoof_fail' | 'error';
+    [k: string]: unknown;
+  };
+  const debugLogRef = useRef<DebugEntry[]>([]);
+  const sessionStartRef = useRef<number>(0);
+  const consecutiveFailsRef = useRef<number>(0);
+  const [lastDebugReport, setLastDebugReport] = useState<string | null>(null);
+  const pushDebug = useCallback((entry: Omit<DebugEntry, 't'>) => {
+    const t = sessionStartRef.current ? Date.now() - sessionStartRef.current : 0;
+    const log = debugLogRef.current;
+    log.push({ t, ...entry } as DebugEntry);
+    if (log.length > 800) log.splice(0, log.length - 800);
+  }, []);
+  // Build a self-contained JSON report (calibration + every poll tick + counters)
+  // and stash it in state so the failure overlay can offer a Download button.
+  const buildAndStoreDebugReport = useCallback((reason: 'failed' | 'antispoof') => {
+    const entries = debugLogRef.current;
+    const ticks = entries.filter(e => e.kind === 'tick');
+    const noFace = entries.filter(e => e.kind === 'no_face');
+    const stepPasses = entries.filter(e => e.kind === 'step_pass');
+    const timeout = entries.find(e => e.kind === 'timeout');
+    const yawVals = ticks.map(e => e.yaw as number).filter(n => typeof n === 'number');
+    const pitchVals = ticks.map(e => e.pitch as number).filter(n => typeof n === 'number');
+    const stat = (arr: number[]) => arr.length ? {
+      min: +Math.min(...arr).toFixed(2),
+      max: +Math.max(...arr).toFixed(2),
+      avg: +(arr.reduce((s, v) => s + v, 0) / arr.length).toFixed(2),
+    } : null;
+    const report = {
+      schema: 'face-verify-debug/v1',
+      generatedAt: new Date().toISOString(),
+      durationMs: sessionStartRef.current ? Date.now() - sessionStartRef.current : 0,
+      reason,
+      summary: {
+        totalPolls: ticks.length,
+        noFacePolls: noFace.length,
+        stepsPassed: stepPasses.length,
+        stepsTotal: faceInstructions.length,
+        stuckOnStep: currentInstructionRef.current,
+        stuckOnInstruction: faceInstructions[currentInstructionRef.current]?.id,
+        timedOut: !!timeout,
+        yawStats: stat(yawVals),
+        pitchStats: stat(pitchVals),
+        lastConsecutiveNoFace: consecutiveFailsRef.current,
+      },
+      calibration: { ...calibrationRef.current },
+      env: {
+        ua: typeof navigator !== 'undefined' ? navigator.userAgent : 'n/a',
+        platform: typeof navigator !== 'undefined' ? (navigator as any).platform : 'n/a',
+        viewport: typeof window !== 'undefined' ? { w: window.innerWidth, h: window.innerHeight, dpr: window.devicePixelRatio } : null,
+      },
+      events: entries,
+    };
+    const json = JSON.stringify(report, null, 2);
+    setLastDebugReport(json);
+    try { localStorage.setItem('face_verify_last_debug_v1', json); } catch {}
+    return json;
+  }, []);
+  const downloadDebugReport = useCallback(() => {
+    const json = lastDebugReport ?? buildAndStoreDebugReport('failed');
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `face-verify-debug-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }, [lastDebugReport, buildAndStoreDebugReport]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const instructionTimerRef = useRef<NodeJS.Timeout | null>(null);
   const poseCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -870,6 +947,18 @@ const FaceVerification = () => {
     setLiveDiag(null); setCalibrating(false);
     faceChunksRef.current = [];
     capturedAnglesRef.current = {};
+    // Reset debug log for this attempt
+    debugLogRef.current = [];
+    sessionStartRef.current = Date.now();
+    consecutiveFailsRef.current = 0;
+    setLastDebugReport(null);
+    pushDebug({
+      kind: 'start',
+      attempt: failedAttempts + 1,
+      calibration: { ...calibrationRef.current },
+      ua: typeof navigator !== 'undefined' ? navigator.userAgent : 'n/a',
+      viewport: typeof window !== 'undefined' ? { w: window.innerWidth, h: window.innerHeight, dpr: window.devicePixelRatio } : null,
+    });
 
     try {
       const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') 
@@ -905,6 +994,14 @@ const FaceVerification = () => {
         setVerificationTime(elapsed);
         if (elapsed >= overallSec) {
           const allDone = instructionsCompletedRef.current.every(Boolean);
+          pushDebug({
+            kind: 'timeout',
+            elapsedSec: elapsed,
+            overallSec,
+            stepsCompleted: [...instructionsCompletedRef.current],
+            stuckOnStep: currentInstructionRef.current,
+            stuckOnInstruction: faceInstructions[currentInstructionRef.current]?.id,
+          });
           finishVerification(allDone);
         }
       }, 1000);
@@ -999,6 +1096,7 @@ const FaceVerification = () => {
       
       if (!result || !result.faceDetected) {
         consecutiveFails++;
+        consecutiveFailsRef.current = consecutiveFails;
         setScanningStatus('fail');
         setLiveDiag({
           faceDetected: false, eyesOpen: false, yaw: 0, pitch: 0, progress: 0,
@@ -1006,6 +1104,13 @@ const FaceVerification = () => {
             ? 'Still no face — improve lighting and hold the phone at eye level'
             : 'Face not detected — center your face in the oval',
           severity: 'error',
+        });
+        pushDebug({
+          kind: 'no_face',
+          consecutive: consecutiveFails,
+          step: currentInstructionRef.current,
+          instruction: faceInstructions[currentInstructionRef.current]?.id,
+          apiOk: !!result,
         });
         if (consecutiveFails >= 15) {
           finishVerification(false);
@@ -1037,6 +1142,7 @@ const FaceVerification = () => {
           saveCalibration(calib);
           setCalibrating(false);
           console.log('[FaceVerify] calibration', calib);
+          pushDebug({ kind: 'calib_done', calibration: { ...calib }, samples: calibSamplesRef.current.length });
         }
         return;
       }
@@ -1059,6 +1165,19 @@ const FaceVerification = () => {
           hint: passed ? 'Perfect — locking in…' : diag.hint,
           severity: passed ? 'ok' : diag.severity,
         });
+        pushDebug({
+          kind: 'tick',
+          step: instrIdx,
+          instruction: instruction.id,
+          yaw: +pose.yaw.toFixed(2),
+          pitch: +pose.pitch.toFixed(2),
+          eyesOpen: result.eyesOpen,
+          passed,
+          progress: +(passed ? 1 : diag.progress).toFixed(2),
+          hint: diag.hint,
+          baselineYaw: +calib.baselineYaw.toFixed(2),
+          baselinePitch: +calib.baselinePitch.toFixed(2),
+        });
         
         if (passed) {
           setScanningStatus('pass');
@@ -1073,6 +1192,7 @@ const FaceVerification = () => {
           newCompleted[instrIdx] = true;
           instructionsCompletedRef.current = newCompleted;
           setInstructionsCompleted([...newCompleted]);
+          pushDebug({ kind: 'step_pass', step: instrIdx, instruction: instruction.id });
           
           const nextIdx = instrIdx + 1;
           if (nextIdx < faceInstructions.length) {
@@ -1122,8 +1242,10 @@ const FaceVerification = () => {
         if (yawVariance < 5 && pitchVariance < 5) {
           // Suspiciously static — likely a photo
           console.log('[FaceVerify] ⚠️ Anti-spoof: pose too static, likely photo');
+          pushDebug({ kind: 'antispoof_fail', yawVariance, pitchVariance, samples: poseHistory.length });
           setVerificationFailed(true);
           setFailedAttempts(prev => prev + 1);
+          buildAndStoreDebugReport('antispoof');
           toast({
             title: "❌ " + localizedMsg.failed,
             description: localizedMsg.staticFace,
@@ -1133,14 +1255,23 @@ const FaceVerification = () => {
         }
       }
       
+      pushDebug({ kind: 'finish', success: true });
       setFaceVerified(true);
       toast({
         title: localizedMsg.success,
         description: localizedMsg.successDesc,
       });
     } else {
+      pushDebug({
+        kind: 'finish',
+        success: false,
+        stepsCompleted: [...instructionsCompletedRef.current],
+        stuckOnStep: currentInstructionRef.current,
+        stuckOnInstruction: faceInstructions[currentInstructionRef.current]?.id,
+      });
       setVerificationFailed(true);
       setFailedAttempts(prev => prev + 1);
+      buildAndStoreDebugReport('failed');
       toast({
         title: "❌ " + localizedMsg.failed,
         description: localizedMsg.failedDesc,
@@ -2073,13 +2204,26 @@ const FaceVerification = () => {
       )}
       
       {verificationFailed && (
-        <Button
-          className="w-full h-14 bg-gradient-to-r from-amber-600 to-orange-600 rounded-2xl text-lg font-bold"
-          onClick={resetVerification}
-        >
-          <RotateCcw className="w-6 h-6 mr-3" />
-          {localizedMsg.tryAgain}
-        </Button>
+        <div className="space-y-2">
+          <Button
+            className="w-full h-14 bg-gradient-to-r from-amber-600 to-orange-600 rounded-2xl text-lg font-bold"
+            onClick={resetVerification}
+          >
+            <RotateCcw className="w-6 h-6 mr-3" />
+            {localizedMsg.tryAgain}
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full h-11 rounded-xl border-slate-300 text-slate-700 hover:bg-slate-50 text-sm font-medium"
+            onClick={downloadDebugReport}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Download debug log (.json)
+          </Button>
+          <p className="text-[11px] text-slate-500 text-center px-2">
+            Includes calibration, every poll tick (yaw/pitch/eyes/no-face), step progress and timeout data — share with support.
+          </p>
+        </div>
       )}
       
       {faceVerified && (
