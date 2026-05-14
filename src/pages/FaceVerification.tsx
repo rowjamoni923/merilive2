@@ -1038,6 +1038,7 @@ const FaceVerification = () => {
       
       if (!result || !result.faceDetected) {
         consecutiveFails++;
+        consecutiveFailsRef.current = consecutiveFails;
         setScanningStatus('fail');
         setLiveDiag({
           faceDetected: false, eyesOpen: false, yaw: 0, pitch: 0, progress: 0,
@@ -1045,6 +1046,13 @@ const FaceVerification = () => {
             ? 'Still no face — improve lighting and hold the phone at eye level'
             : 'Face not detected — center your face in the oval',
           severity: 'error',
+        });
+        pushDebug({
+          kind: 'no_face',
+          consecutive: consecutiveFails,
+          step: currentInstructionRef.current,
+          instruction: faceInstructions[currentInstructionRef.current]?.id,
+          apiOk: !!result,
         });
         if (consecutiveFails >= 15) {
           finishVerification(false);
