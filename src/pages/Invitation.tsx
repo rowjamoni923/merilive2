@@ -603,7 +603,7 @@ const Invitation = () => {
                 ))
               ) : (
                 <div className="text-center py-8">
-                  <Users className="w-10 h-10 text-white/10 mx-auto mb-2" />
+                  <Users className="w-10 h-10 text-slate-200 mx-auto mb-2" />
                   <p className="text-slate-600 text-sm">No invites yet</p>
                   <p className="text-slate-500 text-xs mt-1">Share your link to start inviting!</p>
                 </div>
@@ -744,9 +744,9 @@ const Invitation = () => {
 
             {leaderboard.length === 0 && (
               <div className="text-center py-12">
-                <Trophy className="w-14 h-14 text-white/15 mx-auto mb-3" />
+                <Trophy className="w-14 h-14 text-slate-200 mx-auto mb-3" />
                 <p className="text-slate-600 font-medium">No leaders yet</p>
-                <p className="text-white/25 text-sm mt-1">Share to be first!</p>
+                <p className="text-slate-300 text-sm mt-1">Share to be first!</p>
               </div>
             )}
           </div>

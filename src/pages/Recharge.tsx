@@ -2963,7 +2963,7 @@ const Recharge = () => {
               <Wallet className="w-5 h-5 text-purple-400" />
               Select Payment Method
             </DialogTitle>
-            <p className="text-center text-slate-200 text-sm mt-1">
+            <p className="text-center text-slate-600 text-sm mt-1">
               Choose your preferred payment wallet
             </p>
           </DialogHeader>
@@ -3011,7 +3011,7 @@ const Recharge = () => {
                     </div>
                     <div className="flex-1 text-left">
                       <h3 className="font-bold text-white text-lg">{gateway.name}</h3>
-                      <p className="text-sm text-slate-200 line-clamp-1">{gateway.description}</p>
+                      <p className="text-sm text-slate-600 line-clamp-1">{gateway.description}</p>
                       {gateway.fee_percentage > 0 && (
                         <p className="text-xs text-orange-400 mt-0.5">+{gateway.fee_percentage}% fee</p>
                       )}
@@ -3028,7 +3028,7 @@ const Recharge = () => {
                 );
               })
             ) : (
-              <div className="text-center py-10 text-slate-200">
+              <div className="text-center py-10 text-slate-600">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
                   <CreditCard className="w-8 h-8 text-slate-700" />
                 </div>
