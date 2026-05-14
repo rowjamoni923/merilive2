@@ -2305,15 +2305,15 @@ const Auth = () => {
 
       {/* Gender + Name Combined Dialog (Start flow & Email flow) */}
       <Dialog open={authStep === "gender"} onOpenChange={() => closeDialog()}>
-        <DialogContent className="max-w-sm mx-auto bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border-purple-500/30 p-6">
+        <DialogContent className="max-w-sm mx-auto bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF] border-amber-200/70 p-6">
           <DialogHeader>
             <div className="flex justify-center mb-3">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/30 to-pink-500/30 flex items-center justify-center">
-                <Sparkles className="w-8 h-8 text-purple-400" />
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-100 to-rose-100 border border-pink-200/70 flex items-center justify-center shadow-md shadow-pink-500/20">
+                <Sparkles className="w-8 h-8 text-pink-500" />
               </div>
             </div>
-            <DialogTitle className="text-white text-center text-2xl font-bold">Welcome! 🎉</DialogTitle>
-            <DialogDescription className="text-white/60 text-center text-sm">
+            <DialogTitle className="text-slate-800 text-center text-2xl font-bold">Welcome! 🎉</DialogTitle>
+            <DialogDescription className="text-slate-600 text-center text-sm">
               Enter your name & select gender
             </DialogDescription>
           </DialogHeader>
@@ -2321,14 +2321,14 @@ const Auth = () => {
           <div className="space-y-5 pt-2">
             {/* Name Input */}
             <div>
-              <label className="text-white/70 text-xs font-medium mb-1.5 block">Your Name</label>
+              <label className="text-slate-700 text-xs font-semibold mb-1.5 block">Your Name</label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Input
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="Enter your name"
-                  className="pl-10 h-11 bg-white/10 border-white/20 text-white placeholder:text-white/30 rounded-xl focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                  className="pl-10 h-11 bg-white border-amber-200/70 text-slate-800 placeholder:text-slate-400 rounded-xl focus:border-pink-400 focus:ring-1 focus:ring-pink-400"
                   maxLength={30}
                   autoFocus
                 />
@@ -2342,23 +2342,23 @@ const Auth = () => {
                 onClick={() => setSelectedGender("male")}
                 className={`relative p-4 rounded-2xl border-2 transition-all ${
                   selectedGender === "male"
-                    ? "border-blue-500 bg-blue-500/20"
-                    : "border-white/10 bg-white/5 hover:border-white/20"
+                    ? "border-blue-500 bg-blue-50 shadow-md shadow-blue-500/20"
+                    : "border-amber-200/60 bg-white hover:border-amber-300"
                 }`}
               >
                 <div className="flex flex-col items-center gap-2">
-                  <div className={`w-14 h-14 rounded-full bg-gradient-to-br from-blue-400/30 to-cyan-400/30 flex items-center justify-center text-3xl ${
+                  <div className={`w-14 h-14 rounded-full bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center text-3xl ${
                     selectedGender === "male" ? "ring-2 ring-blue-500" : ""
                   }`}>
                     👨
                   </div>
                   <span className={`font-semibold text-sm ${
-                    selectedGender === "male" ? "text-blue-400" : "text-white/70"
+                    selectedGender === "male" ? "text-blue-600" : "text-slate-700"
                   }`}>Male</span>
-                  <span className="text-[10px] text-white/40">User Account</span>
+                  <span className="text-[10px] text-slate-500">User Account</span>
                 </div>
                 {selectedGender === "male" && (
-                  <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
+                  <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center shadow-md">
                     <Check className="w-4 h-4 text-white" />
                   </div>
                 )}
@@ -2369,25 +2369,25 @@ const Auth = () => {
                 onClick={() => setSelectedGender("female")}
                 className={`relative p-4 rounded-2xl border-2 transition-all ${
                   selectedGender === "female"
-                    ? "border-pink-500 bg-pink-500/20"
-                    : "border-white/10 bg-white/5 hover:border-white/20"
+                    ? "border-pink-500 bg-pink-50 shadow-md shadow-pink-500/20"
+                    : "border-amber-200/60 bg-white hover:border-amber-300"
                 }`}
               >
                 <div className="flex flex-col items-center gap-2">
-                  <div className={`w-14 h-14 rounded-full bg-gradient-to-br from-pink-400/30 to-rose-400/30 flex items-center justify-center text-3xl ${
+                  <div className={`w-14 h-14 rounded-full bg-gradient-to-br from-pink-100 to-rose-100 flex items-center justify-center text-3xl ${
                     selectedGender === "female" ? "ring-2 ring-pink-500" : ""
                   }`}>
                     👩
                   </div>
                   <span className={`font-semibold text-sm ${
-                    selectedGender === "female" ? "text-pink-400" : "text-white/70"
+                    selectedGender === "female" ? "text-pink-600" : "text-slate-700"
                   }`}>Female</span>
                   <div className="flex items-center gap-1">
-                    <span className="text-[10px] text-yellow-400">👑 Host Account</span>
+                    <span className="text-[10px] text-amber-600 font-semibold">👑 Host Account</span>
                   </div>
                 </div>
                 {selectedGender === "female" && (
-                  <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-pink-500 flex items-center justify-center">
+                  <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-pink-500 flex items-center justify-center shadow-md">
                     <Check className="w-4 h-4 text-white" />
                   </div>
                 )}
@@ -2396,8 +2396,8 @@ const Auth = () => {
 
             {/* Female host notice */}
             {selectedGender === "female" && (
-              <div className="p-3 rounded-xl bg-gradient-to-r from-pink-500/10 to-purple-500/10 border border-pink-500/20">
-                <p className="text-pink-300 text-xs text-center">
+              <div className="p-3 rounded-xl bg-gradient-to-r from-pink-50 to-rose-50 border border-pink-200/70">
+                <p className="text-pink-700 text-xs text-center font-medium">
                   👑 Selecting Female will automatically convert your account to a Host account!
                 </p>
               </div>
