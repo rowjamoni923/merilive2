@@ -257,7 +257,7 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
                          value={searchQuery}
                          onChange={(e) => setSearchQuery(e.target.value)}
                          placeholder="Search country..."
-                         className="pl-10 h-12 bg-amber-50/70 border-amber-300/60 text-white placeholder:text-slate-500 rounded-xl"
+                         className="pl-10 h-12 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 rounded-xl"
                          autoFocus
                        />
                      </div>
@@ -297,7 +297,7 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
                      <Button
                        onClick={() => setShowCountryPicker(false)}
                        variant="outline"
-                       className="w-full h-10 border-amber-300/60 text-white hover:bg-amber-50/70"
+                       className="w-full h-10 border-slate-200 text-slate-700 hover:bg-slate-50"
                      >
                        Cancel
                      </Button>
@@ -308,7 +308,7 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
                      <div className="flex gap-2">
                        <button
                          onClick={() => setShowCountryPicker(true)}
-                         className="flex items-center gap-2 px-3 h-14 bg-amber-50/70 border border-amber-300/60 text-white rounded-xl hover:bg-amber-50/70 transition-colors"
+                         className="flex items-center gap-2 px-3 h-14 bg-white border border-slate-200 text-slate-900 rounded-xl hover:bg-amber-50/70 transition-colors"
                        >
                          <span className="text-xl">{selectedCountry.flag}</span>
                          <span className="text-sm font-medium">{selectedCountry.code}</span>
@@ -320,7 +320,7 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
                          value={phoneNumber}
                          onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
                          placeholder="Phone number"
-                         className="flex-1 h-14 text-lg bg-amber-50/70 border-amber-300/60 text-white placeholder:text-slate-500 rounded-xl"
+                         className="flex-1 h-14 text-lg bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 rounded-xl"
                          autoFocus
                        />
                      </div>
@@ -394,7 +394,7 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
                    value={displayName}
                    onChange={(e) => setDisplayName(e.target.value)}
                    placeholder="Enter your name"
-                   className="h-14 text-lg bg-amber-50/70 border-amber-300/60 text-white placeholder:text-slate-500 rounded-xl text-center"
+                   className="h-14 text-lg bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 rounded-xl text-center"
                    autoFocus
                  />
                  
@@ -439,7 +439,7 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
                      }}
                      placeholder="000000"
                      maxLength={6}
-                     className="h-16 w-48 text-center text-3xl font-bold tracking-[0.5em] bg-amber-50/70 border-amber-300/60 text-white placeholder:text-slate-500 rounded-xl"
+                     className="h-16 w-48 text-center text-3xl font-bold tracking-[0.5em] bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 rounded-xl"
                      autoFocus
                    />
                  </div>
