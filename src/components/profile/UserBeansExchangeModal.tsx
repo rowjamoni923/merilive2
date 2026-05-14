@@ -377,13 +377,13 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
             disabled={!isReady || processing}
             className={`w-full h-14 rounded-2xl text-base font-bold transition-all duration-300 border-0 ${
               isReady
-                ? 'bg-gradient-to-r from-warning-500 via-warning-500 to-warning-500 text-black shadow-[0_4px_30px_-5px_rgba(245,158,11,0.5)] hover:shadow-[0_4px_40px_-5px_rgba(245,158,11,0.7)]'
-                : 'bg-white text-slate-600 cursor-not-allowed'
+                ? 'bg-gradient-to-r from-primary via-secondary to-primary text-primary-foreground shadow-lg shadow-brand-900/20 hover:scale-[1.01]'
+                : 'bg-muted text-muted-foreground cursor-not-allowed'
             }`}
           >
             {processing ? (
               <div className="flex items-center gap-2">
-                <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                 Processing...
               </div>
             ) : isReady ? (
@@ -398,7 +398,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
             )}
           </Button>
 
-          <p className="text-center text-slate-600 text-[11px]">
+          <p className="text-center text-muted-foreground text-[11px]">
             Exchanged diamonds will be added to your My Diamonds balance
           </p>
         </div>
