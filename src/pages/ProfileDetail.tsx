@@ -708,7 +708,7 @@ const ProfileDetail = () => {
           </motion.p>
           <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }}>
             <Button variant="outline" onClick={() => navigate(-1)}
- className="bg-white/5 border-slate-200/10 text-slate-900 hover:bg-white/10">
+ className="bg-white/5 border-slate-200/10 text-white hover:bg-white/10">
               <ArrowLeft className="w-4 h-4 mr-2" /> Go Back
             </Button>
           </motion.div>

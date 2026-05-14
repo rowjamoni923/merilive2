@@ -275,12 +275,12 @@ const AgencyTransferHistory = () => {
       {/* Header */}
       <header className="flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r from-brand-600 to-info-600 text-white safe-area-top">
         <div className="px-4 py-3 flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="text-slate-800 hover:bg-white/20" onClick={() => navigate(-1)}>
+          <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex-1">
             <h1 className="text-lg font-bold">Host Earning History</h1>
-            <p className="text-xs text-slate-600">Weekly host earnings & agency commission</p>
+            <p className="text-xs text-white/80">Weekly host earnings & agency commission</p>
           </div>
         </div>
       </header>

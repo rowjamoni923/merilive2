@@ -2038,7 +2038,7 @@ const Recharge = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-xl text-slate-800 hover:bg-white/20 w-10 h-10"
+              className="rounded-xl text-white hover:bg-white/20 w-10 h-10"
               onClick={() => navigate(-1)}
             >
               <ArrowLeft className="w-5 h-5" />
@@ -2047,7 +2047,7 @@ const Recharge = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-xl text-slate-800 hover:bg-white/20 w-10 h-10"
+              className="rounded-xl text-white hover:bg-white/20 w-10 h-10"
               onClick={() => navigate('/recharge-history')}
             >
               <FileText className="w-5 h-5" />
@@ -2094,7 +2094,7 @@ const Recharge = () => {
                   "flex-1 py-2 px-2 rounded-md text-xs font-semibold transition-all flex items-center justify-center gap-1",
                   selectedTab === tab.id
                     ? "bg-white text-primary shadow-md"
-                    : "text-slate-800/80 hover:text-slate-800 hover:bg-white/15"
+                    : "text-slate-800/80 hover:text-white hover:bg-white/15"
                 )}
               >
                 {tab.icon}

@@ -461,12 +461,12 @@ const AgencyCoinTrader = () => {
       {/* Header */}
       <header className="flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r from-success-600 to-success-600 text-white safe-area-top">
         <div className="px-4 py-3 flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="text-slate-800 hover:bg-white/20" onClick={() => navigate(-1)}>
+          <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex-1">
             <h1 className="text-lg font-bold">Diamond Trader</h1>
-            <p className="text-xs text-slate-600">{agency?.name}</p>
+            <p className="text-xs text-white/80">{agency?.name}</p>
           </div>
         </div>
       </header>
@@ -486,7 +486,7 @@ const AgencyCoinTrader = () => {
                 <p className="text-3xl font-bold">
                   {((helperData?.wallet_balance ?? 0) + (agency?.diamond_balance ?? 0)).toLocaleString()}
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-white/80">
                   Helper {(helperData?.wallet_balance ?? 0).toLocaleString()} + Agency {(agency?.diamond_balance ?? 0).toLocaleString()}
                 </p>
               </div>
