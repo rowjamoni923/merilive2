@@ -560,24 +560,24 @@ export default function BlogPage() {
       )}
 
       {/* Footer */}
-      <footer className="border-t border-white/10 py-8 px-4 bg-slate-900/50">
+      <footer className="border-t border-amber-200/60 py-8 px-4 bg-white/70 backdrop-blur">
         <div className="container mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <img src={meriliveLogo} alt="MeriLive" className="w-8 h-8 rounded-lg object-contain" />
-              <span className="text-white font-semibold">MeriLive</span>
+              <span className="text-slate-800 font-semibold">MeriLive</span>
             </div>
-            <div className="text-muted-foreground text-sm">
+            <div className="text-slate-500 text-sm">
               © 2026 MeriLive. All rights reserved.
             </div>
             <div className="flex gap-6">
-              <button onClick={() => navigate("/privacy-policy")} className="text-sm text-muted-foreground hover:text-white transition-colors">
+              <button onClick={() => navigate("/privacy-policy")} className="text-sm text-slate-600 hover:text-pink-600 transition-colors">
                 Privacy
               </button>
-              <button onClick={() => navigate("/terms")} className="text-sm text-muted-foreground hover:text-white transition-colors">
+              <button onClick={() => navigate("/terms")} className="text-sm text-slate-600 hover:text-pink-600 transition-colors">
                 Terms
               </button>
-              <button onClick={() => navigate("/contact")} className="text-sm text-muted-foreground hover:text-white transition-colors">
+              <button onClick={() => navigate("/contact")} className="text-sm text-slate-600 hover:text-pink-600 transition-colors">
                 Contact
               </button>
             </div>
