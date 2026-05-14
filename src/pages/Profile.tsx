@@ -2882,11 +2882,11 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             <div className="mt-4 bg-slate-800/50 rounded-xl p-3 border border-amber-500/20">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-amber-400/70">Agency</p>
+                  <p className="text-xs text-amber-200/90 font-semibold uppercase tracking-wider">Agency</p>
                   <p className="font-semibold text-amber-200">{agencyData?.name || 'Loading...'}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-amber-400/70">Your Beans</p>
+                  <p className="text-xs text-amber-200/90 font-semibold uppercase tracking-wider">Your Beans</p>
                   <p className="font-bold text-lg text-amber-400 flex items-center gap-1"><BeansIcon size={16} /> {beans.toLocaleString()}</p>
                 </div>
               </div>
@@ -2897,18 +2897,18 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             {/* Exchange Rate Info */}
             <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl p-4 border border-purple-500/30">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-purple-300">Exchange Rate</span>
+                <span className="text-purple-200/95 font-medium">Exchange Rate</span>
                 <span className="text-white font-semibold">{agencyExchangeSettings.beans_to_diamonds_rate} Beans = 1 💎</span>
               </div>
               <div className="flex items-center justify-between text-sm mt-2">
-                <span className="text-purple-300">Fee</span>
+                <span className="text-purple-200/95 font-medium">Fee</span>
                 <span className="text-orange-400 font-semibold">{agencyExchangeSettings.exchange_fee_percent}%</span>
               </div>
             </div>
 
             {/* Amount Input */}
             <div className="space-y-2">
-              <Label className="text-amber-300 text-sm">Beans Amount</Label>
+              <Label className="text-amber-200 text-sm font-semibold uppercase tracking-wider">Beans Amount</Label>
               <Input
                 type="number"
                 placeholder={`Min ${agencyExchangeSettings.min_exchange_amount}`}
@@ -2958,13 +2958,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             {parseInt(exchangeBeansAmount) > 0 && (
               <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-xl p-4 border border-emerald-500/30">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-emerald-300 text-sm">You'll Get</span>
+                  <span className="text-emerald-200 text-sm font-semibold">You'll Get</span>
                   <span className="text-2xl font-bold text-emerald-400 flex items-center gap-1">
                     💎 {exchangeDiamondsToGet.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-orange-300">Fee ({agencyExchangeSettings.exchange_fee_percent}%)</span>
+                  <span className="text-orange-200">Fee ({agencyExchangeSettings.exchange_fee_percent}%)</span>
                   <span className="text-orange-400 flex items-center gap-1">-{exchangeFeeAmount.toLocaleString()} <BeansIcon size={12} /></span>
                 </div>
                 <div className="flex items-center justify-between text-sm mt-1">

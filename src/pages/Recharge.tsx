@@ -2064,7 +2064,7 @@ const Recharge = () => {
                   <Diamond3DIcon size={24} />
                 </div>
                 <div>
-                  <p className="text-slate-500 text-[10px] font-medium">Your Balance</p>
+                  <p className="text-white/85 text-[10px] font-semibold uppercase tracking-wider">Your Balance</p>
                   <span className="text-xl font-bold text-white">
                     {formatNumber(currentBalance)}
                   </span>
@@ -2073,7 +2073,7 @@ const Recharge = () => {
               
               {currencyRate && (
                 <div className="bg-white/20 backdrop-blur-sm rounded-lg px-2.5 py-1.5 text-right">
-                  <p className="text-slate-700 text-[9px] font-medium">Currency</p>
+                  <p className="text-white/85 text-[9px] font-semibold uppercase tracking-wider">Currency</p>
                   <p className="text-white font-bold text-sm">
                     {currencyRate.currency_symbol} {currencyRate.currency_code}
                   </p>
@@ -2094,7 +2094,7 @@ const Recharge = () => {
                   "flex-1 py-2 px-2 rounded-md text-xs font-semibold transition-all flex items-center justify-center gap-1",
                   selectedTab === tab.id
                     ? "bg-white text-primary shadow-md"
-                    : "text-slate-600 hover:text-white hover:bg-white/10"
+                    : "text-white/80 hover:text-white hover:bg-white/15"
                 )}
               >
                 {tab.icon}
