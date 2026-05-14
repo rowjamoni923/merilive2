@@ -916,14 +916,10 @@ const ProfileDetail = () => {
         initial={{ y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         className="relative -mt-24 mx-3 rounded-3xl overflow-hidden"
-        style={{
-          background: 'linear-gradient(135deg, rgba(20,15,40,0.95) 0%, rgba(15,10,35,0.98) 50%, rgba(25,15,45,0.95) 100%)',
-          border: '1px solid rgba(168,85,247,0.15)',
-          boxShadow: '0 25px 60px -12px rgba(0,0,0,0.8), 0 0 40px rgba(168,85,247,0.08)',
-        }}
       >
+        <div className="absolute inset-0 profile-home-card rounded-3xl" />
         {/* Subtle inner glow */}
-        <div className="absolute inset-0 rounded-3xl" style={{ background: 'radial-gradient(ellipse at top center, rgba(168,85,247,0.08) 0%, transparent 60%)' }} />
+        <div className="absolute inset-0 rounded-3xl" style={{ background: 'radial-gradient(ellipse at top center, rgba(236,72,153,0.08) 0%, transparent 60%)' }} />
         
         <div className="relative p-4 sm:p-5">
           {/* Banned Account Banner */}
@@ -960,7 +956,7 @@ const ProfileDetail = () => {
             <div className="flex-1 min-w-0">
               {/* Name */}
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-lg font-bold text-white">
+                  <h1 className="text-lg font-bold text-slate-950">
                   {profile.display_name || profile.username || "User"}
                 </h1>
                 {(profile.is_verified || (profile as any).is_face_verified) && (
@@ -1001,9 +997,9 @@ const ProfileDetail = () => {
                 ) : null}
 
                 {/* ID Badge - inline with level & status */}
-                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">
+                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white border border-slate-200 backdrop-blur-sm">
                   <span className="w-3.5 h-3.5 rounded-full bg-gradient-to-r from-fuchsia-500 to-purple-500 flex items-center justify-center text-white text-[6px] font-bold">ID</span>
-                  <span className="text-white/85 font-mono text-[10px] tracking-wider">{profile.app_uid || "00000000"}</span>
+                  <span className="text-slate-700 font-mono text-[10px] tracking-wider">{profile.app_uid || "00000000"}</span>
                 </div>
 
                 {profile.age && profile.gender && (
@@ -1047,7 +1043,7 @@ const ProfileDetail = () => {
                   onClick={handleFollow}
                   className={`mt-2.5 px-5 py-1.5 rounded-full text-xs font-bold transition-all ${
                     isFollowing 
-                      ? "bg-white/10 text-white border border-white/20 backdrop-blur-sm" 
+                      ? "bg-white text-slate-700 border border-slate-200 backdrop-blur-sm" 
                       : "bg-gradient-to-r from-fuchsia-500 via-purple-500 to-pink-500 text-white shadow-lg shadow-fuchsia-500/30"
                   }`}
                 >
