@@ -34,22 +34,23 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
           className="fixed inset-0 z-[99999] flex flex-col items-center justify-center overflow-hidden"
           style={{
             background:
-              'radial-gradient(ellipse at top, hsl(280 60% 14%) 0%, hsl(240 30% 6%) 55%, hsl(240 30% 3%) 100%)',
+              'radial-gradient(ellipse at top, #FFFBF2 0%, #FAF5EA 55%, #F5EFDF 100%)',
           }}
         >
-          {/* Animated stars */}
+          {/* Animated soft particles */}
           {[...Array(18)].map((_, i) => (
             <motion.div
               key={i}
-              className="absolute rounded-full bg-white"
+              className="absolute rounded-full"
               style={{
-                width: Math.random() * 3 + 1,
-                height: Math.random() * 3 + 1,
+                width: Math.random() * 4 + 2,
+                height: Math.random() * 4 + 2,
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
+                background: i % 2 === 0 ? 'rgba(236,72,153,0.35)' : 'rgba(168,85,247,0.3)',
               }}
               initial={{ opacity: 0 }}
-              animate={{ opacity: [0, 0.9, 0.2] }}
+              animate={{ opacity: [0, 0.7, 0.1] }}
               transition={{
                 duration: 2 + Math.random() * 2,
                 repeat: Infinity,
@@ -61,12 +62,12 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
           {/* Glow halo */}
           <motion.div
             initial={{ scale: 0.4, opacity: 0 }}
-            animate={{ scale: 1.1, opacity: 0.5 }}
+            animate={{ scale: 1.1, opacity: 0.55 }}
             transition={{ duration: 1.2, ease: 'easeOut' }}
             className="absolute w-[420px] h-[420px] rounded-full pointer-events-none"
             style={{
               background:
-                'radial-gradient(circle, hsl(330 90% 60% / 0.45) 0%, hsl(280 80% 55% / 0.18) 45%, transparent 75%)',
+                'radial-gradient(circle, rgba(236,72,153,0.35) 0%, rgba(168,85,247,0.18) 45%, transparent 75%)',
               filter: 'blur(20px)',
             }}
           />
