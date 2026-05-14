@@ -10,7 +10,7 @@ export const EpayGlobalBanner = () => (
     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
     <div className="absolute bottom-0 left-0 right-0 p-4 flex items-end gap-3">
       <div className="flex-1">
-        <p className="text-amber-300 text-[11px] font-bold tracking-[0.15em] uppercase mb-1 drop-shadow-lg">
+        <p className="text-amber-700 text-[11px] font-bold tracking-[0.15em] uppercase mb-1 drop-shadow-lg">
           Global Withdrawal
         </p>
         <h3 className="text-white text-xl font-extrabold leading-tight drop-shadow-lg">
@@ -23,7 +23,7 @@ export const EpayGlobalBanner = () => (
       <img
         src={epayLogo}
         alt="ePay Logo"
-        className="w-14 h-14 object-contain bg-white/90 rounded-xl p-1.5 flex-shrink-0 shadow-lg"
+        className="w-14 h-14 object-contain bg-white rounded-xl p-1.5 flex-shrink-0 shadow-lg"
       />
     </div>
   </div>
@@ -35,7 +35,7 @@ export const LocalCurrencyBanner = () => (
     <img src={localCurrencyBg} alt="" className="w-full h-auto object-cover" />
     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
     <div className="absolute bottom-0 left-0 right-0 p-4">
-      <p className="text-emerald-300 text-[11px] font-bold tracking-[0.15em] uppercase mb-1 drop-shadow-lg">
+      <p className="text-emerald-600 text-[11px] font-bold tracking-[0.15em] uppercase mb-1 drop-shadow-lg">
         Auto Payment System
       </p>
       <h3 className="text-white text-xl font-extrabold leading-tight drop-shadow-lg">
@@ -80,7 +80,7 @@ export const DailyTransactionLimitsBanner = () => (
     <div className="relative z-10 p-4">
       {/* Header */}
       <div className="text-center mb-3">
-        <p className="text-amber-300 text-[11px] font-bold tracking-[0.15em] uppercase mb-0.5 drop-shadow-lg">
+        <p className="text-amber-700 text-[11px] font-bold tracking-[0.15em] uppercase mb-0.5 drop-shadow-lg">
           Daily Transaction Limits
         </p>
         <h3 className="text-white text-base font-extrabold drop-shadow-lg">
@@ -105,7 +105,7 @@ export const DailyTransactionLimitsBanner = () => (
 
       {/* Footer badge */}
       <div className="flex justify-center">
-        <span className="bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-[11px] font-bold px-4 py-1.5 rounded-full drop-shadow-lg">
+        <span className="bg-emerald-500/20 border border-emerald-400/30 text-emerald-600 text-[11px] font-bold px-4 py-1.5 rounded-full drop-shadow-lg">
           ✅ Local Currency Available
         </span>
       </div>

@@ -682,7 +682,7 @@ const Index = () => {
             </div>
 
             {/* Refresh hint */}
-            <p className="mt-4 text-xs text-slate-400">
+            <p className="mt-4 text-xs text-slate-500">
               Pull down to refresh
             </p>
           </div>

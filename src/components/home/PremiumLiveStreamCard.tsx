@@ -144,7 +144,7 @@ export const PremiumLiveStreamCard = ({
             animate={{ scale: [1, 1.2, 1] }}
             transition={{ duration: 1.5, repeat: Infinity }}
           >
-            <Eye className="w-3.5 h-3.5 text-pink-400" />
+            <Eye className="w-3.5 h-3.5 text-pink-600" />
           </motion.div>
           <motion.span
             className="text-xs text-white font-bold"
@@ -170,7 +170,7 @@ export const PremiumLiveStreamCard = ({
               animate={{ rotate: [0, 15, -15, 0], scale: [1, 1.2, 1] }}
               transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
             >
-              <Gift className="w-3.5 h-3.5 text-yellow-300" />
+              <Gift className="w-3.5 h-3.5 text-yellow-700" />
             </motion.div>
             <span className="text-xs text-white font-bold">{giftCount}</span>
           </div>
@@ -223,15 +223,15 @@ export const PremiumLiveStreamCard = ({
             />
           </div>
           <div className="flex justify-between mt-1 text-[10px] text-white font-bold">
-            <span className="text-blue-400">{pkProgress}%</span>
+            <span className="text-blue-600">{pkProgress}%</span>
             <motion.span 
-              className="text-yellow-400"
+              className="text-yellow-600"
               animate={{ scale: [1, 1.2, 1] }}
               transition={{ duration: 0.5, repeat: Infinity }}
             >
               ⚔️ VS
             </motion.span>
-            <span className="text-pink-400">{100 - pkProgress}%</span>
+            <span className="text-pink-600">{100 - pkProgress}%</span>
           </div>
         </motion.div>
       )}
@@ -264,7 +264,7 @@ export const PremiumLiveStreamCard = ({
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 500 }}
                 >
-                  <Verified className="w-4 h-4 text-blue-400 fill-blue-400" />
+                  <Verified className="w-4 h-4 text-blue-600 fill-blue-400" />
                 </motion.div>
               )}
             </div>

@@ -982,7 +982,7 @@ function CampaignFloatingButton() {
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <div className="w-9 h-9 rounded-xl bg-purple-500/20 flex items-center justify-center">
-                        <CreditCard className="w-5 h-5 text-purple-400" />
+                        <CreditCard className="w-5 h-5 text-purple-600" />
                       </div>
                       <h3 className="text-base font-bold text-white">Secure Payment</h3>
                     </div>
@@ -1041,7 +1041,7 @@ function CampaignFloatingButton() {
                           {currentMethod.additional_info?.gateway_type && (
                             <div className="px-3 py-1 rounded-full bg-amber-600/30 border border-amber-500/40 flex items-center gap-1">
                               <span className="text-[10px]">⚡</span>
-                              <span className="text-[10px] font-bold text-amber-300 uppercase">Auto</span>
+                              <span className="text-[10px] font-bold text-amber-700 uppercase">Auto</span>
                             </div>
                           )}
                         </div>
@@ -1058,7 +1058,7 @@ function CampaignFloatingButton() {
                             <button
                               type="button"
                               onClick={() => copyToClipboard(currentMethod.account_number)}
-                              className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-xl bg-amber-600/30 border border-amber-500/30 text-amber-300 text-xs font-semibold"
+                              className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-xl bg-amber-600/30 border border-amber-500/30 text-amber-700 text-xs font-semibold"
                             >
                               {copiedNumber ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                               Copy
@@ -1074,7 +1074,7 @@ function CampaignFloatingButton() {
                       <div className="rounded-2xl border border-amber-400/20 bg-amber-900/20 p-3 mb-3">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-base">⚠️</span>
-                          <p className="text-xs font-bold text-amber-300">
+                          <p className="text-xs font-bold text-amber-700">
                             {currentMethod.additional_info?.gateway_type ? 'Auto-Approve Notice' : 'Payment Notice'}
                           </p>
                         </div>
@@ -1082,7 +1082,7 @@ function CampaignFloatingButton() {
                           👉 You must send the <strong className="text-white">exact amount shown below</strong>, including decimals.
                         </p>
                         <p className="mt-1 text-[11px] text-white/60">
-                          💰 Amount to send: <strong className="text-amber-300">{convertToLocalCurrency(campaign.offer_price_usd || campaign.original_price_usd)}</strong>
+                          💰 Amount to send: <strong className="text-amber-700">{convertToLocalCurrency(campaign.offer_price_usd || campaign.original_price_usd)}</strong>
                         </p>
                       </div>
 

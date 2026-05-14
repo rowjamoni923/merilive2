@@ -2415,7 +2415,7 @@ const AgencyWithdrawal = () => {
             <p className="text-xs text-slate-600">{agency?.name}</p>
           </div>
           <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-            <Sparkles className="w-5 h-5 text-yellow-300" />
+            <Sparkles className="w-5 h-5 text-yellow-700" />
           </div>
         </div>
       </header>
@@ -2444,19 +2444,19 @@ const AgencyWithdrawal = () => {
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-3 border border-amber-200/60">
                 <div className="flex items-center gap-2 mb-1">
-                  <DollarSign className="w-4 h-4 text-yellow-300" />
+                  <DollarSign className="w-4 h-4 text-yellow-700" />
                   <p className="text-slate-700 text-xs">USD Value</p>
                 </div>
-                <p className="text-xl font-bold text-yellow-300">
+                <p className="text-xl font-bold text-yellow-700">
                   ${beansToUsd(agency?.wallet_balance || 0).toFixed(2)}
                 </p>
               </div>
               <div className="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-3 border border-amber-200/60">
                 <div className="flex items-center gap-2 mb-1">
-                  <Globe className="w-4 h-4 text-cyan-300" />
+                  <Globe className="w-4 h-4 text-cyan-700" />
                   <p className="text-slate-700 text-xs">{countryConfig.currency} Value</p>
                 </div>
-                <p className="text-xl font-bold text-cyan-300">
+                <p className="text-xl font-bold text-cyan-700">
                   {formatLocalCurrency(beansToLocal(agency?.wallet_balance || 0))}
                 </p>
               </div>
@@ -2471,12 +2471,12 @@ const AgencyWithdrawal = () => {
               </div>
               <div className="flex items-center justify-center gap-4">
                 <div className="text-center px-3">
-                  <p className="text-yellow-300 font-bold">{formatNumber(coinsToUsdRate)}</p>
+                  <p className="text-yellow-700 font-bold">{formatNumber(coinsToUsdRate)}</p>
                   <p className="text-slate-500 text-xs">Beans = $1 USD</p>
                 </div>
                 <div className="h-8 w-px bg-white/20" />
                 <div className="text-center px-3">
-                  <p className="text-cyan-300 font-bold">{countryConfig.currencySymbol}{formatNumber(exchangeRates[countryConfig.currency] || 1)}</p>
+                  <p className="text-cyan-700 font-bold">{countryConfig.currencySymbol}{formatNumber(exchangeRates[countryConfig.currency] || 1)}</p>
                   <p className="text-slate-500 text-xs">= $1 USD</p>
                 </div>
               </div>
@@ -2542,7 +2542,7 @@ const AgencyWithdrawal = () => {
                                 {method.value === 'epay' && '🌍 '}{method.label}
                               </span>
                               {maxLimit && (
-                                <span className="text-xs text-gray-400 ml-2">
+                                <span className="text-xs text-slate-500 ml-2">
                                   (Max: {countryConfig.currencySymbol}{formatNumber(maxLimit)})
                                 </span>
                               )}
@@ -2596,7 +2596,7 @@ const AgencyWithdrawal = () => {
                       placeholder={`Enter amount in ${countryConfig.currency}`}
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
-                      className="flex-1 h-12 bg-white border-2 border-gray-200 hover:border-purple-400 focus:border-purple-500 focus:ring-purple-500/20 text-gray-900 font-medium placeholder:text-gray-400"
+                      className="flex-1 h-12 bg-white border-2 border-gray-200 hover:border-purple-400 focus:border-purple-500 focus:ring-purple-500/20 text-gray-900 font-medium placeholder:text-slate-500"
                     />
                     <Button
                       type="button"
@@ -2662,11 +2662,11 @@ const AgencyWithdrawal = () => {
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div className="bg-white/60 rounded-lg px-3 py-2">
+                    <div className="bg-white rounded-lg px-3 py-2">
                       <span className="text-gray-600">Fee in Beans:</span>
                       <span className="font-semibold text-red-600 ml-1">-{formatNumber(Math.round(getWithdrawalFeeBeans()))}</span>
                     </div>
-                    <div className="bg-white/60 rounded-lg px-3 py-2">
+                    <div className="bg-white rounded-lg px-3 py-2">
                       <span className="text-gray-600">Fee in {countryConfig.currency}:</span>
                       <span className="font-semibold text-red-600 ml-1">-{formatLocalCurrency(getWithdrawalFeeLocal())}</span>
                     </div>
@@ -2674,7 +2674,7 @@ const AgencyWithdrawal = () => {
                   
                   {/* Show fee tiers */}
                   {WITHDRAWAL_FEE_CONFIG[selectedCountry]?.tiers && (
-                    <div className="mt-2 text-xs text-gray-700 bg-white/60 rounded-lg p-2">
+                    <div className="mt-2 text-xs text-gray-700 bg-white rounded-lg p-2">
                       <p className="font-medium mb-1">Fee Tiers ({countryConfig.currency}):</p>
                       <div className="grid grid-cols-2 gap-1">
                         {WITHDRAWAL_FEE_CONFIG[selectedCountry].tiers?.slice(0, 4).map((tier, idx) => (
@@ -2729,7 +2729,7 @@ const AgencyWithdrawal = () => {
                     placeholder="Account holder's exact name"
                     value={accountName}
                     onChange={(e) => setAccountName(e.target.value)}
-                    className="h-12 bg-white border-2 border-gray-200 hover:border-purple-400 focus:border-purple-500 focus:ring-purple-500/20 text-gray-900 font-medium placeholder:text-gray-400"
+                    className="h-12 bg-white border-2 border-gray-200 hover:border-purple-400 focus:border-purple-500 focus:ring-purple-500/20 text-gray-900 font-medium placeholder:text-slate-500"
                   />
                 </div>
 
@@ -2741,7 +2741,7 @@ const AgencyWithdrawal = () => {
                     placeholder={getAccountFieldPlaceholder()}
                     value={accountNumber}
                     onChange={(e) => setAccountNumber(e.target.value)}
-                    className="h-12 bg-white border-2 border-gray-200 hover:border-purple-400 focus:border-purple-500 focus:ring-purple-500/20 text-gray-900 font-medium placeholder:text-gray-400"
+                    className="h-12 bg-white border-2 border-gray-200 hover:border-purple-400 focus:border-purple-500 focus:ring-purple-500/20 text-gray-900 font-medium placeholder:text-slate-500"
                   />
                   <p className="text-xs text-gray-500">
                     {paymentMethod === 'epay'
@@ -2761,7 +2761,7 @@ const AgencyWithdrawal = () => {
                     value={additionalInfo}
                     onChange={(e) => setAdditionalInfo(e.target.value)}
                     rows={2}
-                    className="bg-white border-2 border-gray-200 hover:border-purple-400 focus:border-purple-500 focus:ring-purple-500/20 text-gray-900 placeholder:text-gray-400"
+                    className="bg-white border-2 border-gray-200 hover:border-purple-400 focus:border-purple-500 focus:ring-purple-500/20 text-gray-900 placeholder:text-slate-500"
                   />
                 </div>
 
@@ -2794,7 +2794,7 @@ const AgencyWithdrawal = () => {
         </Card>
 
         {/* Withdrawal History */}
-        <Card className="shadow-xl border-0 bg-gradient-to-br from-amber-50 via-slate-800 to-orange-50 overflow-hidden">
+        <Card className="shadow-xl border-0 bg-gradient-to-br from-amber-50 via-white to-orange-50 overflow-hidden">
           <CardHeader className="pb-3 border-b border-amber-200/60">
             <CardTitle className="text-base flex items-center gap-3 text-slate-800">
               <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -2802,17 +2802,17 @@ const AgencyWithdrawal = () => {
               </div>
               <div>
                 <p className="font-bold">Withdrawal History</p>
-                <p className="text-xs text-slate-400 font-normal">{withdrawals.length} total requests</p>
+                <p className="text-xs text-slate-500 font-normal">{withdrawals.length} total requests</p>
               </div>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             {withdrawals.length === 0 ? (
               <div className="text-center py-16 px-4">
-                <div className="w-20 h-20 bg-slate-700/50 rounded-full mx-auto mb-4 flex items-center justify-center">
+                <div className="w-20 h-20 bg-slate-100/50 rounded-full mx-auto mb-4 flex items-center justify-center">
                   <Clock className="w-10 h-10 text-slate-500" />
                 </div>
-                <p className="font-semibold text-slate-400">No withdrawals yet</p>
+                <p className="font-semibold text-slate-500">No withdrawals yet</p>
                 <p className="text-sm text-slate-500 mt-1">Your withdrawal history will appear here</p>
               </div>
             ) : (
@@ -2829,11 +2829,11 @@ const AgencyWithdrawal = () => {
                     : withdrawal.status;
                   
                   const statusConfig = {
-                    completed: { bg: 'from-emerald-500/20 to-green-500/20', iconBg: 'bg-emerald-500', text: 'text-emerald-400', border: 'border-emerald-500/30' },
-                    pending: { bg: 'from-amber-500/20 to-orange-500/20', iconBg: 'bg-amber-500', text: 'text-amber-400', border: 'border-amber-500/30' },
-                    processing: { bg: 'from-blue-500/20 to-cyan-500/20', iconBg: 'bg-blue-500', text: 'text-blue-400', border: 'border-blue-500/30' },
-                    rejected: { bg: 'from-red-500/20 to-pink-500/20', iconBg: 'bg-red-500', text: 'text-red-400', border: 'border-red-500/30' },
-                    approved: { bg: 'from-emerald-500/20 to-green-500/20', iconBg: 'bg-emerald-500', text: 'text-emerald-400', border: 'border-emerald-500/30' }
+                    completed: { bg: 'from-emerald-500/20 to-green-500/20', iconBg: 'bg-emerald-500', text: 'text-emerald-600', border: 'border-emerald-500/30' },
+                    pending: { bg: 'from-amber-500/20 to-orange-500/20', iconBg: 'bg-amber-500', text: 'text-amber-600', border: 'border-amber-500/30' },
+                    processing: { bg: 'from-blue-500/20 to-cyan-500/20', iconBg: 'bg-blue-500', text: 'text-blue-600', border: 'border-blue-500/30' },
+                    rejected: { bg: 'from-red-500/20 to-pink-500/20', iconBg: 'bg-red-500', text: 'text-red-600', border: 'border-red-500/30' },
+                    approved: { bg: 'from-emerald-500/20 to-green-500/20', iconBg: 'bg-emerald-500', text: 'text-emerald-600', border: 'border-emerald-500/30' }
                   };
                   const config = statusConfig[displayStatus as keyof typeof statusConfig] || statusConfig.pending;
                   
@@ -2849,7 +2849,7 @@ const AgencyWithdrawal = () => {
                         setSelectedWithdrawal(withdrawal);
                         setShowDetailDialog(true);
                       }}
-                      className={`w-full p-4 text-left hover:bg-slate-700/30 transition-all duration-200 active:scale-[0.99]`}
+                      className={`w-full p-4 text-left hover:bg-slate-100/30 transition-all duration-200 active:scale-[0.99]`}
                     >
                       <div className="flex items-center gap-3">
                         {/* Status Icon */}
@@ -2866,14 +2866,14 @@ const AgencyWithdrawal = () => {
                           <div className="flex items-center gap-2 mb-1">
                             <span className="text-lg">{countryFlag}</span>
                             <span className="text-slate-800 font-bold text-lg">{formatNumber(withdrawal.amount)}</span>
-                            <span className="text-slate-400 text-sm">Beans</span>
+                            <span className="text-slate-500 text-sm">Beans</span>
                           </div>
                           <div className="flex items-center gap-2 text-sm">
-                            <span className="bg-gradient-to-r from-pink-500/30 to-purple-500/30 text-pink-300 px-2 py-0.5 rounded-md text-xs font-medium border border-pink-500/30">
+                            <span className="bg-gradient-to-r from-pink-500/30 to-purple-500/30 text-pink-700 px-2 py-0.5 rounded-md text-xs font-medium border border-pink-500/30">
                               {withdrawal.payment_method?.toUpperCase()}
                             </span>
                             <span className="text-slate-500">•</span>
-                            <span className="text-slate-400 text-xs">
+                            <span className="text-slate-500 text-xs">
                               {new Date(withdrawal.requested_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                             </span>
                           </div>
@@ -2900,13 +2900,13 @@ const AgencyWithdrawal = () => {
 
       {/* Confirm Dialog */}
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <DialogContent className="mx-4 rounded-2xl bg-gradient-to-br from-amber-50 via-slate-800 to-orange-50 border-white/20">
+        <DialogContent className="mx-4 rounded-2xl bg-gradient-to-br from-amber-50 via-white to-orange-50 border-white/20">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-slate-800">
-              <CheckCircle className="w-5 h-5 text-purple-400" />
+              <CheckCircle className="w-5 h-5 text-purple-600" />
               Confirm Withdrawal
             </DialogTitle>
-            <DialogDescription className="text-slate-400">
+            <DialogDescription className="text-slate-500">
               Please review and confirm your withdrawal details
             </DialogDescription>
           </DialogHeader>
@@ -2919,24 +2919,24 @@ const AgencyWithdrawal = () => {
             
             {/* Main Amount - Local Currency Only */}
             <div className="bg-emerald-500/10 rounded-xl p-4 text-center border border-emerald-500/30">
-              <p className="text-sm text-slate-400 mb-1">Withdrawal Amount</p>
-              <p className="text-3xl font-bold text-emerald-400">{formatLocalCurrency(localAmount)}</p>
+              <p className="text-sm text-slate-500 mb-1">Withdrawal Amount</p>
+              <p className="text-3xl font-bold text-emerald-600">{formatLocalCurrency(localAmount)}</p>
             </div>
             
             {/* Fee Info - Local Currency Only */}
             <div className="bg-amber-500/10 rounded-lg p-3 border border-amber-500/30 space-y-2">
               <div className="flex justify-between items-center">
-                <span className="font-medium text-amber-300">Fee (deducted):</span>
-                <span className="font-bold text-red-400">-{countryConfig.currencySymbol}{getWithdrawalFeeLocal().toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                <span className="font-medium text-amber-700">Fee (deducted):</span>
+                <span className="font-bold text-red-600">-{countryConfig.currencySymbol}{getWithdrawalFeeLocal().toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
               </div>
-              <p className="text-xs text-amber-400/70 italic">Fee is deducted from your withdrawal amount</p>
+              <p className="text-xs text-amber-600/70 italic">Fee is deducted from your withdrawal amount</p>
               <div className="border-t border-amber-200/60 pt-2 mt-2">
                 <div className="flex justify-between items-center mb-1">
-                  <span className="font-semibold text-emerald-300">You Will Receive:</span>
-                  <span className="font-bold text-lg text-emerald-400">{countryConfig.currencySymbol}{Math.max(0, localAmount - getWithdrawalFeeLocal()).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                  <span className="font-semibold text-emerald-600">You Will Receive:</span>
+                  <span className="font-bold text-lg text-emerald-600">{countryConfig.currencySymbol}{Math.max(0, localAmount - getWithdrawalFeeLocal()).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="font-semibold text-sm text-slate-400">Balance Deduction:</span>
+                  <span className="font-semibold text-sm text-slate-500">Balance Deduction:</span>
                   <span className="font-medium text-slate-500">{countryConfig.currencySymbol}{localAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
                 </div>
               </div>
@@ -2944,27 +2944,27 @@ const AgencyWithdrawal = () => {
             
             <div className="border-t border-amber-200/60 pt-3 mt-3 space-y-2">
               <div className="flex justify-between">
-                <span className="text-slate-400">Payment Method:</span>
+                <span className="text-slate-500">Payment Method:</span>
                 <span className="font-medium text-slate-800 capitalize">{countryConfig.paymentMethods.find(m => m.value === paymentMethod)?.label || paymentMethod}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Account Name:</span>
+                <span className="text-slate-500">Account Name:</span>
                 <span className="font-medium text-slate-800">{getNormalizedAccountName()}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">{getAccountFieldLabel()}:</span>
+                <span className="text-slate-500">{getAccountFieldLabel()}:</span>
                 <span className="font-medium text-slate-800">{getNormalizedAccountNumber()}</span>
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-slate-500">Min Withdrawal:</span>
-                <span className="text-slate-400">
+                <span className="text-slate-500">
                   {countryConfig.currencySymbol}{formatNumber(Math.ceil(getMinWithdrawalLocal()))}
                 </span>
               </div>
               {PAYMENT_MAX_LIMITS[selectedCountry]?.[paymentMethod] && (
                 <div className="flex justify-between text-xs">
                   <span className="text-slate-500">Max Limit:</span>
-                  <span className="text-slate-400">
+                  <span className="text-slate-500">
                     {countryConfig.currencySymbol}{formatNumber(PAYMENT_MAX_LIMITS[selectedCountry][paymentMethod])}
                   </span>
                 </div>
@@ -2973,7 +2973,7 @@ const AgencyWithdrawal = () => {
           </div>
 
           <DialogFooter className="flex gap-2 mt-4">
-            <Button variant="outline" onClick={() => setShowConfirmDialog(false)} disabled={submitting} className="flex-1 border-slate-600 text-slate-500 hover:bg-slate-700">
+            <Button variant="outline" onClick={() => setShowConfirmDialog(false)} disabled={submitting} className="flex-1 border-slate-600 text-slate-500 hover:bg-slate-100">
               Cancel
             </Button>
             <Button onClick={handleSubmitWithdrawal} disabled={submitting} className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
@@ -2986,7 +2986,7 @@ const AgencyWithdrawal = () => {
 
       {/* Withdrawal Detail Dialog */}
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-        <DialogContent className="mx-4 rounded-2xl bg-gradient-to-br from-amber-50 via-slate-800 to-orange-50 border-white/20 max-h-[85vh] overflow-y-auto">
+        <DialogContent className="mx-4 rounded-2xl bg-gradient-to-br from-amber-50 via-white to-orange-50 border-white/20 max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3 text-slate-800">
               {(() => {
@@ -3004,11 +3004,11 @@ const AgencyWithdrawal = () => {
                   rejected: 'bg-red-500'
                 };
                 const statusTextMap: Record<string, string> = {
-                  completed: 'text-emerald-400',
-                  approved: 'text-emerald-400',
-                  pending: 'text-amber-400',
-                  processing: 'text-blue-400',
-                  rejected: 'text-red-400'
+                  completed: 'text-emerald-600',
+                  approved: 'text-emerald-600',
+                  pending: 'text-amber-600',
+                  processing: 'text-blue-600',
+                  rejected: 'text-red-600'
                 };
                 
                 return (
@@ -3021,7 +3021,7 @@ const AgencyWithdrawal = () => {
                     </div>
                     <div>
                       <p className="font-bold">Withdrawal Details</p>
-                      <p className={`text-sm font-medium capitalize ${statusTextMap[detailDisplayStatus || 'pending'] || 'text-indigo-400'}`}>
+                      <p className={`text-sm font-medium capitalize ${statusTextMap[detailDisplayStatus || 'pending'] || 'text-indigo-600'}`}>
                         {detailDisplayStatus}
                       </p>
                     </div>
@@ -3036,14 +3036,14 @@ const AgencyWithdrawal = () => {
               {/* Amount Card */}
               <div className="bg-gradient-to-br from-emerald-500/20 to-green-500/20 rounded-xl p-4 border border-emerald-500/30">
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-emerald-400">{formatNumber(selectedWithdrawal.amount)}</p>
-                  <p className="text-xs text-slate-400">Beans</p>
+                  <p className="text-3xl font-bold text-emerald-600">{formatNumber(selectedWithdrawal.amount)}</p>
+                  <p className="text-xs text-slate-500">Beans</p>
                 </div>
               </div>
               
               {/* Country, Payment Method, Currency Row */}
               <div className="flex items-center justify-center gap-2 flex-wrap">
-                <div className="bg-slate-700/50 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+                <div className="bg-slate-100/50 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
                   <span className="text-lg">
                     {selectedWithdrawal.payment_details?.country_code === 'BD' ? '🇧🇩' :
                      selectedWithdrawal.payment_details?.country_code === 'IN' ? '🇮🇳' :
@@ -3054,25 +3054,25 @@ const AgencyWithdrawal = () => {
                 </div>
                 <span className="text-slate-500">•</span>
                 <div className="bg-gradient-to-r from-pink-500/30 to-purple-500/30 px-3 py-1.5 rounded-lg border border-pink-500/40">
-                  <span className="text-pink-300 font-bold text-sm">{selectedWithdrawal.payment_method?.toUpperCase()}</span>
+                  <span className="text-pink-700 font-bold text-sm">{selectedWithdrawal.payment_method?.toUpperCase()}</span>
                 </div>
                 <span className="text-slate-500">•</span>
                 <div className="bg-gradient-to-r from-green-500/30 to-emerald-500/30 px-3 py-1.5 rounded-lg border border-green-500/40">
-                  <span className="text-green-300 font-bold text-sm">{selectedWithdrawal.payment_details?.currency_code || 'N/A'}</span>
+                  <span className="text-green-700 font-bold text-sm">{selectedWithdrawal.payment_details?.currency_code || 'N/A'}</span>
                 </div>
               </div>
               
               {/* Amount Details */}
-              <div className="bg-white/80 rounded-xl p-4 space-y-3">
+              <div className="bg-white rounded-xl p-4 space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-400">USD Value</span>
-                  <span className="text-emerald-400 font-bold text-lg">
+                  <span className="text-slate-500">USD Value</span>
+                  <span className="text-emerald-600 font-bold text-lg">
                     ${(selectedWithdrawal.payment_details?.usd_amount || beansToUsd(selectedWithdrawal.amount)).toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-400">Local Amount</span>
-                  <span className="text-purple-400 font-bold text-lg">
+                  <span className="text-slate-500">Local Amount</span>
+                  <span className="text-purple-600 font-bold text-lg">
                     {(() => {
                       const wCurrency = selectedWithdrawal.payment_details?.currency_code || 'BDT';
                       const wConfig = Object.values(COUNTRY_CONFIGS).find(c => c.currency === wCurrency) || countryConfig;
@@ -3084,7 +3084,7 @@ const AgencyWithdrawal = () => {
                 {selectedWithdrawal.payment_details?.exchange_rate && (
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-slate-500">Exchange Rate</span>
-                    <span className="text-slate-400">$1 = {selectedWithdrawal.payment_details.exchange_rate}</span>
+                    <span className="text-slate-500">$1 = {selectedWithdrawal.payment_details.exchange_rate}</span>
                   </div>
                 )}
               </div>
@@ -3093,8 +3093,8 @@ const AgencyWithdrawal = () => {
               {selectedWithdrawal.payment_details?.withdrawal_fee_usd && (
                 <div className="bg-amber-500/10 rounded-xl p-4 border border-amber-500/30">
                   <div className="flex justify-between items-center">
-                    <span className="text-amber-400 font-medium">Withdrawal Fee</span>
-                    <span className="text-amber-400 font-bold">
+                    <span className="text-amber-600 font-medium">Withdrawal Fee</span>
+                    <span className="text-amber-600 font-bold">
                       ${selectedWithdrawal.payment_details.withdrawal_fee_usd.toFixed(2)} ({formatNumber(selectedWithdrawal.payment_details.withdrawal_fee_beans || 0)} Beans)
                     </span>
                   </div>
@@ -3102,33 +3102,33 @@ const AgencyWithdrawal = () => {
               )}
               
               {/* Payment Details */}
-              <div className="bg-white/80 rounded-xl p-4">
+              <div className="bg-white rounded-xl p-4">
                 <p className="text-slate-800 font-semibold mb-3 flex items-center gap-2">
-                  <CreditCard className="w-4 h-4 text-cyan-400" />
+                  <CreditCard className="w-4 h-4 text-cyan-600" />
                   Payment Details
                 </p>
                 <div className="space-y-2 text-sm">
                   {selectedWithdrawal.payment_details?.account_name && (
                     <div className="flex justify-between">
-                      <span className="text-slate-400">Account Name</span>
+                      <span className="text-slate-500">Account Name</span>
                       <span className="text-slate-800 font-medium">{selectedWithdrawal.payment_details.account_name}</span>
                     </div>
                   )}
                   {selectedWithdrawal.payment_details?.account_number && (
                     <div className="flex justify-between">
-                      <span className="text-slate-400">Account Number</span>
+                      <span className="text-slate-500">Account Number</span>
                       <span className="text-slate-800 font-medium">{selectedWithdrawal.payment_details.account_number}</span>
                     </div>
                   )}
                   {selectedWithdrawal.payment_details?.bank_name && (
                     <div className="flex justify-between">
-                      <span className="text-slate-400">Bank Name</span>
+                      <span className="text-slate-500">Bank Name</span>
                       <span className="text-slate-800 font-medium">{selectedWithdrawal.payment_details.bank_name}</span>
                     </div>
                   )}
                   {selectedWithdrawal.payment_details?.additional_info && (
                     <div className="flex justify-between">
-                      <span className="text-slate-400">Additional Info</span>
+                      <span className="text-slate-500">Additional Info</span>
                       <span className="text-slate-800 font-medium">{selectedWithdrawal.payment_details.additional_info}</span>
                     </div>
                   )}
@@ -3136,7 +3136,7 @@ const AgencyWithdrawal = () => {
               </div>
               
               {/* Request Time */}
-              <div className="text-center text-sm text-slate-400 pt-2">
+              <div className="text-center text-sm text-slate-500 pt-2">
                 <Clock className="w-4 h-4 inline-block mr-1" />
                 Requested: {formatDate(selectedWithdrawal.requested_at)}
               </div>
