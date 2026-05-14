@@ -16,7 +16,10 @@
     "fix:dark": "node scripts/fix-dark-tokens.mjs",
     "fix:dark:dry": "node scripts/fix-dark-tokens.mjs --dry",
     "check:contrast": "node scripts/check-contrast.mjs",
-    "check:contrast:baseline": "node scripts/check-contrast.mjs --baseline"
+    "check:contrast:baseline": "node scripts/check-contrast.mjs --baseline",
+    "test:visual": "playwright test",
+    "test:visual:update": "playwright test --update-snapshots",
+    "test:visual:report": "playwright show-report"
   },
   "dependencies": {
     "@capacitor-firebase/authentication": "^8.0.1",
