@@ -1940,6 +1940,11 @@ const FaceVerification = () => {
                     <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300 font-mono">
                       Pitch {liveDiag.pitch >= 0 ? '+' : ''}{liveDiag.pitch.toFixed(0)}°
                     </span>
+                    {!calibrating && calibrationRef.current.capturedAt > 0 && (
+                      <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-300" title={`Baseline yaw ${calibrationRef.current.baselineYaw.toFixed(0)}° / pitch ${calibrationRef.current.baselinePitch.toFixed(0)}° · noise ${(calibrationRef.current.noiseYaw + calibrationRef.current.noisePitch).toFixed(1)}°`}>
+                        Calibrated ✓
+                      </span>
+                    )}
                   </div>
                 </div>
               </motion.div>
