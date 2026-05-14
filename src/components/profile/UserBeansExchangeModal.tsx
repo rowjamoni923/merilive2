@@ -190,12 +190,13 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
 
     setProcessing(true);
     try {
-      const { data, error } = await supabase.rpc('exchange_user_beans_to_diamonds', {
+      const rpcArgs = {
         _user_id: userId,
         _beans_amount: beansToExchange,
         _diamonds_reward: diamondsToReceive,
-        _tier_id: tierId ?? null,
-      });
+        ...(tierId ? { _tier_id: tierId } : {}),
+      };
+      const { data, error } = await supabase.rpc('exchange_user_beans_to_diamonds', rpcArgs);
       if (error) throw error;
       const result = data as { success?: boolean; error?: string } | null;
       if (result && result.success === false) {
