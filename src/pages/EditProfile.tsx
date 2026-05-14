@@ -434,7 +434,7 @@ const EditProfile = () => {
             <h2 className="mt-4 text-xl font-bold text-slate-800">{displayName || "Set Nickname"}</h2>
             <div className="flex items-center gap-2 mt-1">
               <span className="text-sm text-slate-600">ID: {profile?.app_uid || "N/A"}</span>
-              <button onClick={copyId} className="p-1 hover:bg-white/10 rounded">
+              <button onClick={copyId} className="p-1 hover:bg-amber-100 rounded transition-colors">
                 <Copy className="w-3.5 h-3.5 text-purple-400" />
               </button>
             </div>
