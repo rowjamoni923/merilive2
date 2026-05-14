@@ -1556,6 +1556,18 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
     },
   ].filter(item => item.show);
 
+  const getProfileIconTone = (index: number) => {
+    const tones = [
+      "bg-pink-50 text-pink-600 border-pink-100",
+      "bg-purple-50 text-purple-600 border-purple-100",
+      "bg-blue-50 text-blue-600 border-blue-100",
+      "bg-emerald-50 text-emerald-600 border-emerald-100",
+      "bg-amber-50 text-amber-600 border-amber-100",
+      "bg-rose-50 text-rose-600 border-rose-100",
+    ];
+    return tones[index % tones.length];
+  };
+
   // Redirect to auth if not logged in and viewing own profile
   useEffect(() => {
     if (!loading || currentUser || !isOwnProfile) return;
@@ -1708,32 +1720,17 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-[#0c0515] overflow-hidden">
-      {/* Premium Background — rich layered nebula effect */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        {/* Deep base gradient */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#1a0533] via-[#0f0720] to-[#080312]" />
-        {/* Top-left warm accent */}
-        <div className="absolute -top-10 -left-10 w-72 h-72 bg-purple-700/20 rounded-full blur-[100px]" />
-        {/* Top-right cool accent */}
-        <div className="absolute top-10 -right-16 w-64 h-64 bg-indigo-600/15 rounded-full blur-[90px]" />
-        {/* Center subtle pink */}
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-80 h-48 bg-fuchsia-700/8 rounded-full blur-[80px]" />
-        {/* Bottom subtle glow */}
-        <div className="absolute bottom-20 left-1/4 w-56 h-56 bg-purple-900/20 rounded-full blur-[100px]" />
-        {/* Fine grain texture overlay */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\'/%3E%3C/svg%3E")' }} />
-      </div>
+    <div className="fixed inset-0 flex flex-col profile-home-shell overflow-hidden">
 
       {/* Back Button - Fixed at top, never scrolls away */}
       <div className="fixed top-3 left-3 z-10 safe-area-top">
         <Button
           size="icon"
           variant="ghost"
-          className="w-10 h-10 rounded-2xl bg-white/5 backdrop-blur-xl hover:bg-white/10 border border-white/10 shadow-lg shadow-black/20"
+          className="w-10 h-10 rounded-full profile-home-icon-button hover:bg-slate-50"
           onClick={() => navigate(-1)}
         >
-          <ArrowLeft className="w-5 h-5 text-white/80" />
+          <ArrowLeft className="w-5 h-5 text-slate-700" />
         </Button>
       </div>
 
