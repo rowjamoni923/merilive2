@@ -2073,7 +2073,7 @@ const Recharge = () => {
               
               {currencyRate && (
                 <div className="bg-white/20 backdrop-blur-sm rounded-lg px-2.5 py-1.5 text-right">
-                  <p className="text-white/60 text-[9px] font-medium">Currency</p>
+                  <p className="text-white/90 text-[9px] font-medium">Currency</p>
                   <p className="text-white font-bold text-sm">
                     {currencyRate.currency_symbol} {currencyRate.currency_code}
                   </p>
@@ -2288,7 +2288,7 @@ const Recharge = () => {
                           <div className="flex items-center gap-3 p-3">
                             <div className={cn(
                               "w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0",
-                              globalRank <= 3 ? "bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow" : "bg-gray-100 text-gray-500"
+                              globalRank <= 3 ? "bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow" : "bg-gray-100 text-gray-300"
                             )}>
                               {globalRank <= 3 ? ['🥇','🥈','🥉'][globalRank-1] : `#${globalRank}`}
                             </div>
@@ -2304,10 +2304,10 @@ const Recharge = () => {
                                 <Badge className={cn("text-[8px] font-bold border-0 text-white bg-gradient-to-r px-1.5 py-0", levelColors)}>Trader</Badge>
                               </div>
                               <div className="flex items-center gap-1.5 mt-0.5">
-                                <span className={`text-[10px] font-medium ${helper.isOnline ? 'text-green-500' : 'text-gray-400'}`}>
+                                <span className={`text-[10px] font-medium ${helper.isOnline ? 'text-green-500' : 'text-gray-200'}`}>
                                   {helper.isOnline ? '● Online' : '○ Offline'}
                                 </span>
-                                {helper.appUid && <span className="text-[10px] text-gray-400">ID: {helper.appUid}</span>}
+                                {helper.appUid && <span className="text-[10px] text-gray-200">ID: {helper.appUid}</span>}
                               </div>
                               <div className="flex items-center gap-2 mt-0.5">
                                 <span className="text-[9px] text-orange-600 font-semibold">
@@ -2326,7 +2326,7 @@ const Recharge = () => {
                               {/* Accepted payment method logos (tick-marked by helper) */}
                               {helper.acceptedMethods && helper.acceptedMethods.length > 0 && (
                                 <div className="flex items-center gap-1 mt-1.5 flex-wrap">
-                                  <span className="text-[9px] text-gray-500 font-medium">Accepts:</span>
+                                  <span className="text-[9px] text-gray-300 font-medium">Accepts:</span>
                                   {helper.acceptedMethods.slice(0, 6).map((m) => {
                                     const resolved = resolveMethodLogo(m.logo_url, m.name);
                                     return (
@@ -2350,7 +2350,7 @@ const Recharge = () => {
                                     );
                                   })}
                                   {helper.acceptedMethods.length > 6 && (
-                                    <span className="text-[9px] text-gray-500 font-bold">+{helper.acceptedMethods.length - 6}</span>
+                                    <span className="text-[9px] text-gray-300 font-bold">+{helper.acceptedMethods.length - 6}</span>
                                   )}
                                 </div>
                               )}
@@ -2391,7 +2391,7 @@ const Recharge = () => {
               <div className="text-center py-12">
                 <Crown className="w-12 h-12 mx-auto mb-3 text-purple-200" />
                 <p className="font-semibold text-gray-600">No traders available</p>
-                <p className="text-xs mt-1 text-gray-400">
+                <p className="text-xs mt-1 text-gray-200">
                   No verified traders found for {geoLocation.country || 'your country'}
                 </p>
               </div>
@@ -2434,7 +2434,7 @@ const Recharge = () => {
                       </p>
                       <p className={cn(
                         "text-[10px] font-medium",
-                        selectedPaymentMethod === 'playstore' ? "text-white/80" : "text-gray-500"
+                        selectedPaymentMethod === 'playstore' ? "text-white/80" : "text-gray-300"
                       )}>
                         Worldwide • Instant
                       </p>
@@ -2482,7 +2482,7 @@ const Recharge = () => {
                         </p>
                         <p className={cn(
                           "text-[10px] font-medium",
-                          selectedPaymentMethod === 'stripe' ? "text-white/80" : "text-gray-500"
+                          selectedPaymentMethod === 'stripe' ? "text-white/80" : "text-gray-300"
                         )}>
                           ⚡ Instant • Secure
                         </p>
@@ -2525,7 +2525,7 @@ const Recharge = () => {
                         </p>
                         <p className={cn(
                           "text-[10px] truncate max-w-[70px] font-medium",
-                          selectedPaymentMethod === 'local' ? "text-white/80" : "text-gray-500"
+                          selectedPaymentMethod === 'local' ? "text-white/80" : "text-gray-300"
                         )}>
                           {helperPaymentMethods.length > 0 
                             ? Array.from(new Set(helperPaymentMethods.map(m => m.method_name.toLowerCase()))).slice(0, 2).map(m => m.charAt(0).toUpperCase() + m.slice(1)).join(', ')
@@ -2613,13 +2613,13 @@ const Recharge = () => {
                         {userCountryCode ? `No local methods for ${geoLocation.country || userCountryCode}` : 'Detecting location...'}
                       </span>
                     </div>
-                    <p className="text-[10px] text-gray-400 text-center px-4">
+                    <p className="text-[10px] text-gray-200 text-center px-4">
                       {userCountryCode 
                         ? 'Local payment helpers are not available in your region. Please use Google Play or contact support.'
                         : 'Please wait while we detect your location...'}
                     </p>
                     {!userCountryCode && (
-                      <RefreshCw className="w-4 h-4 text-gray-400 animate-spin mt-2" />
+                      <RefreshCw className="w-4 h-4 text-gray-200 animate-spin mt-2" />
                     )}
                     </div>
                 )}
@@ -2892,7 +2892,7 @@ const Recharge = () => {
                             <div className="text-xl font-black bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">
                               {formatNumber(Math.floor(pkg.coins + (pkg.coins * pkg.bonus_percentage / 100)))}
                             </div>
-                            <div className="text-[11px] text-gray-400 line-through font-medium">
+                            <div className="text-[11px] text-gray-200 line-through font-medium">
                               {formatNumber(pkg.coins)}
                             </div>
                           </>
@@ -2902,7 +2902,7 @@ const Recharge = () => {
                               {formatNumber(pkg.coins)}
                             </div>
                             {pkg.coins !== pkg.base_coins && (
-                              <div className="text-[11px] text-gray-400 line-through font-medium">
+                              <div className="text-[11px] text-gray-200 line-through font-medium">
                                 {formatNumber(pkg.base_coins)}
                               </div>
                             )}
@@ -2944,7 +2944,7 @@ const Recharge = () => {
             </div>
 
             {/* Agreement - Compact */}
-            <div className="flex items-center gap-1.5 mt-5 justify-center text-[10px] text-gray-400">
+            <div className="flex items-center gap-1.5 mt-5 justify-center text-[10px] text-gray-200">
               <Check className="w-3.5 h-3.5 text-emerald-500" />
               <span className="font-medium">
                 By purchasing you agree to our Terms & Privacy
@@ -2963,7 +2963,7 @@ const Recharge = () => {
               <Wallet className="w-5 h-5 text-purple-400" />
               Select Payment Method
             </DialogTitle>
-            <p className="text-center text-slate-400 text-sm mt-1">
+            <p className="text-center text-slate-200 text-sm mt-1">
               Choose your preferred payment wallet
             </p>
           </DialogHeader>
@@ -3011,7 +3011,7 @@ const Recharge = () => {
                     </div>
                     <div className="flex-1 text-left">
                       <h3 className="font-bold text-white text-lg">{gateway.name}</h3>
-                      <p className="text-sm text-slate-400 line-clamp-1">{gateway.description}</p>
+                      <p className="text-sm text-slate-200 line-clamp-1">{gateway.description}</p>
                       {gateway.fee_percentage > 0 && (
                         <p className="text-xs text-orange-400 mt-0.5">+{gateway.fee_percentage}% fee</p>
                       )}
@@ -3028,18 +3028,18 @@ const Recharge = () => {
                 );
               })
             ) : (
-              <div className="text-center py-10 text-slate-400">
+              <div className="text-center py-10 text-slate-200">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-700/50 flex items-center justify-center">
-                  <CreditCard className="w-8 h-8 text-slate-500" />
+                  <CreditCard className="w-8 h-8 text-slate-300" />
                 </div>
                 <p className="font-medium">No payment methods available</p>
-                <p className="text-sm mt-1 text-slate-500">Please contact support</p>
+                <p className="text-sm mt-1 text-slate-300">Please contact support</p>
               </div>
             )}
           </div>
           
           <div className="mt-4 pt-4 border-t border-slate-700">
-            <p className="text-center text-xs text-slate-500">
+            <p className="text-center text-xs text-slate-300">
               🔒 Secure payment with end-to-end encryption
             </p>
           </div>
@@ -3250,23 +3250,23 @@ const Recharge = () => {
                     <h3 className="text-base font-bold text-white">Secure Payment</h3>
                   </div>
                   <button type="button" onClick={resetHelperPaymentForm} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
-                    <X className="w-4 h-4 text-white/60" />
+                    <X className="w-4 h-4 text-white/90" />
                   </button>
                 </div>
 
-                <p className="text-xs text-white/60 mb-3">
+                <p className="text-xs text-white/90 mb-3">
                   Pay via {selectedHelperMethod.method_name} to receive {formatNumber(selectedPackage.coins)} diamonds
                 </p>
 
                 <div className="rounded-2xl bg-white/5 border border-white/10 p-3 mb-3">
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-xs font-semibold text-white/50 uppercase tracking-wider">Amount</span>
+                    <span className="text-xs font-semibold text-white/85 uppercase tracking-wider">Amount</span>
                     <span className="text-xl font-bold text-white">
                       {selectedPackage?.price_usd ? convertToLocalCurrency(selectedPackage.price_usd) : ''}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-white/50">You'll receive</span>
+                    <span className="text-xs text-white/85">You'll receive</span>
                     <span className="text-sm font-semibold text-white">
                       💎 {formatNumber(selectedPackage.coins)} Diamonds
                     </span>
@@ -3299,7 +3299,7 @@ const Recharge = () => {
                       </div>
                       <div>
                         <p className="text-sm font-bold text-white">{selectedHelperMethod.method_name}</p>
-                        <p className="text-[10px] text-white/50">{selectedHelperMethod.additional_info?.gateway_type ? 'Merchant' : (selectedHelperMethod.account_name || selectedHelperMethod.method_name)}</p>
+                        <p className="text-[10px] text-white/85">{selectedHelperMethod.additional_info?.gateway_type ? 'Merchant' : (selectedHelperMethod.account_name || selectedHelperMethod.method_name)}</p>
                       </div>
                     </div>
                     {selectedHelperMethod.additional_info?.gateway_type && (
@@ -3311,7 +3311,7 @@ const Recharge = () => {
                   </div>
 
                   <div className="rounded-xl bg-black/20 border border-white/5 p-3">
-                    <p className="text-[10px] font-medium uppercase tracking-wider text-white/40 mb-1">
+                    <p className="text-[10px] font-medium uppercase tracking-wider text-white/80 mb-1">
                       {selectedHelperMethod.method_name} Number
                     </p>
                     <div className="flex items-center justify-between gap-2">
@@ -3328,7 +3328,7 @@ const Recharge = () => {
                       </button>
                     </div>
                     {selectedHelperMethod.account_name && (
-                      <p className="mt-1 text-[11px] text-white/40">• Name: {selectedHelperMethod.account_name}</p>
+                      <p className="mt-1 text-[11px] text-white/80">• Name: {selectedHelperMethod.account_name}</p>
                     )}
                   </div>
                 </div>
@@ -3343,7 +3343,7 @@ const Recharge = () => {
                   <p className="text-[11px] leading-5 text-white/70">
                     👉 You must send the <strong className="text-white">exact amount shown below</strong>, including decimals.
                   </p>
-                  <p className="mt-1 text-[11px] text-white/60">
+                  <p className="mt-1 text-[11px] text-white/90">
                     💰 Amount to send: <strong className="text-amber-300">{selectedPackage?.price_usd ? convertToLocalCurrency(selectedPackage.price_usd) : ''}</strong>
                   </p>
                   {selectedHelperMethod.additional_info?.gateway_type ? (
@@ -3351,7 +3351,7 @@ const Recharge = () => {
                       ⚡ Enter your transaction ID below to verify via ZiniPay.
                     </p>
                   ) : (
-                    <p className="mt-1 text-[11px] text-white/50">
+                    <p className="mt-1 text-[11px] text-white/85">
                       Helper will check your payment proof and approve it.
                     </p>
                   )}
@@ -3362,7 +3362,7 @@ const Recharge = () => {
                     type="button"
                     onClick={handleShowDifferentHelperNumber}
                     disabled={helperMethodPool.length <= 1}
-                    className="w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2.5 text-center text-[11px] font-medium text-white/60 mb-3 disabled:opacity-40"
+                    className="w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2.5 text-center text-[11px] font-medium text-white/90 mb-3 disabled:opacity-40"
                   >
                     Show different number ({helperMethodCycleProgress.current}/{helperMethodCycleProgress.total})
                   </button>
@@ -3389,7 +3389,7 @@ const Recharge = () => {
                   </div>
 
                   <div>
-                    <Label htmlFor="helperTransactionId" className="text-white/50 font-semibold text-[10px] uppercase tracking-wider">
+                    <Label htmlFor="helperTransactionId" className="text-white/85 font-semibold text-[10px] uppercase tracking-wider">
                       Transaction ID *
                     </Label>
                     <input
@@ -3399,7 +3399,7 @@ const Recharge = () => {
                       onChange={(e) => setHelperTransactionId(e.target.value)}
                       onInput={(e) => setHelperTransactionId((e.target as HTMLInputElement).value)}
                       placeholder="Enter your TrxID here"
-                      className="mt-1 w-full rounded-xl text-sm h-10 px-3 border border-white/10 bg-white/5 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-amber-400/30"
+                      className="mt-1 w-full rounded-xl text-sm h-10 px-3 border border-white/10 bg-white/5 text-white placeholder:text-white/70 focus:outline-none focus:ring-2 focus:ring-amber-400/30"
                       autoComplete="off"
                       inputMode="text"
                       style={{ userSelect: 'text', WebkitUserSelect: 'text' } as React.CSSProperties}
@@ -3415,7 +3415,7 @@ const Recharge = () => {
 
                   {!selectedHelperMethod.additional_info?.gateway_type && (
                     <div>
-                      <Label className="text-white/50 text-[10px] uppercase tracking-wider font-semibold">Payment Screenshot *</Label>
+                      <Label className="text-white/85 text-[10px] uppercase tracking-wider font-semibold">Payment Screenshot *</Label>
                       <div className="mt-1">
                         {helperPaymentProof ? (
                           <div className="relative rounded-xl overflow-hidden border border-white/10">
@@ -3433,8 +3433,8 @@ const Recharge = () => {
                               <div className="w-5 h-5 border-2 border-amber-300 border-t-transparent rounded-full animate-spin" />
                             ) : (
                               <>
-                                <Upload className="w-5 h-5 text-white/30 mb-1" />
-                                <span className="text-xs text-white/30">Upload screenshot</span>
+                                <Upload className="w-5 h-5 text-white/75 mb-1" />
+                                <span className="text-xs text-white/75">Upload screenshot</span>
                               </>
                             )}
                             <input
@@ -3471,7 +3471,7 @@ const Recharge = () => {
             <div className="text-center py-12">
               <div className="w-16 h-16 mx-auto mb-4 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin" />
               <h3 className="text-lg font-bold text-gray-800 mb-2">Sending to Helper</h3>
-              <p className="text-gray-500">Please wait while we notify the helper...</p>
+              <p className="text-gray-300">Please wait while we notify the helper...</p>
             </div>
           )}
 
@@ -3481,7 +3481,7 @@ const Recharge = () => {
                 <Check className="w-10 h-10 text-green-500" />
               </div>
               <h3 className="text-xl font-bold text-gray-800 mb-2">Order Submitted!</h3>
-              <p className="text-gray-500 mb-4">
+              <p className="text-gray-300 mb-4">
                 Helper has been notified and will process your order instantly.
               </p>
               
@@ -3490,7 +3490,7 @@ const Recharge = () => {
                   <Diamond className="w-5 h-5" />
                   {formatNumber(selectedPackage.coins)} Diamonds
                 </div>
-                <p className="text-sm text-gray-500 mt-1">Will be credited after helper approves</p>
+                <p className="text-sm text-gray-300 mt-1">Will be credited after helper approves</p>
               </div>
 
               <div className="bg-blue-500/10 rounded-xl p-3 mb-6">

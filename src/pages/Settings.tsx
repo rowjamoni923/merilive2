@@ -895,7 +895,7 @@ const Settings = () => {
         <DialogContent className="sm:max-w-md max-h-[80vh] bg-slate-900 border border-white/10">
           <DialogHeader>
             <DialogTitle className="text-white text-center">{t("settings.selectLanguage")}</DialogTitle>
-            <DialogDescription className="text-white/60 text-center">
+            <DialogDescription className="text-white/90 text-center">
               {t("settings.chooseLanguage")}
             </DialogDescription>
           </DialogHeader>
@@ -915,7 +915,7 @@ const Settings = () => {
                     <span className="text-2xl">{lang.flag}</span>
                     <div className="text-left">
                       <p className="font-semibold text-white">{lang.displayName}</p>
-                      <p className="text-xs text-white/50">{lang.name}</p>
+                      <p className="text-xs text-white/85">{lang.name}</p>
                     </div>
                   </div>
                   {selectedLanguage === lang.code && (
@@ -935,7 +935,7 @@ const Settings = () => {
         <DialogContent className="sm:max-w-md bg-slate-900 border border-white/10">
           <DialogHeader>
             <DialogTitle className="text-white text-center">{t("settings.notificationsPermissions")}</DialogTitle>
-            <DialogDescription className="text-white/60 text-center">
+            <DialogDescription className="text-white/90 text-center">
               {t("settings.managePermissions")}
             </DialogDescription>
           </DialogHeader>
@@ -975,7 +975,7 @@ const Settings = () => {
                 </div>
                 <div>
                    <p className="font-semibold text-white">{t("settings.pushNotifications")}</p>
-                   <p className="text-xs text-white/50">{t("settings.receiveAlerts")}</p>
+                   <p className="text-xs text-white/85">{t("settings.receiveAlerts")}</p>
                 </div>
               </div>
             <div
@@ -1002,7 +1002,7 @@ const Settings = () => {
                 </div>
                 <div>
                    <p className="font-semibold text-white">{t("settings.cameraAccess")}</p>
-                   <p className="text-xs text-white/50">{t("settings.forLiveStreaming")}</p>
+                   <p className="text-xs text-white/85">{t("settings.forLiveStreaming")}</p>
                 </div>
               </div>
       <div
@@ -1029,7 +1029,7 @@ const Settings = () => {
                 </div>
                 <div>
                    <p className="font-semibold text-white">{t("settings.microphoneAccess")}</p>
-                   <p className="text-xs text-white/50">{t("settings.forAudioStreaming")}</p>
+                   <p className="text-xs text-white/85">{t("settings.forAudioStreaming")}</p>
                 </div>
               </div>
       <div
@@ -1056,7 +1056,7 @@ const Settings = () => {
                 </div>
                 <div>
                    <p className="font-semibold text-white">{t("settings.locationAccess")}</p>
-                   <p className="text-xs text-white/50">{t("settings.showRegionFlag")}</p>
+                   <p className="text-xs text-white/85">{t("settings.showRegionFlag")}</p>
                 </div>
               </div>
       <div
