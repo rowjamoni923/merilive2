@@ -974,6 +974,12 @@ const FaceVerification = () => {
   // Real pose checking - captures frame & sends to face-check API
   const startRealPoseChecking = () => {
     let consecutiveFails = 0;
+    // Reset calibration sampler. We collect ~10 samples (≈2s @ 200ms / ≈2.5s
+    // @ 250ms — we sample faster than the main loop) of the user's natural
+    // pose before scoring any step.
+    calibSamplesRef.current = [];
+    setCalibrating(true);
+    const CALIB_TARGET = 8;
     
     poseCheckIntervalRef.current = setInterval(async () => {
       const videoEl = faceVideoRef.current;
@@ -997,7 +1003,6 @@ const FaceVerification = () => {
           severity: 'error',
         });
         if (consecutiveFails >= 15) {
-          // ~15s of no face → give up
           finishVerification(false);
         }
         return;
@@ -1006,16 +1011,42 @@ const FaceVerification = () => {
       consecutiveFails = 0;
       const pose = result.pose;
       
+      // ─── Calibration phase ─────────────────────────────────────────────
+      // Collect samples while the user looks naturally at the camera, then
+      // derive baseline + thresholds. Skip if we already have a fresh cached
+      // calibration AND this is not the first attempt of the session.
+      if (calibSamplesRef.current.length < CALIB_TARGET) {
+        calibSamplesRef.current.push({ yaw: pose.yaw, pitch: pose.pitch });
+        const filled = calibSamplesRef.current.length;
+        setLiveDiag({
+          faceDetected: true,
+          eyesOpen: result.eyesOpen,
+          yaw: pose.yaw, pitch: pose.pitch,
+          progress: filled / CALIB_TARGET,
+          hint: `Calibrating for your camera… (${filled}/${CALIB_TARGET})`,
+          severity: 'warn',
+        });
+        if (filled === CALIB_TARGET) {
+          const calib = calibrateThresholds(calibSamplesRef.current);
+          calibrationRef.current = calib;
+          saveCalibration(calib);
+          setCalibrating(false);
+          console.log('[FaceVerify] calibration', calib);
+        }
+        return;
+      }
+
       // Track pose history for anti-spoof (photos have zero variance)
       setPoseHistory(prev => [...prev.slice(-20), { yaw: pose.yaw, pitch: pose.pitch }]);
       
-      // Check current instruction
+      // Check current instruction using LIVE calibration
+      const calib = calibrationRef.current;
       const instrIdx = currentInstructionRef.current;
       const instruction = faceInstructions[instrIdx];
       
       if (instruction && !instructionsCompletedRef.current[instrIdx]) {
-        const passed = instruction.checkPose({ yaw: pose.yaw, pitch: pose.pitch });
-        const diag = computeStepDiag(instruction.id, pose, true, result.eyesOpen);
+        const passed = evaluatePose(instruction.id, pose, calib);
+        const diag = computeStepDiag(instruction.id, pose, true, result.eyesOpen, calib);
         setLiveDiag({
           faceDetected: true, eyesOpen: result.eyesOpen,
           yaw: pose.yaw, pitch: pose.pitch,
@@ -1026,7 +1057,6 @@ const FaceVerification = () => {
         
         if (passed) {
           setScanningStatus('pass');
-          // Capture this angle's still frame for AWS Rekognition (front/left/right only)
           if (instruction.id === 'center' || instruction.id === 'left' || instruction.id === 'right') {
             const angleKey = instruction.id as 'center' | 'left' | 'right';
             if (!capturedAnglesRef.current[angleKey]) {
@@ -1039,14 +1069,12 @@ const FaceVerification = () => {
           instructionsCompletedRef.current = newCompleted;
           setInstructionsCompleted([...newCompleted]);
           
-          // Move to next instruction
           const nextIdx = instrIdx + 1;
           if (nextIdx < faceInstructions.length) {
             currentInstructionRef.current = nextIdx;
             setCurrentInstruction(nextIdx);
             setScanningStatus('idle');
           } else {
-            // All instructions completed! 
             setTimeout(() => finishVerification(true), 500);
           }
         } else {
