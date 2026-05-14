@@ -837,26 +837,26 @@ const Tasks = () => {
                         boxShadow: '0 4px 20px rgba(251,191,36,0.15)',
                       }}
                     >
-                      <Gift className="w-7 h-7 text-amber-400" />
+                      <Gift className="w-7 h-7 text-amber-700" />
                     </div>
-                    <p className="text-amber-300 font-bold text-lg tracking-wide">Claim Your Reward</p>
+                    <p className="text-amber-800 font-bold text-lg tracking-wide">Claim Your Reward</p>
                     <div className="flex items-center justify-center gap-3 mt-3">
                       <span className="text-[11px] font-bold px-3 py-1.5 rounded-lg"
                         style={{
-                          background: 'linear-gradient(135deg, rgba(251,191,36,0.12), rgba(245,158,11,0.06))',
-                          border: '1px solid rgba(251,191,36,0.25)',
-                          color: '#fbbf24',
+                          background: 'linear-gradient(135deg, rgba(251,191,36,0.18), rgba(245,158,11,0.1))',
+                          border: '1px solid rgba(251,191,36,0.35)',
+                          color: '#b45309',
                           boxShadow: '0 2px 8px rgba(251,191,36,0.1)',
                         }}
                       >
                         Hosts: 10,000 🫘
                       </span>
-                      <span className="text-purple-400/40 text-xs">•</span>
+                      <span className="text-purple-500/70 text-xs">•</span>
                       <span className="text-[11px] font-bold px-3 py-1.5 rounded-lg"
                         style={{
-                          background: 'linear-gradient(135deg, rgba(139,92,246,0.12), rgba(168,85,247,0.06))',
-                          border: '1px solid rgba(139,92,246,0.25)',
-                          color: '#a78bfa',
+                          background: 'linear-gradient(135deg, rgba(139,92,246,0.18), rgba(168,85,247,0.1))',
+                          border: '1px solid rgba(139,92,246,0.35)',
+                          color: '#6d28d9',
                           boxShadow: '0 2px 8px rgba(139,92,246,0.1)',
                         }}
                       >
@@ -867,7 +867,7 @@ const Tasks = () => {
                 </div>
 
                 <div className="space-y-3">
-                  <p className="text-purple-200/60 text-xs text-center leading-relaxed">
+                  <p className="text-slate-600 text-xs text-center leading-relaxed">
                     Take a screenshot of your 5-star rating on Play Store and upload it below
                   </p>
                   
