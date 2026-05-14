@@ -253,8 +253,8 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
               onClick={() => { setUseCustom(false); setCustomBeans(""); }}
               className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all duration-300 border ${
                 !useCustom
-                  ? 'bg-warning-500/15 border-warning-500/40 text-warning-700 shadow-[0_0_20px_-5px_rgba(245,158,11,0.3)]'
-                  : 'bg-white border-warning-200/60 text-slate-600 hover:text-slate-600 hover:border-warning-200/60'
+                  ? 'bg-warning-100 border-warning-300 text-warning-800 shadow-sm'
+                  : 'bg-card border-border text-muted-foreground hover:text-foreground hover:border-warning-200'
               }`}
             >
               <Sparkles className="w-3.5 h-3.5 inline mr-1.5" />
@@ -264,8 +264,8 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
               onClick={() => { setUseCustom(true); setSelectedTier(null); }}
               className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all duration-300 border ${
                 useCustom
-                  ? 'bg-info-500/15 border-info-500/40 text-info-700 shadow-[0_0_20px_-5px_rgba(6,182,212,0.3)]'
-                  : 'bg-white border-warning-200/60 text-slate-600 hover:text-slate-600 hover:border-warning-200/60'
+                  ? 'bg-info-50 border-info-200 text-info-800 shadow-sm'
+                  : 'bg-card border-border text-muted-foreground hover:text-foreground hover:border-info-200'
               }`}
             >
               Custom Amount
@@ -277,7 +277,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
               <div className="w-8 h-8 border-2 border-warning-500/30 border-t-amber-500 rounded-full animate-spin" />
             </div>
           ) : tiers.length === 0 ? (
-            <div className="py-10 text-center text-slate-600 text-sm">
+            <div className="py-10 text-center text-muted-foreground text-sm">
               No exchange tiers available right now.
             </div>
           ) : useCustom ? (
@@ -291,17 +291,17 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
                   placeholder="Enter beans amount..."
                   value={customBeans}
                   onChange={(e) => setCustomBeans(e.target.value)}
-                  className="w-full h-14 pl-12 pr-4 rounded-2xl bg-white border border-warning-200/60 text-slate-800 text-lg font-semibold placeholder:text-slate-600 focus:outline-none focus:border-info-500/50 focus:bg-info-500/5 transition-all"
+                  className="w-full h-14 pl-12 pr-4 rounded-2xl bg-card border border-warning-200 text-foreground text-lg font-semibold placeholder:text-muted-foreground focus:outline-none focus:border-info-300 focus:bg-info-50 transition-all"
                 />
               </div>
 
               {customBeansNum > 0 && customTier && (
-                <div className="flex items-center justify-center gap-3 py-3 px-4 rounded-2xl bg-gradient-to-r from-info-500/5 to-info-500/5 border border-info-500/15">
+                <div className="flex items-center justify-center gap-3 py-3 px-4 rounded-2xl bg-info-50 border border-info-100">
                   <div className="flex items-center gap-1.5">
                     <Beans3DIcon size={18} />
                     <span className="text-warning-700 font-bold">{customBeansNum.toLocaleString()}</span>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-slate-600" />
+                  <ArrowRight className="w-4 h-4 text-muted-foreground" />
                   <div className="flex items-center gap-1.5">
                     <Diamond3DIcon size={18} />
                     <span className="text-info-700 font-bold">{customDiamonds.toLocaleString()}</span>
