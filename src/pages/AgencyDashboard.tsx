@@ -1529,7 +1529,7 @@ const AgencyDashboard = () => {
             </div>
 
             {/* Statistics Card */}
-            <Card className="border-0 shadow-md">
+            <Card className={premiumCardClass}>
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
                   <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -1561,23 +1561,23 @@ const AgencyDashboard = () => {
             </Card>
 
             {/* Withdrawal History */}
-            <Card className="border-0 shadow-md bg-white">
+            <Card className={premiumCardClass}>
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-base flex items-center gap-2 text-white">
-                    <div className="w-10 h-10 bg-indigo-500/30 rounded-xl flex items-center justify-center">
-                      <Clock className="w-5 h-5 text-indigo-400" />
+                  <CardTitle className="text-base flex items-center gap-2 text-foreground">
+                    <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
+                      <Clock className="w-5 h-5 text-indigo-600" />
                     </div>
                     <div>
                       <span>Withdrawal History</span>
-                      <p className="text-xs font-normal text-white/75">{withdrawals.length} total requests</p>
+                      <p className="text-xs font-normal text-muted-foreground">{withdrawals.length} total requests</p>
                     </div>
                   </CardTitle>
                   <Button 
                     variant="ghost" 
                     size="sm" 
                     onClick={() => navigate('/agency-withdrawal')}
-                    className="text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/20"
+                    className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
                   >
                     View All
                     <ChevronRight className="w-4 h-4 ml-1" />
@@ -1586,7 +1586,7 @@ const AgencyDashboard = () => {
               </CardHeader>
               <CardContent>
                 {withdrawals.length === 0 ? (
-                  <div className="text-center py-8 text-white/75">
+                  <div className="text-center py-8 text-muted-foreground">
                     <Wallet className="w-12 h-12 mx-auto mb-2 opacity-50" />
                     <p>No withdrawal history yet</p>
                   </div>
@@ -1619,7 +1619,7 @@ const AgencyDashboard = () => {
                         <div 
                           key={withdrawal.id}
                           onClick={() => navigate('/agency-withdrawal')}
-                          className="flex items-center gap-3 p-3 rounded-xl bg-slate-100 hover:bg-slate-100 transition-colors cursor-pointer"
+                          className={`flex items-center gap-3 p-3 rounded-xl transition-colors cursor-pointer hover:shadow-md ${premiumTileClass}`}
                         >
                           {/* Status Icon */}
                           <div className={`w-12 h-12 rounded-xl ${config.iconBg} flex items-center justify-center shadow-lg shrink-0`}>
@@ -1634,15 +1634,15 @@ const AgencyDashboard = () => {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
                               <span className="text-lg">{countryFlag}</span>
-                              <span className="text-white font-bold">{fmtNum(withdrawal.amount)}</span>
-                              <span className="text-white/75 text-sm">Beans</span>
+                              <span className="text-foreground font-bold">{fmtNum(withdrawal.amount)}</span>
+                              <span className="text-muted-foreground text-sm">Beans</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm">
-                              <span className="bg-gradient-to-r from-pink-500/30 to-purple-500/30 text-pink-300 px-2 py-0.5 rounded-md text-xs font-medium border border-pink-500/30">
+                              <span className="bg-gradient-to-r from-pink-50 to-purple-50 text-pink-700 px-2 py-0.5 rounded-md text-xs font-medium border border-pink-100">
                                 {withdrawal.payment_method?.toUpperCase()}
                               </span>
-                              <span className="text-white/85">•</span>
-                              <span className="text-white/75 text-xs">
+                              <span className="text-muted-foreground">•</span>
+                              <span className="text-muted-foreground text-xs">
                                 {new Date(withdrawal.requested_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                               </span>
                             </div>
