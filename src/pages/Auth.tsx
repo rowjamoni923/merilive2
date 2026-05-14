@@ -2873,10 +2873,10 @@ const Auth = () => {
               </div>
 
               {/* WhatsApp info badge */}
-              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-green-500/10 border border-green-500/20">
-                <MessageCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
-                <p className="text-green-300/80 text-xs">
-                  Verification code will be sent via <span className="font-bold text-green-300">WhatsApp</span>
+              <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200">
+                <MessageCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                <p className="text-emerald-800 text-xs">
+                  Verification code will be sent via <span className="font-bold text-emerald-900">WhatsApp</span>
                 </p>
               </div>
 
