@@ -702,7 +702,7 @@ const ProfileDetail = () => {
             Account Permanently Banned
           </motion.h1>
           <motion.p initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }}
-            className="text-white/50 text-sm leading-relaxed">
+            className="text-white/80 text-sm leading-relaxed">
             This account has been permanently suspended for violating our Community Guidelines. 
             All associated data, host privileges, and agency memberships have been revoked.
           </motion.p>
@@ -1004,7 +1004,7 @@ const ProfileDetail = () => {
                 {/* ID Badge - inline with level & status */}
                 <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">
                   <span className="w-3.5 h-3.5 rounded-full bg-gradient-to-r from-fuchsia-500 to-purple-500 flex items-center justify-center text-white text-[6px] font-bold">ID</span>
-                  <span className="text-white/60 font-mono text-[10px] tracking-wider">{profile.app_uid || "00000000"}</span>
+                  <span className="text-white/85 font-mono text-[10px] tracking-wider">{profile.app_uid || "00000000"}</span>
                 </div>
 
                 {profile.age && profile.gender && (
@@ -1243,9 +1243,9 @@ const ProfileDetail = () => {
             {profile.tags && profile.tags.length > 0 && (
               <div className="flex flex-wrap gap-2 pt-2 border-t border-white/5">
                 {profile.tags.map((tag, index) => {
-                  const style = tagStyles[tag] || { bg: "bg-white/5", text: "text-white/60", icon: "✨" };
+                  const style = tagStyles[tag] || { bg: "bg-white/5", text: "text-white/85", icon: "✨" };
                   return (
-                    <Badge key={index} className="gap-1 bg-white/5 text-white/60 border border-white/10 px-2 py-0.5 text-xs">
+                    <Badge key={index} className="gap-1 bg-white/5 text-white/85 border border-white/10 px-2 py-0.5 text-xs">
                       <span className="text-xs">{style.icon}</span>
                       {tag}
                     </Badge>
@@ -1266,7 +1266,7 @@ const ProfileDetail = () => {
                   className="text-center py-3 rounded-xl hover:bg-white/5 transition-colors"
                 >
                   <p className="text-2xl font-bold bg-gradient-to-r from-fuchsia-400 to-pink-400 bg-clip-text text-transparent">{friendsCount}</p>
-                  <p className="text-[11px] text-white/40 font-medium mt-0.5">Friends</p>
+                  <p className="text-[11px] text-white/75 font-medium mt-0.5">Friends</p>
                 </motion.button>
                 <motion.button 
                   whileTap={{ scale: 0.95 }}
@@ -1274,7 +1274,7 @@ const ProfileDetail = () => {
                   className="text-center py-3 rounded-xl hover:bg-white/5 transition-colors border-x border-white/5"
                 >
                   <p className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">{followingCount}</p>
-                  <p className="text-[11px] text-white/40 font-medium mt-0.5">Following</p>
+                  <p className="text-[11px] text-white/75 font-medium mt-0.5">Following</p>
                 </motion.button>
                 <motion.button 
                   whileTap={{ scale: 0.95 }}
@@ -1282,7 +1282,7 @@ const ProfileDetail = () => {
                   className="text-center py-3 rounded-xl hover:bg-white/5 transition-colors"
                 >
                   <p className="text-2xl font-bold bg-gradient-to-r from-pink-400 to-rose-400 bg-clip-text text-transparent">{followersCount}</p>
-                  <p className="text-[11px] text-white/40 font-medium mt-0.5">Followers</p>
+                  <p className="text-[11px] text-white/75 font-medium mt-0.5">Followers</p>
                 </motion.button>
               </div>
             </>
@@ -1385,9 +1385,9 @@ const ProfileDetail = () => {
                 className="flex items-center gap-1 text-lg font-bold text-white"
               >
                 🎁 Gifts Received
-                <ChevronRight className="w-5 h-5 text-white/50" />
+                <ChevronRight className="w-5 h-5 text-white/80" />
               </button>
-              <span className="text-sm text-white/40 font-medium">
+              <span className="text-sm text-white/75 font-medium">
                 Total: {profile?.total_earnings?.toLocaleString() || 0} beans
               </span>
             </div>
@@ -1430,7 +1430,7 @@ const ProfileDetail = () => {
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-6 text-white/30">
+                <div className="text-center py-6 text-white/70">
                   <span className="text-3xl">💝</span>
                   <p className="text-sm mt-2">No gifts received yet</p>
                 </div>
@@ -1465,7 +1465,7 @@ const ProfileDetail = () => {
               )}
               <span>{selectedGift?.name || "Gift"} Senders</span>
             </DialogTitle>
-            <DialogDescription className="text-white/40">
+            <DialogDescription className="text-white/75">
               Total: {selectedGift?.count || 0} gifts received
             </DialogDescription>
           </DialogHeader>
@@ -1497,7 +1497,7 @@ const ProfileDetail = () => {
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-sm truncate text-white/90">{gift.sender_name}</p>
                       {gift.sender_uid && (
-                        <p className="text-xs text-white/30 flex items-center gap-1">
+                        <p className="text-xs text-white/70 flex items-center gap-1">
                           <span className="w-4 h-4 rounded-full bg-gradient-to-r from-fuchsia-500 to-purple-600 flex items-center justify-center">
                             <span className="text-white font-bold text-[6px]">ID</span>
                           </span>
@@ -1511,7 +1511,7 @@ const ProfileDetail = () => {
                         <span className="text-lg">💎</span>
                         <span className="text-sm">{gift.coin_amount}</span>
                       </div>
-                      <p className="text-[10px] text-white/30">
+                      <p className="text-[10px] text-white/70">
                         {new Date(gift.created_at).toLocaleDateString()}
                       </p>
                     </div>
@@ -1519,7 +1519,7 @@ const ProfileDetail = () => {
                 ))}
               
               {giftsWithSenders.filter(g => g.gift_id === selectedGift?.id).length === 0 && (
-                <div className="text-center py-6 text-white/30">
+                <div className="text-center py-6 text-white/70">
                   <span className="text-3xl">🔍</span>
                   <p className="text-sm mt-2">No sender information available</p>
                 </div>
@@ -1547,7 +1547,7 @@ const ProfileDetail = () => {
             className="flex items-center gap-1 text-lg font-bold mb-3 text-white"
           >
             Groups
-            <ChevronRight className="w-5 h-5 text-white/50" />
+            <ChevronRight className="w-5 h-5 text-white/80" />
           </button>
 
           {groups.length > 0 ? (
@@ -1573,7 +1573,7 @@ const ProfileDetail = () => {
                           <span>👨‍👩‍👧‍👦</span>
                           {group.name}
                         </p>
-                        <p className="text-xs text-white/30 flex items-center gap-1 mt-0.5">
+                        <p className="text-xs text-white/70 flex items-center gap-1 mt-0.5">
                           <Users className="w-3 h-3" />
                           ({group.member_count || 0})
                         </p>
@@ -1586,7 +1586,7 @@ const ProfileDetail = () => {
           ) : (
             <div className="rounded-2xl p-6 text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
               <Users className="w-10 h-10 text-white/20 mx-auto mb-2" />
-              <p className="text-sm text-white/30">No groups joined yet</p>
+              <p className="text-sm text-white/70">No groups joined yet</p>
             </div>
           )}
         </motion.div>
