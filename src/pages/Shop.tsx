@@ -118,16 +118,16 @@ const ShopItemCard = ({
       onClick={onPreview}
       className="relative rounded-2xl overflow-hidden cursor-pointer group"
       style={{
-        background: 'linear-gradient(160deg, rgba(88,28,135,0.5) 0%, rgba(30,10,60,0.9) 50%, rgba(15,5,30,0.95) 100%)',
-        border: '1px solid rgba(168,85,247,0.25)',
-        boxShadow: '0 8px 32px rgba(88,28,135,0.3), inset 0 1px 0 rgba(255,255,255,0.08)',
+        background: 'linear-gradient(160deg, #FFFFFF 0%, #FFFBF2 50%, #FAF3E0 100%)',
+        border: '1px solid rgba(217,182,107,0.35)',
+        boxShadow: '0 6px 22px rgba(180,140,40,0.10), inset 0 1px 0 rgba(255,255,255,0.6)',
       }}
     >
       {/* Featured indicator */}
       {item.is_featured && (
         <div className="absolute top-2 right-2 z-10">
           <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/40">
-            <Zap className="w-3.5 h-3.5 text-slate-800" />
+            <Zap className="w-3.5 h-3.5 text-white" />
           </div>
         </div>
       )}
@@ -136,7 +136,7 @@ const ShopItemCard = ({
       {owned && (
         <div className="absolute top-2 left-2 z-10">
           <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center shadow-lg shadow-green-500/40">
-            <Check className="w-3.5 h-3.5 text-slate-800" />
+            <Check className="w-3.5 h-3.5 text-white" />
           </div>
         </div>
       )}
@@ -144,18 +144,18 @@ const ShopItemCard = ({
       {/* Preview Area */}
       <div className={`${isFullWidth ? 'aspect-[16/10] min-h-[160px]' : 'aspect-square'} flex items-center justify-center p-3 relative overflow-hidden`}>
         {/* Subtle radial glow */}
-        <div 
-          className="absolute inset-0 opacity-40"
+        <div
+          className="absolute inset-0 opacity-50"
           style={{
-            background: 'radial-gradient(circle at center, rgba(168,85,247,0.2) 0%, transparent 70%)',
+            background: 'radial-gradient(circle at center, rgba(251,191,36,0.18) 0%, transparent 70%)',
           }}
         />
-        
+
         {(item.animation_file_url || item.preview_url) && !imageError ? (
           // If preview_url exists and is a real image (not SVGA/Lottie), show static preview
           item.preview_url && !item.preview_url.endsWith('.svga') && !item.preview_url.endsWith('.json') ? (
-            <img 
-              src={item.preview_url} 
+            <img
+              src={item.preview_url}
               alt={item.name}
               className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
               onError={() => setImageError(true)}
@@ -170,16 +170,16 @@ const ShopItemCard = ({
               />
             </div>
           ) : (
-            <img 
-              src={item.animation_file_url || item.preview_url || ''} 
+            <img
+              src={item.animation_file_url || item.preview_url || ''}
               alt={item.name}
               className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl group-hover:scale-105 transition-transform duration-300 mx-auto ${isFullWidth ? 'scale-105' : ''}`}
               onError={() => setImageError(true)}
             />
           )
         ) : (
-          <div className="w-16 h-16 rounded-2xl bg-purple-500/10 flex items-center justify-center">
-            <Shield className="w-10 h-10 text-purple-400/60" strokeWidth={1.5} />
+          <div className="w-16 h-16 rounded-2xl bg-amber-100/60 flex items-center justify-center">
+            <Shield className="w-10 h-10 text-amber-500/60" strokeWidth={1.5} />
           </div>
         )}
       </div>
@@ -188,36 +188,36 @@ const ShopItemCard = ({
       <div className="px-3 pb-3 space-y-2">
         {/* Name */}
         <p className="text-slate-800 text-sm font-semibold truncate text-center">{item.name}</p>
-        
+
         {/* Price with diamond icon */}
         <div className="flex items-center justify-center gap-1.5">
           <Diamond3DIcon size={14} />
-          <span className="text-amber-400 text-xs font-bold">
+          <span className="text-amber-700 text-xs font-bold">
             {item.price_diamonds.toLocaleString()}
             {item.duration_days && (
-              <span className="text-amber-400/70 font-normal">/{item.duration_days}day</span>
+              <span className="text-amber-600/80 font-normal">/{item.duration_days}day</span>
             )}
           </span>
         </div>
 
         {/* Purchase / Owned Button */}
         {owned ? (
-          <div 
-            className="w-full py-2 rounded-full text-center text-xs font-bold text-emerald-300"
+          <div
+            className="w-full py-2 rounded-full text-center text-xs font-bold text-emerald-700"
             style={{
-              background: 'linear-gradient(135deg, rgba(16,185,129,0.25) 0%, rgba(5,150,105,0.2) 100%)',
-              border: '1px solid rgba(16,185,129,0.3)',
+              background: 'linear-gradient(135deg, rgba(16,185,129,0.18) 0%, rgba(5,150,105,0.12) 100%)',
+              border: '1px solid rgba(16,185,129,0.35)',
             }}
           >
             ✓ Owned
           </div>
         ) : (
-          <button 
+          <button
             onClick={(e) => { e.stopPropagation(); onPreview(); }}
-            className="w-full py-2 rounded-full text-xs font-bold text-slate-800 transition-all active:scale-95"
+            className="w-full py-2 rounded-full text-xs font-bold text-white transition-all active:scale-95"
             style={{
-              background: 'linear-gradient(135deg, #d946ef 0%, #a855f7 50%, #7c3aed 100%)',
-              boxShadow: '0 4px 15px rgba(168,85,247,0.4), inset 0 1px 0 rgba(255,255,255,0.15)',
+              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%)',
+              boxShadow: '0 4px 14px rgba(217,119,6,0.45), inset 0 1px 0 rgba(255,255,255,0.25)',
             }}
           >
             Purchase
@@ -474,19 +474,20 @@ const Shop = () => {
   if (loading) return <LoadingSpinner fullScreen />;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 flex flex-col overflow-hidden"
       style={{
-        background: 'linear-gradient(180deg, #1a0533 0%, #0d0118 40%, #0a0014 100%)',
+        background: 'linear-gradient(180deg, #FFFBF2 0%, #FAF5EA 40%, #F5EFDF 100%)',
       }}
     >
-      {/* Header - Deep purple luxury */}
-      <div 
+      {/* Header - Light luxury cream */}
+      <div
         className="sticky top-0 z-50 safe-area-top"
         style={{
-          background: 'linear-gradient(135deg, rgba(88,28,135,0.9) 0%, rgba(49,10,100,0.95) 50%, rgba(30,5,70,0.9) 100%)',
-          borderBottom: '1px solid rgba(168,85,247,0.2)',
-          boxShadow: '0 4px 30px rgba(88,28,135,0.4)',
+          background: 'linear-gradient(135deg, rgba(255,251,242,0.95) 0%, rgba(250,243,224,0.95) 100%)',
+          borderBottom: '1px solid rgba(217,182,107,0.25)',
+          boxShadow: '0 4px 24px rgba(180,140,40,0.08)',
+          backdropFilter: 'blur(12px)',
         }}
       >
         <div className="flex items-center justify-between px-4 py-3">
@@ -494,33 +495,33 @@ const Shop = () => {
             size="icon"
             variant="ghost"
             onClick={() => navigate(-1)}
-            className="text-slate-800 hover:bg-white/10 w-9 h-9 rounded-full"
+            className="text-slate-700 hover:bg-amber-100/60 w-9 h-9 rounded-full"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          
+
           <h1 className="text-lg font-bold text-slate-800 tracking-wide">My Store</h1>
-          
+
           <div className="flex items-center gap-2">
-            <div 
+            <div
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
               style={{
-                background: 'linear-gradient(135deg, rgba(251,191,36,0.15) 0%, rgba(245,158,11,0.1) 100%)',
-                border: '1px solid rgba(251,191,36,0.3)',
+                background: 'linear-gradient(135deg, rgba(251,191,36,0.18) 0%, rgba(245,158,11,0.12) 100%)',
+                border: '1px solid rgba(217,119,6,0.35)',
               }}
             >
               <Diamond3DIcon size={14} />
-              <span className="text-amber-400 text-sm font-bold">{userDiamonds.toLocaleString()}</span>
+              <span className="text-amber-700 text-sm font-bold">{userDiamonds.toLocaleString()}</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Category Tabs - Pill style like reference */}
-      <div 
+      {/* Category Tabs - Pill style */}
+      <div
         className="px-4 py-3"
         style={{
-          background: 'linear-gradient(180deg, rgba(30,5,70,0.8) 0%, transparent 100%)',
+          background: 'linear-gradient(180deg, rgba(250,243,224,0.7) 0%, transparent 100%)',
         }}
       >
         <ScrollArea className="w-full whitespace-nowrap">
@@ -532,14 +533,14 @@ const Shop = () => {
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
                   className={`rounded-full flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 px-5 py-2 text-sm font-semibold transition-all duration-300 ${
-                    isActive ? 'text-slate-800' : 'text-purple-300/70'
+                    isActive ? 'text-white' : 'text-slate-700'
                   }`}
                   style={isActive ? {
-                    background: 'linear-gradient(135deg, #d946ef 0%, #a855f7 50%, #7c3aed 100%)',
-                    boxShadow: '0 4px 20px rgba(168,85,247,0.5), inset 0 1px 0 rgba(255,255,255,0.2)',
+                    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%)',
+                    boxShadow: '0 4px 18px rgba(217,119,6,0.45), inset 0 1px 0 rgba(255,255,255,0.25)',
                   } : {
-                    background: 'rgba(168,85,247,0.1)',
-                    border: '1px solid rgba(168,85,247,0.2)',
+                    background: 'rgba(255,255,255,0.85)',
+                    border: '1px solid rgba(217,182,107,0.35)',
                   }}
                 >
                   <cat.icon className="w-3.5 h-3.5" />
@@ -562,13 +563,13 @@ const Shop = () => {
       >
         {filteredItems.length === 0 ? (
           <div className="text-center py-16">
-            <div 
+            <div
               className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center"
-              style={{ background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.2)' }}
+              style={{ background: 'rgba(217,182,107,0.12)', border: '1px solid rgba(217,182,107,0.3)' }}
             >
-              <ShoppingBag className="w-10 h-10 text-purple-400/40" />
+              <ShoppingBag className="w-10 h-10 text-amber-600/60" />
             </div>
-            <p className="text-purple-300/40 text-sm">No items in this category</p>
+            <p className="text-slate-500 text-sm">No items in this category</p>
           </div>
         ) : (
           <div className={`grid ${isEntryAnimationCategory(selectedCategory) ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2'} gap-3`}>
@@ -586,18 +587,18 @@ const Shop = () => {
         )}
       </div>
 
-      {/* Item Detail Modal - Luxury */}
+      {/* Item Detail Modal - Light Luxury */}
       <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
-        <DialogContent 
+        <DialogContent
           className={`border-0 shadow-2xl ${
-            selectedItem && isEntryAnimationCategory(selectedItem.category) 
-              ? 'w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto' 
+            selectedItem && isEntryAnimationCategory(selectedItem.category)
+              ? 'w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto'
               : 'max-w-sm'
           }`}
           style={{
-            background: 'linear-gradient(160deg, #2d1054 0%, #150830 50%, #0a0418 100%)',
-            border: '1px solid rgba(168,85,247,0.3)',
-            boxShadow: '0 25px 60px rgba(0,0,0,0.8), 0 0 40px rgba(168,85,247,0.2)',
+            background: 'linear-gradient(160deg, #FFFBF2 0%, #FAF5EA 50%, #F5EFDF 100%)',
+            border: '1px solid rgba(217,182,107,0.35)',
+            boxShadow: '0 25px 60px rgba(120,90,30,0.25), 0 0 40px rgba(251,191,36,0.12)',
           }}
         >
           {selectedItem && (
@@ -610,22 +611,22 @@ const Shop = () => {
 
               <div className="space-y-4">
                 {/* Preview */}
-                <div 
+                <div
                   className={`${
-                    isEntryAnimationCategory(selectedItem.category) 
-                      ? 'aspect-[9/16] min-h-[300px] max-h-[50vh]' 
+                    isEntryAnimationCategory(selectedItem.category)
+                      ? 'aspect-[9/16] min-h-[300px] max-h-[50vh]'
                       : 'aspect-square'
                   } rounded-2xl flex items-center justify-center p-6 relative overflow-hidden`}
                   style={{
-                    background: 'radial-gradient(circle at center, rgba(168,85,247,0.15) 0%, rgba(15,5,30,0.9) 70%)',
-                    border: '1px solid rgba(168,85,247,0.2)',
+                    background: 'radial-gradient(circle at center, rgba(251,191,36,0.18) 0%, rgba(255,251,242,0.95) 70%)',
+                    border: '1px solid rgba(217,182,107,0.3)',
                   }}
                 >
                   {selectedItem.animation_file_url?.endsWith('.svga') || selectedItem.animation_file_url?.endsWith('.json') ? (
                     isEntryAnimationCategory(selectedItem.category) && selectedItem.animation_file_url?.endsWith('.svga') ? (
                       <Suspense fallback={
                         <div className="w-full h-full flex items-center justify-center">
-                          <div className="w-8 h-8 border-3 border-purple-400/30 border-t-purple-400 rounded-full animate-spin" />
+                          <div className="w-8 h-8 border-3 border-amber-400/30 border-t-amber-500 rounded-full animate-spin" />
                         </div>
                       }>
                         <SVGAPlayerWithAudio
@@ -647,38 +648,38 @@ const Shop = () => {
                       </div>
                     )
                   ) : selectedItem.preview_url || selectedItem.animation_file_url ? (
-                    <img 
-                      src={selectedItem.animation_file_url || selectedItem.preview_url || ''} 
-                      alt={selectedItem.name} 
+                    <img
+                      src={selectedItem.animation_file_url || selectedItem.preview_url || ''}
+                      alt={selectedItem.name}
                       className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl mx-auto ${isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}`}
                       onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                     />
                   ) : (
-                    <Shield className="w-24 h-24 text-purple-400/40" strokeWidth={1} />
+                    <Shield className="w-24 h-24 text-amber-500/40" strokeWidth={1} />
                   )}
                 </div>
 
                 {selectedItem.description && (
-                  <p className="text-purple-200/50 text-sm text-center">{selectedItem.description}</p>
+                  <p className="text-slate-600 text-sm text-center">{selectedItem.description}</p>
                 )}
 
                 {/* Info Row */}
                 <div className="grid grid-cols-2 gap-2">
-                  <div 
+                  <div
                     className="rounded-xl p-3 text-center"
-                    style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.15)' }}
+                    style={{ background: 'rgba(255,255,255,0.85)', border: '1px solid rgba(217,182,107,0.3)' }}
                   >
-                    <p className="text-purple-300/50 text-xs mb-1">Price</p>
+                    <p className="text-slate-500 text-xs mb-1">Price</p>
                     <div className="flex items-center justify-center gap-1.5">
                       <Diamond3DIcon size={16} />
-                      <span className="text-amber-400 font-bold">{selectedItem.price_diamonds.toLocaleString()}</span>
+                      <span className="text-amber-700 font-bold">{selectedItem.price_diamonds.toLocaleString()}</span>
                     </div>
                   </div>
-                  <div 
+                  <div
                     className="rounded-xl p-3 text-center"
-                    style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.15)' }}
+                    style={{ background: 'rgba(255,255,255,0.85)', border: '1px solid rgba(217,182,107,0.3)' }}
                   >
-                    <p className="text-purple-300/50 text-xs mb-1">
+                    <p className="text-slate-500 text-xs mb-1">
                       {selectedItem.duration_days ? 'Duration' : 'Min Level'}
                     </p>
                     <p className="text-slate-800 font-bold">
@@ -689,16 +690,16 @@ const Shop = () => {
 
                 {/* Purchase Button */}
                 {isOwned(selectedItem.id) ? (
-                  <div 
-                    className="w-full py-3 rounded-full text-center font-bold text-emerald-300"
-                    style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)' }}
+                  <div
+                    className="w-full py-3 rounded-full text-center font-bold text-emerald-700"
+                    style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.35)' }}
                   >
                     ✓ Already Owned
                   </div>
                 ) : !meetsLevel(selectedItem.min_level) ? (
-                  <div 
-                    className="w-full py-3 rounded-full text-center font-bold text-red-300"
-                    style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)' }}
+                  <div
+                    className="w-full py-3 rounded-full text-center font-bold text-red-600"
+                    style={{ background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.30)' }}
                   >
                     <Lock className="w-4 h-4 inline mr-2" />
                     Requires Level {selectedItem.min_level}

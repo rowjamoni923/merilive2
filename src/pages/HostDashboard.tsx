@@ -415,7 +415,7 @@ const HostDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-slate-9500/20 to-slate-9500/20 border-amber-500/30">
+          <Card className="bg-gradient-to-br from-orange-500/20 to-orange-500/20 border-amber-500/30">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 text-amber-400 mb-2">
                 <Clock className="w-5 h-5" />
@@ -430,7 +430,7 @@ const HostDashboard = () => {
         </div>
 
         {/* Current Earnings Balance (Auto-transfers to Agency) */}
-        <Card className="bg-gradient-to-r from-slate-9500 to-slate-9500 text-white">
+        <Card className="bg-gradient-to-r from-orange-500 to-orange-500 text-white">
           <CardContent className="p-5">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
@@ -464,7 +464,7 @@ const HostDashboard = () => {
 
         {/* Pending Earnings Card */}
         {stats.pendingEarnings > 0 && (
-          <Card className="bg-gradient-to-r from-slate-9500 to-slate-9500 text-white">
+          <Card className="bg-gradient-to-r from-orange-500 to-orange-500 text-white">
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div>

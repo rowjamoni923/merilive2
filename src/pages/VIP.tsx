@@ -1084,25 +1084,25 @@ const VIP = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-[#F7F8FA] overflow-hidden">
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-gradient-to-r from-purple-900/95 via-pink-900/95 to-purple-900/95 backdrop-blur-xl safe-area-top border-b border-white/10">
+      <div className="sticky top-0 z-50 bg-gradient-to-r from-amber-50/95 via-white/95 to-amber-50/95 backdrop-blur-xl safe-area-top border-b border-amber-200/50 shadow-sm">
         <div className="flex items-center justify-between px-4 py-3">
           <Button
             size="icon"
             variant="ghost"
             onClick={() => navigate(-1)}
-            className="text-slate-800 hover:bg-white/10 w-9 h-9 rounded-full"
+            className="text-slate-700 hover:bg-amber-100/60 w-9 h-9 rounded-full"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          
+
           <h1 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-            <Crown className="w-5 h-5 text-amber-400" />
+            <Crown className="w-5 h-5 text-amber-500" />
             VIP Membership
           </h1>
-          
-          <div className="flex items-center gap-1.5 bg-amber-500/20 px-2.5 py-1 rounded-full border border-amber-500/30">
+
+          <div className="flex items-center gap-1.5 bg-amber-100/80 px-2.5 py-1 rounded-full border border-amber-300/60">
             <Diamond3DIcon size={14} />
-            <span className="text-amber-400 text-sm font-bold">{userDiamonds.toLocaleString()}</span>
+            <span className="text-amber-700 text-sm font-bold">{userDiamonds.toLocaleString()}</span>
           </div>
         </div>
       </div>
@@ -1271,12 +1271,12 @@ const VIP = () => {
             <div className="space-y-6">
               {/* Reusable privilege item renderer */}
               {[
-                { items: framePrivileges, icon: '👑', title: 'Avatar Frames', fallbackIcon: <Crown className="w-8 h-8 text-amber-400" />, bgFrom: 'from-purple-900/40', bgTo: 'to-pink-900/40', ringColor: 'hover:ring-purple-500/50', delay: 0.1 },
-                { items: entryEffectPrivileges, icon: '✨', title: 'Entry Effects', fallbackIcon: <Sparkles className="w-8 h-8 text-pink-400" />, bgFrom: 'from-pink-900/40', bgTo: 'to-purple-900/40', ringColor: 'hover:ring-pink-500/50', delay: 0.15 },
-                { items: entryNameBarPrivileges, icon: '🏷️', title: 'Entry Name Bar', fallbackIcon: <Sparkles className="w-8 h-8 text-amber-400" />, bgFrom: 'from-amber-900/40', bgTo: 'to-orange-900/40', ringColor: 'hover:ring-amber-500/50', delay: 0.2 },
-                { items: bubblePrivileges, icon: '💬', title: 'Chat Bubbles', fallbackIcon: <MessageCircle className="w-8 h-8 text-cyan-400" />, bgFrom: 'from-cyan-900/40', bgTo: 'to-blue-900/40', ringColor: 'hover:ring-cyan-500/50', delay: 0.25 },
-                { items: vehiclePrivileges, icon: '🚗', title: 'Vehicles', fallbackIcon: <Car className="w-8 h-8 text-emerald-400" />, bgFrom: 'from-emerald-900/40', bgTo: 'to-teal-900/40', ringColor: 'hover:ring-emerald-500/50', delay: 0.3 },
-                { items: otherPrivileges, icon: '🎁', title: 'Other Privileges', fallbackIcon: <Gift className="w-8 h-8 text-cyan-400" />, bgFrom: 'from-cyan-900/40', bgTo: 'to-slate-900', ringColor: 'hover:ring-cyan-500/50', delay: 0.35 },
+                { items: framePrivileges, icon: '👑', title: 'Avatar Frames', fallbackIcon: <Crown className="w-8 h-8 text-amber-500" />, bgFrom: 'from-purple-50', bgTo: 'to-pink-50', ringColor: 'hover:ring-purple-300/60', delay: 0.1 },
+                { items: entryEffectPrivileges, icon: '✨', title: 'Entry Effects', fallbackIcon: <Sparkles className="w-8 h-8 text-pink-500" />, bgFrom: 'from-pink-50', bgTo: 'to-purple-50', ringColor: 'hover:ring-pink-300/60', delay: 0.15 },
+                { items: entryNameBarPrivileges, icon: '🏷️', title: 'Entry Name Bar', fallbackIcon: <Sparkles className="w-8 h-8 text-amber-500" />, bgFrom: 'from-amber-50', bgTo: 'to-orange-50', ringColor: 'hover:ring-amber-300/60', delay: 0.2 },
+                { items: bubblePrivileges, icon: '💬', title: 'Chat Bubbles', fallbackIcon: <MessageCircle className="w-8 h-8 text-cyan-600" />, bgFrom: 'from-cyan-50', bgTo: 'to-blue-50', ringColor: 'hover:ring-cyan-300/60', delay: 0.25 },
+                { items: vehiclePrivileges, icon: '🚗', title: 'Vehicles', fallbackIcon: <Car className="w-8 h-8 text-emerald-600" />, bgFrom: 'from-emerald-50', bgTo: 'to-teal-50', ringColor: 'hover:ring-emerald-300/60', delay: 0.3 },
+                { items: otherPrivileges, icon: '🎁', title: 'Other Privileges', fallbackIcon: <Gift className="w-8 h-8 text-cyan-600" />, bgFrom: 'from-cyan-50', bgTo: 'to-slate-50', ringColor: 'hover:ring-cyan-300/60', delay: 0.35 },
               ].map(({ items, icon, title, fallbackIcon, bgFrom, bgTo, ringColor, delay }) => (
                 items.length > 0 && (
                   <motion.div
