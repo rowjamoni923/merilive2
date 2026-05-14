@@ -56,6 +56,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { resolveNetWithdrawalBeans, resolveNetWithdrawalLocal, resolveNetWithdrawalUsd } from "@/utils/agencyWithdrawalAmounts";
 import { recordAdminError } from "@/utils/adminErrorLog";
+import { resolveAdminStorageImageUrl } from "@/utils/adminStorageImages";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 interface PaymentDetails {
@@ -72,6 +73,7 @@ interface PaymentDetails {
   helper_transaction_id?: string;
   helper_notes?: string;
   helper_processed_at?: string;
+  helper_payment_screenshot_signed?: string;
 }
 
 interface Withdrawal {
@@ -85,6 +87,7 @@ interface Withdrawal {
   processed_at: string | null;
   notes: string | null;
   helper_payment_screenshot?: string | null;
+  helper_payment_screenshot_signed?: string | null;
   helper_transaction_id?: string | null;
   helper_notes?: string | null;
   assigned_helper_id?: string | null;
@@ -239,14 +242,21 @@ export default function AdminWithdrawals() {
           }
         }
 
-        const enrichedData = data.map(w => ({
-          ...w,
-          payment_details: w.payment_details as PaymentDetails | null,
-          agency: agenciesMap[w.agency_id] ? {
-            name: agenciesMap[w.agency_id].name,
-            agency_code: agenciesMap[w.agency_id].agency_code,
-            owner: agenciesMap[w.agency_id].owner_id ? ownersMap[agenciesMap[w.agency_id].owner_id] || null : null,
-          } : undefined
+        const enrichedData = await Promise.all(data.map(async (w) => {
+          const paymentDetails = (w.payment_details as PaymentDetails | null) || null;
+          const rawProof = w.helper_payment_screenshot || paymentDetails?.helper_payment_screenshot || null;
+          const signedProof = await resolveAdminStorageImageUrl(rawProof);
+
+          return {
+            ...w,
+            helper_payment_screenshot_signed: signedProof,
+            payment_details: paymentDetails ? { ...paymentDetails, helper_payment_screenshot_signed: signedProof || undefined } : null,
+            agency: agenciesMap[w.agency_id] ? {
+              name: agenciesMap[w.agency_id].name,
+              agency_code: agenciesMap[w.agency_id].agency_code,
+              owner: agenciesMap[w.agency_id].owner_id ? ownersMap[agenciesMap[w.agency_id].owner_id] || null : null,
+            } : undefined
+          };
         })) as Withdrawal[];
 
         setWithdrawals(enrichedData);
