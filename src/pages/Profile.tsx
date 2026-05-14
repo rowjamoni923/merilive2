@@ -2187,8 +2187,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     <Wallet className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <span className="text-white/70 text-xs">Your Balance</span>
-                    <p className="text-emerald-400 font-bold text-xl">
+                    <span className="text-slate-600 text-xs">Your Balance</span>
+                    <p className="text-emerald-600 font-bold text-xl">
                       {availableTransferBalance.toLocaleString()} 💎
                     </p>
                   </div>
