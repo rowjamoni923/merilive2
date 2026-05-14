@@ -1389,8 +1389,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       path: faceVerificationPending ? "" : "/face-verification", 
       rightText: faceVerificationPending ? "Under Review" : "Required",
       highlight: !faceVerificationPending,
-      iconBg: faceVerificationPending ? "bg-blue-100" : "bg-amber-100",
-      iconColor: faceVerificationPending ? "text-blue-500" : "text-amber-500",
+      iconBg: faceVerificationPending ? "bg-blue-50 border border-blue-100" : "bg-amber-100",
+      iconColor: faceVerificationPending ? "text-blue-600" : "text-amber-500",
       show: isOwnProfile && !isFaceVerified, // Hide completely after approved
       onClick: faceVerificationPending ? () => {
         toast({ title: "Under Review", description: "Your face verification is being reviewed by our team. Please wait." });
@@ -1455,7 +1455,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       extra: userVIPTier > 0 ? (
         <VIPBadge tier={userVIPTier} size="sm" />
       ) : (
-        <span className="text-xs text-purple-400">Upgrade Now</span>
+        <span className="text-xs text-purple-600">Upgrade Now</span>
       ),
       iconBg: "bg-gradient-to-r from-purple-500 to-pink-500",
       iconColor: "text-white",
@@ -1465,8 +1465,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       icon: Phone, 
       label: "Call History", 
       path: "/call-history",
-      iconBg: "bg-green-100",
-      iconColor: "text-green-500",
+      iconBg: "bg-emerald-50 border border-emerald-100",
+      iconColor: "text-emerald-600",
       show: isOwnProfile && isFemale
     },
     { 
@@ -1485,7 +1485,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       path: "/host-dashboard",
       rightText: "Earnings",
       highlight: true,
-      iconBg: "bg-emerald-100",
+      iconBg: "bg-emerald-50 border border-emerald-100",
       iconColor: "text-emerald-600",
       show: isOwnProfile && isHost && !isFemale
     },
@@ -1505,7 +1505,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       path: isAgencyOwner ? "/agency-dashboard" : "/agency",
       rightText: isAgencyOwner ? "My Agency" : "Agent Rank",
       highlight: true,
-      iconBg: isAgencyOwner ? "bg-gradient-to-r from-purple-500 to-indigo-500" : "bg-purple-100",
+      iconBg: isAgencyOwner ? "bg-gradient-to-r from-purple-500 to-indigo-500" : "bg-purple-50 border border-purple-100",
       iconColor: isAgencyOwner ? "text-white" : "text-purple-600",
       show: isOwnProfile && showAgencyCenter && !isFemale
     },
@@ -1514,8 +1514,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       label: "My Invitation", 
       path: "/invitation",
       rightText: "Get Rewards",
-      iconBg: "bg-purple-100",
-      iconColor: "text-purple-500",
+      iconBg: "bg-purple-50 border border-purple-100",
+      iconColor: "text-purple-600",
       show: isOwnProfile
     },
     { 
@@ -1524,24 +1524,24 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       path: "/tasks",
       rightText: hasUnclaimedReward ? "New Reward" : "",
       hasNotification: hasUnclaimedReward,
-      iconBg: "bg-blue-100",
-      iconColor: "text-blue-500",
+      iconBg: "bg-blue-50 border border-blue-100",
+      iconColor: "text-blue-600",
       show: isOwnProfile
     },
     { 
       icon: User, 
       label: "My Profile", 
       path: "/edit-profile",
-      iconBg: "bg-indigo-100",
-      iconColor: "text-indigo-500",
+      iconBg: "bg-indigo-50 border border-indigo-100",
+      iconColor: "text-indigo-600",
       show: isOwnProfile
     },
     { 
       icon: Settings, 
       label: "Settings", 
       path: "/settings",
-      iconBg: "bg-gray-100",
-      iconColor: "text-gray-300",
+      iconBg: "bg-slate-50 border border-slate-100",
+      iconColor: "text-slate-500",
       show: isOwnProfile
     },
     { 
@@ -1555,6 +1555,18 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       show: isOwnProfile && userLevel >= 6
     },
   ].filter(item => item.show);
+
+  const getProfileIconTone = (index: number) => {
+    const tones = [
+      "bg-pink-50 text-pink-600 border-pink-100",
+      "bg-purple-50 text-purple-600 border-purple-100",
+      "bg-blue-50 text-blue-600 border-blue-100",
+      "bg-emerald-50 text-emerald-600 border-emerald-100",
+      "bg-amber-50 text-amber-600 border-amber-100",
+      "bg-rose-50 text-rose-600 border-rose-100",
+    ];
+    return tones[index % tones.length];
+  };
 
   // Redirect to auth if not logged in and viewing own profile
   useEffect(() => {
@@ -1708,32 +1720,17 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-[#0c0515] overflow-hidden">
-      {/* Premium Background — rich layered nebula effect */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        {/* Deep base gradient */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#1a0533] via-[#0f0720] to-[#080312]" />
-        {/* Top-left warm accent */}
-        <div className="absolute -top-10 -left-10 w-72 h-72 bg-purple-700/20 rounded-full blur-[100px]" />
-        {/* Top-right cool accent */}
-        <div className="absolute top-10 -right-16 w-64 h-64 bg-indigo-600/15 rounded-full blur-[90px]" />
-        {/* Center subtle pink */}
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-80 h-48 bg-fuchsia-700/8 rounded-full blur-[80px]" />
-        {/* Bottom subtle glow */}
-        <div className="absolute bottom-20 left-1/4 w-56 h-56 bg-purple-900/20 rounded-full blur-[100px]" />
-        {/* Fine grain texture overlay */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\'/%3E%3C/svg%3E")' }} />
-      </div>
+    <div className="fixed inset-0 flex flex-col profile-home-shell overflow-hidden">
 
       {/* Back Button - Fixed at top, never scrolls away */}
       <div className="fixed top-3 left-3 z-10 safe-area-top">
         <Button
           size="icon"
           variant="ghost"
-          className="w-10 h-10 rounded-2xl bg-white/5 backdrop-blur-xl hover:bg-white/10 border border-white/10 shadow-lg shadow-black/20"
+          className="w-10 h-10 rounded-full profile-home-icon-button hover:bg-slate-50"
           onClick={() => navigate(-1)}
         >
-          <ArrowLeft className="w-5 h-5 text-white/80" />
+          <ArrowLeft className="w-5 h-5 text-slate-700" />
         </Button>
       </div>
 
@@ -1783,14 +1780,14 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         </div>
 
         {/* Name - Elegant Typography */}
-        <h1 className="text-xl font-bold text-white tracking-wide drop-shadow-lg">
+        <h1 className="text-xl font-bold text-slate-950 tracking-wide">
           {resolvedProfileName}
         </h1>
         
         {/* UID Badge - Glass Morphism */}
         {profile?.app_uid && (
           <button 
-            className="mt-2 flex items-center gap-2 bg-white/5 hover:bg-white/10 backdrop-blur-xl px-4 py-2 rounded-full transition-all border border-white/10 shadow-lg shadow-black/10"
+            className="mt-2 flex items-center gap-2 profile-home-pill hover:bg-slate-50 px-4 py-2 rounded-full transition-all"
             onClick={() => {
               navigator.clipboard.writeText(profile.app_uid);
               toast({ title: "UID Copied!", description: profile.app_uid });
@@ -1799,7 +1796,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             <span className="w-5 h-5 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center shadow-md">
               <span className="text-white font-bold text-[8px]">ID</span>
             </span>
-            <span className="font-semibold text-sm text-white/90">{profile.app_uid}</span>
+            <span className="font-semibold text-sm text-slate-800">{profile.app_uid}</span>
           </button>
         )}
         
@@ -1807,25 +1804,25 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         {/* Country ALWAYS visible, City hidden if profile owner has hide_location enabled */}
         <div className="flex items-center justify-center gap-2 flex-wrap mt-4 px-3">
           {/* Country - ALWAYS visible */}
-          <div className="flex items-center gap-1.5 bg-white/[0.06] border border-white/15 px-3 py-1.5 rounded-full backdrop-blur-md shadow-sm">
+          <div className="flex items-center gap-1.5 profile-home-pill px-3 py-1.5 rounded-full">
             <span className="text-base leading-none">{geoLocation.countryFlag || profile?.country_flag || "🌍"}</span>
-            <span className="font-semibold text-white/90 text-xs tracking-wide">
+            <span className="font-semibold text-slate-700 text-xs tracking-wide">
               {geoLocation.country || profile?.country_name || ""}
             </span>
           </div>
 
           {/* City - Only show if own profile OR profile owner hasn't hidden location */}
           {(isOwnProfile || !profile?.hide_location) && (
-            <div className="flex items-center gap-1.5 bg-white/[0.06] border border-white/15 px-3 py-1.5 rounded-full backdrop-blur-md shadow-sm">
-              <MapPin className="w-3.5 h-3.5 text-white/80" />
-              <span className="font-medium text-white/85 text-xs tracking-wide">
+            <div className="flex items-center gap-1.5 profile-home-pill px-3 py-1.5 rounded-full">
+              <MapPin className="w-3.5 h-3.5 text-slate-500" />
+              <span className="font-medium text-slate-700 text-xs tracking-wide">
                 {geoLocation.city || "Location"}
               </span>
             </div>
           )}
 
-          <div className="flex items-center gap-1.5 bg-white/[0.06] border border-white/15 px-3 py-1.5 rounded-full backdrop-blur-md shadow-sm">
-            <span className="font-semibold text-white/90 text-xs tracking-wide">Bengali</span>
+          <div className="flex items-center gap-1.5 profile-home-pill px-3 py-1.5 rounded-full">
+            <span className="font-semibold text-slate-700 text-xs tracking-wide">Bengali</span>
           </div>
         </div>
 
@@ -1835,18 +1832,18 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           onClick={() => isOwnProfile && navigate('/following')}
         >
           <div className="text-center">
-            <p className="text-2xl font-bold text-white drop-shadow-lg">{stats.friendsCount}</p>
-            <p className="text-xs text-white/80 font-medium">Friends</p>
+            <p className="text-2xl font-bold text-slate-950">{stats.friendsCount}</p>
+            <p className="text-xs text-slate-500 font-medium">Friends</p>
           </div>
-          <div className="w-px h-10 bg-gradient-to-b from-transparent via-white/20 to-transparent" />
+          <div className="w-px h-10 bg-gradient-to-b from-transparent via-slate-200 to-transparent" />
           <div className="text-center">
-            <p className="text-2xl font-bold text-white drop-shadow-lg">{stats.followingCount}</p>
-            <p className="text-xs text-white/80 font-medium">Following</p>
+            <p className="text-2xl font-bold text-slate-950">{stats.followingCount}</p>
+            <p className="text-xs text-slate-500 font-medium">Following</p>
           </div>
-          <div className="w-px h-10 bg-gradient-to-b from-transparent via-white/20 to-transparent" />
+          <div className="w-px h-10 bg-gradient-to-b from-transparent via-slate-200 to-transparent" />
           <div className="text-center">
-            <p className="text-2xl font-bold text-white drop-shadow-lg">{stats.followersCount}</p>
-            <p className="text-xs text-white/80 font-medium">Followers</p>
+            <p className="text-2xl font-bold text-slate-950">{stats.followersCount}</p>
+            <p className="text-xs text-slate-500 font-medium">Followers</p>
           </div>
         </div>
 
@@ -1859,7 +1856,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               className={cn(
                 "h-9 text-xs px-4 rounded-full font-semibold transition-all shadow-lg",
                 isFollowing 
-                  ? "border-purple-500/50 text-purple-400 hover:bg-purple-500/10" 
+                  ? "border-purple-500/50 text-purple-600 hover:bg-purple-500/10" 
                   : "bg-gradient-to-r from-purple-500 to-pink-500 shadow-purple-500/30 hover:shadow-purple-500/50"
               )}
               onClick={handleFollow}
@@ -1901,19 +1898,19 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               onClick={() => navigate("/recharge")}
               className="group relative"
             >
-              <div className="absolute inset-0 bg-cyan-500/20 rounded-xl translate-y-1 blur-md" />
-              <div className="relative bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 rounded-xl p-2.5 overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.6)] border border-white/10 group-active:scale-[0.97] transition-all">
+              <div className="absolute inset-0 bg-cyan-500/10 rounded-xl translate-y-1 blur-md" />
+              <div className="relative profile-home-card rounded-xl p-2.5 overflow-hidden group-active:scale-[0.97] transition-all">
                 <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-400/60 to-transparent" />
                 <div className="absolute -top-8 -right-8 w-20 h-20 bg-cyan-500/15 rounded-full blur-2xl" />
 
                 <div className="relative z-10">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-cyan-200/80 font-semibold text-[8px] tracking-[0.12em] uppercase">My Diamonds</p>
-                    <span className="text-[6px] bg-cyan-500/15 border border-cyan-400/30 text-cyan-100 px-1.5 py-0.5 rounded-full font-semibold tracking-wide">
+                    <p className="text-cyan-700 font-semibold text-[8px] tracking-[0.12em] uppercase">My Diamonds</p>
+                    <span className="text-[6px] bg-cyan-50 border border-cyan-100 text-cyan-700 px-1.5 py-0.5 rounded-full font-semibold tracking-wide">
                       Top Up
                     </span>
                   </div>
-                  <p className="text-xl font-bold text-white drop-shadow-[0_2px_8px_rgba(34,211,238,0.35)]">
+                  <p className="text-xl font-bold text-slate-950">
                      {resolvedDiamondBalance.toLocaleString()}
                   </p>
                 </div>
@@ -2009,23 +2006,23 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               }}
               className="group relative w-full text-left"
             >
-              <div className="absolute inset-0 bg-amber-500/20 rounded-xl translate-y-1 blur-md" />
-              <div className="relative bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 rounded-xl p-2.5 overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.6)] border border-white/10 group-active:scale-[0.97] transition-transform">
+              <div className="absolute inset-0 bg-amber-500/10 rounded-xl translate-y-1 blur-md" />
+              <div className="relative profile-home-card rounded-xl p-2.5 overflow-hidden group-active:scale-[0.97] transition-transform">
                 <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-400/60 to-transparent" />
                 <div className="absolute -top-8 -right-8 w-20 h-20 bg-amber-500/15 rounded-full blur-2xl" />
 
                 <div className="relative z-10">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-amber-200/80 font-semibold text-[8px] tracking-[0.12em] uppercase">My Beans</p>
+                    <p className="text-amber-700 font-semibold text-[8px] tracking-[0.12em] uppercase">My Beans</p>
                      {!profile?.is_host && !profile?.is_agency_owner ? (
-                       <span className="text-[6px] bg-amber-500/15 border border-amber-400/30 text-amber-100 px-1.5 py-0.5 rounded-full font-semibold tracking-wide">
+                       <span className="text-[6px] bg-amber-50 border border-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-semibold tracking-wide">
                          Exchange
                        </span>
                      ) : ((isHostPersona && isFemale) || isAgencyOwner) && (
-                      <ChevronRight className="w-3 h-3 text-amber-200/70" />
+                      <ChevronRight className="w-3 h-3 text-amber-600" />
                     )}
                   </div>
-                  <p className={`text-xl font-bold drop-shadow-[0_2px_8px_rgba(251,191,36,0.3)] ${beans < 0 ? 'text-red-400' : 'text-white'}`}>{beans.toLocaleString()}</p>
+                  <p className={`text-xl font-bold ${beans < 0 ? 'text-red-600' : 'text-slate-950'}`}>{beans.toLocaleString()}</p>
                 </div>
 
                 <div className="absolute right-1.5 bottom-1.5 opacity-90">
@@ -2049,23 +2046,23 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               }}
               className="w-full group relative"
             >
-              <div className="absolute inset-0 bg-emerald-500/20 rounded-xl translate-y-1 blur-md" />
-              <div className="relative bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 rounded-xl p-3 overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.6)] border border-white/10 group-active:scale-[0.98] transition-all">
+              <div className="absolute inset-0 bg-emerald-500/10 rounded-xl translate-y-1 blur-md" />
+              <div className="relative profile-home-card rounded-xl p-3 overflow-hidden group-active:scale-[0.98] transition-all">
                 <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-400/60 to-transparent" />
                 <div className="absolute -top-10 -right-10 w-28 h-28 bg-emerald-500/15 rounded-full blur-2xl" />
 
                 <div className="relative z-10 flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-1.5 mb-1">
-                      <p className="text-white font-semibold text-sm tracking-tight">Trader Wallet</p>
-                      <span className="text-[7px] bg-emerald-500/15 border border-emerald-400/30 text-emerald-100 px-1.5 py-0.5 rounded-full font-medium tracking-wide">
+                      <p className="text-slate-950 font-semibold text-sm tracking-tight">Trader Wallet</p>
+                      <span className="text-[7px] bg-emerald-50 border border-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full font-medium tracking-wide">
                         Diamond Trader
                       </span>
                     </div>
-                    <p className="text-xl font-bold text-white drop-shadow-[0_2px_8px_rgba(16,185,129,0.35)]">
+                    <p className="text-xl font-bold text-slate-950">
                       {(traderWallet + (agencyData?.diamond_balance || 0)).toLocaleString()} 💎
                     </p>
-                    <p className="text-[8px] text-emerald-200/70 mt-1 flex items-center gap-1">
+                    <p className="text-[8px] text-emerald-700 mt-1 flex items-center gap-1">
                       <Send className="w-2.5 h-2.5" />
                       Tap to transfer to User or Agency
                     </p>
@@ -2085,23 +2082,23 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               onClick={() => setShowTransferModal(true)}
               className="w-full group relative"
             >
-              <div className="absolute inset-0 bg-fuchsia-500/20 rounded-xl translate-y-1 blur-md" />
-              <div className="relative bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 rounded-xl p-3 overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.6)] border border-white/10 group-active:scale-[0.98] transition-all">
+              <div className="absolute inset-0 bg-fuchsia-500/10 rounded-xl translate-y-1 blur-md" />
+              <div className="relative profile-home-card rounded-xl p-3 overflow-hidden group-active:scale-[0.98] transition-all">
                 <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-fuchsia-400/60 to-transparent" />
                 <div className="absolute -top-10 -right-10 w-28 h-28 bg-fuchsia-500/15 rounded-full blur-2xl" />
 
                 <div className="relative z-10 flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-1.5 mb-1">
-                      <p className="text-white font-semibold text-sm tracking-tight">Trader Wallet</p>
-                      <span className="text-[7px] bg-fuchsia-500/15 border border-fuchsia-400/30 text-fuchsia-100 px-1.5 py-0.5 rounded-full font-medium tracking-wide">
+                      <p className="text-slate-950 font-semibold text-sm tracking-tight">Trader Wallet</p>
+                      <span className="text-[7px] bg-fuchsia-50 border border-fuchsia-100 text-fuchsia-700 px-1.5 py-0.5 rounded-full font-medium tracking-wide">
                         Agency
                       </span>
                     </div>
-                    <p className="text-xl font-bold text-white drop-shadow-[0_2px_8px_rgba(217,70,239,0.35)]">
+                    <p className="text-xl font-bold text-slate-950">
                       {selfRechargeSourceBalance.toLocaleString()} 💎
                     </p>
-                    <p className="text-[8px] text-fuchsia-200/70 mt-1 flex items-center gap-1">
+                    <p className="text-[8px] text-fuchsia-700 mt-1 flex items-center gap-1">
                       <Send className="w-2.5 h-2.5" />
                       Tap to transfer to User or Agency
                     </p>
@@ -2117,7 +2114,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
           {/* Menu Items - Compact */}
           {menuItems.length > 0 && (
-            <div className="bg-card/80 backdrop-blur-xl rounded-xl overflow-hidden shadow-elevated border border-white/10 mt-2">
+            <div className="profile-home-section rounded-xl overflow-hidden mt-2">
               {menuItems.map((item, index) => (
                 <button
                   key={index}
@@ -2130,13 +2127,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                       navigate(item.path);
                     }
                   }}
-                  className="w-full flex items-center justify-between p-2.5 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0"
+                  className="w-full flex items-center justify-between p-2.5 hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0"
                 >
                   <div className="flex items-center gap-2">
-                    <div className={`w-8 h-8 rounded-lg ${item.iconBg} flex items-center justify-center`}>
-                      <item.icon className={`w-4 h-4 ${item.iconColor}`} />
+                    <div className={cn("w-8 h-8 rounded-lg border flex items-center justify-center", getProfileIconTone(index))}>
+                      <item.icon className="w-4 h-4" />
                     </div>
-                    <span className={`font-medium text-sm text-white ${item.highlight ? '!text-purple-400' : ''}`}>{item.label}</span>
+                    <span className={`font-medium text-sm text-slate-900 ${item.highlight ? '!text-pink-600' : ''}`}>{item.label}</span>
                     {item.highlight && (
                       <span className="px-1 py-0.5 text-[8px] bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-full font-bold">NEW</span>
                     )}
@@ -2149,12 +2146,12 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                       </Badge>
                     )}
                     {item.rightText && (
-                      <span className="text-xs text-purple-400 font-medium">{item.rightText}</span>
+                      <span className="text-xs text-slate-500 font-medium">{item.rightText}</span>
                     )}
                     {item.hasNotification && (
                       <span className="w-1.5 h-1.5 bg-pink-500 rounded-full animate-pulse shadow-lg shadow-pink-500/50" />
                     )}
-                    <ChevronRight className="w-4 h-4 text-white/75" />
+                    <ChevronRight className="w-4 h-4 text-slate-400" />
                   </div>
                 </button>
               ))}
@@ -2444,7 +2441,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                       <div className="flex-1">
                         <p className="text-white font-bold text-lg">{searchedAgency.name}</p>
                         <p className="text-slate-200 text-sm">Code: {searchedAgency.agency_code}</p>
-                        <p className="text-purple-400 text-xs mt-0.5">
+                        <p className="text-purple-600 text-xs mt-0.5">
                           Owner: {searchedAgency.owner_name} ({searchedAgency.owner_uid})
                         </p>
                         <p className="text-pink-400 text-xs">Balance: {searchedAgency.diamond_balance?.toLocaleString() || 0} 💎</p>
@@ -2507,7 +2504,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     </div>
                     <div className="flex justify-between items-center pt-2 border-t border-slate-700">
                       <span className="text-white/85 text-sm">Agency Balance</span>
-                      <span className="text-purple-400 font-semibold">
+                      <span className="text-purple-600 font-semibold">
                         {(agencyData?.diamond_balance || 0).toLocaleString()} 💎
                       </span>
                     </div>
@@ -2669,7 +2666,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   </>
                 ) : (
                   <>
-                    Send to <span className="text-purple-400 font-semibold">{searchedAgency?.name}</span>
+                    Send to <span className="text-purple-600 font-semibold">{searchedAgency?.name}</span>
                     <br />
                     <span className="text-slate-300 text-xs">Agency Code: {searchedAgency?.agency_code}</span>
                   </>
@@ -2721,7 +2718,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-white/70 text-xs mb-1">Your Level</p>
-                      <p className="text-purple-400 font-bold text-2xl">Lv {displayLevel}</p>
+                      <p className="text-purple-600 font-bold text-2xl">Lv {displayLevel}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-white/70 text-xs mb-1">{canCustomize ? 'Suggested Rate' : 'Fixed Rate'}</p>

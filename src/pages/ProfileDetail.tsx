@@ -762,9 +762,8 @@ const ProfileDetail = () => {
 
   return (
     <div 
-      className="fixed inset-0"
+      className="fixed inset-0 profile-home-shell"
       style={{ 
-        background: 'linear-gradient(180deg, #0c0618 0%, #110a24 30%, #0d0719 60%, #080412 100%)',
         overflowY: 'scroll',
         overflowX: 'hidden',
         WebkitOverflowScrolling: 'touch',
@@ -803,9 +802,9 @@ const ProfileDetail = () => {
           </motion.div>
         </AnimatePresence>
         {/* Premium gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-[#0c0618]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-[#f7f8fa]" />
         {/* Subtle vignette */}
-        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at center, transparent 50%, rgba(12,6,24,0.7) 100%)' }} />
+        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at center, transparent 50%, rgba(15,23,42,0.22) 100%)' }} />
 
         {/* Slideshow Indicators */}
         {posterImages.length > 1 && (
@@ -821,14 +820,14 @@ const ProfileDetail = () => {
                 }`}
               />
             ))}
-            <button
+              <button
               onClick={() => setIsPaused(!isPaused)}
-              className="ml-2 w-7 h-7 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center"
+                className="ml-2 w-7 h-7 rounded-full bg-white/90 backdrop-blur-xl border border-slate-200 flex items-center justify-center shadow-sm"
             >
               {isPaused ? (
-                <Play className="w-3 h-3 text-white" />
+                <Play className="w-3 h-3 text-slate-700" />
               ) : (
-                <Pause className="w-3 h-3 text-white" />
+                <Pause className="w-3 h-3 text-slate-700" />
               )}
             </button>
           </div>
@@ -839,9 +838,9 @@ const ProfileDetail = () => {
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate(-1)}
-            className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-xl border border-white/10 flex items-center justify-center"
+            className="w-10 h-10 rounded-full profile-home-icon-button flex items-center justify-center"
           >
-            <ArrowLeft className="w-5 h-5 text-white" />
+            <ArrowLeft className="w-5 h-5 text-slate-700" />
           </motion.button>
 
           <div className="flex items-center gap-2">
@@ -849,26 +848,26 @@ const ProfileDetail = () => {
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={() => navigate("/edit-profile")}
-                className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-xl border border-white/10 flex items-center justify-center"
+                  className="w-10 h-10 rounded-full profile-home-icon-button flex items-center justify-center"
               >
-                <Edit2 className="w-5 h-5 text-white" />
+                  <Edit2 className="w-5 h-5 text-slate-700" />
               </motion.button>
             ) : (
               <>
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setShowReportDialog(true)}
-                  className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-xl border border-white/10 flex items-center justify-center"
+                    className="w-10 h-10 rounded-full profile-home-icon-button flex items-center justify-center"
                 >
-                  <Flag className="w-5 h-5 text-white" />
+                    <Flag className="w-5 h-5 text-slate-700" />
                 </motion.button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <motion.button
                       whileTap={{ scale: 0.95 }}
-                      className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-xl border border-white/10 flex items-center justify-center"
+                      className="w-10 h-10 rounded-full profile-home-icon-button flex items-center justify-center"
                     >
-                      <MoreVertical className="w-5 h-5 text-white" />
+                      <MoreVertical className="w-5 h-5 text-slate-700" />
                     </motion.button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48 bg-[#1a1a2e] border-white/10">
@@ -917,14 +916,10 @@ const ProfileDetail = () => {
         initial={{ y: 50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         className="relative -mt-24 mx-3 rounded-3xl overflow-hidden"
-        style={{
-          background: 'linear-gradient(135deg, rgba(20,15,40,0.95) 0%, rgba(15,10,35,0.98) 50%, rgba(25,15,45,0.95) 100%)',
-          border: '1px solid rgba(168,85,247,0.15)',
-          boxShadow: '0 25px 60px -12px rgba(0,0,0,0.8), 0 0 40px rgba(168,85,247,0.08)',
-        }}
       >
+        <div className="absolute inset-0 profile-home-card rounded-3xl" />
         {/* Subtle inner glow */}
-        <div className="absolute inset-0 rounded-3xl" style={{ background: 'radial-gradient(ellipse at top center, rgba(168,85,247,0.08) 0%, transparent 60%)' }} />
+        <div className="absolute inset-0 rounded-3xl" style={{ background: 'radial-gradient(ellipse at top center, rgba(236,72,153,0.08) 0%, transparent 60%)' }} />
         
         <div className="relative p-4 sm:p-5">
           {/* Banned Account Banner */}
@@ -961,7 +956,7 @@ const ProfileDetail = () => {
             <div className="flex-1 min-w-0">
               {/* Name */}
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-lg font-bold text-white">
+                  <h1 className="text-lg font-bold text-slate-950">
                   {profile.display_name || profile.username || "User"}
                 </h1>
                 {(profile.is_verified || (profile as any).is_face_verified) && (
@@ -1002,9 +997,9 @@ const ProfileDetail = () => {
                 ) : null}
 
                 {/* ID Badge - inline with level & status */}
-                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">
+                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white border border-slate-200 backdrop-blur-sm">
                   <span className="w-3.5 h-3.5 rounded-full bg-gradient-to-r from-fuchsia-500 to-purple-500 flex items-center justify-center text-white text-[6px] font-bold">ID</span>
-                  <span className="text-white/85 font-mono text-[10px] tracking-wider">{profile.app_uid || "00000000"}</span>
+                  <span className="text-slate-700 font-mono text-[10px] tracking-wider">{profile.app_uid || "00000000"}</span>
                 </div>
 
                 {profile.age && profile.gender && (
@@ -1029,13 +1024,9 @@ const ProfileDetail = () => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.2 }}
-                  className="mt-3 px-3 py-2 rounded-xl relative overflow-hidden mx-auto"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(168,85,247,0.08), rgba(236,72,153,0.06))',
-                    border: '1px solid rgba(168,85,247,0.12)',
-                  }}
+                  className="mt-3 px-3 py-2 rounded-xl relative overflow-hidden mx-auto bg-slate-50 border border-slate-100"
                 >
-                  <p className="text-sm text-white/70 leading-relaxed line-clamp-2 font-medium text-center">
+                  <p className="text-sm text-slate-600 leading-relaxed line-clamp-2 font-medium text-center">
                     ✨ {profile.bio}
                   </p>
                 </motion.div>
@@ -1048,7 +1039,7 @@ const ProfileDetail = () => {
                   onClick={handleFollow}
                   className={`mt-2.5 px-5 py-1.5 rounded-full text-xs font-bold transition-all ${
                     isFollowing 
-                      ? "bg-white/10 text-white border border-white/20 backdrop-blur-sm" 
+                      ? "bg-white text-slate-700 border border-slate-200 backdrop-blur-sm" 
                       : "bg-gradient-to-r from-fuchsia-500 via-purple-500 to-pink-500 text-white shadow-lg shadow-fuchsia-500/30"
                   }`}
                 >
@@ -1060,12 +1051,7 @@ const ProfileDetail = () => {
           {/* Privileges & Animations - Premium Glass Card */}
           {(userPrivileges.frames.length > 0 || userPrivileges.entryBars.length > 0 || purchasedItems.length > 0) && (
             <motion.div
-              className="mt-4 p-4 rounded-2xl relative overflow-hidden"
-              style={{
-                background: 'linear-gradient(135deg, rgba(88,28,135,0.3) 0%, rgba(30,15,60,0.5) 50%, rgba(88,28,135,0.2) 100%)',
-                border: '1px solid rgba(168,85,247,0.2)',
-                boxShadow: '0 8px 32px rgba(88,28,135,0.15)',
-              }}
+              className="mt-4 p-4 rounded-2xl relative overflow-hidden profile-home-section"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
@@ -1081,7 +1067,7 @@ const ProfileDetail = () => {
               <div className="relative">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-base">✨</span>
-                  <span className="text-white font-bold text-sm">Privileges & Animations</span>
+                  <span className="text-slate-950 font-bold text-sm">Privileges & Animations</span>
                   <Badge className="bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white border-0 text-[9px] px-2 py-0.5 font-bold ml-auto">
                     Lv{level}
                   </Badge>
@@ -1205,11 +1191,11 @@ const ProfileDetail = () => {
           {/* Location & Language Section - Country flag ALWAYS visible (unless NONE);
               only city/region is hidden when profile owner enabled hide_location */}
           {profile.country_code !== 'NONE' && (
-          <div className="mt-4 p-3.5 rounded-2xl space-y-2.5" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+          <div className="mt-4 p-3.5 rounded-2xl space-y-2.5 profile-home-section">
             {/* Location Row */}
             <div className="flex items-center gap-2 flex-wrap">
               <div className="w-7 h-7 rounded-full bg-purple-500/15 flex items-center justify-center flex-shrink-0">
-                <MapPin className="w-3.5 h-3.5 text-purple-400" />
+                <MapPin className="w-3.5 h-3.5 text-purple-600" />
               </div>
               <Badge className="gap-1 bg-emerald-500/15 text-emerald-300 border border-emerald-500/20 px-2.5 py-1 text-[10px]">
                 <span>{profile.country_flag || "🌍"}</span>
@@ -1243,9 +1229,9 @@ const ProfileDetail = () => {
             {profile.tags && profile.tags.length > 0 && (
               <div className="flex flex-wrap gap-2 pt-2 border-t border-white/5">
                 {profile.tags.map((tag, index) => {
-                  const style = tagStyles[tag] || { bg: "bg-white/5", text: "text-white/85", icon: "✨" };
+                    const style = tagStyles[tag] || { bg: "bg-slate-50", text: "text-slate-700", icon: "✨" };
                   return (
-                    <Badge key={index} className="gap-1 bg-white/5 text-white/85 border border-white/10 px-2 py-0.5 text-xs">
+                    <Badge key={index} className="gap-1 bg-slate-50 text-slate-700 border border-slate-200 px-2 py-0.5 text-xs">
                       <span className="text-xs">{style.icon}</span>
                       {tag}
                     </Badge>
@@ -1259,30 +1245,30 @@ const ProfileDetail = () => {
           {/* Stats Row - Only visible to profile owner */}
           {isOwnProfile && (
             <>
-              <div className="mt-4 grid grid-cols-3 gap-px p-1 rounded-2xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <div className="mt-4 grid grid-cols-3 gap-px p-1 rounded-2xl profile-home-section">
                 <motion.button 
                   whileTap={{ scale: 0.95 }}
                   onClick={() => navigate(`/following?type=friends&user=${userId}`)}
-                  className="text-center py-3 rounded-xl hover:bg-white/5 transition-colors"
+                  className="text-center py-3 rounded-xl hover:bg-slate-50 transition-colors"
                 >
                   <p className="text-2xl font-bold bg-gradient-to-r from-fuchsia-400 to-pink-400 bg-clip-text text-transparent">{friendsCount}</p>
-                  <p className="text-[11px] text-white/75 font-medium mt-0.5">Friends</p>
+                  <p className="text-[11px] text-slate-500 font-medium mt-0.5">Friends</p>
                 </motion.button>
                 <motion.button 
                   whileTap={{ scale: 0.95 }}
                   onClick={() => navigate(`/following?type=following&user=${userId}`)}
-                  className="text-center py-3 rounded-xl hover:bg-white/5 transition-colors border-x border-white/5"
+                  className="text-center py-3 rounded-xl hover:bg-slate-50 transition-colors border-x border-slate-100"
                 >
                   <p className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">{followingCount}</p>
-                  <p className="text-[11px] text-white/75 font-medium mt-0.5">Following</p>
+                  <p className="text-[11px] text-slate-500 font-medium mt-0.5">Following</p>
                 </motion.button>
                 <motion.button 
                   whileTap={{ scale: 0.95 }}
                   onClick={() => navigate(`/following?type=followers&user=${userId}`)}
-                  className="text-center py-3 rounded-xl hover:bg-white/5 transition-colors"
+                  className="text-center py-3 rounded-xl hover:bg-slate-50 transition-colors"
                 >
                   <p className="text-2xl font-bold bg-gradient-to-r from-pink-400 to-rose-400 bg-clip-text text-transparent">{followersCount}</p>
-                  <p className="text-[11px] text-white/75 font-medium mt-0.5">Followers</p>
+                  <p className="text-[11px] text-slate-500 font-medium mt-0.5">Followers</p>
                 </motion.button>
               </div>
             </>
@@ -1382,17 +1368,17 @@ const ProfileDetail = () => {
             <div className="flex items-center justify-between mb-3">
               <button
                 onClick={() => navigate("/leaderboard")}
-                className="flex items-center gap-1 text-lg font-bold text-white"
+                className="flex items-center gap-1 text-lg font-bold text-slate-950"
               >
                 🎁 Gifts Received
-                <ChevronRight className="w-5 h-5 text-white/80" />
+                <ChevronRight className="w-5 h-5 text-slate-500" />
               </button>
-              <span className="text-sm text-white/75 font-medium">
+              <span className="text-sm text-slate-500 font-medium">
                 Total: {profile?.total_earnings?.toLocaleString() || 0} beans
               </span>
             </div>
 
-            <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div className="rounded-2xl p-4 profile-home-section">
               {giftsReceived.length > 0 ? (
                 <div className="w-full overflow-x-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent pb-2" style={{ WebkitOverflowScrolling: 'touch' }}>
                   <div className="flex gap-3 w-max">
@@ -1405,8 +1391,7 @@ const ProfileDetail = () => {
                           setSelectedGift(gift);
                           setShowGiftSendersModal(true);
                         }}
-                        className="flex-shrink-0 w-24 h-28 rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-white/5 transition-all"
-                        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+                        className="flex-shrink-0 w-24 h-28 rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-slate-50 transition-all bg-white border border-slate-100"
                       >
                         <div className="w-14 h-14 flex items-center justify-center text-3xl">
                           {gift.icon.startsWith("http") ? (
@@ -1430,7 +1415,7 @@ const ProfileDetail = () => {
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-6 text-white/70">
+                <div className="text-center py-6 text-slate-500">
                   <span className="text-3xl">💝</span>
                   <p className="text-sm mt-2">No gifts received yet</p>
                 </div>
@@ -1544,10 +1529,10 @@ const ProfileDetail = () => {
         >
           <button
             onClick={() => navigate("/search")}
-            className="flex items-center gap-1 text-lg font-bold mb-3 text-white"
+            className="flex items-center gap-1 text-lg font-bold mb-3 text-slate-950"
           >
             Groups
-            <ChevronRight className="w-5 h-5 text-white/80" />
+            <ChevronRight className="w-5 h-5 text-slate-500" />
           </button>
 
           {groups.length > 0 ? (
@@ -1558,8 +1543,7 @@ const ProfileDetail = () => {
                     key={group.id}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="flex-shrink-0 w-48 rounded-2xl p-4 text-left"
-                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+                    className="flex-shrink-0 w-48 rounded-2xl p-4 text-left profile-home-section"
                   >
                     <div className="flex items-center gap-3">
                       <Avatar className="w-12 h-12 border border-white/10">
@@ -1569,11 +1553,11 @@ const ProfileDetail = () => {
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-white/80 truncate flex items-center gap-1 text-sm">
+                        <p className="font-semibold text-slate-800 truncate flex items-center gap-1 text-sm">
                           <span>👨‍👩‍👧‍👦</span>
                           {group.name}
                         </p>
-                        <p className="text-xs text-white/70 flex items-center gap-1 mt-0.5">
+                        <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
                           <Users className="w-3 h-3" />
                           ({group.member_count || 0})
                         </p>
@@ -1584,9 +1568,9 @@ const ProfileDetail = () => {
               </div>
             </ScrollArea>
           ) : (
-            <div className="rounded-2xl p-6 text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <Users className="w-10 h-10 text-white/70 mx-auto mb-2" />
-              <p className="text-sm text-white/70">No groups joined yet</p>
+            <div className="rounded-2xl p-6 text-center profile-home-section">
+              <Users className="w-10 h-10 text-slate-400 mx-auto mb-2" />
+              <p className="text-sm text-slate-500">No groups joined yet</p>
             </div>
           )}
         </motion.div>
