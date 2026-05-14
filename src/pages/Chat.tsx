@@ -1923,7 +1923,7 @@ const Chat = () => {
             {isGroup && (
               <button
                 type="button"
-                className="w-9 h-9 rounded-full bg-white/[0.08] flex items-center justify-center shrink-0 relative z-20 border border-white/[0.08]"
+                className="w-9 h-9 rounded-full bg-white/[0.08] flex items-center justify-center shrink-0 relative z-20 border border-amber-200/60"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -1941,12 +1941,12 @@ const Chat = () => {
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
-                    className="w-9 h-9 rounded-full bg-white/[0.08] flex items-center justify-center shrink-0 relative z-20 border border-white/[0.08] backdrop-blur-xl"
+                    className="w-9 h-9 rounded-full bg-white/[0.08] flex items-center justify-center shrink-0 relative z-20 border border-amber-200/60 backdrop-blur-xl"
                   >
                     <MoreVertical className="w-5 h-5 text-white pointer-events-none" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-gradient-to-b from-[#1a0a2e]/98 via-[#0f0520]/98 to-[#0a0318]/98 backdrop-blur-3xl border border-white/[0.08] rounded-2xl min-w-[220px] shadow-2xl shadow-purple-900/40 p-1.5 overflow-hidden max-h-[70vh] overflow-y-auto">
+                <DropdownMenuContent align="end" className="bg-gradient-to-b from-[#1a0a2e]/98 via-[#0f0520]/98 to-[#0a0318]/98 backdrop-blur-3xl border border-amber-200/60 rounded-2xl min-w-[220px] shadow-2xl shadow-purple-900/40 p-1.5 overflow-hidden max-h-[70vh] overflow-y-auto">
                   {/* Decorative top glow */}
                   <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-[1px] bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
                   
@@ -2669,7 +2669,7 @@ const Chat = () => {
                     setShowMediaUploader(true);
                     setShowEmojiPicker(false);
                   }}
-                  className="w-10 h-10 rounded-full bg-white/[0.06] border border-white/[0.08] flex items-center justify-center hover:bg-white/[0.1] transition-colors backdrop-blur-xl"
+                  className="w-10 h-10 rounded-full bg-white/[0.06] border border-amber-200/60 flex items-center justify-center hover:bg-white/[0.1] transition-colors backdrop-blur-xl"
                 >
                   <Camera className="w-5 h-5 text-slate-700" />
                 </motion.button>
@@ -2681,7 +2681,7 @@ const Chat = () => {
                     onChange={(e) => handleMessageChange(e.target.value)}
                     placeholder="Type something..."
                     className={cn(
-                      "rounded-full bg-white/[0.06] border border-white/[0.08] pr-20 text-white placeholder:text-slate-600 focus-visible:ring-1 focus-visible:ring-purple-500/40 focus-visible:border-purple-500/30 backdrop-blur-xl",
+                      "rounded-full bg-white/[0.06] border border-amber-200/60 pr-20 text-white placeholder:text-slate-600 focus-visible:ring-1 focus-visible:ring-purple-500/40 focus-visible:border-purple-500/30 backdrop-blur-xl",
                       inlineTranslateEnabled && "ring-1 ring-purple-500/40 border-purple-500/30"
                     )}
                     onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
@@ -3168,7 +3168,7 @@ const Chat = () => {
 
       {/* Group Actions Sheet */}
       <Sheet open={showGroupActions} onOpenChange={setShowGroupActions}>
-        <SheetContent side="bottom" className="rounded-t-3xl border-t border-white/[0.08]" style={{ background: 'linear-gradient(180deg, rgba(30,12,60,0.98) 0%, rgba(15,5,35,0.99) 100%)' }}>
+        <SheetContent side="bottom" className="rounded-t-3xl border-t border-amber-200/60" style={{ background: 'linear-gradient(180deg, hsl(40 40% 99%) 0%, hsl(40 40% 98%) 100%)' }}>
           <SheetHeader>
             <SheetTitle className="sr-only">Group Actions</SheetTitle>
           </SheetHeader>
@@ -3203,7 +3203,7 @@ const Chat = () => {
 
       {/* Create Group Dialog */}
       <Dialog open={showCreateGroup} onOpenChange={setShowCreateGroup}>
-        <DialogContent className="max-w-sm mx-auto border border-white/[0.08]" style={{ background: 'linear-gradient(180deg, rgba(30,12,60,0.98) 0%, rgba(15,5,35,0.99) 100%)' }}>
+        <DialogContent className="max-w-sm mx-auto border border-amber-200/60" style={{ background: 'linear-gradient(180deg, hsl(40 40% 99%) 0%, hsl(40 40% 98%) 100%)' }}>
           <DialogHeader>
             <DialogTitle className="text-white">Create a group</DialogTitle>
           </DialogHeader>
@@ -3247,7 +3247,7 @@ const Chat = () => {
 
             <div className="space-y-3">
               <RadioGroup value={newGroupType} onValueChange={setNewGroupType}>
-                <div className="flex items-center space-x-3 p-3 rounded-xl border border-white/[0.08] bg-white/[0.04]">
+                <div className="flex items-center space-x-3 p-3 rounded-xl border border-amber-200/60 bg-white/[0.04]">
                   <RadioGroupItem value="basic" id="basic" />
                   <Label htmlFor="basic" className="flex-1 cursor-pointer">
                     <div className="flex items-center gap-2">
@@ -3256,7 +3256,7 @@ const Chat = () => {
                     </div>
                   </Label>
                 </div>
-                <div className="flex items-center space-x-3 p-3 rounded-xl border border-white/[0.08] bg-white/[0.04]">
+                <div className="flex items-center space-x-3 p-3 rounded-xl border border-amber-200/60 bg-white/[0.04]">
                   <RadioGroupItem value="family" id="family" />
                   <Label htmlFor="family" className="flex-1 cursor-pointer">
                     <div className="flex items-center gap-2">
@@ -3285,7 +3285,7 @@ const Chat = () => {
 
       {/* Search Group Dialog */}
       <Dialog open={showSearchGroup} onOpenChange={setShowSearchGroup}>
-        <DialogContent className="max-w-sm mx-auto border border-white/[0.08]" style={{ background: 'linear-gradient(180deg, rgba(30,12,60,0.98) 0%, rgba(15,5,35,0.99) 100%)' }}>
+        <DialogContent className="max-w-sm mx-auto border border-amber-200/60" style={{ background: 'linear-gradient(180deg, hsl(40 40% 99%) 0%, hsl(40 40% 98%) 100%)' }}>
           <DialogHeader>
             <DialogTitle className="text-white">Search Group</DialogTitle>
           </DialogHeader>
@@ -3313,7 +3313,7 @@ const Chat = () => {
                 {groupSearchResults.map((group) => (
                   <div
                     key={group.id}
-                    className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.08] bg-white/[0.04]"
+                    className="flex items-center gap-3 p-3 rounded-xl border border-amber-200/60 bg-white/[0.04]"
                   >
                     <Avatar className="w-12 h-12 ring-2 ring-purple-500/20">
                       <AvatarImage src={group.avatar_url || undefined} />
