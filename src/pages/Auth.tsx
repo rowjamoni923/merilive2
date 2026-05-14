@@ -2727,7 +2727,7 @@ const Auth = () => {
             {/* Close button handled by DialogContent */}
 
             <DialogHeader className="relative z-10">
- <DialogTitle className="text-slate-900 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-indigo-100 to-white bg-clip-text text-transparent">Welcome Back</DialogTitle>
+ <DialogTitle className="text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-indigo-700 via-purple-600 to-indigo-700 bg-clip-text text-transparent">Welcome Back</DialogTitle>
               <DialogDescription className="text-slate-600 text-center text-sm mt-1">Login to your account</DialogDescription>
             </DialogHeader>
             
