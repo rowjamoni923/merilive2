@@ -73,9 +73,9 @@ import { recordClientError } from "@/utils/clientErrorLog";
 // Helper for formatting numbers with English numerals
 const fmtNum = (num: number | null | undefined) => formatNum(num);
 
-const premiumCardClass = "bg-white/95 text-slate-900 border border-amber-100/80 shadow-[0_18px_45px_-28px_rgba(124,58,237,0.35)]";
-const premiumTileClass = "bg-white/85 border border-amber-100/70 shadow-[0_12px_30px_-24px_rgba(15,23,42,0.45)]";
-const premiumActionClass = "rounded-2xl p-4 text-white text-center shadow-[0_16px_32px_-18px_rgba(79,70,229,0.65)] hover:-translate-y-0.5 hover:shadow-[0_20px_38px_-18px_rgba(79,70,229,0.8)] transition-all active:scale-95 flex flex-col items-center justify-center border border-white/25";
+const premiumCardClass = "agency-premium-card";
+const premiumTileClass = "agency-premium-tile";
+const premiumActionClass = "agency-premium-action";
 
 interface Agency {
   id: string;
