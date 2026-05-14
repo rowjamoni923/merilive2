@@ -1807,25 +1807,25 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         {/* Country ALWAYS visible, City hidden if profile owner has hide_location enabled */}
         <div className="flex items-center justify-center gap-2 flex-wrap mt-4 px-3">
           {/* Country - ALWAYS visible */}
-          <div className="flex items-center gap-1.5 bg-emerald-500/15 border border-emerald-500/30 px-3 py-1.5 rounded-full backdrop-blur-sm shadow-md shadow-emerald-500/10">
-            <span className="text-base">{geoLocation.countryFlag || profile?.country_flag || "🌍"}</span>
-            <span className="font-semibold text-emerald-400 text-xs">
+          <div className="flex items-center gap-1.5 bg-white/[0.06] border border-white/15 px-3 py-1.5 rounded-full backdrop-blur-md shadow-sm">
+            <span className="text-base leading-none">{geoLocation.countryFlag || profile?.country_flag || "🌍"}</span>
+            <span className="font-semibold text-white/90 text-xs tracking-wide">
               {geoLocation.country || profile?.country_name || ""}
             </span>
           </div>
 
           {/* City - Only show if own profile OR profile owner hasn't hidden location */}
           {(isOwnProfile || !profile?.hide_location) && (
-            <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 px-3 py-1.5 rounded-full backdrop-blur-sm shadow-md">
-              <MapPin className="w-3.5 h-3.5 text-white/85" />
-              <span className="font-medium text-white/70 text-xs">
+            <div className="flex items-center gap-1.5 bg-white/[0.06] border border-white/15 px-3 py-1.5 rounded-full backdrop-blur-md shadow-sm">
+              <MapPin className="w-3.5 h-3.5 text-white/80" />
+              <span className="font-medium text-white/85 text-xs tracking-wide">
                 {geoLocation.city || "Location"}
               </span>
             </div>
           )}
 
-          <div className="flex items-center gap-1.5 bg-orange-500/15 border border-orange-500/30 px-3 py-1.5 rounded-full backdrop-blur-sm shadow-md shadow-orange-500/10">
-            <span className="font-semibold text-orange-400 text-xs">Bengali</span>
+          <div className="flex items-center gap-1.5 bg-white/[0.06] border border-white/15 px-3 py-1.5 rounded-full backdrop-blur-md shadow-sm">
+            <span className="font-semibold text-white/90 text-xs tracking-wide">Bengali</span>
           </div>
         </div>
 
