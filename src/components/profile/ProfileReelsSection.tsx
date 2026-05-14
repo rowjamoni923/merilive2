@@ -259,10 +259,10 @@ export const ProfileReelsSection = ({ userId, isOwnProfile }: ProfileReelsSectio
                           </>
                         )}
                       </DropdownMenuItem>
-                      <DropdownMenuSeparator className="bg-white/10" />
+                      <DropdownMenuSeparator className="bg-slate-200" />
                       <DropdownMenuItem 
                         onClick={() => setDeleteReelId(reel.id)}
-                        className="text-red-400 hover:bg-red-500/20 hover:text-red-300 cursor-pointer gap-2"
+                        className="text-red-600 hover:bg-red-50 focus:bg-red-50 hover:text-red-700 cursor-pointer gap-2"
                       >
                         <Trash2 className="w-4 h-4" />
                         Delete
