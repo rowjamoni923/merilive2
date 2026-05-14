@@ -867,7 +867,7 @@ const FaceVerification = () => {
     setVerificationTime(0);
     setScanningStatus('idle');
     setPoseHistory([]);
-    setLiveDiag(null);
+    setLiveDiag(null); setCalibrating(false);
     faceChunksRef.current = [];
     capturedAnglesRef.current = {};
 
@@ -1163,7 +1163,7 @@ const FaceVerification = () => {
     setFaceVerified(false);
     setScanningStatus('idle');
     setPoseHistory([]);
-    setLiveDiag(null);
+    setLiveDiag(null); setCalibrating(false);
     if (poseCheckIntervalRef.current) {
       clearInterval(poseCheckIntervalRef.current);
       poseCheckIntervalRef.current = null;
