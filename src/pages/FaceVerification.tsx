@@ -855,7 +855,7 @@ const FaceVerification = () => {
           setScanningStatus('scanning');
         }
       }
-    }, 1500); // Check every 1.5 seconds
+    }, 1000); // Poll every 1s — faster lock-on without overloading Rekognition
   };
 
   // Finish verification
