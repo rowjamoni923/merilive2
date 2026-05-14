@@ -56,18 +56,18 @@ export function CallEndedModal({
             <motion.div
               initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
-              className="max-w-sm mx-auto bg-gradient-to-r from-[#FFFBF2]/95 via-gray-800/95 to-[#F5EFDF]/95 backdrop-blur-xl rounded-2xl border border-amber-200/60 shadow-2xl overflow-hidden"
+              className="max-w-sm mx-auto bg-gradient-to-r from-[#FFFBF2]/95 via-[#FAF5EA]/95 to-[#F5EFDF]/95 backdrop-blur-xl rounded-2xl border border-amber-200/70 shadow-2xl overflow-hidden"
             >
               <div className="p-4">
                 <div className="flex items-center gap-3">
                   {/* Call End Icon */}
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-500/30 to-pink-500/30 flex items-center justify-center border border-red-500/30 flex-shrink-0">
-                    <PhoneOff className="w-5 h-5 text-red-400" />
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-500/20 to-pink-500/20 flex items-center justify-center border border-red-300/60 flex-shrink-0">
+                    <PhoneOff className="w-5 h-5 text-red-600" />
                   </div>
 
                   {/* Text Content - NO diamond/earnings info for user privacy */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-slate-800 font-semibold text-base">
+                    <h3 className="text-slate-900 font-semibold text-base">
                       {endReason === 'declined' ? 'Call Declined' : 
                        endReason === 'missed' ? 'Call Missed' : 
                        endReason === 'insufficient_coins' ? 'Call Ended' :
@@ -84,9 +84,9 @@ export function CallEndedModal({
                   </div>
 
                   {/* Duration Badge - Simple, no cost info */}
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50/70 flex-shrink-0">
-                    <Clock className="w-3.5 h-3.5 text-blue-400" />
-                    <span className="text-slate-800 text-sm font-medium">{formatDuration(duration)}</span>
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/80 border border-amber-200/60 flex-shrink-0">
+                    <Clock className="w-3.5 h-3.5 text-blue-600" />
+                    <span className="text-slate-900 text-sm font-semibold">{formatDuration(duration)}</span>
                   </div>
                 </div>
               </div>
