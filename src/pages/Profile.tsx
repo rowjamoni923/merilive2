@@ -1898,15 +1898,15 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               onClick={() => navigate("/recharge")}
               className="group relative"
             >
-              <div className="absolute inset-0 bg-cyan-500/10 rounded-xl translate-y-1 blur-md" />
+              <div className="absolute inset-0 bg-pink-500/10 rounded-xl translate-y-1 blur-md" />
               <div className="relative profile-home-card rounded-xl p-2.5 overflow-hidden group-active:scale-[0.97] transition-all">
-                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-400/60 to-transparent" />
-                <div className="absolute -top-8 -right-8 w-20 h-20 bg-cyan-500/15 rounded-full blur-2xl" />
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-pink-400/60 to-purple-400/60" />
+                <div className="absolute -top-8 -right-8 w-20 h-20 bg-pink-500/15 rounded-full blur-2xl" />
 
                 <div className="relative z-10">
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-cyan-700 font-semibold text-[8px] tracking-[0.12em] uppercase">My Diamonds</p>
-                    <span className="text-[6px] bg-cyan-50 border border-cyan-100 text-cyan-700 px-1.5 py-0.5 rounded-full font-semibold tracking-wide">
+                    <p className="text-pink-600 font-semibold text-[8px] tracking-[0.12em] uppercase">My Diamonds</p>
+                    <span className="text-[6px] bg-pink-50 border border-pink-100 text-pink-600 px-1.5 py-0.5 rounded-full font-semibold tracking-wide">
                       Top Up
                     </span>
                   </div>
