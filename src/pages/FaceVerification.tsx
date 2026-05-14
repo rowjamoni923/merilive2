@@ -1704,8 +1704,8 @@ const FaceVerification = () => {
 
       {/* Tips */}
       {!faceStream && !faceVerified && (
-        <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-xl p-3 mb-4">
-          <p className="text-cyan-300 text-xs text-center">
+        <div className="bg-cyan-50 border border-cyan-200 rounded-xl p-3 mb-4">
+          <p className="text-cyan-800 text-xs text-center">
             {localizedMsg.tips}
           </p>
         </div>
