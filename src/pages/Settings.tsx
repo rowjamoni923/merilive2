@@ -907,8 +907,8 @@ const Settings = () => {
                   onClick={() => handleLanguageChange(lang.code)}
                   className={`w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all ${
                     selectedLanguage === lang.code
-                      ? "bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-500/50 text-white"
-                      : "bg-slate-50 hover:bg-slate-100 border border-amber-200/40 text-white"
+                      ? "bg-gradient-to-r from-purple-100 to-pink-100 border border-purple-300 text-slate-800 shadow-sm"
+                      : "bg-white hover:bg-amber-50/60 border border-amber-200/60 text-slate-800"
                   }`}
                 >
                   <div className="flex items-center gap-3">
