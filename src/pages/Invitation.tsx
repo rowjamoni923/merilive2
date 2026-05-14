@@ -544,23 +544,19 @@ const Invitation = () => {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.25 }}
-            className="rounded-2xl overflow-hidden"
-            style={{
-              background: 'linear-gradient(180deg, rgba(20,0,40,0.8), rgba(10,0,20,0.9))',
-              border: '1px solid rgba(168,85,247,0.2)',
-            }}
+            className="rounded-2xl overflow-hidden bg-white border border-amber-200/70 shadow-lg shadow-amber-900/5"
           >
-            <div className="flex items-center justify-between px-5 pt-5 pb-3">
+            <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-amber-100">
               <div className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-violet-400" />
-                <h3 className="text-slate-800 font-bold text-base">My Invites</h3>
+                <Users className="w-5 h-5 text-violet-500" />
+                <h3 className="text-slate-900 font-bold text-base">My Invites</h3>
               </div>
-              <span className="text-xs text-slate-600 bg-white/10 px-2.5 py-1 rounded-full font-medium">
+              <span className="text-xs text-slate-600 bg-amber-50 border border-amber-200/70 px-2.5 py-1 rounded-full font-medium">
                 {myInvitedUsers.length} people
               </span>
             </div>
 
-            <div className="px-4 pb-4 space-y-1.5 max-h-60 overflow-y-auto">
+            <div className="px-4 pt-3 pb-4 space-y-1.5 max-h-60 overflow-y-auto">
               {myInvitedUsers.length > 0 ? (
                 myInvitedUsers.map((user, index) => (
                   <motion.div
@@ -568,32 +564,31 @@ const Invitation = () => {
                     initial={{ x: -20, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     transition={{ delay: 0.03 * index }}
-                    className="flex items-center gap-3 p-2.5 rounded-xl"
-                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}
+                    className="flex items-center gap-3 p-2.5 rounded-xl bg-amber-50/40 border border-amber-100"
                   >
-                    <div className="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-br from-purple-500/30 to-pink-500/30 flex items-center justify-center shrink-0">
+                    <div className="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-br from-violet-100 to-fuchsia-100 flex items-center justify-center shrink-0 border border-violet-200/60">
                       {user.avatar_url ? (
                         <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
                       ) : (
-                        <span className="text-slate-600 font-bold text-sm">{user.display_name[0]}</span>
+                        <span className="text-violet-700 font-bold text-sm">{user.display_name[0]}</span>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-slate-800 text-sm font-medium truncate">{user.display_name}</p>
-                      <p className="text-slate-600 text-[10px]">
+                      <p className="text-slate-900 text-sm font-medium truncate">{user.display_name}</p>
+                      <p className="text-slate-500 text-[10px]">
                         Joined {new Date(user.created_at).toLocaleDateString()}
                       </p>
                     </div>
-                    <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center shrink-0">
-                      <CheckCircle className="w-3.5 h-3.5 text-green-400" />
+                    <div className="w-6 h-6 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center shrink-0">
+                      <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
                     </div>
                   </motion.div>
                 ))
               ) : (
                 <div className="text-center py-8">
-                  <Users className="w-10 h-10 text-slate-200 mx-auto mb-2" />
+                  <Users className="w-10 h-10 text-slate-300 mx-auto mb-2" />
                   <p className="text-slate-600 text-sm">No invites yet</p>
-                  <p className="text-slate-500 text-xs mt-1">Share your link to start inviting!</p>
+                  <p className="text-slate-400 text-xs mt-1">Share your link to start inviting!</p>
                 </div>
               )}
             </div>
