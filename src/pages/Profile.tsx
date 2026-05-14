@@ -2867,11 +2867,11 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
       {/* Agency Beans Exchange Modal */}
       <Dialog open={showAgencyExchangeModal} onOpenChange={setShowAgencyExchangeModal}>
-        <DialogContent className="max-w-md bg-gradient-to-b from-white to-amber-50 border-amber-300/60 text-slate-800 p-0 max-h-[90vh] overflow-y-auto">
-          <div className="bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-yellow-500/20 p-6 border-b border-amber-500/20">
+        <DialogContent className="max-w-md bg-gradient-to-b from-white via-amber-50/40 to-white border border-amber-200/70 text-slate-800 p-0 max-h-[90vh] overflow-y-auto shadow-2xl shadow-amber-900/10">
+          <div className="bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 p-6 border-b border-amber-200/70">
             <DialogHeader>
-              <DialogTitle className="text-xl font-bold text-amber-400 flex items-center gap-2">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+              <DialogTitle className="text-xl font-bold text-amber-700 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
                   <Beans3DIcon size={24} />
                 </div>
                 Exchange Beans to Diamonds
@@ -2879,15 +2879,15 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             </DialogHeader>
             
             {/* Agency Info */}
-            <div className="mt-4 bg-white/50 rounded-xl p-3 border border-amber-500/20">
+            <div className="mt-4 bg-white rounded-xl p-3 border border-amber-200/70 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-amber-700/90 font-semibold uppercase tracking-wider">Agency</p>
-                  <p className="font-semibold text-amber-700">{agencyData?.name || 'Loading...'}</p>
+                  <p className="text-[11px] text-amber-700/80 font-semibold uppercase tracking-wider">Agency</p>
+                  <p className="font-semibold text-slate-800">{agencyData?.name || 'Loading...'}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-amber-700/90 font-semibold uppercase tracking-wider">Your Beans</p>
-                  <p className="font-bold text-lg text-amber-400 flex items-center gap-1"><BeansIcon size={16} /> {beans.toLocaleString()}</p>
+                  <p className="text-[11px] text-amber-700/80 font-semibold uppercase tracking-wider">Your Beans</p>
+                  <p className="font-bold text-lg text-amber-600 flex items-center gap-1 justify-end"><BeansIcon size={16} /> {beans.toLocaleString()}</p>
                 </div>
               </div>
             </div>
@@ -2895,14 +2895,14 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
           <div className="p-6 space-y-4">
             {/* Exchange Rate Info */}
-            <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl p-4 border border-amber-300/60">
+            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-200/70">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-purple-700 font-medium">Exchange Rate</span>
                 <span className="text-slate-800 font-semibold">{agencyExchangeSettings.beans_to_diamonds_rate} Beans = 1 💎</span>
               </div>
               <div className="flex items-center justify-between text-sm mt-2">
                 <span className="text-purple-700 font-medium">Fee</span>
-                <span className="text-orange-400 font-semibold">{agencyExchangeSettings.exchange_fee_percent}%</span>
+                <span className="text-orange-600 font-semibold">{agencyExchangeSettings.exchange_fee_percent}%</span>
               </div>
             </div>
 
