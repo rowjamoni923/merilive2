@@ -117,11 +117,12 @@ export default function AdminRatingRewards() {
         const reviewerMap: Record<string, any> = {};
         (reviewersRes.data || []).forEach(r => { reviewerMap[r.user_id] = r; });
 
-        const enriched = data.map(c => ({
+        const enriched = await Promise.all(data.map(async (c) => ({
           ...c,
           profile: profileMap[c.user_id] || null,
           reviewer: c.reviewed_by ? reviewerMap[c.reviewed_by] || null : null,
-        }));
+          screenshot_signed: await resolveAdminStorageImageUrl(c.screenshot_url, 'rating-screenshots'),
+        })));
         setClaims(enriched);
       } else {
         setClaims([]);
