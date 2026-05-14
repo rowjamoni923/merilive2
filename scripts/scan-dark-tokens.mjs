@@ -10,11 +10,19 @@
  * Opt-out per file:  add the file path to ALLOWLIST_FILES below.
  *
  * Run manually:    node scripts/scan-dark-tokens.mjs
+ * Update baseline: node scripts/scan-dark-tokens.mjs --update-baseline
  * Run via npm:     npm run scan:dark
  * Wired into vite build via vite.config.ts (buildStart hook).
+ *
+ * Baseline policy:
+ *   The repo currently has historical dark-token usage that is being cleaned
+ *   incrementally. `scripts/dark-tokens-baseline.json` records the per-file
+ *   violation count at the time the scanner was introduced. Builds fail ONLY
+ *   when a file's count exceeds its baseline, OR when a NEW file picks up
+ *   dark tokens. So: cleaning is always allowed, regressing is not.
  */
 
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { readFileSync, readdirSync, statSync, writeFileSync, existsSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
