@@ -424,6 +424,38 @@ const PageLoader = memo(({ message = "Loading MeriLive..." }: { message?: string
   </div>
 ));
 
+// Stable, memoized fallback used by the lazy <Routes> Suspense boundary.
+// Memoized so the fallback element identity does NOT change between renders
+// — that prevents React from un/remounting it on every parent update, which
+// previously caused a brief flicker between routes. Light cream background
+// + bg-background base layer guarantees no dark flash even if a chunk
+// arrives mid-paint. Spinner is locked to viewport center via fixed
+// inset-0 + flex centering and ignores parent scroll position.
+const RouteSuspenseFallback = memo(() => (
+  <div
+    className="fixed inset-0 z-[60] flex items-center justify-center bg-background animate-fade-in"
+    style={{
+      background:
+        'radial-gradient(ellipse at center, #FFFBF2 0%, #FAF5EA 60%, #F5EFDF 100%)',
+      // Respect mobile safe-areas so the spinner is visually centered on
+      // notched devices instead of being pushed under the status bar.
+      paddingTop: 'env(safe-area-inset-top)',
+      paddingBottom: 'env(safe-area-inset-bottom)',
+    }}
+    aria-busy="true"
+    aria-live="polite"
+    role="status"
+  >
+    <div className="flex flex-col items-center gap-3">
+      <div className="h-12 w-12 rounded-full border-[3px] border-pink-200 border-t-pink-500 animate-spin shadow-[0_0_24px_rgba(236,72,153,0.25)]" />
+      <div className="text-[11px] uppercase tracking-[0.25em] text-slate-500 font-semibold">
+        Loading
+      </div>
+    </div>
+  </div>
+));
+RouteSuspenseFallback.displayName = "RouteSuspenseFallback";
+
 // =============================================
 // MAIN APP COMPONENT
 // =============================================
