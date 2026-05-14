@@ -325,7 +325,7 @@ const FaceVerification = () => {
   const pushDebug = useCallback((entry: Omit<DebugEntry, 't'>) => {
     const t = sessionStartRef.current ? Date.now() - sessionStartRef.current : 0;
     const log = debugLogRef.current;
-    log.push({ t, ...entry });
+    log.push({ t, ...entry } as DebugEntry);
     if (log.length > 800) log.splice(0, log.length - 800);
   }, []);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
