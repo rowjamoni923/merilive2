@@ -161,7 +161,7 @@ export const RoomEndedModal: React.FC<RoomEndedModalProps> = ({
             className="relative z-10 w-full max-w-sm mx-6"
           >
             {/* Premium Card */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900/95 via-purple-950/90 to-slate-900/95 backdrop-blur-xl border border-white/10 shadow-2xl">
+ <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900/95 via-purple-950/90 to-slate-900/95 backdrop-blur-xl border border-slate-200/10 shadow-2xl">
               {/* Top Glow Line */}
               <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-400/50 to-transparent" />
               
@@ -178,7 +178,7 @@ export const RoomEndedModal: React.FC<RoomEndedModalProps> = ({
                     />
                     
                     {/* Avatar Container */}
-                    <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white/20 shadow-2xl">
+ <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-slate-200/20 shadow-2xl">
                       {hostAvatar ? (
                         <img 
                           src={hostAvatar} 
@@ -187,7 +187,7 @@ export const RoomEndedModal: React.FC<RoomEndedModalProps> = ({
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
-                          <span className="text-3xl font-bold text-white">
+ <span className="text-3xl font-bold text-slate-900">
                             {hostName.charAt(0).toUpperCase()}
                           </span>
                         </div>
@@ -203,10 +203,10 @@ export const RoomEndedModal: React.FC<RoomEndedModalProps> = ({
                   transition={{ delay: 0.2 }}
                   className="text-center mb-6"
                 >
-                  <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">
+ <h2 className="text-2xl font-bold text-slate-900 mb-2 tracking-tight">
                     {title}
                   </h2>
-                  <p className="text-white/60 text-sm">
+ <p className="text-slate-700/60 text-sm">
                     {message}
                   </p>
                 </motion.div>
@@ -219,17 +219,17 @@ export const RoomEndedModal: React.FC<RoomEndedModalProps> = ({
                   className="grid grid-cols-2 gap-3 mb-6"
                 >
                   {/* Viewers */}
-                  <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-3 text-center border border-white/5">
+ <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-3 text-center border border-slate-200/5">
                     <Users className="w-5 h-5 mx-auto mb-1.5 text-purple-400" />
-                    <p className="text-white font-semibold text-sm">{viewerCount}</p>
-                    <p className="text-white/40 text-[10px]">Viewers</p>
+ <p className="text-slate-900 font-semibold text-sm">{viewerCount}</p>
+ <p className="text-slate-700/40 text-[10px]">Viewers</p>
                   </div>
 
                   {/* Duration */}
-                  <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-3 text-center border border-white/5">
+ <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-3 text-center border border-slate-200/5">
                     <Clock className="w-5 h-5 mx-auto mb-1.5 text-pink-400" />
-                    <p className="text-white font-semibold text-sm">{duration}</p>
-                    <p className="text-white/40 text-[10px]">Duration</p>
+ <p className="text-slate-900 font-semibold text-sm">{duration}</p>
+ <p className="text-slate-700/40 text-[10px]">Duration</p>
                   </div>
                 </motion.div>
 
@@ -247,15 +247,15 @@ export const RoomEndedModal: React.FC<RoomEndedModalProps> = ({
                       size="sm"
                       className={`rounded-full px-6 py-2 text-sm font-medium transition-all ${
                         isFollowing
-                          ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20'
-                          : 'bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white shadow-lg shadow-pink-500/20'
+ ?'bg-white/10 hover:bg-white/20 text-slate-900 border border-slate-200/20'
+ :'bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-slate-900 shadow-lg shadow-pink-500/20'
                       }`}
                     >
                       {isFollowLoading ? (
                         <motion.div
                           animate={{ rotate: 360 }}
                           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                          className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
+ className="w-4 h-4 border-2 border-slate-200/30 border-t-white rounded-full"
                         />
                       ) : isFollowing ? (
                         <span className="flex items-center gap-1.5">
@@ -277,11 +277,11 @@ export const RoomEndedModal: React.FC<RoomEndedModalProps> = ({
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.4 }}
-                  className="bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-purple-500/10 rounded-2xl p-4 mb-6 border border-white/5"
+ className="bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-purple-500/10 rounded-2xl p-4 mb-6 border border-slate-200/5"
                 >
                   <div className="flex items-center justify-center gap-2">
                     <Heart className="w-4 h-4 text-pink-400" />
-                    <p className="text-white/70 text-sm">
+ <p className="text-slate-700/70 text-sm">
                       Thank you for watching!
                     </p>
                     <Heart className="w-4 h-4 text-pink-400" />
@@ -296,7 +296,7 @@ export const RoomEndedModal: React.FC<RoomEndedModalProps> = ({
                 >
                   <Button
                     onClick={onExit}
-                    className="w-full relative overflow-hidden bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 hover:from-purple-500 hover:via-pink-500 hover:to-purple-500 text-white font-semibold rounded-2xl py-4 shadow-lg shadow-purple-500/20 transition-all duration-300 hover:shadow-purple-500/40 hover:scale-[1.02] active:scale-[0.98]"
+ className="w-full relative overflow-hidden bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 hover:from-purple-500 hover:via-pink-500 hover:to-purple-500 text-slate-900 font-semibold rounded-2xl py-4 shadow-lg shadow-purple-500/20 transition-all duration-300 hover:shadow-purple-500/40 hover:scale-[1.02] active:scale-[0.98]"
                   >
                     {/* Shine Effect */}
                     <motion.div
@@ -324,7 +324,7 @@ export const RoomEndedModal: React.FC<RoomEndedModalProps> = ({
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.6 }}
-                  className="text-center text-white/30 text-xs mt-4"
+ className="text-center text-slate-700/30 text-xs mt-4"
                 >
                   Redirecting automatically...
                 </motion.p>

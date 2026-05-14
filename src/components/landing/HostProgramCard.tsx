@@ -75,7 +75,7 @@ const HostProgramCard = () => {
               Star Host
             </span>
           </h2>
-          <p className="text-white/35 max-w-xl mx-auto text-base leading-relaxed">
+ <p className="text-slate-700/35 max-w-xl mx-auto text-base leading-relaxed">
             Turn your talent into real income. Stream live, receive gifts from fans, and get paid every week automatically.
           </p>
         </motion.div>
@@ -85,7 +85,7 @@ const HostProgramCard = () => {
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="relative rounded-3xl overflow-hidden mb-14 border border-white/[0.08] shadow-2xl shadow-amber-500/5"
+ className="relative rounded-3xl overflow-hidden mb-14 border border-slate-200/[0.08] shadow-2xl shadow-amber-500/5"
         >
           <img src={hostHeroImg} alt="Live Streaming Host" className="w-full h-72 md:h-96 object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#06060a] via-[#06060a]/50 to-transparent" />
@@ -101,7 +101,7 @@ const HostProgramCard = () => {
             <h3 className="text-3xl md:text-4xl font-extrabold mb-3">
               Stream Live & Earn <span className="text-amber-400">Real Money</span>
             </h3>
-            <p className="text-white/50 text-sm max-w-lg leading-relaxed">
+ <p className="text-slate-700/50 text-sm max-w-lg leading-relaxed">
               New hosts earn up to <span className="text-amber-300 font-semibold">$10 per day</span> with our exclusive 10-day bonus program — just 5 hours of daily streaming!
             </p>
           </div>
@@ -120,7 +120,7 @@ const HostProgramCard = () => {
             <div className="max-w-lg">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/30">
-                  <Gift className="w-6 h-6 text-white" />
+ <Gift className="w-6 h-6 text-slate-900" />
                 </div>
                 <div>
                   <h3 className="text-xl md:text-2xl font-extrabold">10-Day Welcome Bonus</h3>
@@ -128,17 +128,17 @@ const HostProgramCard = () => {
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-3">
-                <div className="p-3 rounded-xl bg-white/[0.05] border border-white/[0.08] text-center backdrop-blur-sm">
+ <div className="p-3 rounded-xl bg-white/[0.05] border border-slate-200/[0.08] text-center backdrop-blur-sm">
                   <div className="text-lg font-extrabold text-amber-400">5 hrs</div>
-                  <div className="text-[10px] text-white/30 uppercase">Daily Live</div>
+ <div className="text-[10px] text-slate-700/30 uppercase">Daily Live</div>
                 </div>
-                <div className="p-3 rounded-xl bg-white/[0.05] border border-white/[0.08] text-center backdrop-blur-sm">
+ <div className="p-3 rounded-xl bg-white/[0.05] border border-slate-200/[0.08] text-center backdrop-blur-sm">
                   <div className="text-lg font-extrabold text-emerald-400">$10</div>
-                  <div className="text-[10px] text-white/30 uppercase">Per Day</div>
+ <div className="text-[10px] text-slate-700/30 uppercase">Per Day</div>
                 </div>
-                <div className="p-3 rounded-xl bg-white/[0.05] border border-white/[0.08] text-center backdrop-blur-sm">
+ <div className="p-3 rounded-xl bg-white/[0.05] border border-slate-200/[0.08] text-center backdrop-blur-sm">
                   <div className="text-lg font-extrabold text-pink-400">10 Days</div>
-                  <div className="text-[10px] text-white/30 uppercase">Duration</div>
+ <div className="text-[10px] text-slate-700/30 uppercase">Duration</div>
                 </div>
               </div>
             </div>
@@ -191,8 +191,8 @@ const HostProgramCard = () => {
               <div className="relative">
                 <card.icon className={`w-10 h-10 ${card.iconColor} mb-4`} />
                 <div className={`text-2xl font-extrabold ${card.valueColor} mb-1`}>{card.value}</div>
-                <h4 className="text-sm font-bold text-white/80 mb-2">{card.title}</h4>
-                <p className="text-xs text-white/35 leading-relaxed">{card.desc}</p>
+ <h4 className="text-sm font-bold text-slate-700/80 mb-2">{card.title}</h4>
+ <p className="text-xs text-slate-700/35 leading-relaxed">{card.desc}</p>
               </div>
             </motion.div>
           ))}
@@ -208,7 +208,7 @@ const HostProgramCard = () => {
           <h3 className="text-2xl md:text-3xl font-extrabold text-center mb-3">
             How to Start <span className="bg-gradient-to-r from-amber-400 to-pink-400 bg-clip-text text-transparent">Earning</span>
           </h3>
-          <p className="text-white/25 text-sm text-center mb-10 max-w-md mx-auto">
+ <p className="text-slate-700/25 text-sm text-center mb-10 max-w-md mx-auto">
             Follow these simple steps to become a verified host and start earning
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -219,10 +219,10 @@ const HostProgramCard = () => {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.12 }}
-                className={`flex gap-5 p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.05] hover:border-white/[0.1] transition-all duration-300 group`}
+ className={`flex gap-5 p-6 rounded-2xl bg-white/[0.02] border border-slate-200/[0.06] hover:bg-white/[0.05] hover:border-slate-200/[0.1] transition-all duration-300 group`}
               >
                 <div className={`w-14 h-14 flex-shrink-0 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center shadow-xl ${step.glow} group-hover:scale-110 transition-transform duration-300`}>
-                  <step.icon className="w-7 h-7 text-white" />
+ <step.icon className="w-7 h-7 text-slate-900" />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1.5">
@@ -233,8 +233,8 @@ const HostProgramCard = () => {
                       <div className="h-px flex-1 bg-gradient-to-r from-white/5 to-transparent" />
                     )}
                   </div>
-                  <h4 className="text-base font-bold text-white/90 mb-1.5">{step.title}</h4>
-                  <p className="text-xs text-white/35 leading-relaxed">{step.desc}</p>
+ <h4 className="text-base font-bold text-slate-700/90 mb-1.5">{step.title}</h4>
+ <p className="text-xs text-slate-700/35 leading-relaxed">{step.desc}</p>
                 </div>
               </motion.div>
             ))}
@@ -248,15 +248,15 @@ const HostProgramCard = () => {
           viewport={{ once: true }}
           className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-14"
         >
-          <div className="rounded-2xl overflow-hidden border border-white/[0.08] shadow-xl shadow-purple-500/5">
+ <div className="rounded-2xl overflow-hidden border border-slate-200/[0.08] shadow-xl shadow-purple-500/5">
             <img src={earningsImg} alt="Earnings & Rewards" className="w-full h-72 object-cover" />
           </div>
           <div className="p-8 rounded-2xl bg-gradient-to-br from-amber-500/5 via-orange-500/3 to-pink-500/5 border border-amber-500/10 flex flex-col justify-center backdrop-blur-sm">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center mb-5 shadow-lg shadow-amber-500/20">
-              <Zap className="w-6 h-6 text-white" />
+ <Zap className="w-6 h-6 text-slate-900" />
             </div>
             <h3 className="text-2xl font-extrabold mb-2">Task Center Rewards</h3>
-            <p className="text-xs text-white/30 mb-5">Complete daily missions to earn extra beans</p>
+ <p className="text-xs text-slate-700/30 mb-5">Complete daily missions to earn extra beans</p>
             <ul className="space-y-4">
               {[
                 "Complete daily streaming hours for bonus beans",
@@ -268,7 +268,7 @@ const HostProgramCard = () => {
                   <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0 mt-0.5 group-hover:bg-emerald-500/30 transition-colors">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                   </div>
-                  <span className="text-sm text-white/50 leading-relaxed">{item}</span>
+ <span className="text-sm text-slate-700/50 leading-relaxed">{item}</span>
                 </li>
               ))}
             </ul>
@@ -285,13 +285,13 @@ const HostProgramCard = () => {
           <Button
             onClick={async () => { const { openInApp } = await import("@/utils/inAppNavigation"); openInApp(PLAY_STORE_URL); }}
             size="lg"
-            className="h-14 md:h-16 px-6 md:px-14 w-full sm:w-auto bg-gradient-to-r from-amber-500 via-orange-500 to-pink-600 hover:from-amber-600 hover:via-orange-600 hover:to-pink-700 text-white font-extrabold rounded-2xl shadow-[0_10px_40px_rgba(245,158,11,0.3)] hover:shadow-[0_10px_50px_rgba(245,158,11,0.45)] text-sm md:text-lg group transition-all duration-300"
+ className="h-14 md:h-16 px-6 md:px-14 w-full sm:w-auto bg-gradient-to-r from-amber-500 via-orange-500 to-pink-600 hover:from-amber-600 hover:via-orange-600 hover:to-pink-700 text-slate-900 font-extrabold rounded-2xl shadow-[0_10px_40px_rgba(245,158,11,0.3)] hover:shadow-[0_10px_50px_rgba(245,158,11,0.45)] text-sm md:text-lg group transition-all duration-300"
           >
             <Download className="w-6 h-6 mr-2.5" />
             Download App & Apply for Host
             <ArrowRight className="w-5 h-5 ml-2.5 group-hover:translate-x-1.5 transition-transform" />
           </Button>
-          <p className="text-xs text-white/20 mt-4">Download the app first, then apply for host verification inside the app</p>
+ <p className="text-xs text-slate-700/20 mt-4">Download the app first, then apply for host verification inside the app</p>
         </motion.div>
       </div>
     </section>

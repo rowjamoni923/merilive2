@@ -1418,7 +1418,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       })(),
       highlight: true,
       iconBg: "bg-gradient-to-r from-green-500 to-emerald-500",
-      iconColor: "text-white",
+ iconColor:"text-slate-900",
       show: isOwnProfile && isFemale // Female host persona — visible from sign-up
     },
     { 
@@ -1428,7 +1428,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       rightText: "Become a Host",
       highlight: true,
       iconBg: "bg-gradient-to-r from-pink-500 to-rose-500",
-      iconColor: "text-white",
+ iconColor:"text-slate-900",
       show: canApplyForHost
     },
     { 
@@ -1458,7 +1458,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         <span className="text-xs text-purple-600">Upgrade Now</span>
       ),
       iconBg: "bg-gradient-to-r from-purple-500 to-pink-500",
-      iconColor: "text-white",
+ iconColor:"text-slate-900",
       show: isOwnProfile
     },
     { 
@@ -1476,7 +1476,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       rightText: "Frames & Effects",
       highlight: true,
       iconBg: "bg-gradient-to-r from-purple-500 to-pink-500",
-      iconColor: "text-white",
+ iconColor:"text-slate-900",
       show: isOwnProfile
     },
     { 
@@ -1496,7 +1496,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       rightText: isInActiveAgency ? "My Agency" : "Apply",
       highlight: true,
       iconBg: isInActiveAgency ? "bg-gradient-to-r from-green-500 to-emerald-500" : "bg-gradient-to-r from-pink-500 to-rose-500",
-      iconColor: "text-white",
+ iconColor:"text-slate-900",
       show: isOwnProfile && isFemale // Female host persona — visible from sign-up
     },
     { 
@@ -1506,7 +1506,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       rightText: isAgencyOwner ? "My Agency" : "Agent Rank",
       highlight: true,
       iconBg: isAgencyOwner ? "bg-gradient-to-r from-purple-500 to-indigo-500" : "bg-purple-50 border border-purple-100",
-      iconColor: isAgencyOwner ? "text-white" : "text-purple-600",
+ iconColor: isAgencyOwner ?"text-slate-900" :"text-purple-600",
       show: isOwnProfile && showAgencyCenter && !isFemale
     },
     { 
@@ -1551,7 +1551,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       rightText: "Level 6+",
       highlight: true,
       iconBg: "bg-gradient-to-r from-amber-500 to-orange-500",
-      iconColor: "text-white",
+ iconColor:"text-slate-900",
       show: isOwnProfile && userLevel >= 6
     },
   ].filter(item => item.show);
@@ -1709,7 +1709,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             Go Back
           </Button>
           <Button 
-            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+ className="bg-gradient-to-r from-purple-500 to-pink-500 text-slate-900"
             onClick={handleLogoutAndReregister}
           >
             Create New Account
@@ -1770,8 +1770,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           {/* Verified Badge - Premium - Bottom Right Position */}
           {(profile?.is_verified || isFaceVerified) && (
             <div className="absolute -bottom-1 -right-1 z-40">
-              <div className="w-7 h-7 rounded-full bg-gradient-to-r from-blue-400 to-cyan-400 border-2 border-white flex items-center justify-center shadow-lg shadow-cyan-500/40">
-                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+ <div className="w-7 h-7 rounded-full bg-gradient-to-r from-blue-400 to-cyan-400 border-2 border-slate-200 flex items-center justify-center shadow-lg shadow-cyan-500/40">
+ <svg className="w-4 h-4 text-slate-900" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
               </div>
@@ -1794,7 +1794,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             }}
           >
             <span className="w-5 h-5 rounded-full bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center shadow-md">
-              <span className="text-white font-bold text-[8px]">ID</span>
+ <span className="text-slate-900 font-bold text-[8px]">ID</span>
             </span>
             <span className="font-semibold text-sm text-slate-800">{profile.app_uid}</span>
           </button>
@@ -2135,13 +2135,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     </div>
                     <span className={`font-medium text-sm text-slate-900 ${item.highlight ? '!text-pink-600' : ''}`}>{item.label}</span>
                     {item.highlight && (
-                      <span className="px-1 py-0.5 text-[8px] bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-full font-bold">NEW</span>
+ <span className="px-1 py-0.5 text-[8px] bg-gradient-to-r from-orange-500 to-pink-500 text-slate-900 rounded-full font-bold">NEW</span>
                     )}
                   </div>
                   <div className="flex items-center gap-1.5">
                     {item.extra}
                     {item.badge && (
-                      <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 rounded-full w-4 h-4 p-0 flex items-center justify-center text-[10px] shadow-lg shadow-pink-500/30">
+ <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-slate-900 border-0 rounded-full w-4 h-4 p-0 flex items-center justify-center text-[10px] shadow-lg shadow-pink-500/30">
                         {item.badge}
                       </Badge>
                     )}
@@ -2184,7 +2184,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
-                    <Wallet className="w-6 h-6 text-white" />
+ <Wallet className="w-6 h-6 text-slate-900" />
                   </div>
                   <div>
                     <span className="text-slate-600 text-xs">Your Balance</span>
@@ -2306,19 +2306,19 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               }
             }}>
               <TabsList className="w-full bg-white p-1 rounded-2xl grid grid-cols-4">
-                <TabsTrigger value="user" className="gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-500 data-[state=active]:text-white">
+ <TabsTrigger value="user" className="gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-500 data-[state=active]:text-slate-900">
                   <User className="w-3.5 h-3.5" />
                   User
                 </TabsTrigger>
-                <TabsTrigger value="agency" className="gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white">
+ <TabsTrigger value="agency" className="gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-slate-900">
                   <Building2 className="w-3.5 h-3.5" />
                   Agency
                 </TabsTrigger>
-                <TabsTrigger value="self" className="gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
+ <TabsTrigger value="self" className="gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-slate-900">
                   <Gem className="w-3.5 h-3.5" />
                   Self
                 </TabsTrigger>
-                <TabsTrigger value="history" className="gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-violet-500 data-[state=active]:text-white">
+ <TabsTrigger value="history" className="gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-violet-500 data-[state=active]:text-slate-900">
                   <History className="w-3.5 h-3.5" />
                   History
                 </TabsTrigger>
@@ -2344,7 +2344,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                       className="bg-gradient-to-r from-cyan-500 to-blue-500 h-12 px-5 rounded-xl"
                     >
                       {transferSearching ? (
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+ <div className="w-5 h-5 border-2 border-slate-200 border-t-transparent rounded-full animate-spin" />
                       ) : (
                         <Search className="w-5 h-5" />
                       )}
@@ -2359,7 +2359,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                       <Avatar className="w-14 h-14 border-2 border-cyan-500">
                         <AvatarImage src={searchedUser.avatar_url} />
                         <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-blue-500">
-                          <User className="w-6 h-6 text-white" />
+ <User className="w-6 h-6 text-slate-900" />
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
@@ -2387,7 +2387,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     >
                       {transferProcessing ? (
                         <div className="flex items-center gap-2">
-                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+ <div className="w-5 h-5 border-2 border-slate-200 border-t-transparent rounded-full animate-spin" />
                           Processing...
                         </div>
                       ) : (
@@ -2423,7 +2423,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                       className="bg-gradient-to-r from-purple-500 to-pink-500 h-12 px-5 rounded-xl"
                     >
                       {transferSearching ? (
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+ <div className="w-5 h-5 border-2 border-slate-200 border-t-transparent rounded-full animate-spin" />
                       ) : (
                         <Search className="w-5 h-5" />
                       )}
@@ -2436,7 +2436,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   <div className="bg-white rounded-2xl p-4 border border-amber-300/60 space-y-4">
                     <div className="flex items-center gap-3">
                       <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                        <Building2 className="w-7 h-7 text-white" />
+ <Building2 className="w-7 h-7 text-slate-900" />
                       </div>
                       <div className="flex-1">
                         <p className="text-slate-800 font-bold text-lg">{searchedAgency.name}</p>
@@ -2467,7 +2467,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     >
                       {transferProcessing ? (
                         <div className="flex items-center gap-2">
-                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+ <div className="w-5 h-5 border-2 border-slate-200 border-t-transparent rounded-full animate-spin" />
                           Processing...
                         </div>
                       ) : (
@@ -2487,7 +2487,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                 <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-4 border border-amber-300/60 space-y-4">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
-                      <Gem className="w-6 h-6 text-white" />
+ <Gem className="w-6 h-6 text-slate-900" />
                     </div>
                     <div>
                       <p className="text-slate-800 font-bold">Self Recharge</p>
@@ -2551,7 +2551,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   >
                     {selfRechargeProcessing ? (
                       <div className="flex items-center gap-2">
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+ <div className="w-5 h-5 border-2 border-slate-200 border-t-transparent rounded-full animate-spin" />
                         Processing...
                       </div>
                     ) : (
@@ -2641,7 +2641,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           <AlertDialogHeader>
             <AlertDialogTitle className="text-slate-800 text-xl font-bold text-center flex flex-col items-center gap-3">
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
-                <Gem className="w-8 h-8 text-white" />
+ <Gem className="w-8 h-8 text-slate-900" />
               </div>
               Confirm Transfer
             </AlertDialogTitle>
@@ -2683,7 +2683,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             </AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleConfirmedTransfer}
-              className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 h-12 rounded-xl text-white font-semibold"
+ className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 h-12 rounded-xl text-slate-900 font-semibold"
             >
               Confirm Send
             </AlertDialogAction>
@@ -2765,7 +2765,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                                 onClick={() => level1to5Rate && setCallRate(level1to5Rate.rate)} 
                                 className={`py-2 px-1 rounded-xl text-center transition-all flex flex-col items-center gap-0.5 relative ${
                                   isLevel1to5Selected 
-                                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/30' 
+ ?'bg-gradient-to-r from-amber-500 to-orange-500 text-slate-900 shadow-lg shadow-amber-500/30' 
                                     : isCurrentInLevel1to5 
                                       ? 'bg-purple-100 text-purple-700 border border-purple-500/50' 
                                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -2792,7 +2792,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                                       isLocked
                                         ? 'bg-white text-slate-600 cursor-not-allowed opacity-60'
                                         : isSelected 
-                                          ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/30' 
+ ?'bg-gradient-to-r from-amber-500 to-orange-500 text-slate-900 shadow-lg shadow-amber-500/30' 
                                           : isCurrentLevel 
                                             ? 'bg-purple-100 text-purple-700 border border-purple-500/50' 
                                             : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -2852,9 +2852,9 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   })()}
                 </div>
 
-                <Button onClick={handleSaveCallRate} disabled={savingCallRate} className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 rounded-xl text-white font-semibold text-base">
+ <Button onClick={handleSaveCallRate} disabled={savingCallRate} className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 rounded-xl text-slate-900 font-semibold text-base">
                   {savingCallRate ? (
-                    <div className="flex items-center gap-2"><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />Saving...</div>
+ <div className="flex items-center gap-2"><div className="w-5 h-5 border-2 border-slate-200 border-t-transparent rounded-full animate-spin" />Saving...</div>
                   ) : (
                     <div className="flex items-center gap-2"><PhoneCall className="w-5 h-5" />Save Price</div>
                   )}
@@ -3052,11 +3052,11 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                 }
               }}
               disabled={exchangeProcessing || !exchangeBeansAmount || parseInt(exchangeBeansAmount) < agencyExchangeSettings.min_exchange_amount}
-              className="w-full h-12 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold rounded-xl"
+ className="w-full h-12 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-900 font-bold rounded-xl"
             >
               {exchangeProcessing ? (
                 <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+ <div className="w-5 h-5 border-2 border-slate-200 border-t-transparent rounded-full animate-spin" />
                   Processing...
                 </div>
               ) : (

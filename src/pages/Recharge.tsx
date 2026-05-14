@@ -2057,7 +2057,7 @@ const Recharge = () => {
 
         {/* Compact Balance Display */}
         <div className="relative px-3 pt-1 pb-4">
-          <div className="relative bg-white/15 backdrop-blur-xl rounded-xl p-3 border border-white/20">
+ <div className="relative bg-white/15 backdrop-blur-xl rounded-xl p-3 border border-slate-200/20">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center">
@@ -2361,7 +2361,7 @@ const Recharge = () => {
                                   href={`https://wa.me/${helper.whatsappNumber.replace(/\D/g, '')}?text=${encodeURIComponent(userAppUid ? `Hi, I want to buy coins. My UID: ${userAppUid}` : 'Hi, I want to buy coins.')}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="flex items-center gap-1 px-2.5 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl text-[11px] font-bold shadow-md hover:shadow-lg transition-all active:scale-95"
+ className="flex items-center gap-1 px-2.5 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-slate-900 rounded-xl text-[11px] font-bold shadow-md hover:shadow-lg transition-all active:scale-95"
                                 >
                                   <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="currentColor">
                                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
@@ -2374,7 +2374,7 @@ const Recharge = () => {
                                   const autoMsg = userAppUid ? `Hi, I want to buy coins. My UID: ${userAppUid}` : `Hi, I want to buy coins.`;
                                   navigate(`/chat?user=${helper.id}&autoMessage=${encodeURIComponent(autoMsg)}`);
                                 }}
-                                className="flex items-center gap-1 px-2.5 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl text-[11px] font-bold shadow-md hover:shadow-lg transition-all active:scale-95"
+ className="flex items-center gap-1 px-2.5 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-900 rounded-xl text-[11px] font-bold shadow-md hover:shadow-lg transition-all active:scale-95"
                               >
                                 <MessageCircle className="w-3.5 h-3.5" />
                                 <span>Chat</span>
@@ -2931,7 +2931,7 @@ const Recharge = () => {
                       >
                         {isCardProcessing ? (
                           <span className="flex items-center justify-center gap-1">
-                            <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+ <div className="w-3.5 h-3.5 border-2 border-slate-200/30 border-t-white rounded-full animate-spin" />
                           </span>
                         ) : (
                           convertToLocalCurrency(pkg.price_usd)
@@ -3085,7 +3085,7 @@ const Recharge = () => {
 
                 {/* Fallback: Admin Payment Number (only show if no helper method available) */}
                 {!currentHelperMethod && selectedGateway.payment_number && (
-                  <div className="bg-background/50 rounded-2xl p-4 border border-white/10">
+ <div className="bg-background/50 rounded-2xl p-4 border border-slate-200/10">
                     <Label className="text-muted-foreground text-sm">Send payment to</Label>
                     <div className="flex items-center justify-between mt-2">
                       <span className="text-xl font-bold text-foreground">
@@ -3146,7 +3146,7 @@ const Recharge = () => {
                   <Label className="text-foreground">Payment Screenshot (Optional)</Label>
                   <div className="mt-1.5">
                     {paymentProof ? (
-                      <div className="relative rounded-xl overflow-hidden border border-white/10">
+ <div className="relative rounded-xl overflow-hidden border border-slate-200/10">
                         <img src={paymentProof} alt="Payment proof" className="w-full h-32 object-cover" />
                         <button
                           onClick={() => setPaymentProof(null)}
@@ -3156,7 +3156,7 @@ const Recharge = () => {
                         </button>
                       </div>
                     ) : (
-                      <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-white/20 rounded-xl cursor-pointer hover:bg-white/5 transition-colors">
+ <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-slate-200/20 rounded-xl cursor-pointer hover:bg-white/5 transition-colors">
                         {uploadingProof ? (
                           <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
                         ) : (
@@ -3181,7 +3181,7 @@ const Recharge = () => {
                 <Button
                   onClick={handleSubmitPayment}
                   disabled={!transactionId.trim() || processingPayment}
-                  className="w-full py-6 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold text-lg"
+ className="w-full py-6 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-slate-900 font-bold text-lg"
                 >
                   Submit Payment for Verification
                 </Button>
@@ -3258,7 +3258,7 @@ const Recharge = () => {
                   Pay via {selectedHelperMethod.method_name} to receive {formatNumber(selectedPackage.coins)} diamonds
                 </p>
 
-                <div className="rounded-2xl bg-white/5 border border-white/10 p-3 mb-3">
+ <div className="rounded-2xl bg-white/5 border border-slate-200/10 p-3 mb-3">
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Amount</span>
                     <span className="text-xl font-bold text-slate-800">
@@ -3310,7 +3310,7 @@ const Recharge = () => {
                     )}
                   </div>
 
-                  <div className="rounded-xl bg-black/20 border border-white/5 p-3">
+ <div className="rounded-xl bg-slate-100/20 border border-slate-200/5 p-3">
                     <p className="text-[10px] font-medium uppercase tracking-wider text-slate-600 mb-1">
                       {selectedHelperMethod.method_name} Number
                     </p>
@@ -3362,7 +3362,7 @@ const Recharge = () => {
                     type="button"
                     onClick={handleShowDifferentHelperNumber}
                     disabled={helperMethodPool.length <= 1}
-                    className="w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2.5 text-center text-[11px] font-medium text-slate-700 mb-3 disabled:opacity-40"
+ className="w-full rounded-xl bg-white/5 border border-slate-200/10 px-3 py-2.5 text-center text-[11px] font-medium text-slate-700 mb-3 disabled:opacity-40"
                   >
                     Show different number ({helperMethodCycleProgress.current}/{helperMethodCycleProgress.total})
                   </button>
@@ -3399,7 +3399,7 @@ const Recharge = () => {
                       onChange={(e) => setHelperTransactionId(e.target.value)}
                       onInput={(e) => setHelperTransactionId((e.target as HTMLInputElement).value)}
                       placeholder="Enter your TrxID here"
-                      className="mt-1 w-full rounded-xl text-sm h-10 px-3 border border-white/10 bg-white/5 text-slate-800 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-400/30"
+ className="mt-1 w-full rounded-xl text-sm h-10 px-3 border border-slate-200/10 bg-white/5 text-slate-800 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-400/30"
                       autoComplete="off"
                       inputMode="text"
                       style={{ userSelect: 'text', WebkitUserSelect: 'text' } as React.CSSProperties}
@@ -3407,7 +3407,7 @@ const Recharge = () => {
                   </div>
 
                   {selectedHelperMethod.instructions && (
-                    <div className="rounded-xl bg-white/5 border border-white/10 p-3">
+ <div className="rounded-xl bg-white/5 border border-slate-200/10 p-3">
                       <p className="text-[11px] text-amber-700/80 font-medium mb-1">📝 Note</p>
                       <p className="text-xs text-slate-500">{selectedHelperMethod.instructions}</p>
                     </div>
@@ -3418,7 +3418,7 @@ const Recharge = () => {
                       <Label className="text-slate-600 text-[10px] uppercase tracking-wider font-semibold">Payment Screenshot *</Label>
                       <div className="mt-1">
                         {helperPaymentProof ? (
-                          <div className="relative rounded-xl overflow-hidden border border-white/10">
+ <div className="relative rounded-xl overflow-hidden border border-slate-200/10">
                             <img src={helperPaymentProof} alt="Payment proof" className="w-full h-28 object-cover" />
                             <button
                               onClick={() => setHelperPaymentProof(null)}
@@ -3428,7 +3428,7 @@ const Recharge = () => {
                             </button>
                           </div>
                         ) : (
-                          <label className="flex flex-col items-center justify-center w-full h-24 border border-dashed border-white/15 rounded-xl cursor-pointer hover:bg-white/[0.02] transition-colors">
+ <label className="flex flex-col items-center justify-center w-full h-24 border border-dashed border-slate-200/15 rounded-xl cursor-pointer hover:bg-white/[0.02] transition-colors">
                             {uploadingHelperProof ? (
                               <div className="w-5 h-5 border-2 border-amber-300 border-t-transparent rounded-full animate-spin" />
                             ) : (

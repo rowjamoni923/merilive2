@@ -108,16 +108,16 @@ export function TopUpCampaignBanner({ location, compact = false, className }: To
           className="w-full flex items-center gap-3 p-2.5 rounded-xl bg-gradient-to-r from-amber-500/20 via-orange-500/15 to-pink-500/20 border border-amber-500/30 active:scale-[0.98] transition-transform"
         >
           <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0">
-            <Diamond className="w-5 h-5 text-white" />
+ <Diamond className="w-5 h-5 text-slate-900" />
           </div>
           <div className="flex-1 text-left">
-            <p className="text-white text-xs font-semibold truncate">{campaign.campaign_name}</p>
+ <p className="text-slate-900 text-xs font-semibold truncate">{campaign.campaign_name}</p>
             <p className="text-amber-700 text-[10px]">
               {campaign.bonus_diamonds > 0 && `+${campaign.bonus_diamonds.toLocaleString()} bonus 💎`}
               {discountPercent > 0 && ` • ${discountPercent}% OFF`}
             </p>
           </div>
-          <div className="shrink-0 px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-bold">
+ <div className="shrink-0 px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-slate-900 text-[10px] font-bold">
             {campaign.badge_text || 'GET'}
           </div>
         </button>
@@ -152,7 +152,7 @@ export function TopUpCampaignBanner({ location, compact = false, className }: To
               {/* Content over image */}
               <div className="absolute inset-0 flex items-center justify-between px-4">
                 <div>
-                  <p className="text-white font-bold text-sm">{campaign.campaign_name}</p>
+ <p className="text-slate-900 font-bold text-sm">{campaign.campaign_name}</p>
                   <p className="text-amber-700 text-xs mt-0.5">
                     💎 {campaign.diamonds_amount.toLocaleString()}
                     {campaign.bonus_diamonds > 0 && ` +${campaign.bonus_diamonds.toLocaleString()} Bonus`}
@@ -161,11 +161,11 @@ export function TopUpCampaignBanner({ location, compact = false, className }: To
                 <div className="text-right">
                   {campaign.offer_price_usd ? (
                     <>
-                      <p className="text-white/50 text-xs line-through">${campaign.original_price_usd}</p>
-                      <p className="text-white font-bold text-lg">${campaign.offer_price_usd}</p>
+ <p className="text-slate-700/50 text-xs line-through">${campaign.original_price_usd}</p>
+ <p className="text-slate-900 font-bold text-lg">${campaign.offer_price_usd}</p>
                     </>
                   ) : (
-                    <p className="text-white font-bold text-lg">${campaign.original_price_usd}</p>
+ <p className="text-slate-900 font-bold text-lg">${campaign.original_price_usd}</p>
                   )}
                 </div>
               </div>
@@ -174,25 +174,25 @@ export function TopUpCampaignBanner({ location, compact = false, className }: To
             <div className="relative bg-gradient-to-r from-amber-600/90 via-orange-500/90 to-pink-500/90 p-4 rounded-2xl">
               {/* Decorative elements */}
               <div className="absolute top-1 right-1 opacity-10">
-                <Sparkles className="w-16 h-16 text-white" />
+ <Sparkles className="w-16 h-16 text-slate-900" />
               </div>
               
               <div className="flex items-center justify-between relative z-10">
                 <div className="flex-1">
                   <div className="flex items-center gap-1.5 mb-1">
                     {campaign.badge_text && (
-                      <span className="px-2 py-0.5 rounded-full bg-white/20 text-white text-[9px] font-bold uppercase">
+ <span className="px-2 py-0.5 rounded-full bg-white/20 text-slate-900 text-[9px] font-bold uppercase">
                         {campaign.badge_text}
                       </span>
                     )}
                     {discountPercent > 0 && (
-                      <span className="px-2 py-0.5 rounded-full bg-red-500 text-white text-[9px] font-bold">
+ <span className="px-2 py-0.5 rounded-full bg-red-500 text-slate-900 text-[9px] font-bold">
                         -{discountPercent}%
                       </span>
                     )}
                   </div>
-                  <p className="text-white font-bold text-sm">{campaign.campaign_name}</p>
-                  <p className="text-white/80 text-xs mt-0.5">
+ <p className="text-slate-900 font-bold text-sm">{campaign.campaign_name}</p>
+ <p className="text-slate-700/80 text-xs mt-0.5">
                     💎 {campaign.diamonds_amount.toLocaleString()} Diamonds
                     {campaign.bonus_diamonds > 0 && (
                       <span className="text-yellow-200 font-semibold"> +{campaign.bonus_diamonds.toLocaleString()} Bonus</span>
@@ -203,14 +203,14 @@ export function TopUpCampaignBanner({ location, compact = false, className }: To
                 <div className="text-right ml-3">
                   {campaign.offer_price_usd && campaign.offer_price_usd < campaign.original_price_usd ? (
                     <>
-                      <p className="text-white/50 text-[10px] line-through">${campaign.original_price_usd}</p>
-                      <p className="text-white font-bold text-xl">${campaign.offer_price_usd}</p>
+ <p className="text-slate-700/50 text-[10px] line-through">${campaign.original_price_usd}</p>
+ <p className="text-slate-900 font-bold text-xl">${campaign.offer_price_usd}</p>
                     </>
                   ) : (
-                    <p className="text-white font-bold text-xl">${campaign.original_price_usd}</p>
+ <p className="text-slate-900 font-bold text-xl">${campaign.original_price_usd}</p>
                   )}
                   <div className="mt-1 px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm">
-                    <span className="text-white text-[10px] font-semibold">Top Up →</span>
+ <span className="text-slate-900 text-[10px] font-semibold">Top Up →</span>
                   </div>
                 </div>
               </div>
@@ -220,9 +220,9 @@ export function TopUpCampaignBanner({ location, compact = false, className }: To
           {/* Dismiss button */}
           <button
             onClick={(e) => handleDismiss(e, campaign.id)}
-            className="absolute top-2 right-2 w-5 h-5 rounded-full bg-black/40 flex items-center justify-center z-20"
+ className="absolute top-2 right-2 w-5 h-5 rounded-full bg-slate-100/40 flex items-center justify-center z-20"
           >
-            <X className="w-3 h-3 text-white/70" />
+ <X className="w-3 h-3 text-slate-700/70" />
           </button>
         </div>
       </motion.div>
