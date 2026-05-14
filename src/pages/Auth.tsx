@@ -2967,11 +2967,11 @@ const Auth = () => {
               </Button>
 
               <div className="text-center space-y-2">
-                <p className="text-slate-500 text-sm">Didn't receive the code?</p>
+                <p className="text-slate-600 text-sm">Didn't receive the code?</p>
                 <button
                   onClick={handleResendPhoneOtp}
                   disabled={phoneOtpLoading}
-                  className="text-green-400 text-sm font-semibold hover:text-green-300 transition-all disabled:opacity-40 hover:underline underline-offset-4"
+                  className="text-emerald-700 text-sm font-semibold hover:text-emerald-800 transition-all disabled:opacity-40 hover:underline underline-offset-4"
                 >
                   Resend WhatsApp Code
                 </button>
