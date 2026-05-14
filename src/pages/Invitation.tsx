@@ -327,18 +327,18 @@ const Invitation = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF] overflow-hidden">
       {/* Header */}
-      <header className="flex-shrink-0 z-40 backdrop-blur-xl border-b border-amber-200/40">
-        <div className="flex items-center gap-3 px-4 py-3 safe-area-top" style={{ background: 'linear-gradient(135deg, rgba(30,0,50,0.95), rgba(60,0,80,0.95))' }}>
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="text-slate-600 hover:text-slate-800 hover:bg-white/10 w-9 h-9">
+      <header className="flex-shrink-0 z-40 border-b border-amber-200/60 bg-white/85 backdrop-blur-xl shadow-sm">
+        <div className="flex items-center gap-3 px-4 py-3 safe-area-top">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="text-slate-700 hover:text-slate-900 hover:bg-amber-50 w-9 h-9 rounded-full">
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
-              <Trophy className="w-5 h-5 text-slate-800" />
+              <Trophy className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-slate-800 font-bold text-base">Share Leaderboard</h1>
-              <p className="text-slate-600 text-[10px]">Share to climb the ranks!</p>
+              <h1 className="text-slate-900 font-bold text-base leading-tight">Share Leaderboard</h1>
+              <p className="text-slate-500 text-[10px]">Share to climb the ranks!</p>
             </div>
           </div>
         </div>
