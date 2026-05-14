@@ -1811,6 +1811,29 @@ body > div[class*="fixed"][class*="backdrop-blur"] {
 }
 
 /* ============================================
+   LIGHT DRAWER OPT-OUT
+   Scoped reset for user-facing light-themed Vaul drawers (not admin).
+   Add `data-light-drawer` attribute to opt out of the global dark dialog theme above.
+   ============================================ */
+[role="dialog"][data-light-drawer],
+[data-light-drawer] {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
+[data-light-drawer] h1,
+[data-light-drawer] h2,
+[data-light-drawer] h3,
+[data-light-drawer] h4,
+[data-light-drawer] [class*="DialogTitle"],
+[data-light-drawer] [class*="DrawerTitle"] {
+  color: #0f172a !important;
+}
+[data-light-drawer] [class*="bg-white"] {
+  background: #ffffff !important;
+}
+
+/* ============================================
    BADGE
    ============================================ */
 .admin-content .badge,
