@@ -237,19 +237,21 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
         )}
       </AnimatePresence>
 
-      {/* Main Navigation Bar */}
-      <nav 
-        className="fixed bottom-0 left-0 right-0" 
-        style={{ zIndex: 9990, paddingBottom: 'max(env(safe-area-inset-bottom, 0px), var(--min-bottom-inset, 0px))' }}
+      {/* Main Navigation Bar — clean white, no dark gap above */}
+      <nav
+        className="fixed bottom-0 left-0 right-0"
+        style={{
+          zIndex: 9990,
+          paddingBottom: 'max(env(safe-area-inset-bottom, 0px), var(--min-bottom-inset, 0px))',
+          background: '#ffffff',
+          borderTop: '1px solid rgba(15, 23, 42, 0.06)',
+          boxShadow: '0 -8px 24px -12px rgba(15, 23, 42, 0.10)',
+        }}
       >
-        {/* Soft transparent fade — no visible dark line above nav */}
-        <div className="absolute inset-x-0 -top-6 h-6 pointer-events-none" style={{ background: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.35) 70%, rgba(0,0,0,0.7) 100%)' }} />
-        <div className="absolute inset-x-0 bottom-0 h-[calc(100%+max(env(safe-area-inset-bottom,0px),var(--min-bottom-inset,0px)))] backdrop-blur-2xl" style={{ background: 'rgba(0,0,0,0.78)' }} />
-        
         <div className="relative flex items-center justify-around py-1.5 px-3 max-w-lg mx-auto">
           {navItems.map((item, index) => {
-            const isActive = item.path === "/" 
-              ? currentPath === "/" 
+            const isActive = item.path === "/"
+              ? currentPath === "/"
               : currentPath === item.path || currentPath.startsWith(item.path + "/");
             const Icon = item.icon;
 
@@ -260,17 +262,17 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
                   onClick={() => handleNavClick(item)}
                   className="relative -mt-5 active:scale-90 transition-all duration-200 touch-manipulation"
                 >
-                  <div className="absolute -inset-3 rounded-full blur-2xl" style={{ background: 'rgba(168,85,247,0.3)' }} />
-                  <motion.div 
+                  <div className="absolute -inset-3 rounded-full blur-2xl" style={{ background: 'rgba(168,85,247,0.30)' }} />
+                  <motion.div
                     animate={showActionMenu ? { rotate: 45 } : { rotate: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="relative w-[52px] h-[52px] rounded-full flex items-center justify-center ring-[3px] ring-black/80"
-                    style={{ 
-                      background: 'linear-gradient(135deg, #d946ef, #7c3aed, #4f46e5)',
-                      boxShadow: '0 4px 24px rgba(147,51,234,0.5)'
+                    className="relative w-[52px] h-[52px] rounded-full flex items-center justify-center"
+                    style={{
+                      background: 'linear-gradient(135deg, #ec4899, #a855f7, #6366f1)',
+                      boxShadow: '0 6px 20px rgba(168,85,247,0.45), 0 0 0 4px #ffffff',
                     }}
                   >
-                    <div className="absolute inset-[2px] rounded-full bg-gradient-to-br from-white/25 via-transparent to-transparent" />
+                    <div className="absolute inset-[2px] rounded-full bg-gradient-to-br from-white/30 via-transparent to-transparent" />
                     <motion.div animate={showActionMenu ? { rotate: -45 } : { rotate: 0 }} className="relative z-10">
                       {showActionMenu ? (
                         <X className="w-5 h-5 text-white" />
@@ -279,10 +281,10 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
                       )}
                     </motion.div>
                   </motion.div>
-                  <motion.span 
+                  <motion.span
                     initial={false}
                     animate={{ opacity: showActionMenu ? 0 : 1 }}
-                    className="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[9px] text-white/50 font-medium whitespace-nowrap"
+                    className="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[9px] text-slate-500 font-medium whitespace-nowrap"
                   >
                     Create
                   </motion.span>
@@ -297,26 +299,38 @@ export const BottomNavigation = ({ activeTab: externalActiveTab, onTabChange }: 
                 onPointerDown={() => prefetchRoute(item.path)}
                 onMouseEnter={() => prefetchRoute(item.path)}
                 className="flex flex-col items-center gap-0.5 py-1.5 px-3 rounded-2xl transition-all duration-300 min-w-[52px] active:scale-90 touch-manipulation relative"
+                style={{ WebkitTapHighlightColor: 'transparent' }}
               >
                 <div className="relative">
-                  <Icon className={cn(
-                    "w-[22px] h-[22px] transition-all duration-300 relative z-10",
-                    isActive ? "text-white" : "text-white/40"
-                  )} />
-                  
+                  <Icon
+                    className={cn(
+                      "w-[22px] h-[22px] transition-all duration-300 relative z-10",
+                      isActive ? "text-pink-600" : "text-slate-400"
+                    )}
+                    strokeWidth={isActive ? 2.4 : 2}
+                  />
+
                   {item.path === '/profile' && unreadCounts.total > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 bg-gradient-to-r from-red-500 to-pink-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center ring-2 ring-black">
+                    <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 bg-gradient-to-r from-red-500 to-pink-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center ring-2 ring-white">
                       {formatBadgeCount(unreadCounts.total)}
                     </span>
                   )}
                 </div>
-                
+
                 <span className={cn(
-                  "text-[10px] font-medium transition-all duration-300",
-                  isActive ? "text-white" : "text-white/35"
+                  "text-[10px] font-semibold transition-all duration-300",
+                  isActive ? "text-pink-600" : "text-slate-400"
                 )}>
                   {item.label}
                 </span>
+
+                {isActive && (
+                  <motion.span
+                    layoutId="bottomnav-active-dot"
+                    className="absolute -bottom-0.5 w-1.5 h-1.5 rounded-full bg-pink-500"
+                    transition={{ type: 'spring', stiffness: 380, damping: 28 }}
+                  />
+                )}
               </button>
             );
           })}

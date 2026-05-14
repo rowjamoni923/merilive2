@@ -9,19 +9,20 @@ import { isNativeApp, isAndroid } from '@/utils/nativeUtils';
  * Configure Android system bars for immersive experience
  */
 export function useNativeSystemUI() {
-  // Set status bar transparent + overlay mode
+  // Configure status bar for the white/professional app shell.
+  // Capacitor naming: Style.Dark = dark text/icons (used on LIGHT backgrounds).
   const configureSystemBars = useCallback(async () => {
     if (!isNativeApp()) return;
 
     try {
       const { StatusBar, Style } = await import('@capacitor/status-bar');
-      
-      // Dark content on transparent background for immersive feel
-      await StatusBar.setStyle({ style: Style.Dark });
-      await StatusBar.setBackgroundColor({ color: '#00000000' }); // Transparent
-      await StatusBar.setOverlaysWebView({ overlay: true });
 
-      console.log('[SystemUI] ✅ Status bar configured - transparent overlay');
+      // White status bar with dark icons → professional, blends with app
+      await StatusBar.setOverlaysWebView({ overlay: false });
+      await StatusBar.setStyle({ style: Style.Dark });
+      await StatusBar.setBackgroundColor({ color: '#ffffff' });
+
+      console.log('[SystemUI] ✅ Status bar configured — white surface, dark icons');
     } catch (err) {
       console.warn('[SystemUI] Status bar config failed:', err);
     }
@@ -71,10 +72,11 @@ export function useNativeSystemUI() {
     if (!isNativeApp()) return;
 
     try {
-      const { StatusBar } = await import('@capacitor/status-bar');
+      const { StatusBar, Style } = await import('@capacitor/status-bar');
       await StatusBar.show();
-      await StatusBar.setStyle({ style: (await import('@capacitor/status-bar')).Style.Dark });
-      await StatusBar.setBackgroundColor({ color: '#0a0a0f' });
+      await StatusBar.setOverlaysWebView({ overlay: false });
+      await StatusBar.setStyle({ style: Style.Dark }); // dark icons on white
+      await StatusBar.setBackgroundColor({ color: '#ffffff' });
     } catch (err) {
       console.warn('[SystemUI] Exit immersive failed:', err);
     }
