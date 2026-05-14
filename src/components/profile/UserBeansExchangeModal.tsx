@@ -7,6 +7,7 @@ import { ArrowRight, Sparkles, CheckCircle2, X, ArrowDownUp } from "lucide-react
 import Beans3DIcon from "@/components/common/Beans3DIcon";
 import Diamond3DIcon from "@/components/common/Diamond3DIcon";
 import { sendNotification } from "@/services/notificationService";
+import { parseSettingValue } from "@/utils/adminSettingsStorage";
 
 /**
  * Tier shape matches the current `user_beans_exchange_tiers` schema:
@@ -114,7 +115,8 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
       .select('setting_value')
       .eq('setting_key', 'coin_exchange')
       .maybeSingle();
-    const settings = normalizeCoinExchangeSettings(settingsRow?.setting_value);
+    const settingsValue = parseSettingValue(settingsRow?.setting_value);
+    const settings = normalizeCoinExchangeSettings(settingsValue);
     setCoinExchangeSettings(settings);
 
     if (activeTiers.length === 0 && settings) {
