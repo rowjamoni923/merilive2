@@ -1149,7 +1149,7 @@ const HelperDashboard = () => {
                   <span className="text-[20px]">💎</span>
                 </p>
                 {agencyDiamondBalance > 0 && (
-                  <p className="text-white/45 text-[10px] mt-1.5 leading-tight">
+                  <p className="text-slate-400 text-[10px] mt-1.5 leading-tight">
                     Helper{" "}
                     <span className="text-amber-200/80 font-semibold tabular-nums">
                       {(helperData?.wallet_balance || 0).toLocaleString()}
@@ -1210,7 +1210,7 @@ const HelperDashboard = () => {
                   </div>
                 </div>
                 <div className="flex justify-between items-center mt-1.5">
-                  <p className="text-[10px] text-white/55 tabular-nums font-medium">
+                  <p className="text-[10px] text-slate-500 tabular-nums font-medium">
                     ${currentCost.toFixed(0)} / ${nextLevelCost.toFixed(0)}
                   </p>
                   <Badge
@@ -1415,7 +1415,7 @@ const HelperDashboard = () => {
                 <div key={req.id} className="bg-slate-50 rounded-lg p-3 flex items-center justify-between">
                   <div>
                     <p className="text-white text-sm font-medium">Level {req.requested_level} Upgrade</p>
-                    <p className="text-slate-200 text-xs">${req.amount_usd} • {req.payment_method}</p>
+                    <p className="text-slate-600 text-xs">${req.amount_usd} • {req.payment_method}</p>
                   </div>
                   <Badge className="bg-amber-500/20 text-amber-400">{req.status}</Badge>
                 </div>
@@ -1473,7 +1473,7 @@ const HelperDashboard = () => {
                 {/* Level pricing reminder */}
                 {levelPricing && (
                   <div className="text-center p-2 bg-slate-100 rounded-lg">
-                    <p className="text-xs text-slate-200">
+                    <p className="text-xs text-slate-600">
                       Level {helperData?.trader_level || 1} Rate: <span className="text-emerald-400 font-semibold">{levelPricing.diamond_amount.toLocaleString()} 💎 = ${levelPricing.price_usd}</span>
                     </p>
                   </div>
@@ -1543,7 +1543,7 @@ const HelperDashboard = () => {
                             </div>
                             <div className="flex-1 text-left">
                               <span className="text-white font-bold text-sm">{pkg.label}</span>
-                              <p className="text-slate-200 text-xs">
+                              <p className="text-slate-600 text-xs">
                                 {pkg.diamonds.toLocaleString()} diamonds
                               </p>
                             </div>
@@ -1581,7 +1581,7 @@ const HelperDashboard = () => {
                     <div className="flex items-center justify-center gap-2">
                       <Crown className="w-5 h-5 text-purple-400" />
                       <span className="text-white font-semibold">Custom Amount</span>
-                      <span className="text-slate-200 text-xs">(50 Lakh+)</span>
+                      <span className="text-slate-600 text-xs">(50 Lakh+)</span>
                     </div>
                   </button>
                   
@@ -1673,7 +1673,7 @@ const HelperDashboard = () => {
                           
                           <div className="space-y-2">
                             <div className="flex justify-between items-center">
-                              <span className="text-slate-200 text-xs">Account Name:</span>
+                              <span className="text-slate-600 text-xs">Account Name:</span>
                               <div className="flex items-center gap-2">
                                 <span className="text-white text-sm">{selectedPaymentMethod.account_name}</span>
                                 <button
@@ -1689,7 +1689,7 @@ const HelperDashboard = () => {
                             </div>
                             
                             <div className="flex justify-between items-center">
-                              <span className="text-slate-200 text-xs">ID/Number:</span>
+                              <span className="text-slate-600 text-xs">ID/Number:</span>
                               <div className="flex items-center gap-2">
                                 <span className="text-emerald-300 font-mono text-sm">{selectedPaymentMethod.account_number}</span>
                                 <button
@@ -1706,14 +1706,14 @@ const HelperDashboard = () => {
                             
                             {selectedPaymentMethod.bank_name && (
                               <div className="flex justify-between items-center">
-                                <span className="text-slate-200 text-xs">Bank:</span>
+                                <span className="text-slate-600 text-xs">Bank:</span>
                                 <span className="text-slate-700 text-sm">{selectedPaymentMethod.bank_name}</span>
                               </div>
                             )}
                           </div>
                           
                           {selectedPaymentMethod.instructions && (
-                            <p className="text-slate-200 text-xs mt-3 italic border-t border-emerald-500/20 pt-2">
+                            <p className="text-slate-600 text-xs mt-3 italic border-t border-emerald-500/20 pt-2">
                               {selectedPaymentMethod.instructions}
                             </p>
                           )}
@@ -1738,7 +1738,7 @@ const HelperDashboard = () => {
                   ) : (
                     <div className="mt-2 p-4 rounded-lg bg-amber-500/10 border border-amber-500/30 text-center">
                       <p className="text-amber-400 text-sm font-medium">⚠️ No payment methods available</p>
-                      <p className="text-slate-200 text-xs mt-1">Please contact admin to configure payment methods</p>
+                      <p className="text-slate-600 text-xs mt-1">Please contact admin to configure payment methods</p>
                     </div>
                   )}
                 </div>
@@ -1782,8 +1782,8 @@ const HelperDashboard = () => {
                           : "border-slate-300 bg-slate-100"
                       )}
                     >
-                      <Upload className={cn("w-5 h-5", topupProof ? "text-emerald-400" : "text-slate-200")} />
-                      <span className={cn("text-sm", topupProof ? "text-emerald-400" : "text-slate-200")}>
+                      <Upload className={cn("w-5 h-5", topupProof ? "text-emerald-400" : "text-slate-600")} />
+                      <span className={cn("text-sm", topupProof ? "text-emerald-400" : "text-slate-600")}>
                         {topupProof ? `✓ ${topupProof.name}` : "Upload payment proof (Required)"}
                       </span>
                     </label>
@@ -1892,7 +1892,7 @@ const HelperDashboard = () => {
                             <Badge className="bg-green-500 text-white text-[10px]">Current</Badge>
                           )}
                         </div>
-                        <p className="text-slate-200 text-xs">{level.description}</p>
+                        <p className="text-slate-600 text-xs">{level.description}</p>
                         {level.level_number === 5 && (
                           <p className="text-purple-400 text-xs mt-1 flex items-center gap-1">
                             <Banknote className="w-3 h-3" />
@@ -1905,7 +1905,7 @@ const HelperDashboard = () => {
                       {level.upgrade_cost_usd > 0 ? (
                         <>
                           <p className="text-white font-bold">${level.upgrade_cost_usd}</p>
-                          <p className="text-slate-200 text-xs">Upgrade Cost</p>
+                          <p className="text-slate-600 text-xs">Upgrade Cost</p>
                         </>
                       ) : (
                         <Badge className="bg-green-500/20 text-green-400 border-green-500/50">Free</Badge>
@@ -1926,7 +1926,7 @@ const HelperDashboard = () => {
                           ${level.min_withdrawal_amount?.toLocaleString() || 0} - ${level.max_withdrawal_amount?.toLocaleString() || 0}
                         </p>
                       ) : (
-                        <p className="text-slate-200 text-xs">Not Available</p>
+                        <p className="text-slate-600 text-xs">Not Available</p>
                       )}
                     </div>
                   </div>
@@ -2052,7 +2052,7 @@ const HelperDashboard = () => {
           <div className="space-y-4">
             <div className="bg-slate-50 rounded-xl p-4">
               <div className="flex items-center justify-between">
-                <span className="text-slate-200">Upgrade Cost</span>
+                <span className="text-slate-600">Upgrade Cost</span>
                 <span className="text-2xl font-bold text-white">${selectedUpgradeLevel?.upgrade_cost_usd}</span>
               </div>
             </div>
@@ -2096,7 +2096,7 @@ const HelperDashboard = () => {
                   })}
                 </div>
               ) : (
-                <div className="mt-2 p-3 rounded-lg bg-slate-100 border border-slate-200 text-slate-200 text-sm">
+                <div className="mt-2 p-3 rounded-lg bg-slate-100 border border-slate-200 text-slate-600 text-sm">
                   No payment methods available. Please contact admin.
                 </div>
               )}
@@ -2107,7 +2107,7 @@ const HelperDashboard = () => {
                   <p className="text-xs text-purple-300 mb-2">Pay to this account:</p>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-200 text-xs">Account:</span>
+                      <span className="text-slate-600 text-xs">Account:</span>
                       <div className="flex items-center gap-2">
                         <span className="text-white text-sm font-medium">{selectedPaymentMethod.account_name}</span>
                         <button
@@ -2122,7 +2122,7 @@ const HelperDashboard = () => {
                       </div>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-200 text-xs">ID/Number:</span>
+                      <span className="text-slate-600 text-xs">ID/Number:</span>
                       <div className="flex items-center gap-2">
                         <span className="text-white text-sm font-mono">{selectedPaymentMethod.account_number}</span>
                         <button
@@ -2137,7 +2137,7 @@ const HelperDashboard = () => {
                       </div>
                     </div>
                     {selectedPaymentMethod.instructions && (
-                      <p className="text-xs text-slate-200 mt-2 italic">{selectedPaymentMethod.instructions}</p>
+                      <p className="text-xs text-slate-600 mt-2 italic">{selectedPaymentMethod.instructions}</p>
                     )}
                   </div>
                   
@@ -2183,8 +2183,8 @@ const HelperDashboard = () => {
                   htmlFor="payment-proof"
                   className="flex items-center gap-2 p-3 rounded-lg border border-dashed border-slate-200 bg-slate-50 cursor-pointer hover:bg-slate-100"
                 >
-                  <Upload className="w-5 h-5 text-slate-200" />
-                  <span className="text-slate-200 text-sm">
+                  <Upload className="w-5 h-5 text-slate-600" />
+                  <span className="text-slate-600 text-sm">
                     {paymentProof ? paymentProof.name : "Upload payment proof"}
                   </span>
                 </label>
@@ -2264,7 +2264,7 @@ const HelperDashboard = () => {
             </div>
 
             <div className="bg-slate-50 rounded-xl p-4">
-              <p className="text-slate-200 text-sm">
+              <p className="text-slate-600 text-sm">
                 By applying for payroll access, you agree to process withdrawal requests promptly and maintain a professional standard of service.
               </p>
             </div>
@@ -2402,7 +2402,7 @@ const HelperDashboard = () => {
                       </Avatar>
                       <div>
                         <p className="text-white font-semibold">{searchedUser.display_name}</p>
-                        <p className="text-slate-200 text-xs">ID: {searchedUser.app_uid}</p>
+                        <p className="text-slate-600 text-xs">ID: {searchedUser.app_uid}</p>
                       </div>
                     </div>
 
@@ -2474,7 +2474,7 @@ const HelperDashboard = () => {
                       </div>
                       <div>
                         <p className="text-white font-semibold">{searchedAgency.name}</p>
-                        <p className="text-slate-200 text-xs">Code: {searchedAgency.agency_code}</p>
+                        <p className="text-slate-600 text-xs">Code: {searchedAgency.agency_code}</p>
                         <p className="text-purple-400 text-xs">Balance: {searchedAgency.wallet_balance?.toLocaleString() || 0} 💎</p>
                         {searchedAgency.owner_name && (
                           <p className="text-slate-700 text-xs">Owner: {searchedAgency.owner_name}</p>
@@ -2575,7 +2575,7 @@ const HelperDashboard = () => {
           
           <div className="flex-1 overflow-y-auto space-y-3 pr-1">
             {transferHistory.length === 0 ? (
-              <div className="text-center py-8 text-slate-200">
+              <div className="text-center py-8 text-slate-600">
                 No transfer history yet
               </div>
             ) : (
@@ -2622,7 +2622,7 @@ const HelperDashboard = () => {
                           {transfer.sender_type === 'trader_to_user' ? 'User' : 'Agency'}
                         </Badge>
                       </div>
-                      <p className="text-slate-200 text-xs">
+                      <p className="text-slate-600 text-xs">
                         {transfer.sender_type === 'trader_to_user' 
                           ? `ID: ${transfer.receiver?.app_uid || 'N/A'}`
                           : `Code: ${transfer.agency?.agency_code || 'N/A'}`

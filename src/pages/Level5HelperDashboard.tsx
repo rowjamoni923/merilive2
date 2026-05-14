@@ -1428,7 +1428,7 @@ const Level5HelperDashboard = () => {
               <Card className="bg-slate-50 border-slate-200">
                 <CardContent className="p-8 text-center">
                   <Building2 className="w-12 h-12 mx-auto text-slate-700 mb-3" />
-                  <p className="text-slate-200">No pending agency withdrawals</p>
+                  <p className="text-slate-600">No pending agency withdrawals</p>
                   <p className="text-xs text-slate-700 mt-1">
                     All withdrawals are cleared 🎉
                   </p>
@@ -1465,7 +1465,7 @@ const Level5HelperDashboard = () => {
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <p className="text-white font-semibold truncate">{withdrawal.agency?.name || 'Unknown Agency'}</p>
-                          <p className="text-slate-200 text-xs">Code: {withdrawal.agency?.agency_code}</p>
+                          <p className="text-slate-600 text-xs">Code: {withdrawal.agency?.agency_code}</p>
                           <div className="flex items-center gap-2 mt-1 flex-wrap">
                             <Badge className={cn(
                               "text-xs",
@@ -1482,7 +1482,7 @@ const Level5HelperDashboard = () => {
                                withdrawal.status}
                             </Badge>
                             {(withdrawal.country_code || (withdrawal.payment_details as any)?.country_code) && (
-                              <Badge variant="outline" className="text-xs text-slate-200">
+                              <Badge variant="outline" className="text-xs text-slate-600">
                                 {(() => {
                                   const cc = withdrawal.country_code || (withdrawal.payment_details as any)?.country_code;
                                   const nameMap: Record<string, string> = { BD: 'Bangladesh', IN: 'India', PK: 'Pakistan', NP: 'Nepal', ID: 'Indonesia', PH: 'Philippines', MY: 'Malaysia', TH: 'Thailand', VN: 'Vietnam', LK: 'Sri Lanka', AE: 'UAE', SA: 'Saudi Arabia', US: 'USA', GB: 'UK' };
@@ -1498,7 +1498,7 @@ const Level5HelperDashboard = () => {
                             {resolveNetWithdrawalBeans(withdrawal).toLocaleString()}
                           </p>
                           {withdrawal.local_currency_amount && withdrawal.currency_code && (
-                            <p className="text-slate-200 text-xs">
+                            <p className="text-slate-600 text-xs">
                               ≈ {withdrawal.currency_code} {withdrawal.local_currency_amount.toLocaleString()}
                             </p>
                           )}
@@ -1596,7 +1596,7 @@ const Level5HelperDashboard = () => {
               <Card className="bg-slate-50 border-slate-200">
                 <CardContent className="p-8 text-center">
                   <Package className="w-12 h-12 mx-auto text-slate-700 mb-3" />
-                  <p className="text-slate-200">No orders yet</p>
+                  <p className="text-slate-600">No orders yet</p>
                   <p className="text-xs text-slate-700 mt-1">
                     Orders from users will appear here
                   </p>
@@ -1635,17 +1635,17 @@ const Level5HelperDashboard = () => {
                             {order.status}
                           </Badge>
                         </div>
-                        <p className="text-slate-200 text-xs">ID: {order.user?.app_uid}</p>
+                        <p className="text-slate-600 text-xs">ID: {order.user?.app_uid}</p>
                         <p className="text-slate-700 text-[10px]">
                           {format(new Date(order.created_at), 'dd MMM yyyy, hh:mm a')}
                         </p>
                       </div>
                       <div className="text-right">
                         <p className="text-emerald-400 font-bold">{order.coin_amount?.toLocaleString()} 💎</p>
-                        <p className="text-slate-200 text-xs">
+                        <p className="text-slate-600 text-xs">
                           {order.currency_code === 'BDT' ? 'Tk ' : '$'}{order.amount_local?.toFixed(0)}
                         </p>
-                        <Badge variant="outline" className="text-[10px] text-slate-200 mt-1">
+                        <Badge variant="outline" className="text-[10px] text-slate-600 mt-1">
                           {order.payment_method}
                         </Badge>
                       </div>
@@ -1655,7 +1655,7 @@ const Level5HelperDashboard = () => {
                     {order.payment_details && (
                       <div className="mt-3 pt-3 border-t border-slate-200">
                         <div className="bg-white/80 rounded-lg p-3">
-                          <p className="text-slate-200 text-xs mb-2">📝 Payment Details</p>
+                          <p className="text-slate-600 text-xs mb-2">📝 Payment Details</p>
                           {(order.payment_details.transaction_id || order.payment_details.user_transaction_id) && (
                             <div className="flex items-center justify-between mb-2">
                               <span className="text-slate-700 text-xs">Transaction ID:</span>
@@ -1843,7 +1843,7 @@ const Level5HelperDashboard = () => {
               <Card className="bg-slate-50 border-slate-200">
                 <CardContent className="p-8 text-center">
                   <CreditCard className="w-12 h-12 mx-auto text-slate-700 mb-3" />
-                  <p className="text-slate-200">No payment methods added</p>
+                  <p className="text-slate-600">No payment methods added</p>
                   <p className="text-xs text-slate-700 mt-1">Add payment methods for your assigned countries</p>
                   <Button 
                     onClick={() => setShowCountryPaymentDialog(true)}
@@ -1888,7 +1888,7 @@ const Level5HelperDashboard = () => {
                                 <Badge className="bg-amber-500/20 text-amber-300 text-[10px] px-1.5 py-0">⚡ Merchant</Badge>
                               )}
                             </div>
-                            <p className="text-slate-200 text-xs truncate">{method.account_name}</p>
+                            <p className="text-slate-600 text-xs truncate">{method.account_name}</p>
                             <p className="text-emerald-400 text-xs font-mono">{method.account_number}</p>
                             {method.merchant_number && (
                               <p className="text-amber-400 text-xs font-mono">Merchant: {method.merchant_number}</p>
@@ -1917,7 +1917,7 @@ const Level5HelperDashboard = () => {
               <Card className="bg-slate-50 border-slate-200">
                 <CardContent className="p-8 text-center">
                   <Banknote className="w-12 h-12 mx-auto text-slate-700 mb-3" />
-                  <p className="text-slate-200">No withdrawal requests yet</p>
+                  <p className="text-slate-600">No withdrawal requests yet</p>
                   <p className="text-xs text-slate-700 mt-1">Requests will appear here when agencies submit withdrawals</p>
                 </CardContent>
               </Card>
@@ -1950,13 +1950,13 @@ const Level5HelperDashboard = () => {
                               {statusConfig.label}
                             </Badge>
                           </div>
-                          <p className="text-xs text-slate-200">
+                          <p className="text-xs text-slate-600">
                             {format(new Date(request.created_at), 'dd MMM yyyy, HH:mm')}
                           </p>
                         </div>
                         <div className="text-right">
                           <p className="font-bold text-green-400">${request.usd_amount}</p>
-                          <p className="text-xs text-slate-200">
+                          <p className="text-xs text-slate-600">
                             {request.currency_code} {request.local_amount?.toLocaleString()}
                           </p>
                         </div>
@@ -1990,7 +1990,7 @@ const Level5HelperDashboard = () => {
               <Card className="bg-slate-50 border-slate-200">
                 <CardContent className="p-8 text-center">
                   <CreditCard className="w-12 h-12 mx-auto text-slate-700 mb-3" />
-                  <p className="text-slate-200">No payment methods added</p>
+                  <p className="text-slate-600">No payment methods added</p>
                   <p className="text-xs text-slate-700 mt-1">Add your payment methods to receive payments</p>
                 </CardContent>
               </Card>
@@ -2021,7 +2021,7 @@ const Level5HelperDashboard = () => {
                           
                           {/* Account Name with Copy */}
                           <div className="flex items-center justify-between gap-2 mb-1">
-                            <p className="text-sm text-slate-200 truncate">{method.account_name}</p>
+                            <p className="text-sm text-slate-600 truncate">{method.account_name}</p>
                             <button
                               onClick={() => {
                                 navigator.clipboard.writeText(method.account_name);
@@ -2079,7 +2079,7 @@ const Level5HelperDashboard = () => {
               <Card className="bg-slate-50 border-slate-200">
                 <CardContent className="p-8 text-center">
                   <Clock className="w-12 h-12 mx-auto text-slate-700 mb-3" />
-                  <p className="text-slate-200">No transaction history yet</p>
+                  <p className="text-slate-600">No transaction history yet</p>
                   <p className="text-xs text-slate-700 mt-1">
                     Your processing, completed, and rejected records will appear here
                   </p>
@@ -2136,7 +2136,7 @@ const Level5HelperDashboard = () => {
                                 <p className="text-white font-medium text-sm truncate">
                                   {withdrawal.agency?.name || 'Agency'}
                                 </p>
-                                <p className="text-slate-200 text-[10px]">
+                                <p className="text-slate-600 text-[10px]">
                                   Code: {withdrawal.agency?.agency_code}
                                 </p>
                                 <div className="flex items-center gap-2 mt-1 flex-wrap">
@@ -2183,14 +2183,14 @@ const Level5HelperDashboard = () => {
                               <p className="text-white font-medium text-sm truncate">
                                 {order.user?.display_name || 'User'}
                               </p>
-                              <p className="text-slate-200 text-[10px]">ID: {order.user?.app_uid}</p>
+                              <p className="text-slate-600 text-[10px]">ID: {order.user?.app_uid}</p>
                               <Badge className="bg-green-500 text-[10px] mt-1">Completed</Badge>
                             </div>
                             <div className="text-right">
                               <p className="text-emerald-400 font-bold text-sm">
                                 {order.coin_amount?.toLocaleString()} 💎
                               </p>
-                              <p className="text-slate-200 text-xs">
+                              <p className="text-slate-600 text-xs">
                                 {order.currency_code === 'BDT' ? 'Tk ' : '$'}{order.amount_local?.toFixed(0)}
                               </p>
                               <p className="text-slate-700 text-[10px]">
@@ -2223,7 +2223,7 @@ const Level5HelperDashboard = () => {
               <Card className="bg-slate-50 border-slate-200">
                 <CardContent className="p-8 text-center">
                   <Bell className="w-12 h-12 mx-auto text-slate-700 mb-3" />
-                  <p className="text-slate-200">No messages from admin</p>
+                  <p className="text-slate-600">No messages from admin</p>
                   <p className="text-xs text-slate-700 mt-1">
                     Important announcements will appear here
                   </p>
@@ -2272,7 +2272,7 @@ const Level5HelperDashboard = () => {
                             </Badge>
                           )}
                         </div>
-                        <p className="text-xs text-slate-200 mt-1 line-clamp-2">{msg.message}</p>
+                        <p className="text-xs text-slate-600 mt-1 line-clamp-2">{msg.message}</p>
                         <div className="flex items-center justify-between mt-1">
                           <p className="text-[10px] text-slate-700">
                             {format(new Date(msg.created_at), 'dd MMM yyyy, HH:mm')}
@@ -2619,7 +2619,7 @@ const Level5HelperDashboard = () => {
               <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl p-4 border border-green-500/30">
                 <div className="text-center">
                   <p className="text-3xl font-bold text-green-400">${selectedWithdrawal.usd_amount}</p>
-                  <p className="text-sm text-slate-200 mt-1">
+                  <p className="text-sm text-slate-600 mt-1">
                     ≈ {selectedWithdrawal.currency_code} {selectedWithdrawal.local_amount?.toLocaleString()}
                   </p>
                 </div>
@@ -2649,7 +2649,7 @@ const Level5HelperDashboard = () => {
                         {selectedWithdrawal.agency?.name || selectedWithdrawal.host?.display_name}
                       </p>
                       {selectedWithdrawal.agency?.agency_code && (
-                        <p className="text-xs text-slate-200">Code: {selectedWithdrawal.agency.agency_code}</p>
+                        <p className="text-xs text-slate-600">Code: {selectedWithdrawal.agency.agency_code}</p>
                       )}
                     </div>
                   </div>
@@ -2658,7 +2658,7 @@ const Level5HelperDashboard = () => {
 
               {/* Status */}
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-                <span className="text-slate-200">Status</span>
+                <span className="text-slate-600">Status</span>
                 <Badge className={cn("text-white", getStatusBadge(selectedWithdrawal.status).color)}>
                   {getStatusBadge(selectedWithdrawal.status).label}
                 </Badge>
@@ -2708,12 +2708,12 @@ const Level5HelperDashboard = () => {
                         {screenshotFile ? (
                           <div className="text-center">
                             <CheckCircle className="w-8 h-8 text-green-500 mx-auto mb-2" />
-                            <p className="text-sm text-slate-200">{screenshotFile.name}</p>
+                            <p className="text-sm text-slate-600">{screenshotFile.name}</p>
                           </div>
                         ) : (
                           <div className="text-center">
                             <Camera className="w-8 h-8 text-slate-700 mx-auto mb-2" />
-                            <p className="text-sm text-slate-200">Click to upload screenshot</p>
+                            <p className="text-sm text-slate-600">Click to upload screenshot</p>
                           </div>
                         )}
                       </label>
@@ -2905,7 +2905,7 @@ const Level5HelperDashboard = () => {
                     ))}
 
                   {/* ═══ MANUAL METHODS — universal fallbacks (always visible) ═══ */}
-                  <div className="px-2 py-1 text-[10px] text-slate-200 font-bold uppercase tracking-wider mt-1">
+                  <div className="px-2 py-1 text-[10px] text-slate-600 font-bold uppercase tracking-wider mt-1">
                     📝 Manual Methods
                   </div>
                   <SelectItem value="bkash" className="text-white">📱 bKash</SelectItem>
@@ -3215,8 +3215,8 @@ const Level5HelperDashboard = () => {
                   </div>
                 ) : (
                   <label className="flex flex-col items-center justify-center w-16 h-16 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-pink-500 transition-colors">
-                    <Upload className="w-5 h-5 text-slate-200" />
-                    <span className="text-xs text-slate-200 mt-1">Logo</span>
+                    <Upload className="w-5 h-5 text-slate-600" />
+                    <span className="text-xs text-slate-600 mt-1">Logo</span>
                     <input
                       type="file"
                       accept="image/*"
@@ -3309,7 +3309,7 @@ const Level5HelperDashboard = () => {
                 </Avatar>
                 <div>
                   <p className="text-white font-semibold">{selectedAgencyWithdrawal.agency?.name}</p>
-                  <p className="text-slate-200 text-sm">Code: {selectedAgencyWithdrawal.agency?.agency_code}</p>
+                  <p className="text-slate-600 text-sm">Code: {selectedAgencyWithdrawal.agency?.agency_code}</p>
                   <Badge className={cn(
                     "text-xs mt-1",
                     selectedAgencyWithdrawal.status === 'pending' ? "bg-yellow-500" : "bg-blue-500"
@@ -3335,7 +3335,7 @@ const Level5HelperDashboard = () => {
                       })()}
                     </p>
                   </div>
-                  <p className="text-slate-200 text-xs mt-1">Payable Amount After Fee</p>
+                  <p className="text-slate-600 text-xs mt-1">Payable Amount After Fee</p>
                 </div>
               </div>
 
@@ -3351,7 +3351,7 @@ const Level5HelperDashboard = () => {
                   {(selectedAgencyWithdrawal.payment_details as any)?.transaction_id && (
                     <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-lg p-3 mb-3 border border-yellow-500/30">
                       <div className="flex items-center justify-between">
-                        <span className="text-slate-200 text-xs">Transaction ID:</span>
+                        <span className="text-slate-600 text-xs">Transaction ID:</span>
                         <span className="text-yellow-400 font-mono text-lg font-bold">
                           {(selectedAgencyWithdrawal.payment_details as any).transaction_id}
                         </span>
@@ -3375,7 +3375,7 @@ const Level5HelperDashboard = () => {
                         );
                       })()}
                       
-                      <span className="text-slate-200">•</span>
+                      <span className="text-slate-600">•</span>
                       
                       {/* Payment Method Name */}
                       <div className="bg-gradient-to-r from-pink-500/30 to-purple-500/30 px-3 py-1.5 rounded-lg border border-pink-500/40">
@@ -3387,7 +3387,7 @@ const Level5HelperDashboard = () => {
                     
                     {/* Request Time */}
                     <div className="mt-2 text-center">
-                      <span className="text-slate-200 text-xs">
+                      <span className="text-slate-600 text-xs">
                         🕐 {format(new Date(selectedAgencyWithdrawal.requested_at), 'dd MMM yyyy, hh:mm a')}
                       </span>
                     </div>
@@ -3398,7 +3398,7 @@ const Level5HelperDashboard = () => {
                     {/* Local Amount - FIRST */}
                     {(selectedAgencyWithdrawal.payment_details as any)?.local_amount && (
                       <div className="flex items-center justify-between bg-emerald-500/10 rounded-lg p-2 border border-emerald-500/20">
-                        <span className="text-slate-200">Payable Local Amount:</span>
+                        <span className="text-slate-600">Payable Local Amount:</span>
                         <span className="text-emerald-400 font-bold text-lg">
                           {(() => {
                             const pd = selectedAgencyWithdrawal.payment_details as any;
@@ -3415,7 +3415,7 @@ const Level5HelperDashboard = () => {
                     {/* USD Amount */}
                     {(selectedAgencyWithdrawal.payment_details as any)?.usd_amount && (
                       <div className="flex items-center justify-between bg-white/80 rounded-lg p-2">
-                        <span className="text-slate-200">Payable USD Amount:</span>
+                        <span className="text-slate-600">Payable USD Amount:</span>
                         <span className="text-cyan-400 font-bold">
                           ${resolveNetWithdrawalUsd(selectedAgencyWithdrawal).toFixed(2)}
                         </span>
@@ -3425,7 +3425,7 @@ const Level5HelperDashboard = () => {
                     {/* Account Name */}
                     {(selectedAgencyWithdrawal.payment_details as any)?.account_name && (
                       <div className="flex items-center justify-between bg-white/80 rounded-lg p-2">
-                        <span className="text-slate-200">Paid to:</span>
+                        <span className="text-slate-600">Paid to:</span>
                         <span className="text-green-400 font-semibold">
                           {(selectedAgencyWithdrawal.payment_details as any).account_name}
                         </span>
@@ -3435,7 +3435,7 @@ const Level5HelperDashboard = () => {
                     {/* Account Number with Copy */}
                     {(selectedAgencyWithdrawal.payment_details as any)?.account_number && (
                       <div className="flex items-center justify-between bg-white/80 rounded-lg p-2">
-                        <span className="text-slate-200">Number:</span>
+                        <span className="text-slate-600">Number:</span>
                         <div className="flex items-center gap-2">
                           <span className="text-green-400 font-mono font-semibold">
                             {(selectedAgencyWithdrawal.payment_details as any).account_number}
@@ -3456,7 +3456,7 @@ const Level5HelperDashboard = () => {
                     {/* Bank Name if exists */}
                     {(selectedAgencyWithdrawal.payment_details as any)?.bank_name && (
                       <div className="flex items-center justify-between bg-white/80 rounded-lg p-2">
-                        <span className="text-slate-200">Bank:</span>
+                        <span className="text-slate-600">Bank:</span>
                         <span className="text-white font-medium">
                           {(selectedAgencyWithdrawal.payment_details as any).bank_name}
                         </span>
@@ -3466,7 +3466,7 @@ const Level5HelperDashboard = () => {
                     {/* Additional Info */}
                     {(selectedAgencyWithdrawal.payment_details as any)?.additional_info && (
                       <div className="bg-white/80 rounded-lg p-2">
-                        <span className="text-slate-200 text-xs block mb-1">Additional Info:</span>
+                        <span className="text-slate-600 text-xs block mb-1">Additional Info:</span>
                         <span className="text-white text-sm">
                           {(selectedAgencyWithdrawal.payment_details as any).additional_info}
                         </span>
@@ -3496,7 +3496,7 @@ const Level5HelperDashboard = () => {
               )}
 
               {/* Request Time */}
-              <div className="text-center text-sm text-slate-200">
+              <div className="text-center text-sm text-slate-600">
                 Requested: {format(new Date(selectedAgencyWithdrawal.requested_at), 'dd MMM yyyy, hh:mm a')}
               </div>
 
@@ -3531,8 +3531,8 @@ const Level5HelperDashboard = () => {
                           </div>
                         ) : (
                           <div className="text-center">
-                            <Camera className="w-8 h-8 text-slate-200 mx-auto mb-2" />
-                            <p className="text-slate-200 text-sm">Select Screenshot</p>
+                            <Camera className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+                            <p className="text-slate-600 text-sm">Select Screenshot</p>
                           </div>
                         )}
                       </label>

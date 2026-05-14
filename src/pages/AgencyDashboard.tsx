@@ -1209,7 +1209,7 @@ const AgencyDashboard = () => {
                                   <p className="text-xs font-semibold text-white">
                                     {(w.amount / coinsToUsdRate).toFixed(2)} USD
                                   </p>
-                                  <p className="text-[10px] text-slate-200">
+                                  <p className="text-[10px] text-slate-600">
                                     {w.payment_method?.toUpperCase()} • {new Date(w.requested_at).toLocaleDateString()}
                                   </p>
                                 </div>
@@ -1561,7 +1561,7 @@ const AgencyDashboard = () => {
                     </div>
                     <div>
                       <span>Withdrawal History</span>
-                      <p className="text-xs font-normal text-slate-200">{withdrawals.length} total requests</p>
+                      <p className="text-xs font-normal text-slate-600">{withdrawals.length} total requests</p>
                     </div>
                   </CardTitle>
                   <Button 
@@ -1577,7 +1577,7 @@ const AgencyDashboard = () => {
               </CardHeader>
               <CardContent>
                 {withdrawals.length === 0 ? (
-                  <div className="text-center py-8 text-slate-200">
+                  <div className="text-center py-8 text-slate-600">
                     <Wallet className="w-12 h-12 mx-auto mb-2 opacity-50" />
                     <p>No withdrawal history yet</p>
                   </div>
@@ -1626,14 +1626,14 @@ const AgencyDashboard = () => {
                             <div className="flex items-center gap-2 mb-1">
                               <span className="text-lg">{countryFlag}</span>
                               <span className="text-white font-bold">{fmtNum(withdrawal.amount)}</span>
-                              <span className="text-slate-200 text-sm">Beans</span>
+                              <span className="text-slate-600 text-sm">Beans</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm">
                               <span className="bg-gradient-to-r from-pink-500/30 to-purple-500/30 text-pink-300 px-2 py-0.5 rounded-md text-xs font-medium border border-pink-500/30">
                                 {withdrawal.payment_method?.toUpperCase()}
                               </span>
                               <span className="text-slate-700">•</span>
-                              <span className="text-slate-200 text-xs">
+                              <span className="text-slate-600 text-xs">
                                 {new Date(withdrawal.requested_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                               </span>
                             </div>
