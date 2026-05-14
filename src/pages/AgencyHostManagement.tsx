@@ -275,7 +275,7 @@ const AgencyHostManagement = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] to-[#F5EFDF]">
       {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-10 bg-white/90 backdrop-blur border-b border-amber-200/60 px-4 py-3 safe-area-top">
+      <header className="flex-shrink-0 sticky top-0 z-10 bg-white/90 backdrop-blur border-b border-warning-200/60 px-4 py-3 safe-area-top">
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
@@ -296,7 +296,7 @@ const AgencyHostManagement = () => {
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
         <div className="p-4 space-y-4">
         {/* Agency Info */}
-        <div className="bg-white/5 rounded-xl p-4 border border-amber-200/60">
+        <div className="bg-white/5 rounded-xl p-4 border border-warning-200/60">
           <div className="flex items-center justify-between mb-3">
             <div>
               <p className="text-slate-800 font-semibold">{agency?.name}</p>
@@ -311,11 +311,11 @@ const AgencyHostManagement = () => {
           {/* Pending notification */}
           {pendingHosts.length > 0 && (
             <div 
-              className="flex items-center gap-2 p-2 bg-yellow-500/10 rounded-lg cursor-pointer"
+              className="flex items-center gap-2 p-2 bg-warning-500/10 rounded-lg cursor-pointer"
               onClick={() => setActiveTab("pending")}
             >
-              <Bell className="w-4 h-4 text-yellow-400" />
-              <span className="text-yellow-400 text-sm font-medium">
+              <Bell className="w-4 h-4 text-warning-400" />
+              <span className="text-warning-400 text-sm font-medium">
                 {pendingHosts.length} Pending Request{pendingHosts.length > 1 ? 's' : ''}
               </span>
             </div>
@@ -323,7 +323,7 @@ const AgencyHostManagement = () => {
         </div>
 
         {/* Invite Link Card */}
-        <div className="bg-gradient-to-r from-primary/10 to-purple-500/10 rounded-xl p-4 border border-primary/20">
+        <div className="bg-gradient-to-r from-primary/10 to-brand-500/10 rounded-xl p-4 border border-primary/20">
           <div className="flex items-center gap-2 mb-3">
             <LinkIcon className="w-5 h-5 text-primary" />
             <span className="text-slate-800 font-medium">Host Invite Link</span>
@@ -351,10 +351,10 @@ const AgencyHostManagement = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full bg-white/5 border border-amber-200/60">
+          <TabsList className="w-full bg-white/5 border border-warning-200/60">
             <TabsTrigger 
               value="pending" 
-              className="flex-1 data-[state=active]:bg-yellow-500/20 data-[state=active]:text-yellow-400 text-slate-600"
+              className="flex-1 data-[state=active]:bg-warning-500/20 data-[state=active]:text-warning-400 text-slate-600"
             >
               Pending ({pendingHosts.length})
             </TabsTrigger>
@@ -377,12 +377,12 @@ const AgencyHostManagement = () => {
               pendingHosts.map((hostData) => (
                 <div
                   key={hostData.id}
-                  className="bg-white/5 rounded-xl p-4 border border-yellow-500/20"
+                  className="bg-white/5 rounded-xl p-4 border border-warning-500/20"
                 >
                   <div className="flex items-center gap-3 mb-3">
-                    <Avatar className="w-12 h-12 border-2 border-yellow-500/30">
+                    <Avatar className="w-12 h-12 border-2 border-warning-500/30">
                       <AvatarImage src={hostData.host?.avatar_url || undefined} />
-                      <AvatarFallback className="bg-yellow-500/20 text-yellow-400">
+                      <AvatarFallback className="bg-warning-500/20 text-warning-400">
                         {hostData.host?.display_name?.charAt(0) || "H"}
                       </AvatarFallback>
                     </Avatar>
@@ -395,7 +395,7 @@ const AgencyHostManagement = () => {
                     <Button
                       onClick={() => setApproveDialog(hostData)}
                       disabled={processingId === hostData.host_id}
-                      className="flex-1 bg-green-500/20 hover:bg-green-500/30 text-green-400"
+                      className="flex-1 bg-success-500/20 hover:bg-success-500/30 text-success-400"
                     >
                       {processingId === hostData.host_id ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -409,7 +409,7 @@ const AgencyHostManagement = () => {
                     <Button
                       onClick={() => setRejectDialog(hostData)}
                       disabled={processingId === hostData.host_id}
-                      className="flex-1 bg-red-500/20 hover:bg-red-500/30 text-red-400"
+                      className="flex-1 bg-danger-500/20 hover:bg-danger-500/30 text-danger-400"
                     >
                       <XCircle className="w-4 h-4 mr-2" />
                       Reject
@@ -430,13 +430,13 @@ const AgencyHostManagement = () => {
                   placeholder="Search by name or UID..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-white/5 border-amber-200/60 text-slate-800"
+                  className="pl-10 bg-white/5 border-warning-200/60 text-slate-800"
                 />
               </div>
               <Button
                 variant={filterOnline ? "default" : "outline"}
                 onClick={() => setFilterOnline(!filterOnline)}
-                className={filterOnline ? "bg-green-500" : "bg-white/5 border-amber-200/60 text-slate-800"}
+                className={filterOnline ? "bg-success-500" : "bg-white/5 border-warning-200/60 text-slate-800"}
               >
                 <UserCheck className="w-4 h-4" />
               </Button>
@@ -453,7 +453,7 @@ const AgencyHostManagement = () => {
               filteredHosts.map((hostData) => (
                 <div
                   key={hostData.id}
-                  className="bg-white/5 rounded-xl p-4 border border-amber-200/60"
+                  className="bg-white/5 rounded-xl p-4 border border-warning-200/60"
                   onClick={() => navigate(`/profile/${hostData.host_id}`)}
                 >
                   <div className="flex items-center gap-3">
@@ -465,14 +465,14 @@ const AgencyHostManagement = () => {
                         </AvatarFallback>
                       </Avatar>
                       {hostData.host?.is_online && (
-                        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-amber-200/60" />
+                        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-success-500 rounded-full border-2 border-warning-200/60" />
                       )}
                     </div>
                     <div className="flex-1">
                       <p className="text-slate-800 font-medium">{hostData.host?.display_name || "Unknown"}</p>
                       <p className="text-slate-500 text-sm">UID: {hostData.host?.app_uid || "N/A"}</p>
                     </div>
-                    <Badge className={hostData.host?.is_online ? "bg-green-500/20 text-green-400" : "bg-gray-500/20 text-gray-400"}>
+                    <Badge className={hostData.host?.is_online ? "bg-success-500/20 text-success-400" : "bg-gray-500/20 text-gray-400"}>
                       {hostData.host?.is_online ? "Online" : "Offline"}
                     </Badge>
                   </div>
@@ -485,7 +485,7 @@ const AgencyHostManagement = () => {
 
       {/* Approve Dialog */}
       <AlertDialog open={!!approveDialog} onOpenChange={() => setApproveDialog(null)}>
-        <AlertDialogContent className="bg-white/90 border-amber-200/60">
+        <AlertDialogContent className="bg-white/90 border-warning-200/60">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-slate-800">Approve Host</AlertDialogTitle>
             <AlertDialogDescription className="text-slate-500">
@@ -493,10 +493,10 @@ const AgencyHostManagement = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-white/5 border-amber-200/60 text-slate-800">Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="bg-white/5 border-warning-200/60 text-slate-800">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => approveDialog && approveHost(approveDialog)}
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-success-600 hover:bg-success-700"
             >
               Approve
             </AlertDialogAction>
@@ -506,7 +506,7 @@ const AgencyHostManagement = () => {
 
       {/* Reject Dialog */}
       <AlertDialog open={!!rejectDialog} onOpenChange={() => setRejectDialog(null)}>
-        <AlertDialogContent className="bg-white/90 border-amber-200/60">
+        <AlertDialogContent className="bg-white/90 border-warning-200/60">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-slate-800">Reject Request</AlertDialogTitle>
             <AlertDialogDescription className="text-slate-500">
@@ -514,10 +514,10 @@ const AgencyHostManagement = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-white/5 border-amber-200/60 text-slate-800">No</AlertDialogCancel>
+            <AlertDialogCancel className="bg-white/5 border-warning-200/60 text-slate-800">No</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => rejectDialog && rejectHost(rejectDialog)}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-danger-600 hover:bg-danger-700"
             >
               Reject
             </AlertDialogAction>

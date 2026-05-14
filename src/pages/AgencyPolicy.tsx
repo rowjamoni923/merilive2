@@ -103,21 +103,21 @@ const iconMap: Record<string, React.ReactNode> = {
 
 // Visual identity for each admin section_key
 const sectionVisuals: Record<string, { icon: React.ReactNode; gradient: string; iconBg: string; iconColor: string }> = {
-  rules:           { icon: <Shield className="w-5 h-5" />,        gradient: "from-blue-500 to-indigo-600",        iconBg: "bg-blue-100 dark:bg-blue-900/30",        iconColor: "text-blue-600 dark:text-blue-400" },
-  commission:      { icon: <TrendingUp className="w-5 h-5" />,    gradient: "from-emerald-500 to-teal-600",       iconBg: "bg-emerald-100 dark:bg-emerald-900/30",  iconColor: "text-emerald-600 dark:text-emerald-400" },
-  penalties:       { icon: <AlertTriangle className="w-5 h-5" />, gradient: "from-red-500 to-rose-600",           iconBg: "bg-red-100 dark:bg-red-900/30",          iconColor: "text-red-600 dark:text-red-400" },
-  benefits:        { icon: <Award className="w-5 h-5" />,         gradient: "from-purple-500 to-pink-600",        iconBg: "bg-purple-100 dark:bg-white/90",    iconColor: "text-purple-600 dark:text-purple-400" },
-  withdrawal:      { icon: <Wallet className="w-5 h-5" />,        gradient: "from-green-500 to-emerald-600",      iconBg: "bg-green-100 dark:bg-green-900/30",      iconColor: "text-green-600 dark:text-green-400" },
-  host_management: { icon: <Users className="w-5 h-5" />,         gradient: "from-cyan-500 to-blue-600",          iconBg: "bg-cyan-100 dark:bg-cyan-900/30",        iconColor: "text-cyan-600 dark:text-cyan-400" },
+  rules:           { icon: <Shield className="w-5 h-5" />,        gradient: "from-info-500 to-info-600",        iconBg: "bg-info-100 dark:bg-info-900/30",        iconColor: "text-info-600 dark:text-info-400" },
+  commission:      { icon: <TrendingUp className="w-5 h-5" />,    gradient: "from-success-500 to-success-600",       iconBg: "bg-success-100 dark:bg-success-900/30",  iconColor: "text-success-600 dark:text-success-400" },
+  penalties:       { icon: <AlertTriangle className="w-5 h-5" />, gradient: "from-danger-500 to-danger-600",           iconBg: "bg-danger-100 dark:bg-danger-900/30",          iconColor: "text-danger-600 dark:text-danger-400" },
+  benefits:        { icon: <Award className="w-5 h-5" />,         gradient: "from-brand-500 to-brand-600",        iconBg: "bg-brand-100 dark:bg-white/90",    iconColor: "text-brand-600 dark:text-brand-400" },
+  withdrawal:      { icon: <Wallet className="w-5 h-5" />,        gradient: "from-success-500 to-success-600",      iconBg: "bg-success-100 dark:bg-success-900/30",      iconColor: "text-success-600 dark:text-success-400" },
+  host_management: { icon: <Users className="w-5 h-5" />,         gradient: "from-info-500 to-info-600",          iconBg: "bg-info-100 dark:bg-info-900/30",        iconColor: "text-info-600 dark:text-info-400" },
   privacy:         { icon: <Shield className="w-5 h-5" />,        gradient: "from-slate-500 to-slate-700",        iconBg: "bg-slate-100 dark:bg-white/80",         iconColor: "text-slate-600 dark:text-slate-400" },
 };
 
 const tierColors: Record<string, string> = {
-  "A1": "from-orange-400 to-orange-600",
+  "A1": "from-warning-400 to-warning-600",
   "A2": "from-gray-300 to-gray-500",
-  "A3": "from-yellow-400 to-amber-500",
-  "A4": "from-blue-400 to-indigo-500",
-  "A5": "from-purple-500 to-pink-500"
+  "A3": "from-warning-400 to-warning-500",
+  "A4": "from-info-400 to-info-500",
+  "A5": "from-brand-500 to-brand-500"
 };
 
 // STRUCTURED keys handled by their own dedicated cards/tabs
@@ -212,7 +212,7 @@ const AgencyPolicy = () => {
   if (loading) {
     return (
       <div className="fixed inset-0 flex flex-col bg-background overflow-y-auto overflow-x-hidden">
-        <div className="sticky top-0 z-50 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 flex-shrink-0">
+        <div className="sticky top-0 z-50 bg-gradient-to-r from-brand-600 via-info-600 to-brand-700 flex-shrink-0">
           <div className="flex items-center justify-between h-14 px-4">
             <button onClick={() => navigate(-1)} className="p-2 -ml-2">
               <ArrowLeft className="w-5 h-5 text-slate-800" />
@@ -266,7 +266,7 @@ const AgencyPolicy = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-background overflow-y-auto overflow-x-hidden">
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 flex-shrink-0">
+      <div className="sticky top-0 z-50 bg-gradient-to-r from-brand-600 via-info-600 to-brand-700 flex-shrink-0">
         <div className="flex items-center justify-between h-14 px-4">
           <button 
             onClick={() => navigate(-1)}
@@ -314,7 +314,7 @@ const AgencyPolicy = () => {
 
         {/* Exchange Rate Card */}
         <div className="mx-4 mt-4">
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-success-500 to-success-600 text-white">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -359,7 +359,7 @@ const AgencyPolicy = () => {
                 <FileText className="w-3.5 h-3.5 mr-0.5" />
                 More
                 {dynamicSections.length > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-4 min-w-4 px-1 text-[9px] bg-purple-600 text-slate-800 border-0">
+                  <Badge className="absolute -top-1 -right-1 h-4 min-w-4 px-1 text-[9px] bg-brand-600 text-slate-800 border-0">
                     {dynamicSections.length}
                   </Badge>
                 )}
@@ -371,8 +371,8 @@ const AgencyPolicy = () => {
               <Card className="border-0 shadow-md">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base flex items-center gap-2">
-                    <div className="w-8 h-8 bg-purple-100 dark:bg-white/90 rounded-lg flex items-center justify-center">
-                      <Award className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                    <div className="w-8 h-8 bg-brand-100 dark:bg-white/90 rounded-lg flex items-center justify-center">
+                      <Award className="w-4 h-4 text-brand-600 dark:text-brand-400" />
                     </div>
                     Agency Commission Rates
                   </CardTitle>
@@ -410,33 +410,33 @@ const AgencyPolicy = () => {
               </Card>
 
               {/* Commission Example */}
-              <Card className="border-0 shadow-md bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-orange-50">
+              <Card className="border-0 shadow-md bg-gradient-to-br from-info-50 to-info-50 dark:from-info-900/20 dark:to-warning-50">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2 text-blue-800 dark:text-blue-200">
+                  <CardTitle className="text-base flex items-center gap-2 text-info-800 dark:text-info-200">
                     <Target className="w-5 h-5" />
                     Commission Calculation Example
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="bg-white/60 dark:bg-white/10 rounded-xl p-4">
-                    <p className="text-sm text-blue-700 dark:text-blue-300 mb-2">
+                    <p className="text-sm text-info-700 dark:text-info-300 mb-2">
                       Suppose your agency level is <strong>A4 (10%)</strong> and:
                     </p>
-                    <ul className="text-sm text-blue-600 dark:text-blue-400 space-y-1.5">
+                    <ul className="text-sm text-info-600 dark:text-info-400 space-y-1.5">
                       <li>• Your direct hosts' income: $55</li>
                       <li>• Sub-agent B (4% level) income: $11</li>
                       <li>• Sub-agent C (3% level) income: $5</li>
                     </ul>
-                    <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-700">
-                      <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                    <div className="mt-3 pt-3 border-t border-info-200 dark:border-info-700">
+                      <p className="text-sm font-medium text-info-800 dark:text-info-200">
                         Your total commission:
                       </p>
-                      <ul className="text-sm text-blue-600 dark:text-blue-400 mt-1">
+                      <ul className="text-sm text-info-600 dark:text-info-400 mt-1">
                         <li>$55 × 10% = $5.50</li>
                         <li>$11 × (10%-4%) = $0.66</li>
                         <li>$5 × (10%-3%) = $0.35</li>
                       </ul>
-                      <p className="text-lg font-bold text-blue-800 dark:text-blue-200 mt-2">
+                      <p className="text-lg font-bold text-info-800 dark:text-info-200 mt-2">
                         Total: $6.51
                       </p>
                     </div>
@@ -450,8 +450,8 @@ const AgencyPolicy = () => {
               <Card className="border-0 shadow-md">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base flex items-center gap-2">
-                    <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center">
-                      <Users className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    <div className="w-8 h-8 bg-success-100 dark:bg-success-900/30 rounded-lg flex items-center justify-center">
+                      <Users className="w-4 h-4 text-success-600 dark:text-success-400" />
                     </div>
                     Host Requirements
                   </CardTitle>
@@ -463,7 +463,7 @@ const AgencyPolicy = () => {
                         key={index}
                         className="bg-muted/50 rounded-xl p-4 text-center"
                       >
-                        <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center mx-auto mb-2 text-emerald-600 dark:text-emerald-400">
+                        <div className="w-12 h-12 bg-success-100 dark:bg-success-900/30 rounded-xl flex items-center justify-center mx-auto mb-2 text-success-600 dark:text-success-400">
                           {iconMap[req.key] || <Star className="w-5 h-5" />}
                         </div>
                         <p className="font-semibold text-sm">{req.title}</p>
@@ -478,47 +478,47 @@ const AgencyPolicy = () => {
               <Card className="border-0 shadow-md">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base flex items-center gap-2">
-                    <div className="w-8 h-8 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center">
-                      <Gift className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                    <div className="w-8 h-8 bg-warning-100 dark:bg-warning-900/30 rounded-lg flex items-center justify-center">
+                      <Gift className="w-4 h-4 text-warning-600 dark:text-warning-400" />
                     </div>
                     Ways to Earn for Hosts
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-rose-50 dark:to-orange-50 rounded-xl border border-purple-200 dark:border-amber-200/60">
-                    <div className="w-10 h-10 bg-purple-100 dark:bg-purple-800/50 rounded-lg flex items-center justify-center">
-                      <Video className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                  <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-brand-50 to-info-50 dark:from-danger-50 dark:to-warning-50 rounded-xl border border-brand-200 dark:border-warning-200/60">
+                    <div className="w-10 h-10 bg-brand-100 dark:bg-brand-800/50 rounded-lg flex items-center justify-center">
+                      <Video className="w-5 h-5 text-brand-600 dark:text-brand-400" />
                     </div>
                     <div>
-                      <p className="font-semibold text-purple-800 dark:text-purple-200">Video Calls</p>
-                      <p className="text-xs text-purple-600 dark:text-purple-400">Earn by video calling with users</p>
+                      <p className="font-semibold text-brand-800 dark:text-brand-200">Video Calls</p>
+                      <p className="text-xs text-brand-600 dark:text-brand-400">Earn by video calling with users</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-pink-50 to-rose-50 dark:from-rose-50 dark:to-rose-900/20 rounded-xl border border-pink-200 dark:border-pink-800">
-                    <div className="w-10 h-10 bg-pink-100 dark:bg-pink-800/50 rounded-lg flex items-center justify-center">
-                      <Gift className="w-5 h-5 text-pink-600 dark:text-pink-400" />
+                  <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-brand-50 to-danger-50 dark:from-danger-50 dark:to-danger-900/20 rounded-xl border border-brand-200 dark:border-brand-800">
+                    <div className="w-10 h-10 bg-brand-100 dark:bg-brand-800/50 rounded-lg flex items-center justify-center">
+                      <Gift className="w-5 h-5 text-brand-600 dark:text-brand-400" />
                     </div>
                     <div>
-                      <p className="font-semibold text-pink-800 dark:text-pink-200">Gifts</p>
-                      <p className="text-xs text-pink-600 dark:text-pink-400">Earn by receiving gifts from users</p>
+                      <p className="font-semibold text-brand-800 dark:text-brand-200">Gifts</p>
+                      <p className="text-xs text-brand-600 dark:text-brand-400">Earn by receiving gifts from users</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border border-green-200 dark:border-green-800">
-                    <div className="w-10 h-10 bg-green-100 dark:bg-green-800/50 rounded-lg flex items-center justify-center">
-                      <Crown className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-success-50 to-success-50 dark:from-success-900/20 dark:to-success-900/20 rounded-xl border border-success-200 dark:border-success-800">
+                    <div className="w-10 h-10 bg-success-100 dark:bg-success-800/50 rounded-lg flex items-center justify-center">
+                      <Crown className="w-5 h-5 text-success-600 dark:text-success-400" />
                     </div>
                     <div>
-                      <p className="font-semibold text-green-800 dark:text-green-200">Weekly Bonus</p>
-                      <p className="text-xs text-green-600 dark:text-green-400">Extra $10+ bonus by participating in events</p>
+                      <p className="font-semibold text-success-800 dark:text-success-200">Weekly Bonus</p>
+                      <p className="text-xs text-success-600 dark:text-success-400">Extra $10+ bonus by participating in events</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               {/* Call Rules */}
-              <Card className="border-0 shadow-md bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20">
+              <Card className="border-0 shadow-md bg-gradient-to-br from-info-50 to-info-50 dark:from-info-900/20 dark:to-info-900/20">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2 text-cyan-800 dark:text-cyan-200">
+                  <CardTitle className="text-base flex items-center gap-2 text-info-800 dark:text-info-200">
                     <Phone className="w-5 h-5" />
                     What to Do on Calls
                   </CardTitle>
@@ -527,8 +527,8 @@ const AgencyPolicy = () => {
                   <div className="space-y-2">
                     {callRules.map((rule, index) => (
                       <div key={index} className="flex items-start gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-cyan-600 dark:text-cyan-400 mt-0.5 shrink-0" />
-                        <p className="text-sm text-cyan-700 dark:text-cyan-300">{rule}</p>
+                        <CheckCircle2 className="w-4 h-4 text-info-600 dark:text-info-400 mt-0.5 shrink-0" />
+                        <p className="text-sm text-info-700 dark:text-info-300">{rule}</p>
                       </div>
                     ))}
                   </div>
@@ -542,8 +542,8 @@ const AgencyPolicy = () => {
               <Card className="border-0 shadow-md">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base flex items-center gap-2">
-                    <div className="w-8 h-8 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
-                      <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400" />
+                    <div className="w-8 h-8 bg-danger-100 dark:bg-danger-900/30 rounded-lg flex items-center justify-center">
+                      <AlertTriangle className="w-4 h-4 text-danger-600 dark:text-danger-400" />
                     </div>
                     Violation Penalties
                   </CardTitle>
@@ -554,17 +554,17 @@ const AgencyPolicy = () => {
                       key={index}
                       className={`rounded-xl p-4 border ${
                         violation.severity === 'high' 
-                          ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' 
-                          : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
+                          ? 'bg-danger-50 dark:bg-danger-900/20 border-danger-200 dark:border-danger-800' 
+                          : 'bg-warning-50 dark:bg-warning-900/20 border-warning-200 dark:border-warning-800'
                       }`}
                     >
                       <div className="flex items-center gap-2 mb-2">
-                        <Ban className={`w-4 h-4 ${violation.severity === 'high' ? 'text-red-600' : 'text-amber-600'}`} />
-                        <p className={`font-semibold text-sm ${violation.severity === 'high' ? 'text-red-800 dark:text-red-200' : 'text-amber-800 dark:text-amber-200'}`}>
+                        <Ban className={`w-4 h-4 ${violation.severity === 'high' ? 'text-danger-600' : 'text-warning-600'}`} />
+                        <p className={`font-semibold text-sm ${violation.severity === 'high' ? 'text-danger-800 dark:text-danger-200' : 'text-warning-800 dark:text-warning-200'}`}>
                           {violation.title}
                         </p>
                       </div>
-                      <ul className={`text-xs space-y-1 ${violation.severity === 'high' ? 'text-red-700 dark:text-red-300' : 'text-amber-700 dark:text-amber-300'}`}>
+                      <ul className={`text-xs space-y-1 ${violation.severity === 'high' ? 'text-danger-700 dark:text-danger-300' : 'text-warning-700 dark:text-warning-300'}`}>
                         {violation.penalties.map((penalty, idx) => (
                           <li key={idx}>• {penalty}</li>
                         ))}
@@ -600,7 +600,7 @@ const AgencyPolicy = () => {
               </Card>
 
               {/* Important Warning */}
-              <Card className="border-0 shadow-md bg-gradient-to-br from-red-500 to-rose-600 text-white">
+              <Card className="border-0 shadow-md bg-gradient-to-br from-danger-500 to-danger-600 text-white">
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
                     <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center shrink-0">
@@ -623,19 +623,19 @@ const AgencyPolicy = () => {
               <Card className="border-0 shadow-md">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base flex items-center gap-2">
-                    <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                      <Wallet className="w-4 h-4 text-green-600 dark:text-green-400" />
+                    <div className="w-8 h-8 bg-success-100 dark:bg-success-900/30 rounded-lg flex items-center justify-center">
+                      <Wallet className="w-4 h-4 text-success-600 dark:text-success-400" />
                     </div>
                     Withdrawal Policy
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-4">
+                  <div className="bg-gradient-to-r from-success-50 to-success-50 dark:from-success-900/20 dark:to-success-900/20 rounded-xl p-4">
                     <div className="flex items-center gap-3 mb-3">
-                      <Clock className="w-5 h-5 text-green-600" />
-                      <p className="font-semibold text-green-800 dark:text-green-200">Settlement Time</p>
+                      <Clock className="w-5 h-5 text-success-600" />
+                      <p className="font-semibold text-success-800 dark:text-success-200">Settlement Time</p>
                     </div>
-                    <ul className="text-sm text-green-700 dark:text-green-300 space-y-2">
+                    <ul className="text-sm text-success-700 dark:text-success-300 space-y-2">
                       <li className="flex items-center gap-2">
                         <CheckCircle2 className="w-4 h-4 shrink-0" />
                         <span>Calculation based on Monday-Sunday</span>
@@ -663,19 +663,19 @@ const AgencyPolicy = () => {
                     </div>
                   </div>
 
-                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-orange-50 rounded-xl p-4">
-                    <p className="font-semibold text-sm text-blue-800 dark:text-blue-200 mb-2">
+                  <div className="bg-gradient-to-r from-info-50 to-info-50 dark:from-info-900/20 dark:to-warning-50 rounded-xl p-4">
+                    <p className="font-semibold text-sm text-info-800 dark:text-info-200 mb-2">
                       Minimum Withdrawal
                     </p>
                     <div className="flex items-center gap-4">
                       <div className="text-center">
-                        <p className="text-2xl font-bold text-blue-600">${withdrawal.minimum_usd}</p>
-                        <p className="text-xs text-blue-500">USD</p>
+                        <p className="text-2xl font-bold text-info-600">${withdrawal.minimum_usd}</p>
+                        <p className="text-xs text-info-500">USD</p>
                       </div>
                       <div className="text-muted-foreground">=</div>
                       <div className="text-center">
-                        <p className="text-2xl font-bold text-green-600">{(withdrawal.minimum_usd * exchangeRate.rate).toLocaleString()}</p>
-                        <p className="text-xs text-green-500">Beans</p>
+                        <p className="text-2xl font-bold text-success-600">{(withdrawal.minimum_usd * exchangeRate.rate).toLocaleString()}</p>
+                        <p className="text-xs text-success-500">Beans</p>
                       </div>
                     </div>
                   </div>
@@ -690,7 +690,7 @@ const AgencyPolicy = () => {
                 <CardContent>
                   <div className="space-y-3">
                     <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 bg-purple-100 dark:bg-white/90 rounded-full flex items-center justify-center shrink-0 font-bold text-purple-600 text-sm">
+                      <div className="w-8 h-8 bg-brand-100 dark:bg-white/90 rounded-full flex items-center justify-center shrink-0 font-bold text-brand-600 text-sm">
                         1
                       </div>
                       <div>
@@ -699,7 +699,7 @@ const AgencyPolicy = () => {
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 bg-purple-100 dark:bg-white/90 rounded-full flex items-center justify-center shrink-0 font-bold text-purple-600 text-sm">
+                      <div className="w-8 h-8 bg-brand-100 dark:bg-white/90 rounded-full flex items-center justify-center shrink-0 font-bold text-brand-600 text-sm">
                         2
                       </div>
                       <div>
@@ -708,7 +708,7 @@ const AgencyPolicy = () => {
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 bg-purple-100 dark:bg-white/90 rounded-full flex items-center justify-center shrink-0 font-bold text-purple-600 text-sm">
+                      <div className="w-8 h-8 bg-brand-100 dark:bg-white/90 rounded-full flex items-center justify-center shrink-0 font-bold text-brand-600 text-sm">
                         3
                       </div>
                       <div>
@@ -717,7 +717,7 @@ const AgencyPolicy = () => {
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center shrink-0 font-bold text-green-600 text-sm">
+                      <div className="w-8 h-8 bg-success-100 dark:bg-success-900/30 rounded-full flex items-center justify-center shrink-0 font-bold text-success-600 text-sm">
                         ✓
                       </div>
                       <div>
@@ -831,10 +831,10 @@ const AgencyPolicy = () => {
               )}
 
               {/* Last Updated Notice */}
-              <Card className="border-0 shadow-md bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-rose-50 dark:to-orange-50">
+              <Card className="border-0 shadow-md bg-gradient-to-br from-info-50 to-brand-50 dark:from-danger-50 dark:to-warning-50">
                 <CardContent className="p-4 text-center">
-                  <Sparkles className="w-6 h-6 text-indigo-600 dark:text-indigo-400 mx-auto mb-2" />
-                  <p className="text-xs text-indigo-700 dark:text-indigo-300">
+                  <Sparkles className="w-6 h-6 text-info-600 dark:text-info-400 mx-auto mb-2" />
+                  <p className="text-xs text-info-700 dark:text-info-300">
                     Policies are updated by the platform administration. Always check this section for the latest rules.
                   </p>
                 </CardContent>
@@ -845,13 +845,13 @@ const AgencyPolicy = () => {
 
         {/* Footer Note */}
         <div className="mx-4 mt-6 mb-4">
-          <Card className="border-0 shadow-md bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-rose-50 dark:to-orange-50">
+          <Card className="border-0 shadow-md bg-gradient-to-br from-brand-100 to-info-100 dark:from-danger-50 dark:to-warning-50">
             <CardContent className="p-4 text-center">
-              <Sparkles className="w-8 h-8 text-purple-600 dark:text-purple-400 mx-auto mb-2" />
-              <p className="text-sm text-purple-800 dark:text-purple-200 font-medium">
+              <Sparkles className="w-8 h-8 text-brand-600 dark:text-brand-400 mx-auto mb-2" />
+              <p className="text-sm text-brand-800 dark:text-brand-200 font-medium">
                 Thank you for being with MeriLive!
               </p>
-              <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
+              <p className="text-xs text-brand-600 dark:text-brand-400 mt-1">
                 Follow the rules correctly and success is inevitable
               </p>
             </CardContent>

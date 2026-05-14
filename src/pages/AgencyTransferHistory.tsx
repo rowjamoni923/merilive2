@@ -273,7 +273,7 @@ const AgencyTransferHistory = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-background">
       {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r from-purple-600 to-indigo-600 text-white safe-area-top">
+      <header className="flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r from-brand-600 to-info-600 text-white safe-area-top">
         <div className="px-4 py-3 flex items-center gap-3">
           <Button variant="ghost" size="icon" className="text-slate-800 hover:bg-white/20" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-5 h-5" />
@@ -319,42 +319,42 @@ const AgencyTransferHistory = () => {
 
           {/* Summary Cards */}
           <div className="grid grid-cols-2 gap-3">
-            <Card className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 border-green-500/30 col-span-2">
+            <Card className="bg-gradient-to-br from-success-500/20 to-success-500/20 border-success-500/30 col-span-2">
               <CardContent className="p-4">
-                <div className="flex items-center gap-2 text-green-600 mb-2">
+                <div className="flex items-center gap-2 text-success-600 mb-2">
                   <TrendingUp className="w-5 h-5" />
                   <span className="text-sm">Total Host Earnings</span>
                 </div>
-                <p className="text-2xl font-bold text-green-600">
+                <p className="text-2xl font-bold text-success-600">
                   {totalEarnings.toLocaleString()} Beans
                 </p>
-                <p className="text-xs text-green-500">${beansToUsd(totalEarnings)} • {hostCount} Hosts</p>
+                <p className="text-xs text-success-500">${beansToUsd(totalEarnings)} • {hostCount} Hosts</p>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border-emerald-500/30">
+            <Card className="bg-gradient-to-br from-success-500/20 to-success-500/20 border-success-500/30">
               <CardContent className="p-4">
-                <div className="flex items-center gap-2 text-emerald-600 mb-2">
+                <div className="flex items-center gap-2 text-success-600 mb-2">
                   <Percent className="w-5 h-5" />
                   <span className="text-sm">Commission</span>
                 </div>
-                <p className="text-2xl font-bold text-emerald-600">
+                <p className="text-2xl font-bold text-success-600">
                   {totalCommission.toLocaleString()}
                 </p>
-                <p className="text-xs text-emerald-500">${beansToUsd(totalCommission)}</p>
+                <p className="text-xs text-success-500">${beansToUsd(totalCommission)}</p>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border-blue-500/30">
+            <Card className="bg-gradient-to-br from-info-500/20 to-info-500/20 border-info-500/30">
               <CardContent className="p-4">
-                <div className="flex items-center gap-2 text-blue-600 mb-2">
+                <div className="flex items-center gap-2 text-info-600 mb-2">
                   <Coins className="w-5 h-5" />
                   <span className="text-sm">Transfers</span>
                 </div>
-                <p className="text-2xl font-bold text-blue-600">
+                <p className="text-2xl font-bold text-info-600">
                   {filteredTransfers.length}
                 </p>
-                <p className="text-xs text-blue-500">Records</p>
+                <p className="text-xs text-info-500">Records</p>
               </CardContent>
             </Card>
           </div>
@@ -377,13 +377,13 @@ const AgencyTransferHistory = () => {
                 filteredTransfers.map((transfer) => {
                   const hostEarnings = Number(transfer.amount) || 0;
                   return (
-                    <div key={transfer.id} className="p-4 bg-gradient-to-r from-purple-500/10 to-indigo-500/10 border border-purple-500/20 rounded-xl">
+                    <div key={transfer.id} className="p-4 bg-gradient-to-r from-brand-500/10 to-info-500/10 border border-brand-500/20 rounded-xl">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <Avatar className="w-10 h-10 ring-2 ring-purple-500/30">
+                          <Avatar className="w-10 h-10 ring-2 ring-brand-500/30">
                             <AvatarImage src={transfer.host_profile?.avatar_url || ""} />
-                            <AvatarFallback className="bg-purple-500/20">
-                              <User className="w-5 h-5 text-purple-600" />
+                            <AvatarFallback className="bg-brand-500/20">
+                              <User className="w-5 h-5 text-brand-600" />
                             </AvatarFallback>
                           </Avatar>
                           <div>
@@ -402,9 +402,9 @@ const AgencyTransferHistory = () => {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold text-lg text-green-600">+{hostEarnings.toLocaleString()}</p>
+                          <p className="font-bold text-lg text-success-600">+{hostEarnings.toLocaleString()}</p>
                           <p className="text-xs text-muted-foreground">${beansToUsd(hostEarnings)}</p>
-                          <Badge className="bg-green-500/20 text-green-600 border-green-500/30 text-[10px]">
+                          <Badge className="bg-success-500/20 text-success-600 border-success-500/30 text-[10px]">
                             Beans Added
                           </Badge>
                         </div>
@@ -429,20 +429,20 @@ const AgencyTransferHistory = () => {
                   const weekEndLabel = new Date(wc.week_end).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
 
                   return (
-                    <div key={idx} className="p-4 bg-gradient-to-r from-emerald-500/10 to-green-500/10 border border-emerald-500/20 rounded-xl">
+                    <div key={idx} className="p-4 bg-gradient-to-r from-success-500/10 to-success-500/10 border border-success-500/20 rounded-xl">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <Avatar className="w-9 h-9 ring-2 ring-emerald-500/30">
+                          <Avatar className="w-9 h-9 ring-2 ring-success-500/30">
                             <AvatarImage src={wc.host_profile?.avatar_url || ""} />
-                            <AvatarFallback className="bg-emerald-500/20">
-                              <User className="w-4 h-4 text-emerald-600" />
+                            <AvatarFallback className="bg-success-500/20">
+                              <User className="w-4 h-4 text-success-600" />
                             </AvatarFallback>
                           </Avatar>
                           <div>
                             <p className="font-semibold text-sm">
                               {wc.host_profile?.display_name || 'Host'}
                             </p>
-                            <Badge className="bg-emerald-500/20 text-emerald-600 border-emerald-500/30 text-[10px]">
+                            <Badge className="bg-success-500/20 text-success-600 border-success-500/30 text-[10px]">
                               {wc.commission_rate}% Commission
                             </Badge>
                             <p className="text-[10px] text-muted-foreground mt-0.5">
@@ -454,7 +454,7 @@ const AgencyTransferHistory = () => {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold text-lg text-emerald-600">+{wc.total_commission.toLocaleString()}</p>
+                          <p className="font-bold text-lg text-success-600">+{wc.total_commission.toLocaleString()}</p>
                           <p className="text-xs text-muted-foreground">${beansToUsd(wc.total_commission)}</p>
                         </div>
                       </div>
