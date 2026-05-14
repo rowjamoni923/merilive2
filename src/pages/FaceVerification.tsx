@@ -1989,7 +1989,7 @@ const FaceVerification = () => {
                       · Step {currentInstruction + 1}/{faceInstructions.length}: {faceInstructions[currentInstruction]?.direction}
                     </span>
                   </div>
-                  <span className="text-slate-800 font-mono font-bold text-sm">{Math.max(0, 60 - verificationTime)}s</span>
+                  <span className="text-slate-800 font-mono font-bold text-sm">{Math.max(0, Math.min(90, Math.max(45, Math.round(calibrationRef.current.stepWindowSec * faceInstructions.length + 10))) - verificationTime)}s</span>
                 </div>
               </div>
             )}
