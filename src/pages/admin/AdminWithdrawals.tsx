@@ -54,7 +54,6 @@ import {
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { bn } from "date-fns/locale";
 import { resolveNetWithdrawalBeans, resolveNetWithdrawalLocal, resolveNetWithdrawalUsd } from "@/utils/agencyWithdrawalAmounts";
 import { recordAdminError } from "@/utils/adminErrorLog";
 
@@ -283,13 +282,17 @@ export default function AdminWithdrawals() {
 
     setProcessing(true);
     try {
-      const { error } = await supabase.rpc("admin_process_withdrawal", {
+      const { data, error } = await supabase.rpc("admin_process_withdrawal", {
         _withdrawal_id: savedWithdrawal.id,
         _status: targetStatus,
         _notes: actionNotes || null
       });
 
       if (error) throw error;
+      const result = data as { success?: boolean; error?: string; message?: string } | null;
+      if (result && result.success === false) {
+        throw new Error(result.error || result.message || "Withdrawal processing failed");
+      }
 
       // Send notification to agency owner
       if ((savedWithdrawal as any).agency?.owner_id) {
@@ -762,7 +765,7 @@ export default function AdminWithdrawals() {
                           {getStatusBadge(withdrawal.status)}
                         </TableCell>
                         <TableCell className="text-slate-600">
-                          {format(new Date(withdrawal.requested_at), "dd MMM yyyy", { locale: bn })}
+                          {format(new Date(withdrawal.requested_at), "dd MMM yyyy")}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
