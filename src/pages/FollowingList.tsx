@@ -253,7 +253,7 @@ const FollowingList = () => {
         >
           <Avatar className="w-14 h-14">
             <AvatarImage src={profile.avatar_url || undefined} />
-            <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-slate-800">
+            <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-white">
               {profile.display_name?.[0] || '?'}
             </AvatarFallback>
           </Avatar>

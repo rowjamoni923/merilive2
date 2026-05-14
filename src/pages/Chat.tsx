@@ -2357,7 +2357,7 @@ const Chat = () => {
                       className={`flex items-center gap-0.5 px-2.5 py-1 rounded-full text-[10px] whitespace-nowrap transition-all border ${
                         inlineTargetLang === lang.code
                           ? 'bg-gradient-to-r from-purple-500/80 to-pink-500/80 text-white border-purple-400/30'
-                          : 'bg-white/[0.06] text-slate-700 border-white/[0.08] hover:bg-white/[0.1]'
+                          : 'bg-white/[0.06] text-white/85 border-white/[0.08] hover:bg-white/[0.1]'
                       }`}
                     >
                       <span>{lang.flag}</span>
@@ -2969,7 +2969,7 @@ const Chat = () => {
         <div className="px-4">
           <Tabs value={chatTab} onValueChange={handleTabChange} className="w-full">
             <TabsList className="grid w-full grid-cols-4 bg-white/70 border border-amber-200/50 rounded-xl p-1 shadow-inner">
-              <TabsTrigger value="messages" className="relative text-xs font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg text-slate-600">
+              <TabsTrigger value="messages" className="relative text-xs font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg text-white/80">
                 Messages
                 {globalUnread.messages > 0 && (
                   <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-red-500 to-pink-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg shadow-red-500/30">
@@ -2977,7 +2977,7 @@ const Chat = () => {
                   </span>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="official" className="relative text-xs font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg text-slate-600">
+              <TabsTrigger value="official" className="relative text-xs font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg text-white/80">
                 Official
                 {globalUnread.official > 0 && (
                   <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg shadow-orange-500/30">
@@ -2985,7 +2985,7 @@ const Chat = () => {
                   </span>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="notifications" className="relative text-xs font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg text-slate-600">
+              <TabsTrigger value="notifications" className="relative text-xs font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg text-white/80">
                 Notifications
                 {globalUnread.notifications > 0 && (
                   <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg">
@@ -2993,7 +2993,7 @@ const Chat = () => {
                   </span>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="groups" className="relative text-xs font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg text-slate-600">
+              <TabsTrigger value="groups" className="relative text-xs font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg text-white/80">
                 Groups
                 {groups.length > 0 && (
                   <span className="ml-1 text-xs text-slate-500">({groups.length})</span>

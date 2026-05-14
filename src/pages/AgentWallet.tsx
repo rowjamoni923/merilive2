@@ -348,7 +348,7 @@ const AgentWallet = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-background">
       {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-800 safe-area-top">
+      <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-emerald-500 to-teal-600 text-white safe-area-top">
         <div className="flex items-center h-14 px-4">
           <button 
             onClick={() => navigate(-1)}
@@ -365,7 +365,7 @@ const AgentWallet = () => {
         {/* Balance Cards */}
         <div className="mx-4 mt-4 space-y-3">
         {/* Coins Balance */}
-        <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-5 text-slate-800 shadow-lg">
+        <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-5 text-white shadow-lg">
           <div className="flex items-center gap-2 mb-1">
             <Wallet className="w-5 h-5" />
             <span className="text-slate-700 text-sm">Diamond Balance</span>
@@ -396,7 +396,7 @@ const AgentWallet = () => {
         </div>
 
         {/* Beans/Income Balance */}
-        <div className="bg-gradient-to-br from-amber-500 to-orange-500 rounded-2xl p-5 text-slate-800 shadow-lg">
+        <div className="bg-gradient-to-br from-amber-500 to-orange-500 rounded-2xl p-5 text-white shadow-lg">
           <div className="flex items-center gap-2 mb-1">
             <Gem className="w-5 h-5" />
             <span className="text-slate-700 text-sm">Income Balance (Beans)</span>

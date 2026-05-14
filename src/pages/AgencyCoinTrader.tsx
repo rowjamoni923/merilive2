@@ -459,7 +459,7 @@ const AgencyCoinTrader = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-background">
       {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r from-emerald-600 to-teal-600 text-slate-800 safe-area-top">
+      <header className="flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r from-emerald-600 to-teal-600 text-white safe-area-top">
         <div className="px-4 py-3 flex items-center gap-3">
           <Button variant="ghost" size="icon" className="text-slate-800 hover:bg-white/20" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-5 h-5" />
@@ -475,7 +475,7 @@ const AgencyCoinTrader = () => {
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
         <main className="px-4 py-4 space-y-4">
         {/* Trader Wallet — unified diamond pool (helper + agency) */}
-        <Card className="bg-gradient-to-br from-emerald-500 to-teal-600 text-slate-800 border-0">
+        <Card className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white border-0">
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
@@ -1055,7 +1055,7 @@ const AgencyCoinTrader = () => {
               Cancel
             </Button>
             <Button
-              className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-800"
+              className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
               onClick={() => {
                 setShowHelperUpgradeDialog(false);
                 navigate('/agency-dashboard?openHelper=1');

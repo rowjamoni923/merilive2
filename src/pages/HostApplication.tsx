@@ -353,7 +353,7 @@ const HostApplication = () => {
   if (step === 'success') {
     return (
       <div className="fixed inset-0 flex flex-col bg-background overflow-y-auto overflow-x-hidden">
-        <div className="sticky top-0 z-10 bg-gradient-to-r from-pink-500 to-purple-600 text-slate-800">
+        <div className="sticky top-0 z-10 bg-gradient-to-r from-pink-500 to-purple-600 text-white">
           <div className="flex items-center h-14 px-4">
             <h1 className="flex-1 text-center text-lg font-semibold">Success!</h1>
           </div>
@@ -381,7 +381,7 @@ const HostApplication = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-background overflow-y-auto overflow-x-hidden">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-gradient-to-r from-pink-500 to-purple-600 text-slate-800">
+      <div className="sticky top-0 z-10 bg-gradient-to-r from-pink-500 to-purple-600 text-white">
         <div className="flex items-center h-14 px-4">
           <button 
             onClick={() => step === 'form' ? navigate(-1) : setStep('form')}
@@ -394,7 +394,7 @@ const HostApplication = () => {
       </div>
 
       {/* Banner */}
-      <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-slate-800 px-4 pb-6 pt-2">
+      <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 pb-6 pt-2">
         <div className="text-center">
           <h2 className="text-xl font-bold mb-1">Join as a Host!</h2>
           <p className="text-slate-700 text-sm">Earn money by live streaming</p>

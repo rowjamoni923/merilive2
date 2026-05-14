@@ -314,7 +314,7 @@ const AgencyPolicy = () => {
 
         {/* Exchange Rate Card */}
         <div className="mx-4 mt-4">
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-slate-800">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -385,7 +385,7 @@ const AgencyPolicy = () => {
                     {commissionTiers.map((tier) => (
                       <div 
                         key={tier.level}
-                        className={`bg-gradient-to-r ${tierColors[tier.level] || 'from-gray-400 to-gray-600'} rounded-xl p-4 text-slate-800 relative overflow-hidden`}
+                        className={`bg-gradient-to-r ${tierColors[tier.level] || 'from-gray-400 to-gray-600'} rounded-xl p-4 text-white relative overflow-hidden`}
                       >
                         <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
                         <div className="flex items-center justify-between relative z-10">
@@ -600,7 +600,7 @@ const AgencyPolicy = () => {
               </Card>
 
               {/* Important Warning */}
-              <Card className="border-0 shadow-md bg-gradient-to-br from-red-500 to-rose-600 text-slate-800">
+              <Card className="border-0 shadow-md bg-gradient-to-br from-red-500 to-rose-600 text-white">
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
                     <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center shrink-0">

@@ -220,7 +220,7 @@ const Rewards = () => {
               <Button
                 onClick={loginReward.claimReward}
                 disabled={loginReward.claiming}
-                className="w-full h-12 text-base font-bold rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-800 border-0"
+                className="w-full h-12 text-base font-bold rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0"
               >
                 {loginReward.claiming ? "Claiming..." : `🎁 Claim Day ${currentDay} (+${loginReward.todayReward.reward_coins} Coins)`}
               </Button>
@@ -335,7 +335,7 @@ const Rewards = () => {
                     <div className="flex items-start justify-between mb-2">
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <Badge className="bg-gradient-to-r from-pink-500 to-purple-500 text-slate-800 text-[10px] border-0">
+                          <Badge className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-[10px] border-0">
                             {offer.badge_text}
                           </Badge>
                           <span className="flex items-center gap-1 text-xs text-slate-500">
@@ -351,7 +351,7 @@ const Rewards = () => {
                         <p className="text-[10px] text-slate-400">bonus</p>
                       </div>
                     </div>
-                    <Button className="w-full mt-2 h-10 rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 text-slate-800 border-0 text-sm font-bold">
+                    <Button className="w-full mt-2 h-10 rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 text-white border-0 text-sm font-bold">
                       Recharge Now <ChevronRight className="w-4 h-4 ml-1" />
                     </Button>
                   </div>

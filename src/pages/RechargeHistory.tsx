@@ -305,19 +305,19 @@ const RechargeHistory = () => {
           <TabsList className="w-full bg-white/80 backdrop-blur-sm border border-amber-200/60 rounded-2xl p-1 h-auto">
             <TabsTrigger 
               value="all" 
-              className="flex-1 rounded-xl py-2.5 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-slate-800"
+              className="flex-1 rounded-xl py-2.5 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white"
             >
                All ({rechargeOrders.length})
             </TabsTrigger>
             <TabsTrigger 
               value="pending" 
-              className="flex-1 rounded-xl py-2.5 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-slate-800"
+              className="flex-1 rounded-xl py-2.5 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white"
             >
               Pending ({pendingCount})
             </TabsTrigger>
             <TabsTrigger 
               value="completed" 
-              className="flex-1 rounded-xl py-2.5 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-slate-800"
+              className="flex-1 rounded-xl py-2.5 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white"
             >
               Done ({completedCount})
             </TabsTrigger>

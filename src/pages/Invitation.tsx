@@ -390,7 +390,7 @@ const Invitation = () => {
             <div className="flex gap-2">
               <Button
                 onClick={handleShare}
-                className="flex-1 bg-gradient-to-r from-fuchsia-600 to-violet-600 hover:from-fuchsia-500 hover:to-violet-500 text-slate-800 font-bold py-5 rounded-xl shadow-lg shadow-purple-500/30"
+                className="flex-1 bg-gradient-to-r from-fuchsia-600 to-violet-600 hover:from-fuchsia-500 hover:to-violet-500 text-white font-bold py-5 rounded-xl shadow-lg shadow-purple-500/30"
               >
                 <Share2 className="w-4 h-4 mr-2" />
                 Share Link
@@ -472,7 +472,7 @@ const Invitation = () => {
                         <div className="flex items-center gap-2">
                           <p className="text-slate-800 font-bold text-sm">{tier.tier_name}</p>
                           {isCurrent && (
-                            <span className="px-2 py-0.5 bg-gradient-to-r from-fuchsia-600 to-violet-600 text-slate-800 text-[9px] font-bold rounded-full uppercase tracking-wider">
+                            <span className="px-2 py-0.5 bg-gradient-to-r from-fuchsia-600 to-violet-600 text-white text-[9px] font-bold rounded-full uppercase tracking-wider">
                               Current
                             </span>
                           )}
@@ -498,7 +498,7 @@ const Invitation = () => {
                             size="sm"
                             onClick={() => claimTierReward(tier)}
                             disabled={claimingTierId === tier.id}
-                            className="h-7 px-3 text-[10px] font-bold bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-800 border-0 rounded-lg shadow-lg shadow-amber-500/30 animate-pulse"
+                            className="h-7 px-3 text-[10px] font-bold bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white border-0 rounded-lg shadow-lg shadow-amber-500/30 animate-pulse"
                           >
                             {claimingTierId === tier.id ? '...' : '🎁 Claim'}
                           </Button>
@@ -534,7 +534,7 @@ const Invitation = () => {
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-slate-800 font-bold text-lg shadow-lg shadow-amber-500/30">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-amber-500/30">
                   #{myRank.rank}
                 </div>
                 <div>
@@ -632,7 +632,7 @@ const Invitation = () => {
                     )}
                   </div>
                 </div>
-                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-gradient-to-b from-gray-300 to-gray-400 flex items-center justify-center text-slate-800 text-xs font-bold shadow-md">2</div>
+                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-gradient-to-b from-gray-300 to-gray-400 flex items-center justify-center text-white text-xs font-bold shadow-md">2</div>
               </div>
               <p className="text-slate-500 text-[10px] font-medium mt-3 truncate max-w-16 text-center">{leaderboard[1]?.display_name}</p>
               <div className="bg-gradient-to-t from-gray-400/50 to-gray-300/30 w-20 h-14 rounded-t-lg flex items-center justify-center mt-1">
@@ -653,7 +653,7 @@ const Invitation = () => {
                     )}
                   </div>
                 </div>
-                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-gradient-to-b from-yellow-400 to-amber-500 flex items-center justify-center text-slate-800 text-xs font-bold shadow-md">1</div>
+                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-gradient-to-b from-yellow-400 to-amber-500 flex items-center justify-center text-white text-xs font-bold shadow-md">1</div>
               </div>
               <p className="text-amber-300 text-[10px] font-bold mt-3 truncate max-w-20 text-center">{leaderboard[0]?.display_name}</p>
               <div className="bg-gradient-to-t from-amber-500/50 to-yellow-400/30 w-24 h-20 rounded-t-lg flex items-center justify-center mt-1">
@@ -673,7 +673,7 @@ const Invitation = () => {
                     )}
                   </div>
                 </div>
-                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-gradient-to-b from-amber-600 to-orange-700 flex items-center justify-center text-slate-800 text-xs font-bold shadow-md">3</div>
+                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-gradient-to-b from-amber-600 to-orange-700 flex items-center justify-center text-white text-xs font-bold shadow-md">3</div>
               </div>
               <p className="text-slate-500 text-[10px] font-medium mt-3 truncate max-w-16 text-center">{leaderboard[2]?.display_name}</p>
               <div className="bg-gradient-to-t from-amber-600/50 to-orange-500/30 w-20 h-10 rounded-t-lg flex items-center justify-center mt-1">
@@ -716,8 +716,8 @@ const Invitation = () => {
               >
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${
                   entry.rank <= 10
-                    ? 'bg-gradient-to-br from-fuchsia-600 to-violet-600 text-slate-800 shadow-md shadow-purple-500/20'
-                    : 'bg-white/10 text-slate-700'
+                    ? 'bg-gradient-to-br from-fuchsia-600 to-violet-600 text-white shadow-md shadow-purple-500/20'
+                    : 'bg-white/10 text-white/85'
                 }`}>
                   {entry.rank}
                 </div>

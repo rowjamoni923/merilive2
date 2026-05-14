@@ -907,8 +907,8 @@ const Settings = () => {
                   onClick={() => handleLanguageChange(lang.code)}
                   className={`w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all ${
                     selectedLanguage === lang.code
-                      ? "bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-500/50 text-slate-800"
-                      : "bg-slate-50 hover:bg-slate-100 border border-white/5 text-slate-800"
+                      ? "bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-500/50 text-white"
+                      : "bg-slate-50 hover:bg-slate-100 border border-white/5 text-white"
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -958,7 +958,7 @@ const Settings = () => {
                 </p>
                 <button
                   onClick={() => window.open(window.location.href, '_blank', 'noopener,noreferrer')}
-                  className="w-full h-9 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 text-slate-800 text-xs font-semibold"
+                  className="w-full h-9 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-semibold"
                 >
                   Open in Full Tab
                 </button>
@@ -1075,7 +1075,7 @@ const Settings = () => {
           <DialogFooter>
             <Button 
               onClick={() => setShowPermissionsDialog(false)} 
-              className="w-full h-12 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 text-slate-800 font-semibold"
+              className="w-full h-12 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 text-white font-semibold"
             >
               {t("common.done")}
             </Button>

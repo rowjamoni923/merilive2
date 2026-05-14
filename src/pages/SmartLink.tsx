@@ -323,7 +323,7 @@ const SmartLink = () => {
           {/* Play Store Download - Primary CTA */}
           <Button
             onClick={handleDownload}
-            className="w-full h-14 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-slate-800 text-lg font-semibold rounded-xl shadow-lg shadow-green-500/30"
+            className="w-full h-14 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white text-lg font-semibold rounded-xl shadow-lg shadow-green-500/30"
           >
             <Download className="w-5 h-5 mr-2" />
             Download from Play Store
@@ -426,7 +426,7 @@ const SmartLink = () => {
 
           <Button
             onClick={handleDownload}
-            className="w-full h-14 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-slate-800 text-lg font-semibold rounded-xl shadow-lg"
+            className="w-full h-14 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white text-lg font-semibold rounded-xl shadow-lg"
           >
             <Download className="w-5 h-5 mr-2" />
             Download from Play Store

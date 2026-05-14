@@ -380,7 +380,7 @@ const EditProfile = () => {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-4 h-10 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-slate-800 font-semibold text-sm flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50"
+            className="px-4 h-10 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold text-sm flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50"
           >
             {saving ? (
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -408,7 +408,7 @@ const EditProfile = () => {
                   <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 rounded-full opacity-75 blur-sm animate-pulse" />
                   <Avatar className="relative w-28 h-28 ring-4 ring-slate-800 shadow-2xl">
                     <AvatarImage src={profile?.avatar_url || undefined} className="object-cover" />
-                    <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-slate-800 text-3xl font-bold">
+                    <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white text-3xl font-bold">
                       {displayName?.charAt(0) || "U"}
                     </AvatarFallback>
                   </Avatar>
@@ -462,7 +462,7 @@ const EditProfile = () => {
               <div className="flex items-center gap-3">
                 <Avatar className="w-9 h-9 ring-2 ring-purple-500/30">
                   <AvatarImage src={profile?.avatar_url || undefined} />
-                  <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-slate-800 text-xs">
+                  <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white text-xs">
                     {displayName?.charAt(0) || "U"}
                   </AvatarFallback>
                 </Avatar>
@@ -785,8 +785,8 @@ const EditProfile = () => {
                       onClick={() => setLanguage(lang)}
                       className={`py-3.5 rounded-xl font-semibold text-sm transition-all ${
                         language === lang 
-                          ? "bg-gradient-to-r from-purple-600 to-pink-600 text-slate-800 shadow-lg shadow-purple-500/25" 
-                          : "bg-slate-100 text-slate-800 hover:bg-slate-200 border border-white/10"
+                          ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/25" 
+                          : "bg-slate-100 text-white hover:bg-slate-200 border border-white/10"
                       }`}
                     >
                       {lang}
@@ -821,8 +821,8 @@ const EditProfile = () => {
                     onClick={() => setSecondLanguage("")}
                     className={`py-3.5 rounded-xl font-semibold text-sm transition-all ${
                       !secondLanguage 
-                        ? "bg-gradient-to-r from-purple-600 to-pink-600 text-slate-800 shadow-lg shadow-purple-500/25" 
-                        : "bg-slate-100 text-slate-800 hover:bg-slate-200 border border-white/10"
+                        ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/25" 
+                        : "bg-slate-100 text-white hover:bg-slate-200 border border-white/10"
                     }`}
                   >
                     None
@@ -833,8 +833,8 @@ const EditProfile = () => {
                       onClick={() => setSecondLanguage(lang)}
                       className={`py-3.5 rounded-xl font-semibold text-sm transition-all ${
                         secondLanguage === lang 
-                          ? "bg-gradient-to-r from-purple-600 to-pink-600 text-slate-800 shadow-lg shadow-purple-500/25" 
-                          : "bg-slate-100 text-slate-800 hover:bg-slate-200 border border-white/10"
+                          ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/25" 
+                          : "bg-slate-100 text-white hover:bg-slate-200 border border-white/10"
                       }`}
                     >
                       {lang}

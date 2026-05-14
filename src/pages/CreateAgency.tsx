@@ -286,7 +286,7 @@ const CreateAgency = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-gray-50">
       {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-purple-600 to-indigo-600 text-slate-800 safe-area-top">
+      <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-purple-600 to-indigo-600 text-white safe-area-top">
         <div className="flex items-center h-14 px-4">
           <button 
             onClick={() => navigate(-1)}
@@ -301,7 +301,7 @@ const CreateAgency = () => {
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
         {/* Hero Section */}
-        <div className="mx-4 mt-4 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl p-6 text-slate-800">
+        <div className="mx-4 mt-4 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl p-6 text-white">
         <div className="flex items-center gap-3 mb-3">
           <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
             <Building2 className="w-6 h-6" />
@@ -530,7 +530,7 @@ const CreateAgency = () => {
 
         {/* Payroll Levels Table */}
         <div className="bg-white rounded-xl border border-emerald-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-slate-800 px-3 py-2">
+          <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-3 py-2">
             <h4 className="font-semibold text-sm flex items-center gap-2">
               <TrendingUp className="w-4 h-4" />
               Payroll Levels & Requirements
@@ -541,10 +541,10 @@ const CreateAgency = () => {
               <div key={index} className="flex items-center justify-between px-3 py-2.5">
                 <div className="flex items-center gap-2">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                    index === 4 ? "bg-gradient-to-br from-amber-400 to-orange-500 text-slate-800" :
-                    index === 3 ? "bg-gradient-to-br from-purple-400 to-pink-500 text-slate-800" :
-                    index === 2 ? "bg-gradient-to-br from-blue-400 to-cyan-500 text-slate-800" :
-                    index === 1 ? "bg-gradient-to-br from-emerald-400 to-green-500 text-slate-800" :
+                    index === 4 ? "bg-gradient-to-br from-amber-400 to-orange-500 text-white" :
+                    index === 3 ? "bg-gradient-to-br from-purple-400 to-pink-500 text-white" :
+                    index === 2 ? "bg-gradient-to-br from-blue-400 to-cyan-500 text-white" :
+                    index === 1 ? "bg-gradient-to-br from-emerald-400 to-green-500 text-white" :
                     "bg-gray-200 text-gray-600"
                   }`}>
                     {index + 1}
@@ -620,7 +620,7 @@ const CreateAgency = () => {
           className={`w-full h-12 transition-all ${
             isSubmitting || !codeAvailable || !formData.name.trim() || !formData.email.trim() || !formData.whatsapp.trim()
               ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-              : "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-slate-800"
+              : "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
           }`}
         >
           {isSubmitting ? (

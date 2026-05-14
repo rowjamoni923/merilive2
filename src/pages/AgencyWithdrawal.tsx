@@ -2402,7 +2402,7 @@ const AgencyWithdrawal = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-gradient-to-br from-purple-50 via-white to-indigo-50">
       {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 text-slate-800 safe-area-top shadow-lg">
+      <header className="flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 text-white safe-area-top shadow-lg">
         <div className="px-4 py-4 flex items-center gap-3">
           <Button variant="ghost" size="icon" className="text-slate-800 hover:bg-white/20 rounded-full" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-5 h-5" />
@@ -2424,7 +2424,7 @@ const AgencyWithdrawal = () => {
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
         <main className="px-4 py-4 space-y-6">
         {/* Balance Card */}
-        <Card className="bg-gradient-to-br from-emerald-500 via-green-500 to-teal-600 text-slate-800 border-0 shadow-xl overflow-hidden relative">
+        <Card className="bg-gradient-to-br from-emerald-500 via-green-500 to-teal-600 text-white border-0 shadow-xl overflow-hidden relative">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
           <CardContent className="p-6 relative z-10">
@@ -2766,7 +2766,7 @@ const AgencyWithdrawal = () => {
                 </div>
 
                 <Button
-                  className="w-full h-12 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-slate-800 font-semibold shadow-lg shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full h-12 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold shadow-lg shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={() => {
                     const paymentValidationError = getPaymentValidationError();
                     if (paymentValidationError) {
@@ -2900,7 +2900,7 @@ const AgencyWithdrawal = () => {
 
       {/* Confirm Dialog */}
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <DialogContent className="mx-4 rounded-2xl bg-gradient-to-br from-amber-50 via-slate-800 to-orange-50 border-amber-200/60">
+        <DialogContent className="mx-4 rounded-2xl bg-gradient-to-br from-amber-50 via-slate-800 to-orange-50 border-white/20">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-slate-800">
               <CheckCircle className="w-5 h-5 text-purple-400" />
@@ -2976,7 +2976,7 @@ const AgencyWithdrawal = () => {
             <Button variant="outline" onClick={() => setShowConfirmDialog(false)} disabled={submitting} className="flex-1 border-slate-600 text-slate-500 hover:bg-slate-700">
               Cancel
             </Button>
-            <Button onClick={handleSubmitWithdrawal} disabled={submitting} className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-slate-800">
+            <Button onClick={handleSubmitWithdrawal} disabled={submitting} className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
               {submitting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
               Confirm
             </Button>
@@ -2986,7 +2986,7 @@ const AgencyWithdrawal = () => {
 
       {/* Withdrawal Detail Dialog */}
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-        <DialogContent className="mx-4 rounded-2xl bg-gradient-to-br from-amber-50 via-slate-800 to-orange-50 border-amber-200/60 max-h-[85vh] overflow-y-auto">
+        <DialogContent className="mx-4 rounded-2xl bg-gradient-to-br from-amber-50 via-slate-800 to-orange-50 border-white/20 max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3 text-slate-800">
               {(() => {
