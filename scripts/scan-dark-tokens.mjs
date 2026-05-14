@@ -21,11 +21,29 @@ import { fileURLToPath } from "node:url";
 const ROOT = fileURLToPath(new URL("../", import.meta.url));
 const SRC = join(ROOT, "src");
 
-// Files that are intentionally dark (e.g. live stream overlay, video player chrome).
+// Files that are intentionally dark (one-off exceptions).
 // Keep this list TINY and justified.
 const ALLOWLIST_FILES = new Set([
-  // "src/components/live/LiveStreamOverlay.tsx",
+  // "src/components/some/IntentionallyDark.tsx",
 ].map((p) => p.split("/").join(sep)));
+
+// Path prefixes (relative to repo root, posix-style) that are entirely
+// excluded from the scan because they ship their own intentional dark theme.
+//   - admin/**         → premium gold-on-dark luxury panel
+//   - live/**, party/* → cinema-style broadcast surfaces
+//   - call/**          → in-call dark UX
+const EXCLUDED_PREFIXES = [
+  "src/components/admin/",
+  "src/pages/Admin",
+  "src/pages/admin/",
+  "src/components/live/",
+  "src/components/party/",
+  "src/components/call/",
+  "src/pages/LiveStream",
+  "src/pages/PartyRoom",
+  "src/pages/PrivateCall",
+  "src/pages/UnifiedPartyRoom",
+];
 
 // Folders skipped entirely.
 const SKIP_DIRS = new Set(["__tests__", "__mocks__", "node_modules"]);
