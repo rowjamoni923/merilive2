@@ -215,36 +215,35 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#FFFBF2] border border-warning-500/15 max-w-md mx-4 rounded-3xl p-0 overflow-hidden [&>button]:hidden shadow-[0_0_80px_-20px_rgba(245,158,11,0.15)]">
+      <DialogContent className="bg-gradient-to-b from-warning-50 via-card to-background border border-warning-200 max-w-md mx-4 rounded-3xl p-0 overflow-hidden [&>button]:hidden shadow-2xl shadow-warning-900/10">
         <div className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-warning-600/20 via-warning-500/10 to-warning-600/20" />
-          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-warning-500/50 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-warning-100 via-card to-warning-100" />
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-warning-300 to-transparent" />
           <div className="relative p-5 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-warning-400 to-warning-600 flex items-center justify-center shadow-lg shadow-warning-500/30">
-                <ArrowDownUp className="w-4 h-4 text-black" />
+                <ArrowDownUp className="w-4 h-4 text-accent-foreground" />
               </div>
-              <h2 className="text-slate-800 font-bold text-lg tracking-tight">Beans → Diamonds</h2>
+              <h2 className="text-foreground font-bold text-lg tracking-tight">Beans → Diamonds</h2>
             </div>
             <button
               onClick={() => onOpenChange(false)}
-              className="w-8 h-8 rounded-full bg-white hover:bg-warning-50/70 border border-warning-200/60 flex items-center justify-center transition-all"
+              className="w-8 h-8 rounded-full bg-card hover:bg-warning-50 border border-warning-200 flex items-center justify-center transition-all shadow-sm"
             >
-              <X className="w-4 h-4 text-slate-600" />
+              <X className="w-4 h-4 text-muted-foreground" />
             </button>
           </div>
         </div>
 
         <div className="p-5 space-y-5">
-          <div className="relative overflow-hidden rounded-2xl border border-warning-500/20 bg-gradient-to-br from-warning-500/5 via-transparent to-warning-500/5 p-4">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-warning-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+          <div className="relative overflow-hidden rounded-2xl border border-warning-200 bg-card p-4 shadow-sm">
             <div className="relative flex items-center justify-center gap-3">
               <Beans3DIcon size={36} />
               <div className="text-center">
                 <span className="text-warning-700 font-bold text-3xl tracking-tight">
                   {currentBeans.toLocaleString()}
                 </span>
-                <p className="text-slate-600 text-xs font-medium mt-0.5">Available Beans</p>
+                <p className="text-muted-foreground text-xs font-medium mt-0.5">Available Beans</p>
               </div>
             </div>
           </div>
