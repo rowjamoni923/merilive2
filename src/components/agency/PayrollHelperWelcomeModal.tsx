@@ -160,7 +160,7 @@ const PayrollHelperWelcomeModal = ({ agencyId, userId }: PayrollHelperWelcomeMod
             alt="Payroll Helper System" 
             className="w-full h-44 object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-amber-50 via-rose-50 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-4">
             <div className="flex items-center gap-2 mb-1">
               <Badge className="bg-emerald-500/90 text-white border-0 text-xs">
@@ -168,7 +168,7 @@ const PayrollHelperWelcomeModal = ({ agencyId, userId }: PayrollHelperWelcomeMod
               </Badge>
             </div>
             <h2 className="text-xl font-bold text-white">Become a Payroll Helper</h2>
-            <p className="text-white/80 text-sm">
+            <p className="text-slate-700 text-sm">
               Earn commission by processing transactions for our global user base!
             </p>
           </div>
@@ -238,7 +238,7 @@ const PayrollHelperWelcomeModal = ({ agencyId, userId }: PayrollHelperWelcomeMod
                   <Badge 
                     key={tier.level_number}
                     variant="outline" 
-                    className="bg-white dark:bg-black/20 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 text-[10px]"
+                    className="bg-white dark:bg-white/80 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 text-[10px]"
                   >
                     L{tier.level_number}: {tier.commission_rate}%
                   </Badge>

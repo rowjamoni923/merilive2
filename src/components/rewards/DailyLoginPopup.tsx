@@ -111,7 +111,7 @@ const DailyLoginPopup = () => {
               <button
                 onClick={() => setShowPopup(false)}
                 aria-label="Close"
-                className="absolute top-3.5 right-3.5 z-30 w-8 h-8 rounded-full grid place-items-center text-white/55 hover:text-white transition-all"
+                className="absolute top-3.5 right-3.5 z-30 w-8 h-8 rounded-full grid place-items-center text-slate-500 hover:text-white transition-all"
                 style={{
                   background:
                     "linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))",
@@ -214,7 +214,7 @@ const DailyLoginPopup = () => {
                     Daily Reward
                   </span>
                 </h2>
-                <p className="mt-1 text-[11px] text-white/45 tracking-wider">
+                <p className="mt-1 text-[11px] text-slate-400 tracking-wider">
                   Sign in every day to climb the streak
                 </p>
 
@@ -297,7 +297,7 @@ const DailyLoginPopup = () => {
                             ? "text-amber-200"
                             : isClaimed
                             ? "text-emerald-300/70"
-                            : "text-white/35"
+                            : "text-slate-400"
                         )}
                       >
                         D{day.day_number}
@@ -340,7 +340,7 @@ const DailyLoginPopup = () => {
                             ? "text-amber-100"
                             : isClaimed
                             ? "text-emerald-200/70"
-                            : "text-white/45"
+                            : "text-slate-400"
                         )}
                       >
                         {day.reward_coins}

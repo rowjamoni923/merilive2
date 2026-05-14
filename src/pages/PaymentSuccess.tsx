@@ -176,7 +176,7 @@ const PaymentSuccess = () => {
               <Loader2 className="w-10 h-10 text-purple-400 animate-spin" />
             </div>
             <h2 className="text-xl font-bold text-white">Verifying Payment...</h2>
-            <p className="text-white/60 text-sm">Please wait while we confirm your payment</p>
+            <p className="text-slate-500 text-sm">Please wait while we confirm your payment</p>
           </div>
         ) : result?.needsManualProof && !proofSubmitted ? (
           <div className="text-center space-y-5">
@@ -184,18 +184,18 @@ const PaymentSuccess = () => {
               <Upload className="w-10 h-10 text-white" />
             </div>
             <h2 className="text-2xl font-bold text-white">Auto-verification Missed</h2>
-            <p className="text-white/70 text-sm">
+            <p className="text-slate-600 text-sm">
               No worries — submit your Transaction ID and payment screenshot. Our helper will review and credit your diamonds within minutes.
             </p>
 
-            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-5 border border-white/20 space-y-4 text-left">
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-5 border border-amber-200/60 space-y-4 text-left">
               <div className="space-y-2">
                 <Label className="text-white text-sm">Transaction ID *</Label>
                 <Input
                   value={trxId}
                   onChange={(e) => setTrxId(e.target.value)}
                   placeholder="e.g. 8KX9A2B7"
-                  className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
+                  className="bg-white/10 border-amber-200/60 text-white placeholder:text-slate-400"
                 />
               </div>
               <div className="space-y-2">
@@ -207,11 +207,11 @@ const PaymentSuccess = () => {
                     onChange={(e) => handleFile(e.target.files?.[0] || null)}
                     className="hidden"
                   />
-                  <div className="cursor-pointer rounded-xl border-2 border-dashed border-white/30 p-4 text-center hover:bg-white/5 transition">
+                  <div className="cursor-pointer rounded-xl border-2 border-dashed border-amber-200/60 p-4 text-center hover:bg-white/5 transition">
                     {proofPreview ? (
                       <img src={proofPreview} alt="proof" className="max-h-40 mx-auto rounded-lg" />
                     ) : (
-                      <div className="flex flex-col items-center gap-2 text-white/60">
+                      <div className="flex flex-col items-center gap-2 text-slate-500">
                         <ImageIcon className="w-8 h-8" />
                         <span className="text-xs">Tap to upload screenshot</span>
                       </div>
@@ -232,7 +232,7 @@ const PaymentSuccess = () => {
             <Button
               onClick={() => navigate("/")}
               variant="outline"
-              className="w-full bg-white/10 border-white/20 text-white"
+              className="w-full bg-white/10 border-amber-200/60 text-white"
             >
               <Home className="w-4 h-4 mr-1" /> I'll do this later
             </Button>
@@ -243,7 +243,7 @@ const PaymentSuccess = () => {
               <CheckCircle className="w-10 h-10 text-white" />
             </div>
             <h2 className="text-2xl font-bold text-white">Submitted for Review!</h2>
-            <p className="text-white/70 text-sm">
+            <p className="text-slate-600 text-sm">
               Your Transaction ID and screenshot have been sent to the helper. You'll receive a notification when diamonds are credited.
             </p>
             <Button onClick={() => navigate("/")} className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white">
@@ -259,12 +259,12 @@ const PaymentSuccess = () => {
               {result.already_processed ? "Already Credited!" : "Payment Successful! 🎉"}
             </h2>
             {result.total_coins ? (
-              <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-5 border border-white/20 space-y-3">
+              <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-5 border border-amber-200/60 space-y-3">
                 <div className="flex items-center justify-center gap-2">
                   <Diamond className="w-6 h-6 text-cyan-400" />
                   <span className="text-3xl font-bold text-white">{formatNumber(result.total_coins)}</span>
                 </div>
-                <p className="text-white/60 text-sm">Diamonds credited to your account</p>
+                <p className="text-slate-500 text-sm">Diamonds credited to your account</p>
                 {result.bonus_coins && result.bonus_coins > 0 && (
                   <div className="bg-amber-500/20 rounded-xl px-3 py-2 border border-amber-500/30">
                     <p className="text-amber-300 text-xs font-semibold">
@@ -276,7 +276,7 @@ const PaymentSuccess = () => {
             ) : null}
             <div className="flex gap-3 pt-2">
               <Button onClick={() => navigate("/recharge")} variant="outline"
-                className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20">
+                className="flex-1 bg-white/10 border-amber-200/60 text-white hover:bg-white/20">
                 <ArrowLeft className="w-4 h-4 mr-1" /> Recharge
               </Button>
               <Button onClick={() => navigate("/")}
@@ -291,7 +291,7 @@ const PaymentSuccess = () => {
               <XCircle className="w-10 h-10 text-white" />
             </div>
             <h2 className="text-xl font-bold text-white">Payment Failed</h2>
-            <p className="text-white/60 text-sm">{result?.error || "Something went wrong"}</p>
+            <p className="text-slate-500 text-sm">{result?.error || "Something went wrong"}</p>
             <Button onClick={() => navigate("/recharge")}
               className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white">
               <ArrowLeft className="w-4 h-4 mr-1" /> Try Again

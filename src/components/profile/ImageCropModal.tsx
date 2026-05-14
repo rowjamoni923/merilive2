@@ -156,10 +156,10 @@ export const ImageCropModal = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 bg-black"
+          className="fixed inset-0 z-50 bg-white/80"
         >
           {/* Header */}
-          <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 bg-gradient-to-b from-black/80 to-transparent">
+          <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 bg-gradient-to-b from-amber-50 to-transparent">
             <Button variant="ghost" size="icon" onClick={onClose}>
               <X className="w-6 h-6 text-white" />
             </Button>
@@ -203,10 +203,10 @@ export const ImageCropModal = ({
           </div>
 
           {/* Controls */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/95 to-transparent pt-8 pb-6 px-4">
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-amber-50 via-rose-50 to-transparent pt-8 pb-6 px-4">
             {/* Zoom & Rotation Controls */}
             <div className="flex items-center gap-4 mb-4">
-              <ZoomOut className="w-4 h-4 text-white/60" />
+              <ZoomOut className="w-4 h-4 text-slate-500" />
               <Slider
                 value={[zoom]}
                 min={1}
@@ -215,13 +215,13 @@ export const ImageCropModal = ({
                 onValueChange={(value) => setZoom(value[0])}
                 className="flex-1"
               />
-              <ZoomIn className="w-4 h-4 text-white/60" />
+              <ZoomIn className="w-4 h-4 text-slate-500" />
               
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setRotation((r) => r + 90)}
-                className="text-white/60 hover:text-white"
+                className="text-slate-500 hover:text-white"
               >
                 <RotateCcw className="w-4 h-4" />
               </Button>
@@ -230,7 +230,7 @@ export const ImageCropModal = ({
                 variant="ghost"
                 size="sm"
                 onClick={handleReset}
-                className="text-white/60 hover:text-white"
+                className="text-slate-500 hover:text-white"
               >
                 Reset
               </Button>
@@ -240,7 +240,7 @@ export const ImageCropModal = ({
             <div className="mb-2">
               <div className="flex items-center gap-2 mb-2">
                 <Sparkles className="w-4 h-4 text-primary" />
-                <span className="text-sm text-white/80">Filters</span>
+                <span className="text-sm text-slate-700">Filters</span>
               </div>
               <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                 {FILTERS.map((filter) => (
@@ -263,7 +263,7 @@ export const ImageCropModal = ({
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    <span className="text-[10px] text-white/70">{filter.name}</span>
+                    <span className="text-[10px] text-slate-600">{filter.name}</span>
                   </button>
                 ))}
               </div>

@@ -69,13 +69,13 @@ export const GenderSelectionModal = ({ isOpen, userId, onComplete }: GenderSelec
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-white/80"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
         >
           <motion.div
-            className="bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 rounded-3xl p-6 max-w-sm w-full border border-purple-500/30 shadow-2xl"
+            className="bg-gradient-to-b from-amber-50 via-rose-50 to-orange-50 rounded-3xl p-6 max-w-sm w-full border border-purple-500/30 shadow-2xl"
             initial={{ scale: 0.8, y: 50, opacity: 0 }}
             animate={{ scale: 1, y: 0, opacity: 1 }}
             exit={{ scale: 0.8, y: 50, opacity: 0 }}
@@ -93,20 +93,20 @@ export const GenderSelectionModal = ({ isOpen, userId, onComplete }: GenderSelec
               <h2 className="text-2xl font-bold text-white mb-2">
                 Welcome! 🎉
               </h2>
-              <p className="text-white/60 text-sm">
+              <p className="text-slate-500 text-sm">
                 Enter your name & select gender
               </p>
             </div>
 
             {/* Name Input */}
             <div className="mb-5">
-              <label className="text-white/70 text-xs font-medium mb-1.5 block">Your Name</label>
+              <label className="text-slate-600 text-xs font-medium mb-1.5 block">Your Name</label>
               <input
                 type="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 placeholder="Enter your name"
-                className="w-full h-11 px-4 rounded-xl bg-white/10 border border-white/20 text-white placeholder:text-white/30 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-sm"
+                className="w-full h-11 px-4 rounded-xl bg-white/10 border border-amber-200/60 text-white placeholder:text-slate-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-sm"
                 maxLength={30}
               />
             </div>
@@ -120,7 +120,7 @@ export const GenderSelectionModal = ({ isOpen, userId, onComplete }: GenderSelec
                 className={`relative p-4 rounded-2xl border-2 transition-all ${
                   selectedGender === "male"
                     ? "border-blue-500 bg-blue-500/20"
-                    : "border-white/10 bg-white/5 hover:border-white/20"
+                    : "border-amber-200/60 bg-white/5 hover:border-amber-200/60"
                 }`}
               >
                 <div className="flex flex-col items-center gap-3">
@@ -132,11 +132,11 @@ export const GenderSelectionModal = ({ isOpen, userId, onComplete }: GenderSelec
                     <img src={maleAvatar} alt="Male" className="w-full h-full object-cover" />
                   </div>
                   <span className={`font-semibold ${
-                    selectedGender === "male" ? "text-blue-400" : "text-white/70"
+                    selectedGender === "male" ? "text-blue-400" : "text-slate-600"
                   }`}>
                     Male
                   </span>
-                  <span className="text-[10px] text-white/40">
+                  <span className="text-[10px] text-slate-400">
                     User Account
                   </span>
                 </div>
@@ -158,7 +158,7 @@ export const GenderSelectionModal = ({ isOpen, userId, onComplete }: GenderSelec
                 className={`relative p-4 rounded-2xl border-2 transition-all ${
                   selectedGender === "female"
                     ? "border-pink-500 bg-pink-500/20"
-                    : "border-white/10 bg-white/5 hover:border-white/20"
+                    : "border-amber-200/60 bg-white/5 hover:border-amber-200/60"
                 }`}
               >
                 <div className="flex flex-col items-center gap-3">
@@ -170,7 +170,7 @@ export const GenderSelectionModal = ({ isOpen, userId, onComplete }: GenderSelec
                     <img src={femaleAvatar} alt="Female" className="w-full h-full object-cover" />
                   </div>
                   <span className={`font-semibold ${
-                    selectedGender === "female" ? "text-pink-400" : "text-white/70"
+                    selectedGender === "female" ? "text-pink-400" : "text-slate-600"
                   }`}>
                     Female
                   </span>

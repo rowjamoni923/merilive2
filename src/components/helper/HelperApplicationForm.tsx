@@ -584,7 +584,7 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
 
         {/* PAYMENT SECTION - Level 2-5 */}
         {isPaidLevel && (
-          <div className="space-y-3 bg-slate-900/50 rounded-xl p-3 border border-slate-700/50">
+          <div className="space-y-3 bg-white/90 rounded-xl p-3 border border-amber-200/60">
             <Label className="text-xs font-semibold flex items-center gap-1.5">
               💳 Payment Information
             </Label>
@@ -600,7 +600,7 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
                     "p-2.5 rounded-lg border text-xs transition-all flex items-center gap-2 active:scale-95",
                     selectedPaymentMethod?.id === method.id
                       ? "bg-emerald-500 border-emerald-500 text-white"
-                      : "bg-slate-800 border-slate-700 hover:border-emerald-500"
+                      : "bg-white/80 border-amber-200/60 hover:border-emerald-500"
                   )}
                 >
                   <span className="text-base">{getMethodIcon(method.method_type)}</span>
@@ -617,7 +617,7 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
                 </p>
                 
                 <div className="space-y-1.5">
-                  <div className="flex justify-between items-center bg-slate-800/50 rounded-lg px-2.5 py-2">
+                  <div className="flex justify-between items-center bg-white/80 rounded-lg px-2.5 py-2">
                     <span className="text-[10px] text-slate-400">Account:</span>
                     <div className="flex items-center gap-1.5">
                       <span className="text-xs font-medium text-white">{selectedPaymentMethod.account_name}</span>
@@ -631,7 +631,7 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
                     </div>
                   </div>
                   
-                  <div className="flex justify-between items-center bg-slate-800/50 rounded-lg px-2.5 py-2">
+                  <div className="flex justify-between items-center bg-white/80 rounded-lg px-2.5 py-2">
                     <span className="text-[10px] text-slate-400">ID/Number:</span>
                     <div className="flex items-center gap-1.5">
                       <span className="text-xs font-mono text-emerald-300 max-w-[140px] truncate">
@@ -667,7 +667,7 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
                 placeholder="Enter transaction ID"
                 value={transactionId}
                 onChange={(e) => setTransactionId(e.target.value)}
-                className="h-10 bg-slate-800 border-slate-700 text-sm"
+                className="h-10 bg-white/80 border-amber-200/60 text-sm"
               />
             </div>
 
@@ -687,7 +687,7 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
                   <img 
                     src={screenshotPreview} 
                     alt="Screenshot" 
-                    className="w-full h-24 object-cover rounded-lg border border-slate-700"
+                    className="w-full h-24 object-cover rounded-lg border border-amber-200/60"
                   />
                   <button
                     type="button"
@@ -701,7 +701,7 @@ const HelperApplicationForm = ({ agencyId, onSuccess, onClose }: HelperApplicati
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full h-16 border border-dashed border-slate-600 rounded-lg flex flex-col items-center justify-center gap-1 bg-slate-800/50 active:bg-slate-700"
+                  className="w-full h-16 border border-dashed border-slate-600 rounded-lg flex flex-col items-center justify-center gap-1 bg-white/80 active:bg-slate-700"
                 >
                   <Upload className="w-4 h-4 text-slate-400" />
                   <span className="text-[10px] text-slate-400">Upload screenshot</span>

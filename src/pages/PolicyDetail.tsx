@@ -22,7 +22,7 @@ const PolicyDetail = () => {
           </div>
         </div>
         <div className="flex-1 flex items-center justify-center">
-          <p className="text-white/50 text-sm">This policy does not exist.</p>
+          <p className="text-slate-500 text-sm">This policy does not exist.</p>
         </div>
       </div>
     );
@@ -57,7 +57,7 @@ const PolicyDetail = () => {
           <h2 className="text-2xl font-extrabold text-white leading-tight">
             {policy.title}
           </h2>
-          <p className="text-white/70 text-sm mt-1.5">{policy.subtitle}</p>
+          <p className="text-slate-600 text-sm mt-1.5">{policy.subtitle}</p>
         </div>
 
         {/* Sections */}
@@ -84,7 +84,7 @@ const PolicyDetail = () => {
                     <span className="text-emerald-400 text-xs mt-1 flex-shrink-0">
                       ●
                     </span>
-                    <p className="text-white/80 text-[13px] leading-relaxed">
+                    <p className="text-slate-700 text-[13px] leading-relaxed">
                       {item}
                     </p>
                   </div>
@@ -96,7 +96,7 @@ const PolicyDetail = () => {
 
         {/* Footer */}
         <div className="text-center pb-8 pt-2">
-          <p className="text-white/30 text-xs">
+          <p className="text-slate-500 text-xs">
             © MeriLive — All Rights Reserved
           </p>
         </div>

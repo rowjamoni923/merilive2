@@ -214,7 +214,7 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/80 backdrop-blur-sm p-4"
             onClick={handleDismiss}
           >
             <motion.div
@@ -227,7 +227,7 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
             >
               <button
                 onClick={handleDismiss}
-                className="absolute -top-3 -right-3 z-10 w-9 h-9 rounded-full bg-black/80 border border-white/20 flex items-center justify-center text-white/80 hover:text-white hover:bg-black/90 transition-all shadow-lg"
+                className="absolute -top-3 -right-3 z-10 w-9 h-9 rounded-full bg-white/80 border border-amber-200/60 flex items-center justify-center text-slate-700 hover:text-white hover:bg-white/80 transition-all shadow-lg"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -246,12 +246,12 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
                   className="w-full h-auto"
                 />
                 <div className="absolute inset-0 rounded-2xl border-2 border-amber-400/20 pointer-events-none" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-amber-50 via-transparent to-transparent pointer-events-none" />
               </div>
 
               <button
                 onClick={handleDismiss}
-                className="mt-4 mx-auto block text-white/50 text-sm hover:text-white/80 transition-colors"
+                className="mt-4 mx-auto block text-slate-500 text-sm hover:text-slate-700 transition-colors"
               >
                 Skip
               </button>
@@ -349,7 +349,7 @@ const RatingRewardPopup = forwardRef<HTMLDivElement>(function RatingRewardPopup(
                   >
                     {uploading ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <div className="w-4 h-4 border-2 border-amber-200/60 border-t-white rounded-full animate-spin" />
                         Uploading...
                       </>
                     ) : (

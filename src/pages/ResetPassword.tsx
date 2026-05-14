@@ -92,7 +92,7 @@ const ResetPassword = () => {
 
   if (!sessionChecked) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-gray-900 to-black flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-rose-50 to-orange-50 flex items-center justify-center">
         <div className="w-12 h-12 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin" />
       </div>
     );
@@ -100,27 +100,27 @@ const ResetPassword = () => {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-gray-900 to-black flex items-center justify-center p-6">
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-rose-50 to-orange-50 flex items-center justify-center p-6">
         <div className="w-full max-w-md bg-white/10 backdrop-blur-xl rounded-3xl p-8 text-center">
           <div className="w-20 h-20 mx-auto mb-6 bg-green-500/20 rounded-full flex items-center justify-center">
             <CheckCircle className="w-10 h-10 text-green-400" />
           </div>
           <h1 className="text-2xl font-bold text-white mb-2">Password Updated!</h1>
-          <p className="text-white/70">Redirecting you to home...</p>
+          <p className="text-slate-600">Redirecting you to home...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-gray-900 to-black flex items-center justify-center p-6 overflow-y-auto overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-rose-50 to-orange-50 flex items-center justify-center p-6 overflow-y-auto overflow-x-hidden">
       <div className="w-full max-w-md bg-white/10 backdrop-blur-xl rounded-3xl p-8">
         <div className="text-center mb-8">
           <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center">
             <Lock className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-white mb-2">Reset Password</h1>
-          <p className="text-white/70 text-sm">Enter your new password below</p>
+          <p className="text-slate-600 text-sm">Enter your new password below</p>
         </div>
 
         <div className="space-y-4">
@@ -130,12 +130,12 @@ const ResetPassword = () => {
               placeholder="New Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="h-14 bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-xl pr-12"
+              className="h-14 bg-white/10 border-amber-200/60 text-white placeholder:text-slate-400 rounded-xl pr-12"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
             >
               {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             </button>
@@ -147,12 +147,12 @@ const ResetPassword = () => {
               placeholder="Confirm New Password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="h-14 bg-white/10 border-white/20 text-white placeholder:text-white/50 rounded-xl pr-12"
+              className="h-14 bg-white/10 border-amber-200/60 text-white placeholder:text-slate-400 rounded-xl pr-12"
             />
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
             >
               {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             </button>
@@ -164,14 +164,14 @@ const ResetPassword = () => {
             className="w-full h-14 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-xl"
           >
             {loading ? (
-              <div className="w-6 h-6 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-amber-200/60 border-t-white rounded-full animate-spin" />
             ) : (
               "Update Password"
             )}
           </Button>
         </div>
 
-        <p className="text-center text-white/50 text-sm mt-6">
+        <p className="text-center text-slate-500 text-sm mt-6">
           Remember your password?{" "}
           <button
             onClick={() => navigate("/auth")}

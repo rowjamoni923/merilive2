@@ -91,7 +91,7 @@ const WelcomeOnboarding = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[200] flex items-center justify-center bg-black/85 backdrop-blur-md p-4"
+        className="fixed inset-0 z-[200] flex items-center justify-center bg-white/80 backdrop-blur-md p-4"
         onClick={(e) => e.stopPropagation()}
       >
         <motion.div
@@ -105,7 +105,7 @@ const WelcomeOnboarding = () => {
           {!isLast && (
             <button
               onClick={handleSkip}
-              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/40 hover:bg-black/60 transition-colors"
+              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/80 hover:bg-white/80 transition-colors"
             >
               <X className="w-4 h-4 text-white" />
             </button>

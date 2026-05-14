@@ -129,7 +129,7 @@ const Rewards = () => {
                 <Crown className="w-5 h-5 text-amber-400" />
                 <span className="text-sm font-bold text-amber-400">{firstRechargeMultiplier}x FIRST RECHARGE BONUS</span>
               </div>
-              <p className="text-xs text-white/70">Get {firstRechargeMultiplier}x coins on your first recharge!</p>
+              <p className="text-xs text-slate-600">Get {firstRechargeMultiplier}x coins on your first recharge!</p>
             </div>
             <ChevronRight className="w-5 h-5 text-amber-400" />
           </div>
@@ -146,7 +146,7 @@ const Rewards = () => {
               "flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium transition-all",
               activeTab === tab.key
                 ? "bg-gradient-to-r from-primary to-secondary text-white shadow-lg"
-                : "bg-white/5 text-white/60 hover:bg-white/10"
+                : "bg-white/5 text-slate-500 hover:bg-white/10"
             )}
           >
             <tab.icon className="w-4 h-4" />
@@ -171,7 +171,7 @@ const Rewards = () => {
                   <Star className="w-6 h-6 text-white" />
                 </div>
               </div>
-              <p className="text-xs text-white/50">Login every day to keep your streak and earn bigger rewards!</p>
+              <p className="text-xs text-slate-500">Login every day to keep your streak and earn bigger rewards!</p>
             </div>
 
             {/* 7-Day Rewards Grid */}
@@ -190,20 +190,20 @@ const Rewards = () => {
                         ? "border-amber-400 bg-amber-500/20 shadow-lg shadow-amber-500/10"
                         : isClaimed
                         ? "border-green-500/20 bg-green-500/10"
-                        : "border-white/10 bg-white/5"
+                        : "border-amber-200/60 bg-white/5"
                     )}
                   >
-                    <span className="text-[10px] text-white/50 font-medium mb-1">Day {day.day_number}</span>
+                    <span className="text-[10px] text-slate-500 font-medium mb-1">Day {day.day_number}</span>
                     <div className="my-1.5">
                       {isClaimed && !isToday ? (
                         <Check className="w-5 h-5 text-green-400" />
                       ) : (
-                        <Coins className={cn("w-5 h-5", isToday ? "text-amber-400" : "text-white/40")} />
+                        <Coins className={cn("w-5 h-5", isToday ? "text-amber-400" : "text-slate-400")} />
                       )}
                     </div>
                     <span className={cn(
                       "text-xs font-bold",
-                      isToday ? "text-amber-400" : isClaimed ? "text-green-400" : "text-white/60"
+                      isToday ? "text-amber-400" : isClaimed ? "text-green-400" : "text-slate-500"
                     )}>
                       {day.reward_coins}
                     </span>
@@ -230,7 +230,7 @@ const Rewards = () => {
               <div className="text-center py-4">
                 <Check className="w-8 h-8 text-green-400 mx-auto mb-2" />
                 <p className="text-sm text-green-400 font-medium">Today's reward claimed!</p>
-                <p className="text-xs text-white/40 mt-1">Come back tomorrow for Day {currentDay < 7 ? currentDay + 1 : 1}</p>
+                <p className="text-xs text-slate-400 mt-1">Come back tomorrow for Day {currentDay < 7 ? currentDay + 1 : 1}</p>
               </div>
             )}
           </>
@@ -244,7 +244,7 @@ const Rewards = () => {
               <div className="flex items-center justify-between mb-2">
                 <div>
                   <p className="text-sm text-emerald-300 font-medium">This Week's Spending</p>
-                  <p className="text-2xl font-bold text-white">{userWeeklySpend.toLocaleString()} <span className="text-sm text-white/50">diamonds</span></p>
+                  <p className="text-2xl font-bold text-white">{userWeeklySpend.toLocaleString()} <span className="text-sm text-slate-500">diamonds</span></p>
                 </div>
                 <div className="px-3 py-1.5 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500">
                   <span className="text-xs font-bold text-white">{currentTier?.tier_name || 'No Tier'}</span>
@@ -271,8 +271,8 @@ const Rewards = () => {
                       isActive
                         ? "border-emerald-400/50 bg-emerald-500/10"
                         : isReached
-                        ? "border-white/20 bg-white/5"
-                        : "border-white/10 bg-white/[0.02] opacity-60"
+                        ? "border-amber-200/60 bg-white/5"
+                        : "border-amber-200/60 bg-white/[0.02] opacity-60"
                     )}
                   >
                     <div className="flex items-center justify-between">
@@ -288,14 +288,14 @@ const Rewards = () => {
                         </div>
                         <div>
                           <p className="font-bold text-white">{tier.tier_name}</p>
-                          <p className="text-xs text-white/50">
+                          <p className="text-xs text-slate-500">
                             {tier.min_spend.toLocaleString()}{tier.max_spend ? ` - ${tier.max_spend.toLocaleString()}` : '+'} diamonds/week
                           </p>
                         </div>
                       </div>
                       <div className="text-right">
                         <p className="text-lg font-bold text-emerald-400">{tier.return_percentage}%</p>
-                        <p className="text-[10px] text-white/40">cashback</p>
+                        <p className="text-[10px] text-slate-400">cashback</p>
                       </div>
                     </div>
                     {isActive && (
@@ -309,7 +309,7 @@ const Rewards = () => {
               })}
             </div>
 
-            <p className="text-center text-xs text-white/30 mt-4">
+            <p className="text-center text-xs text-slate-500 mt-4">
               Cashback is calculated weekly and credited every Monday
             </p>
           </>
@@ -321,7 +321,7 @@ const Rewards = () => {
             {limitedOffers.length === 0 ? (
               <div className="text-center py-12">
                 <Sparkles className="w-12 h-12 text-white/20 mx-auto mb-3" />
-                <p className="text-white/40 font-medium">No active offers right now</p>
+                <p className="text-slate-400 font-medium">No active offers right now</p>
                 <p className="text-xs text-white/25 mt-1">Check back soon for exciting deals!</p>
               </div>
             ) : (
@@ -338,17 +338,17 @@ const Rewards = () => {
                           <Badge className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-[10px] border-0">
                             {offer.badge_text}
                           </Badge>
-                          <span className="flex items-center gap-1 text-xs text-white/50">
+                          <span className="flex items-center gap-1 text-xs text-slate-500">
                             <Timer className="w-3 h-3" />
                             {getTimeRemaining(offer.ends_at)}
                           </span>
                         </div>
                         <h3 className="text-base font-bold text-white">{offer.title}</h3>
-                        <p className="text-xs text-white/60 mt-1">{offer.description}</p>
+                        <p className="text-xs text-slate-500 mt-1">{offer.description}</p>
                       </div>
                       <div className="text-right ml-3">
                         <p className="text-2xl font-black text-amber-400">+{offer.bonus_percentage}%</p>
-                        <p className="text-[10px] text-white/40">bonus</p>
+                        <p className="text-[10px] text-slate-400">bonus</p>
                       </div>
                     </div>
                     <Button className="w-full mt-2 h-10 rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 text-white border-0 text-sm font-bold">

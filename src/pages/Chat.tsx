@@ -2096,7 +2096,7 @@ const Chat = () => {
                           
                           return (
                             <motion.div 
-                              className="inline-flex flex-col items-center p-1.5 bg-gradient-to-br from-slate-900/80 to-slate-800/70 rounded-lg border border-amber-500/25 shadow-md backdrop-blur-sm"
+                              className="inline-flex flex-col items-center p-1.5 bg-gradient-to-br from-amber-50 to-slate-800/70 rounded-lg border border-amber-500/25 shadow-md backdrop-blur-sm"
                               initial={{ opacity: 0, scale: 0.9 }}
                               animate={{ opacity: 1, scale: 1 }}
                               transition={{ duration: 0.2 }}
@@ -2681,7 +2681,7 @@ const Chat = () => {
                     onChange={(e) => handleMessageChange(e.target.value)}
                     placeholder="Type something..."
                     className={cn(
-                      "rounded-full bg-white/[0.06] border border-amber-200/60 pr-20 text-white placeholder:text-slate-600 focus-visible:ring-1 focus-visible:ring-purple-500/40 focus-visible:border-purple-500/30 backdrop-blur-xl",
+                      "rounded-full bg-white/[0.06] border border-amber-200/60 pr-20 text-white placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-purple-500/40 focus-visible:border-purple-500/30 backdrop-blur-xl",
                       inlineTranslateEnabled && "ring-1 ring-purple-500/40 border-purple-500/30"
                     )}
                     onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
@@ -3215,7 +3215,7 @@ const Chat = () => {
                 placeholder="Enter group name"
                 value={newGroupName}
                 onChange={(e) => setNewGroupName(e.target.value)}
-                className="bg-white/[0.06] border-white/[0.08] text-white placeholder:text-slate-600 focus-visible:ring-1 focus-visible:ring-purple-500/40"
+                className="bg-white/[0.06] border-white/[0.08] text-white placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-purple-500/40"
               />
             </div>
 
@@ -3296,7 +3296,7 @@ const Chat = () => {
                 value={groupSearchQuery}
                 onChange={(e) => setGroupSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearchGroup()}
-                className="pr-12 bg-white/[0.06] border-white/[0.08] text-white placeholder:text-slate-600 focus-visible:ring-1 focus-visible:ring-purple-500/40"
+                className="pr-12 bg-white/[0.06] border-white/[0.08] text-white placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-purple-500/40"
               />
               <Button
                 size="icon"

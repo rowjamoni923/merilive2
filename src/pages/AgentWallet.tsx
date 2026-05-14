@@ -368,11 +368,11 @@ const AgentWallet = () => {
         <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-5 text-white shadow-lg">
           <div className="flex items-center gap-2 mb-1">
             <Wallet className="w-5 h-5" />
-            <span className="text-white/80 text-sm">Diamond Balance</span>
+            <span className="text-slate-700 text-sm">Diamond Balance</span>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-3xl font-bold">{diamondBalance.toLocaleString()}</span>
-            <span className="text-white/80">Diamonds</span>
+            <span className="text-slate-700">Diamonds</span>
           </div>
 
           {/* Action Buttons */}
@@ -386,7 +386,7 @@ const AgentWallet = () => {
             </Button>
             <Button 
               variant="outline"
-              className="border-white/30 text-white bg-transparent hover:bg-white/10"
+              className="border-amber-200/60 text-white bg-transparent hover:bg-white/10"
               onClick={() => navigate("/transfer-history")}
             >
               <History className="w-4 h-4 mr-2" />
@@ -399,13 +399,13 @@ const AgentWallet = () => {
         <div className="bg-gradient-to-br from-amber-500 to-orange-500 rounded-2xl p-5 text-white shadow-lg">
           <div className="flex items-center gap-2 mb-1">
             <Gem className="w-5 h-5" />
-            <span className="text-white/80 text-sm">Income Balance (Beans)</span>
+            <span className="text-slate-700 text-sm">Income Balance (Beans)</span>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-3xl font-bold">{beansBalance.toLocaleString()}</span>
-            <span className="text-white/80">Beans</span>
+            <span className="text-slate-700">Beans</span>
           </div>
-          <p className="text-white/70 text-xs mt-1">Commission earnings from hosts</p>
+          <p className="text-slate-600 text-xs mt-1">Commission earnings from hosts</p>
 
           <Button 
             onClick={() => setShowExchange(true)}

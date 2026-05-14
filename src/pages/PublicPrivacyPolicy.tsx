@@ -9,8 +9,8 @@ const PublicPrivacyPolicy = () => (
     {/* Header */}
     <div className="bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 py-6 px-4 text-center">
       <h1 className="text-2xl font-bold text-white">Privacy Policy</h1>
-      <p className="text-white/70 text-sm mt-1">MeriLive — Party & Chat (com.merilive.app)</p>
-      <p className="text-white/50 text-xs mt-1">Last Updated: March 6, 2026</p>
+      <p className="text-slate-600 text-sm mt-1">MeriLive — Party & Chat (com.merilive.app)</p>
+      <p className="text-slate-500 text-xs mt-1">Last Updated: March 6, 2026</p>
     </div>
 
     <div className="max-w-3xl mx-auto px-4 py-8 space-y-6 text-sm leading-relaxed">

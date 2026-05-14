@@ -145,7 +145,7 @@ export const ReportUserDialog = forwardRef<HTMLDivElement, ReportUserDialogProps
               </div>
               Report User
             </DialogTitle>
-            <DialogDescription className="text-white/50 text-sm">
+            <DialogDescription className="text-slate-500 text-sm">
               Select a reason for reporting this user
             </DialogDescription>
           </DialogHeader>
@@ -192,7 +192,7 @@ export const ReportUserDialog = forwardRef<HTMLDivElement, ReportUserDialogProps
                   </div>
                   <span className={cn(
                     "font-medium text-xs leading-tight transition-colors",
-                    isSelected ? "text-white" : "text-white/70"
+                    isSelected ? "text-white" : "text-slate-600"
                   )}>
                     {cat.label}
                   </span>
@@ -205,7 +205,7 @@ export const ReportUserDialog = forwardRef<HTMLDivElement, ReportUserDialogProps
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Additional details (optional)..."
-            className="bg-white/[0.04] border-white/[0.08] text-white placeholder:text-white/25 min-h-[80px] resize-none rounded-xl focus:border-purple-500/40 focus:ring-1 focus:ring-purple-500/20 transition-all mb-4 text-sm"
+            className="bg-white/[0.04] border-white/[0.08] text-white placeholder:text-slate-400 min-h-[80px] resize-none rounded-xl focus:border-purple-500/40 focus:ring-1 focus:ring-purple-500/20 transition-all mb-4 text-sm"
           />
 
           <div className="space-y-2.5">
@@ -218,14 +218,14 @@ export const ReportUserDialog = forwardRef<HTMLDivElement, ReportUserDialogProps
                 <motion.div
                   animate={{ rotate: 360 }}
                   transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
+                  className="w-5 h-5 border-2 border-amber-200/60 border-t-white rounded-full"
                 />
               ) : "Submit Report"}
             </Button>
             <Button
               variant="ghost"
               onClick={() => onOpenChange(false)}
-              className="w-full h-10 text-white/50 hover:text-white/80 hover:bg-white/[0.04] rounded-xl text-sm"
+              className="w-full h-10 text-slate-500 hover:text-slate-700 hover:bg-white/[0.04] rounded-xl text-sm"
             >
               Cancel
             </Button>

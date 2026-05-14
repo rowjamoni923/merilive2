@@ -239,7 +239,7 @@ const BecomeSubAgent = () => {
           </div>
           <div>
             <h2 className="text-xl font-bold">Sub-Agent Program</h2>
-            <p className="text-white/80 text-sm">Earn by referring</p>
+            <p className="text-slate-700 text-sm">Earn by referring</p>
           </div>
         </div>
         
@@ -247,17 +247,17 @@ const BecomeSubAgent = () => {
           <div className="bg-white/20 rounded-xl p-3 text-center">
             <TrendingUp className="w-5 h-5 mx-auto mb-1" />
             <p className="text-lg font-bold">2%</p>
-            <p className="text-xs text-white/80">Commission</p>
+            <p className="text-xs text-slate-700">Commission</p>
           </div>
           <div className="bg-white/20 rounded-xl p-3 text-center">
             <Gift className="w-5 h-5 mx-auto mb-1" />
             <p className="text-lg font-bold">Bonus</p>
-            <p className="text-xs text-white/80">Top Referrer</p>
+            <p className="text-xs text-slate-700">Top Referrer</p>
           </div>
           <div className="bg-white/20 rounded-xl p-3 text-center">
             <Coins className="w-5 h-5 mx-auto mb-1" />
             <p className="text-lg font-bold">Unlimited</p>
-            <p className="text-xs text-white/80">Referrals</p>
+            <p className="text-xs text-slate-700">Referrals</p>
           </div>
         </div>
       </div>

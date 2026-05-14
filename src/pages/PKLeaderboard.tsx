@@ -161,7 +161,7 @@ const PKLeaderboard = () => {
   const getPositionIcon = (rank: number) => {
     switch (rank) {
       case 1: return <Crown className="w-5 h-5 text-yellow-400" />;
-      case 2: return <Medal className="w-5 h-5 text-gray-300" />;
+      case 2: return <Medal className="w-5 h-5 text-slate-500" />;
       case 3: return <Award className="w-5 h-5 text-orange-400" />;
       default: return <span className="text-xs font-bold text-muted-foreground">#{rank}</span>;
     }
@@ -209,7 +209,7 @@ const PKLeaderboard = () => {
             <div className="flex-1">
               <h1 className="text-lg font-bold text-white">{competition.title}</h1>
               {competition.description && (
-                <p className="text-white/70 text-xs">{competition.description}</p>
+                <p className="text-slate-600 text-xs">{competition.description}</p>
               )}
             </div>
           </div>
@@ -236,7 +236,7 @@ const PKLeaderboard = () => {
               </div>
               {getRewardForRank(myRank) && (
                 <div className="ml-auto text-right">
-                  <p className="text-white/60 text-[10px]">Prize</p>
+                  <p className="text-slate-500 text-[10px]">Prize</p>
                   <p className="text-yellow-300 text-sm font-bold">
                     {formatNumber(getRewardForRank(myRank)!.reward_diamonds)} 💎
                   </p>

@@ -39,14 +39,14 @@ const ParcelCard = memo(({ parcel, index, onClick }: ParcelCardProps) => {
         style={{ background: `radial-gradient(circle, ${glowColor}, transparent 70%)` }}
       />
 
-      <div className={`relative rounded-2xl border border-white/10 bg-gradient-to-br ${PARCEL_COLORS[template.parcel_type] || PARCEL_COLORS.standard} backdrop-blur-xl p-4 overflow-hidden`}>
+      <div className={`relative rounded-2xl border border-amber-200/60 bg-gradient-to-br ${PARCEL_COLORS[template.parcel_type] || PARCEL_COLORS.standard} backdrop-blur-xl p-4 overflow-hidden`}>
         {/* Shimmer overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
         
         {/* Lock overlay */}
         {isLocked && (
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm rounded-2xl flex items-center justify-center z-10">
-            <Lock className="w-8 h-8 text-white/60" />
+          <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-2xl flex items-center justify-center z-10">
+            <Lock className="w-8 h-8 text-slate-500" />
           </div>
         )}
 
