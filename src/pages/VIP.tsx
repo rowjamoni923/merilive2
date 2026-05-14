@@ -1109,7 +1109,7 @@ const VIP = () => {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-        <TabsList className="mx-4 mt-3 bg-slate-50 border border-white/10 p-1 rounded-xl">
+        <TabsList className="mx-4 mt-3 bg-slate-50 border border-amber-200/60 p-1 rounded-xl">
           <TabsTrigger 
             value="vip" 
             className="flex-1 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500"
@@ -1157,7 +1157,7 @@ const VIP = () => {
                     </p>
                   </div>
                 </div>
-                <Sparkles className="w-6 h-6 text-purple-400" />
+                <Sparkles className="w-6 h-6 text-purple-700" />
               </div>
             </div>
           )}
@@ -1176,14 +1176,14 @@ const VIP = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                   className={`relative rounded-2xl overflow-hidden border ${
-                    isOwned ? 'border-green-500/50' : 'border-white/10'
+                    isOwned ? 'border-green-500/50' : 'border-amber-200/60'
                   }`}
                 >
                   {/* Tier Header */}
                   <div className={`p-4 bg-gradient-to-r ${getTierGradient(tier.tier_level)}`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center overflow-hidden">
+                        <div className="w-12 h-12 rounded-xl bg-amber-100/80 flex items-center justify-center overflow-hidden">
                           {tier.badge_animation_url ? (
                             <UniversalAnimationPlayer
                               src={tier.badge_animation_url}
@@ -1215,14 +1215,14 @@ const VIP = () => {
                     <div className="grid grid-cols-2 gap-2 mb-4">
                       {privileges.slice(0, 6).map((priv, i) => (
                         <div key={i} className="flex items-center gap-2 text-slate-600 text-sm">
-                          <priv.icon className="w-4 h-4 text-purple-400" />
+                          <priv.icon className="w-4 h-4 text-purple-700" />
                           <span>{priv.label}</span>
                         </div>
                       ))}
                     </div>
 
                     {/* Price & Action */}
-                    <div className="flex items-center justify-between pt-3 border-t border-white/10">
+                    <div className="flex items-center justify-between pt-3 border-t border-amber-200/60">
                       <div className="flex items-center gap-2">
                         <Diamond3DIcon size={20} />
                         <span className="text-slate-800 font-bold text-lg">
@@ -1235,7 +1235,7 @@ const VIP = () => {
                         disabled={isOwned || purchasing}
                         className={`px-6 ${
                           isOwned 
-                            ? 'bg-green-500/20 text-green-400' 
+                            ? 'bg-green-100 text-green-700' 
                             : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white'
                         }`}
                       >
@@ -1253,8 +1253,8 @@ const VIP = () => {
         <TabsContent value="privileges" className="flex-1 overflow-y-auto mt-0 px-4 py-4" style={{ paddingBottom: 'var(--content-bottom-padding)' }}>
           {userPrivileges.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-20 h-20 rounded-full bg-purple-500/20 flex items-center justify-center mb-4">
-                <Sparkles className="w-10 h-10 text-purple-400" />
+              <div className="w-20 h-20 rounded-full bg-purple-100 flex items-center justify-center mb-4">
+                <Sparkles className="w-10 h-10 text-purple-700" />
               </div>
               <h3 className="text-slate-800 font-semibold text-lg mb-2">No Privileges Yet</h3>
               <p className="text-slate-700 text-sm mb-4">
@@ -1348,13 +1348,13 @@ const VIP = () => {
                             <div className="flex items-center gap-1 mt-1 text-xs">
                               {priv.source === 'admin_assigned' ? (
                                 <>
-                                  <Shield className="w-3 h-3 text-amber-400" />
-                                  <span className="text-amber-400">{priv.role_type?.replace('_', ' ') || 'Assigned'}</span>
+                                  <Shield className="w-3 h-3 text-amber-700" />
+                                  <span className="text-amber-700">{priv.role_type?.replace('_', ' ') || 'Assigned'}</span>
                                 </>
                               ) : (
                                 <>
-                                  <Clock className="w-3 h-3 text-amber-400" />
-                                  <span className="text-amber-400">{formatExpiration(priv.expires_at, countdownTick)}</span>
+                                  <Clock className="w-3 h-3 text-amber-700" />
+                                  <span className="text-amber-700">{formatExpiration(priv.expires_at, countdownTick)}</span>
                                 </>
                               )}
                             </div>
@@ -1369,7 +1369,7 @@ const VIP = () => {
                               handleEquip(priv);
                             }}
                             className={priv.is_equipped
-                              ? 'mt-2 h-7 rounded-full bg-green-500/20 text-green-400 hover:bg-green-500/20'
+                              ? 'mt-2 h-7 rounded-full bg-green-100 text-green-700 hover:bg-green-100'
                               : 'mt-2 h-7 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-slate-800'}
                           >
                             {priv.is_equipped ? 'Equipped' : 'Equip'}
@@ -1409,7 +1409,7 @@ const VIP = () => {
 
               <div className="flex items-center justify-center gap-2 py-4 bg-amber-500/10 rounded-xl">
                 <Diamond3DIcon size={24} />
-                <span className="text-amber-400 font-bold text-2xl">
+                <span className="text-amber-700 font-bold text-2xl">
                   {selectedTier.price_diamonds.toLocaleString()}
                 </span>
               </div>
@@ -1422,7 +1422,7 @@ const VIP = () => {
                 <Button
                   variant="outline"
                   onClick={() => setSelectedTier(null)}
-                  className="flex-1 border-white/20 text-slate-800"
+                  className="flex-1 border-amber-200/70 text-slate-800"
                 >
                   Cancel
                 </Button>

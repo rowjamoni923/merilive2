@@ -1304,7 +1304,7 @@ const Level5HelperDashboard = () => {
       {/* Header */}
       <div className="bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 p-4 rounded-b-3xl">
         <div className="flex items-center gap-3 mb-3">
- <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => navigate(-1)}>
+ <Button variant="ghost" size="icon" className="text-white hover:bg-amber-100/80" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex-1">
@@ -1314,7 +1314,7 @@ const Level5HelperDashboard = () => {
           <Button 
             variant="ghost" 
             size="icon" 
- className="text-white hover:bg-white/20 relative"
+ className="text-white hover:bg-amber-100/80 relative"
             onClick={() => { setActiveTab("notifications"); markNotificationsRead(); }}
           >
             <Bell className="w-5 h-5" />
@@ -1328,19 +1328,19 @@ const Level5HelperDashboard = () => {
 
         {/* Stats - Mobile Optimized */}
         <div className="grid grid-cols-4 gap-1.5">
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 text-center">
+          <div className="bg-amber-100/80 backdrop-blur-sm rounded-xl p-2 text-center">
  <p className="text-base font-bold text-slate-900">{agencyWithdrawals.length}</p>
  <p className="text-[9px] text-slate-700/60">Agency</p>
           </div>
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 text-center">
+          <div className="bg-amber-100/80 backdrop-blur-sm rounded-xl p-2 text-center">
  <p className="text-base font-bold text-slate-900">{withdrawalRequests.filter(w => w.status ==='pending').length}</p>
  <p className="text-[9px] text-slate-700/60">Pending</p>
           </div>
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 text-center">
+          <div className="bg-amber-100/80 backdrop-blur-sm rounded-xl p-2 text-center">
  <p className="text-base font-bold text-slate-900">{countryPaymentMethods.length}</p>
  <p className="text-[9px] text-slate-700/60">Methods</p>
           </div>
-          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 text-center overflow-hidden">
+          <div className="bg-amber-100/80 backdrop-blur-sm rounded-xl p-2 text-center overflow-hidden">
  <p className="text-xs font-bold text-slate-900 truncate">
               {(() => {
                 const totalWallet = (helperData?.wallet_balance || 0) + (agencyDiamondBalance || 0);
@@ -1358,7 +1358,7 @@ const Level5HelperDashboard = () => {
         <div className="mt-3">
           <Button
             onClick={() => navigate('/helper-dashboard')}
- className="w-full bg-white/15 hover:bg-white/25 text-slate-900 border border-slate-200/20"
+ className="w-full bg-amber-100/70 hover:bg-amber-100/90 text-slate-900 border border-slate-200/20"
           >
             <DollarSign className="w-4 h-4 mr-2" />
             Open Manual Top-up
@@ -1412,7 +1412,7 @@ const Level5HelperDashboard = () => {
                 <Building2 className="w-4 h-4 text-orange-400" />
                 All Agency Withdrawals
               </h3>
-              <Badge className="bg-emerald-500/20 text-emerald-400 text-xs">
+              <Badge className="bg-emerald-100 text-emerald-700 text-xs">
                 {agencyWithdrawals.filter(w => isWithdrawalAvailableForClaim(w, lockClock)).length} Available
               </Badge>
             </div>
@@ -1493,7 +1493,7 @@ const Level5HelperDashboard = () => {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-emerald-400 font-bold flex items-center justify-end gap-1">
+                          <p className="text-emerald-700 font-bold flex items-center justify-end gap-1">
                             <Beans3DIcon size={16} />
                             {resolveNetWithdrawalBeans(withdrawal).toLocaleString()}
                           </p>
@@ -1641,7 +1641,7 @@ const Level5HelperDashboard = () => {
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-emerald-400 font-bold">{order.coin_amount?.toLocaleString()} 💎</p>
+                        <p className="text-emerald-700 font-bold">{order.coin_amount?.toLocaleString()} 💎</p>
                         <p className="text-slate-600 text-xs">
                           {order.currency_code === 'BDT' ? 'Tk ' : '$'}{order.amount_local?.toFixed(0)}
                         </p>
@@ -1654,7 +1654,7 @@ const Level5HelperDashboard = () => {
                     {/* Transaction ID and Payment Details */}
                     {order.payment_details && (
                       <div className="mt-3 pt-3 border-t border-slate-200">
-                        <div className="bg-white/15 rounded-lg p-3">
+                        <div className="bg-amber-100/70 rounded-lg p-3">
                           <p className="text-slate-600 text-xs mb-2">📝 Payment Details</p>
                           {(order.payment_details.transaction_id || order.payment_details.user_transaction_id) && (
                             <div className="flex items-center justify-between mb-2">
@@ -1666,7 +1666,7 @@ const Level5HelperDashboard = () => {
                           )}
                           {order.payment_details.manual_review_required && (
                             <div className="mb-2">
-                              <span className="inline-block px-2 py-0.5 rounded bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-bold">
+                              <span className="inline-block px-2 py-0.5 rounded bg-amber-100 border border-amber-500/40 text-amber-300 text-[10px] font-bold">
                                 ⚠ MANUAL REVIEW (auto-verify missed)
                               </span>
                             </div>
@@ -1680,7 +1680,7 @@ const Level5HelperDashboard = () => {
                           {order.payment_details.account_number && (
                             <div className="flex items-center justify-between">
                               <span className="text-slate-500 text-xs">Number:</span>
-                              <span className="text-green-400 text-xs font-mono">{order.payment_details.account_number}</span>
+                              <span className="text-green-700 text-xs font-mono">{order.payment_details.account_number}</span>
                             </div>
                           )}
                         </div>
@@ -1826,7 +1826,7 @@ const Level5HelperDashboard = () => {
           <TabsContent value="country-methods" className="mt-4 space-y-3">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-slate-800 font-semibold text-sm flex items-center gap-2">
-                <CreditCard className="w-4 h-4 text-emerald-400" />
+                <CreditCard className="w-4 h-4 text-emerald-700" />
                 Country Payment Methods
               </h3>
               <Button 
@@ -1885,13 +1885,13 @@ const Level5HelperDashboard = () => {
                             <div className="flex items-center gap-2">
  <p className="text-slate-900 font-medium text-sm">{method.method_name}</p>
                               {method.is_merchant && (
-                                <Badge className="bg-amber-500/20 text-amber-300 text-[10px] px-1.5 py-0">⚡ Merchant</Badge>
+                                <Badge className="bg-amber-100 text-amber-300 text-[10px] px-1.5 py-0">⚡ Merchant</Badge>
                               )}
                             </div>
                             <p className="text-slate-600 text-xs truncate">{method.account_name}</p>
-                            <p className="text-emerald-400 text-xs font-mono">{method.account_number}</p>
+                            <p className="text-emerald-700 text-xs font-mono">{method.account_number}</p>
                             {method.merchant_number && (
-                              <p className="text-amber-400 text-xs font-mono">Merchant: {method.merchant_number}</p>
+                              <p className="text-amber-700 text-xs font-mono">Merchant: {method.merchant_number}</p>
                             )}
                           </div>
                           <Button
@@ -1955,7 +1955,7 @@ const Level5HelperDashboard = () => {
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold text-green-400">${request.usd_amount}</p>
+                          <p className="font-bold text-green-700">${request.usd_amount}</p>
                           <p className="text-xs text-slate-600">
                             {request.currency_code} {request.local_amount?.toLocaleString()}
                           </p>
@@ -2015,7 +2015,7 @@ const Level5HelperDashboard = () => {
                                 <Badge className="bg-blue-500/20 text-blue-400 text-[10px]">{method.country_code}</Badge>
                               )}
                               {method.is_default && (
-                                <Badge className="bg-green-500/20 text-green-400 text-[10px]">Default</Badge>
+                                <Badge className="bg-green-100 text-green-700 text-[10px]">Default</Badge>
                               )}
                             </div>
                           
@@ -2029,7 +2029,7 @@ const Level5HelperDashboard = () => {
                               }}
                               className="p-1 rounded bg-slate-200 hover:bg-slate-200 transition-colors flex-shrink-0"
                             >
-                              <Copy className="w-3 h-3 text-emerald-400" />
+                              <Copy className="w-3 h-3 text-emerald-700" />
                             </button>
                           </div>
                           
@@ -2043,7 +2043,7 @@ const Level5HelperDashboard = () => {
                               }}
                               className="p-1 rounded bg-slate-200 hover:bg-slate-200 transition-colors flex-shrink-0"
                             >
-                              <Copy className="w-3 h-3 text-emerald-400" />
+                              <Copy className="w-3 h-3 text-emerald-700" />
                             </button>
                           </div>
                         </div>
@@ -2104,7 +2104,7 @@ const Level5HelperDashboard = () => {
                         completed: {
                           card: 'border-l-green-500',
                           badge: 'bg-green-500',
-                          amount: 'text-emerald-400',
+                          amount: 'text-emerald-700',
                           label: 'Completed'
                         },
                         processing: {
@@ -2187,7 +2187,7 @@ const Level5HelperDashboard = () => {
                               <Badge className="bg-green-500 text-[10px] mt-1">Completed</Badge>
                             </div>
                             <div className="text-right">
-                              <p className="text-emerald-400 font-bold text-sm">
+                              <p className="text-emerald-700 font-bold text-sm">
                                 {order.coin_amount?.toLocaleString()} 💎
                               </p>
                               <p className="text-slate-600 text-xs">
@@ -2211,10 +2211,10 @@ const Level5HelperDashboard = () => {
           <TabsContent value="inbox" className="mt-4 space-y-2">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-slate-800 font-semibold text-sm flex items-center gap-2">
-                <Bell className="w-4 h-4 text-purple-400" />
+                <Bell className="w-4 h-4 text-purple-700" />
                 Admin Messages
               </h3>
-              <Badge className="bg-purple-500/20 text-purple-400 text-xs">
+              <Badge className="bg-purple-100 text-purple-700 text-xs">
                 {adminMessages.length} messages
               </Badge>
             </div>
@@ -2246,7 +2246,7 @@ const Level5HelperDashboard = () => {
                       <div className={cn(
                         "w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0",
                         msg.priority === 'urgent' ? "bg-red-500/20" :
-                        msg.priority === 'high' ? "bg-orange-500/20" : "bg-purple-500/20"
+                        msg.priority === 'high' ? "bg-orange-500/20" : "bg-purple-100"
                       )}>
                         {msg.priority === 'urgent' ? (
                           <AlertCircle className="w-5 h-5 text-red-500" />
@@ -2266,7 +2266,7 @@ const Level5HelperDashboard = () => {
                             <Badge className="bg-orange-500 text-[10px]">Important</Badge>
                           )}
                           {msg.has_replies && (
-                            <Badge className="bg-green-500/20 text-green-400 text-[10px]">
+                            <Badge className="bg-green-100 text-green-700 text-[10px]">
                               <MessageCircle className="w-2 h-2 mr-0.5" />
                               Replied
                             </Badge>
@@ -2277,7 +2277,7 @@ const Level5HelperDashboard = () => {
                           <p className="text-[10px] text-slate-500">
                             {format(new Date(msg.created_at), 'dd MMM yyyy, HH:mm')}
                           </p>
-                          <div className="flex items-center gap-1 text-purple-400">
+                          <div className="flex items-center gap-1 text-purple-700">
                             <Reply className="w-3 h-3" />
                             <span className="text-[10px]">Tap to reply</span>
                           </div>
@@ -2301,7 +2301,7 @@ const Level5HelperDashboard = () => {
               <div className={cn(
                 "w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0",
                 selectedMessage?.priority === 'urgent' ? "bg-red-500/20" :
-                selectedMessage?.priority === 'high' ? "bg-orange-500/20" : "bg-purple-500/20"
+                selectedMessage?.priority === 'high' ? "bg-orange-500/20" : "bg-purple-100"
               )}>
                 <Crown className={cn(
                   "w-4 h-4",
@@ -2333,8 +2333,8 @@ const Level5HelperDashboard = () => {
             {/* Original Admin Message */}
             <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-3 mr-8">
               <div className="flex items-center gap-1.5 mb-1.5">
-                <Crown className="w-3 h-3 text-purple-400" />
-                <span className="text-[10px] text-purple-400 font-medium">Admin</span>
+                <Crown className="w-3 h-3 text-purple-700" />
+                <span className="text-[10px] text-purple-700 font-medium">Admin</span>
                 <span className="text-[10px] text-slate-500">
                   {selectedMessage && format(new Date(selectedMessage.created_at), 'dd MMM, HH:mm')}
                 </span>
@@ -2345,7 +2345,7 @@ const Level5HelperDashboard = () => {
             {/* Replies Thread */}
             {loadingReplies ? (
               <div className="flex items-center justify-center py-4">
-                <Loader2 className="w-5 h-5 animate-spin text-purple-400" />
+                <Loader2 className="w-5 h-5 animate-spin text-purple-700" />
               </div>
             ) : messageReplies.length > 0 ? (
               <div className="space-y-2">
@@ -2363,11 +2363,11 @@ const Level5HelperDashboard = () => {
                       {reply.sender_type === 'helper' ? (
                         <User className="w-3 h-3 text-cyan-400" />
                       ) : (
-                        <Crown className="w-3 h-3 text-purple-400" />
+                        <Crown className="w-3 h-3 text-purple-700" />
                       )}
                       <span className={cn(
                         "text-[10px] font-medium",
-                        reply.sender_type === 'helper' ? "text-cyan-400" : "text-purple-400"
+                        reply.sender_type === 'helper' ? "text-cyan-400" : "text-purple-700"
                       )}>
                         {reply.sender_type === 'helper' ? 'You' : 'Admin'}
                       </span>
@@ -2581,7 +2581,7 @@ const Level5HelperDashboard = () => {
                     placeholder="Enter merchant number"
  className="bg-slate-100 border-amber-500/30 text-slate-900 mt-1"
                   />
-                  <p className="text-xs text-amber-400/70 mt-1">
+                  <p className="text-xs text-amber-700/70 mt-1">
                     Payments to this merchant will be auto-verified
                   </p>
                 </div>
@@ -2618,7 +2618,7 @@ const Level5HelperDashboard = () => {
               {/* Amount Info */}
               <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl p-4 border border-green-500/30">
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-green-400">${selectedWithdrawal.usd_amount}</p>
+                  <p className="text-3xl font-bold text-green-700">${selectedWithdrawal.usd_amount}</p>
                   <p className="text-sm text-slate-600 mt-1">
                     ≈ {selectedWithdrawal.currency_code} {selectedWithdrawal.local_amount?.toLocaleString()}
                   </p>
@@ -2744,18 +2744,18 @@ const Level5HelperDashboard = () => {
               )}
 
               {selectedWithdrawal.status === 'screenshot_submitted' && (
-                <div className="text-center p-4 bg-purple-500/20 rounded-xl border border-purple-500/30">
-                  <Clock className="w-8 h-8 text-purple-400 mx-auto mb-2" />
+                <div className="text-center p-4 bg-purple-100 rounded-xl border border-purple-500/30">
+                  <Clock className="w-8 h-8 text-purple-700 mx-auto mb-2" />
                   <p className="text-purple-300 font-semibold">Waiting for Admin Approval</p>
-                  <p className="text-xs text-purple-400 mt-1">You'll receive diamonds once approved</p>
+                  <p className="text-xs text-purple-700 mt-1">You'll receive diamonds once approved</p>
                 </div>
               )}
 
               {selectedWithdrawal.status === 'approved' && (
-                <div className="text-center p-4 bg-green-500/20 rounded-xl border border-green-500/30">
-                  <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-2" />
+                <div className="text-center p-4 bg-green-100 rounded-xl border border-green-500/30">
+                  <CheckCircle className="w-8 h-8 text-green-700 mx-auto mb-2" />
                   <p className="text-green-300 font-semibold">Approved!</p>
-                  <p className="text-xs text-green-400 mt-1">
+                  <p className="text-xs text-green-700 mt-1">
                     +{selectedWithdrawal.diamond_reward.toLocaleString()} diamonds credited
                   </p>
                 </div>
@@ -2892,7 +2892,7 @@ const Level5HelperDashboard = () => {
                 <SelectContent className="bg-slate-100 border-slate-200 max-h-72">
                   {/* ═══ AUTO PAYMENT GATEWAYS — country specific (from payment_gateways table) ═══ */}
                   {countryGateways.filter(g => g.is_integrated).length > 0 && (
-                    <div className="px-2 py-1 text-[10px] text-amber-400 font-bold uppercase tracking-wider">
+                    <div className="px-2 py-1 text-[10px] text-amber-700 font-bold uppercase tracking-wider">
                       ⚡ Auto Gateways — {selectedCountry || 'Global'}
                     </div>
                   )}
@@ -2945,7 +2945,7 @@ const Level5HelperDashboard = () => {
                 </SelectContent>
               </Select>
               {!selectedCountry && (
-                <p className="text-[10px] text-amber-400/80 mt-1">
+                <p className="text-[10px] text-amber-700/80 mt-1">
                   💡 Select a country above to see available auto gateways for that region
                 </p>
               )}
@@ -2994,7 +2994,7 @@ const Level5HelperDashboard = () => {
                   <span className="text-lg">⚡</span>
                   <p className="text-emerald-300 font-semibold text-sm">ZiniPay Auto Pay Setup</p>
                 </div>
-                <p className="text-xs text-emerald-400/70 mb-2">
+                <p className="text-xs text-emerald-700/70 mb-2">
                   🎯 Auto payment using personal bKash/Nagad number. No merchant account needed!
                 </p>
 
@@ -3027,7 +3027,7 @@ const Level5HelperDashboard = () => {
 
                 {/* ZiniPay API Key */}
                 <div className="border-t border-emerald-500/20 pt-2 mt-2">
-                  <p className="text-[10px] text-emerald-400/50 mb-2">🔒 ZiniPay Credentials (hidden from users)</p>
+                  <p className="text-[10px] text-emerald-700/50 mb-2">🔒 ZiniPay Credentials (hidden from users)</p>
                 </div>
                 <div>
                   <Label className="text-slate-500 text-xs">ZiniPay API Key *</Label>
@@ -3060,7 +3060,7 @@ const Level5HelperDashboard = () => {
                     <span className="text-lg">⚡</span>
                     <p className="text-purple-300 font-semibold text-sm">{matched.name} Auto Pay Setup</p>
                   </div>
-                  <p className="text-xs text-purple-400/70 mb-2">
+                  <p className="text-xs text-purple-700/70 mb-2">
                     🌍 Country: <strong>{selectedCountry}</strong> · Auto verification will credit diamonds instantly when payment confirms.
                   </p>
 
@@ -3084,7 +3084,7 @@ const Level5HelperDashboard = () => {
                   </div>
 
                   <div className="border-t border-purple-500/20 pt-2 mt-2">
-                    <p className="text-[10px] text-purple-400/50 mb-2">🔒 {matched.name} Credentials (hidden from users)</p>
+                    <p className="text-[10px] text-purple-700/50 mb-2">🔒 {matched.name} Credentials (hidden from users)</p>
                   </div>
                   <div>
                     <Label className="text-slate-500 text-xs">API Key / Merchant ID *</Label>
@@ -3258,7 +3258,7 @@ const Level5HelperDashboard = () => {
                     placeholder="Enter merchant number"
  className="bg-slate-100 border-amber-500/30 text-slate-900 mt-1"
                   />
-                  <p className="text-xs text-amber-400/70 mt-1">
+                  <p className="text-xs text-amber-700/70 mt-1">
                     Payments to this merchant will be auto-verified
                   </p>
                 </div>
@@ -3324,7 +3324,7 @@ const Level5HelperDashboard = () => {
                 <div className="text-center flex flex-col items-center">
                   <div className="flex items-center gap-2 justify-center">
                     <span className="text-3xl">💰</span>
-                    <p className="text-3xl font-bold text-emerald-400">
+                    <p className="text-3xl font-bold text-emerald-700">
                       {(() => {
                         const pd = selectedAgencyWithdrawal.payment_details as any;
                         const cc = pd?.currency_code || selectedAgencyWithdrawal.currency_code;
@@ -3399,7 +3399,7 @@ const Level5HelperDashboard = () => {
                     {(selectedAgencyWithdrawal.payment_details as any)?.local_amount && (
                       <div className="flex items-center justify-between bg-emerald-500/10 rounded-lg p-2 border border-emerald-500/20">
                         <span className="text-slate-600">Payable Local Amount:</span>
-                        <span className="text-emerald-400 font-bold text-lg">
+                        <span className="text-emerald-700 font-bold text-lg">
                           {(() => {
                             const pd = selectedAgencyWithdrawal.payment_details as any;
                             const cc = pd?.currency_code || selectedAgencyWithdrawal.currency_code;
@@ -3414,7 +3414,7 @@ const Level5HelperDashboard = () => {
                     
                     {/* USD Amount */}
                     {(selectedAgencyWithdrawal.payment_details as any)?.usd_amount && (
-                      <div className="flex items-center justify-between bg-white/15 rounded-lg p-2">
+                      <div className="flex items-center justify-between bg-amber-100/70 rounded-lg p-2">
                         <span className="text-slate-600">Payable USD Amount:</span>
                         <span className="text-cyan-400 font-bold">
                           ${resolveNetWithdrawalUsd(selectedAgencyWithdrawal).toFixed(2)}
@@ -3424,9 +3424,9 @@ const Level5HelperDashboard = () => {
 
                     {/* Account Name */}
                     {(selectedAgencyWithdrawal.payment_details as any)?.account_name && (
-                      <div className="flex items-center justify-between bg-white/15 rounded-lg p-2">
+                      <div className="flex items-center justify-between bg-amber-100/70 rounded-lg p-2">
                         <span className="text-slate-600">Paid to:</span>
-                        <span className="text-green-400 font-semibold">
+                        <span className="text-green-700 font-semibold">
                           {(selectedAgencyWithdrawal.payment_details as any).account_name}
                         </span>
                       </div>
@@ -3434,10 +3434,10 @@ const Level5HelperDashboard = () => {
                     
                     {/* Account Number with Copy */}
                     {(selectedAgencyWithdrawal.payment_details as any)?.account_number && (
-                      <div className="flex items-center justify-between bg-white/15 rounded-lg p-2">
+                      <div className="flex items-center justify-between bg-amber-100/70 rounded-lg p-2">
                         <span className="text-slate-600">Number:</span>
                         <div className="flex items-center gap-2">
-                          <span className="text-green-400 font-mono font-semibold">
+                          <span className="text-green-700 font-mono font-semibold">
                             {(selectedAgencyWithdrawal.payment_details as any).account_number}
                           </span>
                           <button
@@ -3455,7 +3455,7 @@ const Level5HelperDashboard = () => {
                     
                     {/* Bank Name if exists */}
                     {(selectedAgencyWithdrawal.payment_details as any)?.bank_name && (
-                      <div className="flex items-center justify-between bg-white/15 rounded-lg p-2">
+                      <div className="flex items-center justify-between bg-amber-100/70 rounded-lg p-2">
                         <span className="text-slate-600">Bank:</span>
  <span className="text-slate-900 font-medium">
                           {(selectedAgencyWithdrawal.payment_details as any).bank_name}
@@ -3465,7 +3465,7 @@ const Level5HelperDashboard = () => {
                     
                     {/* Additional Info */}
                     {(selectedAgencyWithdrawal.payment_details as any)?.additional_info && (
-                      <div className="bg-white/15 rounded-lg p-2">
+                      <div className="bg-amber-100/70 rounded-lg p-2">
                         <span className="text-slate-600 text-xs block mb-1">Additional Info:</span>
  <span className="text-slate-900 text-sm">
                           {(selectedAgencyWithdrawal.payment_details as any).additional_info}
@@ -3525,8 +3525,8 @@ const Level5HelperDashboard = () => {
                       >
                         {screenshotFile ? (
                           <div className="text-center">
-                            <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-2" />
-                            <p className="text-green-400 text-sm">{screenshotFile.name}</p>
+                            <CheckCircle className="w-8 h-8 text-green-700 mx-auto mb-2" />
+                            <p className="text-green-700 text-sm">{screenshotFile.name}</p>
                             <p className="text-xs text-slate-500">Click to change</p>
                           </div>
                         ) : (

@@ -494,9 +494,9 @@ const Tasks = () => {
             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
               <Star className="w-5 h-5 text-slate-800" />
             </div>
-            <div>
+          <div>
               <h1 className="text-xl font-bold">Task Center</h1>
-              <p className="text-xs text-slate-600">Complete daily tasks, earn rewards</p>
+              <p className="text-xs text-white/85">Complete daily tasks, earn rewards</p>
             </div>
           </div>
         </div>
@@ -514,7 +514,7 @@ const Tasks = () => {
           <div className="flex items-center justify-between mb-3">
             <div>
               <h2 className="text-lg font-bold">Today's Tasks</h2>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-white/90">
                 {Object.values(progress).filter(p => p.is_claimed).length}/{tasks.length} Completed
               </p>
             </div>
@@ -544,23 +544,23 @@ const Tasks = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-fuchsia-500 to-purple-600 flex items-center justify-center shadow-lg shadow-fuchsia-500/30">
-                    <Flame className="w-5 h-5 text-slate-800" />
+                    <Flame className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                    <h3 className="font-bold text-white text-sm flex items-center gap-1.5">
                       🔥 New Host Live Bonus
-                      <span className="text-[9px] bg-gradient-to-r from-amber-400 to-orange-500 px-1.5 py-0.5 rounded-full font-bold">
+                      <span className="text-[9px] bg-gradient-to-r from-amber-400 to-orange-500 px-1.5 py-0.5 rounded-full font-bold text-slate-900">
                         LIMITED
                       </span>
                     </h3>
-                    <p className="text-[11px] text-purple-300/70">
+                    <p className="text-[11px] text-purple-200/80">
                       {bonusDaysRemaining} day{bonusDaysRemaining !== 1 ? 's' : ''} remaining
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-amber-400 font-bold text-lg">{bonusSettings.beans_per_hour.toLocaleString()}</p>
-                  <p className="text-[10px] text-purple-300/60">beans/hour</p>
+                  <p className="text-amber-300 font-bold text-lg">{bonusSettings.beans_per_hour.toLocaleString()}</p>
+                  <p className="text-[10px] text-purple-200/70">beans/hour</p>
                 </div>
               </div>
             </div>
@@ -576,15 +576,15 @@ const Tasks = () => {
                       className={`flex-1 h-10 rounded-xl flex flex-col items-center justify-center ${
                         completed
                           ? 'bg-gradient-to-b from-fuchsia-500 to-purple-600 shadow-lg shadow-fuchsia-500/30'
-                          : 'bg-white/5 border border-amber-200/40'
+                          : 'bg-white/5 border border-white/10'
                       }`}
                     >
                       {completed ? (
-                        <Check className="w-4 h-4 text-slate-800" />
+                        <Check className="w-4 h-4 text-white" />
                       ) : (
-                        <Clock className="w-3.5 h-3.5 text-slate-600" />
+                        <Clock className="w-3.5 h-3.5 text-purple-200/70" />
                       )}
-                      <span className={`text-[8px] font-bold mt-0.5 ${completed ? 'text-slate-800' : 'text-slate-600'}`}>
+                      <span className={`text-[8px] font-bold mt-0.5 ${completed ? 'text-white' : 'text-purple-200/70'}`}>
                         {i + 1}h
                       </span>
                     </div>
@@ -594,22 +594,22 @@ const Tasks = () => {
             </div>
 
             {/* Summary */}
-            <div className="mx-4 mb-4 p-3 rounded-xl bg-white/5 border border-amber-200/40">
+            <div className="mx-4 mb-4 p-3 rounded-xl bg-white/5 border border-white/10">
               {/* Stats row */}
               <div className="flex items-center justify-around mb-3">
                 <div className="text-center">
-                  <p className="text-amber-400 font-bold text-sm">{(bonusProgress?.beans_earned || 0).toLocaleString()}</p>
-                  <p className="text-[9px] text-slate-600">Earned Today</p>
+                  <p className="text-amber-300 font-bold text-sm">{(bonusProgress?.beans_earned || 0).toLocaleString()}</p>
+                  <p className="text-[9px] text-purple-200/70">Earned Today</p>
                 </div>
                 <div className="w-px h-6 bg-white/10" />
                 <div className="text-center">
-                  <p className="text-slate-800 font-bold text-sm">{totalDailyBonus.toLocaleString()}</p>
-                  <p className="text-[9px] text-slate-600">Max/Day</p>
+                  <p className="text-white font-bold text-sm">{totalDailyBonus.toLocaleString()}</p>
+                  <p className="text-[9px] text-purple-200/70">Max/Day</p>
                 </div>
                 <div className="w-px h-6 bg-white/10" />
                 <div className="text-center">
-                  <p className="text-fuchsia-400 font-bold text-sm">Day {bonusProgress?.day_number || 1}/{bonusSettings.eligible_days}</p>
-                  <p className="text-[9px] text-slate-600">Period</p>
+                  <p className="text-fuchsia-300 font-bold text-sm">Day {bonusProgress?.day_number || 1}/{bonusSettings.eligible_days}</p>
+                  <p className="text-[9px] text-purple-200/70">Period</p>
                 </div>
               </div>
               {/* Go Live button - full width */}
@@ -707,12 +707,12 @@ const Tasks = () => {
                       ) : (
                         <>
                           {task.reward_beans > 0 && (
-                            <span className="text-xs bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-400 px-2 py-0.5 rounded-full font-medium">
+                            <span className="text-xs bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 px-2 py-0.5 rounded-full font-medium">
                               +{task.reward_beans} Beans
                             </span>
                           )}
                           {task.reward_coins > 0 && (
-                            <span className="text-xs bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-purple-400 px-2 py-0.5 rounded-full font-medium">
+                            <span className="text-xs bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800 px-2 py-0.5 rounded-full font-medium">
                               +{task.reward_coins} 💎 Diamonds
                             </span>
                           )}
@@ -725,14 +725,14 @@ const Tasks = () => {
                   <div className="flex-shrink-0">
                     {task.requirement_type === 'play_store_rating' ? (
                       ratingAlreadyClaimed ? (
-                      <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
-                        <Check className="w-5 h-5 text-green-400" />
+                      <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                        <Check className="w-5 h-5 text-green-700" />
                         </div>
                       ) : (
                         <div className="flex flex-col gap-1.5">
                           <Button
                             size="sm"
-                            className="text-slate-800 text-xs h-8 gap-1 rounded-lg font-bold border-0"
+                            className="text-white text-xs h-8 gap-1 rounded-lg font-bold border-0"
                             style={{
                               background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
                               boxShadow: '0 3px 12px rgba(245,158,11,0.4)',
@@ -756,8 +756,8 @@ const Tasks = () => {
                         </div>
                       )
                     ) : status === 'claimed' ? (
-                      <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
-                        <Check className="w-5 h-5 text-green-400" />
+                      <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                        <Check className="w-5 h-5 text-green-700" />
                       </div>
                     ) : status === 'completed' ? (
                       <Button
@@ -772,7 +772,7 @@ const Tasks = () => {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="border-amber-200/60 text-slate-500 hover:bg-white/10"
+                        className="border-amber-300 text-amber-800 hover:bg-amber-50 active:bg-amber-100"
                         onClick={() => {
                           const route = taskNavigationMap[task.requirement_type];
                           if (route) {
@@ -837,26 +837,26 @@ const Tasks = () => {
                         boxShadow: '0 4px 20px rgba(251,191,36,0.15)',
                       }}
                     >
-                      <Gift className="w-7 h-7 text-amber-400" />
+                      <Gift className="w-7 h-7 text-amber-700" />
                     </div>
-                    <p className="text-amber-300 font-bold text-lg tracking-wide">Claim Your Reward</p>
+                    <p className="text-amber-800 font-bold text-lg tracking-wide">Claim Your Reward</p>
                     <div className="flex items-center justify-center gap-3 mt-3">
                       <span className="text-[11px] font-bold px-3 py-1.5 rounded-lg"
                         style={{
-                          background: 'linear-gradient(135deg, rgba(251,191,36,0.12), rgba(245,158,11,0.06))',
-                          border: '1px solid rgba(251,191,36,0.25)',
-                          color: '#fbbf24',
+                          background: 'linear-gradient(135deg, rgba(251,191,36,0.18), rgba(245,158,11,0.1))',
+                          border: '1px solid rgba(251,191,36,0.35)',
+                          color: '#b45309',
                           boxShadow: '0 2px 8px rgba(251,191,36,0.1)',
                         }}
                       >
                         Hosts: 10,000 🫘
                       </span>
-                      <span className="text-purple-400/40 text-xs">•</span>
+                      <span className="text-purple-500/70 text-xs">•</span>
                       <span className="text-[11px] font-bold px-3 py-1.5 rounded-lg"
                         style={{
-                          background: 'linear-gradient(135deg, rgba(139,92,246,0.12), rgba(168,85,247,0.06))',
-                          border: '1px solid rgba(139,92,246,0.25)',
-                          color: '#a78bfa',
+                          background: 'linear-gradient(135deg, rgba(139,92,246,0.18), rgba(168,85,247,0.1))',
+                          border: '1px solid rgba(139,92,246,0.35)',
+                          color: '#6d28d9',
                           boxShadow: '0 2px 8px rgba(139,92,246,0.1)',
                         }}
                       >
@@ -867,7 +867,7 @@ const Tasks = () => {
                 </div>
 
                 <div className="space-y-3">
-                  <p className="text-purple-200/60 text-xs text-center leading-relaxed">
+                  <p className="text-slate-600 text-xs text-center leading-relaxed">
                     Take a screenshot of your 5-star rating on Play Store and upload it below
                   </p>
                   
@@ -882,10 +882,10 @@ const Tasks = () => {
                   <Button
                     onClick={() => fileRef.current?.click()}
                     disabled={ratingUploading}
-                    className="w-full h-12 gap-2 font-bold rounded-xl text-slate-800 border-0"
+                    className="w-full h-12 gap-2 font-bold rounded-xl text-white border-0"
                     style={{
                       background: ratingUploading
-                        ? 'rgba(167,139,250,0.15)'
+                        ? 'rgba(167,139,250,0.35)'
                         : 'linear-gradient(135deg, #7c3aed, #a855f7)',
                       boxShadow: ratingUploading ? 'none' : '0 4px 24px rgba(124,58,237,0.4), inset 0 1px 0 rgba(255,255,255,0.1)',
                     }}
@@ -904,7 +904,7 @@ const Tasks = () => {
                   </Button>
                 </div>
 
-                <p className="text-purple-300/25 text-[10px] text-center">
+                <p className="text-slate-500/80 text-[10px] text-center">
                   Your reward will be credited after admin verification
                 </p>
               </div>
@@ -923,22 +923,22 @@ const Tasks = () => {
                     boxShadow: '0 4px 20px rgba(16,185,129,0.2)',
                   }}
                 >
-                  <CheckCircle className="w-9 h-9 text-emerald-400" />
+                  <CheckCircle className="w-9 h-9 text-emerald-700" />
                 </div>
               </motion.div>
               <div>
                 <p className="text-slate-800 font-bold text-lg">Submitted Successfully! 🎉</p>
-                <p className="text-purple-200/50 text-sm mt-2 leading-relaxed">
+                <p className="text-slate-600 text-sm mt-2 leading-relaxed">
                   Your screenshot has been submitted for review. You'll receive your reward once approved by admin.
                 </p>
               </div>
-              <div className="flex items-center justify-center gap-2 text-amber-400/50 text-xs">
+              <div className="flex items-center justify-center gap-2 text-amber-700/80 text-xs">
                 <Clock className="w-3.5 h-3.5" />
                 Usually reviewed within 24 hours
               </div>
               <Button
                 onClick={() => setShowRatingUpload(false)}
-                className="w-full h-10 rounded-xl text-slate-800 font-bold border-0"
+                className="w-full h-10 rounded-xl text-white font-bold border-0"
                 style={{
                   background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
                   boxShadow: '0 4px 20px rgba(124,58,237,0.3)',
