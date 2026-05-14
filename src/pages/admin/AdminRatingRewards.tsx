@@ -164,11 +164,12 @@ export default function AdminRatingRewards() {
         const reviewerMap: Record<string, any> = {};
         (reviewersRes.data || []).forEach(r => { reviewerMap[r.user_id] = r; });
 
-        setHistoryData(data.map(c => ({
+        setHistoryData(await Promise.all(data.map(async (c) => ({
           ...c,
           profile: profileMap[c.user_id] || null,
           reviewer: c.reviewed_by ? reviewerMap[c.reviewed_by] || null : null,
-        })));
+          screenshot_signed: await resolveAdminStorageImageUrl(c.screenshot_url, 'rating-screenshots'),
+        }))));
       } else {
         setHistoryData([]);
       }
