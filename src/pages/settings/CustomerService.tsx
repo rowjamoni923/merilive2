@@ -64,7 +64,7 @@ const CustomerService = () => {
   // Show AI chat interface (which now includes live chat)
   if (showChat) {
     return (
-      <div className="mobile-page bg-background">
+      <div className="mobile-page bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF]">
         <AISupportChat
           onClose={handleCloseChat}
           userLevel={userLevel}
@@ -79,13 +79,13 @@ const CustomerService = () => {
   }
 
   return (
-    <div className="mobile-page bg-background">
+    <div className="mobile-page bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF]">
       {/* Header */}
-      <div className="mobile-header bg-background border-b">
+      <div className="mobile-header bg-white/80 backdrop-blur-xl border-b border-amber-200/50">
         <div className="flex items-center h-14 px-4">
           <button
             onClick={() => navigate(-1)}
-            className="p-2 -ml-2 hover:bg-muted rounded-full transition-colors"
+            className="p-2 -ml-2 hover:bg-amber-50 rounded-full transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -114,7 +114,7 @@ const CustomerService = () => {
             </div>
             <div className="flex-1">
               <h3 className="font-semibold text-lg mb-1">Chat with AI Support</h3>
-              <p className="text-sm text-muted-foreground mb-3">
+              <p className="text-sm text-slate-600 mb-3">
                 Get instant help 24/7 • Type "Live Chat" for human support
               </p>
               <Button size="sm" className="gap-2">
@@ -127,25 +127,25 @@ const CustomerService = () => {
 
         {/* Quick Info Cards */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-muted/50 rounded-xl p-4">
+          <div className="bg-amber-50/50 rounded-xl p-4">
             <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center mb-3">
               <Mail className="w-5 h-5 text-blue-500" />
             </div>
             <h4 className="font-medium text-sm mb-1">Email Support</h4>
-            <p className="text-xs text-muted-foreground">merilive.us@gmail.com</p>
+            <p className="text-xs text-slate-600">merilive.us@gmail.com</p>
           </div>
 
-          <div className="bg-muted/50 rounded-xl p-4">
+          <div className="bg-amber-50/50 rounded-xl p-4">
             <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center mb-3">
               <Clock className="w-5 h-5 text-green-500" />
             </div>
             <h4 className="font-medium text-sm mb-1">Response Time</h4>
-            <p className="text-xs text-muted-foreground">Within 24 hours</p>
+            <p className="text-xs text-slate-600">Within 24 hours</p>
           </div>
         </div>
 
         {/* Common Issues */}
-        <div className="bg-muted/30 rounded-xl p-4">
+        <div className="bg-amber-50/30 rounded-xl p-4">
           <h3 className="font-semibold mb-3">Common Issues</h3>
           <div className="space-y-3">
             {[
@@ -156,20 +156,20 @@ const CustomerService = () => {
               <button
                 key={item.title}
                 onClick={() => setShowChat(true)}
-                className="w-full flex items-center justify-between p-3 bg-background rounded-lg hover:bg-muted transition-colors"
+                className="w-full flex items-center justify-between p-3 bg-background rounded-lg hover:bg-amber-50 transition-colors"
               >
                 <div className="text-left">
                   <p className="font-medium text-sm">{item.title}</p>
-                  <p className="text-xs text-muted-foreground">{item.desc}</p>
+                  <p className="text-xs text-slate-600">{item.desc}</p>
                 </div>
-                <MessageCircle className="w-4 h-4 text-muted-foreground" />
+                <MessageCircle className="w-4 h-4 text-slate-600" />
               </button>
             ))}
           </div>
         </div>
 
         {/* User Level Info */}
-        <div className="text-center text-xs text-muted-foreground">
+        <div className="text-center text-xs text-slate-600">
           <p>Your Level: {userLevel}</p>
           {!isPremium && (
             <p className="mt-1">Reach Level 6 to unlock Priority Support in your Profile</p>

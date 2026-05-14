@@ -93,14 +93,14 @@ const ContentPageView = () => {
           <div className="flex items-center h-14 px-4">
             <button 
               onClick={() => navigate(-1)}
-              className="p-2 -ml-2 hover:bg-muted rounded-full transition-colors"
+              className="p-2 -ml-2 hover:bg-amber-50 rounded-full transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
             <h1 className="flex-1 text-center text-lg font-semibold pr-7">Not Found</h1>
           </div>
         </div>
-        <div className="p-4 text-center text-muted-foreground">
+        <div className="p-4 text-center text-slate-600">
           Content not found
         </div>
       </div>
@@ -114,7 +114,7 @@ const ContentPageView = () => {
         <div className="flex items-center h-14 px-4">
           <button 
             onClick={() => navigate(-1)}
-            className="p-2 -ml-2 hover:bg-muted rounded-full transition-colors"
+            className="p-2 -ml-2 hover:bg-amber-50 rounded-full transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>

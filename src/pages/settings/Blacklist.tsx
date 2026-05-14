@@ -122,7 +122,7 @@ const Blacklist = () => {
         <div className="flex items-center h-14 px-4">
           <button 
             onClick={() => navigate(-1)}
-            className="p-2 -ml-2 hover:bg-muted rounded-full transition-colors"
+            className="p-2 -ml-2 hover:bg-amber-50 rounded-full transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -134,11 +134,11 @@ const Blacklist = () => {
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
       {blockedUsers.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 px-4">
-          <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center mb-4">
-            <UserX className="w-10 h-10 text-muted-foreground" />
+          <div className="w-20 h-20 rounded-full bg-amber-50 flex items-center justify-center mb-4">
+            <UserX className="w-10 h-10 text-slate-600" />
           </div>
           <h2 className="text-lg font-semibold mb-2">No Blocked Users</h2>
-          <p className="text-muted-foreground text-center text-sm">
+          <p className="text-slate-600 text-center text-sm">
             You haven't blocked anyone. You can block users from their profile if they bother you.
           </p>
         </div>
@@ -160,7 +160,7 @@ const Blacklist = () => {
                   <p className="font-medium">
                     {blocked.blocked_profile?.display_name || "Unknown User"}
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-slate-600">
                     @{blocked.blocked_profile?.username || blocked.blocked_id.slice(0, 8)}
                   </p>
                 </div>
