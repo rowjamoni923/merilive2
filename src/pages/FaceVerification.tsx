@@ -2203,13 +2203,26 @@ const FaceVerification = () => {
       )}
       
       {verificationFailed && (
-        <Button
-          className="w-full h-14 bg-gradient-to-r from-amber-600 to-orange-600 rounded-2xl text-lg font-bold"
-          onClick={resetVerification}
-        >
-          <RotateCcw className="w-6 h-6 mr-3" />
-          {localizedMsg.tryAgain}
-        </Button>
+        <div className="space-y-2">
+          <Button
+            className="w-full h-14 bg-gradient-to-r from-amber-600 to-orange-600 rounded-2xl text-lg font-bold"
+            onClick={resetVerification}
+          >
+            <RotateCcw className="w-6 h-6 mr-3" />
+            {localizedMsg.tryAgain}
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full h-11 rounded-xl border-slate-300 text-slate-700 hover:bg-slate-50 text-sm font-medium"
+            onClick={downloadDebugReport}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Download debug log (.json)
+          </Button>
+          <p className="text-[11px] text-slate-500 text-center px-2">
+            Includes calibration, every poll tick (yaw/pitch/eyes/no-face), step progress and timeout data — share with support.
+          </p>
+        </div>
       )}
       
       {faceVerified && (
