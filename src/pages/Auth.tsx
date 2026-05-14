@@ -2022,8 +2022,8 @@ const Auth = () => {
         <AuthBackground branding={branding} />
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/50" />
         <div className="relative z-10 min-h-screen flex flex-col items-center justify-center gap-4">
- <div className="w-10 h-10 border-3 border-slate-200/30 border-t-white rounded-full animate-spin" />
-          <p className="text-slate-700 text-sm font-medium animate-pulse">Recovering your account...</p>
+          <div className="w-10 h-10 border-[3px] border-white/25 border-t-white rounded-full animate-spin" /> {/* dark-ok */}
+          <p className="text-white/90 text-sm font-medium animate-pulse tracking-wide">Restoring your session…</p> {/* dark-ok */}
         </div>
       </div>
     );
