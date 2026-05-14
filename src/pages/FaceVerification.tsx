@@ -769,8 +769,8 @@ const FaceVerification = () => {
       timerRef.current = setInterval(() => {
         elapsed++;
         setVerificationTime(elapsed);
-        if (elapsed >= 30) {
-          // Time's up — check if all completed
+        if (elapsed >= 60) {
+          // Generous 60s window — check if all completed
           const allDone = instructionsCompletedRef.current.every(Boolean);
           finishVerification(allDone);
         }
