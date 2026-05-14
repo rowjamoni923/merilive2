@@ -1868,8 +1868,8 @@ const FaceVerification = () => {
           <ArrowLeft className="w-5 h-5 text-slate-800" />
         </Button>
         <div>
-          <h1 className="text-xl font-black bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent">{title}</h1>
-          {subtitle && <p className="text-slate-500 text-sm">{subtitle}</p>}
+          <h1 className="text-xl font-black tracking-tight bg-gradient-to-r from-purple-700 via-fuchsia-600 to-pink-600 bg-clip-text text-transparent">{title}</h1>
+          {subtitle && <p className="text-slate-600 text-sm">{subtitle}</p>}
         </div>
       </div>
     </div>
