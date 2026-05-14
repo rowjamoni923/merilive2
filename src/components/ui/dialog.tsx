@@ -58,7 +58,7 @@ const DialogHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLD
     <div
       ref={ref}
       className={cn(
-        "flex flex-col space-y-1.5 text-center sm:text-left pb-3 mb-3 border-b border-white/[0.06]",
+        "flex flex-col space-y-1.5 text-center sm:text-left pb-3 mb-3 border-b border-slate-200",
         className,
       )}
       {...props}
@@ -72,7 +72,7 @@ const DialogFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLD
     <div
       ref={ref}
       className={cn(
-        "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:space-x-2 pt-4 mt-4 border-t border-white/[0.06]",
+        "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:space-x-2 pt-4 mt-4 border-t border-slate-200",
         className,
       )}
       {...props}
