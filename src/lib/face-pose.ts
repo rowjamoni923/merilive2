@@ -157,7 +157,7 @@ export function replaySampleSet(set: SampleSet): ReplayResult {
     ...s, passRate: s.ticks ? s.passes / s.ticks : 0,
   }));
 
-  const stepsPassed = perStep.filter(s => s.reachedPass).map(s => s.step);
+  const stepsPassed = perStep.filter(s => s.reachedPass).map(s => s.step as StepId);
   const expectedStepsPassed = set.expected.stepsPassed;
   const missingSteps = expectedStepsPassed.filter(s => !stepsPassed.includes(s));
   const unexpectedPasses = stepsPassed.filter(s => !expectedStepsPassed.includes(s));
