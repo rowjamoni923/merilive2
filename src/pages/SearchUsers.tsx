@@ -377,19 +377,20 @@ const SearchUsers = () => {
   };
 
   return (
-    <div className="mobile-page bg-background">
+    <div className="mobile-page bg-[#F7F8FA]">
       {/* Header */}
-      <header className="sticky top-0 z-40 glass-card border-b border-border/50 safe-area-top">
+      <header className="sticky top-0 z-40 bg-white border-b border-slate-200/70 safe-area-top">
         <div className="px-4 py-3 flex items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => navigate(-1)}
+            className="text-slate-700 hover:bg-slate-100"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
             <Input
               placeholder="Enter App ID (8 digits)..."
               value={searchQuery}
@@ -398,7 +399,7 @@ const SearchUsers = () => {
                 const value = e.target.value.replace(/\D/g, '').slice(0, 8);
                 setSearchQuery(value);
               }}
-              className="pl-10 pr-10 rounded-full bg-muted border-0"
+              className="pl-10 pr-10 rounded-full bg-slate-100 border border-slate-200 text-slate-900 placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-slate-300"
               autoFocus
               inputMode="numeric"
               maxLength={8}
@@ -410,7 +411,7 @@ const SearchUsers = () => {
                 className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8"
                 onClick={() => setSearchQuery("")}
               >
-                <X className="w-4 h-4 text-muted-foreground" />
+                <X className="w-4 h-4 text-slate-500" />
               </Button>
             )}
           </div>
