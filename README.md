@@ -71,3 +71,15 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+
+## Quality audits
+
+UI quality is tracked by two scripts that write reports into `docs/`:
+
+- `node scripts/audit-modals.mjs` — light-premium audit for modal/dialog/sheet/drawer surfaces.
+  Outputs:
+  - [`docs/modal-audit.md`](docs/modal-audit.md) — human-readable report grouped by file and rule.
+  - [`docs/modal-audit.json`](docs/modal-audit.json) — machine-readable totals + per-file findings.
+- `node scripts/check-contrast.mjs` — repository-wide text/background contrast guard (also run via `npm test` / CI).
+
+Append `// dark-ok` on a line to acknowledge an intentional dark surface.
