@@ -2094,7 +2094,7 @@ const FaceVerification = () => {
             </div>
             
             <Button
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 h-14 rounded-2xl text-lg font-bold"
+              className="w-full bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-600 hover:from-purple-500 hover:via-fuchsia-400 hover:to-pink-500 text-white h-14 rounded-2xl text-lg font-bold shadow-lg shadow-purple-600/25 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100"
               onClick={saveUserStep1}
               disabled={!fullName.trim() || !age || parseInt(age || "0", 10) < 18 || !language}
             >
