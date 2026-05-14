@@ -3707,6 +3707,7 @@ export type Database = {
           right_url: string | null
           selfie_url: string
           status: string | null
+          updated_at: string
           user_id: string
           verification_method: string | null
           verification_type: string | null
@@ -3750,6 +3751,7 @@ export type Database = {
           right_url?: string | null
           selfie_url: string
           status?: string | null
+          updated_at?: string
           user_id: string
           verification_method?: string | null
           verification_type?: string | null
@@ -3793,6 +3795,7 @@ export type Database = {
           right_url?: string | null
           selfie_url?: string
           status?: string | null
+          updated_at?: string
           user_id?: string
           verification_method?: string | null
           verification_type?: string | null
@@ -5589,6 +5592,7 @@ export type Database = {
           reviewed_at: string | null
           reviewed_by: string | null
           status: string | null
+          updated_at: string
         }
         Insert: {
           admin_notes?: string | null
@@ -5600,6 +5604,7 @@ export type Database = {
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string | null
+          updated_at?: string
         }
         Update: {
           admin_notes?: string | null
@@ -5611,6 +5616,7 @@ export type Database = {
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string | null
+          updated_at?: string
         }
         Relationships: [
           {
@@ -7290,6 +7296,7 @@ export type Database = {
           program_day: number | null
           target_minutes: number
           task_date: string | null
+          updated_at: string
         }
         Insert: {
           actual_minutes?: number | null
@@ -7308,6 +7315,7 @@ export type Database = {
           program_day?: number | null
           target_minutes: number
           task_date?: string | null
+          updated_at?: string
         }
         Update: {
           actual_minutes?: number | null
@@ -7326,6 +7334,7 @@ export type Database = {
           program_day?: number | null
           target_minutes?: number
           task_date?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -7425,6 +7434,7 @@ export type Database = {
           is_active: boolean | null
           language: string | null
           name: string
+          updated_at: string
           url: string
         }
         Insert: {
@@ -7435,6 +7445,7 @@ export type Database = {
           is_active?: boolean | null
           language?: string | null
           name: string
+          updated_at?: string
           url: string
         }
         Update: {
@@ -7445,6 +7456,7 @@ export type Database = {
           is_active?: boolean | null
           language?: string | null
           name?: string
+          updated_at?: string
           url?: string
         }
         Relationships: []
@@ -8434,6 +8446,7 @@ export type Database = {
           status: string | null
           stream1_id: string | null
           stream2_id: string | null
+          updated_at: string
           winner_id: string | null
         }
         Insert: {
@@ -8453,6 +8466,7 @@ export type Database = {
           status?: string | null
           stream1_id?: string | null
           stream2_id?: string | null
+          updated_at?: string
           winner_id?: string | null
         }
         Update: {
@@ -8472,6 +8486,7 @@ export type Database = {
           status?: string | null
           stream1_id?: string | null
           stream2_id?: string | null
+          updated_at?: string
           winner_id?: string | null
         }
         Relationships: []
@@ -10088,6 +10103,7 @@ export type Database = {
           price_diamonds: number | null
           role_type: string
           svga_url: string | null
+          updated_at: string
         }
         Insert: {
           animation_type?: string | null
@@ -10106,6 +10122,7 @@ export type Database = {
           price_diamonds?: number | null
           role_type: string
           svga_url?: string | null
+          updated_at?: string
         }
         Update: {
           animation_type?: string | null
@@ -10124,6 +10141,7 @@ export type Database = {
           price_diamonds?: number | null
           role_type?: string
           svga_url?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -12339,6 +12357,7 @@ export type Database = {
           reviewed_at: string | null
           reviewed_by: string | null
           status: string | null
+          updated_at: string
         }
         Insert: {
           action_taken?: string | null
@@ -12357,6 +12376,7 @@ export type Database = {
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string | null
+          updated_at?: string
         }
         Update: {
           action_taken?: string | null
@@ -12375,6 +12395,7 @@ export type Database = {
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: string | null
+          updated_at?: string
         }
         Relationships: [
           {
@@ -12478,6 +12499,7 @@ export type Database = {
           granted_by: string | null
           id: string
           role: string
+          updated_at: string
           user_id: string
         }
         Insert: {
@@ -12486,6 +12508,7 @@ export type Database = {
           granted_by?: string | null
           id?: string
           role: string
+          updated_at?: string
           user_id: string
         }
         Update: {
@@ -12494,6 +12517,7 @@ export type Database = {
           granted_by?: string | null
           id?: string
           role?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -14501,6 +14525,7 @@ export type Database = {
           reviewed_at: string | null
           reviewed_by: string | null
           status: string | null
+          updated_at: string
         }[]
         SetofOptions: {
           from: "*"
@@ -14739,6 +14764,7 @@ export type Database = {
           price_diamonds: number | null
           role_type: string
           svga_url: string | null
+          updated_at: string
         }[]
         SetofOptions: {
           from: "*"
@@ -14919,6 +14945,7 @@ export type Database = {
           reviewed_at: string | null
           reviewed_by: string | null
           status: string | null
+          updated_at: string
         }[]
         SetofOptions: {
           from: "*"
@@ -15155,6 +15182,7 @@ export type Database = {
           reviewed_at: string | null
           reviewed_by: string | null
           status: string | null
+          updated_at: string
         }
         SetofOptions: {
           from: "*"

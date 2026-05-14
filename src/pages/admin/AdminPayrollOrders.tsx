@@ -242,13 +242,17 @@ const AdminPayrollOrders = () => {
         // Use the same RPC as AdminWithdrawals for consistent behavior
         const newStatus = action === 'complete' ? 'approved' : 'rejected';
         
-        const { error } = await supabase.rpc("admin_process_withdrawal", {
+        const { data, error } = await supabase.rpc("admin_process_withdrawal", {
           _withdrawal_id: order.id,
           _status: newStatus,
           _notes: null
         });
 
         if (error) throw error;
+        const result = data as { success?: boolean; error?: string; message?: string } | null;
+        if (result && result.success === false) {
+          throw new Error(result.error || result.message || "Withdrawal processing failed");
+        }
 
         // Send notification to agency owner (RPC only handles helper notifications)
         if (order.agency?.owner_id) {
