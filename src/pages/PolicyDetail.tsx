@@ -9,12 +9,12 @@ const PolicyDetail = () => {
 
   if (!policy) {
     return (
-      <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#1a1025] to-[#0d0a14]">
+      <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FAF5EA] to-[#FFFBF2]">
         <div className="sticky top-0 z-50 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700">
           <div className="flex items-center h-14 px-4 gap-3">
             <button
               onClick={() => navigate(-1)}
-              className="p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors"
+              className="p-2 -ml-2 hover:bg-amber-50/70 rounded-full transition-colors"
             >
               <ArrowLeft className="w-5 h-5 text-slate-800" />
             </button>
@@ -29,13 +29,13 @@ const PolicyDetail = () => {
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#1a1025] to-[#0d0a14]">
+    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FAF5EA] to-[#FFFBF2]">
       {/* Header */}
       <div className="sticky top-0 z-50 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 flex-shrink-0">
         <div className="flex items-center h-14 px-4 gap-3">
           <button
             onClick={() => navigate(-1)}
-            className="p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors"
+            className="p-2 -ml-2 hover:bg-amber-50/70 rounded-full transition-colors"
           >
             <ArrowLeft className="w-5 h-5 text-slate-800" />
           </button>
@@ -65,10 +65,10 @@ const PolicyDetail = () => {
           {policy.sections.map((section, sIdx) => (
             <div
               key={sIdx}
-              className="bg-white/[0.06] backdrop-blur-sm rounded-2xl border border-white/[0.08] overflow-hidden"
+              className="bg-white/70 backdrop-blur-sm rounded-2xl border border-amber-200/60 overflow-hidden"
             >
               {/* Section Header */}
-              <div className="px-4 py-3 border-b border-white/[0.06] flex items-center gap-2.5">
+              <div className="px-4 py-3 border-b border-amber-200/60 flex items-center gap-2.5">
                 {section.icon && (
                   <span className="text-xl">{section.icon}</span>
                 )}

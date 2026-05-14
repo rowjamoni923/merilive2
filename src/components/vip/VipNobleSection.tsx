@@ -259,7 +259,7 @@ export default function VipNobleSection({ userId, userDiamonds, onAfterPurchase 
                     {card.monthly_free_diamonds > 0 && <Badge variant="outline" className="text-xs border-pink-400 text-pink-700"><Sparkles className="w-3 h-3 mr-1" />{card.monthly_free_diamonds}/mo</Badge>}
                   </div>
                   {card.entrance_animation_url && (
-                    <div className="w-16 h-16 bg-slate-950 rounded overflow-hidden">
+                    <div className="w-16 h-16 bg-amber-50 border border-amber-200/60 rounded overflow-hidden">
                       <UniversalAnimationPlayer
                         src={card.entrance_animation_url}
                         className="w-full h-full"

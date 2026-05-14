@@ -5,17 +5,17 @@ const PublicContact = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#1a1025] to-[#0d0a14] text-white">
+    <div className="min-h-screen bg-gradient-to-b from-[#FAF5EA] to-[#FFFBF2] text-white">
       {/* Header */}
       <div className="sticky top-0 z-50 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700">
         <div className="flex items-center h-14 px-4 gap-3">
           <button
             onClick={() => navigate(-1)}
-            className="p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors"
+            className="p-2 -ml-2 hover:bg-amber-50/70 rounded-full transition-colors"
           >
-            <ArrowLeft className="w-5 h-5 text-white" />
+            <ArrowLeft className="w-5 h-5 text-slate-800" />
           </button>
-          <h1 className="text-lg font-bold text-white">Contact Us</h1>
+          <h1 className="text-lg font-bold text-slate-800">Contact Us</h1>
         </div>
       </div>
 
@@ -30,7 +30,7 @@ const PublicContact = () => {
 
         {/* Contact Cards */}
         <div className="space-y-4">
-          <div className="bg-white/[0.06] backdrop-blur-sm rounded-2xl border border-white/[0.08] p-5 flex items-start gap-4">
+          <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-amber-200/60 p-5 flex items-start gap-4">
             <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center flex-shrink-0">
               <Mail className="w-5 h-5 text-purple-400" />
             </div>
@@ -46,7 +46,7 @@ const PublicContact = () => {
             </div>
           </div>
 
-          <div className="bg-white/[0.06] backdrop-blur-sm rounded-2xl border border-white/[0.08] p-5 flex items-start gap-4">
+          <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-amber-200/60 p-5 flex items-start gap-4">
             <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
               <MessageCircle className="w-5 h-5 text-emerald-400" />
             </div>
@@ -58,7 +58,7 @@ const PublicContact = () => {
             </div>
           </div>
 
-          <div className="bg-white/[0.06] backdrop-blur-sm rounded-2xl border border-white/[0.08] p-5 flex items-start gap-4">
+          <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-amber-200/60 p-5 flex items-start gap-4">
             <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center flex-shrink-0">
               <Globe className="w-5 h-5 text-blue-400" />
             </div>

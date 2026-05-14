@@ -50,7 +50,7 @@ const About = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-slate-800 overflow-x-hidden">
+    <div className="min-h-screen bg-[#FFFBF2] text-slate-800 overflow-x-hidden">
       {/* JSON-LD Structured Data */}
       <script
         type="application/ld+json"
@@ -119,7 +119,7 @@ const About = () => {
           >
             <Button
               size="lg"
-              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-slate-800 font-bold text-lg px-8 py-6 rounded-2xl shadow-lg shadow-green-500/30"
+              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-lg px-8 py-6 rounded-2xl shadow-lg shadow-green-500/30"
               onClick={() => openInApp(PLAY_STORE_URL)}
             >
               <Play className="w-5 h-5 mr-2" />
@@ -128,7 +128,7 @@ const About = () => {
             <Button
               size="lg"
               variant="outline"
-              className="border-amber-200/60 text-slate-800 hover:bg-white/10 font-bold text-lg px-8 py-6 rounded-2xl"
+              className="border-amber-200/60 text-white hover:bg-amber-50/70 font-bold text-lg px-8 py-6 rounded-2xl"
               onClick={() => openInApp(APK_DOWNLOAD_URL)}
             >
               <Download className="w-5 h-5 mr-2" />
@@ -159,7 +159,7 @@ const About = () => {
           {features.map((f, i) => (
             <motion.div
               key={f.title}
-              className="bg-white/5 border border-amber-200/60 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300 group"
+              className="bg-white/5 border border-amber-200/60 rounded-2xl p-6 hover:bg-amber-50/70 transition-all duration-300 group"
               initial="hidden" whileInView="visible" viewport={{ once: true }}
               variants={fadeUp} custom={i}
             >
@@ -214,7 +214,7 @@ const About = () => {
           >
             <Button
               size="lg"
-              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-slate-800 font-bold rounded-2xl px-8 py-6"
+              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold rounded-2xl px-8 py-6"
               onClick={() => openInApp(PLAY_STORE_URL)}
             >
               <Smartphone className="w-5 h-5 mr-2" />
@@ -291,7 +291,7 @@ const About = () => {
           >
             <Button
               size="lg"
-              className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-slate-800 font-bold rounded-2xl px-8 py-6"
+              className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold rounded-2xl px-8 py-6"
               onClick={() => openInApp('/policies')}
             >
               <Building2 className="w-5 h-5 mr-2" />
@@ -300,7 +300,7 @@ const About = () => {
             <Button
               size="lg"
               variant="outline"
-              className="border-amber-200/60 text-slate-800 hover:bg-white/10 font-bold rounded-2xl px-8 py-6"
+              className="border-amber-200/60 text-white hover:bg-amber-50/70 font-bold rounded-2xl px-8 py-6"
               onClick={() => openInApp(PLAY_STORE_URL)}
             >
               <ExternalLink className="w-5 h-5 mr-2" />
@@ -328,7 +328,7 @@ const About = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-slate-800 font-bold text-lg px-8 py-6 rounded-2xl shadow-lg shadow-green-500/30"
+                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-lg px-8 py-6 rounded-2xl shadow-lg shadow-green-500/30"
                 onClick={() => openInApp(PLAY_STORE_URL)}
               >
                 <Play className="w-5 h-5 mr-2" />
@@ -337,7 +337,7 @@ const About = () => {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-amber-200/60 text-slate-800 hover:bg-white/10 font-bold text-lg px-8 py-6 rounded-2xl"
+                className="border-amber-200/60 text-white hover:bg-amber-50/70 font-bold text-lg px-8 py-6 rounded-2xl"
                 onClick={() => openInApp(APK_DOWNLOAD_URL)}
               >
                 <Download className="w-5 h-5 mr-2" />

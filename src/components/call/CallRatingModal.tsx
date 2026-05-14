@@ -166,7 +166,7 @@ export function CallRatingModal({
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="bg-gradient-to-b from-gray-900 via-gray-900 to-gray-950 rounded-3xl p-6 w-full max-w-md border border-white/10 relative overflow-hidden"
+          className="bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF] rounded-3xl p-6 w-full max-w-md border border-amber-200/60 relative overflow-hidden"
         >
           {/* Background Effects */}
           <div className="absolute inset-0 pointer-events-none">
@@ -177,7 +177,7 @@ export function CallRatingModal({
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-white/50 hover:text-white z-10"
+            className="absolute top-4 right-4 text-slate-600 hover:text-slate-900 z-10"
           >
             <X className="w-5 h-5" />
           </button>
@@ -197,10 +197,10 @@ export function CallRatingModal({
                   className="inline-flex items-center gap-2 mb-3"
                 >
                   <Sparkles className="w-6 h-6 text-amber-400" />
-                  <h2 className="text-white text-2xl font-bold">Call Ended</h2>
+                  <h2 className="text-slate-800 text-2xl font-bold">Call Ended</h2>
                   <Sparkles className="w-6 h-6 text-amber-400" />
                 </motion.div>
-                <p className="text-white/60 text-sm">Great job! Here's your earnings summary</p>
+                <p className="text-slate-600 text-sm">Great job! Here's your earnings summary</p>
               </div>
               
               {/* User Avatar */}
@@ -215,8 +215,8 @@ export function CallRatingModal({
                 />
               </div>
               
-              <p className="text-center text-white/70 text-sm mb-4">
-                Call with <span className="text-white font-semibold">{remoteUserName}</span>
+              <p className="text-center text-slate-700 text-sm mb-4">
+                Call with <span className="text-slate-800 font-semibold">{remoteUserName}</span>
               </p>
               
               {/* Stats Cards */}
@@ -232,7 +232,7 @@ export function CallRatingModal({
                     <Clock className="w-4 h-4 text-blue-400" />
                     <span className="text-blue-200/80 text-xs">Duration</span>
                   </div>
-                  <p className="text-white text-xl font-bold">{formatDuration(duration)}</p>
+                  <p className="text-slate-800 text-xl font-bold">{formatDuration(duration)}</p>
                 </motion.div>
                 
                 {/* Total Beans */}
@@ -248,7 +248,7 @@ export function CallRatingModal({
                   </div>
                   <div className="flex items-center gap-2">
                     <BeansIcon size={28} />
-                    <p className="text-white text-xl font-bold">{formatNumber(earnings.totalBeans)}</p>
+                    <p className="text-slate-800 text-xl font-bold">{formatNumber(earnings.totalBeans)}</p>
                   </div>
                 </motion.div>
               </div>
@@ -258,9 +258,9 @@ export function CallRatingModal({
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.4 }}
-                className="bg-white/5 rounded-2xl p-4 border border-white/10 mb-6"
+                className="bg-white/5 rounded-2xl p-4 border border-amber-200/60 mb-6"
               >
-                <h4 className="text-white/60 text-xs font-medium mb-3 uppercase tracking-wider">Earnings Breakdown</h4>
+                <h4 className="text-slate-600 text-xs font-medium mb-3 uppercase tracking-wider">Earnings Breakdown</h4>
                 
                 <div className="space-y-3">
                   {/* Call Earnings */}
@@ -269,11 +269,11 @@ export function CallRatingModal({
                       <div className="p-2 rounded-lg bg-purple-500/20">
                         <Phone className="w-4 h-4 text-purple-400" />
                       </div>
-                      <span className="text-white/80 text-sm">Call Earnings</span>
+                      <span className="text-slate-700 text-sm">Call Earnings</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <BeansIcon size={20} />
-                      <span className="text-white font-bold">{formatNumber(earnings.callBeans)}</span>
+                      <span className="text-slate-800 font-bold">{formatNumber(earnings.callBeans)}</span>
                     </div>
                   </div>
                   
@@ -283,11 +283,11 @@ export function CallRatingModal({
                       <div className="p-2 rounded-lg bg-pink-500/20">
                         <Gift className="w-4 h-4 text-pink-400" />
                       </div>
-                      <span className="text-white/80 text-sm">Gifts Received</span>
+                      <span className="text-slate-700 text-sm">Gifts Received</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <BeansIcon size={20} />
-                      <span className="text-white font-bold">{formatNumber(earnings.giftBeans)}</span>
+                      <span className="text-slate-800 font-bold">{formatNumber(earnings.giftBeans)}</span>
                     </div>
                   </div>
                 </div>
@@ -312,10 +312,10 @@ export function CallRatingModal({
             >
               {/* Header */}
               <div className="text-center mb-6">
-                <h2 className="text-white text-xl font-bold mb-2">
+                <h2 className="text-slate-800 text-xl font-bold mb-2">
                   {isHost ? "Rate Your Caller" : "Call Ended"}
                 </h2>
-                <p className="text-white/60 text-sm">
+                <p className="text-slate-600 text-sm">
                   {formatDuration(duration)} | 
                   {isHost ? ` Earned: ${formatNumber(earnings.totalBeans)} beans` : ` Spent: ${coinsSpent} diamonds`}
                 </p>
@@ -332,13 +332,13 @@ export function CallRatingModal({
                   showGlow={true}
                   className="mb-3"
                 />
-                <h3 className="text-white font-semibold text-lg">{remoteUserName}</h3>
-                <p className="text-white/50 text-sm">{isHost ? "Caller" : "Host"}</p>
+                <h3 className="text-slate-800 font-semibold text-lg">{remoteUserName}</h3>
+                <p className="text-slate-600 text-sm">{isHost ? "Caller" : "Host"}</p>
               </div>
 
               {/* Rating Stars */}
               <div className="text-center mb-4">
-                <p className="text-white/70 text-sm mb-3">How was your experience?</p>
+                <p className="text-slate-700 text-sm mb-3">How was your experience?</p>
                 <div className="flex justify-center gap-2 mb-2">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <motion.button
@@ -364,7 +364,7 @@ export function CallRatingModal({
                   key={hoveredRating || rating}
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="text-white text-lg font-medium h-6"
+                  className="text-slate-800 text-lg font-medium h-6"
                 >
                   {ratingLabels[hoveredRating || rating]}
                 </motion.p>
@@ -376,7 +376,7 @@ export function CallRatingModal({
                   value={review}
                   onChange={(e) => setReview(e.target.value)}
                   placeholder="Write your feedback (optional)..."
-                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30 resize-none"
+                  className="bg-white/5 border-amber-200/60 text-slate-800 placeholder:text-slate-500 resize-none"
                   rows={3}
                 />
               </div>
@@ -386,7 +386,7 @@ export function CallRatingModal({
                 <Button
                   variant="outline"
                   onClick={onClose}
-                  className="flex-1 border-white/20 text-white hover:bg-white/10"
+                  className="flex-1 border-amber-300/60 text-white hover:bg-amber-50/70"
                 >
                   Skip
                 </Button>
@@ -411,9 +411,9 @@ export function CallRatingModal({
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
-                  className="mt-4 pt-4 border-t border-white/10"
+                  className="mt-4 pt-4 border-t border-amber-200/60"
                 >
-                  <p className="text-white/50 text-xs text-center mb-2">Quick Feedback</p>
+                  <p className="text-slate-600 text-xs text-center mb-2">Quick Feedback</p>
                   <div className="flex flex-wrap justify-center gap-2">
                     {rating >= 4 ? (
                       <>
@@ -443,7 +443,7 @@ function FeedbackTag({ label, onClick }: { label: string; onClick: (tag: string)
   return (
     <button
       onClick={() => onClick(label)}
-      className="px-3 py-1 rounded-full bg-white/10 text-white/70 text-xs hover:bg-white/20 transition-colors"
+      className="px-3 py-1 rounded-full bg-amber-50/70 text-slate-700 text-xs hover:bg-amber-50 transition-colors"
     >
       {label}
     </button>

@@ -67,12 +67,12 @@ export const CallConfirmModal = React.forwardRef<HTMLDivElement, CallConfirmModa
           exit={{ scale: 0.8, opacity: 0, y: 50 }}
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
           onClick={(e) => e.stopPropagation()}
-          className="w-full max-w-sm bg-gradient-to-b from-gray-900 via-gray-900 to-black rounded-3xl overflow-hidden border border-white/10 shadow-2xl"
+          className="w-full max-w-sm bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF] rounded-3xl overflow-hidden border border-amber-200/60 shadow-2xl"
         >
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all z-10"
+            className="absolute top-4 right-4 w-8 h-8 rounded-full bg-amber-50/70 flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-amber-50 transition-all z-10"
           >
             <X className="w-4 h-4" />
           </button>
@@ -104,7 +104,7 @@ export const CallConfirmModal = React.forwardRef<HTMLDivElement, CallConfirmModa
             </div>
 
             {/* Host Name */}
-            <h2 className="text-white text-xl font-bold text-center relative z-10">{hostName}</h2>
+            <h2 className="text-slate-800 text-xl font-bold text-center relative z-10">{hostName}</h2>
           </div>
 
           {/* Call Rate Section */}
@@ -117,10 +117,10 @@ export const CallConfirmModal = React.forwardRef<HTMLDivElement, CallConfirmModa
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/30">
-                    <Diamond className="w-6 h-6 text-white" />
+                    <Diamond className="w-6 h-6 text-slate-800" />
                   </div>
                   <div>
-                    <p className="text-white/60 text-xs">Per minute</p>
+                    <p className="text-slate-600 text-xs">Per minute</p>
                     <div className="flex items-center gap-1">
                       <motion.span 
                         className="text-2xl font-bold text-amber-400"
@@ -136,8 +136,8 @@ export const CallConfirmModal = React.forwardRef<HTMLDivElement, CallConfirmModa
                 </div>
                 
                 <div className="flex items-center gap-1.5 bg-black/30 px-3 py-1.5 rounded-full">
-                  <Clock className="w-4 h-4 text-white/60" />
-                  <span className="text-white/80 text-sm font-medium">/min</span>
+                  <Clock className="w-4 h-4 text-slate-600" />
+                  <span className="text-slate-700 text-sm font-medium">/min</span>
                 </div>
               </div>
             </motion.div>
@@ -152,7 +152,7 @@ export const CallConfirmModal = React.forwardRef<HTMLDivElement, CallConfirmModa
               disabled={loading || !rateConfigured}
               className={`w-full py-4 rounded-2xl font-bold text-lg transition-all flex items-center justify-center gap-3 ${
                 loading || !rateConfigured
-                  ? "bg-white/10 text-white/30 cursor-not-allowed"
+                  ? "bg-amber-50/70 text-slate-500 cursor-not-allowed"
                   : hasEnoughCoins 
                     ? "bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white shadow-lg shadow-pink-500/30"
                     : "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/30"
@@ -184,7 +184,7 @@ export const CallConfirmModal = React.forwardRef<HTMLDivElement, CallConfirmModa
 
             <button
               onClick={onClose}
-              className="w-full py-3 rounded-xl font-medium text-white/60 hover:text-white hover:bg-white/5 transition-all"
+              className="w-full py-3 rounded-xl font-medium text-slate-600 hover:text-slate-900 hover:bg-white/5 transition-all"
             >
               Cancel
             </button>

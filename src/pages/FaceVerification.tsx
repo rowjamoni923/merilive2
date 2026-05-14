@@ -1512,7 +1512,7 @@ const FaceVerification = () => {
     const borderColor = scanningStatus === 'pass' ? '#22c55e' : scanningStatus === 'fail' ? '#ef4444' : scanningStatus === 'scanning' ? '#eab308' : '#a855f7';
 
     return (
-    <div className="bg-gradient-to-br from-[#0f0a20] to-[#0a0615] rounded-3xl p-5 border border-purple-500/20 shadow-2xl">
+    <div className="bg-gradient-to-br from-[#FFFBF2] to-[#FFFBF2] rounded-3xl p-5 border border-purple-500/20 shadow-2xl">
       {/* Header */}
       <div className="flex items-center gap-3 mb-5">
         <div className="relative">
@@ -1542,7 +1542,7 @@ const FaceVerification = () => {
             <span>Liveness Check Progress</span>
             <span>{completedCount}/{faceInstructions.length} steps</span>
           </div>
-          <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+          <div className="h-2 bg-amber-50/70 rounded-full overflow-hidden">
             <motion.div 
               className="h-full bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 rounded-full"
               animate={{ width: `${progressPercent}%` }}
@@ -1555,7 +1555,7 @@ const FaceVerification = () => {
       {/* Video Container with Face Oval */}
       <div className="relative aspect-[3/4] w-full max-w-sm mx-auto rounded-3xl overflow-hidden bg-white/80 mb-5 shadow-2xl">
         {!faceStream && !faceVerified ? (
-          <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-br from-[#1a0a30] to-[#0a0615]">
+          <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-br from-[#FAF5EA] to-[#FFFBF2]">
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -1815,7 +1815,7 @@ const FaceVerification = () => {
           </Button>
           <Button
             variant="outline"
-            className="w-full border-amber-200/60 text-slate-800 hover:bg-white/10 rounded-xl"
+            className="w-full border-amber-200/60 text-white hover:bg-amber-50/70 rounded-xl"
             onClick={stopFaceCamera}
           >
             {localizedMsg.cancel}
@@ -1864,7 +1864,7 @@ const FaceVerification = () => {
     <div className="relative mb-6">
       <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 via-pink-500/10 to-transparent blur-3xl -z-10" />
       <div className="flex items-center gap-3 mb-2">
-        <Button size="icon" variant="ghost" className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-amber-200/60" onClick={() => navigate(-1)}>
+        <Button size="icon" variant="ghost" className="w-10 h-10 rounded-xl bg-amber-50/70 hover:bg-amber-50 backdrop-blur-sm border border-amber-200/60" onClick={() => navigate(-1)}>
           <ArrowLeft className="w-5 h-5 text-slate-800" />
         </Button>
         <div>
@@ -1877,7 +1877,7 @@ const FaceVerification = () => {
 
   if (verificationStatus === 'rejected') {
     return (
-      <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#0a0a1a] via-[#1a0a2e] to-[#0d0d1a] overflow-hidden"><div className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
+      <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2] overflow-hidden"><div className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
         {renderHeader("Face Verification", "Identity check required")}
         <div className="flex flex-col items-center justify-center mt-12">
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring" }}
@@ -1933,7 +1933,7 @@ const FaceVerification = () => {
   // Already submitted - pending review
   if (verificationStatus === 'submitted') {
     return (
-      <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#0a0a1a] via-[#1a0a2e] to-[#0d0d1a] overflow-hidden"><div className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
+      <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2] overflow-hidden"><div className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
         {renderHeader("Face Verification", "Identity check required")}
         <div className="flex flex-col items-center justify-center mt-12">
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring" }}
@@ -1954,7 +1954,7 @@ const FaceVerification = () => {
   // Already verified
   if (verificationStatus === 'verified') {
     return (
-      <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#0a0a1a] via-[#1a0a2e] to-[#0d0d1a] overflow-hidden"><div className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
+      <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2] overflow-hidden"><div className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
         {renderHeader("Face Verification", "Identity check required")}
         <div className="flex flex-col items-center justify-center mt-12">
           <motion.div
@@ -2023,7 +2023,7 @@ const FaceVerification = () => {
     const showUserFaceStep = !userPhotoStep;
 
     return (
-      <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#0a0a1a] via-[#1a0a2e] to-[#0d0d1a] overflow-hidden"><div className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
+      <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2] overflow-hidden"><div className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
         {renderHeader("Face Verification", "Verify your identity")}
 
         {/* Progress Steps - 3 steps */}
@@ -2033,10 +2033,10 @@ const FaceVerification = () => {
             const isDone = (step === 1 && userInfoDone) || (step === 2 && !userPhotoStep && userPhotoFile);
             return (
               <React.Fragment key={step}>
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${isDone ? 'bg-green-500 text-white' : isActive ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'bg-white/10 text-white/70'}`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${isDone ? 'bg-green-500 text-white' : isActive ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'bg-amber-50/70 text-slate-700'}`}>
                   {isDone ? <CheckCircle2 className="w-5 h-5" /> : step}
                 </div>
-                {step < 3 && <div className={`w-12 h-1 rounded-full ${isDone ? 'bg-gradient-to-r from-purple-500 to-pink-500' : 'bg-white/20'}`} />}
+                {step < 3 && <div className={`w-12 h-1 rounded-full ${isDone ? 'bg-gradient-to-r from-purple-500 to-pink-500' : 'bg-amber-50'}`} />}
               </React.Fragment>
             );
           })}
@@ -2137,7 +2137,7 @@ const FaceVerification = () => {
                 </div>
               ) : (
                 <div className="text-center py-8" onClick={() => userPhotoInputRef.current?.click()}>
-                  <div className="w-24 h-24 mx-auto rounded-full bg-white/10 flex items-center justify-center mb-4 cursor-pointer hover:bg-white/20 transition-colors">
+                  <div className="w-24 h-24 mx-auto rounded-full bg-amber-50/70 flex items-center justify-center mb-4 cursor-pointer hover:bg-amber-50 transition-colors">
                     <Upload className="w-10 h-10 text-purple-400" />
                   </div>
                   <p className="text-slate-800 font-medium mb-1">Tap to upload your photo</p>
@@ -2187,7 +2187,7 @@ const FaceVerification = () => {
 
   // Host verification (3-step process)
   return (
-    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#0a0a1a] via-[#1a0a2e] to-[#0d0d1a] overflow-hidden"><div className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
+    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#FFFBF2] overflow-hidden"><div className="flex-1 overflow-y-auto overscroll-contain p-4" style={{ WebkitOverflowScrolling: "touch", paddingBottom: "var(--content-bottom-padding)" }}>
       {renderHeader("Host Verification", "Get verified as a host")}
       
       {/* Progress Steps */}
@@ -2198,7 +2198,7 @@ const FaceVerification = () => {
               className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold shadow-lg ${
                 currentStep >= step 
                   ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' 
-                  : 'bg-white/10 text-white/70'
+                  : 'bg-amber-50/70 text-slate-700'
               }`}
               animate={currentStep === step ? { scale: [1, 1.05, 1] } : {}}
               transition={{ repeat: Infinity, duration: 2 }}
@@ -2207,7 +2207,7 @@ const FaceVerification = () => {
             </motion.div>
             {step < 3 && (
               <div className={`w-12 sm:w-20 h-1.5 mx-1 rounded-full ${
-                currentStep > step ? 'bg-gradient-to-r from-purple-500 to-pink-500' : 'bg-white/10'
+                currentStep > step ? 'bg-gradient-to-r from-purple-500 to-pink-500' : 'bg-amber-50/70'
               }`} />
             )}
           </div>
@@ -2232,7 +2232,7 @@ const FaceVerification = () => {
             {/* Profile Photo */}
             <div className="flex flex-col items-center mb-5">
               <div 
-                className="w-28 h-28 rounded-3xl bg-white/10 border-2 border-dashed border-purple-400/50 flex items-center justify-center cursor-pointer hover:bg-white/15 transition overflow-hidden shadow-lg"
+                className="w-28 h-28 rounded-3xl bg-amber-50/70 border-2 border-dashed border-purple-400/50 flex items-center justify-center cursor-pointer hover:bg-amber-50/70 transition overflow-hidden shadow-lg"
                 onClick={() => photoInputRef.current?.click()}
               >
                 {photoPreview ? (
@@ -2353,7 +2353,7 @@ const FaceVerification = () => {
                   </Button>
                   <Button
                     variant="outline"
-                    className="flex-1 border-amber-200/60 text-slate-800 hover:bg-white/10 h-12 rounded-xl"
+                    className="flex-1 border-amber-200/60 text-white hover:bg-amber-50/70 h-12 rounded-xl"
                     onClick={() => videoInputRef.current?.click()}
                   >
                     <Upload className="w-5 h-5 mr-2" />
@@ -2372,7 +2372,7 @@ const FaceVerification = () => {
               {videoPreview && (
                 <Button
                   variant="outline"
-                  className="w-full border-amber-200/60 text-slate-800 hover:bg-white/10 h-12 rounded-xl"
+                  className="w-full border-amber-200/60 text-white hover:bg-amber-50/70 h-12 rounded-xl"
                   onClick={() => {
                     setVideoPreview(null);
                     setVideoFile(null);
@@ -2405,7 +2405,7 @@ const FaceVerification = () => {
               {[0, 1, 2].map((index) => (
                 <div 
                   key={index}
-                  className="aspect-square rounded-2xl bg-white/10 border-2 border-dashed border-amber-200/60 flex items-center justify-center cursor-pointer hover:bg-white/15 transition overflow-hidden shadow-lg"
+                  className="aspect-square rounded-2xl bg-amber-50/70 border-2 border-dashed border-amber-200/60 flex items-center justify-center cursor-pointer hover:bg-amber-50/70 transition overflow-hidden shadow-lg"
                   onClick={() => hostPhotosInputRef.current?.click()}
                 >
                   {hostPhotosPreviews[index] ? (
@@ -2429,7 +2429,7 @@ const FaceVerification = () => {
           <div className="flex gap-3">
             <Button
               variant="outline"
-              className="flex-1 border-amber-200/60 text-slate-800 hover:bg-white/10 h-14 rounded-2xl"
+              className="flex-1 border-amber-200/60 text-white hover:bg-amber-50/70 h-14 rounded-2xl"
               onClick={() => setCurrentStep(1)}
             >
               Back
@@ -2456,7 +2456,7 @@ const FaceVerification = () => {
           {!faceVerified && (
             <Button
               variant="outline"
-              className="w-full border-amber-200/60 text-slate-800 hover:bg-white/10 h-12 rounded-xl"
+              className="w-full border-amber-200/60 text-white hover:bg-amber-50/70 h-12 rounded-xl"
               onClick={() => {
                 stopFaceCamera();
                 setCurrentStep(2);
@@ -2495,7 +2495,7 @@ const FaceVerification = () => {
                 This face is already registered with an account:
               </p>
               
-              <div className="p-3 rounded-xl bg-white/10 mb-4">
+              <div className="p-3 rounded-xl bg-amber-50/70 mb-4">
                 <p className="font-semibold text-slate-800">{existingAccount.displayName}</p>
                 {existingAccount.isDeleted && (
                   <Badge className="mt-2 bg-amber-500/20 text-amber-300 border-amber-500/30">
@@ -2523,7 +2523,7 @@ const FaceVerification = () => {
                 
                 <Button
                   variant="ghost"
-                  className="w-full text-slate-500 hover:text-slate-800 hover:bg-white/10"
+                  className="w-full text-slate-500 hover:text-white hover:bg-amber-50/70"
                   onClick={() => {
                     setShowExistingAccountModal(false);
                     setFaceVerified(false);

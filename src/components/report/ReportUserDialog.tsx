@@ -131,7 +131,7 @@ export const ReportUserDialog = forwardRef<HTMLDivElement, ReportUserDialogProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent ref={ref} className="bg-gradient-to-b from-[#1a0a2e]/98 via-[#0f0520]/98 to-[#0a0318]/98 backdrop-blur-3xl border border-white/[0.08] text-white max-w-[360px] rounded-2xl p-0 overflow-hidden shadow-2xl shadow-purple-900/40 [&>button]:hidden">
+      <DialogContent ref={ref} className="bg-gradient-to-b from-[#FAF5EA]/98 via-[#FFFBF2]/98 to-[#FFFBF2]/98 backdrop-blur-3xl border border-amber-200/60 text-white max-w-[360px] rounded-2xl p-0 overflow-hidden shadow-2xl shadow-purple-900/40 [&>button]:hidden">
         
         {/* Decorative top glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-[2px] bg-gradient-to-r from-transparent via-red-500/60 to-transparent" />
@@ -139,7 +139,7 @@ export const ReportUserDialog = forwardRef<HTMLDivElement, ReportUserDialogProps
         
         <div className="p-5 pt-6">
           <DialogHeader className="space-y-2 mb-5">
-            <DialogTitle className="text-white flex items-center gap-2.5 text-lg">
+            <DialogTitle className="text-slate-800 flex items-center gap-2.5 text-lg">
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-red-500/20 to-red-600/10 border border-red-500/30 flex items-center justify-center shadow-lg shadow-red-500/10">
                 <ShieldAlert className="w-5 h-5 text-red-400" />
               </div>
@@ -179,20 +179,20 @@ export const ReportUserDialog = forwardRef<HTMLDivElement, ReportUserDialogProps
                         exit={{ scale: 0, opacity: 0 }}
                         className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center shadow-md shadow-green-500/30"
                       >
-                        <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                        <CheckCircle2 className="w-3.5 h-3.5 text-slate-800" />
                       </motion.div>
                     )}
                   </AnimatePresence>
                   
                   <div className={cn(
                     "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all",
-                    isSelected ? "bg-white/[0.12]" : "bg-white/[0.06]"
+                    isSelected ? "bg-white/[0.12]" : "bg-white/70"
                   )}>
                     <Icon className={cn("w-4 h-4", cat.iconColor)} />
                   </div>
                   <span className={cn(
                     "font-medium text-xs leading-tight transition-colors",
-                    isSelected ? "text-white" : "text-slate-600"
+                    isSelected ? "text-slate-800" : "text-slate-600"
                   )}>
                     {cat.label}
                   </span>
@@ -205,7 +205,7 @@ export const ReportUserDialog = forwardRef<HTMLDivElement, ReportUserDialogProps
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Additional details (optional)..."
-            className="bg-white/[0.04] border-white/[0.08] text-white placeholder:text-slate-400 min-h-[80px] resize-none rounded-xl focus:border-purple-500/40 focus:ring-1 focus:ring-purple-500/20 transition-all mb-4 text-sm"
+            className="bg-white/70 border-amber-200/60 text-slate-800 placeholder:text-slate-400 min-h-[80px] resize-none rounded-xl focus:border-purple-500/40 focus:ring-1 focus:ring-purple-500/20 transition-all mb-4 text-sm"
           />
 
           <div className="space-y-2.5">
@@ -225,7 +225,7 @@ export const ReportUserDialog = forwardRef<HTMLDivElement, ReportUserDialogProps
             <Button
               variant="ghost"
               onClick={() => onOpenChange(false)}
-              className="w-full h-10 text-slate-500 hover:text-slate-700 hover:bg-white/[0.04] rounded-xl text-sm"
+              className="w-full h-10 text-slate-500 hover:text-slate-700 hover:bg-white/70 rounded-xl text-sm"
             >
               Cancel
             </Button>

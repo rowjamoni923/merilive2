@@ -228,7 +228,7 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
  
        {/* Phone Auth Dialog */}
        <Dialog open={showDialog} onOpenChange={closeDialog}>
-         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto bg-gradient-to-br from-gray-900 via-purple-900/50 to-gray-900 border-purple-500/30 rounded-3xl">
+         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto bg-gradient-to-br from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF] border-amber-200/70 rounded-3xl">
            
            {/* Step 1: Phone Number */}
            {step === "phone" && (
@@ -236,13 +236,13 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
                <DialogHeader>
                  <div className="flex justify-center mb-4">
                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
-                     <Phone className="w-8 h-8 text-white" />
+                     <Phone className="w-8 h-8 text-slate-800" />
                    </div>
                  </div>
-                 <DialogTitle className="text-white text-center text-xl">
+                 <DialogTitle className="text-slate-800 text-center text-xl">
                    Enter Phone Number
                  </DialogTitle>
-                 <DialogDescription className="text-white/60 text-center">
+                 <DialogDescription className="text-slate-600 text-center">
                    We'll send you a verification code
                  </DialogDescription>
                </DialogHeader>
@@ -252,18 +252,18 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
                    <div className="space-y-3">
                      {/* Search Input */}
                      <div className="relative">
-                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                        <Input
                          value={searchQuery}
                          onChange={(e) => setSearchQuery(e.target.value)}
                          placeholder="Search country..."
-                         className="pl-10 h-12 bg-white/10 border-white/20 text-white placeholder:text-white/40 rounded-xl"
+                         className="pl-10 h-12 bg-amber-50/70 border-amber-300/60 text-white placeholder:text-slate-500 rounded-xl"
                          autoFocus
                        />
                      </div>
                      
                      {/* Country List */}
-                     <ScrollArea className="h-48 rounded-xl border border-white/20 bg-white/5">
+                     <ScrollArea className="h-48 rounded-xl border border-amber-300/60 bg-white/5">
                        <div className="p-2 space-y-1">
                          {filteredCountries.map((country) => (
                            <button
@@ -276,18 +276,18 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
                              className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${
                                selectedCountry.code === country.code && selectedCountry.country === country.country
                                  ? 'bg-emerald-500/30 border border-emerald-400/50'
-                                 : 'hover:bg-white/10'
+                                 : 'hover:bg-amber-50/70'
                              }`}
                            >
                              <span className="text-2xl">{country.flag}</span>
                              <div className="flex-1 text-left">
-                               <span className="text-white font-medium text-sm">{country.name}</span>
+                               <span className="text-slate-800 font-medium text-sm">{country.name}</span>
                              </div>
-                             <span className="text-white/60 text-sm font-mono">{country.code}</span>
+                             <span className="text-slate-600 text-sm font-mono">{country.code}</span>
                            </button>
                          ))}
                          {filteredCountries.length === 0 && (
-                           <div className="text-center text-white/40 py-4">
+                           <div className="text-center text-slate-500 py-4">
                              No countries found
                            </div>
                          )}
@@ -297,7 +297,7 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
                      <Button
                        onClick={() => setShowCountryPicker(false)}
                        variant="outline"
-                       className="w-full h-10 border-white/20 text-white hover:bg-white/10"
+                       className="w-full h-10 border-amber-300/60 text-white hover:bg-amber-50/70"
                      >
                        Cancel
                      </Button>
@@ -308,11 +308,11 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
                      <div className="flex gap-2">
                        <button
                          onClick={() => setShowCountryPicker(true)}
-                         className="flex items-center gap-2 px-3 h-14 bg-white/10 border border-white/20 text-white rounded-xl hover:bg-white/15 transition-colors"
+                         className="flex items-center gap-2 px-3 h-14 bg-amber-50/70 border border-amber-300/60 text-white rounded-xl hover:bg-amber-50/70 transition-colors"
                        >
                          <span className="text-xl">{selectedCountry.flag}</span>
                          <span className="text-sm font-medium">{selectedCountry.code}</span>
-                         <ChevronDown className="w-4 h-4 text-white/50" />
+                         <ChevronDown className="w-4 h-4 text-slate-600" />
                        </button>
                        
                        <Input
@@ -320,7 +320,7 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
                          value={phoneNumber}
                          onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
                          placeholder="Phone number"
-                         className="flex-1 h-14 text-lg bg-white/10 border-white/20 text-white placeholder:text-white/40 rounded-xl"
+                         className="flex-1 h-14 text-lg bg-amber-50/70 border-amber-300/60 text-white placeholder:text-slate-500 rounded-xl"
                          autoFocus
                        />
                      </div>
@@ -349,10 +349,10 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
            {step === "gender" && (
              <>
                <DialogHeader>
-                 <DialogTitle className="text-white text-center text-xl">
+                 <DialogTitle className="text-slate-800 text-center text-xl">
                    Select Gender
                  </DialogTitle>
-                 <DialogDescription className="text-white/60 text-center">
+                 <DialogDescription className="text-slate-600 text-center">
                    Choose your gender to continue
                  </DialogDescription>
                </DialogHeader>
@@ -363,7 +363,7 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
                    className="flex-1 p-6 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border-2 border-blue-500/30 hover:border-blue-400 hover:bg-blue-500/30 transition-all flex flex-col items-center gap-3"
                  >
                    <span className="text-5xl">👨</span>
-                   <span className="text-white font-semibold">Male</span>
+                   <span className="text-slate-800 font-semibold">Male</span>
                  </button>
                  
                  <button
@@ -371,7 +371,7 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
                    className="flex-1 p-6 rounded-2xl bg-gradient-to-br from-pink-500/20 to-rose-500/20 border-2 border-pink-500/30 hover:border-pink-400 hover:bg-pink-500/30 transition-all flex flex-col items-center gap-3"
                  >
                    <span className="text-5xl">👩</span>
-                   <span className="text-white font-semibold">Female</span>
+                   <span className="text-slate-800 font-semibold">Female</span>
                  </button>
                </div>
              </>
@@ -381,10 +381,10 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
            {step === "name" && (
              <>
                <DialogHeader>
-                 <DialogTitle className="text-white text-center text-xl">
+                 <DialogTitle className="text-slate-800 text-center text-xl">
                    Your Name
                  </DialogTitle>
-                 <DialogDescription className="text-white/60 text-center">
+                 <DialogDescription className="text-slate-600 text-center">
                    This will be your display name
                  </DialogDescription>
                </DialogHeader>
@@ -394,7 +394,7 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
                    value={displayName}
                    onChange={(e) => setDisplayName(e.target.value)}
                    placeholder="Enter your name"
-                   className="h-14 text-lg bg-white/10 border-white/20 text-white placeholder:text-white/40 rounded-xl text-center"
+                   className="h-14 text-lg bg-amber-50/70 border-amber-300/60 text-white placeholder:text-slate-500 rounded-xl text-center"
                    autoFocus
                  />
                  
@@ -416,13 +416,13 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
                <DialogHeader>
                  <div className="flex justify-center mb-4">
                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
-                     <Check className="w-8 h-8 text-white" />
+                     <Check className="w-8 h-8 text-slate-800" />
                    </div>
                  </div>
-                 <DialogTitle className="text-white text-center text-xl">
+                 <DialogTitle className="text-slate-800 text-center text-xl">
                    Enter OTP Code
                  </DialogTitle>
-                 <DialogDescription className="text-white/60 text-center">
+                 <DialogDescription className="text-slate-600 text-center">
                    Enter the 6-digit code sent to{" "}
                    <span className="text-emerald-400 font-medium">{selectedCountry.code}{phoneNumber}</span>
                  </DialogDescription>
@@ -439,7 +439,7 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
                      }}
                      placeholder="000000"
                      maxLength={6}
-                     className="h-16 w-48 text-center text-3xl font-bold tracking-[0.5em] bg-white/10 border-white/20 text-white placeholder:text-white/30 rounded-xl"
+                     className="h-16 w-48 text-center text-3xl font-bold tracking-[0.5em] bg-amber-50/70 border-amber-300/60 text-white placeholder:text-slate-500 rounded-xl"
                      autoFocus
                    />
                  </div>
@@ -462,7 +462,7 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
                  <div className="text-center">
                    <button
                      onClick={() => setStep("phone")}
-                     className="text-white/50 text-sm hover:text-white transition-colors"
+                     className="text-slate-600 text-sm hover:text-slate-800 transition-colors"
                    >
                      Didn't receive code? <span className="text-emerald-400">Resend</span>
                    </button>

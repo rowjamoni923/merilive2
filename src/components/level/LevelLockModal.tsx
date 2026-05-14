@@ -45,7 +45,7 @@ export const LevelLockModal = ({
             exit={{ scale: 0.92, opacity: 0, y: 12 }}
             transition={{ type: "spring", damping: 22, stiffness: 280 }}
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-sm overflow-hidden rounded-[28px] border border-amber-400/30 bg-gradient-to-br from-[#1a1024] via-[#0f0a1f] to-[#1a1024] shadow-[0_30px_80px_-20px_rgba(251,191,36,0.35)]"
+            className="relative w-full max-w-sm overflow-hidden rounded-[28px] border border-amber-400/30 bg-gradient-to-br from-[#FAF5EA] via-[#FFFBF2] to-[#FAF5EA] shadow-[0_30px_80px_-20px_rgba(251,191,36,0.35)]"
           >
             {/* Ambient glow */}
             <div className="pointer-events-none absolute -top-24 left-1/2 h-48 w-48 -translate-x-1/2 rounded-full bg-amber-400/25 blur-3xl" />
@@ -69,16 +69,16 @@ export const LevelLockModal = ({
               <h3 className="bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200 bg-clip-text text-2xl font-bold tracking-tight text-transparent">
                 Level Required
               </h3>
-              <p className="mt-1.5 text-sm text-white/70">
-                Unlock <span className="font-semibold text-white">{featureName}</span> by leveling up
+              <p className="mt-1.5 text-sm text-slate-700">
+                Unlock <span className="font-semibold text-slate-800">{featureName}</span> by leveling up
               </p>
             </div>
 
             {/* Level cards */}
             <div className="relative mx-5 mb-5 grid grid-cols-2 gap-3">
-              <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-center backdrop-blur-sm">
-                <p className="text-[10px] font-medium uppercase tracking-wider text-white/50">Your {roleLabel} Level</p>
-                <p className="mt-1 text-2xl font-bold text-white">Lv {currentLevel}</p>
+              <div className="rounded-2xl border border-amber-200/60 bg-white/5 px-3 py-3 text-center backdrop-blur-sm">
+                <p className="text-[10px] font-medium uppercase tracking-wider text-slate-600">Your {roleLabel} Level</p>
+                <p className="mt-1 text-2xl font-bold text-slate-800">Lv {currentLevel}</p>
               </div>
               <div className="rounded-2xl border border-amber-400/40 bg-gradient-to-br from-amber-500/15 to-amber-600/5 px-3 py-3 text-center">
                 <p className="text-[10px] font-medium uppercase tracking-wider text-amber-300/80">Required</p>
@@ -89,7 +89,7 @@ export const LevelLockModal = ({
             </div>
 
             {levelsToGo > 0 && (
-              <p className="mb-4 px-6 text-center text-xs text-white/60">
+              <p className="mb-4 px-6 text-center text-xs text-slate-600">
                 Reach <span className="font-semibold text-amber-300">{levelsToGo} more level{levelsToGo > 1 ? "s" : ""}</span> to unlock this privilege
               </p>
             )}
@@ -99,7 +99,7 @@ export const LevelLockModal = ({
               <Button
                 variant="ghost"
                 onClick={onClose}
-                className="flex-1 h-12 rounded-2xl border border-white/15 bg-white/5 text-white hover:bg-white/10"
+                className="flex-1 h-12 rounded-2xl border border-amber-200/60 bg-white/5 text-white hover:bg-amber-50/70"
               >
                 Not Now
               </Button>

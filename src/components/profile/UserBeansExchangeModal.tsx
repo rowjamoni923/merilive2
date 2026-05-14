@@ -156,7 +156,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#0a0e1a] border border-amber-500/15 max-w-md mx-4 rounded-3xl p-0 overflow-hidden [&>button]:hidden shadow-[0_0_80px_-20px_rgba(245,158,11,0.15)]">
+      <DialogContent className="bg-[#FFFBF2] border border-amber-500/15 max-w-md mx-4 rounded-3xl p-0 overflow-hidden [&>button]:hidden shadow-[0_0_80px_-20px_rgba(245,158,11,0.15)]">
         <div className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-amber-600/20 via-yellow-500/10 to-amber-600/20" />
           <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
@@ -165,11 +165,11 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 flex items-center justify-center shadow-lg shadow-amber-500/30">
                 <ArrowDownUp className="w-4 h-4 text-black" />
               </div>
-              <h2 className="text-white font-bold text-lg tracking-tight">Beans → Diamonds</h2>
+              <h2 className="text-slate-800 font-bold text-lg tracking-tight">Beans → Diamonds</h2>
             </div>
             <button
               onClick={() => onOpenChange(false)}
-              className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 border border-amber-200/60 flex items-center justify-center transition-all"
+              className="w-8 h-8 rounded-full bg-white/5 hover:bg-amber-50/70 border border-amber-200/60 flex items-center justify-center transition-all"
             >
               <X className="w-4 h-4 text-slate-500" />
             </button>
@@ -279,13 +279,13 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
                       isSelected
                         ? 'border-cyan-400/60 bg-gradient-to-br from-cyan-500/15 to-blue-600/10 shadow-[0_0_30px_-8px_rgba(6,182,212,0.4)] scale-[1.02]'
                         : canAfford
-                          ? 'border-amber-200/60 bg-white/[0.02] hover:border-amber-500/30 hover:bg-amber-500/5'
-                          : 'border-amber-200/60 bg-white/[0.01] opacity-35 cursor-not-allowed'
+                          ? 'border-amber-200/60 bg-white/70 hover:border-amber-500/30 hover:bg-amber-500/5'
+                          : 'border-amber-200/60 bg-white/70 opacity-35 cursor-not-allowed'
                     }`}
                   >
                     {isSelected && (
                       <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-cyan-500 flex items-center justify-center shadow-lg shadow-cyan-500/50">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                        <CheckCircle2 className="w-3.5 h-3.5 text-slate-800" />
                       </div>
                     )}
 
@@ -298,7 +298,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
                         <span className="text-amber-400 font-bold text-base">{tierBeans.toLocaleString()}</span>
                       </div>
 
-                      <div className="text-white/20 text-[10px]">→</div>
+                      <div className="text-slate-400 text-[10px]">→</div>
 
                       <div className="flex items-center justify-center gap-1.5">
                         <Diamond3DIcon size={18} />
@@ -320,7 +320,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
             className={`w-full h-14 rounded-2xl text-base font-bold transition-all duration-300 border-0 ${
               isReady
                 ? 'bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 text-black shadow-[0_4px_30px_-5px_rgba(245,158,11,0.5)] hover:shadow-[0_4px_40px_-5px_rgba(245,158,11,0.7)]'
-                : 'bg-white/5 text-white/25 cursor-not-allowed'
+                : 'bg-white/5 text-slate-400 cursor-not-allowed'
             }`}
           >
             {processing ? (
