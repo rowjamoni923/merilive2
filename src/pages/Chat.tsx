@@ -2245,19 +2245,19 @@ const Chat = () => {
                             className={cn(
                               "rounded-2xl px-2.5 py-1.5 max-w-full text-[13px] leading-[1.35]",
                               isMine
-                                ? "bg-gradient-to-br from-fuchsia-600 via-purple-600 to-violet-700 text-white rounded-br-sm shadow-sm shadow-fuchsia-500/10"
-                                : "rounded-bl-sm text-white/90",
+                                ? "bg-gradient-to-br from-fuchsia-500 via-purple-500 to-violet-600 text-white rounded-br-sm shadow-md shadow-purple-500/20"
+                                : "rounded-bl-sm text-slate-800 shadow-sm",
                               msg._optimistic && "opacity-70"
                             )}
                             style={!isMine ? {
-                              background: 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 100%)',
-                              border: '1px solid rgba(255,255,255,0.08)',
+                              background: 'linear-gradient(135deg, #ffffff 0%, hsl(40 40% 99%) 100%)',
+                              border: '1px solid hsl(40 35% 88% / 0.7)',
                             } : undefined}
                           >
                             <span className="break-words">{content}</span>
                             <span className={cn(
                               "text-[9px] ml-1 float-right mt-1.5 flex items-center gap-0.5",
-                              isMine ? "text-white/75" : "text-white/85"
+                              isMine ? "text-white/85" : "text-slate-500"
                             )}>
                               {formatTime(msg.created_at)}
                               <MessageStatusIndicator 
