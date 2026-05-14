@@ -2004,10 +2004,10 @@ const Chat = () => {
         </header>
         
         {/* Messages */}
-        <div className="flex-1 min-h-0 px-3 py-3 space-y-3 overflow-y-auto overscroll-contain" style={{ background: 'linear-gradient(180deg, rgba(13,6,24,0.3) 0%, transparent 20%, transparent 80%, rgba(13,6,24,0.3) 100%)', WebkitOverflowScrolling: 'touch' }}>
+        <div className="flex-1 min-h-0 px-3 py-3 space-y-3 overflow-y-auto overscroll-contain" style={{ background: 'linear-gradient(180deg, hsl(40 40% 98% / 0.6) 0%, transparent 15%, transparent 85%, hsl(40 40% 98% / 0.6) 100%)', WebkitOverflowScrolling: 'touch' }}>
           {currentMessages.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-white/85">No messages yet. Say hello! 👋</p>
+              <p className="text-slate-500 font-medium">No messages yet. Say hello! 👋</p>
             </div>
           ) : (
             currentMessages.map((msg: any) => {
