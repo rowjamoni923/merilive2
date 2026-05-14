@@ -518,11 +518,7 @@ const Invitation = () => {
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="rounded-2xl p-4"
-            style={{
-              background: 'linear-gradient(135deg, rgba(147,51,234,0.2), rgba(79,70,229,0.15))',
-              border: '1px solid rgba(168,85,247,0.3)',
-            }}
+            className="rounded-2xl p-4 bg-gradient-to-br from-violet-50 via-white to-fuchsia-50 border border-violet-200/70 shadow-lg shadow-violet-900/5"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -530,13 +526,13 @@ const Invitation = () => {
                   #{myRank.rank}
                 </div>
                 <div>
-                  <p className="text-slate-800 font-bold text-sm">Your Rank</p>
-                  <p className="text-slate-600 text-xs">{myRank.total_invites} Invites</p>
+                  <p className="text-slate-900 font-bold text-sm">Your Rank</p>
+                  <p className="text-slate-500 text-xs">{myRank.total_invites} Invites</p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-amber-400 font-bold">+{myRank.beans_earned}</p>
-                <p className="text-slate-600 text-[10px]">Beans Earned</p>
+                <p className="text-amber-600 font-bold">+{myRank.beans_earned}</p>
+                <p className="text-slate-500 text-[10px]">Beans Earned</p>
               </div>
             </div>
           </motion.div>
