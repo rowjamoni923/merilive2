@@ -1,100 +1,85 @@
-# Admin Save Failures + Rating Reward Workflow — Phased Plan
+## Goal
 
-## Why a plan first
+Convert Home, Party (Discover), Reels, Profile — every visible section — to a clean **professional white/light theme** like Bigo, Tango, MICO. Zero invisible text, zero color clashes, zero missing fonts. Live stream / Party Room / Private Call screens remain dark (untouched, as agreed).
 
-You're describing 138+ admin pages where Save button fails ("RPC fail" / "save fail"), 7 specific named pages, missing Task Center tasks, and a brand-new Rating Reward proof verification flow. I checked the database: the unified "Admin session full access" RLS policy is already present on 277 tables — so the failures are NOT a single global RLS problem. They are page-specific issues (wrong column names, missing triggers, broken RPCs, schema drift, or wrong data shape on insert/update). 
+## Already shipped this session
 
-Touching 138 pages blindly will create more bugs than it fixes. I need to audit and fix in tight phases, each verified end-to-end before moving on.
+- Bottom Navigation: white surface, dark gap above nav permanently removed, pink active accent
+- Capacitor StatusBar: white bg + dark icons (professional native look), exits to white after live/call
 
----
+## Light theme color contract (single source of truth)
 
-## Phase 1 — Diagnose the 7 named failing pages (no code changes yet)
-
-For each page below I will:
-- Open the page, find every save / mutation call
-- Run the exact same insert/update against the DB to capture the real Postgres error
-- Confirm whether the failure is: (a) wrong column, (b) failing trigger, (c) missing RPC, (d) wrong RLS scope, (e) frontend payload shape
-
-Pages:
-1. AdminLevelPrivileges (Level progress)
-2. AdminCallSettings (Call price)
-3. AdminSupportTickets (Support ticket)
-4. AdminPartyRooms — message section (Party room message)
-5. AdminPartyRooms / AdminBanners — background section (Party room background)
-6. AdminRewardClaimsHistory (Reward claim history)
-7. AdminRatingRewards (Rating reward)
-
-Output: one root-cause line per page so you can see exactly what's wrong before I fix it.
-
-## Phase 2 — Fix the 7 pages
-
-Each fix is its own migration + frontend patch. After each: re-test the save in the actual admin UI (preview), confirm a row writes, confirm the audit log captures it. No "looks fine, moving on."
-
-## Phase 3 — Rating Reward — Task list parity with the main app
-
-Right now `AdminRatingRewards` does not show the same task list users see in the main app's Task Center. I will:
-- Locate the source of truth for the user-facing rating tasks (likely `tasks` / `daily_tasks` / `rating_tasks` table or an app_settings JSON)
-- Make the admin page read from the SAME source so every task the user sees is editable here
-- Add CRUD with proper admin RLS
-
-## Phase 4 — Rating Reward — Proof upload + instant verify workflow
-
-End-to-end flow:
+Add a reusable `.app-light-shell` CSS layer in `index.css` so every page uses the same tokens:
 
 ```text
-USER (main app)                  ADMIN (admin panel)
-─────────────────                ───────────────────
-Gives 5★ rating                  
-   │                             
-   ▼                             
-Uploads proof screenshot ───────►  Appears INSTANTLY in
-(stored in private bucket          AdminRatingRewards 
- rating-proofs/{userId}/...)       "Pending Verification" tab
-   │                                      │
-   ▼                                      ▼
-Status: pending                    Admin clicks proof → opens preview
-                                          │
-                          ┌───────────────┴───────────────┐
-                          ▼                               ▼
-                       APPROVE                         REJECT
-                          │                               │
-        Female host → +beans (admin-set)    Task removed from user's
-        Male user   → +diamonds (admin-set) Task Center permanently
-        Task marked completed +              (status=rejected, hidden
-        removed from Task Center forever      forever, no re-attempt)
-        (status=approved, hidden forever)
+Background base       #F7F8FA   (page)
+Surface card          #FFFFFF
+Elevated surface      #FFFFFF + shadow 0 6px 20px -8px rgba(15,23,42,0.10)
+Hairline border       rgba(15,23,42,0.06)
+Text primary          #0F172A   (slate-900)
+Text secondary        #475569   (slate-600)
+Text muted            #94A3B8   (slate-400)
+Brand primary         #EC4899 → #A855F7 gradient (pink → purple)
+Success               #10B981
+Warning               #F59E0B
+Danger                #EF4444
+Diamond accent        #3B82F6 (blue) with cyan glow
+Beans accent          #F59E0B (amber)
 ```
 
-What I'll build:
-- **DB:** `rating_reward_submissions` table (user_id, task_id, rating, proof_url, status enum pending/approved/rejected, reviewed_by, reviewed_at, payout_diamonds, payout_beans). Audit log via existing `balance_audit_log`.
-- **Storage:** private bucket `rating-proofs` with owner-scoped upload + admin read RLS.
-- **RPC:** `submit_rating_proof(p_task_id, p_rating, p_proof_url)` and `admin_review_rating_proof(p_submission_id, p_decision)` — atomic credit + task hide.
-- **Realtime:** insert into `rating_reward_submissions` triggers admin notification + the page's pending list updates instantly.
-- **Task Center filter:** any task with an approved OR rejected submission for that user is filtered out — never shown again.
-- **Admin UI:** Pending tab with image preview modal, Approve/Reject buttons, payout amount auto-shown from settings, audit history tab.
+Every text/icon will use one of these — no white-on-white, no dark-on-dark.
 
-## Phase 5 — Bulk audit of remaining ~131 admin pages
+## Execution order (one PR-sized batch per page)
 
-Only after Phases 1–4 are confirmed working. I will:
-- Script a static analysis: find every `.from(...).insert/.update/.upsert/.delete` and every `.rpc(...)` in `src/pages/admin/**`
-- For each, verify the target table/RPC exists, the columns/params match the current schema, and the page imports `adminClient` not the user `supabase` client
-- Produce a list of ALL pages with mismatches; fix in batches of ~10 with per-batch verification
-- Add a single shared `adminMutate()` helper that wraps insert/update with consistent error toasts that show the actual Postgres error message (not a generic "Failed to save") so future failures are diagnosable in 1 second instead of needing forensics
+### Batch A — Home (`src/pages/Index.tsx` + home sections)
+1. Audit every section: header, search, banner carousel, host feed cards, online dots, badges, gift bubbles, level chips, CTAs
+2. Replace dark wrappers (`bg-black`, `bg-zinc-900`, `text-white/...`) with the contract above
+3. Card recipe: white bg, subtle shadow, slate-900 name, slate-500 meta, gradient pill for status
+4. Sticky top bar: white blur + bottom hairline; status icons dark
+5. Verify: every label/number readable on white, no transparent text
 
-## What I need from you to start Phase 1 fastest
+### Batch B — Party / Discover (`src/pages/Discover.tsx` + party room list cards)
+1. Tab pills: white inactive, gradient-pink active, slate-700 labels
+2. Party room thumbnail cards: white surface, gradient ring on live indicator, room title slate-900, member count slate-500
+3. Filter chips, segmented controls, empty states all converted
+4. (Inside an actual live party room → still dark, untouched)
 
-If you have any of these, paste them — it cuts diagnosis time by 80%:
-- A screenshot of the red error toast on ANY failing page
-- The page URL where you clicked Save and it failed
-- Open browser DevTools → Network tab → click Save → screenshot the failed request (red row)
+### Batch C — Reels (`src/pages/Reels.tsx`)
+1. Reels feed itself remains dark (full-screen video needs dark) — like Instagram Reels
+2. BUT the surrounding chrome (top tabs "For You / Following", action sheets, comment sheet, share sheet, profile peek) → switch to light/white sheets with slate text
+3. Bottom comment input → white pill on white sheet
+4. Like/comment/share icons remain white over video, slate over light sheets
 
-If you don't have these, I'll start Phase 1 anyway by reproducing each of the 7 named pages in the preview and reading the real error from the network log.
+### Batch D — Profile (`src/pages/Profile.tsx` + sub-sections)
+1. Header: white bg, gradient pink-purple banner strip behind avatar (no full-dark banner)
+2. Stats row (Followers / Following / Visitors): white cards, slate numbers, gradient icons
+3. Wallet/Beans/Diamond chips: white card with colored accent (blue diamond, amber beans)
+4. Menu list (Settings, Wallet, VIP, Agency, Help): white rows, slate-900 label, slate-400 chevron, hairline divider
+5. Logout button: white card with red text (not red bg)
 
-## Out of scope (will not change in this plan)
+## Per-batch QA checklist (run on every page before moving on)
 
-- The financial commission system (Pkg23–Pkg34 logic stays exactly as-is)
-- Live streaming / WebRTC / native Android code
-- Combo gifting (just shipped in the previous turn)
-- Memory rules around admin session, RLS policies, and audit logging — all preserved
+- [ ] Every text element passes WCAG AA on its background
+- [ ] No element uses `text-white` on a now-white surface
+- [ ] No `bg-black` / `bg-zinc-900` / `bg-slate-900` left in the page tree
+- [ ] All gradients re-tuned for light context (no neon glow on white)
+- [ ] Icons have explicit color class (no inherited white)
+- [ ] Modals/sheets opened from this page also light
+- [ ] Loading skeletons use slate-200, not slate-800
 
-Reply "go" to start Phase 1, or paste the error/network screenshot and I'll jump straight to Phase 2 on whichever page you show.
+## What stays dark (do NOT touch)
+
+- Live stream room (`/live/:id`)
+- Party room interior (`/party/:id`)
+- Private call screen
+- Reels video player surface
+- Daily Reward popup (premium luxury — already polished)
+- Helper Dashboard L1-L4 (already polished obsidian-gold)
+- VIP / Noble screens (luxury intentional)
+- Admin panel
+
+## How we ship
+
+I'll do **one batch per turn**, post-batch I'll send you a screenshot grid so you can spot anything wrong before I move to the next. If you say "next" I continue; if you say "fix X" I patch then continue. This way nothing breaks silently across 4 pages in one shot.
+
+**Starting with Batch A (Home) right after you approve this plan.**
