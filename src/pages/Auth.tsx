@@ -2461,11 +2461,11 @@ const Auth = () => {
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-br from-pink-500 to-purple-600 rounded-full blur-lg opacity-60 animate-pulse" />
                   <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-violet-600 flex items-center justify-center shadow-lg shadow-purple-500/30 ring-2 ring-white/10">
- <Mail className="w-9 h-9 text-slate-900 drop-shadow-lg" />
+ <Mail className="w-9 h-9 text-white drop-shadow-lg" />
                   </div>
                 </div>
               </div>
- <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 bg-clip-text text-transparent">
+ <DialogTitle className="text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-pink-700 via-rose-600 to-pink-700 bg-clip-text text-transparent">
                 Enter Your Email
               </DialogTitle>
               <DialogDescription className="text-slate-600 text-center text-sm mt-1">
@@ -2727,7 +2727,7 @@ const Auth = () => {
             {/* Close button handled by DialogContent */}
 
             <DialogHeader className="relative z-10">
- <DialogTitle className="text-slate-900 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-indigo-100 to-white bg-clip-text text-transparent">Welcome Back</DialogTitle>
+ <DialogTitle className="text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-indigo-700 via-purple-600 to-indigo-700 bg-clip-text text-transparent">Welcome Back</DialogTitle>
               <DialogDescription className="text-slate-600 text-center text-sm mt-1">Login to your account</DialogDescription>
             </DialogHeader>
             
@@ -2779,11 +2779,11 @@ const Auth = () => {
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full blur-lg opacity-60 animate-pulse" />
                   <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-green-500 via-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-green-500/30 ring-2 ring-white/10">
- <Phone className="w-9 h-9 text-slate-900 drop-shadow-lg" />
+ <Phone className="w-9 h-9 text-white drop-shadow-lg" />
                   </div>
                 </div>
               </div>
- <DialogTitle className="text-slate-900 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-green-100 to-white bg-clip-text text-transparent">
+ <DialogTitle className="text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-emerald-700 via-green-600 to-emerald-700 bg-clip-text text-transparent">
                 Enter Phone Number
               </DialogTitle>
               <DialogDescription className="text-slate-600 text-center text-sm mt-1">
@@ -2811,9 +2811,9 @@ const Auth = () => {
 
                   {/* Country Dropdown */}
                   {showCountryPicker && (
- <div className="absolute top-full left-0 right-0 mt-2 bg-[#1a1a2e] border border-slate-200/10 rounded-2xl shadow-2xl shadow-black/50 z-50 max-h-64 overflow-hidden">
- <div className="p-2 border-b border-slate-200/10">
-                        <div className="flex items-center bg-white border border-amber-200/70 rounded-xl px-3">
+ <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl shadow-2xl shadow-slate-900/15 z-50 max-h-64 overflow-hidden">
+ <div className="p-2 border-b border-slate-200">
+                        <div className="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3">
                           <Search className="w-4 h-4 text-slate-500" />
                           <input
                             type="text"
@@ -2835,13 +2835,13 @@ const Auth = () => {
                               setShowCountryPicker(false);
                               setCountrySearch("");
                             }}
-                            className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-white/[0.08] transition-colors ${
-                              selectedCountryCode === country.code ? 'bg-green-500/10' : ''
+                            className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-emerald-50 transition-colors ${
+                              selectedCountryCode === country.code ? 'bg-emerald-100' : ''
                             }`}
                           >
                             <span className="text-xl">{country.flag}</span>
                             <span className="text-slate-700 text-sm flex-1 text-left">{country.name}</span>
-                            <span className="text-green-400/70 text-sm font-mono">{country.code}</span>
+                            <span className="text-emerald-700 text-sm font-mono">{country.code}</span>
                           </button>
                         ))}
                       </div>
@@ -2853,9 +2853,9 @@ const Auth = () => {
                 <div className="relative group">
                   <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-green-500/50 via-emerald-500/50 to-green-500/50 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
                   <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
- <div className="pl-4 pr-2 flex items-center gap-1.5 border-r border-slate-200/10">
+ <div className="pl-4 pr-2 flex items-center gap-1.5 border-r border-slate-200">
                       <span className="text-lg">{selectedCountry.flag}</span>
-                      <span className="text-green-400 font-semibold text-sm">{selectedCountryCode}</span>
+                      <span className="text-emerald-700 font-semibold text-sm">{selectedCountryCode}</span>
                     </div>
                     <Input
                       type="tel"
@@ -2873,10 +2873,10 @@ const Auth = () => {
               </div>
 
               {/* WhatsApp info badge */}
-              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-green-500/10 border border-green-500/20">
-                <MessageCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
-                <p className="text-green-300/80 text-xs">
-                  Verification code will be sent via <span className="font-bold text-green-300">WhatsApp</span>
+              <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200">
+                <MessageCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                <p className="text-emerald-800 text-xs">
+                  Verification code will be sent via <span className="font-bold text-emerald-900">WhatsApp</span>
                 </p>
               </div>
 
@@ -2898,9 +2898,9 @@ const Auth = () => {
               <div className="text-center pt-1">
                 <button
                   onClick={() => { setIsEmailFlow(true); setEmail(""); setAuthStep("email"); }}
-                  className="text-slate-500 text-sm hover:text-slate-700 transition-colors"
+                  className="text-slate-600 text-sm hover:text-slate-800 transition-colors"
                 >
-                  Use email instead? <span className="text-green-400 font-semibold hover:text-green-300">Email Sign Up</span>
+                  Use email instead? <span className="text-emerald-700 font-semibold hover:text-emerald-800">Email Sign Up</span>
                 </button>
               </div>
             </div>
@@ -2920,15 +2920,15 @@ const Auth = () => {
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-teal-600 rounded-full blur-lg opacity-50 animate-pulse" />
                   <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-green-500 via-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-green-500/30 ring-2 ring-white/10">
- <Lock className="w-9 h-9 text-slate-900 drop-shadow-lg" />
+ <Lock className="w-9 h-9 text-white drop-shadow-lg" />
                   </div>
                 </div>
               </div>
- <DialogTitle className="text-slate-900 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-green-100 to-white bg-clip-text text-transparent">
+ <DialogTitle className="text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-emerald-700 via-teal-600 to-emerald-700 bg-clip-text text-transparent">
                 WhatsApp Verification
               </DialogTitle>
               <DialogDescription className="text-slate-600 text-center text-sm mt-1">
-                6-digit code sent to <span className="text-green-400 font-medium">{selectedCountryCode} {phoneNumber}</span> via WhatsApp
+                6-digit code sent to <span className="text-emerald-700 font-semibold">{selectedCountryCode} {phoneNumber}</span> via WhatsApp
               </DialogDescription>
             </DialogHeader>
 
@@ -2967,11 +2967,11 @@ const Auth = () => {
               </Button>
 
               <div className="text-center space-y-2">
-                <p className="text-slate-500 text-sm">Didn't receive the code?</p>
+                <p className="text-slate-600 text-sm">Didn't receive the code?</p>
                 <button
                   onClick={handleResendPhoneOtp}
                   disabled={phoneOtpLoading}
-                  className="text-green-400 text-sm font-semibold hover:text-green-300 transition-all disabled:opacity-40 hover:underline underline-offset-4"
+                  className="text-emerald-700 text-sm font-semibold hover:text-emerald-800 transition-all disabled:opacity-40 hover:underline underline-offset-4"
                 >
                   Resend WhatsApp Code
                 </button>
@@ -2993,11 +2993,11 @@ const Auth = () => {
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full blur-lg opacity-50 animate-pulse" />
                   <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-green-500 via-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-green-500/30 ring-2 ring-white/10">
- <User className="w-9 h-9 text-slate-900 drop-shadow-lg" />
+ <User className="w-9 h-9 text-white drop-shadow-lg" />
                   </div>
                 </div>
               </div>
- <DialogTitle className="text-slate-900 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-green-100 to-white bg-clip-text text-transparent">Complete Your Profile</DialogTitle>
+ <DialogTitle className="text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-emerald-700 via-green-600 to-emerald-700 bg-clip-text text-transparent">Complete Your Profile</DialogTitle>
               <DialogDescription className="text-slate-600 text-center text-sm mt-1">Set your name and password</DialogDescription>
             </DialogHeader>
 
