@@ -1197,12 +1197,12 @@ const ProfileDetail = () => {
               <div className="w-7 h-7 rounded-full bg-purple-500/15 flex items-center justify-center flex-shrink-0">
                 <MapPin className="w-3.5 h-3.5 text-purple-600" />
               </div>
-              <Badge className="gap-1 bg-emerald-500/15 text-emerald-300 border border-emerald-500/20 px-2.5 py-1 text-[10px]">
+              <Badge className="gap-1 bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-1 text-[10px]">
                 <span>{profile.country_flag || "🌍"}</span>
                 {profile.country_name || ""}
               </Badge>
               {!profile.hide_location && (profile.city || profile.region) && (
-                <Badge className="gap-1 bg-purple-500/15 text-purple-300 border border-purple-500/20 px-2.5 py-1 text-[10px]">
+                <Badge className="gap-1 bg-purple-50 text-purple-700 border border-purple-100 px-2.5 py-1 text-[10px]">
                   <MapPin className="w-3 h-3" />
                   {profile.city || profile.region}
                 </Badge>
@@ -1211,15 +1211,15 @@ const ProfileDetail = () => {
 
             {/* Language Row */}
             <div className="flex items-center gap-2 flex-wrap">
-              <div className="w-7 h-7 rounded-full bg-blue-500/15 flex items-center justify-center flex-shrink-0">
-                <Globe className="w-3.5 h-3.5 text-blue-400" />
+              <div className="w-7 h-7 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center flex-shrink-0">
+                <Globe className="w-3.5 h-3.5 text-blue-600" />
               </div>
               {profile.country_name && (
-              <Badge className="gap-1 bg-amber-500/15 text-amber-300 border border-amber-500/20 px-2.5 py-1 text-[10px]">
+              <Badge className="gap-1 bg-amber-50 text-amber-700 border border-amber-100 px-2.5 py-1 text-[10px]">
                 {profile.country_flag || "🌍"} {profile.country_name}
               </Badge>
               )}
-              <Badge className="gap-1 bg-pink-500/10 text-pink-300 border border-pink-500/20 px-2.5 py-1 text-[10px]">
+              <Badge className="gap-1 bg-pink-50 text-pink-600 border border-pink-100 px-2.5 py-1 text-[10px]">
                 <Heart className="w-3 h-3 fill-current" />
                 Seeking chat friends
               </Badge>
