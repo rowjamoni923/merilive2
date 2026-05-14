@@ -657,7 +657,7 @@ const Index = () => {
             {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
-                className="aspect-[3/4] rounded-2xl bg-white/5 animate-pulse border border-white/[0.04]"
+                className="aspect-[3/4] rounded-2xl bg-slate-200 animate-pulse border border-slate-200"
               />
             ))}
           </div>
@@ -665,16 +665,16 @@ const Index = () => {
           <div className="flex flex-col items-center justify-center py-12 px-6 min-h-[60vh]">
             {/* Text content only - no icons */}
             <div className="text-center relative z-10">
-              <h3 className="text-lg font-semibold text-white mb-2">
+              <h3 className="text-lg font-bold text-slate-900 mb-2">
                 {subTab === "live" ? "No Live Streams" : "No Hosts Available"}
               </h3>
-              <p className="text-sm text-white/60 max-w-[200px]">
+              <p className="text-sm text-slate-500 max-w-[220px]">
                 {getEmptyMessage()}
               </p>
             </div>
-            
+
             {/* Refresh hint */}
-            <p className="mt-4 text-xs text-white/40">
+            <p className="mt-4 text-xs text-slate-400">
               Pull down to refresh
             </p>
           </div>
