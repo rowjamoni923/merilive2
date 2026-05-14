@@ -391,11 +391,11 @@ const Index = () => {
     const isActuallyBusy = user.actuallyBusy ?? !!user.is_in_call;
 
     const getBorderGlow = () => {
-      if (user.isLive) return "shadow-[0_0_12px_rgba(239,68,68,0.4)] border-red-500/40";
-      if (displayLevel >= 40) return "shadow-[0_0_12px_rgba(251,191,36,0.35)] border-amber-400/30";
-      if (displayLevel >= 20) return "shadow-[0_0_10px_rgba(168,85,247,0.3)] border-purple-500/25";
-      if (displayLevel >= 10) return "shadow-[0_0_8px_rgba(59,130,246,0.25)] border-blue-500/20";
-      return "border-white/[0.06]";
+      if (user.isLive) return "shadow-[0_4px_18px_-4px_rgba(239,68,68,0.45)] border-red-300";
+      if (displayLevel >= 40) return "shadow-[0_4px_18px_-6px_rgba(245,158,11,0.40)] border-amber-200";
+      if (displayLevel >= 20) return "shadow-[0_4px_18px_-6px_rgba(168,85,247,0.32)] border-purple-200";
+      if (displayLevel >= 10) return "shadow-[0_4px_18px_-6px_rgba(59,130,246,0.28)] border-blue-200";
+      return "border-slate-200 shadow-[0_4px_14px_-8px_rgba(15,23,42,0.18)]";
     };
 
     
@@ -404,7 +404,7 @@ const Index = () => {
         onClick={() => handleUserClick(user.id, user.isLive || false, user.liveStreamId)}
         className={cn(
           "relative overflow-hidden rounded-2xl cursor-pointer group active:scale-[0.97]",
-          "bg-card/60 border",
+          "bg-white border",
           getBorderGlow()
         )}
         style={{ contain: 'layout style paint' }}
