@@ -793,8 +793,8 @@ const Tasks = () => {
         {tasks.length === 0 && !isEligibleForBonus && (
           <div className="text-center py-12">
             <Star className="w-16 h-16 text-amber-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-muted-foreground">No Tasks Available</h3>
-            <p className="text-sm text-muted-foreground/70">New tasks coming soon</p>
+            <h3 className="text-lg font-semibold text-slate-700">No Tasks Available</h3>
+            <p className="text-sm text-slate-500">New tasks coming soon</p>
           </div>
         )}
       </div>
