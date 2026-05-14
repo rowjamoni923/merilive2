@@ -214,7 +214,7 @@ const DailyLoginPopup = () => {
                     Daily Reward
                   </span>
                 </h2>
-                <p className="mt-1 text-[11px] text-slate-400 tracking-wider">
+                <p className="mt-1 text-[11px] text-slate-600 tracking-wider">
                   Sign in every day to climb the streak
                 </p>
 
@@ -238,7 +238,7 @@ const DailyLoginPopup = () => {
                       border: "1px solid rgba(249,115,22,0.35)",
                     }}
                   >
-                    <Flame className="w-3 h-3 text-orange-300" />
+                    <Flame className="w-3 h-3 text-orange-600" />
                     {streak.current_streak} STREAK
                   </span>
                 </div>
@@ -297,7 +297,7 @@ const DailyLoginPopup = () => {
                             ? "text-amber-200"
                             : isClaimed
                             ? "text-emerald-300/70"
-                            : "text-slate-400"
+                            : "text-slate-600"
                         )}
                       >
                         D{day.day_number}
@@ -340,7 +340,7 @@ const DailyLoginPopup = () => {
                             ? "text-amber-100"
                             : isClaimed
                             ? "text-emerald-200/70"
-                            : "text-slate-400"
+                            : "text-slate-600"
                         )}
                       >
                         {day.reward_coins}
@@ -405,7 +405,7 @@ const DailyLoginPopup = () => {
                               boxShadow: "inset 0 1px 0 rgba(255,255,255,0.10)",
                             }}
                           >
-                            <Gem className="w-4 h-4 text-cyan-300" />
+                            <Gem className="w-4 h-4 text-cyan-600" />
                             <span className="text-lg font-black text-cyan-200 tabular-nums">
                               +{todayReward.reward_diamonds}
                             </span>

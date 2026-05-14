@@ -1149,7 +1149,7 @@ const HelperDashboard = () => {
                   <span className="text-[20px]">💎</span>
                 </p>
                 {agencyDiamondBalance > 0 && (
-                  <p className="text-slate-400 text-[10px] mt-1.5 leading-tight">
+                  <p className="text-slate-600 text-[10px] mt-1.5 leading-tight">
                     Helper{" "}
                     <span className="text-amber-700/80 font-semibold tabular-nums">
                       {(helperData?.wallet_balance || 0).toLocaleString()}
@@ -1545,7 +1545,7 @@ const HelperDashboard = () => {
                               </span>
                               {selectedDiamondPackage === pkg.diamonds && (
                                 <div className="mt-1 flex justify-end">
-                                  <CheckCircle className="w-4 h-4 text-cyan-400" />
+                                  <CheckCircle className="w-4 h-4 text-cyan-700" />
                                 </div>
                               )}
                             </div>
@@ -1594,7 +1594,7 @@ const HelperDashboard = () => {
                         </div>
                       )}
                       {customDiamondAmount && parseInt(customDiamondAmount.replace(/,/g, '')) < 500000 && (
-                        <p className="text-red-400 text-xs text-center">
+                        <p className="text-red-700 text-xs text-center">
                           ⚠️ Minimum 5 Lakh (500,000) diamonds required
                         </p>
                       )}
@@ -1737,7 +1737,7 @@ const HelperDashboard = () => {
 
                 <div>
                   <Label className="text-slate-800 text-sm">
-                    Transaction ID <span className="text-red-400">*</span>
+                    Transaction ID <span className="text-red-700">*</span>
                   </Label>
                   <Input
                     placeholder="Enter transaction ID (Required)"
@@ -1749,13 +1749,13 @@ const HelperDashboard = () => {
                     )}
                   />
                   {!topupTransactionId.trim() && topupAmount && (
-                    <p className="text-red-400 text-xs mt-1">Transaction ID is required</p>
+                    <p className="text-red-700 text-xs mt-1">Transaction ID is required</p>
                   )}
                 </div>
 
                 <div>
                   <Label className="text-slate-800 text-sm">
-                    Payment Screenshot <span className="text-red-400">*</span>
+                    Payment Screenshot <span className="text-red-700">*</span>
                   </Label>
                   <div className="mt-1">
                     <input
@@ -1780,7 +1780,7 @@ const HelperDashboard = () => {
                       </span>
                     </label>
                     {!topupProof && topupAmount && (
-                      <p className="text-red-400 text-xs mt-1">Payment screenshot is required</p>
+                      <p className="text-red-700 text-xs mt-1">Payment screenshot is required</p>
                     )}
                   </div>
                 </div>
@@ -1909,7 +1909,7 @@ const HelperDashboard = () => {
                   <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-slate-200">
                     <div>
                       <p className="text-slate-500 text-xs">Commission</p>
-                      <p className="text-cyan-400 font-bold">{level.commission_rate || 0}%</p>
+                      <p className="text-cyan-700 font-bold">{level.commission_rate || 0}%</p>
                     </div>
                     <div>
                       <p className="text-slate-500 text-xs">Withdrawal Limits</p>
@@ -1999,8 +1999,8 @@ const HelperDashboard = () => {
                       {/* Rejected */}
                       {helperData?.payroll_status === 'rejected' && !helperData?.payroll_enabled && (
                         <div className="mt-3 space-y-2">
-                          <div className="p-2 rounded-lg bg-red-500/20 border border-red-500/30 flex items-center gap-2">
-                            <span className="text-red-400 text-xs">❌ Application rejected. You can apply again.</span>
+                          <div className="p-2 rounded-lg bg-red-100 border border-red-500/30 flex items-center gap-2">
+                            <span className="text-red-700 text-xs">❌ Application rejected. You can apply again.</span>
                           </div>
                           <Button 
                             onClick={() => setShowPayrollModal(true)}
@@ -2560,7 +2560,7 @@ const HelperDashboard = () => {
         <DialogContent className="bg-white border-slate-200 max-w-md max-h-[80vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="text-slate-800 flex items-center gap-2">
-              <History className="w-5 h-5 text-cyan-400" />
+              <History className="w-5 h-5 text-cyan-700" />
               Transfer History
             </DialogTitle>
           </DialogHeader>
@@ -2607,7 +2607,7 @@ const HelperDashboard = () => {
                           className={cn(
                             "text-[10px] px-1.5 py-0",
                             transfer.sender_type === 'trader_to_user' 
-                              ? "bg-cyan-500/20 text-cyan-300"
+                              ? "bg-cyan-100 text-cyan-600"
                               : "bg-purple-100 text-purple-300"
                           )}
                         >
