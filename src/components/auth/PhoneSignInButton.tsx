@@ -228,16 +228,16 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
  
        {/* Phone Auth Dialog */}
        <Dialog open={showDialog} onOpenChange={closeDialog}>
-         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto bg-gradient-to-br from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF] border-amber-200/70 rounded-3xl">
+         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto bg-gradient-to-br from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF] border border-amber-200/70 rounded-3xl shadow-2xl shadow-amber-900/10">
            
            {/* Step 1: Phone Number */}
            {step === "phone" && (
              <>
                <DialogHeader>
                  <div className="flex justify-center mb-4">
-                   <div className="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
-                     <Phone className="w-8 h-8 text-slate-800" />
-                   </div>
+                     <div className="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                       <Phone className="w-8 h-8 text-white" />
+                     </div>
                  </div>
                  <DialogTitle className="text-slate-800 text-center text-xl">
                    Enter Phone Number
@@ -263,7 +263,7 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
                      </div>
                      
                      {/* Country List */}
-                     <ScrollArea className="h-48 rounded-xl border border-amber-300/60 bg-white/5">
+                     <ScrollArea className="h-48 rounded-xl border border-amber-200 bg-white/80">
                        <div className="p-2 space-y-1">
                          {filteredCountries.map((country) => (
                            <button
@@ -273,11 +273,11 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
                                setShowCountryPicker(false);
                                setSearchQuery("");
                              }}
-                             className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${
-                               selectedCountry.code === country.code && selectedCountry.country === country.country
-                                 ? 'bg-emerald-500/30 border border-emerald-400/50'
-                                 : 'hover:bg-amber-50/70'
-                             }`}
+                              className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${
+                                selectedCountry.code === country.code && selectedCountry.country === country.country
+                                  ? 'bg-emerald-100 border border-emerald-300'
+                                  : 'hover:bg-amber-50/70'
+                              }`}
                            >
                              <span className="text-2xl">{country.flag}</span>
                              <div className="flex-1 text-left">
@@ -357,23 +357,23 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
                  </DialogDescription>
                </DialogHeader>
                
-               <div className="flex gap-4 py-6">
-                 <button
-                   onClick={() => handleGenderSelect("male")}
-                   className="flex-1 p-6 rounded-2xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border-2 border-blue-500/30 hover:border-blue-400 hover:bg-blue-500/30 transition-all flex flex-col items-center gap-3"
-                 >
-                   <span className="text-5xl">👨</span>
-                   <span className="text-slate-800 font-semibold">Male</span>
-                 </button>
-                 
-                 <button
-                   onClick={() => handleGenderSelect("female")}
-                   className="flex-1 p-6 rounded-2xl bg-gradient-to-br from-pink-500/20 to-rose-500/20 border-2 border-pink-500/30 hover:border-pink-400 hover:bg-pink-500/30 transition-all flex flex-col items-center gap-3"
-                 >
-                   <span className="text-5xl">👩</span>
-                   <span className="text-slate-800 font-semibold">Female</span>
-                 </button>
-               </div>
+                 <div className="flex gap-4 py-6">
+                   <button
+                     onClick={() => handleGenderSelect("male")}
+                     className="flex-1 p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-cyan-50 border-2 border-blue-200 hover:border-blue-400 hover:from-blue-100 hover:to-cyan-100 transition-all flex flex-col items-center gap-3 shadow-sm hover:shadow-md"
+                   >
+                     <span className="text-5xl">👨</span>
+                     <span className="text-slate-900 font-semibold">Male</span>
+                   </button>
+
+                   <button
+                     onClick={() => handleGenderSelect("female")}
+                     className="flex-1 p-6 rounded-2xl bg-gradient-to-br from-pink-50 to-rose-50 border-2 border-pink-200 hover:border-pink-400 hover:from-pink-100 hover:to-rose-100 transition-all flex flex-col items-center gap-3 shadow-sm hover:shadow-md"
+                   >
+                     <span className="text-5xl">👩</span>
+                     <span className="text-slate-900 font-semibold">Female</span>
+                   </button>
+                 </div>
              </>
            )}
  
@@ -424,7 +424,7 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
                  </DialogTitle>
                  <DialogDescription className="text-slate-600 text-center">
                    Enter the 6-digit code sent to{" "}
-                   <span className="text-emerald-400 font-medium">{selectedCountry.code}{phoneNumber}</span>
+                   <span className="text-emerald-600 font-medium">{selectedCountry.code}{phoneNumber}</span>
                  </DialogDescription>
                </DialogHeader>
                
@@ -464,7 +464,7 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
                      onClick={() => setStep("phone")}
                      className="text-slate-600 text-sm hover:text-slate-800 transition-colors"
                    >
-                     Didn't receive code? <span className="text-emerald-400">Resend</span>
+                     Didn't receive code? <span className="text-emerald-600 font-semibold">Resend</span>
                    </button>
                  </div>
                </div>
