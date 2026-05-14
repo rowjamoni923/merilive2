@@ -327,7 +327,7 @@ const Discover = () => {
   };
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-background overflow-y-auto overflow-x-hidden">
+    <div className="fixed inset-0 flex flex-col bg-[#F7F8FA] overflow-y-auto overflow-x-hidden">
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 pb-5">
         <header className="safe-area-top">
@@ -376,19 +376,19 @@ const Discover = () => {
       {/* Tabs */}
       <div className="px-3 mb-3 -mt-3 pt-3">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full bg-card/80 backdrop-blur-sm rounded-full p-0.5 shadow-sm border border-border h-9">
-            <TabsTrigger value="all" className="flex-1 rounded-full h-8 text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white">
+          <TabsList className="w-full bg-slate-100 rounded-full p-0.5 border border-slate-200 h-9">
+            <TabsTrigger value="all" className="flex-1 rounded-full h-8 text-xs text-slate-500 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white">
               All
             </TabsTrigger>
-            <TabsTrigger value="video" className="flex-1 rounded-full h-8 text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white">
+            <TabsTrigger value="video" className="flex-1 rounded-full h-8 text-xs text-slate-500 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white">
               <Monitor className="w-3 h-3 mr-1" />
               Video
             </TabsTrigger>
-            <TabsTrigger value="audio" className="flex-1 rounded-full h-8 text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white">
+            <TabsTrigger value="audio" className="flex-1 rounded-full h-8 text-xs text-slate-500 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white">
               <Mic className="w-3 h-3 mr-1" />
               Audio
             </TabsTrigger>
-            <TabsTrigger value="game" className="flex-1 rounded-full h-8 text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-rose-500 data-[state=active]:text-white">
+            <TabsTrigger value="game" className="flex-1 rounded-full h-8 text-xs text-slate-500 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-rose-500 data-[state=active]:text-white">
               <Gamepad2 className="w-3 h-3 mr-1" />
               Game
             </TabsTrigger>
@@ -402,10 +402,10 @@ const Discover = () => {
               key={country.code}
               onClick={() => setSelectedCountry(country.code)}
               className={cn(
-                "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap shrink-0",
+                "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all whitespace-nowrap shrink-0 border",
                 selectedCountry === country.code
-                  ? "bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-lg"
-                  : "bg-white/10 text-muted-foreground hover:bg-white/20 hover:text-foreground"
+                  ? "bg-gradient-to-r from-pink-500 to-purple-500 text-white border-transparent shadow-md shadow-pink-500/20"
+                  : "bg-white text-slate-700 border-slate-200 hover:border-slate-300"
               )}
             >
               <span className="text-sm">{country.flag}</span>
@@ -418,12 +418,12 @@ const Discover = () => {
       {/* Scrollable Room List */}
       <NativePullToRefresh onRefresh={async () => { await fetchRooms(false); }} className="flex-1">
       <main className="h-full overflow-y-auto overscroll-contain px-3" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
-        <div className="flex items-center justify-between mb-2 sticky top-0 bg-background/95 backdrop-blur-sm py-2 -mx-3 px-3 z-10">
-          <h2 className="font-semibold text-sm text-foreground flex items-center gap-1.5">
+        <div className="flex items-center justify-between mb-2 sticky top-0 bg-[#F7F8FA]/95 backdrop-blur-sm py-2 -mx-3 px-3 z-10">
+          <h2 className="font-semibold text-sm text-slate-900 flex items-center gap-1.5">
             <Sparkles className="w-4 h-4 text-amber-500" />
             Active Rooms
           </h2>
-          <span className="text-xs text-muted-foreground">{filteredRooms.length} rooms</span>
+          <span className="text-xs text-slate-500">{filteredRooms.length} rooms</span>
         </div>
         
         {loading ? (
@@ -432,17 +432,17 @@ const Discover = () => {
           </div>
         ) : filteredRooms.length === 0 ? (
           <div 
-            className="flex flex-col items-center justify-center py-16 bg-gradient-to-b from-card to-background rounded-2xl shadow-sm border border-border min-h-[50vh]"
+            className="flex flex-col items-center justify-center py-16 bg-white rounded-2xl shadow-sm border border-slate-200 min-h-[50vh]"
           >
             {/* Static Icon */}
             <div className="relative mb-6">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-blue-500/20 flex items-center justify-center border border-white/10">
-                <Gamepad2 className="w-10 h-10 text-purple-400" />
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-100 via-pink-100 to-blue-100 flex items-center justify-center border border-slate-200">
+                <Gamepad2 className="w-10 h-10 text-purple-500" />
               </div>
             </div>
             
-            <h3 className="text-lg font-semibold text-foreground mb-2 relative z-10">No Active Rooms</h3>
-            <p className="text-sm text-muted-foreground text-center max-w-[200px] relative z-10">Rooms will appear when hosts start streaming!</p>
+            <h3 className="text-lg font-semibold text-slate-900 mb-2 relative z-10">No Active Rooms</h3>
+            <p className="text-sm text-slate-500 text-center max-w-[200px] relative z-10">Rooms will appear when hosts start streaming!</p>
             
             <div className="mt-6 w-24 h-0.5 bg-gradient-to-r from-transparent via-purple-500/40 to-transparent rounded-full animate-pulse" />
           </div>
@@ -460,7 +460,7 @@ const Discover = () => {
                   <div
                     key={room.id}
                     onClick={() => joinRoom(room)}
-                    className="relative rounded-xl overflow-hidden bg-card shadow cursor-pointer active:scale-[0.98] transition-transform border border-border"
+                    className="relative rounded-xl overflow-hidden bg-white cursor-pointer active:scale-[0.98] transition-transform border border-slate-200 shadow-[0_6px_20px_-8px_rgba(15,23,42,0.10)]"
                     style={{ contain: 'layout style paint' }}
                   >
                     {/* Background - Use host avatar or gradient */}
@@ -514,9 +514,9 @@ const Discover = () => {
                     </div>
 
                     {/* Room info with host avatar */}
-                    <div className="p-2 bg-card">
+                    <div className="p-2 bg-white">
                       {/* Room name */}
-                      <h3 className="font-semibold text-foreground truncate text-xs mb-1.5">{room.name}</h3>
+                      <h3 className="font-semibold text-slate-900 truncate text-xs mb-1.5">{room.name}</h3>
                       
                       {/* Host info - avatar + level badge on right */}
                       <div className="flex items-center gap-1.5">
@@ -530,7 +530,7 @@ const Discover = () => {
                             hostLevel >= 5 ? "from-blue-400 to-cyan-500" :
                             "from-gray-400 to-gray-500"
                           )}>
-                            <Avatar className="w-6 h-6 border border-background">
+                            <Avatar className="w-6 h-6 border border-white">
                               <AvatarImage src={hostAvatar || undefined} />
                               <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-white text-[8px]">
                                 {room.host?.display_name?.charAt(0) || 'H'}
