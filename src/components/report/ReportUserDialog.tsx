@@ -225,7 +225,7 @@ export const ReportUserDialog = forwardRef<HTMLDivElement, ReportUserDialogProps
             <Button
               variant="ghost"
               onClick={() => onOpenChange(false)}
-              className="w-full h-10 text-slate-500 hover:text-white hover:bg-white/70 rounded-xl text-sm"
+              className="w-full h-10 text-slate-600 hover:text-slate-900 hover:bg-amber-50 rounded-xl text-sm"
             >
               Cancel
             </Button>
