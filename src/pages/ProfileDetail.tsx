@@ -1195,7 +1195,7 @@ const ProfileDetail = () => {
             {/* Location Row */}
             <div className="flex items-center gap-2 flex-wrap">
               <div className="w-7 h-7 rounded-full bg-purple-500/15 flex items-center justify-center flex-shrink-0">
-                <MapPin className="w-3.5 h-3.5 text-purple-400" />
+                <MapPin className="w-3.5 h-3.5 text-purple-600" />
               </div>
               <Badge className="gap-1 bg-emerald-500/15 text-emerald-300 border border-emerald-500/20 px-2.5 py-1 text-[10px]">
                 <span>{profile.country_flag || "🌍"}</span>

@@ -1389,8 +1389,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       path: faceVerificationPending ? "" : "/face-verification", 
       rightText: faceVerificationPending ? "Under Review" : "Required",
       highlight: !faceVerificationPending,
-      iconBg: faceVerificationPending ? "bg-blue-100" : "bg-amber-100",
-      iconColor: faceVerificationPending ? "text-blue-500" : "text-amber-500",
+      iconBg: faceVerificationPending ? "bg-blue-50 border border-blue-100" : "bg-amber-100",
+      iconColor: faceVerificationPending ? "text-blue-600" : "text-amber-500",
       show: isOwnProfile && !isFaceVerified, // Hide completely after approved
       onClick: faceVerificationPending ? () => {
         toast({ title: "Under Review", description: "Your face verification is being reviewed by our team. Please wait." });
@@ -1455,7 +1455,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       extra: userVIPTier > 0 ? (
         <VIPBadge tier={userVIPTier} size="sm" />
       ) : (
-        <span className="text-xs text-purple-400">Upgrade Now</span>
+        <span className="text-xs text-purple-600">Upgrade Now</span>
       ),
       iconBg: "bg-gradient-to-r from-purple-500 to-pink-500",
       iconColor: "text-white",
@@ -1465,8 +1465,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       icon: Phone, 
       label: "Call History", 
       path: "/call-history",
-      iconBg: "bg-green-100",
-      iconColor: "text-green-500",
+      iconBg: "bg-emerald-50 border border-emerald-100",
+      iconColor: "text-emerald-600",
       show: isOwnProfile && isFemale
     },
     { 
@@ -1485,7 +1485,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       path: "/host-dashboard",
       rightText: "Earnings",
       highlight: true,
-      iconBg: "bg-emerald-100",
+      iconBg: "bg-emerald-50 border border-emerald-100",
       iconColor: "text-emerald-600",
       show: isOwnProfile && isHost && !isFemale
     },
@@ -1505,7 +1505,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       path: isAgencyOwner ? "/agency-dashboard" : "/agency",
       rightText: isAgencyOwner ? "My Agency" : "Agent Rank",
       highlight: true,
-      iconBg: isAgencyOwner ? "bg-gradient-to-r from-purple-500 to-indigo-500" : "bg-purple-100",
+      iconBg: isAgencyOwner ? "bg-gradient-to-r from-purple-500 to-indigo-500" : "bg-purple-50 border border-purple-100",
       iconColor: isAgencyOwner ? "text-white" : "text-purple-600",
       show: isOwnProfile && showAgencyCenter && !isFemale
     },
@@ -1514,8 +1514,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       label: "My Invitation", 
       path: "/invitation",
       rightText: "Get Rewards",
-      iconBg: "bg-purple-100",
-      iconColor: "text-purple-500",
+      iconBg: "bg-purple-50 border border-purple-100",
+      iconColor: "text-purple-600",
       show: isOwnProfile
     },
     { 
@@ -1524,24 +1524,24 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       path: "/tasks",
       rightText: hasUnclaimedReward ? "New Reward" : "",
       hasNotification: hasUnclaimedReward,
-      iconBg: "bg-blue-100",
-      iconColor: "text-blue-500",
+      iconBg: "bg-blue-50 border border-blue-100",
+      iconColor: "text-blue-600",
       show: isOwnProfile
     },
     { 
       icon: User, 
       label: "My Profile", 
       path: "/edit-profile",
-      iconBg: "bg-indigo-100",
-      iconColor: "text-indigo-500",
+      iconBg: "bg-indigo-50 border border-indigo-100",
+      iconColor: "text-indigo-600",
       show: isOwnProfile
     },
     { 
       icon: Settings, 
       label: "Settings", 
       path: "/settings",
-      iconBg: "bg-gray-100",
-      iconColor: "text-gray-300",
+      iconBg: "bg-slate-50 border border-slate-100",
+      iconColor: "text-slate-500",
       show: isOwnProfile
     },
     { 
@@ -1856,7 +1856,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               className={cn(
                 "h-9 text-xs px-4 rounded-full font-semibold transition-all shadow-lg",
                 isFollowing 
-                  ? "border-purple-500/50 text-purple-400 hover:bg-purple-500/10" 
+                  ? "border-purple-500/50 text-purple-600 hover:bg-purple-500/10" 
                   : "bg-gradient-to-r from-purple-500 to-pink-500 shadow-purple-500/30 hover:shadow-purple-500/50"
               )}
               onClick={handleFollow}
@@ -2441,7 +2441,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                       <div className="flex-1">
                         <p className="text-white font-bold text-lg">{searchedAgency.name}</p>
                         <p className="text-slate-200 text-sm">Code: {searchedAgency.agency_code}</p>
-                        <p className="text-purple-400 text-xs mt-0.5">
+                        <p className="text-purple-600 text-xs mt-0.5">
                           Owner: {searchedAgency.owner_name} ({searchedAgency.owner_uid})
                         </p>
                         <p className="text-pink-400 text-xs">Balance: {searchedAgency.diamond_balance?.toLocaleString() || 0} 💎</p>
@@ -2504,7 +2504,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     </div>
                     <div className="flex justify-between items-center pt-2 border-t border-slate-700">
                       <span className="text-white/85 text-sm">Agency Balance</span>
-                      <span className="text-purple-400 font-semibold">
+                      <span className="text-purple-600 font-semibold">
                         {(agencyData?.diamond_balance || 0).toLocaleString()} 💎
                       </span>
                     </div>
@@ -2666,7 +2666,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   </>
                 ) : (
                   <>
-                    Send to <span className="text-purple-400 font-semibold">{searchedAgency?.name}</span>
+                    Send to <span className="text-purple-600 font-semibold">{searchedAgency?.name}</span>
                     <br />
                     <span className="text-slate-300 text-xs">Agency Code: {searchedAgency?.agency_code}</span>
                   </>
@@ -2718,7 +2718,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-white/70 text-xs mb-1">Your Level</p>
-                      <p className="text-purple-400 font-bold text-2xl">Lv {displayLevel}</p>
+                      <p className="text-purple-600 font-bold text-2xl">Lv {displayLevel}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-white/70 text-xs mb-1">{canCustomize ? 'Suggested Rate' : 'Fixed Rate'}</p>
