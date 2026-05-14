@@ -2853,9 +2853,9 @@ const Auth = () => {
                 <div className="relative group">
                   <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-green-500/50 via-emerald-500/50 to-green-500/50 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
                   <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
- <div className="pl-4 pr-2 flex items-center gap-1.5 border-r border-slate-200/10">
+ <div className="pl-4 pr-2 flex items-center gap-1.5 border-r border-slate-200">
                       <span className="text-lg">{selectedCountry.flag}</span>
-                      <span className="text-green-400 font-semibold text-sm">{selectedCountryCode}</span>
+                      <span className="text-emerald-700 font-semibold text-sm">{selectedCountryCode}</span>
                     </div>
                     <Input
                       type="tel"
