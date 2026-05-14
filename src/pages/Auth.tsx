@@ -2233,7 +2233,7 @@ const Auth = () => {
                       value={manualReferralCode}
                       onChange={(e) => setManualReferralCode(e.target.value.toUpperCase())}
                       placeholder="Enter referral code"
-                      className="pl-9 h-10 bg-white/10 border-amber-400/30 text-white placeholder:text-white/30 rounded-xl text-sm font-mono tracking-wider"
+                      className="pl-9 h-10 bg-white/10 border-amber-400/30 text-slate-800 placeholder:text-slate-400 rounded-xl text-sm font-mono tracking-wider"
                     />
                   </div>
                   <Button
@@ -2447,7 +2447,7 @@ const Auth = () => {
         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto p-0 border-0 rounded-3xl overflow-visible bg-transparent shadow-2xl shadow-purple-900/40">
           {/* Animated gradient border */}
           <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-pink-500/40 via-purple-500/30 to-cyan-500/40 animate-[spin_8s_linear_infinite] blur-[1px]" style={{ padding: '1px' }} />
-          <div className="relative rounded-3xl bg-gradient-to-br from-[#0d0d1a] via-[#1a1035] to-[#0d0d1a] backdrop-blur-xl p-6">
+          <div className="relative rounded-3xl bg-gradient-to-br from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF] backdrop-blur-xl p-6">
             {/* Decorative orbs */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-40 bg-purple-600/15 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute bottom-0 right-0 w-32 h-32 bg-pink-600/10 rounded-full blur-3xl pointer-events-none" />
@@ -2463,10 +2463,10 @@ const Auth = () => {
                   </div>
                 </div>
               </div>
-              <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-purple-100 to-white bg-clip-text text-transparent">
+              <DialogTitle className="text-slate-800 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 bg-clip-text text-transparent">
                 Enter Your Email
               </DialogTitle>
-              <DialogDescription className="text-white/50 text-center text-sm mt-1">
+              <DialogDescription className="text-slate-600 text-center text-sm mt-1">
                 We'll send a verification code to your email
               </DialogDescription>
             </DialogHeader>
@@ -2474,7 +2474,7 @@ const Auth = () => {
             <div className="py-5 space-y-5 relative z-10">
               <div className="relative group">
                 <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-pink-500/50 via-purple-500/50 to-pink-500/50 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
-                <div className="relative flex items-center bg-white/[0.06] rounded-2xl overflow-hidden">
+                <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
                   <div className="pl-4 pr-2">
                     <span className="text-purple-400/70 text-lg font-light select-none">@</span>
                   </div>
@@ -2483,7 +2483,7 @@ const Auth = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="your@email.com"
-                    className="h-14 bg-transparent border-0 text-white placeholder:text-white/30 rounded-2xl text-base focus-visible:ring-0 focus-visible:ring-offset-0"
+                    className="h-14 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl text-base focus-visible:ring-0 focus-visible:ring-offset-0"
                     autoFocus
                   />
                 </div>
@@ -2525,7 +2525,7 @@ const Auth = () => {
         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto p-0 border-0 rounded-3xl overflow-visible bg-transparent shadow-2xl shadow-emerald-900/30">
           {/* Animated gradient border */}
           <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-emerald-500/40 via-cyan-500/30 to-green-500/40 animate-[spin_8s_linear_infinite] blur-[1px]" style={{ padding: '1px' }} />
-          <div className="relative rounded-3xl bg-gradient-to-br from-[#0d0d1a] via-[#0a1a15] to-[#0d0d1a] backdrop-blur-xl p-6">
+          <div className="relative rounded-3xl bg-gradient-to-br from-[#FFFBF2] via-[#F5FBF6] to-[#FFFBF2] backdrop-blur-xl p-6">
             {/* Decorative orbs */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-40 bg-emerald-600/12 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute bottom-0 right-0 w-32 h-32 bg-cyan-600/8 rounded-full blur-3xl pointer-events-none" />
@@ -2541,10 +2541,10 @@ const Auth = () => {
                   </div>
                 </div>
               </div>
-              <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-emerald-100 to-white bg-clip-text text-transparent">
+              <DialogTitle className="text-slate-800 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600 bg-clip-text text-transparent">
                 Enter Verification Code
               </DialogTitle>
-              <DialogDescription className="text-white/50 text-center text-sm mt-1">
+              <DialogDescription className="text-slate-600 text-center text-sm mt-1">
                 6-digit code sent to <span className="text-emerald-400 font-medium">{email}</span>
               </DialogDescription>
             </DialogHeader>
@@ -2563,7 +2563,7 @@ const Auth = () => {
                     }}
                     placeholder="000000"
                     maxLength={6}
-                    className="relative h-16 w-52 text-center text-3xl font-bold tracking-[0.5em] bg-white/[0.06] border-0 text-white placeholder:text-white/20 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0"
+                    className="relative h-16 w-52 text-center text-3xl font-bold tracking-[0.5em] bg-white border border-amber-200/70 border-0 text-slate-800 placeholder:text-white/20 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0"
                     autoFocus
                   />
                 </div>
@@ -2607,7 +2607,7 @@ const Auth = () => {
       <Dialog open={authStep === "email_password"} onOpenChange={() => resetAuthState()}>
         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto p-0 border-0 rounded-3xl overflow-visible bg-transparent shadow-2xl shadow-violet-900/40">
           <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-violet-500/40 via-pink-500/30 to-purple-500/40 animate-[spin_8s_linear_infinite] blur-[1px]" style={{ padding: '1px' }} />
-          <div className="relative rounded-3xl bg-gradient-to-br from-[#0d0d1a] via-[#1a1025] to-[#0d0d1a] backdrop-blur-xl p-6">
+          <div className="relative rounded-3xl bg-gradient-to-br from-[#FFFBF2] via-[#FAF5F2] to-[#FFFBF2] backdrop-blur-xl p-6">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-40 bg-violet-600/12 rounded-full blur-3xl pointer-events-none" />
             {/* Close button handled by DialogContent */}
 
@@ -2620,24 +2620,24 @@ const Auth = () => {
                   </div>
                 </div>
               </div>
-              <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-purple-100 to-white bg-clip-text text-transparent">Complete Your Profile</DialogTitle>
-              <DialogDescription className="text-white/50 text-center text-sm mt-1">Set your name and password</DialogDescription>
+              <DialogTitle className="text-slate-800 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 bg-clip-text text-transparent">Complete Your Profile</DialogTitle>
+              <DialogDescription className="text-slate-600 text-center text-sm mt-1">Set your name and password</DialogDescription>
             </DialogHeader>
             
             <div className="py-5 space-y-4 relative z-10">
               <div className="relative group">
                 <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-purple-500/40 to-pink-500/40 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
-                <div className="relative flex items-center bg-white/[0.06] rounded-2xl overflow-hidden">
+                <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
                   <div className="pl-4 pr-2"><User className="w-5 h-5 text-purple-400/70" /></div>
-                  <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Your name" className="h-13 bg-transparent border-0 text-white placeholder:text-white/30 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" autoFocus />
+                  <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Your name" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" autoFocus />
                 </div>
               </div>
 
               <div className="relative group">
                 <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-purple-500/40 to-pink-500/40 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
-                <div className="relative flex items-center bg-white/[0.06] rounded-2xl overflow-hidden">
+                <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
                   <div className="pl-4 pr-2"><Lock className="w-5 h-5 text-purple-400/70" /></div>
-                  <Input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password (min 6 characters)" className="h-13 bg-transparent border-0 text-white placeholder:text-white/30 rounded-2xl pr-10 focus-visible:ring-0 focus-visible:ring-offset-0" />
+                  <Input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password (min 6 characters)" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl pr-10 focus-visible:ring-0 focus-visible:ring-offset-0" />
                   <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors">
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -2646,9 +2646,9 @@ const Auth = () => {
 
               <div className="relative group">
                 <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-purple-500/40 to-pink-500/40 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
-                <div className="relative flex items-center bg-white/[0.06] rounded-2xl overflow-hidden">
+                <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
                   <div className="pl-4 pr-2"><Lock className="w-5 h-5 text-purple-400/70" /></div>
-                  <Input type={showPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm password" className="h-13 bg-transparent border-0 text-white placeholder:text-white/30 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" />
+                  <Input type={showPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm password" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" />
                 </div>
               </div>
               
@@ -2671,7 +2671,7 @@ const Auth = () => {
       <Dialog open={authStep === "otp_verify"} onOpenChange={() => closeDialog()}>
         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto p-0 border-0 rounded-3xl overflow-visible bg-transparent shadow-2xl shadow-pink-900/30">
           <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-pink-500/40 via-violet-500/30 to-pink-500/40 animate-[spin_8s_linear_infinite] blur-[1px]" style={{ padding: '1px' }} />
-          <div className="relative rounded-3xl bg-gradient-to-br from-[#0d0d1a] via-[#1a1025] to-[#0d0d1a] backdrop-blur-xl p-6">
+          <div className="relative rounded-3xl bg-gradient-to-br from-[#FFFBF2] via-[#FAF5F2] to-[#FFFBF2] backdrop-blur-xl p-6">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-40 bg-pink-600/12 rounded-full blur-3xl pointer-events-none" />
             {/* Close button handled by DialogContent */}
 
@@ -2684,15 +2684,15 @@ const Auth = () => {
                   </div>
                 </div>
               </div>
-              <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-pink-100 to-white bg-clip-text text-transparent">Verify Your Email</DialogTitle>
-              <DialogDescription className="text-white/50 text-center text-sm mt-1">Enter the 6-digit code sent to <span className="text-pink-400 font-medium">{email}</span></DialogDescription>
+              <DialogTitle className="text-slate-800 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 bg-clip-text text-transparent">Verify Your Email</DialogTitle>
+              <DialogDescription className="text-slate-600 text-center text-sm mt-1">Enter the 6-digit code sent to <span className="text-pink-400 font-medium">{email}</span></DialogDescription>
             </DialogHeader>
             
             <div className="py-5 space-y-6 relative z-10">
               <div className="flex justify-center">
                 <div className="relative group">
                   <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-pink-500/50 via-purple-500/50 to-pink-500/50 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
-                  <Input type="text" value={otpCode} onChange={(e) => { const value = e.target.value.replace(/\D/g, '').slice(0, 6); setOtpCode(value); }} placeholder="000000" maxLength={6} className="relative h-16 w-52 text-center text-3xl font-bold tracking-[0.5em] bg-white/[0.06] border-0 text-white placeholder:text-white/20 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" autoFocus />
+                  <Input type="text" value={otpCode} onChange={(e) => { const value = e.target.value.replace(/\D/g, '').slice(0, 6); setOtpCode(value); }} placeholder="000000" maxLength={6} className="relative h-16 w-52 text-center text-3xl font-bold tracking-[0.5em] bg-white border border-amber-200/70 border-0 text-slate-800 placeholder:text-white/20 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" autoFocus />
                 </div>
               </div>
               
@@ -2720,29 +2720,29 @@ const Auth = () => {
       <Dialog open={authStep === "login"} onOpenChange={() => resetAuthState()}>
         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto p-0 border-0 rounded-3xl overflow-visible bg-transparent shadow-2xl shadow-indigo-900/30">
           <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-indigo-500/40 via-purple-500/30 to-pink-500/40 animate-[spin_8s_linear_infinite] blur-[1px]" style={{ padding: '1px' }} />
-          <div className="relative rounded-3xl bg-gradient-to-br from-[#0d0d1a] via-[#12102a] to-[#0d0d1a] backdrop-blur-xl p-6">
+          <div className="relative rounded-3xl bg-gradient-to-br from-[#FFFBF2] via-[#F5F5FA] to-[#FFFBF2] backdrop-blur-xl p-6">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-40 bg-indigo-600/12 rounded-full blur-3xl pointer-events-none" />
             {/* Close button handled by DialogContent */}
 
             <DialogHeader className="relative z-10">
-              <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-indigo-100 to-white bg-clip-text text-transparent">Welcome Back</DialogTitle>
-              <DialogDescription className="text-white/50 text-center text-sm mt-1">Login to your account</DialogDescription>
+              <DialogTitle className="text-slate-800 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-indigo-100 to-white bg-clip-text text-transparent">Welcome Back</DialogTitle>
+              <DialogDescription className="text-slate-600 text-center text-sm mt-1">Login to your account</DialogDescription>
             </DialogHeader>
             
             <div className="py-5 space-y-4 relative z-10">
               <div className="relative group">
                 <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-indigo-500/40 to-purple-500/40 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
-                <div className="relative flex items-center bg-white/[0.06] rounded-2xl overflow-hidden">
+                <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
                   <div className="pl-4 pr-2"><Mail className="w-5 h-5 text-indigo-400/70" /></div>
-                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email address" className="h-13 bg-transparent border-0 text-white placeholder:text-white/30 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" />
+                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email address" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" />
                 </div>
               </div>
               
               <div className="relative group">
                 <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-indigo-500/40 to-purple-500/40 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
-                <div className="relative flex items-center bg-white/[0.06] rounded-2xl overflow-hidden">
+                <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
                   <div className="pl-4 pr-2"><Lock className="w-5 h-5 text-indigo-400/70" /></div>
-                  <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className="h-13 bg-transparent border-0 text-white placeholder:text-white/30 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" />
+                  <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" />
                 </div>
               </div>
               
@@ -2768,7 +2768,7 @@ const Auth = () => {
       <Dialog open={authStep === "phone_input"} onOpenChange={() => resetAuthState()}>
         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto p-0 border-0 rounded-3xl overflow-visible bg-transparent shadow-2xl shadow-green-900/40">
           <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-green-500/40 via-emerald-500/30 to-teal-500/40 animate-[spin_8s_linear_infinite] blur-[1px]" style={{ padding: '1px' }} />
-          <div className="relative rounded-3xl bg-gradient-to-br from-[#0d0d1a] via-[#0a1a12] to-[#0d0d1a] backdrop-blur-xl p-6">
+          <div className="relative rounded-3xl bg-gradient-to-br from-[#FFFBF2] via-[#F5FBF6] to-[#FFFBF2] backdrop-blur-xl p-6">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-40 bg-green-600/15 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute bottom-0 right-0 w-32 h-32 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -2781,10 +2781,10 @@ const Auth = () => {
                   </div>
                 </div>
               </div>
-              <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-green-100 to-white bg-clip-text text-transparent">
+              <DialogTitle className="text-slate-800 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-green-100 to-white bg-clip-text text-transparent">
                 Enter Phone Number
               </DialogTitle>
-              <DialogDescription className="text-white/50 text-center text-sm mt-1">
+              <DialogDescription className="text-slate-600 text-center text-sm mt-1">
                 We'll send a verification code via WhatsApp
               </DialogDescription>
             </DialogHeader>
@@ -2797,7 +2797,7 @@ const Auth = () => {
                   <button
                     type="button"
                     onClick={() => setShowCountryPicker(!showCountryPicker)}
-                    className="w-full h-14 flex items-center justify-between px-4 bg-white/[0.06] rounded-2xl border border-white/10 hover:border-green-500/40 transition-colors"
+                    className="w-full h-14 flex items-center justify-between px-4 bg-white border border-amber-200/70 rounded-2xl border border-white/10 hover:border-green-500/40 transition-colors"
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-2xl">{selectedCountry.flag}</span>
@@ -2811,14 +2811,14 @@ const Auth = () => {
                   {showCountryPicker && (
                     <div className="absolute top-full left-0 right-0 mt-2 bg-[#1a1a2e] border border-white/10 rounded-2xl shadow-2xl shadow-black/50 z-50 max-h-64 overflow-hidden">
                       <div className="p-2 border-b border-white/10">
-                        <div className="flex items-center bg-white/[0.06] rounded-xl px-3">
+                        <div className="flex items-center bg-white border border-amber-200/70 rounded-xl px-3">
                           <Search className="w-4 h-4 text-white/30" />
                           <input
                             type="text"
                             value={countrySearch}
                             onChange={(e) => setCountrySearch(e.target.value)}
                             placeholder="Search country..."
-                            className="w-full h-10 bg-transparent border-0 text-white text-sm placeholder:text-white/30 outline-none px-2"
+                            className="w-full h-10 bg-transparent border-0 text-white text-sm placeholder:text-slate-400 outline-none px-2"
                             autoFocus
                           />
                         </div>
@@ -2850,7 +2850,7 @@ const Auth = () => {
                 {/* Phone Number Input */}
                 <div className="relative group">
                   <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-green-500/50 via-emerald-500/50 to-green-500/50 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
-                  <div className="relative flex items-center bg-white/[0.06] rounded-2xl overflow-hidden">
+                  <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
                     <div className="pl-4 pr-2 flex items-center gap-1.5 border-r border-white/10">
                       <span className="text-lg">{selectedCountry.flag}</span>
                       <span className="text-green-400 font-semibold text-sm">{selectedCountryCode}</span>
@@ -2863,7 +2863,7 @@ const Auth = () => {
                         setPhoneNumber(value);
                       }}
                       placeholder="1XXXXXXXXX"
-                      className="h-14 bg-transparent border-0 text-white placeholder:text-white/30 rounded-2xl text-base focus-visible:ring-0 focus-visible:ring-offset-0"
+                      className="h-14 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl text-base focus-visible:ring-0 focus-visible:ring-offset-0"
                       autoFocus={!showCountryPicker}
                     />
                   </div>
@@ -2910,7 +2910,7 @@ const Auth = () => {
       <Dialog open={authStep === "phone_otp"} onOpenChange={() => resetAuthState()}>
         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto p-0 border-0 rounded-3xl overflow-visible bg-transparent shadow-2xl shadow-green-900/30">
           <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-green-500/40 via-teal-500/30 to-emerald-500/40 animate-[spin_8s_linear_infinite] blur-[1px]" style={{ padding: '1px' }} />
-          <div className="relative rounded-3xl bg-gradient-to-br from-[#0d0d1a] via-[#0a1a12] to-[#0d0d1a] backdrop-blur-xl p-6">
+          <div className="relative rounded-3xl bg-gradient-to-br from-[#FFFBF2] via-[#F5FBF6] to-[#FFFBF2] backdrop-blur-xl p-6">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-40 bg-green-600/12 rounded-full blur-3xl pointer-events-none" />
 
             <DialogHeader className="relative z-10">
@@ -2922,10 +2922,10 @@ const Auth = () => {
                   </div>
                 </div>
               </div>
-              <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-green-100 to-white bg-clip-text text-transparent">
+              <DialogTitle className="text-slate-800 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-green-100 to-white bg-clip-text text-transparent">
                 WhatsApp Verification
               </DialogTitle>
-              <DialogDescription className="text-white/50 text-center text-sm mt-1">
+              <DialogDescription className="text-slate-600 text-center text-sm mt-1">
                 6-digit code sent to <span className="text-green-400 font-medium">{selectedCountryCode} {phoneNumber}</span> via WhatsApp
               </DialogDescription>
             </DialogHeader>
@@ -2943,7 +2943,7 @@ const Auth = () => {
                     }}
                     placeholder="000000"
                     maxLength={6}
-                    className="relative h-16 w-52 text-center text-3xl font-bold tracking-[0.5em] bg-white/[0.06] border-0 text-white placeholder:text-white/20 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0"
+                    className="relative h-16 w-52 text-center text-3xl font-bold tracking-[0.5em] bg-white border border-amber-200/70 border-0 text-slate-800 placeholder:text-white/20 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0"
                     autoFocus
                   />
                 </div>
@@ -2983,7 +2983,7 @@ const Auth = () => {
       <Dialog open={authStep === "phone_password"} onOpenChange={() => resetAuthState()}>
         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto p-0 border-0 rounded-3xl overflow-visible bg-transparent shadow-2xl shadow-green-900/40">
           <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-green-500/40 via-emerald-500/30 to-teal-500/40 animate-[spin_8s_linear_infinite] blur-[1px]" style={{ padding: '1px' }} />
-          <div className="relative rounded-3xl bg-gradient-to-br from-[#0d0d1a] via-[#0a1a12] to-[#0d0d1a] backdrop-blur-xl p-6">
+          <div className="relative rounded-3xl bg-gradient-to-br from-[#FFFBF2] via-[#F5FBF6] to-[#FFFBF2] backdrop-blur-xl p-6">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-40 bg-green-600/12 rounded-full blur-3xl pointer-events-none" />
 
             <DialogHeader className="relative z-10">
@@ -2995,24 +2995,24 @@ const Auth = () => {
                   </div>
                 </div>
               </div>
-              <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-green-100 to-white bg-clip-text text-transparent">Complete Your Profile</DialogTitle>
-              <DialogDescription className="text-white/50 text-center text-sm mt-1">Set your name and password</DialogDescription>
+              <DialogTitle className="text-slate-800 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-green-100 to-white bg-clip-text text-transparent">Complete Your Profile</DialogTitle>
+              <DialogDescription className="text-slate-600 text-center text-sm mt-1">Set your name and password</DialogDescription>
             </DialogHeader>
 
             <div className="py-5 space-y-4 relative z-10">
               <div className="relative group">
                 <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-green-500/40 to-emerald-500/40 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
-                <div className="relative flex items-center bg-white/[0.06] rounded-2xl overflow-hidden">
+                <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
                   <div className="pl-4 pr-2"><User className="w-5 h-5 text-green-400/70" /></div>
-                  <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Your name" className="h-13 bg-transparent border-0 text-white placeholder:text-white/30 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" autoFocus />
+                  <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Your name" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" autoFocus />
                 </div>
               </div>
 
               <div className="relative group">
                 <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-green-500/40 to-emerald-500/40 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
-                <div className="relative flex items-center bg-white/[0.06] rounded-2xl overflow-hidden">
+                <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
                   <div className="pl-4 pr-2"><Lock className="w-5 h-5 text-green-400/70" /></div>
-                  <Input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password (min 6 characters)" className="h-13 bg-transparent border-0 text-white placeholder:text-white/30 rounded-2xl pr-10 focus-visible:ring-0 focus-visible:ring-offset-0" />
+                  <Input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password (min 6 characters)" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl pr-10 focus-visible:ring-0 focus-visible:ring-offset-0" />
                   <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors">
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
@@ -3021,9 +3021,9 @@ const Auth = () => {
 
               <div className="relative group">
                 <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-green-500/40 to-emerald-500/40 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
-                <div className="relative flex items-center bg-white/[0.06] rounded-2xl overflow-hidden">
+                <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
                   <div className="pl-4 pr-2"><Lock className="w-5 h-5 text-green-400/70" /></div>
-                  <Input type={showPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm password" className="h-13 bg-transparent border-0 text-white placeholder:text-white/30 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" />
+                  <Input type={showPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm password" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" />
                 </div>
               </div>
 
