@@ -892,13 +892,18 @@ const FaceVerification = () => {
       
       mediaRecorder.start();
       
-      // Start timer (max 30 seconds for all instructions)
+      // Overall verification window: derived from calibrated per-step window
+      // (noisy cameras get longer time). 5 steps × stepWindowSec, padded for
+      // calibration phase + capture latency. Min 45s, max 90s.
+      const calib = calibrationRef.current;
+      const overallSec = Math.min(90, Math.max(45,
+        Math.round(calib.stepWindowSec * faceInstructions.length + 10)
+      ));
       let elapsed = 0;
       timerRef.current = setInterval(() => {
         elapsed++;
         setVerificationTime(elapsed);
-        if (elapsed >= 60) {
-          // Generous 60s window — check if all completed
+        if (elapsed >= overallSec) {
           const allDone = instructionsCompletedRef.current.every(Boolean);
           finishVerification(allDone);
         }
