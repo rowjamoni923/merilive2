@@ -148,7 +148,7 @@ interface SubAgent {
   };
 }
 
-const CHART_COLORS = ['#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#3b82f6'];
+const CHART_COLORS = ['hsl(var(--brand-500))', 'hsl(var(--success-500))', 'hsl(var(--warning-500))', 'hsl(var(--danger-500))', 'hsl(var(--info-500))'];
 
 interface WithdrawalHistory {
   id: string;
@@ -764,12 +764,12 @@ const AgencyDashboard = () => {
     const tierName = levelTierInfo?.level_name || '';
     
     switch (level) {
-      case "A5": return { color: "from-purple-500 to-pink-500", icon: "👑", name: tierName || "Legend" };
-      case "A4": return { color: "from-yellow-400 to-amber-500", icon: "🌟", name: tierName || "Elite" };
-      case "A3": return { color: "from-cyan-500 to-blue-500", icon: "✨", name: tierName || "Pro" };
-      case "A2": return { color: "from-orange-400 to-red-400", icon: "🔥", name: tierName || "Rising" };
-      case "A1": return { color: "from-violet-500 to-fuchsia-500", icon: "⭐", name: tierName || "Starter" };
-      default: return { color: "from-violet-500 to-indigo-500", icon: "📌", name: tierName || "Basic" };
+      case "A5": return { color: "from-brand-500 to-brand-500", icon: "👑", name: tierName || "Legend" };
+      case "A4": return { color: "from-warning-400 to-warning-500", icon: "🌟", name: tierName || "Elite" };
+      case "A3": return { color: "from-info-500 to-info-500", icon: "✨", name: tierName || "Pro" };
+      case "A2": return { color: "from-warning-400 to-danger-400", icon: "🔥", name: tierName || "Rising" };
+      case "A1": return { color: "from-brand-500 to-brand-500", icon: "⭐", name: tierName || "Starter" };
+      default: return { color: "from-brand-500 to-info-500", icon: "📌", name: tierName || "Basic" };
     }
   };
 
@@ -788,7 +788,7 @@ const AgencyDashboard = () => {
   return (
     <div className="agency-dashboard-light fixed inset-0 flex flex-col overflow-y-auto overflow-x-hidden text-foreground">
       {/* Modern Header */}
-      <div className="sticky top-0 z-50 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 flex-shrink-0 safe-area-top">
+      <div className="sticky top-0 z-50 bg-gradient-to-r from-brand-600 via-info-600 to-brand-700 flex-shrink-0 safe-area-top">
         <div className="flex items-center justify-between h-14 px-4">
           <button 
             onClick={() => navigate(-1)}
@@ -885,7 +885,7 @@ const AgencyDashboard = () => {
                 <p className="text-sm font-bold">{hosts.length || agency.total_hosts}</p>
                 <p className="text-[7px] text-white/60 uppercase">Hosts</p>
                 {pendingHosts.length > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] font-bold flex items-center justify-center animate-pulse">
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-danger-500 rounded-full text-[10px] font-bold flex items-center justify-center animate-pulse">
                     {pendingHosts.length}
                   </span>
                 )}
@@ -913,8 +913,8 @@ const AgencyDashboard = () => {
                 onClick={() => navigate("/agency-host-management?filter=online")}
                 className="bg-white/15 backdrop-blur-sm rounded-lg p-1.5 text-center border border-white/10 hover:bg-white/25 transition-all active:scale-95"
               >
-                <Activity className="w-3.5 h-3.5 mx-auto mb-0.5 text-green-300" />
-                <p className="text-sm font-bold text-green-300">{onlineHosts}</p>
+                <Activity className="w-3.5 h-3.5 mx-auto mb-0.5 text-success-300" />
+                <p className="text-sm font-bold text-success-300">{onlineHosts}</p>
                 <p className="text-[7px] text-white/60 uppercase">Online</p>
               </button>
             </div>
@@ -936,17 +936,17 @@ const AgencyDashboard = () => {
             <div className="mx-3 mt-2">
               <div className={`rounded-2xl p-3 border shadow-lg ${
                 daysRemaining <= 5 
-                  ? 'bg-gradient-to-r from-red-50 to-rose-50 border-red-200' 
+                  ? 'bg-gradient-to-r from-danger-50 to-danger-50 border-danger-200' 
                   : daysRemaining <= 10 
-                    ? 'bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200'
-                    : 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200'
+                    ? 'bg-gradient-to-r from-warning-50 to-warning-50 border-warning-200'
+                    : 'bg-gradient-to-r from-info-50 to-info-50 border-info-200'
               }`}>
                 <div className="flex items-center gap-2 mb-2">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    daysRemaining <= 5 ? 'bg-red-100' : daysRemaining <= 10 ? 'bg-amber-100' : 'bg-blue-100'
+                    daysRemaining <= 5 ? 'bg-danger-100' : daysRemaining <= 10 ? 'bg-warning-100' : 'bg-info-100'
                   }`}>
                     <Clock className={`w-4 h-4 ${
-                      daysRemaining <= 5 ? 'text-red-600' : daysRemaining <= 10 ? 'text-amber-600' : 'text-blue-600'
+                      daysRemaining <= 5 ? 'text-danger-600' : daysRemaining <= 10 ? 'text-warning-600' : 'text-info-600'
                     }`} />
                   </div>
                   <div className="flex-1">
@@ -958,7 +958,7 @@ const AgencyDashboard = () => {
                     </p>
                   </div>
                   <div className={`text-lg font-black ${
-                    daysRemaining <= 5 ? 'text-red-600' : daysRemaining <= 10 ? 'text-amber-600' : 'text-blue-600'
+                    daysRemaining <= 5 ? 'text-danger-600' : daysRemaining <= 10 ? 'text-warning-600' : 'text-info-600'
                   }`}>
                     {activeHostCount}/10
                   </div>
@@ -980,25 +980,25 @@ const AgencyDashboard = () => {
       {/* Pending Host Requests */}
       {pendingHosts.length > 0 && (
         <div className="mx-3 mt-2">
-          <div className="rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 p-3 shadow-lg">
+          <div className="rounded-2xl bg-gradient-to-r from-warning-50 to-warning-50 border border-warning-200 p-3 shadow-lg">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
-                <Bell className="w-4 h-4 text-amber-600" />
+              <div className="w-8 h-8 bg-warning-100 rounded-full flex items-center justify-center">
+                <Bell className="w-4 h-4 text-warning-600" />
               </div>
               <div>
-                <p className="font-bold text-amber-900 text-sm">
+                <p className="font-bold text-warning-900 text-sm">
                   {pendingHosts.length} Pending Host Request{pendingHosts.length > 1 ? 's' : ''}
                 </p>
-                <p className="text-[10px] text-amber-700">Approve or reject host join requests</p>
+                <p className="text-[10px] text-warning-700">Approve or reject host join requests</p>
               </div>
             </div>
             <div className="space-y-2 max-h-48 overflow-y-auto">
               {pendingHosts.map((ph) => (
                 <div key={ph.id} className={`flex items-center justify-between rounded-xl p-2 ${premiumTileClass}`}>
                   <div className="flex items-center gap-2">
-                    <Avatar className="w-9 h-9 border-2 border-amber-200">
+                    <Avatar className="w-9 h-9 border-2 border-warning-200">
                       <AvatarImage src={ph.profile?.avatar_url || ''} />
-                      <AvatarFallback className="bg-amber-100 text-amber-700 text-xs">
+                      <AvatarFallback className="bg-warning-100 text-warning-700 text-xs">
                         {ph.profile?.display_name?.charAt(0) || '?'}
                       </AvatarFallback>
                     </Avatar>
@@ -1014,7 +1014,7 @@ const AgencyDashboard = () => {
                       size="sm"
                       onClick={() => handleApproveHost(ph.host_id)}
                       disabled={approvingHostId === ph.host_id || rejectingHostId === ph.host_id}
-                      className="bg-green-600 hover:bg-green-500 text-white h-7 px-3 text-xs rounded-lg"
+                      className="bg-success-600 hover:bg-success-500 text-white h-7 px-3 text-xs rounded-lg"
                     >
                       {approvingHostId === ph.host_id ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3 mr-1" />}
                       Approve
@@ -1024,7 +1024,7 @@ const AgencyDashboard = () => {
                       variant="ghost"
                       onClick={() => handleRejectHost(ph.host_id)}
                       disabled={approvingHostId === ph.host_id || rejectingHostId === ph.host_id}
-                      className="text-red-400 hover:bg-red-500/20 h-7 px-2 text-xs rounded-lg"
+                      className="text-danger-400 hover:bg-danger-500/20 h-7 px-2 text-xs rounded-lg"
                     >
                       {rejectingHostId === ph.host_id ? <Loader2 className="w-3 h-3 animate-spin" /> : <XCircle className="w-3 h-3" />}
                     </Button>
@@ -1039,7 +1039,7 @@ const AgencyDashboard = () => {
       {/* Parent Agency Card (if sub-agency) */}
       {parentAgency && (
         <div className="mx-4 mt-2">
-          <Card className="bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 border-0 text-white overflow-hidden relative">
+          <Card className="bg-gradient-to-br from-brand-600 via-info-600 to-info-600 border-0 text-white overflow-hidden relative">
             <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
             <CardContent className="p-3 relative z-10">
               <div className="flex items-center justify-between">
@@ -1091,7 +1091,7 @@ const AgencyDashboard = () => {
 
       {/* Earnings Card - Compact */}
       <div className="mx-4 mt-2">
-        <Card className="bg-gradient-to-br from-orange-500 via-orange-500 to-red-500 border-0 text-white overflow-hidden relative">
+        <Card className="bg-gradient-to-br from-warning-500 via-warning-500 to-danger-500 border-0 text-white overflow-hidden relative">
           <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
           <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
           
@@ -1119,7 +1119,7 @@ const AgencyDashboard = () => {
                   <DollarSign className="w-2.5 h-2.5" />
                   USD Value
                 </p>
-                <p className="text-lg font-bold text-green-200">
+                <p className="text-lg font-bold text-success-200">
                   ${usdValue.toFixed(2)}
                 </p>
               </div>
@@ -1132,7 +1132,7 @@ const AgencyDashboard = () => {
                   <span className="text-sm">{localCurrency.flag}</span>
                   <span className="text-xs text-white/75">{localCurrency.code} Value</span>
                 </div>
-                <span className="text-sm font-bold text-cyan-200">
+                <span className="text-sm font-bold text-info-200">
                   {localCurrency.symbol}{localValue.toFixed(2)}
                 </span>
               </div>
@@ -1198,19 +1198,19 @@ const AgencyDashboard = () => {
                             return (
                               <>
                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                                  displayStatus === 'completed' ? 'bg-green-500/30' :
-                                  displayStatus === 'pending' ? 'bg-yellow-500/30' :
-                                  displayStatus === 'processing' ? 'bg-blue-500/30' :
-                                  displayStatus === 'rejected' ? 'bg-red-100' : 'bg-muted'
+                                  displayStatus === 'completed' ? 'bg-success-500/30' :
+                                  displayStatus === 'pending' ? 'bg-warning-500/30' :
+                                  displayStatus === 'processing' ? 'bg-info-500/30' :
+                                  displayStatus === 'rejected' ? 'bg-danger-100' : 'bg-muted'
                                 }`}>
                                   {displayStatus === 'completed' ? (
-                                    <CheckCircle2 className="w-4 h-4 text-green-600" />
+                                    <CheckCircle2 className="w-4 h-4 text-success-600" />
                                   ) : displayStatus === 'pending' ? (
-                                    <Clock className="w-4 h-4 text-yellow-600" />
+                                    <Clock className="w-4 h-4 text-warning-600" />
                                   ) : displayStatus === 'processing' ? (
-                                    <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
+                                    <Loader2 className="w-4 h-4 text-info-600 animate-spin" />
                                   ) : (
-                                    <XCircle className="w-4 h-4 text-red-600" />
+                                    <XCircle className="w-4 h-4 text-danger-600" />
                                   )}
                                 </div>
                                 <div>
@@ -1231,10 +1231,10 @@ const AgencyDashboard = () => {
                             : w.status;
                           return (
                             <Badge className={`text-[10px] ${
-                              displayStatus === 'completed' ? 'bg-green-100 text-green-700' :
-                              displayStatus === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                              displayStatus === 'processing' ? 'bg-blue-100 text-blue-700' :
-                              'bg-red-100 text-red-700'
+                              displayStatus === 'completed' ? 'bg-success-100 text-success-700' :
+                              displayStatus === 'pending' ? 'bg-warning-100 text-warning-700' :
+                              displayStatus === 'processing' ? 'bg-info-100 text-info-700' :
+                              'bg-danger-100 text-danger-700'
                             } border-0`}>
                               {displayStatus}
                             </Badge>
@@ -1254,17 +1254,17 @@ const AgencyDashboard = () => {
       <div className="mx-4 mt-3">
         <div 
           onClick={() => navigate('/payroll-helper-guide')}
-          className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100 rounded-2xl p-3 cursor-pointer hover:shadow-lg transition-all active:scale-[0.98]"
+          className="bg-gradient-to-r from-info-50 to-brand-50 border border-info-100 rounded-2xl p-3 cursor-pointer hover:shadow-lg transition-all active:scale-[0.98]"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+            <div className="w-10 h-10 bg-gradient-to-br from-info-500 to-brand-600 rounded-xl flex items-center justify-center shadow-lg">
               <FileText className="w-5 h-5 text-white" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-foreground font-semibold text-sm">📖 Payroll Helper Guide</p>
               <p className="text-muted-foreground text-[11px]">Learn roles, benefits & diamond trading</p>
             </div>
-            <ArrowRight className="w-4 h-4 text-indigo-500" />
+            <ArrowRight className="w-4 h-4 text-info-500" />
           </div>
         </div>
       </div>
@@ -1275,21 +1275,21 @@ const AgencyDashboard = () => {
         <div className="grid grid-cols-4 gap-3">
           <button
             onClick={() => navigate("/agency-host-management")}
-            className={`${premiumActionClass} bg-gradient-to-br from-blue-500 to-cyan-500`}
+            className={`${premiumActionClass} bg-gradient-to-br from-info-500 to-info-500`}
           >
             <HostsIcon3D />
             <span className="text-xs font-medium mt-1">Hosts</span>
           </button>
           <button
             onClick={() => navigate("/agency-withdrawal")}
-            className={`${premiumActionClass} bg-gradient-to-br from-green-500 to-emerald-500`}
+            className={`${premiumActionClass} bg-gradient-to-br from-success-500 to-success-500`}
           >
             <WithdrawIcon3D />
             <span className="text-xs font-medium mt-1">Withdraw</span>
           </button>
           <button
             onClick={() => navigate("/agent-rank")}
-            className={`${premiumActionClass} bg-gradient-to-br from-yellow-500 to-orange-500`}
+            className={`${premiumActionClass} bg-gradient-to-br from-warning-500 to-warning-500`}
           >
             <RankingIcon3D />
             <span className="text-xs font-medium mt-1">Ranking</span>
@@ -1302,15 +1302,15 @@ const AgencyDashboard = () => {
                 setShowHelperDialog(true);
               }
             }}
-            className={`${premiumActionClass} bg-gradient-to-br ${hasHelperAccess ? 'from-green-500 to-emerald-500' : helperPendingApplication ? 'from-yellow-500 to-orange-500' : 'from-purple-500 to-pink-500'} relative`}
+            className={`${premiumActionClass} bg-gradient-to-br ${hasHelperAccess ? 'from-success-500 to-success-500' : helperPendingApplication ? 'from-warning-500 to-warning-500' : 'from-brand-500 to-brand-500'} relative`}
           >
             {hasHelperAccess && helperPendingCount > 0 && (
-              <div className="absolute -top-2 -right-2 min-w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold px-1.5 shadow-lg animate-pulse border-2 border-white">
+              <div className="absolute -top-2 -right-2 min-w-6 h-6 bg-danger-500 rounded-full flex items-center justify-center text-white text-xs font-bold px-1.5 shadow-lg animate-pulse border-2 border-white">
                 {helperPendingCount > 99 ? '99+' : helperPendingCount}
               </div>
             )}
             {helperPendingApplication && !hasHelperAccess && (
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-pulse" />
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-warning-400 rounded-full animate-pulse" />
             )}
             <HelperIcon3D />
             <span className="text-xs font-medium mt-1">
@@ -1323,21 +1323,21 @@ const AgencyDashboard = () => {
         <div className="grid grid-cols-3 gap-3 mt-3">
           <button
             onClick={() => navigate("/agency-coin-exchange")}
-            className={`${premiumActionClass} bg-gradient-to-br from-orange-500 to-red-500`}
+            className={`${premiumActionClass} bg-gradient-to-br from-warning-500 to-danger-500`}
           >
             <DiamondExchangeIcon3D />
             <span className="text-xs font-medium mt-1">Diamond Exchange</span>
           </button>
           <button
             onClick={() => navigate("/agency-policy")}
-            className={`${premiumActionClass} bg-gradient-to-br from-cyan-500 to-blue-600`}
+            className={`${premiumActionClass} bg-gradient-to-br from-info-500 to-info-600`}
           >
             <PolicyIcon3D />
             <span className="text-xs font-medium mt-1">Policy</span>
           </button>
           <button
             onClick={() => navigate("/agency-transfer-history")}
-            className={`${premiumActionClass} bg-gradient-to-br from-indigo-500 to-purple-600`}
+            className={`${premiumActionClass} bg-gradient-to-br from-info-500 to-brand-600`}
           >
             <HistoryIcon3D />
             <span className="text-xs font-medium mt-1">History</span>
@@ -1351,8 +1351,8 @@ const AgencyDashboard = () => {
         <Card className={premiumCardClass}>
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
-              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Building2 className="w-4 h-4 text-purple-600" />
+              <div className="w-8 h-8 bg-brand-100 rounded-lg flex items-center justify-center">
+                <Building2 className="w-4 h-4 text-brand-600" />
               </div>
               Agency Information
             </CardTitle>
@@ -1360,8 +1360,8 @@ const AgencyDashboard = () => {
           <CardContent className="space-y-3">
             <div className={`flex items-center justify-between p-3 rounded-xl ${premiumTileClass}`}>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <Hash className="w-5 h-5 text-purple-600" />
+                <div className="w-10 h-10 bg-brand-100 rounded-lg flex items-center justify-center">
+                  <Hash className="w-5 h-5 text-brand-600" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Agency Code</p>
@@ -1372,8 +1372,8 @@ const AgencyDashboard = () => {
 
             <div className={`flex items-center justify-between p-3 rounded-xl ${premiumTileClass}`}>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
-                  <Star className="w-5 h-5 text-amber-600" />
+                <div className="w-10 h-10 bg-warning-100 rounded-lg flex items-center justify-center">
+                  <Star className="w-5 h-5 text-warning-600" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Agency Level</p>
@@ -1384,8 +1384,8 @@ const AgencyDashboard = () => {
 
             <div className={`flex items-center justify-between p-3 rounded-xl ${premiumTileClass}`}>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-green-600" />
+                <div className="w-10 h-10 bg-success-100 rounded-lg flex items-center justify-center">
+                  <TrendingUp className="w-5 h-5 text-success-600" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Host Commission Rate</p>
@@ -1396,8 +1396,8 @@ const AgencyDashboard = () => {
 
             <div className={`flex items-center justify-between p-3 rounded-xl ${premiumTileClass}`}>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Calendar className="w-5 h-5 text-blue-600" />
+                <div className="w-10 h-10 bg-info-100 rounded-lg flex items-center justify-center">
+                  <Calendar className="w-5 h-5 text-info-600" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Created</p>
@@ -1412,20 +1412,20 @@ const AgencyDashboard = () => {
       {/* Tabs Section */}
       <div className="mx-4 mt-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full grid grid-cols-4 bg-white/90 border border-amber-100 p-1 rounded-2xl h-12 shadow-sm">
-            <TabsTrigger value="overview" className="text-xs rounded-xl text-muted-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-fuchsia-600 data-[state=active]:text-white data-[state=active]:shadow-sm">
+          <TabsList className="w-full grid grid-cols-4 bg-white/90 border border-warning-100 p-1 rounded-2xl h-12 shadow-sm">
+            <TabsTrigger value="overview" className="text-xs rounded-xl text-muted-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-brand-600 data-[state=active]:to-brand-600 data-[state=active]:text-white data-[state=active]:shadow-sm">
               <BarChart3 className="w-4 h-4 mr-1" />
               Overview
             </TabsTrigger>
-            <TabsTrigger value="hosts" className="text-xs rounded-xl text-muted-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-fuchsia-600 data-[state=active]:text-white data-[state=active]:shadow-sm">
+            <TabsTrigger value="hosts" className="text-xs rounded-xl text-muted-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-brand-600 data-[state=active]:to-brand-600 data-[state=active]:text-white data-[state=active]:shadow-sm">
               <Users className="w-4 h-4 mr-1" />
               Hosts
             </TabsTrigger>
-            <TabsTrigger value="subagents" className="text-xs rounded-xl text-muted-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-fuchsia-600 data-[state=active]:text-white data-[state=active]:shadow-sm">
+            <TabsTrigger value="subagents" className="text-xs rounded-xl text-muted-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-brand-600 data-[state=active]:to-brand-600 data-[state=active]:text-white data-[state=active]:shadow-sm">
               <UserPlus className="w-4 h-4 mr-1" />
               Agents
             </TabsTrigger>
-            <TabsTrigger value="charts" className="text-xs rounded-xl text-muted-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-fuchsia-600 data-[state=active]:text-white data-[state=active]:shadow-sm">
+            <TabsTrigger value="charts" className="text-xs rounded-xl text-muted-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-brand-600 data-[state=active]:to-brand-600 data-[state=active]:text-white data-[state=active]:shadow-sm">
               <TrendingUp className="w-4 h-4 mr-1" />
               Charts
             </TabsTrigger>
@@ -1437,8 +1437,8 @@ const AgencyDashboard = () => {
             <Card className={premiumCardClass}>
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <TrendingUp className="w-4 h-4 text-purple-600" />
+                  <div className="w-8 h-8 bg-brand-100 rounded-lg flex items-center justify-center">
+                    <TrendingUp className="w-4 h-4 text-brand-600" />
                   </div>
                   Weekly Income
                 </CardTitle>
@@ -1449,8 +1449,8 @@ const AgencyDashboard = () => {
                     <AreaChart data={weeklyData}>
                       <defs>
                         <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                          <stop offset="5%" stopColor="hsl(var(--brand-500))" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="hsl(var(--brand-500))" stopOpacity={0}/>
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -1466,7 +1466,7 @@ const AgencyDashboard = () => {
                       <Area 
                         type="monotone" 
                         dataKey="income" 
-                        stroke="#8b5cf6" 
+                        stroke="hsl(var(--brand-500))" 
                         strokeWidth={3}
                         fill="url(#incomeGradient)"
                       />
@@ -1478,51 +1478,51 @@ const AgencyDashboard = () => {
 
             {/* Performance Stats */}
             <div className="grid grid-cols-2 gap-3">
-              <Card className="agency-premium-card bg-gradient-to-br from-purple-50 to-indigo-50">
+              <Card className="agency-premium-card bg-gradient-to-br from-brand-50 to-info-50">
                 <CardContent className="p-4">
-                  <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center mb-2">
-                    <Gift className="w-5 h-5 text-purple-600" />
+                  <div className="w-10 h-10 bg-brand-100 rounded-xl flex items-center justify-center mb-2">
+                    <Gift className="w-5 h-5 text-brand-600" />
                   </div>
-                  <p className="text-2xl font-bold text-purple-700">
+                  <p className="text-2xl font-bold text-brand-700">
                     {fmtNum(performance?.total_income || 0)}
                   </p>
-                  <p className="text-sm text-purple-600">Weekly Income</p>
+                  <p className="text-sm text-brand-600">Weekly Income</p>
                 </CardContent>
               </Card>
               
-              <Card className="agency-premium-card bg-gradient-to-br from-emerald-50 to-teal-50">
+              <Card className="agency-premium-card bg-gradient-to-br from-success-50 to-success-50">
                 <CardContent className="p-4">
-                  <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center mb-2">
-                    <Users className="w-5 h-5 text-emerald-600" />
+                  <div className="w-10 h-10 bg-success-100 rounded-xl flex items-center justify-center mb-2">
+                    <Users className="w-5 h-5 text-success-600" />
                   </div>
-                  <p className="text-2xl font-bold text-emerald-700">
+                  <p className="text-2xl font-bold text-success-700">
                     {performance?.new_hosts_count || 0}
                   </p>
-                  <p className="text-sm text-emerald-600">New Hosts</p>
+                  <p className="text-sm text-success-600">New Hosts</p>
                 </CardContent>
               </Card>
               
-              <Card className="agency-premium-card bg-gradient-to-br from-amber-50 to-orange-50">
+              <Card className="agency-premium-card bg-gradient-to-br from-warning-50 to-warning-50">
                 <CardContent className="p-4">
-                  <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center mb-2">
-                    <Clock className="w-5 h-5 text-amber-600" />
+                  <div className="w-10 h-10 bg-warning-100 rounded-xl flex items-center justify-center mb-2">
+                    <Clock className="w-5 h-5 text-warning-600" />
                   </div>
-                  <p className="text-2xl font-bold text-amber-700">
+                  <p className="text-2xl font-bold text-warning-700">
                     {(performance?.total_host_hours || 0).toFixed(1)}h
                   </p>
-                  <p className="text-sm text-amber-600">Live Hours</p>
+                  <p className="text-sm text-warning-600">Live Hours</p>
                 </CardContent>
               </Card>
               
-              <Card className="agency-premium-card bg-gradient-to-br from-yellow-50 to-amber-50">
+              <Card className="agency-premium-card bg-gradient-to-br from-warning-50 to-warning-50">
                 <CardContent className="p-4">
-                  <div className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center mb-2">
-                    <Crown className="w-5 h-5 text-yellow-600" />
+                  <div className="w-10 h-10 bg-warning-100 rounded-xl flex items-center justify-center mb-2">
+                    <Crown className="w-5 h-5 text-warning-600" />
                   </div>
-                  <p className="text-2xl font-bold text-yellow-700">
+                  <p className="text-2xl font-bold text-warning-700">
                     {fmtNum(performance?.golden_host_income || 0)}
                   </p>
-                  <p className="text-sm text-yellow-600">Golden Income</p>
+                  <p className="text-sm text-warning-600">Golden Income</p>
                 </CardContent>
               </Card>
             </div>
@@ -1531,8 +1531,8 @@ const AgencyDashboard = () => {
             <Card className={premiumCardClass}>
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Target className="w-4 h-4 text-blue-600" />
+                  <div className="w-8 h-8 bg-info-100 rounded-lg flex items-center justify-center">
+                    <Target className="w-4 h-4 text-info-600" />
                   </div>
                   Total Statistics
                 </CardTitle>
@@ -1540,17 +1540,17 @@ const AgencyDashboard = () => {
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between py-3 border-b border-border">
                   <span className="text-muted-foreground">Total Host Earnings</span>
-                  <span className="font-bold text-emerald-600">{fmtNum(totalHostEarnings)}</span>
+                  <span className="font-bold text-success-600">{fmtNum(totalHostEarnings)}</span>
                 </div>
                 <div className="flex items-center justify-between py-3 border-b border-border">
                   <span className="text-muted-foreground">Your Commission ({actualCommissionRate}%)</span>
-                  <span className="font-bold text-purple-600">
+                  <span className="font-bold text-brand-600">
                     {fmtNum(Math.floor(totalHostEarnings * actualCommissionRate / 100))}
                   </span>
                 </div>
                 <div className="flex items-center justify-between py-3 border-b border-border">
                   <span className="text-muted-foreground">Sub-Agent Commission</span>
-                  <span className="font-bold text-blue-600">{fmtNum(totalSubAgentEarnings)}</span>
+                  <span className="font-bold text-info-600">{fmtNum(totalSubAgentEarnings)}</span>
                 </div>
                 <div className="flex items-center justify-between py-3">
                   <span className="text-muted-foreground">Agency Created</span>
@@ -1564,8 +1564,8 @@ const AgencyDashboard = () => {
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base flex items-center gap-2 text-foreground">
-                    <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
-                      <Clock className="w-5 h-5 text-indigo-600" />
+                    <div className="w-10 h-10 bg-info-100 rounded-xl flex items-center justify-center">
+                      <Clock className="w-5 h-5 text-info-600" />
                     </div>
                     <div>
                       <span>Withdrawal History</span>
@@ -1576,7 +1576,7 @@ const AgencyDashboard = () => {
                     variant="ghost" 
                     size="sm" 
                     onClick={() => navigate('/agency-withdrawal')}
-                    className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                    className="text-info-600 hover:text-info-700 hover:bg-info-50"
                   >
                     View All
                     <ChevronRight className="w-4 h-4 ml-1" />
@@ -1601,11 +1601,11 @@ const AgencyDashboard = () => {
                         : withdrawal.status;
                       
                       const statusConfig: Record<string, { iconBg: string; text: string }> = {
-                        completed: { iconBg: 'bg-emerald-500', text: 'text-emerald-600' },
-                        pending: { iconBg: 'bg-amber-500', text: 'text-amber-600' },
-                        processing: { iconBg: 'bg-blue-500', text: 'text-blue-600' },
-                        rejected: { iconBg: 'bg-red-500', text: 'text-red-600' },
-                        approved: { iconBg: 'bg-emerald-500', text: 'text-emerald-600' }
+                        completed: { iconBg: 'bg-success-500', text: 'text-success-600' },
+                        pending: { iconBg: 'bg-warning-500', text: 'text-warning-600' },
+                        processing: { iconBg: 'bg-info-500', text: 'text-info-600' },
+                        rejected: { iconBg: 'bg-danger-500', text: 'text-danger-600' },
+                        approved: { iconBg: 'bg-success-500', text: 'text-success-600' }
                       };
                       const config = statusConfig[displayStatus] || statusConfig.pending;
                       
@@ -1637,7 +1637,7 @@ const AgencyDashboard = () => {
                               <span className="text-muted-foreground text-sm">Beans</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm">
-                              <span className="bg-gradient-to-r from-pink-50 to-purple-50 text-pink-700 px-2 py-0.5 rounded-md text-xs font-medium border border-pink-100">
+                              <span className="bg-gradient-to-r from-brand-50 to-brand-50 text-brand-700 px-2 py-0.5 rounded-md text-xs font-medium border border-brand-100">
                                 {withdrawal.payment_method?.toUpperCase()}
                               </span>
                               <span className="text-muted-foreground">•</span>
@@ -1670,8 +1670,8 @@ const AgencyDashboard = () => {
             <Card className="agency-premium-card">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
-                    <Crown className="w-4 h-4 text-yellow-600" />
+                  <div className="w-8 h-8 bg-warning-100 rounded-lg flex items-center justify-center">
+                    <Crown className="w-4 h-4 text-warning-600" />
                   </div>
                   Top Performers
                 </CardTitle>
@@ -1686,9 +1686,9 @@ const AgencyDashboard = () => {
                       className="flex items-center gap-3 py-3 border-b border-border last:border-0"
                     >
                       <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-                        index === 0 ? 'bg-yellow-100 text-yellow-700' :
+                        index === 0 ? 'bg-warning-100 text-warning-700' :
                         index === 1 ? 'bg-gray-100 text-gray-700' :
-                        index === 2 ? 'bg-orange-100 text-orange-700' :
+                        index === 2 ? 'bg-warning-100 text-warning-700' :
                         'bg-muted text-muted-foreground'
                       }`}>
                         {index + 1}
@@ -1701,16 +1701,16 @@ const AgencyDashboard = () => {
                         <div className="flex items-center gap-2">
                           <p className="font-medium truncate">{host.profile?.display_name || "Host"}</p>
                           {host.profile?.is_online && (
-                            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                            <span className="w-2 h-2 bg-success-500 rounded-full animate-pulse" />
                           )}
                           {host.profile?.is_verified && (
-                            <CheckCircle2 className="w-4 h-4 text-blue-500" />
+                            <CheckCircle2 className="w-4 h-4 text-info-500" />
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground">Joined: {formatDate(host.joined_at)}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-emerald-600">{fmtNum(host.profile?.total_earnings || 0)}</p>
+                        <p className="font-bold text-success-600">{fmtNum(host.profile?.total_earnings || 0)}</p>
                         <p className="text-xs text-muted-foreground">Earnings</p>
                       </div>
                     </div>
@@ -1728,29 +1728,29 @@ const AgencyDashboard = () => {
             </Card>
 
             {/* Host Invite Link Card */}
-            <Card className="agency-premium-card bg-gradient-to-br from-blue-50 to-cyan-50">
+            <Card className="agency-premium-card bg-gradient-to-br from-info-50 to-info-50">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                    <LinkIcon className="w-5 h-5 text-blue-600" />
+                  <div className="w-10 h-10 bg-info-100 rounded-xl flex items-center justify-center">
+                    <LinkIcon className="w-5 h-5 text-info-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-blue-800">Host Invite Link</h3>
-                    <p className="text-xs text-blue-600">Share to recruit new hosts</p>
+                    <h3 className="font-semibold text-info-800">Host Invite Link</h3>
+                    <p className="text-xs text-info-600">Share to recruit new hosts</p>
                   </div>
                 </div>
                 <div className="flex gap-2">
                   <Button 
                     onClick={copyHostJoinLink}
                     variant="outline" 
-                    className="flex-1 border-blue-300 text-blue-700"
+                    className="flex-1 border-info-300 text-info-700"
                   >
                     <Copy className="w-4 h-4 mr-2" />
                     Copy
                   </Button>
                   <Button 
                     onClick={shareHostJoinLink}
-                    className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
+                    className="flex-1 bg-info-500 hover:bg-info-600 text-white"
                   >
                     <Share2 className="w-4 h-4 mr-2" />
                     Share
@@ -1761,7 +1761,7 @@ const AgencyDashboard = () => {
 
             <Button
               onClick={() => navigate("/agency-host-management")}
-              className="w-full h-12 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 rounded-xl"
+              className="w-full h-12 bg-gradient-to-r from-brand-500 to-info-600 hover:from-brand-600 hover:to-info-700 rounded-xl"
             >
               <Users className="w-5 h-5 mr-2" />
               Manage All Hosts
@@ -1770,29 +1770,29 @@ const AgencyDashboard = () => {
 
           {/* Sub-Agents Tab */}
           <TabsContent value="subagents" className="mt-4 space-y-4">
-            <Card className="agency-premium-card bg-gradient-to-br from-orange-50 to-amber-50">
+            <Card className="agency-premium-card bg-gradient-to-br from-warning-50 to-warning-50">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
-                    <LinkIcon className="w-5 h-5 text-orange-600" />
+                  <div className="w-10 h-10 bg-warning-100 rounded-xl flex items-center justify-center">
+                    <LinkIcon className="w-5 h-5 text-warning-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-orange-800">Referral Link</h3>
-                    <p className="text-xs text-orange-600">Share to add sub-agents</p>
+                    <h3 className="font-semibold text-warning-800">Referral Link</h3>
+                    <p className="text-xs text-warning-600">Share to add sub-agents</p>
                   </div>
                 </div>
                 <div className="flex gap-2">
                   <Button 
                     onClick={copySubAgentLink}
                     variant="outline" 
-                    className="flex-1 border-orange-300 text-orange-700"
+                    className="flex-1 border-warning-300 text-warning-700"
                   >
                     <Copy className="w-4 h-4 mr-2" />
                     Copy
                   </Button>
                   <Button 
                     onClick={shareSubAgentLink}
-                    className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
+                    className="flex-1 bg-warning-500 hover:bg-warning-600 text-white"
                   >
                     <Share2 className="w-4 h-4 mr-2" />
                     Share
@@ -1804,13 +1804,13 @@ const AgencyDashboard = () => {
             <div className="grid grid-cols-2 gap-3">
               <Card className="agency-premium-card">
                 <CardContent className="p-4 text-center">
-                  <p className="text-3xl font-bold text-orange-600">{subAgents.length}</p>
+                  <p className="text-3xl font-bold text-warning-600">{subAgents.length}</p>
                   <p className="text-sm text-muted-foreground">Total Sub-Agents</p>
                 </CardContent>
               </Card>
               <Card className="agency-premium-card">
                 <CardContent className="p-4 text-center">
-                  <p className="text-3xl font-bold text-green-600">{fmtNum(totalSubAgentEarnings)}</p>
+                  <p className="text-3xl font-bold text-success-600">{fmtNum(totalSubAgentEarnings)}</p>
                   <p className="text-sm text-muted-foreground">Total Commission</p>
                 </CardContent>
               </Card>
@@ -1838,7 +1838,7 @@ const AgencyDashboard = () => {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold text-green-600">{fmtNum(sa.total_earnings)}</p>
+                          <p className="font-bold text-success-600">{fmtNum(sa.total_earnings)}</p>
                           <p className="text-xs text-muted-foreground">{sa.commission_rate}%</p>
                         </div>
                       </div>
@@ -1860,8 +1860,8 @@ const AgencyDashboard = () => {
             <Card className="agency-premium-card">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
-                    <Building2 className="w-4 h-4 text-indigo-600" />
+                  <div className="w-8 h-8 bg-info-100 rounded-lg flex items-center justify-center">
+                    <Building2 className="w-4 h-4 text-info-600" />
                   </div>
                   Sub-Agencies ({subAgencyCount})
                 </CardTitle>
@@ -1871,7 +1871,7 @@ const AgencyDashboard = () => {
                   <div className="space-y-3">
                     {subAgencies.map((sa: any) => (
                       <div key={sa.id} className="flex items-center gap-3 py-3 border-b border-border last:border-0">
-                        <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                        <div className="w-10 h-10 bg-gradient-to-br from-info-500 to-brand-600 rounded-xl flex items-center justify-center">
                           <Building2 className="w-5 h-5 text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -1899,18 +1899,18 @@ const AgencyDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="agency-premium-card bg-gradient-to-br from-purple-50 to-indigo-50">
+            <Card className="agency-premium-card bg-gradient-to-br from-brand-50 to-info-50">
               <CardContent className="p-4">
-                <h3 className="font-semibold text-purple-800 mb-3 flex items-center gap-2">
+                <h3 className="font-semibold text-brand-800 mb-3 flex items-center gap-2">
                   <Award className="w-5 h-5" />
                   Commission Structure
                 </h3>
-                <ul className="text-sm text-purple-700 space-y-2">
-                  <li className="flex items-center justify-between py-2 border-b border-purple-200">
+                <ul className="text-sm text-brand-700 space-y-2">
+                  <li className="flex items-center justify-between py-2 border-b border-brand-200">
                     <span>Sub-Agent Base Commission:</span>
                     <span className="font-bold">2%</span>
                   </li>
-                  <li className="flex items-center justify-between py-2 border-b border-purple-200">
+                  <li className="flex items-center justify-between py-2 border-b border-brand-200">
                     <span>Top Performer Bonus:</span>
                     <span className="font-bold">+1%</span>
                   </li>
@@ -1928,8 +1928,8 @@ const AgencyDashboard = () => {
             <Card className="agency-premium-card">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <TrendingUp className="w-4 h-4 text-blue-600" />
+                  <div className="w-8 h-8 bg-info-100 rounded-lg flex items-center justify-center">
+                    <TrendingUp className="w-4 h-4 text-info-600" />
                   </div>
                   Income Trend
                 </CardTitle>
@@ -1951,9 +1951,9 @@ const AgencyDashboard = () => {
                       <Line 
                         type="monotone" 
                         dataKey="income" 
-                        stroke="#8b5cf6" 
+                        stroke="hsl(var(--brand-500))" 
                         strokeWidth={3}
-                        dot={{ fill: '#8b5cf6', strokeWidth: 2 }}
+                        dot={{ fill: 'hsl(var(--brand-500))', strokeWidth: 2 }}
                       />
                     </LineChart>
                   </ResponsiveContainer>
@@ -1964,8 +1964,8 @@ const AgencyDashboard = () => {
             <Card className="agency-premium-card">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
-                    <Clock className="w-4 h-4 text-amber-600" />
+                  <div className="w-8 h-8 bg-warning-100 rounded-lg flex items-center justify-center">
+                    <Clock className="w-4 h-4 text-warning-600" />
                   </div>
                   Live Hours
                 </CardTitle>
@@ -1984,7 +1984,7 @@ const AgencyDashboard = () => {
                           borderRadius: '12px'
                         }}
                       />
-                      <Bar dataKey="hours" fill="#f59e0b" radius={[8, 8, 0, 0]} />
+                      <Bar dataKey="hours" fill="hsl(var(--warning-500))" radius={[8, 8, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -1994,8 +1994,8 @@ const AgencyDashboard = () => {
             <Card className="agency-premium-card">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                    <BarChart3 className="w-4 h-4 text-green-600" />
+                  <div className="w-8 h-8 bg-success-100 rounded-lg flex items-center justify-center">
+                    <BarChart3 className="w-4 h-4 text-success-600" />
                   </div>
                   Earnings Distribution
                 </CardTitle>
@@ -2041,26 +2041,26 @@ const AgencyDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="agency-premium-card bg-gradient-to-br from-green-50 to-emerald-50">
+            <Card className="agency-premium-card bg-gradient-to-br from-success-50 to-success-50">
               <CardContent className="p-4">
-                <h3 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
+                <h3 className="font-semibold text-success-800 mb-3 flex items-center gap-2">
                   <Zap className="w-5 h-5" />
                   Compared to Last Week
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="bg-white/60 rounded-xl p-4 text-center">
-                    <div className="flex items-center justify-center gap-1 text-green-600">
+                    <div className="flex items-center justify-center gap-1 text-success-600">
                       <TrendingUp className="w-5 h-5" />
                       <span className="text-xl font-bold">+12%</span>
                     </div>
-                    <p className="text-xs text-green-700 mt-1">Income Growth</p>
+                    <p className="text-xs text-success-700 mt-1">Income Growth</p>
                   </div>
                   <div className="bg-white/60 rounded-xl p-4 text-center">
-                    <div className="flex items-center justify-center gap-1 text-blue-600">
+                    <div className="flex items-center justify-center gap-1 text-info-600">
                       <TrendingUp className="w-5 h-5" />
                       <span className="text-xl font-bold">+8%</span>
                     </div>
-                    <p className="text-xs text-blue-700 mt-1">Host Activity</p>
+                    <p className="text-xs text-info-700 mt-1">Host Activity</p>
                   </div>
                 </div>
               </CardContent>
@@ -2077,7 +2077,7 @@ const AgencyDashboard = () => {
             <>
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
-                  <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center">
+                  <div className="w-10 h-10 bg-gradient-to-br from-warning-500 to-warning-500 rounded-xl flex items-center justify-center">
                     <Clock className="w-5 h-5 text-white" />
                   </div>
                   Application Pending
@@ -2088,12 +2088,12 @@ const AgencyDashboard = () => {
               </DialogHeader>
               
               <div className="space-y-4 mt-4">
-                <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl p-6 text-center border border-yellow-200">
-                  <div className="w-16 h-16 mx-auto bg-yellow-100 rounded-full flex items-center justify-center mb-4">
-                    <Clock className="w-8 h-8 text-yellow-600" />
+                <div className="bg-gradient-to-br from-warning-50 to-warning-50 rounded-2xl p-6 text-center border border-warning-200">
+                  <div className="w-16 h-16 mx-auto bg-warning-100 rounded-full flex items-center justify-center mb-4">
+                    <Clock className="w-8 h-8 text-warning-600" />
                   </div>
-                  <h3 className="font-bold text-yellow-800 text-lg">Under Review</h3>
-                  <p className="text-sm text-yellow-700 mt-2">
+                  <h3 className="font-bold text-warning-800 text-lg">Under Review</h3>
+                  <p className="text-sm text-warning-700 mt-2">
                     Your application to become a Helper/Diamond Trader is currently under review. 
                     You will be notified once approved.
                   </p>
@@ -2136,7 +2136,7 @@ const AgencyDashboard = () => {
         <DialogContent className="max-w-sm mx-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-brand-500 to-info-600 rounded-xl flex items-center justify-center">
                 <MessageCircle className="w-5 h-5 text-white" />
               </div>
               Contact Parent Agency
@@ -2148,27 +2148,27 @@ const AgencyDashboard = () => {
           
           {parentAgency && (
             <div className="space-y-4 mt-4">
-              <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl p-4 border border-purple-200">
+              <div className="bg-gradient-to-br from-brand-50 to-info-50 rounded-2xl p-4 border border-brand-200">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                  <div className="w-14 h-14 bg-gradient-to-br from-brand-500 to-info-600 rounded-xl flex items-center justify-center">
                     <Building2 className="w-7 h-7 text-white" />
                   </div>
                   <div>
-                    <p className="font-bold text-lg text-purple-800">{parentAgency.name}</p>
+                    <p className="font-bold text-lg text-brand-800">{parentAgency.name}</p>
                     <div className="flex items-center gap-2">
-                      <Badge className="bg-purple-100 text-purple-700 text-xs">
+                      <Badge className="bg-brand-100 text-brand-700 text-xs">
                         {parentAgency.level}
                       </Badge>
-                      <span className="text-xs text-purple-600">{parentAgency.agency_code}</span>
+                      <span className="text-xs text-brand-600">{parentAgency.agency_code}</span>
                     </div>
                   </div>
                 </div>
 
                 {parentAgency.owner_profile && (
                   <div className="bg-white rounded-xl p-3 flex items-center gap-3">
-                    <Avatar className="w-12 h-12 border-2 border-purple-200">
+                    <Avatar className="w-12 h-12 border-2 border-brand-200">
                       <AvatarImage src={parentAgency.owner_profile.avatar_url || ""} />
-                      <AvatarFallback className="bg-purple-100 text-purple-700">
+                      <AvatarFallback className="bg-brand-100 text-brand-700">
                         {parentAgency.owner_profile.display_name?.charAt(0) || "?"}
                       </AvatarFallback>
                     </Avatar>
@@ -2186,7 +2186,7 @@ const AgencyDashboard = () => {
                     navigate(`/chat?user=${parentAgency.owner_id}`);
                     setShowParentContactModal(false);
                   }}
-                  className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700"
+                  className="w-full bg-gradient-to-r from-brand-500 to-info-600 hover:from-brand-600 hover:to-info-700"
                 >
                   <Send className="w-4 h-4 mr-2" />
                   Send Message
@@ -2204,8 +2204,8 @@ const AgencyDashboard = () => {
                 </Button>
               </div>
 
-              <div className="bg-amber-50 rounded-xl p-3 border border-amber-200">
-                <p className="text-xs text-amber-700">
+              <div className="bg-warning-50 rounded-xl p-3 border border-warning-200">
+                <p className="text-xs text-warning-700">
                   💡 <strong>Tip:</strong> Your parent agency earns commission from your agency. 
                   Contact them for any issues or support.
                 </p>
