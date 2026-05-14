@@ -752,6 +752,7 @@ const FaceVerification = () => {
     setVerificationTime(0);
     setScanningStatus('idle');
     setPoseHistory([]);
+    setLiveDiag(null);
     faceChunksRef.current = [];
     capturedAnglesRef.current = {};
 
