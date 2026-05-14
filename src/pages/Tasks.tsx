@@ -594,22 +594,22 @@ const Tasks = () => {
             </div>
 
             {/* Summary */}
-            <div className="mx-4 mb-4 p-3 rounded-xl bg-white/5 border border-amber-200/40">
+            <div className="mx-4 mb-4 p-3 rounded-xl bg-white/5 border border-white/10">
               {/* Stats row */}
               <div className="flex items-center justify-around mb-3">
                 <div className="text-center">
-                  <p className="text-amber-400 font-bold text-sm">{(bonusProgress?.beans_earned || 0).toLocaleString()}</p>
-                  <p className="text-[9px] text-slate-600">Earned Today</p>
+                  <p className="text-amber-300 font-bold text-sm">{(bonusProgress?.beans_earned || 0).toLocaleString()}</p>
+                  <p className="text-[9px] text-purple-200/70">Earned Today</p>
                 </div>
                 <div className="w-px h-6 bg-white/10" />
                 <div className="text-center">
-                  <p className="text-slate-800 font-bold text-sm">{totalDailyBonus.toLocaleString()}</p>
-                  <p className="text-[9px] text-slate-600">Max/Day</p>
+                  <p className="text-white font-bold text-sm">{totalDailyBonus.toLocaleString()}</p>
+                  <p className="text-[9px] text-purple-200/70">Max/Day</p>
                 </div>
                 <div className="w-px h-6 bg-white/10" />
                 <div className="text-center">
-                  <p className="text-fuchsia-400 font-bold text-sm">Day {bonusProgress?.day_number || 1}/{bonusSettings.eligible_days}</p>
-                  <p className="text-[9px] text-slate-600">Period</p>
+                  <p className="text-fuchsia-300 font-bold text-sm">Day {bonusProgress?.day_number || 1}/{bonusSettings.eligible_days}</p>
+                  <p className="text-[9px] text-purple-200/70">Period</p>
                 </div>
               </div>
               {/* Go Live button - full width */}
