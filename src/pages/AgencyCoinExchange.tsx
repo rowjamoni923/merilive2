@@ -958,7 +958,7 @@ const AgencyCoinExchange = () => {
                         </Avatar>
                         <div className="flex-1">
                           <p className="font-semibold text-slate-800">{user.display_name || "Unknown"}</p>
-                          <p className="text-xs text-slate-500">
+                          <p className="text-xs text-white/80">
                             UID: {user.app_uid || user.id.slice(0, 8)}
                           </p>
                         </div>
@@ -982,7 +982,7 @@ const AgencyCoinExchange = () => {
                       </Avatar>
                       <div className="flex-1">
                         <p className="font-semibold text-slate-800">{selectedUser.display_name || "Unknown"}</p>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-white/80">
                           UID: {selectedUser.app_uid || selectedUser.id.slice(0, 8)}
                         </p>
                       </div>

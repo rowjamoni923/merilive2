@@ -1709,7 +1709,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             Go Back
           </Button>
           <Button 
- className="bg-gradient-to-r from-purple-500 to-pink-500 text-slate-900"
+ className="bg-gradient-to-r from-purple-500 to-pink-500 text-white"
             onClick={handleLogoutAndReregister}
           >
             Create New Account
@@ -2141,12 +2141,12 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   <div className="flex items-center gap-1.5">
                     {item.extra}
                     {item.badge && (
- <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-slate-900 border-0 rounded-full w-4 h-4 p-0 flex items-center justify-center text-[10px] shadow-lg shadow-pink-500/30">
+ <Badge className="bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 rounded-full w-4 h-4 p-0 flex items-center justify-center text-[10px] shadow-lg shadow-pink-500/30">
                         {item.badge}
                       </Badge>
                     )}
                     {item.rightText && (
-                      <span className="text-xs text-slate-500 font-medium">{item.rightText}</span>
+                      <span className="text-xs text-white/80 font-medium">{item.rightText}</span>
                     )}
                     {item.hasNotification && (
                       <span className="w-1.5 h-1.5 bg-pink-500 rounded-full animate-pulse shadow-lg shadow-pink-500/50" />
@@ -2683,7 +2683,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             </AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleConfirmedTransfer}
- className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 h-12 rounded-xl text-slate-900 font-semibold"
+ className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 h-12 rounded-xl text-white font-semibold"
             >
               Confirm Send
             </AlertDialogAction>
@@ -2852,7 +2852,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   })()}
                 </div>
 
- <Button onClick={handleSaveCallRate} disabled={savingCallRate} className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 rounded-xl text-slate-900 font-semibold text-base">
+ <Button onClick={handleSaveCallRate} disabled={savingCallRate} className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 rounded-xl text-white font-semibold text-base">
                   {savingCallRate ? (
  <div className="flex items-center gap-2"><div className="w-5 h-5 border-2 border-slate-200 border-t-transparent rounded-full animate-spin" />Saving...</div>
                   ) : (

@@ -2972,7 +2972,7 @@ const Chat = () => {
  <TabsTrigger value="messages" className="relative text-xs font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600 data-[state=active]:to-purple-600 data-[state=active]:text-slate-900 data-[state=active]:shadow-md rounded-lg text-slate-700/80">
                 Messages
                 {globalUnread.messages > 0 && (
- <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-red-500 to-pink-500 text-slate-900 text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg shadow-red-500/30">
+ <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-red-500 to-pink-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg shadow-red-500/30">
                     {formatBadgeCount(globalUnread.messages)}
                   </span>
                 )}
@@ -2988,7 +2988,7 @@ const Chat = () => {
  <TabsTrigger value="notifications" className="relative text-xs font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600 data-[state=active]:to-purple-600 data-[state=active]:text-slate-900 data-[state=active]:shadow-md rounded-lg text-slate-700/80">
                 Notifications
                 {globalUnread.notifications > 0 && (
- <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-purple-500 to-pink-500 text-slate-900 text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg">
+ <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg">
                     {formatBadgeCount(globalUnread.notifications)}
                   </span>
                 )}
@@ -2996,7 +2996,7 @@ const Chat = () => {
  <TabsTrigger value="groups" className="relative text-xs font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600 data-[state=active]:to-purple-600 data-[state=active]:text-slate-900 data-[state=active]:shadow-md rounded-lg text-slate-700/80">
                 Groups
                 {groups.length > 0 && (
-                  <span className="ml-1 text-xs text-slate-500">({groups.length})</span>
+                  <span className="ml-1 text-xs text-white/80">({groups.length})</span>
                 )}
               </TabsTrigger>
             </TabsList>
@@ -3081,7 +3081,7 @@ const Chat = () => {
                   ) : (
                     <Avatar className="w-14 h-14 ring-2 ring-purple-500/20">
                       <AvatarImage src={conv.other_user?.avatar_url || undefined} />
- <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-slate-900">
+ <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white">
                         {conv.other_user?.display_name?.[0] || '?'}
                       </AvatarFallback>
                     </Avatar>
@@ -3104,7 +3104,7 @@ const Chat = () => {
                   <div className="flex items-center justify-between mt-0.5">
                     <p className="text-sm text-slate-600 truncate">{conv.last_message || 'No messages yet'}</p>
                     {conv.unread_count > 0 && (
- <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-slate-900 border-0 rounded-full ml-2 shrink-0 shadow-lg shadow-red-500/20 text-[10px] px-2">
+ <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 rounded-full ml-2 shrink-0 shadow-lg shadow-red-500/20 text-[10px] px-2">
                         {conv.unread_count}
                       </Badge>
                     )}
@@ -3142,14 +3142,14 @@ const Chat = () => {
               >
                 <Avatar className="w-14 h-14 ring-2 ring-purple-500/20">
                   <AvatarImage src={group.avatar_url || undefined} />
- <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-slate-900">
+ <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white">
                     <Users className="w-6 h-6" />
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 text-left min-w-0">
                   <div className="flex items-center gap-2">
                     <h3 className="font-semibold truncate text-slate-900">{group.name}</h3>
-                    <span className="text-xs text-slate-600">({group.member_count})</span>
+                    <span className="text-xs text-white/80">({group.member_count})</span>
                   </div>
                   {group.is_owner && (
  <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-slate-900 border-0 text-xs mt-1">
@@ -3317,13 +3317,13 @@ const Chat = () => {
                   >
                     <Avatar className="w-12 h-12 ring-2 ring-purple-500/20">
                       <AvatarImage src={group.avatar_url || undefined} />
- <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-slate-900">
+ <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white">
                         <Users className="w-5 h-5" />
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <h4 className="font-semibold truncate text-slate-900">{group.name}</h4>
-                      <p className="text-xs text-slate-600">
+                      <p className="text-xs text-white/80">
                         {group.member_count} members • {group.group_type}
                       </p>
                     </div>

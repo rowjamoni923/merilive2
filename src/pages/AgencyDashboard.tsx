@@ -1039,7 +1039,7 @@ const AgencyDashboard = () => {
       {/* Parent Agency Card (if sub-agency) */}
       {parentAgency && (
         <div className="mx-4 mt-2">
- <Card className="bg-gradient-to-br from-brand-600 via-info-600 to-info-600 border-0 text-slate-900 overflow-hidden relative">
+ <Card className="bg-gradient-to-br from-brand-600 via-info-600 to-info-600 border-0 text-white overflow-hidden relative">
             <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
             <CardContent className="p-3 relative z-10">
               <div className="flex items-center justify-between">
@@ -1091,7 +1091,7 @@ const AgencyDashboard = () => {
 
       {/* Earnings Card - Compact */}
       <div className="mx-4 mt-2">
- <Card className="bg-gradient-to-br from-warning-500 via-warning-500 to-danger-500 border-0 text-slate-900 overflow-hidden relative">
+ <Card className="bg-gradient-to-br from-warning-500 via-warning-500 to-danger-500 border-0 text-white overflow-hidden relative">
           <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
           <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
           

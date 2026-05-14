@@ -1455,7 +1455,7 @@ const HelperDashboard = () => {
             {!showTopupForm ? (
               <Button 
                 onClick={() => setShowTopupForm(true)}
- className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-900 h-11"
+ className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white h-11"
               >
                 <Send className="w-4 h-4 mr-2" />
                 Request Manual Top-up
@@ -1465,7 +1465,7 @@ const HelperDashboard = () => {
                 {/* Level pricing reminder */}
                 {levelPricing && (
                   <div className="text-center p-2 bg-slate-100 rounded-lg">
-                    <p className="text-xs text-slate-600">
+                    <p className="text-xs text-white/80">
                       Level {helperData?.trader_level || 1} Rate: <span className="text-emerald-400 font-semibold">{levelPricing.diamond_amount.toLocaleString()} 💎 = ${levelPricing.price_usd}</span>
                     </p>
                   </div>
@@ -1931,7 +1931,7 @@ const HelperDashboard = () => {
                         setSelectedUpgradeLevel(level);
                         setShowUpgradeModal(true);
                       }}
- className="w-full mt-3 bg-gradient-to-r from-purple-500 to-pink-500 text-slate-900 h-10"
+ className="w-full mt-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white h-10"
                     >
                       <Crown className="w-4 h-4 mr-2" />
                       Apply for Level 5 - ${level.upgrade_cost_usd}
@@ -1978,7 +1978,7 @@ const HelperDashboard = () => {
                       {!helperData?.payroll_status && !helperData?.payroll_enabled && (
                         <Button 
                           onClick={() => setShowPayrollModal(true)}
- className="w-full mt-3 bg-gradient-to-r from-purple-500 to-pink-500 text-slate-900 h-9 text-xs"
+ className="w-full mt-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white h-9 text-xs"
                         >
                           <Crown className="w-3 h-3 mr-1" />
                           Apply for Payroll Access
@@ -2004,7 +2004,7 @@ const HelperDashboard = () => {
                           </div>
                           <Button 
                             onClick={() => setShowPayrollModal(true)}
- className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-slate-900 h-9 text-xs"
+ className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white h-9 text-xs"
                           >
                             <Crown className="w-3 h-3 mr-1" />
                             Re-apply for Payroll Access
@@ -2016,7 +2016,7 @@ const HelperDashboard = () => {
                       {helperData?.payroll_enabled && (
                         <Button 
                           onClick={() => navigate('/level5-helper-dashboard')}
- className="w-full mt-3 bg-gradient-to-r from-green-500 to-emerald-500 text-slate-900 h-9 text-xs"
+ className="w-full mt-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white h-9 text-xs"
                         >
                           <CheckCircle className="w-3 h-3 mr-1" />
                           Open Level 5 Dashboard
@@ -2205,7 +2205,7 @@ const HelperDashboard = () => {
               <Button 
                 onClick={handleApplyUpgrade}
                 disabled={processing}
- className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-slate-900"
+ className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white"
               >
                 {processing ? (uploadingProof ? "Uploading..." : "Submitting...") : "Submit Application"}
               </Button>
@@ -2300,7 +2300,7 @@ const HelperDashboard = () => {
                   }
                 }}
                 disabled={payrollProcessing}
- className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-slate-900"
+ className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white"
               >
                 {payrollProcessing ? "Submitting..." : "Submit Application"}
               </Button>

@@ -246,7 +246,7 @@ const PaymentSuccess = () => {
             <p className="text-slate-600 text-sm">
               Your Transaction ID and screenshot have been sent to the helper. You'll receive a notification when diamonds are credited.
             </p>
- <Button onClick={() => navigate("/")} className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-slate-900">
+ <Button onClick={() => navigate("/")} className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white">
               <Home className="w-4 h-4 mr-1" /> Home
             </Button>
           </div>
@@ -280,7 +280,7 @@ const PaymentSuccess = () => {
                 <ArrowLeft className="w-4 h-4 mr-1" /> Recharge
               </Button>
               <Button onClick={() => navigate("/")}
- className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-slate-900">
+ className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white">
                 <Home className="w-4 h-4 mr-1" /> Home
               </Button>
             </div>
@@ -293,7 +293,7 @@ const PaymentSuccess = () => {
  <h2 className="text-xl font-bold text-slate-900">Payment Failed</h2>
             <p className="text-slate-500 text-sm">{result?.error || "Something went wrong"}</p>
             <Button onClick={() => navigate("/recharge")}
- className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-slate-900">
+ className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white">
               <ArrowLeft className="w-4 h-4 mr-1" /> Try Again
             </Button>
           </div>
