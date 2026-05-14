@@ -1661,7 +1661,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       >
         <div className="h-48 bg-white/5 animate-pulse" />
         <div className="px-4 -mt-12 space-y-3">
-          <div className="w-24 h-24 rounded-full bg-white/10 border-4 border-white/5 animate-pulse" />
+          <div className="w-24 h-24 rounded-full bg-white/10 border-4 border-amber-200/40 animate-pulse" />
           <div className="h-5 w-32 bg-white/10 rounded animate-pulse" />
           <div className="h-4 w-48 bg-white/10 rounded animate-pulse" />
         </div>
@@ -2305,7 +2305,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                 })();
               }
             }}>
-              <TabsList className="w-full bg-slate-800/80 p-1 rounded-2xl grid grid-cols-4">
+              <TabsList className="w-full bg-white/80 p-1 rounded-2xl grid grid-cols-4">
                 <TabsTrigger value="user" className="gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-500 data-[state=active]:text-white">
                   <User className="w-3.5 h-3.5" />
                   User
@@ -2334,7 +2334,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                         placeholder="Enter User App UID"
                         value={transferSearchQuery}
                         onChange={(e) => setTransferSearchQuery(e.target.value.toUpperCase())}
-                        className="bg-slate-800/80 border-slate-600 text-white uppercase pl-10 h-12 rounded-xl"
+                        className="bg-white/80 border-slate-600 text-white uppercase pl-10 h-12 rounded-xl"
                       />
                       <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-200" />
                     </div>
@@ -2354,7 +2354,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
                 {/* User Found */}
                 {searchedUser && (
-                  <div className="bg-slate-800/60 rounded-2xl p-4 border border-cyan-500/30 space-y-4">
+                  <div className="bg-white/60 rounded-2xl p-4 border border-cyan-500/30 space-y-4">
                     <div className="flex items-center gap-3">
                       <Avatar className="w-14 h-14 border-2 border-cyan-500">
                         <AvatarImage src={searchedUser.avatar_url} />
@@ -2413,7 +2413,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                         placeholder="Enter Owner's App UID"
                         value={transferSearchQuery}
                         onChange={(e) => setTransferSearchQuery(e.target.value.toUpperCase())}
-                        className="bg-slate-800/80 border-slate-600 text-white uppercase pl-10 h-12 rounded-xl"
+                        className="bg-white/80 border-slate-600 text-white uppercase pl-10 h-12 rounded-xl"
                       />
                       <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-200" />
                     </div>
@@ -2433,7 +2433,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
                 {/* Agency Found */}
                 {searchedAgency && (
-                  <div className="bg-slate-800/60 rounded-2xl p-4 border border-purple-500/30 space-y-4">
+                  <div className="bg-white/60 rounded-2xl p-4 border border-purple-500/30 space-y-4">
                     <div className="flex items-center gap-3">
                       <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
                         <Building2 className="w-7 h-7 text-white" />
@@ -2495,7 +2495,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     </div>
                   </div>
 
-                  <div className="bg-slate-800/60 rounded-xl p-3 border border-slate-700 space-y-2">
+                  <div className="bg-white/60 rounded-xl p-3 border border-slate-700 space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="text-white/85 text-sm">Recharge Source Balance</span>
                       <span className="text-emerald-400 font-bold text-lg">
@@ -2584,7 +2584,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                       tx.status === 'failed' || tx.status === 'cancelled' ? 'text-rose-400' :
                       'text-slate-200';
                     return (
-                      <div key={tx.id} className="bg-slate-800/60 rounded-2xl p-3 border border-slate-700">
+                      <div key={tx.id} className="bg-white/60 rounded-2xl p-3 border border-slate-700">
                         <div className="flex items-center justify-between gap-3">
                           <div className="flex items-center gap-3 min-w-0 flex-1">
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
@@ -2646,7 +2646,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               Confirm Transfer
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center space-y-3 pt-4">
-              <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700">
+              <div className="bg-white/60 rounded-xl p-4 border border-slate-700">
                 <p className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">
                   {transferAmount ? parseInt(transferAmount).toLocaleString() : 0} 💎
                 </p>
@@ -2730,7 +2730,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                 </div>
 
                 {!canCustomize && (
-                  <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700">
+                  <div className="bg-white/50 rounded-xl p-3 border border-slate-700">
                     <p className="text-slate-200 text-xs text-center">🔒 Reach Level {minCustomLevel} or higher to customize your rate</p>
                   </div>
                 )}
@@ -2790,7 +2790,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                                     disabled={isLocked}
                                     className={`py-2 px-1 rounded-xl text-center transition-all flex flex-col items-center gap-0.5 relative ${
                                       isLocked
-                                        ? 'bg-slate-800/50 text-slate-300 cursor-not-allowed opacity-60'
+                                        ? 'bg-white/50 text-slate-300 cursor-not-allowed opacity-60'
                                         : isSelected 
                                           ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/30' 
                                           : isCurrentLevel 
@@ -2879,7 +2879,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             </DialogHeader>
             
             {/* Agency Info */}
-            <div className="mt-4 bg-slate-800/50 rounded-xl p-3 border border-amber-500/20">
+            <div className="mt-4 bg-white/50 rounded-xl p-3 border border-amber-500/20">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-amber-200/90 font-semibold uppercase tracking-wider">Agency</p>
@@ -2926,7 +2926,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   setExchangeDiamondsToGet(diamonds);
                   setExchangeFeeAmount(fee);
                 }}
-                className="bg-slate-800 border-amber-500/30 text-white placeholder:text-slate-300 text-lg h-12"
+                className="bg-white border-amber-500/30 text-white placeholder:text-slate-300 text-lg h-12"
               />
               
               {/* Quick Amount Buttons */}

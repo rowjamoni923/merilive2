@@ -266,14 +266,14 @@ const AgencyHostManagement = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-amber-50 to-slate-800 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-[#FFFBF2] to-[#F5EFDF] flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-amber-50 to-slate-800">
+    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] to-[#F5EFDF]">
       {/* Header */}
       <header className="flex-shrink-0 sticky top-0 z-10 bg-white/90 backdrop-blur border-b border-amber-200/60 px-4 py-3 safe-area-top">
         <div className="flex items-center gap-3">

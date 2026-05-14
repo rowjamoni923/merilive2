@@ -325,9 +325,9 @@ const Invitation = () => {
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#0d0015] via-[#1a0030] to-[#0d0015] overflow-hidden">
+    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF] overflow-hidden">
       {/* Header */}
-      <header className="flex-shrink-0 z-40 backdrop-blur-xl border-b border-white/10">
+      <header className="flex-shrink-0 z-40 backdrop-blur-xl border-b border-amber-200/40">
         <div className="flex items-center gap-3 px-4 py-3 safe-area-top" style={{ background: 'linear-gradient(135deg, rgba(30,0,50,0.95), rgba(60,0,80,0.95))' }}>
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="text-slate-600 hover:text-slate-800 hover:bg-white/10 w-9 h-9">
             <ArrowLeft className="w-5 h-5" />
@@ -354,7 +354,7 @@ const Invitation = () => {
         >
           <img src={bannerUrl} alt="Invite Friends & Earn Rewards" className="w-full h-auto min-h-[120px] object-cover" />
           {/* Premium overlay effects */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-amber-100/20 via-transparent to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 via-transparent to-purple-500/10" />
           <div className="absolute inset-0 border border-amber-400/20 rounded-2xl" />
           {/* Animated shimmer */}
@@ -398,7 +398,7 @@ const Invitation = () => {
               <Button
                 onClick={copyLink}
                 variant="outline"
-                className="border-white/20 text-slate-800 hover:bg-white/10 py-5 rounded-xl px-4"
+                className="border-amber-200/60 text-slate-800 hover:bg-white/10 py-5 rounded-xl px-4"
               >
                 {copied ? <CheckCircle className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
               </Button>

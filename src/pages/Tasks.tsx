@@ -576,7 +576,7 @@ const Tasks = () => {
                       className={`flex-1 h-10 rounded-xl flex flex-col items-center justify-center ${
                         completed
                           ? 'bg-gradient-to-b from-fuchsia-500 to-purple-600 shadow-lg shadow-fuchsia-500/30'
-                          : 'bg-white/5 border border-white/10'
+                          : 'bg-white/5 border border-amber-200/40'
                       }`}
                     >
                       {completed ? (
@@ -594,7 +594,7 @@ const Tasks = () => {
             </div>
 
             {/* Summary */}
-            <div className="mx-4 mb-4 p-3 rounded-xl bg-white/5 border border-white/10">
+            <div className="mx-4 mb-4 p-3 rounded-xl bg-white/5 border border-amber-200/40">
               {/* Stats row */}
               <div className="flex items-center justify-around mb-3">
                 <div className="text-center">
@@ -643,7 +643,7 @@ const Tasks = () => {
                     ? 'border-green-500/30 bg-green-500/10' 
                     : status === 'completed'
                     ? 'border-amber-400/50 shadow-amber-500/10'
-                    : 'border-white/10'
+                    : 'border-amber-200/40'
                 }`}
               >
                 <div className="flex items-center gap-4">
@@ -772,7 +772,7 @@ const Tasks = () => {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="border-white/20 text-slate-500 hover:bg-white/10"
+                        className="border-amber-200/60 text-slate-500 hover:bg-white/10"
                         onClick={() => {
                           const route = taskNavigationMap[task.requirement_type];
                           if (route) {
@@ -805,7 +805,7 @@ const Tasks = () => {
         <DialogContent
           className="max-w-sm mx-auto border-0 p-0 overflow-hidden"
           style={{
-            background: 'linear-gradient(180deg, #1a0533 0%, #0f0a1a 100%)',
+            background: 'linear-gradient(180deg, #FFFBF2 0%, #FAF5EA 100%)',
             border: '1px solid rgba(167,139,250,0.3)',
           }}
         >

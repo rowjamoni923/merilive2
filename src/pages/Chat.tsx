@@ -2096,7 +2096,7 @@ const Chat = () => {
                           
                           return (
                             <motion.div 
-                              className="inline-flex flex-col items-center p-1.5 bg-gradient-to-br from-amber-50 to-slate-800/70 rounded-lg border border-amber-500/25 shadow-md backdrop-blur-sm"
+                              className="inline-flex flex-col items-center p-1.5 bg-gradient-to-br from-[#FFFBF2] to-[#F5EFDF]/70 rounded-lg border border-amber-500/25 shadow-md backdrop-blur-sm"
                               initial={{ opacity: 0, scale: 0.9 }}
                               animate={{ opacity: 1, scale: 1 }}
                               transition={{ duration: 0.2 }}
