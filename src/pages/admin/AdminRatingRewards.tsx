@@ -14,6 +14,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
+import { resolveAdminStorageImageUrl } from "@/utils/adminStorageImages";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 interface RatingClaim {
