@@ -882,10 +882,10 @@ const Tasks = () => {
                   <Button
                     onClick={() => fileRef.current?.click()}
                     disabled={ratingUploading}
-                    className="w-full h-12 gap-2 font-bold rounded-xl text-slate-800 border-0"
+                    className="w-full h-12 gap-2 font-bold rounded-xl text-white border-0"
                     style={{
                       background: ratingUploading
-                        ? 'rgba(167,139,250,0.15)'
+                        ? 'rgba(167,139,250,0.35)'
                         : 'linear-gradient(135deg, #7c3aed, #a855f7)',
                       boxShadow: ratingUploading ? 'none' : '0 4px 24px rgba(124,58,237,0.4), inset 0 1px 0 rgba(255,255,255,0.1)',
                     }}
@@ -904,7 +904,7 @@ const Tasks = () => {
                   </Button>
                 </div>
 
-                <p className="text-purple-300/25 text-[10px] text-center">
+                <p className="text-slate-500/80 text-[10px] text-center">
                   Your reward will be credited after admin verification
                 </p>
               </div>
