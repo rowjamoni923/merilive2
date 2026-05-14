@@ -2779,11 +2779,11 @@ const Auth = () => {
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full blur-lg opacity-60 animate-pulse" />
                   <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-green-500 via-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-green-500/30 ring-2 ring-white/10">
- <Phone className="w-9 h-9 text-slate-900 drop-shadow-lg" />
+ <Phone className="w-9 h-9 text-white drop-shadow-lg" />
                   </div>
                 </div>
               </div>
- <DialogTitle className="text-slate-900 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-green-100 to-white bg-clip-text text-transparent">
+ <DialogTitle className="text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-emerald-700 via-green-600 to-emerald-700 bg-clip-text text-transparent">
                 Enter Phone Number
               </DialogTitle>
               <DialogDescription className="text-slate-600 text-center text-sm mt-1">
