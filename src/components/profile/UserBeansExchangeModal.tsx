@@ -79,6 +79,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
   const [processing, setProcessing] = useState(false);
   const [customBeans, setCustomBeans] = useState("");
   const [useCustom, setUseCustom] = useState(false);
+  const [coinExchangeSettings, setCoinExchangeSettings] = useState<CoinExchangeSettings | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -99,7 +100,30 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
     if (error) {
       toast({ title: 'Failed to load exchange tiers', description: error.message, variant: 'destructive' });
     }
-    setTiers((data as ExchangeTier[]) || []);
+    let activeTiers = (data as ExchangeTier[]) || [];
+    const { data: settingsRow } = await supabase
+      .from('app_settings')
+      .select('setting_value')
+      .eq('setting_key', 'coin_exchange')
+      .maybeSingle();
+    const settings = normalizeCoinExchangeSettings(settingsRow?.setting_value);
+    setCoinExchangeSettings(settings);
+
+    if (activeTiers.length === 0 && settings) {
+      const baseAmounts = [settings.min_exchange_amount, settings.min_exchange_amount * 5, settings.min_exchange_amount * 10]
+        .filter((amount, index, array) => amount > 0 && array.indexOf(amount) === index);
+
+      activeTiers = baseAmounts.map((amount, index) => ({
+        id: `settings-${amount}`,
+        tier_name: index === 0 ? 'Minimum' : index === 1 ? 'Popular' : 'Premium',
+        min_beans: amount,
+        max_beans: null,
+        exchange_rate: 1 / settings.beans_to_diamonds_rate,
+        bonus_percent: -settings.exchange_fee_percent,
+        display_order: index + 1,
+      }));
+    }
+    setTiers(activeTiers);
     setLoading(false);
   };
 
