@@ -2049,31 +2049,30 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               }}
               className="w-full group relative"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-700/40 to-teal-900/40 rounded-xl translate-y-0.5 blur-sm" />
-              <div className="relative bg-gradient-to-br from-emerald-600 via-teal-700 to-cyan-800 rounded-xl p-2.5 overflow-hidden shadow-lg ring-1 ring-emerald-300/20 group-hover:shadow-xl transition-all duration-300 group-active:scale-95">
-                <div className="absolute inset-0 opacity-30">
-                  <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-white/20 to-transparent rounded-full -translate-y-4 translate-x-4" />
-                </div>
-                
+              <div className="absolute inset-0 bg-emerald-500/20 rounded-xl translate-y-1 blur-md" />
+              <div className="relative bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 rounded-xl p-3 overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.6)] border border-white/10 group-active:scale-[0.98] transition-all">
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-400/60 to-transparent" />
+                <div className="absolute -top-10 -right-10 w-28 h-28 bg-emerald-500/15 rounded-full blur-2xl" />
+
                 <div className="relative z-10 flex items-center justify-between">
                   <div>
-                    <div className="flex items-center gap-1.5 mb-0.5">
-                      <p className="text-white font-semibold text-sm">Trader Wallet</p>
-                      <span className="text-[7px] bg-white/20 backdrop-blur-sm text-white px-1 py-0.5 rounded-full font-medium">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <p className="text-white font-semibold text-sm tracking-tight">Trader Wallet</p>
+                      <span className="text-[7px] bg-emerald-500/15 border border-emerald-400/30 text-emerald-100 px-1.5 py-0.5 rounded-full font-medium tracking-wide">
                         Diamond Trader
                       </span>
                     </div>
-                    <p className="text-xl font-bold text-white drop-shadow-lg">
+                    <p className="text-xl font-bold text-white drop-shadow-[0_2px_8px_rgba(16,185,129,0.35)]">
                       {(traderWallet + (agencyData?.diamond_balance || 0)).toLocaleString()} 💎
                     </p>
-                    <p className="text-[8px] text-white/85 mt-0.5 flex items-center gap-1">
+                    <p className="text-[8px] text-emerald-200/70 mt-1 flex items-center gap-1">
                       <Send className="w-2.5 h-2.5" />
                       Tap to transfer to User or Agency
                     </p>
                   </div>
-                  
-                  <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2">
-                    <Wallet className="w-5 h-5 text-white" />
+
+                  <div className="bg-emerald-500/10 border border-emerald-400/20 rounded-xl p-2">
+                    <Wallet className="w-5 h-5 text-emerald-300" />
                   </div>
                 </div>
               </div>
