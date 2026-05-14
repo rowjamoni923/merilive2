@@ -388,16 +388,16 @@ const Leaderboard = () => {
                 onClick={() => setActiveCategory(cat.id)}
                 className={cn(
                   "flex-1 flex items-center justify-center gap-1 py-2 text-[11px] font-bold transition-all touch-manipulation active:scale-95",
-                  isActive ? "text-amber-100" : "text-amber-400/50"
+                  isActive ? "text-white" : "text-slate-500"
                 )}
                 style={isActive ? {
                   background: cat.activeGrad,
                   boxShadow: `0 4px 15px ${cat.shadow}`,
                   borderRadius: '8px',
-                  border: '1px solid rgba(251,191,36,0.4)',
+                  border: '1px solid rgba(255,255,255,0.4)',
                 } : {
-                  background: 'rgba(251,191,36,0.06)',
-                  border: '1px solid rgba(251,191,36,0.12)',
+                  background: '#F1F5F9',
+                  border: '1px solid rgba(15,23,42,0.06)',
                   borderRadius: '8px',
                 }}
               >
