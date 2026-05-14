@@ -2187,10 +2187,10 @@ const Auth = () => {
               setPhoneOtpCode("");
               setAuthStep("phone_input");
             }}
- className="w-full h-11 rounded-2xl bg-gradient-to-r from-green-500 via-emerald-500 to-green-600 hover:from-green-600 hover:via-emerald-600 hover:to-green-700 text-slate-900 text-sm font-semibold shadow-[0_6px_24px_-6px_rgba(16,185,129,0.4)] border border-green-400/30 transition-all duration-300 active:scale-[0.98] backdrop-blur-md"
+  className="w-full h-11 rounded-2xl bg-gradient-to-r from-green-500 via-emerald-500 to-green-600 hover:from-green-600 hover:via-emerald-600 hover:to-green-700 text-white text-sm font-semibold shadow-[0_6px_24px_-6px_rgba(16,185,129,0.4)] border border-green-400/30 transition-all duration-300 active:scale-[0.98] backdrop-blur-md" /* dark-ok */
           >
             <Phone className="w-5 h-5 mr-2" />
-            <span>Phone Number</span>
+            <span>Continue with Phone</span>
           </Button>
 
           {/* Email Login/Signup Button */}
