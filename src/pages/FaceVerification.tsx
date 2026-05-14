@@ -1457,7 +1457,7 @@ const FaceVerification = () => {
         </div>
         <div>
           <h2 className="font-bold text-slate-800 text-lg">Live Face Scan</h2>
-          <p className="text-slate-400 text-sm">
+          <p className="text-slate-600 text-sm">
             {verificationRecording ? `Step ${currentInstruction + 1} of ${faceInstructions.length}` : 'AI-powered identity verification'}
           </p>
         </div>
