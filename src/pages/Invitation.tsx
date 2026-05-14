@@ -490,7 +490,7 @@ const Invitation = () => {
                       {/* Rewards & Claim */}
                       <div className="flex flex-col gap-1 shrink-0 items-end">
                         {claimedTierIds.has(tier.id) ? (
-                          <span className="text-[10px] font-bold bg-green-500/20 text-green-400 border border-green-500/30 px-3 py-1.5 rounded-lg text-center">
+                          <span className="text-[10px] font-bold bg-green-100 text-green-700 border border-green-300 px-3 py-1.5 rounded-lg text-center">
                             ✓ Claimed
                           </span>
                         ) : isAchieved ? (
@@ -504,10 +504,10 @@ const Invitation = () => {
                           </Button>
                         ) : (
                           <div className="flex flex-col gap-1">
-                            <span className="text-[10px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/25 px-2 py-0.5 rounded-md text-center">
+                            <span className="text-[10px] font-semibold bg-amber-100 text-amber-700 border border-amber-300 px-2 py-0.5 rounded-md text-center">
                               +{(tier.reward_beans ?? 0).toLocaleString('en-US')} Beans
                             </span>
-                            <span className="text-[10px] font-semibold bg-violet-500/15 text-violet-300 border border-violet-500/25 px-2 py-0.5 rounded-md text-center">
+                            <span className="text-[10px] font-semibold bg-violet-100 text-violet-700 border border-violet-300 px-2 py-0.5 rounded-md text-center">
                               +{(tier.reward_coins ?? 0).toLocaleString('en-US')} Coins
                             </span>
                           </div>
