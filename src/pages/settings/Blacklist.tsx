@@ -152,7 +152,7 @@ const Blacklist = () => {
               <div className="flex items-center gap-3">
                 <Avatar className="w-12 h-12">
                   <AvatarImage src={blocked.blocked_profile?.avatar_url} />
-                  <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-white">
+                  <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-slate-800">
                     {blocked.blocked_profile?.display_name?.charAt(0) || "U"}
                   </AvatarFallback>
                 </Avatar>

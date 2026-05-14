@@ -2357,17 +2357,17 @@ const AgencyWithdrawal = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge className="bg-amber-500 text-white border-0 shadow-sm px-3 py-1 font-medium"><Clock className="w-3 h-3 mr-1.5" /> Pending</Badge>;
+        return <Badge className="bg-amber-500 text-slate-800 border-0 shadow-sm px-3 py-1 font-medium"><Clock className="w-3 h-3 mr-1.5" /> Pending</Badge>;
       case 'processing':
-        return <Badge className="bg-blue-500 text-white border-0 shadow-sm px-3 py-1 font-medium"><Loader2 className="w-3 h-3 mr-1.5 animate-spin" /> Processing</Badge>;
+        return <Badge className="bg-blue-500 text-slate-800 border-0 shadow-sm px-3 py-1 font-medium"><Loader2 className="w-3 h-3 mr-1.5 animate-spin" /> Processing</Badge>;
       case 'approved':
-        return <Badge className="bg-emerald-500 text-white border-0 shadow-sm px-3 py-1 font-medium"><CheckCircle className="w-3 h-3 mr-1.5" /> Completed</Badge>;
+        return <Badge className="bg-emerald-500 text-slate-800 border-0 shadow-sm px-3 py-1 font-medium"><CheckCircle className="w-3 h-3 mr-1.5" /> Completed</Badge>;
       case 'completed':
-        return <Badge className="bg-emerald-500 text-white border-0 shadow-sm px-3 py-1 font-medium"><CheckCircle className="w-3 h-3 mr-1.5" /> Completed</Badge>;
+        return <Badge className="bg-emerald-500 text-slate-800 border-0 shadow-sm px-3 py-1 font-medium"><CheckCircle className="w-3 h-3 mr-1.5" /> Completed</Badge>;
       case 'rejected':
-        return <Badge className="bg-red-500 text-white border-0 shadow-sm px-3 py-1 font-medium"><XCircle className="w-3 h-3 mr-1.5" /> Rejected</Badge>;
+        return <Badge className="bg-red-500 text-slate-800 border-0 shadow-sm px-3 py-1 font-medium"><XCircle className="w-3 h-3 mr-1.5" /> Rejected</Badge>;
       default:
-        return <Badge className="bg-gray-500 text-white border-0 shadow-sm px-3 py-1 font-medium">{status}</Badge>;
+        return <Badge className="bg-gray-500 text-slate-800 border-0 shadow-sm px-3 py-1 font-medium">{status}</Badge>;
     }
   };
 
@@ -2402,9 +2402,9 @@ const AgencyWithdrawal = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-gradient-to-br from-purple-50 via-white to-indigo-50">
       {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 text-white safe-area-top shadow-lg">
+      <header className="flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 text-slate-800 safe-area-top shadow-lg">
         <div className="px-4 py-4 flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full" onClick={() => navigate(-1)}>
+          <Button variant="ghost" size="icon" className="text-slate-800 hover:bg-white/20 rounded-full" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex-1">
@@ -2412,7 +2412,7 @@ const AgencyWithdrawal = () => {
               <ArrowDownCircle className="w-5 h-5" />
               Agency Withdrawal
             </h1>
-            <p className="text-xs text-white/70">{agency?.name}</p>
+            <p className="text-xs text-slate-600">{agency?.name}</p>
           </div>
           <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
             <Sparkles className="w-5 h-5 text-yellow-300" />
@@ -2424,7 +2424,7 @@ const AgencyWithdrawal = () => {
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
         <main className="px-4 py-4 space-y-6">
         {/* Balance Card */}
-        <Card className="bg-gradient-to-br from-emerald-500 via-green-500 to-teal-600 text-white border-0 shadow-xl overflow-hidden relative">
+        <Card className="bg-gradient-to-br from-emerald-500 via-green-500 to-teal-600 text-slate-800 border-0 shadow-xl overflow-hidden relative">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
           <CardContent className="p-6 relative z-10">
@@ -2433,28 +2433,28 @@ const AgencyWithdrawal = () => {
                 <Wallet className="w-7 h-7" />
               </div>
               <div className="flex-1">
-                <p className="text-white/80 text-sm font-medium">Total Beans</p>
+                <p className="text-slate-700 text-sm font-medium">Total Beans</p>
                 <p className="text-4xl font-bold tracking-tight">
                   {formatNumber(agency?.wallet_balance || 0)}
                 </p>
-                <p className="text-white/60 text-xs mt-0.5">Withdrawable balance</p>
+                <p className="text-slate-500 text-xs mt-0.5">Withdrawable balance</p>
               </div>
             </div>
             
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/10">
+              <div className="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-3 border border-amber-200/60">
                 <div className="flex items-center gap-2 mb-1">
                   <DollarSign className="w-4 h-4 text-yellow-300" />
-                  <p className="text-white/80 text-xs">USD Value</p>
+                  <p className="text-slate-700 text-xs">USD Value</p>
                 </div>
                 <p className="text-xl font-bold text-yellow-300">
                   ${beansToUsd(agency?.wallet_balance || 0).toFixed(2)}
                 </p>
               </div>
-              <div className="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/10">
+              <div className="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-3 border border-amber-200/60">
                 <div className="flex items-center gap-2 mb-1">
                   <Globe className="w-4 h-4 text-cyan-300" />
-                  <p className="text-white/80 text-xs">{countryConfig.currency} Value</p>
+                  <p className="text-slate-700 text-xs">{countryConfig.currency} Value</p>
                 </div>
                 <p className="text-xl font-bold text-cyan-300">
                   {formatLocalCurrency(beansToLocal(agency?.wallet_balance || 0))}
@@ -2464,20 +2464,20 @@ const AgencyWithdrawal = () => {
             
             <div className="mt-4 py-3 bg-white/10 rounded-lg space-y-2">
               <div className="flex items-center justify-center gap-2">
-                <TrendingUp className="w-4 h-4 text-white/60" />
-                <p className="text-white/70 text-xs font-medium">
+                <TrendingUp className="w-4 h-4 text-slate-500" />
+                <p className="text-slate-600 text-xs font-medium">
                   Exchange Rates (Set by Admin)
                 </p>
               </div>
               <div className="flex items-center justify-center gap-4">
                 <div className="text-center px-3">
                   <p className="text-yellow-300 font-bold">{formatNumber(coinsToUsdRate)}</p>
-                  <p className="text-white/60 text-xs">Beans = $1 USD</p>
+                  <p className="text-slate-500 text-xs">Beans = $1 USD</p>
                 </div>
                 <div className="h-8 w-px bg-white/20" />
                 <div className="text-center px-3">
                   <p className="text-cyan-300 font-bold">{countryConfig.currencySymbol}{formatNumber(exchangeRates[countryConfig.currency] || 1)}</p>
-                  <p className="text-white/60 text-xs">= $1 USD</p>
+                  <p className="text-slate-500 text-xs">= $1 USD</p>
                 </div>
               </div>
             </div>
@@ -2766,7 +2766,7 @@ const AgencyWithdrawal = () => {
                 </div>
 
                 <Button
-                  className="w-full h-12 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold shadow-lg shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full h-12 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-slate-800 font-semibold shadow-lg shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={() => {
                     const paymentValidationError = getPaymentValidationError();
                     if (paymentValidationError) {
@@ -2794,11 +2794,11 @@ const AgencyWithdrawal = () => {
         </Card>
 
         {/* Withdrawal History */}
-        <Card className="shadow-xl border-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-hidden">
-          <CardHeader className="pb-3 border-b border-slate-700/50">
-            <CardTitle className="text-base flex items-center gap-3 text-white">
+        <Card className="shadow-xl border-0 bg-gradient-to-br from-amber-50 via-slate-800 to-orange-50 overflow-hidden">
+          <CardHeader className="pb-3 border-b border-amber-200/60">
+            <CardTitle className="text-base flex items-center gap-3 text-slate-800">
               <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                <Clock className="w-5 h-5 text-white" />
+                <Clock className="w-5 h-5 text-slate-800" />
               </div>
               <div>
                 <p className="font-bold">Withdrawal History</p>
@@ -2854,18 +2854,18 @@ const AgencyWithdrawal = () => {
                       <div className="flex items-center gap-3">
                         {/* Status Icon */}
                         <div className={`w-12 h-12 rounded-xl ${config.iconBg} flex items-center justify-center shadow-lg shrink-0`}>
-                          {displayStatus === 'pending' && <Clock className="w-6 h-6 text-white" />}
-                          {displayStatus === 'processing' && <Loader2 className="w-6 h-6 text-white animate-spin" />}
-                          {displayStatus === 'completed' && <CheckCircle className="w-6 h-6 text-white" />}
-                          {displayStatus === 'approved' && <CheckCircle className="w-6 h-6 text-white" />}
-                          {displayStatus === 'rejected' && <XCircle className="w-6 h-6 text-white" />}
+                          {displayStatus === 'pending' && <Clock className="w-6 h-6 text-slate-800" />}
+                          {displayStatus === 'processing' && <Loader2 className="w-6 h-6 text-slate-800 animate-spin" />}
+                          {displayStatus === 'completed' && <CheckCircle className="w-6 h-6 text-slate-800" />}
+                          {displayStatus === 'approved' && <CheckCircle className="w-6 h-6 text-slate-800" />}
+                          {displayStatus === 'rejected' && <XCircle className="w-6 h-6 text-slate-800" />}
                         </div>
                         
                         {/* Content */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
                             <span className="text-lg">{countryFlag}</span>
-                            <span className="text-white font-bold text-lg">{formatNumber(withdrawal.amount)}</span>
+                            <span className="text-slate-800 font-bold text-lg">{formatNumber(withdrawal.amount)}</span>
                             <span className="text-slate-400 text-sm">Beans</span>
                           </div>
                           <div className="flex items-center gap-2 text-sm">
@@ -2900,9 +2900,9 @@ const AgencyWithdrawal = () => {
 
       {/* Confirm Dialog */}
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <DialogContent className="mx-4 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border-slate-700">
+        <DialogContent className="mx-4 rounded-2xl bg-gradient-to-br from-amber-50 via-slate-800 to-orange-50 border-amber-200/60">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-white">
+            <DialogTitle className="flex items-center gap-2 text-slate-800">
               <CheckCircle className="w-5 h-5 text-purple-400" />
               Confirm Withdrawal
             </DialogTitle>
@@ -2911,10 +2911,10 @@ const AgencyWithdrawal = () => {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="bg-white/5 rounded-xl p-4 space-y-3 border border-white/10">
-            <div className="flex items-center gap-2 pb-2 border-b border-white/10">
+          <div className="bg-white/5 rounded-xl p-4 space-y-3 border border-amber-200/60">
+            <div className="flex items-center gap-2 pb-2 border-b border-amber-200/60">
               <span className="text-xl">{countryConfig.flag}</span>
-              <span className="font-medium text-white">{countryConfig.name}</span>
+              <span className="font-medium text-slate-800">{countryConfig.name}</span>
             </div>
             
             {/* Main Amount - Local Currency Only */}
@@ -2930,30 +2930,30 @@ const AgencyWithdrawal = () => {
                 <span className="font-bold text-red-400">-{countryConfig.currencySymbol}{getWithdrawalFeeLocal().toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
               </div>
               <p className="text-xs text-amber-400/70 italic">Fee is deducted from your withdrawal amount</p>
-              <div className="border-t border-white/10 pt-2 mt-2">
+              <div className="border-t border-amber-200/60 pt-2 mt-2">
                 <div className="flex justify-between items-center mb-1">
                   <span className="font-semibold text-emerald-300">You Will Receive:</span>
                   <span className="font-bold text-lg text-emerald-400">{countryConfig.currencySymbol}{Math.max(0, localAmount - getWithdrawalFeeLocal()).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="font-semibold text-sm text-slate-400">Balance Deduction:</span>
-                  <span className="font-medium text-slate-300">{countryConfig.currencySymbol}{localAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                  <span className="font-medium text-slate-500">{countryConfig.currencySymbol}{localAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
                 </div>
               </div>
             </div>
             
-            <div className="border-t border-white/10 pt-3 mt-3 space-y-2">
+            <div className="border-t border-amber-200/60 pt-3 mt-3 space-y-2">
               <div className="flex justify-between">
                 <span className="text-slate-400">Payment Method:</span>
-                <span className="font-medium text-white capitalize">{countryConfig.paymentMethods.find(m => m.value === paymentMethod)?.label || paymentMethod}</span>
+                <span className="font-medium text-slate-800 capitalize">{countryConfig.paymentMethods.find(m => m.value === paymentMethod)?.label || paymentMethod}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Account Name:</span>
-                <span className="font-medium text-white">{getNormalizedAccountName()}</span>
+                <span className="font-medium text-slate-800">{getNormalizedAccountName()}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">{getAccountFieldLabel()}:</span>
-                <span className="font-medium text-white">{getNormalizedAccountNumber()}</span>
+                <span className="font-medium text-slate-800">{getNormalizedAccountNumber()}</span>
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-slate-500">Min Withdrawal:</span>
@@ -2973,10 +2973,10 @@ const AgencyWithdrawal = () => {
           </div>
 
           <DialogFooter className="flex gap-2 mt-4">
-            <Button variant="outline" onClick={() => setShowConfirmDialog(false)} disabled={submitting} className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-700">
+            <Button variant="outline" onClick={() => setShowConfirmDialog(false)} disabled={submitting} className="flex-1 border-slate-600 text-slate-500 hover:bg-slate-700">
               Cancel
             </Button>
-            <Button onClick={handleSubmitWithdrawal} disabled={submitting} className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
+            <Button onClick={handleSubmitWithdrawal} disabled={submitting} className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-slate-800">
               {submitting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
               Confirm
             </Button>
@@ -2986,9 +2986,9 @@ const AgencyWithdrawal = () => {
 
       {/* Withdrawal Detail Dialog */}
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-        <DialogContent className="mx-4 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border-slate-700 max-h-[85vh] overflow-y-auto">
+        <DialogContent className="mx-4 rounded-2xl bg-gradient-to-br from-amber-50 via-slate-800 to-orange-50 border-amber-200/60 max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-3 text-white">
+            <DialogTitle className="flex items-center gap-3 text-slate-800">
               {(() => {
                 // For agency view: if helper has processed (helper_processed_at exists),
                 // show as "approved" even if actual status is "processing"
@@ -3014,10 +3014,10 @@ const AgencyWithdrawal = () => {
                 return (
                   <>
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${statusColorMap[detailDisplayStatus || 'pending'] || 'bg-indigo-500'}`}>
-                      {(detailDisplayStatus === 'pending') && <Clock className="w-5 h-5 text-white" />}
-                      {(detailDisplayStatus === 'processing') && <Loader2 className="w-5 h-5 text-white animate-spin" />}
-                      {(detailDisplayStatus === 'completed' || detailDisplayStatus === 'approved') && <CheckCircle className="w-5 h-5 text-white" />}
-                      {(detailDisplayStatus === 'rejected') && <XCircle className="w-5 h-5 text-white" />}
+                      {(detailDisplayStatus === 'pending') && <Clock className="w-5 h-5 text-slate-800" />}
+                      {(detailDisplayStatus === 'processing') && <Loader2 className="w-5 h-5 text-slate-800 animate-spin" />}
+                      {(detailDisplayStatus === 'completed' || detailDisplayStatus === 'approved') && <CheckCircle className="w-5 h-5 text-slate-800" />}
+                      {(detailDisplayStatus === 'rejected') && <XCircle className="w-5 h-5 text-slate-800" />}
                     </div>
                     <div>
                       <p className="font-bold">Withdrawal Details</p>
@@ -3050,7 +3050,7 @@ const AgencyWithdrawal = () => {
                      selectedWithdrawal.payment_details?.country_code === 'PK' ? '🇵🇰' :
                      selectedWithdrawal.payment_details?.country_code === 'NP' ? '🇳🇵' : '🌍'}
                   </span>
-                  <span className="text-white font-bold">{selectedWithdrawal.payment_details?.country_code || 'N/A'}</span>
+                  <span className="text-slate-800 font-bold">{selectedWithdrawal.payment_details?.country_code || 'N/A'}</span>
                 </div>
                 <span className="text-slate-500">•</span>
                 <div className="bg-gradient-to-r from-pink-500/30 to-purple-500/30 px-3 py-1.5 rounded-lg border border-pink-500/40">
@@ -3063,7 +3063,7 @@ const AgencyWithdrawal = () => {
               </div>
               
               {/* Amount Details */}
-              <div className="bg-slate-800/50 rounded-xl p-4 space-y-3">
+              <div className="bg-white/80 rounded-xl p-4 space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-slate-400">USD Value</span>
                   <span className="text-emerald-400 font-bold text-lg">
@@ -3102,8 +3102,8 @@ const AgencyWithdrawal = () => {
               )}
               
               {/* Payment Details */}
-              <div className="bg-slate-800/50 rounded-xl p-4">
-                <p className="text-white font-semibold mb-3 flex items-center gap-2">
+              <div className="bg-white/80 rounded-xl p-4">
+                <p className="text-slate-800 font-semibold mb-3 flex items-center gap-2">
                   <CreditCard className="w-4 h-4 text-cyan-400" />
                   Payment Details
                 </p>
@@ -3111,25 +3111,25 @@ const AgencyWithdrawal = () => {
                   {selectedWithdrawal.payment_details?.account_name && (
                     <div className="flex justify-between">
                       <span className="text-slate-400">Account Name</span>
-                      <span className="text-white font-medium">{selectedWithdrawal.payment_details.account_name}</span>
+                      <span className="text-slate-800 font-medium">{selectedWithdrawal.payment_details.account_name}</span>
                     </div>
                   )}
                   {selectedWithdrawal.payment_details?.account_number && (
                     <div className="flex justify-between">
                       <span className="text-slate-400">Account Number</span>
-                      <span className="text-white font-medium">{selectedWithdrawal.payment_details.account_number}</span>
+                      <span className="text-slate-800 font-medium">{selectedWithdrawal.payment_details.account_number}</span>
                     </div>
                   )}
                   {selectedWithdrawal.payment_details?.bank_name && (
                     <div className="flex justify-between">
                       <span className="text-slate-400">Bank Name</span>
-                      <span className="text-white font-medium">{selectedWithdrawal.payment_details.bank_name}</span>
+                      <span className="text-slate-800 font-medium">{selectedWithdrawal.payment_details.bank_name}</span>
                     </div>
                   )}
                   {selectedWithdrawal.payment_details?.additional_info && (
                     <div className="flex justify-between">
                       <span className="text-slate-400">Additional Info</span>
-                      <span className="text-white font-medium">{selectedWithdrawal.payment_details.additional_info}</span>
+                      <span className="text-slate-800 font-medium">{selectedWithdrawal.payment_details.additional_info}</span>
                     </div>
                   )}
                 </div>

@@ -182,7 +182,7 @@ export default function NotificationSettings() {
               <div key={cat.key} className="px-4 py-3.5">
                 <div className="flex items-center gap-3 mb-2">
                   <div className={`w-8 h-8 rounded-lg ${cat.color} flex items-center justify-center`}>
-                    <Icon className="w-4 h-4 text-white" />
+                    <Icon className="w-4 h-4 text-slate-800" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-foreground text-sm">{cat.label}</p>

@@ -136,15 +136,15 @@ const PayrollHelperGuide = () => {
       {/* Hero Banner */}
       <div className="relative">
         <img src={bannerImage} alt="Payroll Helper System" className="w-full h-52 object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-amber-50 via-rose-50 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-5">
-          <Badge className="bg-emerald-500/90 text-white border-0 text-xs mb-2">
+          <Badge className="bg-emerald-500/90 text-slate-800 border-0 text-xs mb-2">
             💎 Premium Earning Opportunity
           </Badge>
-          <h2 className="text-2xl font-black text-white leading-tight">
+          <h2 className="text-2xl font-black text-slate-800 leading-tight">
             Become a Payroll Helper
           </h2>
-          <p className="text-white/80 text-sm mt-1">
+          <p className="text-slate-700 text-sm mt-1">
             Process salaries, earn diamonds, and build your trading business
           </p>
         </div>
@@ -177,7 +177,7 @@ const PayrollHelperGuide = () => {
                 <div className="p-4">
                   <div className="flex items-start gap-3">
                     <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${role.color} flex items-center justify-center shrink-0`}>
-                      <role.icon className="w-5 h-5 text-white" />
+                      <role.icon className="w-5 h-5 text-slate-800" />
                     </div>
                     <div>
                       <h4 className="font-semibold text-sm">{role.title}</h4>
@@ -252,7 +252,7 @@ const PayrollHelperGuide = () => {
             {howItWorks.map((step, idx) => (
               <div key={idx} className="flex gap-3">
                 <div className="flex flex-col items-center">
-                  <div className={`w-8 h-8 rounded-full ${step.color} flex items-center justify-center text-white text-xs font-bold shrink-0`}>
+                  <div className={`w-8 h-8 rounded-full ${step.color} flex items-center justify-center text-slate-800 text-xs font-bold shrink-0`}>
                     {step.step}
                   </div>
                   {idx < howItWorks.length - 1 && (
@@ -360,7 +360,7 @@ const PayrollHelperGuide = () => {
         <div className="text-center space-y-3">
           <Button
             onClick={() => navigate("/helper-dashboard")}
-            className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold py-6 text-base rounded-xl"
+            className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-slate-800 font-bold py-6 text-base rounded-xl"
           >
             Go to Helper Dashboard
             <ArrowRight className="w-5 h-5 ml-2" />

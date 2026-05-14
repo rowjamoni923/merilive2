@@ -266,28 +266,28 @@ const AgencyHostManagement = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-amber-50 to-slate-800 flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-slate-900 to-slate-800">
+    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-amber-50 to-slate-800">
       {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-10 bg-slate-900/95 backdrop-blur border-b border-white/10 px-4 py-3 safe-area-top">
+      <header className="flex-shrink-0 sticky top-0 z-10 bg-white/90 backdrop-blur border-b border-amber-200/60 px-4 py-3 safe-area-top">
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => navigate(-1)}
-            className="text-white"
+            className="text-slate-800"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex-1">
-            <h1 className="text-lg font-bold text-white">Host Management</h1>
-            <p className="text-xs text-white/60">{agency?.name}</p>
+            <h1 className="text-lg font-bold text-slate-800">Host Management</h1>
+            <p className="text-xs text-slate-500">{agency?.name}</p>
           </div>
         </div>
       </header>
@@ -296,15 +296,15 @@ const AgencyHostManagement = () => {
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
         <div className="p-4 space-y-4">
         {/* Agency Info */}
-        <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+        <div className="bg-white/5 rounded-xl p-4 border border-amber-200/60">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="text-white font-semibold">{agency?.name}</p>
-              <p className="text-white/50 text-sm">Code: {agency?.agency_code}</p>
+              <p className="text-slate-800 font-semibold">{agency?.name}</p>
+              <p className="text-slate-500 text-sm">Code: {agency?.agency_code}</p>
             </div>
             <div className="text-right">
               <p className="text-2xl font-bold text-primary">{hosts.length}</p>
-              <p className="text-white/50 text-xs">Total Hosts</p>
+              <p className="text-slate-500 text-xs">Total Hosts</p>
             </div>
           </div>
 
@@ -326,15 +326,15 @@ const AgencyHostManagement = () => {
         <div className="bg-gradient-to-r from-primary/10 to-purple-500/10 rounded-xl p-4 border border-primary/20">
           <div className="flex items-center gap-2 mb-3">
             <LinkIcon className="w-5 h-5 text-primary" />
-            <span className="text-white font-medium">Host Invite Link</span>
+            <span className="text-slate-800 font-medium">Host Invite Link</span>
           </div>
-          <div className="bg-black/30 rounded-lg p-3 mb-3">
-            <p className="text-white/70 text-sm break-all">{inviteLink}</p>
+          <div className="bg-white/80 rounded-lg p-3 mb-3">
+            <p className="text-slate-600 text-sm break-all">{inviteLink}</p>
           </div>
           <div className="flex gap-2">
             <Button
               onClick={copyLink}
-              className="flex-1 bg-white/10 hover:bg-white/20 text-white"
+              className="flex-1 bg-white/10 hover:bg-white/20 text-slate-800"
             >
               <Copy className="w-4 h-4 mr-2" />
               Copy
@@ -351,16 +351,16 @@ const AgencyHostManagement = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full bg-white/5 border border-white/10">
+          <TabsList className="w-full bg-white/5 border border-amber-200/60">
             <TabsTrigger 
               value="pending" 
-              className="flex-1 data-[state=active]:bg-yellow-500/20 data-[state=active]:text-yellow-400 text-white/70"
+              className="flex-1 data-[state=active]:bg-yellow-500/20 data-[state=active]:text-yellow-400 text-slate-600"
             >
               Pending ({pendingHosts.length})
             </TabsTrigger>
             <TabsTrigger 
               value="hosts" 
-              className="flex-1 data-[state=active]:bg-primary/20 data-[state=active]:text-primary text-white/70"
+              className="flex-1 data-[state=active]:bg-primary/20 data-[state=active]:text-primary text-slate-600"
             >
               Hosts ({hosts.length})
             </TabsTrigger>
@@ -370,8 +370,8 @@ const AgencyHostManagement = () => {
           <TabsContent value="pending" className="mt-4 space-y-3">
             {pendingHosts.length === 0 ? (
               <div className="text-center py-10">
-                <Clock className="w-12 h-12 text-white/20 mx-auto mb-3" />
-                <p className="text-white/50">No pending requests</p>
+                <Clock className="w-12 h-12 text-slate-800/20 mx-auto mb-3" />
+                <p className="text-slate-500">No pending requests</p>
               </div>
             ) : (
               pendingHosts.map((hostData) => (
@@ -387,8 +387,8 @@ const AgencyHostManagement = () => {
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <p className="text-white font-medium">{hostData.host?.display_name || "Unknown"}</p>
-                      <p className="text-white/50 text-sm">UID: {hostData.host?.app_uid || "N/A"}</p>
+                      <p className="text-slate-800 font-medium">{hostData.host?.display_name || "Unknown"}</p>
+                      <p className="text-slate-500 text-sm">UID: {hostData.host?.app_uid || "N/A"}</p>
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -425,18 +425,18 @@ const AgencyHostManagement = () => {
             {/* Search & Filter */}
             <div className="flex gap-2">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Input
                   placeholder="Search by name or UID..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-white/5 border-white/10 text-white"
+                  className="pl-10 bg-white/5 border-amber-200/60 text-slate-800"
                 />
               </div>
               <Button
                 variant={filterOnline ? "default" : "outline"}
                 onClick={() => setFilterOnline(!filterOnline)}
-                className={filterOnline ? "bg-green-500" : "bg-white/5 border-white/10 text-white"}
+                className={filterOnline ? "bg-green-500" : "bg-white/5 border-amber-200/60 text-slate-800"}
               >
                 <UserCheck className="w-4 h-4" />
               </Button>
@@ -444,8 +444,8 @@ const AgencyHostManagement = () => {
 
             {filteredHosts.length === 0 ? (
               <div className="text-center py-10">
-                <Users className="w-12 h-12 text-white/20 mx-auto mb-3" />
-                <p className="text-white/50">
+                <Users className="w-12 h-12 text-slate-800/20 mx-auto mb-3" />
+                <p className="text-slate-500">
                   {searchQuery || filterOnline ? "No hosts found" : "No hosts in agency"}
                 </p>
               </div>
@@ -453,7 +453,7 @@ const AgencyHostManagement = () => {
               filteredHosts.map((hostData) => (
                 <div
                   key={hostData.id}
-                  className="bg-white/5 rounded-xl p-4 border border-white/10"
+                  className="bg-white/5 rounded-xl p-4 border border-amber-200/60"
                   onClick={() => navigate(`/profile/${hostData.host_id}`)}
                 >
                   <div className="flex items-center gap-3">
@@ -465,12 +465,12 @@ const AgencyHostManagement = () => {
                         </AvatarFallback>
                       </Avatar>
                       {hostData.host?.is_online && (
-                        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-slate-900" />
+                        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-amber-200/60" />
                       )}
                     </div>
                     <div className="flex-1">
-                      <p className="text-white font-medium">{hostData.host?.display_name || "Unknown"}</p>
-                      <p className="text-white/50 text-sm">UID: {hostData.host?.app_uid || "N/A"}</p>
+                      <p className="text-slate-800 font-medium">{hostData.host?.display_name || "Unknown"}</p>
+                      <p className="text-slate-500 text-sm">UID: {hostData.host?.app_uid || "N/A"}</p>
                     </div>
                     <Badge className={hostData.host?.is_online ? "bg-green-500/20 text-green-400" : "bg-gray-500/20 text-gray-400"}>
                       {hostData.host?.is_online ? "Online" : "Offline"}
@@ -485,15 +485,15 @@ const AgencyHostManagement = () => {
 
       {/* Approve Dialog */}
       <AlertDialog open={!!approveDialog} onOpenChange={() => setApproveDialog(null)}>
-        <AlertDialogContent className="bg-slate-900 border-white/10">
+        <AlertDialogContent className="bg-white/90 border-amber-200/60">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Approve Host</AlertDialogTitle>
-            <AlertDialogDescription className="text-white/60">
+            <AlertDialogTitle className="text-slate-800">Approve Host</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-500">
               Do you want to add {approveDialog?.host?.display_name} to the agency?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-white/5 border-white/10 text-white">Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="bg-white/5 border-amber-200/60 text-slate-800">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => approveDialog && approveHost(approveDialog)}
               className="bg-green-600 hover:bg-green-700"
@@ -506,15 +506,15 @@ const AgencyHostManagement = () => {
 
       {/* Reject Dialog */}
       <AlertDialog open={!!rejectDialog} onOpenChange={() => setRejectDialog(null)}>
-        <AlertDialogContent className="bg-slate-900 border-white/10">
+        <AlertDialogContent className="bg-white/90 border-amber-200/60">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Reject Request</AlertDialogTitle>
-            <AlertDialogDescription className="text-white/60">
+            <AlertDialogTitle className="text-slate-800">Reject Request</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-500">
               Do you want to reject {rejectDialog?.host?.display_name}'s request?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-white/5 border-white/10 text-white">No</AlertDialogCancel>
+            <AlertDialogCancel className="bg-white/5 border-amber-200/60 text-slate-800">No</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => rejectDialog && rejectHost(rejectDialog)}
               className="bg-red-600 hover:bg-red-700"

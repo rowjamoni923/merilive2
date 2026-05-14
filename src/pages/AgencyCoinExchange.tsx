@@ -689,9 +689,9 @@ const AgencyCoinExchange = () => {
   if (!agency) return null;
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-slate-900 to-slate-800">
+    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-amber-50 to-slate-800">
       {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-purple-600 to-pink-600 text-white safe-area-top">
+      <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-purple-600 to-pink-600 text-slate-800 safe-area-top">
         <div className="flex items-center h-14 px-4">
           <button 
             onClick={() => navigate(-1)}
@@ -708,42 +708,42 @@ const AgencyCoinExchange = () => {
         {/* Balance Cards */}
         <div className="mx-4 mt-4 grid grid-cols-2 gap-3">
         {/* Agency Beans Balance - from agencies.beans_balance */}
-        <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-4 text-white shadow-lg relative overflow-hidden">
+        <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-4 text-slate-800 shadow-lg relative overflow-hidden">
           <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-10 translate-x-10" />
           <div className="flex items-center gap-2 mb-2">
             <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
               <Coins className="w-5 h-5" />
             </div>
           </div>
-          <p className="text-white/70 text-xs">Total Beans</p>
+          <p className="text-slate-600 text-xs">Total Beans</p>
           <p className="text-2xl font-bold">{(agency.beans_balance || 0).toLocaleString()}</p>
-          <p className="text-white/50 text-[10px] mt-1">Exchangeable to Diamonds</p>
+          <p className="text-slate-500 text-[10px] mt-1">Exchangeable to Diamonds</p>
         </div>
 
         {/* Diamond Balance */}
-        <div className="bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl p-4 text-white shadow-lg relative overflow-hidden">
+        <div className="bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl p-4 text-slate-800 shadow-lg relative overflow-hidden">
           <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-10 translate-x-10" />
           <div className="flex items-center gap-2 mb-2">
             <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
               <Diamond className="w-5 h-5" />
             </div>
           </div>
-          <p className="text-white/70 text-xs">Diamond Balance</p>
+          <p className="text-slate-600 text-xs">Diamond Balance</p>
           <p className="text-2xl font-bold">{agency.diamond_balance.toLocaleString()}</p>
         </div>
       </div>
 
       {/* Exchange Info */}
-      <div className="mx-4 mt-3 bg-white/5 backdrop-blur rounded-xl p-3 border border-white/10">
+      <div className="mx-4 mt-3 bg-white/5 backdrop-blur rounded-xl p-3 border border-amber-200/60">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-white/60">Exchange Rate:</span>
+          <span className="text-slate-500">Exchange Rate:</span>
           <div className="flex items-center gap-1">
-            <span className="font-semibold text-white">{exchangeSettings.beans_to_diamonds_rate} Beans = 1</span>
+            <span className="font-semibold text-slate-800">{exchangeSettings.beans_to_diamonds_rate} Beans = 1</span>
             <Diamond className="w-4 h-4 text-cyan-400" />
           </div>
         </div>
         <div className="flex items-center justify-between text-sm mt-1">
-          <span className="text-white/60">Exchange Fee:</span>
+          <span className="text-slate-500">Exchange Fee:</span>
           <span className="font-semibold text-red-400">{exchangeSettings.exchange_fee_percent}%</span>
         </div>
       </div>
@@ -753,7 +753,7 @@ const AgencyCoinExchange = () => {
         <Button
           variant={activeTab === "exchange" ? "default" : "outline"}
           onClick={() => setActiveTab("exchange")}
-          className={`flex-1 ${activeTab === "exchange" ? "bg-gradient-to-r from-amber-500 to-orange-600 border-0" : "border-white/20 text-white hover:bg-white/10"}`}
+          className={`flex-1 ${activeTab === "exchange" ? "bg-gradient-to-r from-amber-500 to-orange-600 border-0" : "border-amber-200/60 text-slate-800 hover:bg-white/10"}`}
         >
           <ArrowRightLeft className="w-4 h-4 mr-2" />
           Beans → Diamond
@@ -761,7 +761,7 @@ const AgencyCoinExchange = () => {
         <Button
           variant={activeTab === "send" ? "default" : "outline"}
           onClick={() => setActiveTab("send")}
-          className={`flex-1 ${activeTab === "send" ? "bg-gradient-to-r from-cyan-500 to-blue-600 border-0" : "border-white/20 text-white hover:bg-white/10"}`}
+          className={`flex-1 ${activeTab === "send" ? "bg-gradient-to-r from-cyan-500 to-blue-600 border-0" : "border-amber-200/60 text-slate-800 hover:bg-white/10"}`}
         >
           <Send className="w-4 h-4 mr-2" />
           Send Diamond
@@ -771,15 +771,15 @@ const AgencyCoinExchange = () => {
       {/* Exchange Tab */}
       {activeTab === "exchange" && (
         <div className="mx-4 mt-4 space-y-4">
-          <div className="bg-white/5 backdrop-blur rounded-2xl p-5 border border-white/10">
-            <h3 className="font-semibold mb-4 flex items-center gap-2 text-white">
+          <div className="bg-white/5 backdrop-blur rounded-2xl p-5 border border-amber-200/60">
+            <h3 className="font-semibold mb-4 flex items-center gap-2 text-slate-800">
               <Calculator className="w-5 h-5 text-amber-400" />
               Convert Beans to Diamonds
             </h3>
             
             <div className="space-y-4">
               <div>
-                <Label className="text-white/60">Beans Amount</Label>
+                <Label className="text-slate-500">Beans Amount</Label>
                 <div className="relative mt-2">
                   <Coins className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-amber-400" />
                   <Input
@@ -787,10 +787,10 @@ const AgencyCoinExchange = () => {
                     placeholder="Enter beans amount"
                     value={beansAmount}
                     onChange={(e) => setBeansAmount(e.target.value)}
-                    className="pl-10 text-lg h-12 bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                    className="pl-10 text-lg h-12 bg-white/5 border-amber-200/60 text-slate-800 placeholder:text-slate-500"
                   />
                 </div>
-                <p className="text-xs text-white/40 mt-1">
+                <p className="text-xs text-slate-400 mt-1">
                   Minimum: {minimumExchangeAmount.toLocaleString()} | My Beans: {ownerBeans.toLocaleString()}
                 </p>
               </div>
@@ -800,13 +800,13 @@ const AgencyCoinExchange = () => {
                 <div className="space-y-2.5">
                   {/* Beans for conversion */}
                   <div className="flex justify-between text-sm">
-                    <span className="text-white/60">Beans Amount:</span>
-                    <span className="font-semibold text-white">{(parseInt(beansAmount) || 0).toLocaleString()}</span>
+                    <span className="text-slate-500">Beans Amount:</span>
+                    <span className="font-semibold text-slate-800">{(parseInt(beansAmount) || 0).toLocaleString()}</span>
                   </div>
                   
                   {/* Conversion calculation */}
                   <div className="flex justify-between text-sm">
-                    <span className="text-white/60">Conversion ({exchangeSettings.beans_to_diamonds_rate}:1):</span>
+                    <span className="text-slate-500">Conversion ({exchangeSettings.beans_to_diamonds_rate}:1):</span>
                     <div className="flex items-center gap-1">
                       <span className="font-semibold text-cyan-400">{diamondsToGet.toLocaleString()}</span>
                       <Diamond className="w-3.5 h-3.5 text-cyan-400" />
@@ -815,26 +815,26 @@ const AgencyCoinExchange = () => {
                   
                   {/* Fee deducted */}
                   <div className="flex justify-between text-sm">
-                    <span className="text-white/60">Fee ({exchangeSettings.exchange_fee_percent}%):</span>
+                    <span className="text-slate-500">Fee ({exchangeSettings.exchange_fee_percent}%):</span>
                     <span className="text-red-400 font-semibold">-{feeAmount.toLocaleString()} Beans</span>
                   </div>
 
                   {/* Beans after fee */}
                   <div className="flex justify-between text-sm">
-                    <span className="text-white/60">Beans After Fee:</span>
-                    <span className="font-semibold text-white">{((parseInt(beansAmount) || 0) - feeAmount).toLocaleString()}</span>
+                    <span className="text-slate-500">Beans After Fee:</span>
+                    <span className="font-semibold text-slate-800">{((parseInt(beansAmount) || 0) - feeAmount).toLocaleString()}</span>
                   </div>
                   
-                  <div className="border-t border-white/10 pt-3 mt-2 space-y-2">
+                  <div className="border-t border-amber-200/60 pt-3 mt-2 space-y-2">
                     {/* Total beans deducted */}
-                    <div className="flex justify-between items-center text-sm bg-black/20 rounded-lg px-3 py-2">
-                      <span className="text-white/70">Total Beans Deducted:</span>
+                    <div className="flex justify-between items-center text-sm bg-white/80 rounded-lg px-3 py-2">
+                      <span className="text-slate-600">Total Beans Deducted:</span>
                       <span className="font-bold text-amber-400 text-base">{totalBeansNeeded.toLocaleString()}</span>
                     </div>
                     
                     {/* Diamonds to receive */}
                     <div className="flex justify-between items-center bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-lg px-3 py-2">
-                      <span className="text-white font-medium">You Will Receive:</span>
+                      <span className="text-slate-800 font-medium">You Will Receive:</span>
                       <div className="flex items-center gap-2">
                         <Diamond className="w-6 h-6 text-cyan-400" />
                         <span className="text-2xl font-bold text-cyan-400">{diamondsToGet.toLocaleString()}</span>
@@ -858,7 +858,7 @@ const AgencyCoinExchange = () => {
               <Button
                 onClick={handleExchange}
                 disabled={!beansAmount || (parseInt(beansAmount) || 0) < minimumExchangeAmount || totalBeansNeeded > ownerBeans}
-                className={`w-full h-12 text-white font-semibold text-sm ${
+                className={`w-full h-12 text-slate-800 font-semibold text-sm ${
                   totalBeansNeeded > ownerBeans || !beansAmount || (parseInt(beansAmount) || 0) < minimumExchangeAmount
                     ? 'bg-gray-500/50 cursor-not-allowed opacity-50'
                     : 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700'
@@ -889,8 +889,8 @@ const AgencyCoinExchange = () => {
               }}
               className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
                 sendSubTab === "user"
-                  ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg"
-                  : "text-white/60 hover:text-white hover:bg-white/5"
+                  ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-800 shadow-lg"
+                  : "text-slate-500 hover:text-slate-800 hover:bg-white/5"
               }`}
             >
               <Users className="w-4 h-4" />
@@ -904,8 +904,8 @@ const AgencyCoinExchange = () => {
               }}
               className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
                 sendSubTab === "agency"
-                  ? "bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg"
-                  : "text-white/60 hover:text-white hover:bg-white/5"
+                  ? "bg-gradient-to-r from-purple-500 to-pink-600 text-slate-800 shadow-lg"
+                  : "text-slate-500 hover:text-slate-800 hover:bg-white/5"
               }`}
             >
               <Diamond className="w-4 h-4" />
@@ -915,8 +915,8 @@ const AgencyCoinExchange = () => {
 
           {/* USER TOP-UP SUB-TAB */}
           {sendSubTab === "user" && (
-            <div className="bg-white/5 backdrop-blur rounded-2xl p-5 border border-white/10">
-              <h3 className="font-semibold mb-4 flex items-center gap-2 text-white">
+            <div className="bg-white/5 backdrop-blur rounded-2xl p-5 border border-amber-200/60">
+              <h3 className="font-semibold mb-4 flex items-center gap-2 text-slate-800">
                 <Send className="w-5 h-5 text-cyan-400" />
                 Send Diamonds to User
               </h3>
@@ -924,15 +924,15 @@ const AgencyCoinExchange = () => {
               <div className="space-y-4">
                 {/* User Search */}
                 <div>
-                  <Label className="text-white/60">Search user by App UID</Label>
+                  <Label className="text-slate-500">Search user by App UID</Label>
                   <div className="relative mt-2">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                     <Input
                       type="text"
                       placeholder="Enter App UID or name"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                      className="pl-10 bg-white/5 border-amber-200/60 text-slate-800 placeholder:text-slate-500"
                     />
                   </div>
                 </div>
@@ -950,15 +950,15 @@ const AgencyCoinExchange = () => {
                         }}
                         className="flex items-center gap-3 p-3 bg-white/5 rounded-xl cursor-pointer hover:bg-white/10 transition-colors"
                       >
-                        <Avatar className="w-10 h-10 border border-white/20">
+                        <Avatar className="w-10 h-10 border border-amber-200/60">
                           <AvatarImage src={user.avatar_url || ""} />
-                          <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-blue-500 text-white">
+                          <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-blue-500 text-slate-800">
                             {user.display_name?.charAt(0) || "U"}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
-                          <p className="font-semibold text-white">{user.display_name || "Unknown"}</p>
-                          <p className="text-xs text-white/50">
+                          <p className="font-semibold text-slate-800">{user.display_name || "Unknown"}</p>
+                          <p className="text-xs text-slate-500">
                             UID: {user.app_uid || user.id.slice(0, 8)}
                           </p>
                         </div>
@@ -976,13 +976,13 @@ const AgencyCoinExchange = () => {
                     <div className="flex items-center gap-3">
                       <Avatar className="w-12 h-12 border-2 border-cyan-400">
                         <AvatarImage src={selectedUser.avatar_url || ""} />
-                        <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-blue-500 text-white">
+                        <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-blue-500 text-slate-800">
                           {selectedUser.display_name?.charAt(0) || "U"}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
-                        <p className="font-semibold text-white">{selectedUser.display_name || "Unknown"}</p>
-                        <p className="text-xs text-white/50">
+                        <p className="font-semibold text-slate-800">{selectedUser.display_name || "Unknown"}</p>
+                        <p className="text-xs text-slate-500">
                           UID: {selectedUser.app_uid || selectedUser.id.slice(0, 8)}
                         </p>
                       </div>
@@ -1002,7 +1002,7 @@ const AgencyCoinExchange = () => {
                 {selectedUser && (
                   <>
                     <div>
-                      <Label className="text-white/60">Diamond Amount</Label>
+                      <Label className="text-slate-500">Diamond Amount</Label>
                       <div className="relative mt-2">
                         <Diamond className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-cyan-400" />
                         <Input
@@ -1010,10 +1010,10 @@ const AgencyCoinExchange = () => {
                           placeholder="Enter diamond amount"
                           value={diamondsToSend}
                           onChange={(e) => setDiamondsToSend(e.target.value)}
-                          className="pl-10 text-lg h-12 bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                          className="pl-10 text-lg h-12 bg-white/5 border-amber-200/60 text-slate-800 placeholder:text-slate-500"
                         />
                       </div>
-                      <p className="text-xs text-white/40 mt-1">
+                      <p className="text-xs text-slate-400 mt-1">
                         You have: {agency.diamond_balance.toLocaleString()} diamonds
                       </p>
                     </div>
@@ -1022,19 +1022,19 @@ const AgencyCoinExchange = () => {
                     <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 rounded-xl p-4 border border-cyan-500/20">
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span className="text-white/60">Sending:</span>
-                          <span className="font-semibold text-white flex items-center gap-1">
+                          <span className="text-slate-500">Sending:</span>
+                          <span className="font-semibold text-slate-800 flex items-center gap-1">
                             <Diamond className="w-4 h-4 text-cyan-400" />
                             {(parseInt(diamondsToSend) || 0).toLocaleString()}
                           </span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-white/60">Recipient:</span>
-                          <span className="font-semibold text-white">{selectedUser.display_name || selectedUser.app_uid}</span>
+                          <span className="text-slate-500">Recipient:</span>
+                          <span className="font-semibold text-slate-800">{selectedUser.display_name || selectedUser.app_uid}</span>
                         </div>
-                        <div className="border-t border-white/10 pt-2 mt-2">
+                        <div className="border-t border-amber-200/60 pt-2 mt-2">
                           <div className="flex justify-between items-center">
-                            <span className="text-white font-medium">Balance after sending:</span>
+                            <span className="text-slate-800 font-medium">Balance after sending:</span>
                             <span className="text-lg font-bold text-cyan-400">
                               {Math.max(0, agency.diamond_balance - (parseInt(diamondsToSend) || 0)).toLocaleString()} 💎
                             </span>
@@ -1053,7 +1053,7 @@ const AgencyCoinExchange = () => {
                     <Button
                       onClick={handleSendDiamonds}
                       disabled={!diamondsToSend || (parseInt(diamondsToSend) || 0) > agency.diamond_balance || (parseInt(diamondsToSend) || 0) <= 0}
-                      className="w-full h-12 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold"
+                      className="w-full h-12 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-slate-800 font-semibold"
                     >
                       <Send className="w-5 h-5 mr-2" />
                       Send {(parseInt(diamondsToSend) || 0).toLocaleString()} 💎
@@ -1066,29 +1066,29 @@ const AgencyCoinExchange = () => {
 
           {/* AGENCY SUB-TAB */}
           {sendSubTab === "agency" && (
-            <div className="bg-white/5 backdrop-blur rounded-2xl p-5 border border-white/10">
-              <h3 className="font-semibold mb-4 flex items-center gap-2 text-white">
+            <div className="bg-white/5 backdrop-blur rounded-2xl p-5 border border-amber-200/60">
+              <h3 className="font-semibold mb-4 flex items-center gap-2 text-slate-800">
                 <Diamond className="w-5 h-5 text-purple-400" />
                 Send Diamonds to Agency
               </h3>
-              <p className="text-xs text-white/50 -mt-2 mb-4">
+              <p className="text-xs text-slate-500 -mt-2 mb-4">
                 Diamonds will be added to the agency owner's Trader Wallet
               </p>
               
               <div className="space-y-4">
                 {/* Agency Search by Owner UID */}
                 <div>
-                  <Label className="text-white/60">Search Agency by Owner's App UID</Label>
-                  <p className="text-xs text-white/40 mb-2">Enter the agency owner's user ID to find their agency</p>
+                  <Label className="text-slate-500">Search Agency by Owner's App UID</Label>
+                  <p className="text-xs text-slate-400 mb-2">Enter the agency owner's user ID to find their agency</p>
                   <div className="flex gap-2 mt-2">
                     <div className="relative flex-1">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                       <Input
                         type="text"
                         placeholder="Enter Owner's App UID"
                         value={agencySearchQuery}
                         onChange={(e) => setAgencySearchQuery(e.target.value)}
-                        className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                        className="pl-10 bg-white/5 border-amber-200/60 text-slate-800 placeholder:text-slate-500"
                       />
                     </div>
                     <Button
@@ -1097,7 +1097,7 @@ const AgencyCoinExchange = () => {
                       className="bg-purple-500 hover:bg-purple-600"
                     >
                       {isSearchingAgency ? (
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <div className="w-4 h-4 border-2 border-amber-200/60 border-t-white rounded-full animate-spin" />
                       ) : (
                         <Search className="w-4 h-4" />
                       )}
@@ -1110,11 +1110,11 @@ const AgencyCoinExchange = () => {
                   <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl p-4 border border-purple-500/20">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
-                        <Diamond className="w-6 h-6 text-white" />
+                        <Diamond className="w-6 h-6 text-slate-800" />
                       </div>
                       <div className="flex-1">
-                        <p className="font-semibold text-white">{selectedTargetAgency.name}</p>
-                        <p className="text-xs text-white/50">
+                        <p className="font-semibold text-slate-800">{selectedTargetAgency.name}</p>
+                        <p className="text-xs text-slate-500">
                           Code: {selectedTargetAgency.agency_code}
                         </p>
                         <p className="text-xs text-purple-300 mt-0.5">
@@ -1137,7 +1137,7 @@ const AgencyCoinExchange = () => {
                 {selectedTargetAgency && (
                   <>
                     <div>
-                      <Label className="text-white/60">Diamond Amount</Label>
+                      <Label className="text-slate-500">Diamond Amount</Label>
                       <div className="relative mt-2">
                         <Diamond className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-purple-400" />
                         <Input
@@ -1145,10 +1145,10 @@ const AgencyCoinExchange = () => {
                           placeholder="Enter diamond amount"
                           value={diamondsToSend}
                           onChange={(e) => setDiamondsToSend(e.target.value)}
-                          className="pl-10 text-lg h-12 bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                          className="pl-10 text-lg h-12 bg-white/5 border-amber-200/60 text-slate-800 placeholder:text-slate-500"
                         />
                       </div>
-                      <p className="text-xs text-white/40 mt-1">
+                      <p className="text-xs text-slate-400 mt-1">
                         Your Balance: {agency.diamond_balance.toLocaleString()} 💎
                       </p>
                     </div>
@@ -1157,23 +1157,23 @@ const AgencyCoinExchange = () => {
                     <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-xl p-4 border border-purple-500/20">
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span className="text-white/60">Sending:</span>
-                          <span className="font-semibold text-white flex items-center gap-1">
+                          <span className="text-slate-500">Sending:</span>
+                          <span className="font-semibold text-slate-800 flex items-center gap-1">
                             <Diamond className="w-4 h-4 text-purple-400" />
                             {(parseInt(diamondsToSend) || 0).toLocaleString()}
                           </span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-white/60">To Agency:</span>
-                          <span className="font-semibold text-white">{selectedTargetAgency.name}</span>
+                          <span className="text-slate-500">To Agency:</span>
+                          <span className="font-semibold text-slate-800">{selectedTargetAgency.name}</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-white/60">Destination:</span>
+                          <span className="text-slate-500">Destination:</span>
                           <span className="font-semibold text-purple-300">Trader Wallet</span>
                         </div>
-                        <div className="border-t border-white/10 pt-2 mt-2">
+                        <div className="border-t border-amber-200/60 pt-2 mt-2">
                           <div className="flex justify-between items-center">
-                            <span className="text-white font-medium">Your balance after:</span>
+                            <span className="text-slate-800 font-medium">Your balance after:</span>
                             <span className="text-lg font-bold text-purple-400">
                               {Math.max(0, agency.diamond_balance - (parseInt(diamondsToSend) || 0)).toLocaleString()} 💎
                             </span>
@@ -1192,7 +1192,7 @@ const AgencyCoinExchange = () => {
                     <Button
                       onClick={handleSendDiamondsToAgency}
                       disabled={!diamondsToSend || (parseInt(diamondsToSend) || 0) > agency.diamond_balance || (parseInt(diamondsToSend) || 0) <= 0}
-                      className="w-full h-12 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-semibold"
+                      className="w-full h-12 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-slate-800 font-semibold"
                     >
                       <Send className="w-5 h-5 mr-2" />
                       Send {(parseInt(diamondsToSend) || 0).toLocaleString()} 💎 →
@@ -1208,11 +1208,11 @@ const AgencyCoinExchange = () => {
       {/* Recent Transactions */}
       {recentTransactions.length > 0 && (
         <div className="mx-4 mt-6">
-          <h3 className="font-semibold mb-3 flex items-center gap-2 text-white">
+          <h3 className="font-semibold mb-3 flex items-center gap-2 text-slate-800">
             <History className="w-5 h-5 text-purple-400" />
             Recent Transactions
           </h3>
-          <div className="bg-white/5 backdrop-blur rounded-xl border border-white/10 divide-y divide-white/5">
+          <div className="bg-white/5 backdrop-blur rounded-xl border border-amber-200/60 divide-y divide-white/5">
             {recentTransactions.slice(0, 5).map((tx) => (
               <div key={tx.id} className="p-3 flex items-center gap-3">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
@@ -1227,10 +1227,10 @@ const AgencyCoinExchange = () => {
                   )}
                 </div>
                 <div className="flex-1">
-                  <p className="text-white text-sm font-medium">
+                  <p className="text-slate-800 text-sm font-medium">
                     {tx.transaction_type === 'exchange' ? 'Beans → Diamond' : 'Diamond Sent'}
                   </p>
-                  <p className="text-white/40 text-xs">
+                  <p className="text-slate-400 text-xs">
                     {new Date(tx.created_at).toLocaleString('en-US')}
                   </p>
                 </div>
@@ -1252,13 +1252,13 @@ const AgencyCoinExchange = () => {
 
       {/* Confirmation Dialog */}
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <DialogContent className="bg-slate-900 border-white/10 text-white">
+        <DialogContent className="bg-white/90 border-amber-200/60 text-slate-800">
           <DialogHeader>
             <DialogTitle>
               {confirmAction === "exchange" ? "Confirm Conversion" : 
                confirmAction === "sendAgency" ? "Confirm Agency Transfer" : "Confirm Transfer"}
             </DialogTitle>
-            <DialogDescription className="text-white/60">
+            <DialogDescription className="text-slate-500">
               {confirmAction === "exchange" ? (
                 <div className="mt-4 space-y-2">
                   <p>Are you sure?</p>
@@ -1266,12 +1266,12 @@ const AgencyCoinExchange = () => {
                     <div className="flex items-center justify-between">
                       <div className="text-center">
                         <p className="text-amber-400 font-bold text-xl">{(parseInt(beansAmount) || 0).toLocaleString()}</p>
-                        <p className="text-white/50 text-xs">Beans</p>
+                        <p className="text-slate-500 text-xs">Beans</p>
                       </div>
-                      <ArrowRightLeft className="w-6 h-6 text-white/40" />
+                      <ArrowRightLeft className="w-6 h-6 text-slate-400" />
                       <div className="text-center">
                         <p className="text-cyan-400 font-bold text-xl">{diamondsToGet.toLocaleString()}</p>
-                        <p className="text-white/50 text-xs">Diamonds</p>
+                        <p className="text-slate-500 text-xs">Diamonds</p>
                       </div>
                     </div>
                     <p className="text-xs text-red-400 mt-2 text-center">Fee: {feeAmount.toLocaleString()} Beans</p>
@@ -1281,11 +1281,11 @@ const AgencyCoinExchange = () => {
                 <div className="mt-4 space-y-2">
                   <p>Are you sure?</p>
                   <div className="bg-purple-500/10 p-4 rounded-lg border border-purple-500/20">
-                    <p className="text-sm text-white">
+                    <p className="text-sm text-slate-800">
                       Sending <span className="font-semibold text-purple-400">{(parseInt(diamondsToSend) || 0).toLocaleString()}</span> 💎 to{" "}
                       <span className="font-semibold">{selectedTargetAgency.name}</span>
                     </p>
-                    <p className="text-xs text-white/50 mt-1">Code: {selectedTargetAgency.agency_code}</p>
+                    <p className="text-xs text-slate-500 mt-1">Code: {selectedTargetAgency.agency_code}</p>
                     <p className="text-xs text-purple-300 mt-2">
                       ✨ Diamonds will go to <strong>{selectedTargetAgency.owner_name || 'Owner'}'s Trader Wallet</strong>
                     </p>
@@ -1295,18 +1295,18 @@ const AgencyCoinExchange = () => {
                 <div className="mt-4 space-y-2">
                   <p>Are you sure?</p>
                   <div className="bg-cyan-500/10 p-4 rounded-lg border border-cyan-500/20">
-                    <p className="text-sm text-white">
+                    <p className="text-sm text-slate-800">
                       Sending <span className="font-semibold text-cyan-400">{(parseInt(diamondsToSend) || 0).toLocaleString()}</span> 💎 to{" "}
                       <span className="font-semibold">{selectedUser?.display_name || selectedUser?.app_uid}</span>
                     </p>
-                    <p className="text-xs text-white/50 mt-1">UID: {selectedUser?.app_uid || selectedUser?.id.slice(0, 8)}</p>
+                    <p className="text-xs text-slate-500 mt-1">UID: {selectedUser?.app_uid || selectedUser?.id.slice(0, 8)}</p>
                   </div>
                 </div>
               )}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowConfirmDialog(false)} className="border-white/20 text-white hover:bg-white/10">
+            <Button variant="outline" onClick={() => setShowConfirmDialog(false)} className="border-amber-200/60 text-slate-800 hover:bg-white/10">
               Cancel
             </Button>
             <Button 
@@ -1319,7 +1319,7 @@ const AgencyCoinExchange = () => {
               }
             >
               {isProcessing ? (
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                <div className="w-4 h-4 border-2 border-amber-200/60 border-t-white rounded-full animate-spin mr-2" />
               ) : (
                 <CheckCircle2 className="w-4 h-4 mr-2" />
               )}
