@@ -59,25 +59,134 @@ const languages = [
   { code: "tl", name: "Filipino", flag: "🇵🇭" },
 ];
 
-// Pose thresholds — tuned for real-world mobile use (phone held below face,
-// natural lighting, slight head tilt). These are intentionally forgiving so
-// genuine users complete the flow on first try; the AWS Rekognition step that
-// runs AFTER submission is the strict identity gate (gender ≥86%, compare ≥72%,
-// face ≥80% — see service_auto_finalize_face_verification).
-const POSE = {
-  CENTER_YAW: 22,   // |yaw|  < 22  → looking forward
-  CENTER_PITCH: 22, // |pitch|< 22  → not tilted up/down
-  TURN_YAW: 14,     // |yaw|  > 14  → clear left/right turn
-  TILT_PITCH: 10,   // |pitch|> 10  → clear up/down tilt
+// Default pose thresholds — these are now BASE values that get adapted at
+// runtime by `calibrateThresholds()` based on the user's natural head pose
+// + camera noise floor (different phones, front-cam angles, and how the user
+// holds the device produce very different baselines). The auto-calibration
+// runs for ~2s at the start of every verification and is then cached per
+// device in localStorage so subsequent attempts skip the wait.
+const POSE_BASE = {
+  CENTER_YAW: 22,
+  CENTER_PITCH: 22,
+  TURN_YAW: 14,
+  TILT_PITCH: 10,
+  // How long the user must HOLD a pose before it counts (seconds). Adapted
+  // by step difficulty + camera noise.
+  HOLD_SEC: 0.6,
+  // Per-step time window (seconds) before we widen tolerance.
+  STEP_WINDOW: 8,
 };
 
+export type PoseCalibration = {
+  baselineYaw: number;     // user's natural yaw at rest (camera mounting offset)
+  baselinePitch: number;   // user's natural pitch at rest (phone held below face)
+  noiseYaw: number;        // std-dev of yaw samples — proxy for camera shake
+  noisePitch: number;      // std-dev of pitch samples
+  centerYaw: number;       // adapted thresholds
+  centerPitch: number;
+  turnYaw: number;
+  tiltPitch: number;
+  holdSec: number;
+  stepWindowSec: number;
+  capturedAt: number;
+};
+
+const DEFAULT_CALIB: PoseCalibration = {
+  baselineYaw: 0,
+  baselinePitch: 0,
+  noiseYaw: 0,
+  noisePitch: 0,
+  centerYaw: POSE_BASE.CENTER_YAW,
+  centerPitch: POSE_BASE.CENTER_PITCH,
+  turnYaw: POSE_BASE.TURN_YAW,
+  tiltPitch: POSE_BASE.TILT_PITCH,
+  holdSec: POSE_BASE.HOLD_SEC,
+  stepWindowSec: POSE_BASE.STEP_WINDOW,
+  capturedAt: 0,
+};
+
+const CALIB_STORAGE_KEY = 'face_verify_pose_calibration_v1';
+
+function loadCachedCalibration(): PoseCalibration | null {
+  try {
+    const raw = localStorage.getItem(CALIB_STORAGE_KEY);
+    if (!raw) return null;
+    const c = JSON.parse(raw) as PoseCalibration;
+    // Expire after 30 days OR if user is on a different device shape (we
+    // can't easily detect that, so the 30-day window forces a fresh sample).
+    if (Date.now() - c.capturedAt > 30 * 24 * 60 * 60 * 1000) return null;
+    return c;
+  } catch { return null; }
+}
+
+function saveCalibration(c: PoseCalibration) {
+  try { localStorage.setItem(CALIB_STORAGE_KEY, JSON.stringify(c)); } catch { /* ignore */ }
+}
+
+/**
+ * Compute calibrated thresholds + window time from raw pose samples taken
+ * during the calibration phase. Wider thresholds when the camera is noisy,
+ * baseline-shifted so a user whose neutral pose has a +12° pitch (phone on
+ * lap) doesn't have to crane their neck just to count as "centered".
+ */
+function calibrateThresholds(samples: { yaw: number; pitch: number }[]): PoseCalibration {
+  if (samples.length < 4) return { ...DEFAULT_CALIB, capturedAt: Date.now() };
+  const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+  const std  = (xs: number[], m: number) => Math.sqrt(mean(xs.map(v => (v - m) ** 2)));
+  const yaws = samples.map(s => s.yaw);
+  const pitches = samples.map(s => s.pitch);
+  const baselineYaw = mean(yaws);
+  const baselinePitch = mean(pitches);
+  const noiseYaw = std(yaws, baselineYaw);
+  const noisePitch = std(pitches, baselinePitch);
+  // Pad thresholds by 2× noise floor so jitter alone doesn't trip pass/fail.
+  const padY = Math.min(10, Math.max(2, noiseYaw * 2));
+  const padP = Math.min(10, Math.max(2, noisePitch * 2));
+  // Noisy stream → user needs more time to hold steady, longer window.
+  const noisy = (noiseYaw + noisePitch) > 6;
+  return {
+    baselineYaw,
+    baselinePitch,
+    noiseYaw,
+    noisePitch,
+    centerYaw:  POSE_BASE.CENTER_YAW  + padY * 0.5,
+    centerPitch: POSE_BASE.CENTER_PITCH + padP * 0.5,
+    turnYaw:    POSE_BASE.TURN_YAW    + padY * 0.7,
+    tiltPitch:  POSE_BASE.TILT_PITCH  + padP * 0.7,
+    holdSec:    noisy ? 1.0 : POSE_BASE.HOLD_SEC,
+    stepWindowSec: noisy ? 12 : POSE_BASE.STEP_WINDOW,
+    capturedAt: Date.now(),
+  };
+}
+
+/** Pure pose evaluator that uses the live calibration. Returns whether the
+ *  current pose satisfies the given step. */
+function evaluatePose(
+  stepId: string,
+  pose: { yaw: number; pitch: number },
+  c: PoseCalibration,
+): boolean {
+  const dy = pose.yaw - c.baselineYaw;
+  const dp = pose.pitch - c.baselinePitch;
+  switch (stepId) {
+    case 'center': return Math.abs(dy) < c.centerYaw && Math.abs(dp) < c.centerPitch;
+    case 'left':   return dy >  c.turnYaw;
+    case 'right':  return dy < -c.turnYaw;
+    case 'up':     return dp < -c.tiltPitch;
+    case 'down':   return dp >  c.tiltPitch;
+    default:       return false;
+  }
+}
+
 // Single English-only instruction set (per global English policy).
+// `checkPose` is preserved for any external callers but the live loop uses
+// `evaluatePose(id, pose, calibration)` so thresholds stay in sync.
 const getLocalizedInstructions = (_countryName?: string) => [
-  { id: 'center', direction: 'Look Forward', icon: ScanFace, description: 'Keep your face straight towards the camera', checkPose: (p: { yaw: number; pitch: number }) => Math.abs(p.yaw) < POSE.CENTER_YAW && Math.abs(p.pitch) < POSE.CENTER_PITCH },
-  { id: 'left',   direction: 'Turn Left',    icon: ArrowLeftIcon,  description: 'Slowly turn your head to the left',  checkPose: (p: { yaw: number; pitch: number }) => p.yaw >  POSE.TURN_YAW },
-  { id: 'right',  direction: 'Turn Right',   icon: ArrowRightIcon, description: 'Slowly turn your head to the right', checkPose: (p: { yaw: number; pitch: number }) => p.yaw < -POSE.TURN_YAW },
-  { id: 'up',     direction: 'Look Up',      icon: ArrowUp,        description: 'Tilt your head upward slightly',     checkPose: (p: { yaw: number; pitch: number }) => p.pitch < -POSE.TILT_PITCH },
-  { id: 'down',   direction: 'Look Down',    icon: ArrowDown,      description: 'Tilt your head downward slightly',   checkPose: (p: { yaw: number; pitch: number }) => p.pitch >  POSE.TILT_PITCH },
+  { id: 'center', direction: 'Look Forward', icon: ScanFace,       description: 'Keep your face straight towards the camera', checkPose: (p: { yaw: number; pitch: number }) => evaluatePose('center', p, DEFAULT_CALIB) },
+  { id: 'left',   direction: 'Turn Left',    icon: ArrowLeftIcon,  description: 'Slowly turn your head to the left',          checkPose: (p: { yaw: number; pitch: number }) => evaluatePose('left',   p, DEFAULT_CALIB) },
+  { id: 'right',  direction: 'Turn Right',   icon: ArrowRightIcon, description: 'Slowly turn your head to the right',         checkPose: (p: { yaw: number; pitch: number }) => evaluatePose('right',  p, DEFAULT_CALIB) },
+  { id: 'up',     direction: 'Look Up',      icon: ArrowUp,        description: 'Tilt your head upward slightly',             checkPose: (p: { yaw: number; pitch: number }) => evaluatePose('up',     p, DEFAULT_CALIB) },
+  { id: 'down',   direction: 'Look Down',    icon: ArrowDown,      description: 'Tilt your head downward slightly',           checkPose: (p: { yaw: number; pitch: number }) => evaluatePose('down',   p, DEFAULT_CALIB) },
 ];
 
 // Single English-only message set.
@@ -194,6 +303,12 @@ const FaceVerification = () => {
     severity: 'ok' | 'warn' | 'error';
   };
   const [liveDiag, setLiveDiag] = useState<LiveDiag | null>(null);
+  // Per-device pose calibration. Loaded from cache on mount (skips wait on
+  // repeat attempts), recalibrated at the start of every verification using
+  // the first ~2s of pose samples.
+  const calibrationRef = useRef<PoseCalibration>(loadCachedCalibration() ?? DEFAULT_CALIB);
+  const calibSamplesRef = useRef<{ yaw: number; pitch: number }[]>([]);
+  const [calibrating, setCalibrating] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const instructionTimerRef = useRef<NodeJS.Timeout | null>(null);
   const poseCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -752,7 +867,7 @@ const FaceVerification = () => {
     setVerificationTime(0);
     setScanningStatus('idle');
     setPoseHistory([]);
-    setLiveDiag(null);
+    setLiveDiag(null); setCalibrating(false);
     faceChunksRef.current = [];
     capturedAnglesRef.current = {};
 
@@ -777,13 +892,18 @@ const FaceVerification = () => {
       
       mediaRecorder.start();
       
-      // Start timer (max 30 seconds for all instructions)
+      // Overall verification window: derived from calibrated per-step window
+      // (noisy cameras get longer time). 5 steps × stepWindowSec, padded for
+      // calibration phase + capture latency. Min 45s, max 90s.
+      const calib = calibrationRef.current;
+      const overallSec = Math.min(90, Math.max(45,
+        Math.round(calib.stepWindowSec * faceInstructions.length + 10)
+      ));
       let elapsed = 0;
       timerRef.current = setInterval(() => {
         elapsed++;
         setVerificationTime(elapsed);
-        if (elapsed >= 60) {
-          // Generous 60s window — check if all completed
+        if (elapsed >= overallSec) {
           const allDone = instructionsCompletedRef.current.every(Boolean);
           finishVerification(allDone);
         }
@@ -802,13 +922,14 @@ const FaceVerification = () => {
   };
 
   // Compute a precise, user-facing hint about why the current step is not
-  // yet passing. Returns the hint text + severity + a 0..1 closeness score
-  // that drives the on-screen alignment meter.
+  // yet passing. Uses the live calibration so deltas are measured from the
+  // user's natural pose, not absolute zero.
   const computeStepDiag = (
     instrId: string,
     pose: { yaw: number; pitch: number },
     faceDetected: boolean,
     eyesOpen: boolean,
+    c: PoseCalibration,
   ): { hint: string; severity: LiveDiag['severity']; progress: number } => {
     if (!faceDetected) {
       return { hint: 'Face not detected — center your face in the oval', severity: 'error', progress: 0 };
@@ -816,42 +937,39 @@ const FaceVerification = () => {
     if (!eyesOpen) {
       return { hint: 'Keep your eyes open and look at the camera', severity: 'warn', progress: 0.3 };
     }
-    const ay = Math.abs(pose.yaw);
-    const ap = Math.abs(pose.pitch);
+    const dy = pose.yaw   - c.baselineYaw;
+    const dp = pose.pitch - c.baselinePitch;
+    const ady = Math.abs(dy);
+    const adp = Math.abs(dp);
     const clamp = (n: number) => Math.max(0, Math.min(1, n));
     switch (instrId) {
       case 'center': {
-        const need = Math.max(ay - POSE.CENTER_YAW + 4, ap - POSE.CENTER_PITCH + 4, 0);
-        const progress = clamp(1 - Math.max(ay, ap) / POSE.CENTER_YAW);
-        if (ay < POSE.CENTER_YAW && ap < POSE.CENTER_PITCH)
+        const progress = clamp(1 - Math.max(ady / c.centerYaw, adp / c.centerPitch));
+        if (ady < c.centerYaw && adp < c.centerPitch)
           return { hint: 'Hold steady — looks great', severity: 'ok', progress: 1 };
-        if (ay >= POSE.CENTER_YAW)
-          return { hint: `Face the camera straight (turn ${ay > 0 ? 'right' : 'left'} ~${Math.round(ay - POSE.CENTER_YAW + 4)}°)`, severity: 'warn', progress };
-        return { hint: `Level your head (tilt ${pose.pitch > 0 ? 'up' : 'down'} ~${Math.round(ap - POSE.CENTER_PITCH + 4)}°)`, severity: 'warn', progress };
+        if (ady >= c.centerYaw)
+          return { hint: `Face the camera straight (turn ${dy > 0 ? 'right' : 'left'} ~${Math.round(ady - c.centerYaw + 4)}°)`, severity: 'warn', progress };
+        return { hint: `Level your head (tilt ${dp > 0 ? 'up' : 'down'} ~${Math.round(adp - c.centerPitch + 4)}°)`, severity: 'warn', progress };
       }
       case 'left': {
-        const progress = clamp(pose.yaw / (POSE.TURN_YAW + 6));
-        if (pose.yaw > POSE.TURN_YAW) return { hint: 'Hold — capturing left angle', severity: 'ok', progress: 1 };
-        const need = Math.max(POSE.TURN_YAW - pose.yaw, 0);
-        return { hint: `Turn ~${Math.round(need + 4)}° more to your left`, severity: 'warn', progress };
+        const progress = clamp(dy / (c.turnYaw + 6));
+        if (dy > c.turnYaw) return { hint: 'Hold — capturing left angle', severity: 'ok', progress: 1 };
+        return { hint: `Turn ~${Math.round(Math.max(c.turnYaw - dy, 0) + 4)}° more to your left`, severity: 'warn', progress };
       }
       case 'right': {
-        const progress = clamp(-pose.yaw / (POSE.TURN_YAW + 6));
-        if (pose.yaw < -POSE.TURN_YAW) return { hint: 'Hold — capturing right angle', severity: 'ok', progress: 1 };
-        const need = Math.max(POSE.TURN_YAW + pose.yaw, 0);
-        return { hint: `Turn ~${Math.round(need + 4)}° more to your right`, severity: 'warn', progress };
+        const progress = clamp(-dy / (c.turnYaw + 6));
+        if (dy < -c.turnYaw) return { hint: 'Hold — capturing right angle', severity: 'ok', progress: 1 };
+        return { hint: `Turn ~${Math.round(Math.max(c.turnYaw + dy, 0) + 4)}° more to your right`, severity: 'warn', progress };
       }
       case 'up': {
-        const progress = clamp(-pose.pitch / (POSE.TILT_PITCH + 6));
-        if (pose.pitch < -POSE.TILT_PITCH) return { hint: 'Hold — capturing up angle', severity: 'ok', progress: 1 };
-        const need = Math.max(POSE.TILT_PITCH + pose.pitch, 0);
-        return { hint: `Tilt your head up ~${Math.round(need + 3)}° more`, severity: 'warn', progress };
+        const progress = clamp(-dp / (c.tiltPitch + 6));
+        if (dp < -c.tiltPitch) return { hint: 'Hold — capturing up angle', severity: 'ok', progress: 1 };
+        return { hint: `Tilt your head up ~${Math.round(Math.max(c.tiltPitch + dp, 0) + 3)}° more`, severity: 'warn', progress };
       }
       case 'down': {
-        const progress = clamp(pose.pitch / (POSE.TILT_PITCH + 6));
-        if (pose.pitch > POSE.TILT_PITCH) return { hint: 'Hold — capturing down angle', severity: 'ok', progress: 1 };
-        const need = Math.max(POSE.TILT_PITCH - pose.pitch, 0);
-        return { hint: `Tilt your head down ~${Math.round(need + 3)}° more`, severity: 'warn', progress };
+        const progress = clamp(dp / (c.tiltPitch + 6));
+        if (dp > c.tiltPitch) return { hint: 'Hold — capturing down angle', severity: 'ok', progress: 1 };
+        return { hint: `Tilt your head down ~${Math.round(Math.max(c.tiltPitch - dp, 0) + 3)}° more`, severity: 'warn', progress };
       }
       default:
         return { hint: 'Follow the on-screen instruction', severity: 'warn', progress: 0 };
@@ -861,6 +979,12 @@ const FaceVerification = () => {
   // Real pose checking - captures frame & sends to face-check API
   const startRealPoseChecking = () => {
     let consecutiveFails = 0;
+    // Reset calibration sampler. We collect ~10 samples (≈2s @ 200ms / ≈2.5s
+    // @ 250ms — we sample faster than the main loop) of the user's natural
+    // pose before scoring any step.
+    calibSamplesRef.current = [];
+    setCalibrating(true);
+    const CALIB_TARGET = 8;
     
     poseCheckIntervalRef.current = setInterval(async () => {
       const videoEl = faceVideoRef.current;
@@ -884,7 +1008,6 @@ const FaceVerification = () => {
           severity: 'error',
         });
         if (consecutiveFails >= 15) {
-          // ~15s of no face → give up
           finishVerification(false);
         }
         return;
@@ -893,16 +1016,42 @@ const FaceVerification = () => {
       consecutiveFails = 0;
       const pose = result.pose;
       
+      // ─── Calibration phase ─────────────────────────────────────────────
+      // Collect samples while the user looks naturally at the camera, then
+      // derive baseline + thresholds. Skip if we already have a fresh cached
+      // calibration AND this is not the first attempt of the session.
+      if (calibSamplesRef.current.length < CALIB_TARGET) {
+        calibSamplesRef.current.push({ yaw: pose.yaw, pitch: pose.pitch });
+        const filled = calibSamplesRef.current.length;
+        setLiveDiag({
+          faceDetected: true,
+          eyesOpen: result.eyesOpen,
+          yaw: pose.yaw, pitch: pose.pitch,
+          progress: filled / CALIB_TARGET,
+          hint: `Calibrating for your camera… (${filled}/${CALIB_TARGET})`,
+          severity: 'warn',
+        });
+        if (filled === CALIB_TARGET) {
+          const calib = calibrateThresholds(calibSamplesRef.current);
+          calibrationRef.current = calib;
+          saveCalibration(calib);
+          setCalibrating(false);
+          console.log('[FaceVerify] calibration', calib);
+        }
+        return;
+      }
+
       // Track pose history for anti-spoof (photos have zero variance)
       setPoseHistory(prev => [...prev.slice(-20), { yaw: pose.yaw, pitch: pose.pitch }]);
       
-      // Check current instruction
+      // Check current instruction using LIVE calibration
+      const calib = calibrationRef.current;
       const instrIdx = currentInstructionRef.current;
       const instruction = faceInstructions[instrIdx];
       
       if (instruction && !instructionsCompletedRef.current[instrIdx]) {
-        const passed = instruction.checkPose({ yaw: pose.yaw, pitch: pose.pitch });
-        const diag = computeStepDiag(instruction.id, pose, true, result.eyesOpen);
+        const passed = evaluatePose(instruction.id, pose, calib);
+        const diag = computeStepDiag(instruction.id, pose, true, result.eyesOpen, calib);
         setLiveDiag({
           faceDetected: true, eyesOpen: result.eyesOpen,
           yaw: pose.yaw, pitch: pose.pitch,
@@ -913,7 +1062,6 @@ const FaceVerification = () => {
         
         if (passed) {
           setScanningStatus('pass');
-          // Capture this angle's still frame for AWS Rekognition (front/left/right only)
           if (instruction.id === 'center' || instruction.id === 'left' || instruction.id === 'right') {
             const angleKey = instruction.id as 'center' | 'left' | 'right';
             if (!capturedAnglesRef.current[angleKey]) {
@@ -926,14 +1074,12 @@ const FaceVerification = () => {
           instructionsCompletedRef.current = newCompleted;
           setInstructionsCompleted([...newCompleted]);
           
-          // Move to next instruction
           const nextIdx = instrIdx + 1;
           if (nextIdx < faceInstructions.length) {
             currentInstructionRef.current = nextIdx;
             setCurrentInstruction(nextIdx);
             setScanningStatus('idle');
           } else {
-            // All instructions completed! 
             setTimeout(() => finishVerification(true), 500);
           }
         } else {
@@ -1017,7 +1163,7 @@ const FaceVerification = () => {
     setFaceVerified(false);
     setScanningStatus('idle');
     setPoseHistory([]);
-    setLiveDiag(null);
+    setLiveDiag(null); setCalibrating(false);
     if (poseCheckIntervalRef.current) {
       clearInterval(poseCheckIntervalRef.current);
       poseCheckIntervalRef.current = null;
@@ -1794,6 +1940,11 @@ const FaceVerification = () => {
                     <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300 font-mono">
                       Pitch {liveDiag.pitch >= 0 ? '+' : ''}{liveDiag.pitch.toFixed(0)}°
                     </span>
+                    {!calibrating && calibrationRef.current.capturedAt > 0 && (
+                      <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-300" title={`Baseline yaw ${calibrationRef.current.baselineYaw.toFixed(0)}° / pitch ${calibrationRef.current.baselinePitch.toFixed(0)}° · noise ${(calibrationRef.current.noiseYaw + calibrationRef.current.noisePitch).toFixed(1)}°`}>
+                        Calibrated ✓
+                      </span>
+                    )}
                   </div>
                 </div>
               </motion.div>
@@ -1843,7 +1994,7 @@ const FaceVerification = () => {
                       · Step {currentInstruction + 1}/{faceInstructions.length}: {faceInstructions[currentInstruction]?.direction}
                     </span>
                   </div>
-                  <span className="text-slate-800 font-mono font-bold text-sm">{Math.max(0, 60 - verificationTime)}s</span>
+                  <span className="text-slate-800 font-mono font-bold text-sm">{Math.max(0, Math.min(90, Math.max(45, Math.round(calibrationRef.current.stepWindowSec * faceInstructions.length + 10))) - verificationTime)}s</span>
                 </div>
               </div>
             )}
