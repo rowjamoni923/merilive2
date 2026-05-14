@@ -233,7 +233,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
                   placeholder="Enter beans amount..."
                   value={customBeans}
                   onChange={(e) => setCustomBeans(e.target.value)}
-                  className="w-full h-14 pl-12 pr-4 rounded-2xl bg-white/5 border border-amber-200/60 text-slate-800 text-lg font-semibold placeholder:text-slate-400 focus:outline-none focus:border-cyan-500/50 focus:bg-cyan-500/5 transition-all"
+                  className="w-full h-14 pl-12 pr-4 rounded-2xl bg-white/5 border border-amber-200/60 text-white text-lg font-semibold placeholder:text-slate-400 focus:outline-none focus:border-cyan-500/50 focus:bg-cyan-500/5 transition-all"
                 />
               </div>
 

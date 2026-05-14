@@ -1815,7 +1815,7 @@ const FaceVerification = () => {
           </Button>
           <Button
             variant="outline"
-            className="w-full border-amber-200/60 text-slate-800 hover:bg-amber-50/70 rounded-xl"
+            className="w-full border-amber-200/60 text-white hover:bg-amber-50/70 rounded-xl"
             onClick={stopFaceCamera}
           >
             {localizedMsg.cancel}
@@ -2033,7 +2033,7 @@ const FaceVerification = () => {
             const isDone = (step === 1 && userInfoDone) || (step === 2 && !userPhotoStep && userPhotoFile);
             return (
               <React.Fragment key={step}>
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${isDone ? 'bg-green-500 text-slate-800' : isActive ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-slate-800' : 'bg-amber-50/70 text-slate-700'}`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${isDone ? 'bg-green-500 text-white' : isActive ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'bg-amber-50/70 text-slate-700'}`}>
                   {isDone ? <CheckCircle2 className="w-5 h-5" /> : step}
                 </div>
                 {step < 3 && <div className={`w-12 h-1 rounded-full ${isDone ? 'bg-gradient-to-r from-purple-500 to-pink-500' : 'bg-amber-50'}`} />}
@@ -2197,7 +2197,7 @@ const FaceVerification = () => {
             <motion.div 
               className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold shadow-lg ${
                 currentStep >= step 
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-slate-800' 
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' 
                   : 'bg-amber-50/70 text-slate-700'
               }`}
               animate={currentStep === step ? { scale: [1, 1.05, 1] } : {}}
@@ -2353,7 +2353,7 @@ const FaceVerification = () => {
                   </Button>
                   <Button
                     variant="outline"
-                    className="flex-1 border-amber-200/60 text-slate-800 hover:bg-amber-50/70 h-12 rounded-xl"
+                    className="flex-1 border-amber-200/60 text-white hover:bg-amber-50/70 h-12 rounded-xl"
                     onClick={() => videoInputRef.current?.click()}
                   >
                     <Upload className="w-5 h-5 mr-2" />
@@ -2372,7 +2372,7 @@ const FaceVerification = () => {
               {videoPreview && (
                 <Button
                   variant="outline"
-                  className="w-full border-amber-200/60 text-slate-800 hover:bg-amber-50/70 h-12 rounded-xl"
+                  className="w-full border-amber-200/60 text-white hover:bg-amber-50/70 h-12 rounded-xl"
                   onClick={() => {
                     setVideoPreview(null);
                     setVideoFile(null);
@@ -2429,7 +2429,7 @@ const FaceVerification = () => {
           <div className="flex gap-3">
             <Button
               variant="outline"
-              className="flex-1 border-amber-200/60 text-slate-800 hover:bg-amber-50/70 h-14 rounded-2xl"
+              className="flex-1 border-amber-200/60 text-white hover:bg-amber-50/70 h-14 rounded-2xl"
               onClick={() => setCurrentStep(1)}
             >
               Back
@@ -2456,7 +2456,7 @@ const FaceVerification = () => {
           {!faceVerified && (
             <Button
               variant="outline"
-              className="w-full border-amber-200/60 text-slate-800 hover:bg-amber-50/70 h-12 rounded-xl"
+              className="w-full border-amber-200/60 text-white hover:bg-amber-50/70 h-12 rounded-xl"
               onClick={() => {
                 stopFaceCamera();
                 setCurrentStep(2);
@@ -2523,7 +2523,7 @@ const FaceVerification = () => {
                 
                 <Button
                   variant="ghost"
-                  className="w-full text-slate-500 hover:text-slate-800 hover:bg-amber-50/70"
+                  className="w-full text-slate-500 hover:text-white hover:bg-amber-50/70"
                   onClick={() => {
                     setShowExistingAccountModal(false);
                     setFaceVerified(false);

@@ -296,7 +296,7 @@ export function CallRatingModal({
               {/* Done Button for Host - closes the modal */}
               <Button
                 onClick={onClose}
-                className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-slate-800 font-semibold py-3"
+                className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-semibold py-3"
               >
                 Done
               </Button>
@@ -386,14 +386,14 @@ export function CallRatingModal({
                 <Button
                   variant="outline"
                   onClick={onClose}
-                  className="flex-1 border-amber-300/60 text-slate-800 hover:bg-amber-50/70"
+                  className="flex-1 border-amber-300/60 text-white hover:bg-amber-50/70"
                 >
                   Skip
                 </Button>
                 <Button
                   onClick={handleSubmit}
                   disabled={isSubmitting}
-                  className="flex-1 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-slate-800"
+                  className="flex-1 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white"
                 >
                   {isSubmitting ? (
                     "Submitting..."

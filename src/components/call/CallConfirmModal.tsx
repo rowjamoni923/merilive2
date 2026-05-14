@@ -92,7 +92,7 @@ export const CallConfirmModal = React.forwardRef<HTMLDivElement, CallConfirmModa
               />
               <Avatar className="w-24 h-24 border-4 border-pink-500 shadow-xl shadow-pink-500/30 relative z-10">
                 <AvatarImage src={hostAvatar || undefined} />
-                <AvatarFallback className="bg-gradient-to-br from-pink-500 to-purple-600 text-slate-800 text-2xl">
+                <AvatarFallback className="bg-gradient-to-br from-pink-500 to-purple-600 text-white text-2xl">
                   <User className="w-10 h-10" />
                 </AvatarFallback>
               </Avatar>
@@ -154,8 +154,8 @@ export const CallConfirmModal = React.forwardRef<HTMLDivElement, CallConfirmModa
                 loading || !rateConfigured
                   ? "bg-amber-50/70 text-slate-500 cursor-not-allowed"
                   : hasEnoughCoins 
-                    ? "bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-slate-800 shadow-lg shadow-pink-500/30"
-                    : "bg-gradient-to-r from-amber-500 to-orange-500 text-slate-800 shadow-lg shadow-amber-500/30"
+                    ? "bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white shadow-lg shadow-pink-500/30"
+                    : "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/30"
               }`}
             >
               {!rateConfigured ? (

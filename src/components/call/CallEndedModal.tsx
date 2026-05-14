@@ -250,7 +250,7 @@ export function CallEndedModal({
               >
                 <Button
                   onClick={onClose}
-                  className="w-full h-12 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-slate-800 font-medium rounded-xl shadow-lg shadow-green-500/25"
+                  className="w-full h-12 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium rounded-xl shadow-lg shadow-green-500/25"
                 >
                   Done
                 </Button>

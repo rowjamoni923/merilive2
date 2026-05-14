@@ -2463,7 +2463,7 @@ const Auth = () => {
                   </div>
                 </div>
               </div>
-              <DialogTitle className="text-slate-800 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 bg-clip-text text-transparent">
+              <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 bg-clip-text text-transparent">
                 Enter Your Email
               </DialogTitle>
               <DialogDescription className="text-slate-600 text-center text-sm mt-1">
@@ -2541,7 +2541,7 @@ const Auth = () => {
                   </div>
                 </div>
               </div>
-              <DialogTitle className="text-slate-800 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600 bg-clip-text text-transparent">
+              <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600 bg-clip-text text-transparent">
                 Enter Verification Code
               </DialogTitle>
               <DialogDescription className="text-slate-600 text-center text-sm mt-1">
@@ -2620,7 +2620,7 @@ const Auth = () => {
                   </div>
                 </div>
               </div>
-              <DialogTitle className="text-slate-800 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 bg-clip-text text-transparent">Complete Your Profile</DialogTitle>
+              <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 bg-clip-text text-transparent">Complete Your Profile</DialogTitle>
               <DialogDescription className="text-slate-600 text-center text-sm mt-1">Set your name and password</DialogDescription>
             </DialogHeader>
             
@@ -2684,7 +2684,7 @@ const Auth = () => {
                   </div>
                 </div>
               </div>
-              <DialogTitle className="text-slate-800 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 bg-clip-text text-transparent">Verify Your Email</DialogTitle>
+              <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 bg-clip-text text-transparent">Verify Your Email</DialogTitle>
               <DialogDescription className="text-slate-600 text-center text-sm mt-1">Enter the 6-digit code sent to <span className="text-pink-400 font-medium">{email}</span></DialogDescription>
             </DialogHeader>
             
@@ -2725,7 +2725,7 @@ const Auth = () => {
             {/* Close button handled by DialogContent */}
 
             <DialogHeader className="relative z-10">
-              <DialogTitle className="text-slate-800 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-indigo-100 to-white bg-clip-text text-transparent">Welcome Back</DialogTitle>
+              <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-indigo-100 to-white bg-clip-text text-transparent">Welcome Back</DialogTitle>
               <DialogDescription className="text-slate-600 text-center text-sm mt-1">Login to your account</DialogDescription>
             </DialogHeader>
             
@@ -2781,7 +2781,7 @@ const Auth = () => {
                   </div>
                 </div>
               </div>
-              <DialogTitle className="text-slate-800 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-green-100 to-white bg-clip-text text-transparent">
+              <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-green-100 to-white bg-clip-text text-transparent">
                 Enter Phone Number
               </DialogTitle>
               <DialogDescription className="text-slate-600 text-center text-sm mt-1">
@@ -2922,7 +2922,7 @@ const Auth = () => {
                   </div>
                 </div>
               </div>
-              <DialogTitle className="text-slate-800 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-green-100 to-white bg-clip-text text-transparent">
+              <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-green-100 to-white bg-clip-text text-transparent">
                 WhatsApp Verification
               </DialogTitle>
               <DialogDescription className="text-slate-600 text-center text-sm mt-1">
@@ -2995,7 +2995,7 @@ const Auth = () => {
                   </div>
                 </div>
               </div>
-              <DialogTitle className="text-slate-800 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-green-100 to-white bg-clip-text text-transparent">Complete Your Profile</DialogTitle>
+              <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-green-100 to-white bg-clip-text text-transparent">Complete Your Profile</DialogTitle>
               <DialogDescription className="text-slate-600 text-center text-sm mt-1">Set your name and password</DialogDescription>
             </DialogHeader>
 

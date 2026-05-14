@@ -5,7 +5,7 @@ const PublicContact = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#FAF5EA] to-[#FFFBF2] text-slate-800">
+    <div className="min-h-screen bg-gradient-to-b from-[#FAF5EA] to-[#FFFBF2] text-white">
       {/* Header */}
       <div className="sticky top-0 z-50 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700">
         <div className="flex items-center h-14 px-4 gap-3">

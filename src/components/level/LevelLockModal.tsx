@@ -99,7 +99,7 @@ export const LevelLockModal = ({
               <Button
                 variant="ghost"
                 onClick={onClose}
-                className="flex-1 h-12 rounded-2xl border border-amber-200/60 bg-white/5 text-slate-800 hover:bg-amber-50/70"
+                className="flex-1 h-12 rounded-2xl border border-amber-200/60 bg-white/5 text-white hover:bg-amber-50/70"
               >
                 Not Now
               </Button>
