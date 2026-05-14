@@ -1730,7 +1730,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           className="w-10 h-10 rounded-full profile-home-icon-button hover:bg-slate-50"
           onClick={() => navigate(-1)}
         >
-          <ArrowLeft className="w-5 h-5 text-slate-700" />
+          <ArrowLeft className="w-5 h-5 text-slate-600" />
         </Button>
       </div>
 
@@ -1806,7 +1806,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           {/* Country - ALWAYS visible */}
           <div className="flex items-center gap-1.5 profile-home-pill px-3 py-1.5 rounded-full">
             <span className="text-base leading-none">{geoLocation.countryFlag || profile?.country_flag || "🌍"}</span>
-            <span className="font-semibold text-slate-700 text-xs tracking-wide">
+            <span className="font-semibold text-slate-600 text-xs tracking-wide">
               {geoLocation.country || profile?.country_name || ""}
             </span>
           </div>
@@ -1815,14 +1815,14 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
           {(isOwnProfile || !profile?.hide_location) && (
             <div className="flex items-center gap-1.5 profile-home-pill px-3 py-1.5 rounded-full">
               <MapPin className="w-3.5 h-3.5 text-slate-500" />
-              <span className="font-medium text-slate-700 text-xs tracking-wide">
+              <span className="font-medium text-slate-600 text-xs tracking-wide">
                 {geoLocation.city || "Location"}
               </span>
             </div>
           )}
 
           <div className="flex items-center gap-1.5 profile-home-pill px-3 py-1.5 rounded-full">
-            <span className="font-semibold text-slate-700 text-xs tracking-wide">Bengali</span>
+            <span className="font-semibold text-slate-600 text-xs tracking-wide">Bengali</span>
           </div>
         </div>
 
@@ -1878,7 +1878,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             <Button 
               size="sm" 
               variant="outline" 
-              className="h-9 text-xs px-4 rounded-full border-pink-500/50 text-pink-400 hover:bg-pink-500/10 font-semibold" 
+              className="h-9 text-xs px-4 rounded-full border-pink-500/50 text-pink-600 hover:bg-pink-500/10 font-semibold" 
               onClick={() => navigate(`/chat?user=${profileId}`)}
             >
               <MessageCircle className="w-3.5 h-3.5 mr-1" />
@@ -2069,7 +2069,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   </div>
 
                   <div className="bg-emerald-500/10 border border-emerald-400/20 rounded-xl p-2">
-                    <Wallet className="w-5 h-5 text-emerald-300" />
+                    <Wallet className="w-5 h-5 text-emerald-600" />
                   </div>
                 </div>
               </div>
@@ -2105,7 +2105,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   </div>
 
                   <div className="bg-fuchsia-500/10 border border-fuchsia-400/20 rounded-xl p-2">
-                    <Wallet className="w-5 h-5 text-fuchsia-300" />
+                    <Wallet className="w-5 h-5 text-fuchsia-600" />
                   </div>
                 </div>
               </div>
@@ -2173,14 +2173,14 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         <DialogContent className="bg-gradient-to-b from-white to-amber-50 border-amber-200 max-w-md mx-4 rounded-3xl">
           <DialogHeader>
             <DialogTitle className="text-slate-800 flex items-center justify-center gap-2 text-lg">
-              <Send className="w-5 h-5 text-emerald-400" />
+              <Send className="w-5 h-5 text-emerald-600" />
               Transfer Diamonds
             </DialogTitle>
           </DialogHeader>
           
           <div className="space-y-4">
             {/* Current Balance */}
-            <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-2xl p-4 border border-emerald-500/30">
+            <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl p-4 border border-emerald-500/30">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
@@ -2305,7 +2305,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                 })();
               }
             }}>
-              <TabsList className="w-full bg-white/80 p-1 rounded-2xl grid grid-cols-4">
+              <TabsList className="w-full bg-white p-1 rounded-2xl grid grid-cols-4">
                 <TabsTrigger value="user" className="gap-1 rounded-xl text-[11px] data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-500 data-[state=active]:text-white">
                   <User className="w-3.5 h-3.5" />
                   User
@@ -2327,7 +2327,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               <TabsContent value="user" className="mt-4 space-y-4">
                 {/* Search by App UID */}
                 <div>
-                  <Label className="text-slate-700 text-sm font-medium">Search User by App UID</Label>
+                  <Label className="text-slate-600 text-sm font-medium">Search User by App UID</Label>
                   <div className="flex gap-2 mt-2">
                     <div className="relative flex-1">
                       <Input
@@ -2336,7 +2336,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                         onChange={(e) => setTransferSearchQuery(e.target.value.toUpperCase())}
                         className="bg-white border-amber-200/60 text-slate-800 uppercase pl-10 h-12 rounded-xl"
                       />
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-700" />
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
                     </div>
                     <Button 
                       onClick={handleSearchUser}
@@ -2354,7 +2354,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
                 {/* User Found */}
                 {searchedUser && (
-                  <div className="bg-white/60 rounded-2xl p-4 border border-cyan-500/30 space-y-4">
+                  <div className="bg-white rounded-2xl p-4 border border-cyan-500/30 space-y-4">
                     <div className="flex items-center gap-3">
                       <Avatar className="w-14 h-14 border-2 border-cyan-500">
                         <AvatarImage src={searchedUser.avatar_url} />
@@ -2364,13 +2364,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                       </Avatar>
                       <div className="flex-1">
                         <p className="text-slate-800 font-bold text-lg">{searchedUser.display_name}</p>
-                        <p className="text-slate-700 text-sm">ID: {searchedUser.app_uid}</p>
+                        <p className="text-slate-600 text-sm">ID: {searchedUser.app_uid}</p>
                       </div>
                     </div>
 
                     {/* Amount Input */}
                     <div className="space-y-2">
-                      <Label className="text-slate-700 text-sm font-medium">Diamond Amount</Label>
+                      <Label className="text-slate-600 text-sm font-medium">Diamond Amount</Label>
                       <Input
                         type="number"
                         placeholder="Enter amount to transfer"
@@ -2405,8 +2405,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               <TabsContent value="agency" className="mt-4 space-y-4">
                 {/* Search by Agency Owner UID */}
                 <div>
-                  <Label className="text-slate-700 text-sm font-medium">Search Agency by Owner's App UID</Label>
-                  <p className="text-slate-700 text-xs mt-1 mb-2">Enter the agency owner's user ID to find their agency</p>
+                  <Label className="text-slate-600 text-sm font-medium">Search Agency by Owner's App UID</Label>
+                  <p className="text-slate-600 text-xs mt-1 mb-2">Enter the agency owner's user ID to find their agency</p>
                   <div className="flex gap-2">
                     <div className="relative flex-1">
                       <Input
@@ -2415,7 +2415,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                         onChange={(e) => setTransferSearchQuery(e.target.value.toUpperCase())}
                         className="bg-white border-amber-200/60 text-slate-800 uppercase pl-10 h-12 rounded-xl"
                       />
-                      <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-700" />
+                      <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
                     </div>
                     <Button 
                       onClick={handleSearchAgency}
@@ -2433,24 +2433,24 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
                 {/* Agency Found */}
                 {searchedAgency && (
-                  <div className="bg-white/60 rounded-2xl p-4 border border-amber-300/60 space-y-4">
+                  <div className="bg-white rounded-2xl p-4 border border-amber-300/60 space-y-4">
                     <div className="flex items-center gap-3">
                       <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
                         <Building2 className="w-7 h-7 text-white" />
                       </div>
                       <div className="flex-1">
                         <p className="text-slate-800 font-bold text-lg">{searchedAgency.name}</p>
-                        <p className="text-slate-700 text-sm">Code: {searchedAgency.agency_code}</p>
+                        <p className="text-slate-600 text-sm">Code: {searchedAgency.agency_code}</p>
                         <p className="text-purple-600 text-xs mt-0.5">
                           Owner: {searchedAgency.owner_name} ({searchedAgency.owner_uid})
                         </p>
-                        <p className="text-pink-400 text-xs">Balance: {searchedAgency.diamond_balance?.toLocaleString() || 0} 💎</p>
+                        <p className="text-pink-600 text-xs">Balance: {searchedAgency.diamond_balance?.toLocaleString() || 0} 💎</p>
                       </div>
                     </div>
 
                     {/* Amount Input */}
                     <div className="space-y-2">
-                      <Label className="text-slate-700 text-sm font-medium">Diamond Amount</Label>
+                      <Label className="text-slate-600 text-sm font-medium">Diamond Amount</Label>
                       <Input
                         type="number"
                         placeholder="Enter amount to transfer"
@@ -2484,21 +2484,21 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
               <TabsContent value="self" className="mt-4 space-y-4">
                 {/* Self Recharge - Trader Wallet to My Diamond Balance */}
-                <div className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 rounded-2xl p-4 border border-amber-300/60 space-y-4">
+                <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-4 border border-amber-300/60 space-y-4">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
                       <Gem className="w-6 h-6 text-white" />
                     </div>
                     <div>
                       <p className="text-slate-800 font-bold">Self Recharge</p>
-                      <p className="text-slate-700 text-xs">Transfer from Trader Wallet → My Diamond Balance</p>
+                      <p className="text-slate-600 text-xs">Transfer from Trader Wallet → My Diamond Balance</p>
                     </div>
                   </div>
 
-                  <div className="bg-white/60 rounded-xl p-3 border border-amber-200 space-y-2">
+                  <div className="bg-white rounded-xl p-3 border border-amber-200 space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="text-slate-600 text-sm">Recharge Source Balance</span>
-                      <span className="text-emerald-400 font-bold text-lg">
+                      <span className="text-emerald-600 font-bold text-lg">
                         {selfRechargeSourceBalance.toLocaleString()} 💎
                       </span>
                     </div>
@@ -2510,20 +2510,20 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-slate-600 text-sm">Trader Wallet</span>
-                      <span className="text-amber-400 font-semibold">
+                      <span className="text-amber-600 font-semibold">
                         {(traderWallet || 0).toLocaleString()} 💎
                       </span>
                     </div>
                     <div className="flex justify-between items-center pt-2 border-t border-amber-200">
                       <span className="text-slate-600 text-sm">My Diamond Balance</span>
-                      <span className="text-cyan-400 font-bold text-lg">
+                      <span className="text-cyan-600 font-bold text-lg">
                         {(profile?.coins || 0).toLocaleString()} 💎
                       </span>
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-slate-700 text-sm font-medium">Amount to Recharge</Label>
+                    <Label className="text-slate-600 text-sm font-medium">Amount to Recharge</Label>
                     <Input
                       type="number"
                       placeholder="Enter diamond amount"
@@ -2534,10 +2534,10 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     />
                     {selfRechargeAmount && parseInt(selfRechargeAmount) > 0 && (
                       <div className="text-xs space-y-1 mt-2">
-                        <p className="text-amber-400">
+                        <p className="text-amber-600">
                           Recharge source after: {(selfRechargeSourceBalance - parseInt(selfRechargeAmount)).toLocaleString()} 💎
                         </p>
-                        <p className="text-emerald-400">
+                        <p className="text-emerald-600">
                           My Balance after: {((profile?.coins || 0) + parseInt(selfRechargeAmount)).toLocaleString()} 💎
                         </p>
                       </div>
@@ -2572,35 +2572,35 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                 ) : transferHistory.length === 0 ? (
                   <div className="text-center py-10">
                     <History className="w-10 h-10 text-slate-600 mx-auto mb-2" />
-                    <p className="text-slate-700 text-sm">No transfer history yet</p>
+                    <p className="text-slate-600 text-sm">No transfer history yet</p>
                     <p className="text-slate-600 text-xs mt-1">Your coin trade transfers will appear here</p>
                   </div>
                 ) : (
                   transferHistory.map((tx) => {
                     const isSent = tx.direction === 'sent';
                     const statusColor =
-                      tx.status === 'completed' ? 'text-emerald-400' :
-                      tx.status === 'pending' ? 'text-amber-400' :
-                      tx.status === 'failed' || tx.status === 'cancelled' ? 'text-rose-400' :
-                      'text-slate-700';
+                      tx.status === 'completed' ? 'text-emerald-600' :
+                      tx.status === 'pending' ? 'text-amber-600' :
+                      tx.status === 'failed' || tx.status === 'cancelled' ? 'text-rose-600' :
+                      'text-slate-600';
                     return (
-                      <div key={tx.id} className="bg-white/60 rounded-2xl p-3 border border-amber-200">
+                      <div key={tx.id} className="bg-white rounded-2xl p-3 border border-amber-200">
                         <div className="flex items-center justify-between gap-3">
                           <div className="flex items-center gap-3 min-w-0 flex-1">
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
                               isSent ? 'bg-gradient-to-br from-rose-500/30 to-pink-500/30' : 'bg-gradient-to-br from-emerald-500/30 to-teal-500/30'
                             }`}>
                               {isSent ? (
-                                <Send className="w-5 h-5 text-rose-400" />
+                                <Send className="w-5 h-5 text-rose-600" />
                               ) : (
-                                <ArrowRight className="w-5 h-5 text-emerald-400 -rotate-45" />
+                                <ArrowRight className="w-5 h-5 text-emerald-600 -rotate-45" />
                               )}
                             </div>
                             <div className="min-w-0 flex-1">
                               <p className="text-slate-800 text-sm font-semibold truncate">
                                 {isSent ? 'Sent to' : 'Received from'} {tx.counterparty_name || 'User'}
                               </p>
-                              <p className="text-slate-700 text-[10px]">
+                              <p className="text-slate-600 text-[10px]">
                                 {new Date(tx.created_at).toLocaleString('en-US', {
                                   month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                                 })}
@@ -2609,7 +2609,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                             </div>
                           </div>
                           <div className="text-right flex-shrink-0">
-                            <p className={`text-base font-bold inline-flex items-center gap-1 justify-end ${isSent ? 'text-rose-400' : 'text-emerald-400'}`}>
+                            <p className={`text-base font-bold inline-flex items-center gap-1 justify-end ${isSent ? 'text-rose-600' : 'text-emerald-600'}`}>
                               <span>{isSent ? '−' : '+'}{tx.amount.toLocaleString()}</span>
                               {tx.currency === 'bean' ? (
                                 <span className="text-base leading-none">🫘</span>
@@ -2646,7 +2646,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               Confirm Transfer
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center space-y-3 pt-4">
-              <div className="bg-white/60 rounded-xl p-4 border border-amber-200">
+              <div className="bg-white rounded-xl p-4 border border-amber-200">
                 <p className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">
                   {transferAmount ? parseInt(transferAmount).toLocaleString() : 0} 💎
                 </p>
@@ -2654,13 +2654,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               <p className="text-slate-600 text-sm">
                 {pendingTransferType === "user" ? (
                   <>
-                    Send to <span className="text-cyan-400 font-semibold">{searchedUser?.display_name}</span>
+                    Send to <span className="text-cyan-600 font-semibold">{searchedUser?.display_name}</span>
                     <br />
                     <span className="text-slate-600 text-xs">UID: {searchedUser?.app_uid}</span>
                   </>
                 ) : pendingTransferType === "self" ? (
                   <>
-                    Recharge to <span className="text-amber-400 font-semibold">My Diamond Balance</span>
+                    Recharge to <span className="text-amber-600 font-semibold">My Diamond Balance</span>
                     <br />
                     <span className="text-slate-600 text-xs">From Trader Wallet → My Balance</span>
                   </>
@@ -2672,7 +2672,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                   </>
                 )}
               </p>
-              <p className="text-amber-400 text-xs font-medium">
+              <p className="text-amber-600 text-xs font-medium">
                 ⚠️ This action cannot be undone
               </p>
             </AlertDialogDescription>
@@ -2696,7 +2696,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
         <DialogContent className="bg-gradient-to-b from-white to-amber-50 border-amber-200 max-w-md mx-4 rounded-3xl">
           <DialogHeader>
             <DialogTitle className="text-slate-800 flex items-center justify-center gap-2 text-lg">
-              <PhoneCall className="w-5 h-5 text-emerald-400" />
+              <PhoneCall className="w-5 h-5 text-emerald-600" />
               Call Price Update
             </DialogTitle>
           </DialogHeader>
@@ -2714,7 +2714,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             return (
               <div className="space-y-5 py-4">
                 {/* Current Level Info */}
-                <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl p-4 border border-amber-300/60">
+                <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-4 border border-amber-300/60">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-slate-500 text-xs mb-1">Your Level</p>
@@ -2722,7 +2722,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     </div>
                     <div className="text-right">
                       <p className="text-slate-500 text-xs mb-1">{canCustomize ? 'Suggested Rate' : 'Fixed Rate'}</p>
-                      <p className="text-amber-400 font-bold text-xl flex items-center gap-1">
+                      <p className="text-amber-600 font-bold text-xl flex items-center gap-1">
                         {suggestedBeans} <BeansIcon size={18} />/min
                       </p>
                     </div>
@@ -2730,8 +2730,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                 </div>
 
                 {!canCustomize && (
-                  <div className="bg-white/50 rounded-xl p-3 border border-amber-200">
-                    <p className="text-slate-700 text-xs text-center">🔒 Reach Level {minCustomLevel} or higher to customize your rate</p>
+                  <div className="bg-white rounded-xl p-3 border border-amber-200">
+                    <p className="text-slate-600 text-xs text-center">🔒 Reach Level {minCustomLevel} or higher to customize your rate</p>
                   </div>
                 )}
 
@@ -2767,8 +2767,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                                   isLevel1to5Selected 
                                     ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/30' 
                                     : isCurrentInLevel1to5 
-                                      ? 'bg-purple-600/50 text-purple-200 border border-purple-500/50' 
-                                      : 'bg-slate-700 text-slate-600 hover:bg-slate-600'
+                                      ? 'bg-purple-100 text-purple-700 border border-purple-500/50' 
+                                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                                 }`}
                               >
                                 <span className="text-[10px] font-medium opacity-70">Lv1-5</span>
@@ -2790,17 +2790,17 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                                     disabled={isLocked}
                                     className={`py-2 px-1 rounded-xl text-center transition-all flex flex-col items-center gap-0.5 relative ${
                                       isLocked
-                                        ? 'bg-white/50 text-slate-600 cursor-not-allowed opacity-60'
+                                        ? 'bg-white text-slate-600 cursor-not-allowed opacity-60'
                                         : isSelected 
                                           ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/30' 
                                           : isCurrentLevel 
-                                            ? 'bg-purple-600/50 text-purple-200 border border-purple-500/50' 
-                                            : 'bg-slate-700 text-slate-600 hover:bg-slate-600'
+                                            ? 'bg-purple-100 text-purple-700 border border-purple-500/50' 
+                                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                                     }`}
                                   >
                                     {isLocked && (
                                       <div className="absolute -top-1 -right-1 bg-slate-600 rounded-full p-0.5">
-                                        <Lock className="w-2.5 h-2.5 text-slate-700" />
+                                        <Lock className="w-2.5 h-2.5 text-slate-600" />
                                       </div>
                                     )}
                                     <span className="text-[10px] font-medium opacity-70">Lv{lr.level}</span>
@@ -2817,7 +2817,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                 )}
 
                 {/* Earning Summary - Show beans and diamond rate */}
-                <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-2xl p-4 border border-emerald-500/30">
+                <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl p-4 border border-emerald-500/30">
                   {(() => {
                     // Calculate current diamond rate and beans
                     let currentDiamondRate = callRate;
@@ -2832,17 +2832,17 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                       <>
                         <div className="flex items-center justify-between mb-3">
                           <div>
-                            <p className="text-emerald-200 text-xs mb-1">You will earn</p>
+                            <p className="text-emerald-700 text-xs mb-1">You will earn</p>
                             <div className="flex items-center gap-1">
                               <BeansIcon size={24} />
-                              <span className="text-xl font-bold text-emerald-400">{currentBeans} Beans/min</span>
+                              <span className="text-xl font-bold text-emerald-600">{currentBeans} Beans/min</span>
                             </div>
                           </div>
                           <div className="text-right">
                             <p className="text-cyan-200 text-xs mb-1">User pays</p>
                             <div className="flex items-center gap-1 justify-end">
                               <span className="text-2xl">💎</span>
-                              <span className="text-xl font-bold text-cyan-400">{currentDiamondRate}/min</span>
+                              <span className="text-xl font-bold text-cyan-600">{currentDiamondRate}/min</span>
                             </div>
                           </div>
                         </div>
@@ -2908,7 +2908,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
             {/* Amount Input */}
             <div className="space-y-2">
-              <Label className="text-slate-700 text-sm font-semibold uppercase tracking-wider">Beans Amount</Label>
+              <Label className="text-slate-600 text-sm font-semibold uppercase tracking-wider">Beans Amount</Label>
               <Input
                 type="number"
                 placeholder={`Min ${agencyExchangeSettings.min_exchange_amount}`}
@@ -2969,7 +2969,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                 </div>
                 <div className="flex items-center justify-between text-sm mt-1">
                   <span className="text-slate-600">Beans After Fee</span>
-                  <span className="text-slate-700 flex items-center gap-1">{(parseInt(exchangeBeansAmount) - exchangeFeeAmount).toLocaleString()} <BeansIcon size={12} /></span>
+                  <span className="text-slate-600 flex items-center gap-1">{(parseInt(exchangeBeansAmount) - exchangeFeeAmount).toLocaleString()} <BeansIcon size={12} /></span>
                 </div>
                 <div className="flex items-center justify-between text-sm mt-1 pt-2 border-t border-emerald-200/70">
                   <span className="text-slate-600">Total Beans Deducted</span>
