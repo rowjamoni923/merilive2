@@ -1084,6 +1084,7 @@ const FaceVerification = () => {
           saveCalibration(calib);
           setCalibrating(false);
           console.log('[FaceVerify] calibration', calib);
+          pushDebug({ kind: 'calib_done', calibration: { ...calib }, samples: calibSamplesRef.current.length });
         }
         return;
       }
