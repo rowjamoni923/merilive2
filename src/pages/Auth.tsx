@@ -2222,9 +2222,9 @@ const Auth = () => {
               {!showReferralInput ? (
                 <button
                   onClick={() => setShowReferralInput(true)}
-                  className="w-full text-center text-slate-600 hover:text-slate-700 text-[11px] py-1.5 transition-colors"
+                  className="w-full text-center text-white/70 hover:text-white text-[11px] py-1.5 transition-colors tracking-wide" /* dark-ok */
                 >
-                  🎁 Have a referral code? Tap here
+                  Have a referral code? Enter it here
                 </button>
               ) : (
                 <div className="flex gap-2 items-center">
