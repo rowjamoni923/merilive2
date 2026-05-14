@@ -1805,9 +1805,9 @@ const Chat = () => {
     const countryFlag = selectedConversation?.other_user?.country_flag || "🌍";
 
     return (
-      <div className="fixed inset-0 flex flex-col overflow-hidden" style={{ background: 'linear-gradient(180deg, #0d0618 0%, #0a0a14 30%, #0d0618 100%)' }}>
+      <div className="fixed inset-0 flex flex-col overflow-hidden profile-home-shell">
         {/* Chat Header - z-index MUST be lower than GiftPanel backdrop (9998) */}
-        <header className="flex-shrink-0 safe-area-top shadow-xl" style={{ zIndex: 10, position: 'relative', background: 'linear-gradient(135deg, rgba(20,8,50,0.98) 0%, rgba(40,15,65,0.95) 50%, rgba(20,8,50,0.98) 100%)', borderBottom: '1px solid rgba(168,85,247,0.15)', boxShadow: '0 4px 30px rgba(0,0,0,0.5), 0 0 20px rgba(168,85,247,0.05)' }}>
+        <header className="flex-shrink-0 safe-area-top profile-home-card" style={{ zIndex: 10, position: 'relative', borderRadius: 0, borderLeft: 'none', borderRight: 'none', borderTop: 'none' }}>
           <div className="flex items-center gap-3 px-3 py-2.5 h-14">
             {/* Back Button */}
             <button
