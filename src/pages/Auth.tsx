@@ -2307,127 +2307,130 @@ const Auth = () => {
 
       {/* Gender + Name Combined Dialog (Start flow & Email flow) */}
       <Dialog open={authStep === "gender"} onOpenChange={() => closeDialog()}>
-        <DialogContent className="max-w-sm mx-auto bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF] border-amber-200/70 p-6">
-          <DialogHeader>
-            <div className="flex justify-center mb-3">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-100 to-rose-100 border border-pink-200/70 flex items-center justify-center shadow-md shadow-pink-500/20">
-                <Sparkles className="w-8 h-8 text-pink-500" />
-              </div>
-            </div>
-            <DialogTitle className="text-slate-800 text-center text-2xl font-bold">Welcome aboard</DialogTitle>
-            <DialogDescription className="text-slate-600 text-center text-sm">
-              Tell us your name and select your gender to continue
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-5 pt-2">
-            {/* Name Input */}
-            <div>
-              <label className="text-slate-700 text-xs font-semibold mb-1.5 block">Your Name</label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <Input
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="Enter your name"
-                  className="pl-10 h-11 bg-white border-amber-200/70 text-slate-800 placeholder:text-slate-400 rounded-xl focus:border-pink-400 focus:ring-1 focus:ring-pink-400"
-                  maxLength={30}
-                  autoFocus
-                />
-              </div>
-            </div>
+        <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto p-0 border-0 rounded-3xl overflow-visible bg-transparent shadow-2xl shadow-pink-900/30">
+          <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-pink-500/40 via-rose-500/30 to-amber-500/40 animate-[spin_8s_linear_infinite] blur-[1px]" style={{ padding: '1px' }} />
+          <div className="relative rounded-3xl bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF] p-6">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-40 bg-pink-500/15 rounded-full blur-3xl pointer-events-none" />
 
-            {/* Gender Selection */}
-            <div className="grid grid-cols-2 gap-3">
-              {/* Male */}
-              <button
-                onClick={() => setSelectedGender("male")}
-                className={`relative p-4 rounded-2xl border-2 transition-all ${
-                  selectedGender === "male"
-                    ? "border-blue-500 bg-blue-50 shadow-md shadow-blue-500/20"
-                    : "border-amber-200/60 bg-white hover:border-amber-300"
-                }`}
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <div className={`w-14 h-14 rounded-full bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center text-3xl ${
-                    selectedGender === "male" ? "ring-2 ring-blue-500" : ""
-                  }`}>
-                    👨
-                  </div>
-                  <span className={`font-semibold text-sm ${
-                    selectedGender === "male" ? "text-blue-600" : "text-slate-700"
-                  }`}>Male</span>
-                  <span className="text-[10px] text-slate-500">User Account</span>
+            <DialogHeader className="relative z-10">
+              <div className="flex justify-center mb-3">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-500 via-rose-500 to-amber-500 flex items-center justify-center shadow-lg shadow-pink-500/30 ring-2 ring-white/40">
+                  <Sparkles className="w-8 h-8 text-white drop-shadow" />
                 </div>
-                {selectedGender === "male" && (
-                  <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center shadow-md">
- <Check className="w-4 h-4 text-slate-900" />
-                  </div>
-                )}
-              </button>
-
-              {/* Female */}
-              <button
-                onClick={() => setSelectedGender("female")}
-                className={`relative p-4 rounded-2xl border-2 transition-all ${
-                  selectedGender === "female"
-                    ? "border-pink-500 bg-pink-50 shadow-md shadow-pink-500/20"
-                    : "border-amber-200/60 bg-white hover:border-amber-300"
-                }`}
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <div className={`w-14 h-14 rounded-full bg-gradient-to-br from-pink-100 to-rose-100 flex items-center justify-center text-3xl ${
-                    selectedGender === "female" ? "ring-2 ring-pink-500" : ""
-                  }`}>
-                    👩
-                  </div>
-                  <span className={`font-semibold text-sm ${
-                    selectedGender === "female" ? "text-pink-600" : "text-slate-700"
-                  }`}>Female</span>
-                  <div className="flex items-center gap-1">
-                    <span className="text-[10px] text-amber-600 font-semibold">👑 Host Account</span>
-                  </div>
-                </div>
-                {selectedGender === "female" && (
-                  <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-pink-500 flex items-center justify-center shadow-md">
- <Check className="w-4 h-4 text-slate-900" />
-                  </div>
-                )}
-              </button>
-            </div>
-
-            {/* Female host notice */}
-            {selectedGender === "female" && (
-              <div className="p-3 rounded-xl bg-gradient-to-r from-pink-50 to-rose-50 border border-pink-200/70">
-                <p className="text-pink-700 text-xs text-center font-medium">
-                  👑 Selecting Female will automatically convert your account to a Host account!
-                </p>
               </div>
-            )}
+              <DialogTitle className="text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-pink-700 via-rose-600 to-amber-600 bg-clip-text text-transparent">Welcome aboard</DialogTitle>
+              <DialogDescription className="text-slate-600 text-center text-sm mt-1">
+                Tell us your name and select your gender to continue
+              </DialogDescription>
+            </DialogHeader>
 
-            {/* Get Started / Continue Button */}
-            <Button
-              onClick={() => {
-                if (isEmailFlow) {
-                  // Email flow: go to email input
-                  handleGenderSelect(selectedGender);
-                } else {
-                  // Start flow: directly register device
-                  handleDeviceRegistration();
-                }
-              }}
-              disabled={loading || !displayName.trim() || !selectedGender}
- className="w-full h-12 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-bold text-base disabled:opacity-50 shadow-lg shadow-pink-500/30"
-            >
-              {loading ? (
- <div className="w-5 h-5 border-2 border-slate-200 border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <>
-                  <Sparkles className="w-5 h-5 mr-2" />
-                  {isEmailFlow ? "Continue" : "Get Started"}
-                </>
+            <div className="space-y-5 pt-4 relative z-10">
+              {/* Name Input */}
+              <div>
+                <label className="text-slate-700 text-xs font-semibold mb-1.5 block">Your Name</label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Input
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    placeholder="Enter your name"
+                    className="pl-10 h-11 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 rounded-xl focus:border-pink-400 focus:ring-1 focus:ring-pink-400"
+                    maxLength={30}
+                    autoFocus
+                  />
+                </div>
+              </div>
+
+              {/* Gender Selection */}
+              <div className="grid grid-cols-2 gap-3">
+                {/* Male */}
+                <button
+                  onClick={() => setSelectedGender("male")}
+                  className={`relative p-4 rounded-2xl border-2 transition-all ${
+                    selectedGender === "male"
+                      ? "border-blue-500 bg-blue-50 shadow-md shadow-blue-500/20"
+                      : "border-slate-200 bg-white hover:border-blue-300"
+                  }`}
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    <div className={`w-14 h-14 rounded-full bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center text-3xl ${
+                      selectedGender === "male" ? "ring-2 ring-blue-500" : ""
+                    }`}>
+                      👨
+                    </div>
+                    <span className={`font-semibold text-sm ${
+                      selectedGender === "male" ? "text-blue-700" : "text-slate-800"
+                    }`}>Male</span>
+                    <span className="text-[10px] text-slate-500">User Account</span>
+                  </div>
+                  {selectedGender === "male" && (
+                    <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center shadow-md">
+                      <Check className="w-4 h-4 text-white" />
+                    </div>
+                  )}
+                </button>
+
+                {/* Female */}
+                <button
+                  onClick={() => setSelectedGender("female")}
+                  className={`relative p-4 rounded-2xl border-2 transition-all ${
+                    selectedGender === "female"
+                      ? "border-pink-500 bg-pink-50 shadow-md shadow-pink-500/20"
+                      : "border-slate-200 bg-white hover:border-pink-300"
+                  }`}
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    <div className={`w-14 h-14 rounded-full bg-gradient-to-br from-pink-100 to-rose-100 flex items-center justify-center text-3xl ${
+                      selectedGender === "female" ? "ring-2 ring-pink-500" : ""
+                    }`}>
+                      👩
+                    </div>
+                    <span className={`font-semibold text-sm ${
+                      selectedGender === "female" ? "text-pink-700" : "text-slate-800"
+                    }`}>Female</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[10px] text-amber-700 font-semibold">👑 Host Account</span>
+                    </div>
+                  </div>
+                  {selectedGender === "female" && (
+                    <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-pink-500 flex items-center justify-center shadow-md">
+                      <Check className="w-4 h-4 text-white" />
+                    </div>
+                  )}
+                </button>
+              </div>
+
+              {/* Female host notice */}
+              {selectedGender === "female" && (
+                <div className="p-3 rounded-xl bg-gradient-to-r from-pink-50 to-rose-50 border border-pink-200">
+                  <p className="text-pink-800 text-xs text-center font-medium">
+                    👑 Selecting Female will automatically convert your account to a Host account
+                  </p>
+                </div>
               )}
-            </Button>
+
+              {/* Get Started / Continue Button */}
+              <Button
+                onClick={() => {
+                  if (isEmailFlow) {
+                    handleGenderSelect(selectedGender);
+                  } else {
+                    handleDeviceRegistration();
+                  }
+                }}
+                disabled={loading || !displayName.trim() || !selectedGender}
+ className="w-full h-12 rounded-2xl bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 hover:from-pink-500 hover:via-rose-400 hover:to-pink-500 text-white font-bold text-base disabled:opacity-40 shadow-lg shadow-pink-600/25 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
+              >
+                {loading ? (
+                  <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <Sparkles className="w-5 h-5 mr-2" />
+                    {isEmailFlow ? "Continue" : "Get Started"}
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
