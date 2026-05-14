@@ -47,14 +47,25 @@ function isPlayStoreUrl(url: string): boolean {
  * Open Play Store via Android native intent (opens Play Store app, not browser)
  */
 function openPlayStoreNative(): void {
-  // market:// scheme opens Play Store app directly
+  // market:// scheme triggers Android Intent resolver → opens Play Store APP
+  // (not in-app WebView). `_blank` in Capacitor Android routes through the
+  // system intent handler so the user leaves our WebView entirely.
   const marketUrl = `market://details?id=${PLAY_STORE_PACKAGE}`;
   const fallbackUrl = `https://play.google.com/store/apps/details?id=${PLAY_STORE_PACKAGE}`;
-  
+
   try {
-    window.location.href = marketUrl;
+    const win = window.open(marketUrl, '_blank');
+    if (!win) {
+      // Some Android WebViews return null but still dispatch the intent.
+      // If nothing happens, fall back to https Play Store link via system.
+      window.open(fallbackUrl, '_blank');
+    }
   } catch {
-    window.location.href = fallbackUrl;
+    try {
+      window.open(fallbackUrl, '_blank');
+    } catch {
+      window.location.href = fallbackUrl;
+    }
   }
 }
 
