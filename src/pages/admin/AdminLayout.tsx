@@ -1311,6 +1311,13 @@ export default function AdminLayout() {
   const [sectionNotifications, setSectionNotifications] = useState<AdminNotification[]>([]);
 
   // Restore dismissed badge baseline after refresh (per-admin user)
+  // Mark body as admin-active so portaled dialogs receive admin dark theme
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.body.setAttribute('data-admin-active', 'true');
+    return () => { document.body.removeAttribute('data-admin-active'); };
+  }, []);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
