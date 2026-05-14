@@ -129,6 +129,7 @@
   "src/pages/AgencyWithdrawal.tsx": 8,
   "src/pages/AgentRank.tsx": 4,
   "src/pages/AgentWallet.tsx": 3,
+  "src/pages/Auth.tsx": 2,
   "src/pages/BecomeSubAgent.tsx": 2,
   "src/pages/BlogPage.tsx": 9,
   "src/pages/CallHistory.tsx": 1,

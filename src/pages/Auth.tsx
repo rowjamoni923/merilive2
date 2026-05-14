@@ -2022,8 +2022,8 @@ const Auth = () => {
         <AuthBackground branding={branding} />
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/50" />
         <div className="relative z-10 min-h-screen flex flex-col items-center justify-center gap-4">
- <div className="w-10 h-10 border-3 border-slate-200/30 border-t-white rounded-full animate-spin" />
-          <p className="text-slate-700 text-sm font-medium animate-pulse">Recovering your account...</p>
+          <div className="w-10 h-10 border-[3px] border-white/25 border-t-white rounded-full animate-spin" /> {/* dark-ok */}
+          <p className="text-white/90 text-sm font-medium animate-pulse tracking-wide">Restoring your session…</p> {/* dark-ok */}
         </div>
       </div>
     );
@@ -2089,7 +2089,7 @@ const Auth = () => {
              <div className="flex items-center gap-3 mt-1">
                <div className="h-px w-10 bg-gradient-to-r from-transparent via-white/60 to-transparent" />
                <h2 
- className="text-3xl font-bold text-slate-900 uppercase"
+                 className="text-3xl font-bold text-white uppercase" /* dark-ok */
                  style={{ 
                    fontFamily: "'Montserrat', sans-serif",
                    letterSpacing: '0.5em',
@@ -2098,7 +2098,7 @@ const Auth = () => {
                   {branding.logo_text_secondary}
                 </h2>
                <div className="h-px w-10 bg-gradient-to-r from-transparent via-white/60 to-transparent" />
-              </div>
+             </div>
             </>
           )}
         </div>
@@ -2108,14 +2108,14 @@ const Auth = () => {
             <div className="mb-4 p-4 bg-gradient-to-r from-purple-500/90 to-pink-500/90 backdrop-blur-sm rounded-2xl shadow-lg">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
- <Building2 className="w-6 h-6 text-slate-900" />
+                  <Building2 className="w-6 h-6 text-white" /> {/* dark-ok */}
                 </div>
                 <div className="flex-1">
-                  <p className="text-slate-700 text-xs">You are invited by</p>
- <p className="text-slate-900 font-bold">{agencyInfo.name}</p>
+                  <p className="text-white/80 text-xs">You've been invited by</p> {/* dark-ok */}
+                  <p className="text-white font-bold">{agencyInfo.name}</p> {/* dark-ok */}
                   <div className="flex items-center gap-2 mt-1">
- <Badge className="bg-white/20 text-slate-900 text-[10px]">{agencyInfo.level}</Badge>
-                    <span className="text-slate-700 text-xs">{agencyInfo.total_hosts} hosts</span>
+                    <Badge className="bg-white/20 text-white text-[10px] border-white/20">{agencyInfo.level}</Badge> {/* dark-ok */}
+                    <span className="text-white/80 text-xs">{agencyInfo.total_hosts} hosts</span> {/* dark-ok */}
                   </div>
                 </div>
                 <Sparkles className="w-5 h-5 text-yellow-300 animate-pulse" />
@@ -2134,7 +2134,7 @@ const Auth = () => {
               >
                 <Avatar className="w-12 h-12 border-2 border-amber-400">
                   <AvatarImage src={lastUser.avatarUrl || undefined} />
- <AvatarFallback className="bg-gradient-to-br from-amber-400 to-orange-500 text-slate-900">
+  <AvatarFallback className="bg-gradient-to-br from-amber-400 to-orange-500 text-white"> {/* dark-ok */}
                     {lastUser.displayName?.charAt(0) || "U"}
                   </AvatarFallback>
                 </Avatar>
@@ -2142,13 +2142,14 @@ const Auth = () => {
                   <p className="font-semibold text-foreground">{lastUser.displayName || "User"}</p>
                   <p className="text-xs text-muted-foreground">{lastUser.email}</p>
                 </div>
- <Badge className="bg-amber-500 text-slate-900 border-0 px-2 py-0.5 text-xs">
-                  Latest Login
+  <Badge className="bg-amber-500 text-white border-0 px-2 py-0.5 text-xs"> {/* dark-ok */}
+                  Continue
                 </Badge>
               </button>
               <button
                 onClick={clearLastUser}
- className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-slate-900 rounded-full flex items-center justify-center shadow-md hover:bg-red-600 transition-colors"
+                aria-label="Remove saved account"
+  className="absolute -top-2 -right-2 w-6 h-6 bg-rose-500 text-white rounded-full flex items-center justify-center shadow-md hover:bg-rose-600 transition-colors" /* dark-ok */
               >
                 <X className="w-3 h-3" />
               </button>
@@ -2158,15 +2159,15 @@ const Auth = () => {
           {/* Start Button - Premium Mobile Design */}
           <Button
             onClick={handleStartClick}
- className="w-full h-11 rounded-2xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-500 hover:from-purple-700 hover:via-fuchsia-600 hover:to-pink-600 text-slate-900 text-sm font-bold shadow-[0_6px_24px_-6px_rgba(168,85,247,0.5)] border border-purple-400/30 transition-all duration-300 active:scale-[0.98] backdrop-blur-md"
+  className="w-full h-11 rounded-2xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-500 hover:from-purple-700 hover:via-fuchsia-600 hover:to-pink-600 text-white text-sm font-bold shadow-[0_6px_24px_-6px_rgba(168,85,247,0.5)] border border-purple-400/30 transition-all duration-300 active:scale-[0.98] backdrop-blur-md" /* dark-ok */
             disabled={loading}
           >
             {loading ? (
- <div className="w-5 h-5 border-2 border-slate-200/40 border-t-white rounded-full animate-spin" />
+  <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> /* dark-ok */
             ) : (
               <span className="flex items-center gap-2">
                 <Rocket3DIcon className="w-5 h-5" />
-                <span className="drop-shadow-lg tracking-wide">Start</span>
+                <span className="drop-shadow-lg tracking-wide">Get Started</span>
               </span>
             )}
           </Button>
@@ -2186,10 +2187,10 @@ const Auth = () => {
               setPhoneOtpCode("");
               setAuthStep("phone_input");
             }}
- className="w-full h-11 rounded-2xl bg-gradient-to-r from-green-500 via-emerald-500 to-green-600 hover:from-green-600 hover:via-emerald-600 hover:to-green-700 text-slate-900 text-sm font-semibold shadow-[0_6px_24px_-6px_rgba(16,185,129,0.4)] border border-green-400/30 transition-all duration-300 active:scale-[0.98] backdrop-blur-md"
+  className="w-full h-11 rounded-2xl bg-gradient-to-r from-green-500 via-emerald-500 to-green-600 hover:from-green-600 hover:via-emerald-600 hover:to-green-700 text-white text-sm font-semibold shadow-[0_6px_24px_-6px_rgba(16,185,129,0.4)] border border-green-400/30 transition-all duration-300 active:scale-[0.98] backdrop-blur-md" /* dark-ok */
           >
             <Phone className="w-5 h-5 mr-2" />
-            <span>Phone Number</span>
+            <span>Continue with Phone</span>
           </Button>
 
           {/* Email Login/Signup Button */}
@@ -2208,10 +2209,10 @@ const Auth = () => {
               setEmail("");
               setAuthStep("email");
             }}
- className="w-full h-11 rounded-2xl bg-gradient-to-r from-white via-gray-50 to-white hover:from-gray-50 hover:via-white hover:to-gray-50 text-gray-700 text-sm font-semibold shadow-[0_6px_24px_-6px_rgba(255,255,255,0.3)] border border-slate-200/60 transition-all duration-300 active:scale-[0.98] backdrop-blur-md"
+  className="w-full h-11 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 text-sm font-semibold shadow-[0_6px_24px_-6px_rgba(15,23,42,0.35)] border border-slate-200/80 transition-all duration-300 active:scale-[0.98]"
           >
-            <Mail className="w-5 h-5 mr-2 text-gray-600" />
-            <span>Email</span>
+            <Mail className="w-5 h-5 mr-2 text-slate-600" />
+            <span>Continue with Email</span>
           </Button>
 
 
@@ -2221,9 +2222,9 @@ const Auth = () => {
               {!showReferralInput ? (
                 <button
                   onClick={() => setShowReferralInput(true)}
-                  className="w-full text-center text-slate-600 hover:text-slate-700 text-[11px] py-1.5 transition-colors"
+                  className="w-full text-center text-white/70 hover:text-white text-[11px] py-1.5 transition-colors tracking-wide" /* dark-ok */
                 >
-                  🎁 Have a referral code? Tap here
+                  Have a referral code? Enter it here
                 </button>
               ) : (
                 <div className="flex gap-2 items-center">
@@ -2233,7 +2234,7 @@ const Auth = () => {
                       value={manualReferralCode}
                       onChange={(e) => setManualReferralCode(e.target.value.toUpperCase())}
                       placeholder="Enter referral code"
-                      className="pl-9 h-10 bg-white/10 border-amber-400/30 text-slate-800 placeholder:text-slate-400 rounded-xl text-sm font-mono tracking-wider"
+                      className="pl-9 h-10 bg-white/10 border-amber-400/40 text-white placeholder:text-white/50 rounded-xl text-sm font-mono tracking-wider" /* dark-ok */
                     />
                   </div>
                   <Button
@@ -2248,12 +2249,12 @@ const Auth = () => {
                         }
                         setReferralCode(code);
                         fetchAgencyInfo(code);
-                        toast({ title: "✅ Code saved!", description: "Female → joins agency as host. Male → invitation reward." });
+                        toast({ title: "Code applied", description: "Your referral code has been saved." });
                         setShowReferralInput(false);
                       }
                     }}
                     size="sm"
- className="h-10 px-4 bg-amber-500 hover:bg-amber-600 text-slate-900 rounded-xl"
+  className="h-10 px-4 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-semibold" /* dark-ok */
                   >
                     Apply
                   </Button>
@@ -2264,13 +2265,13 @@ const Auth = () => {
 
           {/* Referral code applied indicator */}
           {referralCode && !agencyInfo && (
-            <div className="flex items-center justify-center gap-2 py-1.5 px-3 bg-green-500/15 border border-green-400/30 rounded-xl">
-              <CheckCircle className="w-3.5 h-3.5 text-green-400" />
-              <span className="text-green-300 text-[11px] font-medium">Referral: {referralCode}</span>
+            <div className="flex items-center justify-center gap-2 py-1.5 px-3 bg-emerald-500/15 border border-emerald-400/30 rounded-xl">
+              <CheckCircle className="w-3.5 h-3.5 text-emerald-300" />
+              <span className="text-emerald-200 text-[11px] font-medium tracking-wide">Referral applied: {referralCode}</span>
             </div>
           )}
 
-          {/* Compact Luxurious Agreement */}
+          {/* Terms agreement */}
           <button
             onClick={() => setAgreed(!agreed)}
             className={`
@@ -2278,7 +2279,7 @@ const Auth = () => {
               transition-all duration-300 backdrop-blur-md
               ${agreed 
                 ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-400/40 shadow-[0_0_20px_-5px_rgba(16,185,129,0.3)]' 
- :'bg-white/5 border border-slate-200/10 hover:border-slate-200/20'
+                : 'bg-white/5 border border-white/15 hover:border-white/25'
               }
             `}
           >
@@ -2286,18 +2287,19 @@ const Auth = () => {
               w-4 h-4 rounded-md flex items-center justify-center transition-all duration-300
               ${agreed 
                 ? 'bg-gradient-to-br from-emerald-400 to-teal-500 shadow-lg' 
- :'bg-white/10 border border-slate-200/30'
+                : 'bg-white/10 border border-white/30'
               }
             `}>
               {agreed && (
- <Check className="w-3 h-3 text-slate-900" />
+                <Check className="w-3 h-3 text-white" /> /* dark-ok */
               )}
             </div>
-            <span className={`text-[10px] leading-tight transition-colors ${agreed ? 'text-slate-800' : 'text-slate-600'}`}>
-              <span className="underline decoration-white/30">Terms</span>
-              {" & "}
-              <span className="underline decoration-white/30">Privacy</span>
-              {" • 18+"}
+            <span className={`text-[10px] leading-tight transition-colors tracking-wide ${agreed ? 'text-white/95' : 'text-white/70'}`}> {/* dark-ok */}
+              I agree to the{' '}
+              <span className="underline decoration-white/40">Terms of Service</span>
+              {' & '}
+              <span className="underline decoration-white/40">Privacy Policy</span>
+              {' • 18+'}
             </span>
           </button>
         </div>
@@ -2312,9 +2314,9 @@ const Auth = () => {
                 <Sparkles className="w-8 h-8 text-pink-500" />
               </div>
             </div>
-            <DialogTitle className="text-slate-800 text-center text-2xl font-bold">Welcome! 🎉</DialogTitle>
+            <DialogTitle className="text-slate-800 text-center text-2xl font-bold">Welcome aboard</DialogTitle>
             <DialogDescription className="text-slate-600 text-center text-sm">
-              Enter your name & select gender
+              Tell us your name and select your gender to continue
             </DialogDescription>
           </DialogHeader>
           
