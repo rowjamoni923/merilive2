@@ -923,22 +923,22 @@ const Tasks = () => {
                     boxShadow: '0 4px 20px rgba(16,185,129,0.2)',
                   }}
                 >
-                  <CheckCircle className="w-9 h-9 text-emerald-400" />
+                  <CheckCircle className="w-9 h-9 text-emerald-700" />
                 </div>
               </motion.div>
               <div>
                 <p className="text-slate-800 font-bold text-lg">Submitted Successfully! 🎉</p>
-                <p className="text-purple-200/50 text-sm mt-2 leading-relaxed">
+                <p className="text-slate-600 text-sm mt-2 leading-relaxed">
                   Your screenshot has been submitted for review. You'll receive your reward once approved by admin.
                 </p>
               </div>
-              <div className="flex items-center justify-center gap-2 text-amber-400/50 text-xs">
+              <div className="flex items-center justify-center gap-2 text-amber-700/80 text-xs">
                 <Clock className="w-3.5 h-3.5" />
                 Usually reviewed within 24 hours
               </div>
               <Button
                 onClick={() => setShowRatingUpload(false)}
-                className="w-full h-10 rounded-xl text-slate-800 font-bold border-0"
+                className="w-full h-10 rounded-xl text-white font-bold border-0"
                 style={{
                   background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
                   boxShadow: '0 4px 20px rgba(124,58,237,0.3)',
