@@ -451,13 +451,13 @@ export default function BlogPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
               >
-                <Badge className="mb-4 bg-purple-500/20 text-purple-300 border-purple-500/30">
+                <Badge className="mb-4 bg-pink-100 text-pink-700 border border-pink-200">
                   MeriLive Blog
                 </Badge>
-                <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+                <h1 className="text-4xl md:text-5xl font-bold text-slate-800 mb-4">
                   Tips, News & Updates
                 </h1>
-                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                <p className="text-lg text-slate-600 max-w-2xl mx-auto">
                   Stay updated with the latest features, tips for streamers, and community highlights from MeriLive.
                 </p>
               </motion.div>
@@ -475,8 +475,8 @@ export default function BlogPage() {
                     size="sm"
                     onClick={() => setSelectedCategory(category)}
                     className={selectedCategory === category 
-                      ? "bg-purple-500 hover:bg-purple-600" 
-                      : "border-white/20 text-white hover:bg-white/10"
+                      ? "bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white shadow-md shadow-pink-500/30" 
+                      : "border-amber-300/70 bg-white/70 text-slate-700 hover:bg-amber-50"
                     }
                   >
                     {category}
@@ -490,12 +490,12 @@ export default function BlogPage() {
           <section className="px-4 pb-8">
             <div className="container mx-auto max-w-md">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Input
                   placeholder="Search articles..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-white/5 border-white/10"
+                  className="pl-10 bg-white border-amber-200/60 text-slate-800 placeholder:text-slate-400"
                 />
               </div>
             </div>
@@ -512,25 +512,25 @@ export default function BlogPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
                   >
-                    <Card className="bg-white/5 border-white/10 overflow-hidden hover:bg-white/10 transition-colors cursor-pointer group">
+                    <Card className="bg-white border-amber-200/60 overflow-hidden hover:border-pink-300 hover:shadow-lg hover:shadow-pink-500/10 transition-all cursor-pointer group">
                       <div className="relative h-48 overflow-hidden">
                         <img 
                           src={post.image} 
                           alt={post.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
-                        <Badge className="absolute top-3 left-3 bg-purple-500/80 text-white">
+                        <Badge className="absolute top-3 left-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white border-0 shadow-md">
                           {post.category}
                         </Badge>
                       </div>
                       <CardContent className="p-5">
-                        <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-purple-300 transition-colors">
+                        <h3 className="text-lg font-semibold text-slate-800 mb-2 group-hover:text-pink-600 transition-colors">
                           {post.title}
                         </h3>
-                        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                        <p className="text-sm text-slate-600 mb-4 line-clamp-2">
                           {post.excerpt}
                         </p>
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <div className="flex items-center justify-between text-xs text-slate-500">
                           <div className="flex items-center gap-2">
                             <User className="w-3 h-3" />
                             <span>{post.author}</span>
@@ -540,7 +540,7 @@ export default function BlogPage() {
                             <span>{post.date}</span>
                           </div>
                         </div>
-                        <div className="mt-4 flex items-center text-purple-400 text-sm font-medium">
+                        <div className="mt-4 flex items-center text-pink-600 text-sm font-medium">
                           Read More <ArrowRight className="w-4 h-4 ml-1" />
                         </div>
                       </CardContent>
@@ -551,7 +551,7 @@ export default function BlogPage() {
 
               {filteredPosts.length === 0 && (
                 <div className="text-center py-16">
-                  <p className="text-muted-foreground">No articles found matching your search.</p>
+                  <p className="text-slate-500">No articles found matching your search.</p>
                 </div>
               )}
             </div>
