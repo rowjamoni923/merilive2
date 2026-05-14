@@ -239,8 +239,8 @@ export default function BlogPage() {
           <section className="py-16 md:py-24 px-4 relative overflow-hidden">
             {/* Background decoration */}
             <div className="absolute inset-0 overflow-hidden">
-              <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl" />
-              <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-pink-500/20 rounded-full blur-3xl" />
+              <div className="absolute -top-40 -right-40 w-80 h-80 bg-pink-300/30 rounded-full blur-3xl" />
+              <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-amber-300/30 rounded-full blur-3xl" />
             </div>
             
             <div className="container mx-auto text-center relative z-10">
@@ -249,22 +249,22 @@ export default function BlogPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
               >
-                <Badge className="mb-4 bg-purple-500/20 text-purple-300 border-purple-500/30 px-4 py-1.5">
+                <Badge className="mb-4 bg-pink-100 text-pink-700 border border-pink-200 px-4 py-1.5">
                   <Sparkles className="w-3.5 h-3.5 mr-1.5" />
                   #1 Live Streaming Platform
                 </Badge>
-                <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
+                <h1 className="text-4xl md:text-6xl font-bold text-slate-800 mb-6">
                   Connect, Stream & 
-                  <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent"> Earn</span>
+                  <span className="bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent"> Earn</span>
                 </h1>
-                <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
+                <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mb-8">
                   MeriLive is the ultimate live streaming platform where creators connect with their audience through video calls, party rooms, and interactive entertainment.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Button 
                     size="lg"
                     onClick={() => window.open(PLAY_STORE_URL, '_blank')}
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-lg px-8"
+                    className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white text-lg px-8 shadow-lg shadow-pink-500/30"
                   >
                     <Download className="w-5 h-5 mr-2" />
                     Download App
@@ -273,7 +273,7 @@ export default function BlogPage() {
                     size="lg"
                     variant="outline"
                     onClick={() => navigate("/")}
-                    className="border-white/20 text-white hover:bg-white/10 text-lg px-8"
+                    className="border-amber-300/70 bg-white/70 text-slate-700 hover:bg-amber-50 text-lg px-8"
                   >
                     <Play className="w-5 h-5 mr-2" />
                     Open Web App
