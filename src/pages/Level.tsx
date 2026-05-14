@@ -389,7 +389,7 @@ const Level = () => {
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-[#F7F8FA] via-purple-800 to-slate-900 overflow-hidden">
+    <div className="fixed inset-0 flex flex-col profile-home-shell overflow-hidden">
       {/* Header */}
       <div className="flex-shrink-0">
         <header className="relative safe-area-top">
@@ -397,12 +397,12 @@ const Level = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full text-white hover:bg-white/10"
+              className="rounded-full profile-home-icon-button text-slate-700 hover:bg-amber-50"
               onClick={() => navigate(-1)}
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="text-lg font-bold text-white">My Level</h1>
+            <h1 className="text-lg font-bold text-slate-800">My Level</h1>
           </div>
         </header>
 
