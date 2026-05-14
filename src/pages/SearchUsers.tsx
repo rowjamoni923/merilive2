@@ -309,7 +309,7 @@ const SearchUsers = () => {
             )}
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            <p className="text-sm text-muted-foreground truncate">
+            <p className="text-sm text-slate-500 truncate">
               {user.country_flag} {user.bio || (user.is_online ? 'Online' : 'Offline')}
             </p>
             {user.app_uid && (
