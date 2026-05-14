@@ -14,12 +14,14 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
+import { resolveAdminStorageImageUrl } from "@/utils/adminStorageImages";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 interface RatingClaim {
   id: string;
   user_id: string;
   screenshot_url: string;
+  screenshot_signed?: string | null;
   status: string;
   reward_type: string;
   reward_amount: number;
@@ -115,11 +117,12 @@ export default function AdminRatingRewards() {
         const reviewerMap: Record<string, any> = {};
         (reviewersRes.data || []).forEach(r => { reviewerMap[r.user_id] = r; });
 
-        const enriched = data.map(c => ({
+        const enriched = await Promise.all(data.map(async (c) => ({
           ...c,
           profile: profileMap[c.user_id] || null,
           reviewer: c.reviewed_by ? reviewerMap[c.reviewed_by] || null : null,
-        }));
+          screenshot_signed: await resolveAdminStorageImageUrl(c.screenshot_url, 'rating-screenshots'),
+        })));
         setClaims(enriched);
       } else {
         setClaims([]);
@@ -161,11 +164,12 @@ export default function AdminRatingRewards() {
         const reviewerMap: Record<string, any> = {};
         (reviewersRes.data || []).forEach(r => { reviewerMap[r.user_id] = r; });
 
-        setHistoryData(data.map(c => ({
+        setHistoryData(await Promise.all(data.map(async (c) => ({
           ...c,
           profile: profileMap[c.user_id] || null,
           reviewer: c.reviewed_by ? reviewerMap[c.reviewed_by] || null : null,
-        })));
+          screenshot_signed: await resolveAdminStorageImageUrl(c.screenshot_url, 'rating-screenshots'),
+        }))));
       } else {
         setHistoryData([]);
       }
@@ -568,10 +572,10 @@ export default function AdminRatingRewards() {
                   </div>
 
                   <button
-                    onClick={() => setPreviewImage(claim.screenshot_url)}
+                    onClick={() => setPreviewImage(claim.screenshot_signed || claim.screenshot_url)}
                     className="w-14 h-14 rounded-lg overflow-hidden border border-slate-700 hover:border-purple-500 transition-colors flex-shrink-0 relative group"
                   >
-                    <img src={claim.screenshot_url} alt="Screenshot" className="w-full h-full object-cover" />
+                    <img src={claim.screenshot_signed || claim.screenshot_url} alt="Screenshot" className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                       <Eye className="w-4 h-4 text-white" />
                     </div>
