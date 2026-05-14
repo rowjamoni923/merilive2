@@ -2023,7 +2023,7 @@ const Auth = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/50" />
         <div className="relative z-10 min-h-screen flex flex-col items-center justify-center gap-4">
           <div className="w-10 h-10 border-3 border-white/30 border-t-white rounded-full animate-spin" />
-          <p className="text-white/80 text-sm font-medium animate-pulse">Recovering your account...</p>
+          <p className="text-slate-700 text-sm font-medium animate-pulse">Recovering your account...</p>
         </div>
       </div>
     );
@@ -2111,11 +2111,11 @@ const Auth = () => {
                   <Building2 className="w-6 h-6 text-white" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-white/80 text-xs">You are invited by</p>
+                  <p className="text-slate-700 text-xs">You are invited by</p>
                   <p className="text-white font-bold">{agencyInfo.name}</p>
                   <div className="flex items-center gap-2 mt-1">
                     <Badge className="bg-white/20 text-white text-[10px]">{agencyInfo.level}</Badge>
-                    <span className="text-white/70 text-xs">{agencyInfo.total_hosts} hosts</span>
+                    <span className="text-slate-700 text-xs">{agencyInfo.total_hosts} hosts</span>
                   </div>
                 </div>
                 <Sparkles className="w-5 h-5 text-yellow-300 animate-pulse" />
@@ -2221,7 +2221,7 @@ const Auth = () => {
               {!showReferralInput ? (
                 <button
                   onClick={() => setShowReferralInput(true)}
-                  className="w-full text-center text-white/50 hover:text-white/80 text-[11px] py-1.5 transition-colors"
+                  className="w-full text-center text-slate-600 hover:text-slate-700 text-[11px] py-1.5 transition-colors"
                 >
                   🎁 Have a referral code? Tap here
                 </button>
@@ -2233,7 +2233,7 @@ const Auth = () => {
                       value={manualReferralCode}
                       onChange={(e) => setManualReferralCode(e.target.value.toUpperCase())}
                       placeholder="Enter referral code"
-                      className="pl-9 h-10 bg-white/10 border-amber-400/30 text-white placeholder:text-white/30 rounded-xl text-sm font-mono tracking-wider"
+                      className="pl-9 h-10 bg-white/10 border-amber-400/30 text-slate-800 placeholder:text-slate-400 rounded-xl text-sm font-mono tracking-wider"
                     />
                   </div>
                   <Button
@@ -2293,7 +2293,7 @@ const Auth = () => {
                 <Check className="w-3 h-3 text-white" />
               )}
             </div>
-            <span className={`text-[10px] leading-tight transition-colors ${agreed ? 'text-white/90' : 'text-white/50'}`}>
+            <span className={`text-[10px] leading-tight transition-colors ${agreed ? 'text-slate-800' : 'text-slate-600'}`}>
               <span className="underline decoration-white/30">Terms</span>
               {" & "}
               <span className="underline decoration-white/30">Privacy</span>
@@ -2305,15 +2305,15 @@ const Auth = () => {
 
       {/* Gender + Name Combined Dialog (Start flow & Email flow) */}
       <Dialog open={authStep === "gender"} onOpenChange={() => closeDialog()}>
-        <DialogContent className="max-w-sm mx-auto bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 border-purple-500/30 p-6">
+        <DialogContent className="max-w-sm mx-auto bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF] border-amber-200/70 p-6">
           <DialogHeader>
             <div className="flex justify-center mb-3">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/30 to-pink-500/30 flex items-center justify-center">
-                <Sparkles className="w-8 h-8 text-purple-400" />
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-100 to-rose-100 border border-pink-200/70 flex items-center justify-center shadow-md shadow-pink-500/20">
+                <Sparkles className="w-8 h-8 text-pink-500" />
               </div>
             </div>
-            <DialogTitle className="text-white text-center text-2xl font-bold">Welcome! 🎉</DialogTitle>
-            <DialogDescription className="text-white/60 text-center text-sm">
+            <DialogTitle className="text-slate-800 text-center text-2xl font-bold">Welcome! 🎉</DialogTitle>
+            <DialogDescription className="text-slate-600 text-center text-sm">
               Enter your name & select gender
             </DialogDescription>
           </DialogHeader>
@@ -2321,14 +2321,14 @@ const Auth = () => {
           <div className="space-y-5 pt-2">
             {/* Name Input */}
             <div>
-              <label className="text-white/70 text-xs font-medium mb-1.5 block">Your Name</label>
+              <label className="text-slate-700 text-xs font-semibold mb-1.5 block">Your Name</label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Input
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="Enter your name"
-                  className="pl-10 h-11 bg-white/10 border-white/20 text-white placeholder:text-white/30 rounded-xl focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                  className="pl-10 h-11 bg-white border-amber-200/70 text-slate-800 placeholder:text-slate-400 rounded-xl focus:border-pink-400 focus:ring-1 focus:ring-pink-400"
                   maxLength={30}
                   autoFocus
                 />
@@ -2342,23 +2342,23 @@ const Auth = () => {
                 onClick={() => setSelectedGender("male")}
                 className={`relative p-4 rounded-2xl border-2 transition-all ${
                   selectedGender === "male"
-                    ? "border-blue-500 bg-blue-500/20"
-                    : "border-white/10 bg-white/5 hover:border-white/20"
+                    ? "border-blue-500 bg-blue-50 shadow-md shadow-blue-500/20"
+                    : "border-amber-200/60 bg-white hover:border-amber-300"
                 }`}
               >
                 <div className="flex flex-col items-center gap-2">
-                  <div className={`w-14 h-14 rounded-full bg-gradient-to-br from-blue-400/30 to-cyan-400/30 flex items-center justify-center text-3xl ${
+                  <div className={`w-14 h-14 rounded-full bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center text-3xl ${
                     selectedGender === "male" ? "ring-2 ring-blue-500" : ""
                   }`}>
                     👨
                   </div>
                   <span className={`font-semibold text-sm ${
-                    selectedGender === "male" ? "text-blue-400" : "text-white/70"
+                    selectedGender === "male" ? "text-blue-600" : "text-slate-700"
                   }`}>Male</span>
-                  <span className="text-[10px] text-white/40">User Account</span>
+                  <span className="text-[10px] text-slate-500">User Account</span>
                 </div>
                 {selectedGender === "male" && (
-                  <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
+                  <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center shadow-md">
                     <Check className="w-4 h-4 text-white" />
                   </div>
                 )}
@@ -2369,25 +2369,25 @@ const Auth = () => {
                 onClick={() => setSelectedGender("female")}
                 className={`relative p-4 rounded-2xl border-2 transition-all ${
                   selectedGender === "female"
-                    ? "border-pink-500 bg-pink-500/20"
-                    : "border-white/10 bg-white/5 hover:border-white/20"
+                    ? "border-pink-500 bg-pink-50 shadow-md shadow-pink-500/20"
+                    : "border-amber-200/60 bg-white hover:border-amber-300"
                 }`}
               >
                 <div className="flex flex-col items-center gap-2">
-                  <div className={`w-14 h-14 rounded-full bg-gradient-to-br from-pink-400/30 to-rose-400/30 flex items-center justify-center text-3xl ${
+                  <div className={`w-14 h-14 rounded-full bg-gradient-to-br from-pink-100 to-rose-100 flex items-center justify-center text-3xl ${
                     selectedGender === "female" ? "ring-2 ring-pink-500" : ""
                   }`}>
                     👩
                   </div>
                   <span className={`font-semibold text-sm ${
-                    selectedGender === "female" ? "text-pink-400" : "text-white/70"
+                    selectedGender === "female" ? "text-pink-600" : "text-slate-700"
                   }`}>Female</span>
                   <div className="flex items-center gap-1">
-                    <span className="text-[10px] text-yellow-400">👑 Host Account</span>
+                    <span className="text-[10px] text-amber-600 font-semibold">👑 Host Account</span>
                   </div>
                 </div>
                 {selectedGender === "female" && (
-                  <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-pink-500 flex items-center justify-center">
+                  <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-pink-500 flex items-center justify-center shadow-md">
                     <Check className="w-4 h-4 text-white" />
                   </div>
                 )}
@@ -2396,8 +2396,8 @@ const Auth = () => {
 
             {/* Female host notice */}
             {selectedGender === "female" && (
-              <div className="p-3 rounded-xl bg-gradient-to-r from-pink-500/10 to-purple-500/10 border border-pink-500/20">
-                <p className="text-pink-300 text-xs text-center">
+              <div className="p-3 rounded-xl bg-gradient-to-r from-pink-50 to-rose-50 border border-pink-200/70">
+                <p className="text-pink-700 text-xs text-center font-medium">
                   👑 Selecting Female will automatically convert your account to a Host account!
                 </p>
               </div>
@@ -2415,7 +2415,7 @@ const Auth = () => {
                 }
               }}
               disabled={loading || !displayName.trim() || !selectedGender}
-              className="w-full h-12 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold text-base disabled:opacity-50"
+              className="w-full h-12 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-bold text-base disabled:opacity-50 shadow-lg shadow-pink-500/30"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -2432,10 +2432,10 @@ const Auth = () => {
 
       {/* Name Entry Dialog kept for backward compat but redirects to gender */}
       <Dialog open={authStep === "name"} onOpenChange={() => { setAuthStep("gender"); }}>
-        <DialogContent className="max-w-sm mx-auto bg-gradient-to-br from-gray-900 via-purple-900/50 to-gray-900 border-purple-500/30">
+        <DialogContent className="max-w-sm mx-auto bg-gradient-to-br from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF] border-amber-200/70">
           <DialogHeader>
-            <DialogTitle className="text-white text-center text-xl">Enter Your Name</DialogTitle>
-            <DialogDescription className="text-white/60 text-center">
+            <DialogTitle className="text-slate-800 text-center text-xl font-bold">Enter Your Name</DialogTitle>
+            <DialogDescription className="text-slate-600 text-center">
               This will be your display name
             </DialogDescription>
           </DialogHeader>
@@ -2447,7 +2447,7 @@ const Auth = () => {
         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto p-0 border-0 rounded-3xl overflow-visible bg-transparent shadow-2xl shadow-purple-900/40">
           {/* Animated gradient border */}
           <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-pink-500/40 via-purple-500/30 to-cyan-500/40 animate-[spin_8s_linear_infinite] blur-[1px]" style={{ padding: '1px' }} />
-          <div className="relative rounded-3xl bg-gradient-to-br from-[#0d0d1a] via-[#1a1035] to-[#0d0d1a] backdrop-blur-xl p-6">
+          <div className="relative rounded-3xl bg-gradient-to-br from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF] backdrop-blur-xl p-6">
             {/* Decorative orbs */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-40 bg-purple-600/15 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute bottom-0 right-0 w-32 h-32 bg-pink-600/10 rounded-full blur-3xl pointer-events-none" />
@@ -2463,10 +2463,10 @@ const Auth = () => {
                   </div>
                 </div>
               </div>
-              <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-purple-100 to-white bg-clip-text text-transparent">
+              <DialogTitle className="text-slate-800 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 bg-clip-text text-transparent">
                 Enter Your Email
               </DialogTitle>
-              <DialogDescription className="text-white/50 text-center text-sm mt-1">
+              <DialogDescription className="text-slate-600 text-center text-sm mt-1">
                 We'll send a verification code to your email
               </DialogDescription>
             </DialogHeader>
@@ -2474,7 +2474,7 @@ const Auth = () => {
             <div className="py-5 space-y-5 relative z-10">
               <div className="relative group">
                 <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-pink-500/50 via-purple-500/50 to-pink-500/50 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
-                <div className="relative flex items-center bg-white/[0.06] rounded-2xl overflow-hidden">
+                <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
                   <div className="pl-4 pr-2">
                     <span className="text-purple-400/70 text-lg font-light select-none">@</span>
                   </div>
@@ -2483,7 +2483,7 @@ const Auth = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="your@email.com"
-                    className="h-14 bg-transparent border-0 text-white placeholder:text-white/30 rounded-2xl text-base focus-visible:ring-0 focus-visible:ring-offset-0"
+                    className="h-14 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl text-base focus-visible:ring-0 focus-visible:ring-offset-0"
                     autoFocus
                   />
                 </div>
@@ -2510,7 +2510,7 @@ const Auth = () => {
                     setIsEmailFlow(false);
                     setAuthStep("login");
                   }}
-                  className="text-white/40 text-sm hover:text-white/70 transition-colors"
+                  className="text-slate-500 text-sm hover:text-slate-700 transition-colors"
                 >
                   Already have an account? <span className="text-pink-400 font-semibold hover:text-pink-300">Login</span>
                 </button>
@@ -2525,7 +2525,7 @@ const Auth = () => {
         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto p-0 border-0 rounded-3xl overflow-visible bg-transparent shadow-2xl shadow-emerald-900/30">
           {/* Animated gradient border */}
           <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-emerald-500/40 via-cyan-500/30 to-green-500/40 animate-[spin_8s_linear_infinite] blur-[1px]" style={{ padding: '1px' }} />
-          <div className="relative rounded-3xl bg-gradient-to-br from-[#0d0d1a] via-[#0a1a15] to-[#0d0d1a] backdrop-blur-xl p-6">
+          <div className="relative rounded-3xl bg-gradient-to-br from-[#FFFBF2] via-[#F5FBF6] to-[#FFFBF2] backdrop-blur-xl p-6">
             {/* Decorative orbs */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-40 bg-emerald-600/12 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute bottom-0 right-0 w-32 h-32 bg-cyan-600/8 rounded-full blur-3xl pointer-events-none" />
@@ -2541,10 +2541,10 @@ const Auth = () => {
                   </div>
                 </div>
               </div>
-              <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-emerald-100 to-white bg-clip-text text-transparent">
+              <DialogTitle className="text-slate-800 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600 bg-clip-text text-transparent">
                 Enter Verification Code
               </DialogTitle>
-              <DialogDescription className="text-white/50 text-center text-sm mt-1">
+              <DialogDescription className="text-slate-600 text-center text-sm mt-1">
                 6-digit code sent to <span className="text-emerald-400 font-medium">{email}</span>
               </DialogDescription>
             </DialogHeader>
@@ -2563,7 +2563,7 @@ const Auth = () => {
                     }}
                     placeholder="000000"
                     maxLength={6}
-                    className="relative h-16 w-52 text-center text-3xl font-bold tracking-[0.5em] bg-white/[0.06] border-0 text-white placeholder:text-white/20 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0"
+                    className="relative h-16 w-52 text-center text-3xl font-bold tracking-[0.5em] bg-white border border-amber-200/70 text-slate-800 placeholder:text-slate-300 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0"
                     autoFocus
                   />
                 </div>
@@ -2587,7 +2587,7 @@ const Auth = () => {
               
               {/* Resend Code */}
               <div className="text-center space-y-2">
-                <p className="text-white/35 text-sm">Didn't receive the code?</p>
+                <p className="text-slate-500 text-sm">Didn't receive the code?</p>
                 <button
                   onClick={handleResendEmailOtp}
                   disabled={otpLoading}
@@ -2607,7 +2607,7 @@ const Auth = () => {
       <Dialog open={authStep === "email_password"} onOpenChange={() => resetAuthState()}>
         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto p-0 border-0 rounded-3xl overflow-visible bg-transparent shadow-2xl shadow-violet-900/40">
           <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-violet-500/40 via-pink-500/30 to-purple-500/40 animate-[spin_8s_linear_infinite] blur-[1px]" style={{ padding: '1px' }} />
-          <div className="relative rounded-3xl bg-gradient-to-br from-[#0d0d1a] via-[#1a1025] to-[#0d0d1a] backdrop-blur-xl p-6">
+          <div className="relative rounded-3xl bg-gradient-to-br from-[#FFFBF2] via-[#FAF5F2] to-[#FFFBF2] backdrop-blur-xl p-6">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-40 bg-violet-600/12 rounded-full blur-3xl pointer-events-none" />
             {/* Close button handled by DialogContent */}
 
@@ -2620,25 +2620,25 @@ const Auth = () => {
                   </div>
                 </div>
               </div>
-              <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-purple-100 to-white bg-clip-text text-transparent">Complete Your Profile</DialogTitle>
-              <DialogDescription className="text-white/50 text-center text-sm mt-1">Set your name and password</DialogDescription>
+              <DialogTitle className="text-slate-800 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 bg-clip-text text-transparent">Complete Your Profile</DialogTitle>
+              <DialogDescription className="text-slate-600 text-center text-sm mt-1">Set your name and password</DialogDescription>
             </DialogHeader>
             
             <div className="py-5 space-y-4 relative z-10">
               <div className="relative group">
                 <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-purple-500/40 to-pink-500/40 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
-                <div className="relative flex items-center bg-white/[0.06] rounded-2xl overflow-hidden">
+                <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
                   <div className="pl-4 pr-2"><User className="w-5 h-5 text-purple-400/70" /></div>
-                  <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Your name" className="h-13 bg-transparent border-0 text-white placeholder:text-white/30 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" autoFocus />
+                  <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Your name" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" autoFocus />
                 </div>
               </div>
 
               <div className="relative group">
                 <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-purple-500/40 to-pink-500/40 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
-                <div className="relative flex items-center bg-white/[0.06] rounded-2xl overflow-hidden">
+                <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
                   <div className="pl-4 pr-2"><Lock className="w-5 h-5 text-purple-400/70" /></div>
-                  <Input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password (min 6 characters)" className="h-13 bg-transparent border-0 text-white placeholder:text-white/30 rounded-2xl pr-10 focus-visible:ring-0 focus-visible:ring-offset-0" />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors">
+                  <Input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password (min 6 characters)" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl pr-10 focus-visible:ring-0 focus-visible:ring-offset-0" />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-600 transition-colors">
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
@@ -2646,9 +2646,9 @@ const Auth = () => {
 
               <div className="relative group">
                 <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-purple-500/40 to-pink-500/40 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
-                <div className="relative flex items-center bg-white/[0.06] rounded-2xl overflow-hidden">
+                <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
                   <div className="pl-4 pr-2"><Lock className="w-5 h-5 text-purple-400/70" /></div>
-                  <Input type={showPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm password" className="h-13 bg-transparent border-0 text-white placeholder:text-white/30 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" />
+                  <Input type={showPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm password" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" />
                 </div>
               </div>
               
@@ -2671,7 +2671,7 @@ const Auth = () => {
       <Dialog open={authStep === "otp_verify"} onOpenChange={() => closeDialog()}>
         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto p-0 border-0 rounded-3xl overflow-visible bg-transparent shadow-2xl shadow-pink-900/30">
           <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-pink-500/40 via-violet-500/30 to-pink-500/40 animate-[spin_8s_linear_infinite] blur-[1px]" style={{ padding: '1px' }} />
-          <div className="relative rounded-3xl bg-gradient-to-br from-[#0d0d1a] via-[#1a1025] to-[#0d0d1a] backdrop-blur-xl p-6">
+          <div className="relative rounded-3xl bg-gradient-to-br from-[#FFFBF2] via-[#FAF5F2] to-[#FFFBF2] backdrop-blur-xl p-6">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-40 bg-pink-600/12 rounded-full blur-3xl pointer-events-none" />
             {/* Close button handled by DialogContent */}
 
@@ -2684,15 +2684,15 @@ const Auth = () => {
                   </div>
                 </div>
               </div>
-              <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-pink-100 to-white bg-clip-text text-transparent">Verify Your Email</DialogTitle>
-              <DialogDescription className="text-white/50 text-center text-sm mt-1">Enter the 6-digit code sent to <span className="text-pink-400 font-medium">{email}</span></DialogDescription>
+              <DialogTitle className="text-slate-800 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 bg-clip-text text-transparent">Verify Your Email</DialogTitle>
+              <DialogDescription className="text-slate-600 text-center text-sm mt-1">Enter the 6-digit code sent to <span className="text-pink-400 font-medium">{email}</span></DialogDescription>
             </DialogHeader>
             
             <div className="py-5 space-y-6 relative z-10">
               <div className="flex justify-center">
                 <div className="relative group">
                   <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-pink-500/50 via-purple-500/50 to-pink-500/50 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
-                  <Input type="text" value={otpCode} onChange={(e) => { const value = e.target.value.replace(/\D/g, '').slice(0, 6); setOtpCode(value); }} placeholder="000000" maxLength={6} className="relative h-16 w-52 text-center text-3xl font-bold tracking-[0.5em] bg-white/[0.06] border-0 text-white placeholder:text-white/20 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" autoFocus />
+                  <Input type="text" value={otpCode} onChange={(e) => { const value = e.target.value.replace(/\D/g, '').slice(0, 6); setOtpCode(value); }} placeholder="000000" maxLength={6} className="relative h-16 w-52 text-center text-3xl font-bold tracking-[0.5em] bg-white border border-amber-200/70 text-slate-800 placeholder:text-slate-300 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" autoFocus />
                 </div>
               </div>
               
@@ -2708,7 +2708,7 @@ const Auth = () => {
               </Button>
               
               <div className="text-center space-y-2">
-                <p className="text-white/35 text-sm">Didn't receive the code?</p>
+                <p className="text-slate-500 text-sm">Didn't receive the code?</p>
                 <button onClick={handleResendOtp} disabled={otpLoading} className="text-pink-400 text-sm font-semibold hover:text-pink-300 transition-all disabled:opacity-40 hover:underline underline-offset-4">Resend Code</button>
               </div>
             </div>
@@ -2720,29 +2720,29 @@ const Auth = () => {
       <Dialog open={authStep === "login"} onOpenChange={() => resetAuthState()}>
         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto p-0 border-0 rounded-3xl overflow-visible bg-transparent shadow-2xl shadow-indigo-900/30">
           <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-indigo-500/40 via-purple-500/30 to-pink-500/40 animate-[spin_8s_linear_infinite] blur-[1px]" style={{ padding: '1px' }} />
-          <div className="relative rounded-3xl bg-gradient-to-br from-[#0d0d1a] via-[#12102a] to-[#0d0d1a] backdrop-blur-xl p-6">
+          <div className="relative rounded-3xl bg-gradient-to-br from-[#FFFBF2] via-[#F5F5FA] to-[#FFFBF2] backdrop-blur-xl p-6">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-40 bg-indigo-600/12 rounded-full blur-3xl pointer-events-none" />
             {/* Close button handled by DialogContent */}
 
             <DialogHeader className="relative z-10">
-              <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-indigo-100 to-white bg-clip-text text-transparent">Welcome Back</DialogTitle>
-              <DialogDescription className="text-white/50 text-center text-sm mt-1">Login to your account</DialogDescription>
+              <DialogTitle className="text-slate-800 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-indigo-100 to-white bg-clip-text text-transparent">Welcome Back</DialogTitle>
+              <DialogDescription className="text-slate-600 text-center text-sm mt-1">Login to your account</DialogDescription>
             </DialogHeader>
             
             <div className="py-5 space-y-4 relative z-10">
               <div className="relative group">
                 <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-indigo-500/40 to-purple-500/40 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
-                <div className="relative flex items-center bg-white/[0.06] rounded-2xl overflow-hidden">
+                <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
                   <div className="pl-4 pr-2"><Mail className="w-5 h-5 text-indigo-400/70" /></div>
-                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email address" className="h-13 bg-transparent border-0 text-white placeholder:text-white/30 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" />
+                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email address" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" />
                 </div>
               </div>
               
               <div className="relative group">
                 <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-indigo-500/40 to-purple-500/40 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
-                <div className="relative flex items-center bg-white/[0.06] rounded-2xl overflow-hidden">
+                <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
                   <div className="pl-4 pr-2"><Lock className="w-5 h-5 text-indigo-400/70" /></div>
-                  <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className="h-13 bg-transparent border-0 text-white placeholder:text-white/30 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" />
+                  <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" />
                 </div>
               </div>
               
@@ -2755,7 +2755,7 @@ const Auth = () => {
               </Button>
               
               <div className="text-center pt-1">
-                <button onClick={() => { setIsEmailFlow(true); setEmail(""); setAuthStep("email"); }} className="text-white/40 text-sm hover:text-white/70 transition-colors">
+                <button onClick={() => { setIsEmailFlow(true); setEmail(""); setAuthStep("email"); }} className="text-slate-500 text-sm hover:text-slate-700 transition-colors">
                   Don't have an account? <span className="text-pink-400 font-semibold hover:text-pink-300">Sign Up</span>
                 </button>
               </div>
@@ -2768,7 +2768,7 @@ const Auth = () => {
       <Dialog open={authStep === "phone_input"} onOpenChange={() => resetAuthState()}>
         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto p-0 border-0 rounded-3xl overflow-visible bg-transparent shadow-2xl shadow-green-900/40">
           <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-green-500/40 via-emerald-500/30 to-teal-500/40 animate-[spin_8s_linear_infinite] blur-[1px]" style={{ padding: '1px' }} />
-          <div className="relative rounded-3xl bg-gradient-to-br from-[#0d0d1a] via-[#0a1a12] to-[#0d0d1a] backdrop-blur-xl p-6">
+          <div className="relative rounded-3xl bg-gradient-to-br from-[#FFFBF2] via-[#F5FBF6] to-[#FFFBF2] backdrop-blur-xl p-6">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-40 bg-green-600/15 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute bottom-0 right-0 w-32 h-32 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -2781,10 +2781,10 @@ const Auth = () => {
                   </div>
                 </div>
               </div>
-              <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-green-100 to-white bg-clip-text text-transparent">
+              <DialogTitle className="text-slate-800 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-green-100 to-white bg-clip-text text-transparent">
                 Enter Phone Number
               </DialogTitle>
-              <DialogDescription className="text-white/50 text-center text-sm mt-1">
+              <DialogDescription className="text-slate-600 text-center text-sm mt-1">
                 We'll send a verification code via WhatsApp
               </DialogDescription>
             </DialogHeader>
@@ -2797,28 +2797,28 @@ const Auth = () => {
                   <button
                     type="button"
                     onClick={() => setShowCountryPicker(!showCountryPicker)}
-                    className="w-full h-14 flex items-center justify-between px-4 bg-white/[0.06] rounded-2xl border border-white/10 hover:border-green-500/40 transition-colors"
+                    className="w-full h-14 flex items-center justify-between px-4 bg-white border border-amber-200/70 rounded-2xl border border-white/10 hover:border-green-500/40 transition-colors"
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-2xl">{selectedCountry.flag}</span>
-                      <span className="text-white font-semibold">{selectedCountry.code}</span>
-                      <span className="text-white/40 text-sm">{selectedCountry.name}</span>
+                      <span className="text-slate-800 font-semibold">{selectedCountry.code}</span>
+                      <span className="text-slate-500 text-sm">{selectedCountry.name}</span>
                     </div>
-                    <ChevronDown className={`w-5 h-5 text-white/40 transition-transform ${showCountryPicker ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-5 h-5 text-slate-500 transition-transform ${showCountryPicker ? 'rotate-180' : ''}`} />
                   </button>
 
                   {/* Country Dropdown */}
                   {showCountryPicker && (
                     <div className="absolute top-full left-0 right-0 mt-2 bg-[#1a1a2e] border border-white/10 rounded-2xl shadow-2xl shadow-black/50 z-50 max-h-64 overflow-hidden">
                       <div className="p-2 border-b border-white/10">
-                        <div className="flex items-center bg-white/[0.06] rounded-xl px-3">
-                          <Search className="w-4 h-4 text-white/30" />
+                        <div className="flex items-center bg-white border border-amber-200/70 rounded-xl px-3">
+                          <Search className="w-4 h-4 text-slate-500" />
                           <input
                             type="text"
                             value={countrySearch}
                             onChange={(e) => setCountrySearch(e.target.value)}
                             placeholder="Search country..."
-                            className="w-full h-10 bg-transparent border-0 text-white text-sm placeholder:text-white/30 outline-none px-2"
+                            className="w-full h-10 bg-transparent border-0 text-slate-800 text-sm placeholder:text-slate-400 outline-none px-2"
                             autoFocus
                           />
                         </div>
@@ -2838,7 +2838,7 @@ const Auth = () => {
                             }`}
                           >
                             <span className="text-xl">{country.flag}</span>
-                            <span className="text-white/80 text-sm flex-1 text-left">{country.name}</span>
+                            <span className="text-slate-700 text-sm flex-1 text-left">{country.name}</span>
                             <span className="text-green-400/70 text-sm font-mono">{country.code}</span>
                           </button>
                         ))}
@@ -2850,7 +2850,7 @@ const Auth = () => {
                 {/* Phone Number Input */}
                 <div className="relative group">
                   <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-green-500/50 via-emerald-500/50 to-green-500/50 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
-                  <div className="relative flex items-center bg-white/[0.06] rounded-2xl overflow-hidden">
+                  <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
                     <div className="pl-4 pr-2 flex items-center gap-1.5 border-r border-white/10">
                       <span className="text-lg">{selectedCountry.flag}</span>
                       <span className="text-green-400 font-semibold text-sm">{selectedCountryCode}</span>
@@ -2863,7 +2863,7 @@ const Auth = () => {
                         setPhoneNumber(value);
                       }}
                       placeholder="1XXXXXXXXX"
-                      className="h-14 bg-transparent border-0 text-white placeholder:text-white/30 rounded-2xl text-base focus-visible:ring-0 focus-visible:ring-offset-0"
+                      className="h-14 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl text-base focus-visible:ring-0 focus-visible:ring-offset-0"
                       autoFocus={!showCountryPicker}
                     />
                   </div>
@@ -2896,7 +2896,7 @@ const Auth = () => {
               <div className="text-center pt-1">
                 <button
                   onClick={() => { setIsEmailFlow(true); setEmail(""); setAuthStep("email"); }}
-                  className="text-white/40 text-sm hover:text-white/70 transition-colors"
+                  className="text-slate-500 text-sm hover:text-slate-700 transition-colors"
                 >
                   Use email instead? <span className="text-green-400 font-semibold hover:text-green-300">Email Sign Up</span>
                 </button>
@@ -2910,7 +2910,7 @@ const Auth = () => {
       <Dialog open={authStep === "phone_otp"} onOpenChange={() => resetAuthState()}>
         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto p-0 border-0 rounded-3xl overflow-visible bg-transparent shadow-2xl shadow-green-900/30">
           <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-green-500/40 via-teal-500/30 to-emerald-500/40 animate-[spin_8s_linear_infinite] blur-[1px]" style={{ padding: '1px' }} />
-          <div className="relative rounded-3xl bg-gradient-to-br from-[#0d0d1a] via-[#0a1a12] to-[#0d0d1a] backdrop-blur-xl p-6">
+          <div className="relative rounded-3xl bg-gradient-to-br from-[#FFFBF2] via-[#F5FBF6] to-[#FFFBF2] backdrop-blur-xl p-6">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-40 bg-green-600/12 rounded-full blur-3xl pointer-events-none" />
 
             <DialogHeader className="relative z-10">
@@ -2922,10 +2922,10 @@ const Auth = () => {
                   </div>
                 </div>
               </div>
-              <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-green-100 to-white bg-clip-text text-transparent">
+              <DialogTitle className="text-slate-800 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-green-100 to-white bg-clip-text text-transparent">
                 WhatsApp Verification
               </DialogTitle>
-              <DialogDescription className="text-white/50 text-center text-sm mt-1">
+              <DialogDescription className="text-slate-600 text-center text-sm mt-1">
                 6-digit code sent to <span className="text-green-400 font-medium">{selectedCountryCode} {phoneNumber}</span> via WhatsApp
               </DialogDescription>
             </DialogHeader>
@@ -2943,7 +2943,7 @@ const Auth = () => {
                     }}
                     placeholder="000000"
                     maxLength={6}
-                    className="relative h-16 w-52 text-center text-3xl font-bold tracking-[0.5em] bg-white/[0.06] border-0 text-white placeholder:text-white/20 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0"
+                    className="relative h-16 w-52 text-center text-3xl font-bold tracking-[0.5em] bg-white border border-amber-200/70 text-slate-800 placeholder:text-slate-300 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0"
                     autoFocus
                   />
                 </div>
@@ -2965,7 +2965,7 @@ const Auth = () => {
               </Button>
 
               <div className="text-center space-y-2">
-                <p className="text-white/35 text-sm">Didn't receive the code?</p>
+                <p className="text-slate-500 text-sm">Didn't receive the code?</p>
                 <button
                   onClick={handleResendPhoneOtp}
                   disabled={phoneOtpLoading}
@@ -2983,7 +2983,7 @@ const Auth = () => {
       <Dialog open={authStep === "phone_password"} onOpenChange={() => resetAuthState()}>
         <DialogContent className="max-w-[90vw] sm:max-w-sm mx-auto p-0 border-0 rounded-3xl overflow-visible bg-transparent shadow-2xl shadow-green-900/40">
           <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-green-500/40 via-emerald-500/30 to-teal-500/40 animate-[spin_8s_linear_infinite] blur-[1px]" style={{ padding: '1px' }} />
-          <div className="relative rounded-3xl bg-gradient-to-br from-[#0d0d1a] via-[#0a1a12] to-[#0d0d1a] backdrop-blur-xl p-6">
+          <div className="relative rounded-3xl bg-gradient-to-br from-[#FFFBF2] via-[#F5FBF6] to-[#FFFBF2] backdrop-blur-xl p-6">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-40 bg-green-600/12 rounded-full blur-3xl pointer-events-none" />
 
             <DialogHeader className="relative z-10">
@@ -2995,25 +2995,25 @@ const Auth = () => {
                   </div>
                 </div>
               </div>
-              <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-green-100 to-white bg-clip-text text-transparent">Complete Your Profile</DialogTitle>
-              <DialogDescription className="text-white/50 text-center text-sm mt-1">Set your name and password</DialogDescription>
+              <DialogTitle className="text-slate-800 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-green-100 to-white bg-clip-text text-transparent">Complete Your Profile</DialogTitle>
+              <DialogDescription className="text-slate-600 text-center text-sm mt-1">Set your name and password</DialogDescription>
             </DialogHeader>
 
             <div className="py-5 space-y-4 relative z-10">
               <div className="relative group">
                 <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-green-500/40 to-emerald-500/40 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
-                <div className="relative flex items-center bg-white/[0.06] rounded-2xl overflow-hidden">
+                <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
                   <div className="pl-4 pr-2"><User className="w-5 h-5 text-green-400/70" /></div>
-                  <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Your name" className="h-13 bg-transparent border-0 text-white placeholder:text-white/30 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" autoFocus />
+                  <Input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Your name" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" autoFocus />
                 </div>
               </div>
 
               <div className="relative group">
                 <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-green-500/40 to-emerald-500/40 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
-                <div className="relative flex items-center bg-white/[0.06] rounded-2xl overflow-hidden">
+                <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
                   <div className="pl-4 pr-2"><Lock className="w-5 h-5 text-green-400/70" /></div>
-                  <Input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password (min 6 characters)" className="h-13 bg-transparent border-0 text-white placeholder:text-white/30 rounded-2xl pr-10 focus-visible:ring-0 focus-visible:ring-offset-0" />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors">
+                  <Input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password (min 6 characters)" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl pr-10 focus-visible:ring-0 focus-visible:ring-offset-0" />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-600 transition-colors">
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
@@ -3021,9 +3021,9 @@ const Auth = () => {
 
               <div className="relative group">
                 <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-green-500/40 to-emerald-500/40 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
-                <div className="relative flex items-center bg-white/[0.06] rounded-2xl overflow-hidden">
+                <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
                   <div className="pl-4 pr-2"><Lock className="w-5 h-5 text-green-400/70" /></div>
-                  <Input type={showPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm password" className="h-13 bg-transparent border-0 text-white placeholder:text-white/30 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" />
+                  <Input type={showPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm password" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" />
                 </div>
               </div>
 
