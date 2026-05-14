@@ -2159,15 +2159,15 @@ const Auth = () => {
           {/* Start Button - Premium Mobile Design */}
           <Button
             onClick={handleStartClick}
- className="w-full h-11 rounded-2xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-500 hover:from-purple-700 hover:via-fuchsia-600 hover:to-pink-600 text-slate-900 text-sm font-bold shadow-[0_6px_24px_-6px_rgba(168,85,247,0.5)] border border-purple-400/30 transition-all duration-300 active:scale-[0.98] backdrop-blur-md"
+  className="w-full h-11 rounded-2xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-500 hover:from-purple-700 hover:via-fuchsia-600 hover:to-pink-600 text-white text-sm font-bold shadow-[0_6px_24px_-6px_rgba(168,85,247,0.5)] border border-purple-400/30 transition-all duration-300 active:scale-[0.98] backdrop-blur-md" /* dark-ok */
             disabled={loading}
           >
             {loading ? (
- <div className="w-5 h-5 border-2 border-slate-200/40 border-t-white rounded-full animate-spin" />
+  <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> /* dark-ok */
             ) : (
               <span className="flex items-center gap-2">
                 <Rocket3DIcon className="w-5 h-5" />
-                <span className="drop-shadow-lg tracking-wide">Start</span>
+                <span className="drop-shadow-lg tracking-wide">Get Started</span>
               </span>
             )}
           </Button>
