@@ -2164,7 +2164,7 @@ const FaceVerification = () => {
             <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-2xl p-4 mb-2">
               <div className="flex items-center gap-3">
                 <div className="w-14 h-14 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
-                  <ShieldCheck className="w-7 h-7 text-slate-800" />
+                  <ShieldCheck className="w-7 h-7 text-white" />
                 </div>
                 <div>
                   <h3 className="font-bold text-slate-800 text-lg">Step 3: Face Verification</h3>
