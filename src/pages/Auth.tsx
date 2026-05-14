@@ -2461,11 +2461,11 @@ const Auth = () => {
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-br from-pink-500 to-purple-600 rounded-full blur-lg opacity-60 animate-pulse" />
                   <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-violet-600 flex items-center justify-center shadow-lg shadow-purple-500/30 ring-2 ring-white/10">
- <Mail className="w-9 h-9 text-slate-900 drop-shadow-lg" />
+ <Mail className="w-9 h-9 text-white drop-shadow-lg" />
                   </div>
                 </div>
               </div>
- <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 bg-clip-text text-transparent">
+ <DialogTitle className="text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-pink-700 via-rose-600 to-pink-700 bg-clip-text text-transparent">
                 Enter Your Email
               </DialogTitle>
               <DialogDescription className="text-slate-600 text-center text-sm mt-1">
