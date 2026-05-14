@@ -408,15 +408,11 @@ const Invitation = () => {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.15 }}
-            className="rounded-2xl overflow-hidden"
-            style={{
-              background: 'linear-gradient(180deg, rgba(20,0,40,0.8), rgba(10,0,20,0.9))',
-              border: '1px solid rgba(168,85,247,0.2)',
-            }}
+            className="rounded-2xl overflow-hidden bg-white border border-amber-200/70 shadow-lg shadow-amber-900/5"
           >
-            <div className="flex items-center gap-2 px-5 pt-5 pb-3">
-              <Gift className="w-5 h-5 text-amber-400" />
-              <h3 className="text-slate-800 font-bold text-base">Reward Tiers</h3>
+            <div className="flex items-center gap-2 px-5 pt-5 pb-3 border-b border-amber-100">
+              <Gift className="w-5 h-5 text-amber-500" />
+              <h3 className="text-slate-900 font-bold text-base">Reward Tiers</h3>
             </div>
             
             <div className="px-4 pb-4 space-y-2.5">
