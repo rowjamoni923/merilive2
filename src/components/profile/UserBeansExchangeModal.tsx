@@ -156,20 +156,20 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#FFFBF2] border border-amber-500/15 max-w-md mx-4 rounded-3xl p-0 overflow-hidden [&>button]:hidden shadow-[0_0_80px_-20px_rgba(245,158,11,0.15)]">
+      <DialogContent className="bg-[#FFFBF2] border border-warning-500/15 max-w-md mx-4 rounded-3xl p-0 overflow-hidden [&>button]:hidden shadow-[0_0_80px_-20px_rgba(245,158,11,0.15)]">
         <div className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-amber-600/20 via-yellow-500/10 to-amber-600/20" />
-          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-warning-600/20 via-warning-500/10 to-warning-600/20" />
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-warning-500/50 to-transparent" />
           <div className="relative p-5 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 flex items-center justify-center shadow-lg shadow-amber-500/30">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-warning-400 to-warning-600 flex items-center justify-center shadow-lg shadow-warning-500/30">
                 <ArrowDownUp className="w-4 h-4 text-black" />
               </div>
               <h2 className="text-slate-800 font-bold text-lg tracking-tight">Beans → Diamonds</h2>
             </div>
             <button
               onClick={() => onOpenChange(false)}
-              className="w-8 h-8 rounded-full bg-white hover:bg-amber-50/70 border border-amber-200/60 flex items-center justify-center transition-all"
+              className="w-8 h-8 rounded-full bg-white hover:bg-warning-50/70 border border-warning-200/60 flex items-center justify-center transition-all"
             >
               <X className="w-4 h-4 text-slate-600" />
             </button>
@@ -177,12 +177,12 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
         </div>
 
         <div className="p-5 space-y-5">
-          <div className="relative overflow-hidden rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 via-transparent to-orange-500/5 p-4">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+          <div className="relative overflow-hidden rounded-2xl border border-warning-500/20 bg-gradient-to-br from-warning-500/5 via-transparent to-warning-500/5 p-4">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-warning-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
             <div className="relative flex items-center justify-center gap-3">
               <Beans3DIcon size={36} />
               <div className="text-center">
-                <span className="text-amber-700 font-bold text-3xl tracking-tight">
+                <span className="text-warning-700 font-bold text-3xl tracking-tight">
                   {currentBeans.toLocaleString()}
                 </span>
                 <p className="text-slate-600 text-xs font-medium mt-0.5">Available Beans</p>
@@ -195,8 +195,8 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
               onClick={() => { setUseCustom(false); setCustomBeans(""); }}
               className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all duration-300 border ${
                 !useCustom
-                  ? 'bg-amber-500/15 border-amber-500/40 text-amber-700 shadow-[0_0_20px_-5px_rgba(245,158,11,0.3)]'
-                  : 'bg-white border-amber-200/60 text-slate-600 hover:text-slate-600 hover:border-amber-200/60'
+                  ? 'bg-warning-500/15 border-warning-500/40 text-warning-700 shadow-[0_0_20px_-5px_rgba(245,158,11,0.3)]'
+                  : 'bg-white border-warning-200/60 text-slate-600 hover:text-slate-600 hover:border-warning-200/60'
               }`}
             >
               <Sparkles className="w-3.5 h-3.5 inline mr-1.5" />
@@ -206,8 +206,8 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
               onClick={() => { setUseCustom(true); setSelectedTier(null); }}
               className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all duration-300 border ${
                 useCustom
-                  ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-700 shadow-[0_0_20px_-5px_rgba(6,182,212,0.3)]'
-                  : 'bg-white border-amber-200/60 text-slate-600 hover:text-slate-600 hover:border-amber-200/60'
+                  ? 'bg-info-500/15 border-info-500/40 text-info-700 shadow-[0_0_20px_-5px_rgba(6,182,212,0.3)]'
+                  : 'bg-white border-warning-200/60 text-slate-600 hover:text-slate-600 hover:border-warning-200/60'
               }`}
             >
               Custom Amount
@@ -216,7 +216,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
 
           {loading ? (
             <div className="flex items-center justify-center py-10">
-              <div className="w-8 h-8 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin" />
+              <div className="w-8 h-8 border-2 border-warning-500/30 border-t-amber-500 rounded-full animate-spin" />
             </div>
           ) : tiers.length === 0 ? (
             <div className="py-10 text-center text-slate-600 text-sm">
@@ -233,31 +233,31 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
                   placeholder="Enter beans amount..."
                   value={customBeans}
                   onChange={(e) => setCustomBeans(e.target.value)}
-                  className="w-full h-14 pl-12 pr-4 rounded-2xl bg-white border border-amber-200/60 text-slate-800 text-lg font-semibold placeholder:text-slate-600 focus:outline-none focus:border-cyan-500/50 focus:bg-cyan-500/5 transition-all"
+                  className="w-full h-14 pl-12 pr-4 rounded-2xl bg-white border border-warning-200/60 text-slate-800 text-lg font-semibold placeholder:text-slate-600 focus:outline-none focus:border-info-500/50 focus:bg-info-500/5 transition-all"
                 />
               </div>
 
               {customBeansNum > 0 && customTier && (
-                <div className="flex items-center justify-center gap-3 py-3 px-4 rounded-2xl bg-gradient-to-r from-cyan-500/5 to-blue-500/5 border border-cyan-500/15">
+                <div className="flex items-center justify-center gap-3 py-3 px-4 rounded-2xl bg-gradient-to-r from-info-500/5 to-info-500/5 border border-info-500/15">
                   <div className="flex items-center gap-1.5">
                     <Beans3DIcon size={18} />
-                    <span className="text-amber-700 font-bold">{customBeansNum.toLocaleString()}</span>
+                    <span className="text-warning-700 font-bold">{customBeansNum.toLocaleString()}</span>
                   </div>
                   <ArrowRight className="w-4 h-4 text-slate-600" />
                   <div className="flex items-center gap-1.5">
                     <Diamond3DIcon size={18} />
-                    <span className="text-cyan-700 font-bold">{customDiamonds.toLocaleString()}</span>
+                    <span className="text-info-700 font-bold">{customDiamonds.toLocaleString()}</span>
                   </div>
                 </div>
               )}
 
               {customBeansNum > 0 && !customTier && (
-                <p className="text-amber-700/80 text-xs text-center">
+                <p className="text-warning-700/80 text-xs text-center">
                   Amount doesn't match any active tier range.
                 </p>
               )}
               {customBeansNum > 0 && customTier && currentBeans < customBeansNum && (
-                <p className="text-red-600/80 text-xs text-center">
+                <p className="text-danger-600/80 text-xs text-center">
                   Insufficient beans. You need {(customBeansNum - currentBeans).toLocaleString()} more.
                 </p>
               )}
@@ -277,14 +277,14 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
                     disabled={!canAfford}
                     className={`relative p-3.5 rounded-2xl border transition-all duration-300 group ${
                       isSelected
-                        ? 'border-cyan-400/60 bg-gradient-to-br from-cyan-500/15 to-blue-600/10 shadow-[0_0_30px_-8px_rgba(6,182,212,0.4)] scale-[1.02]'
+                        ? 'border-info-400/60 bg-gradient-to-br from-info-500/15 to-info-600/10 shadow-[0_0_30px_-8px_rgba(6,182,212,0.4)] scale-[1.02]'
                         : canAfford
-                          ? 'border-amber-200/60 bg-white hover:border-amber-500/30 hover:bg-amber-500/5'
-                          : 'border-amber-200/60 bg-white opacity-35 cursor-not-allowed'
+                          ? 'border-warning-200/60 bg-white hover:border-warning-500/30 hover:bg-warning-500/5'
+                          : 'border-warning-200/60 bg-white opacity-35 cursor-not-allowed'
                     }`}
                   >
                     {isSelected && (
-                      <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-cyan-500 flex items-center justify-center shadow-lg shadow-cyan-500/50">
+                      <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-info-500 flex items-center justify-center shadow-lg shadow-info-500/50">
                         <CheckCircle2 className="w-3.5 h-3.5 text-slate-800" />
                       </div>
                     )}
@@ -295,17 +295,17 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
                       )}
                       <div className="flex items-center justify-center gap-1.5">
                         <Beans3DIcon size={18} />
-                        <span className="text-amber-700 font-bold text-base">{tierBeans.toLocaleString()}</span>
+                        <span className="text-warning-700 font-bold text-base">{tierBeans.toLocaleString()}</span>
                       </div>
 
                       <div className="text-slate-600 text-[10px]">→</div>
 
                       <div className="flex items-center justify-center gap-1.5">
                         <Diamond3DIcon size={18} />
-                        <span className="text-cyan-700 font-bold text-base">{tierDiamonds.toLocaleString()}</span>
+                        <span className="text-info-700 font-bold text-base">{tierDiamonds.toLocaleString()}</span>
                       </div>
                       {(tier.bonus_percent ?? 0) > 0 && (
-                        <p className="text-[10px] text-emerald-700">+{tier.bonus_percent}% bonus</p>
+                        <p className="text-[10px] text-success-700">+{tier.bonus_percent}% bonus</p>
                       )}
                     </div>
                   </button>
@@ -319,7 +319,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
             disabled={!isReady || processing}
             className={`w-full h-14 rounded-2xl text-base font-bold transition-all duration-300 border-0 ${
               isReady
-                ? 'bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 text-black shadow-[0_4px_30px_-5px_rgba(245,158,11,0.5)] hover:shadow-[0_4px_40px_-5px_rgba(245,158,11,0.7)]'
+                ? 'bg-gradient-to-r from-warning-500 via-warning-500 to-warning-500 text-black shadow-[0_4px_30px_-5px_rgba(245,158,11,0.5)] hover:shadow-[0_4px_40px_-5px_rgba(245,158,11,0.7)]'
                 : 'bg-white text-slate-600 cursor-not-allowed'
             }`}
           >

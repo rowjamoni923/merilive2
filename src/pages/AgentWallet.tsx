@@ -340,7 +340,7 @@ const AgentWallet = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-success-500" />
       </div>
     );
   }
@@ -348,7 +348,7 @@ const AgentWallet = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-background">
       {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-emerald-500 to-teal-600 text-white safe-area-top">
+      <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-success-500 to-success-600 text-white safe-area-top">
         <div className="flex items-center h-14 px-4">
           <button 
             onClick={() => navigate(-1)}
@@ -365,7 +365,7 @@ const AgentWallet = () => {
         {/* Balance Cards */}
         <div className="mx-4 mt-4 space-y-3">
         {/* Coins Balance */}
-        <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-5 text-white shadow-lg">
+        <div className="bg-gradient-to-br from-success-500 to-success-600 rounded-2xl p-5 text-white shadow-lg">
           <div className="flex items-center gap-2 mb-1">
             <Wallet className="w-5 h-5" />
             <span className="text-slate-700 text-sm">Diamond Balance</span>
@@ -386,7 +386,7 @@ const AgentWallet = () => {
             </Button>
             <Button 
               variant="outline"
-              className="border-amber-200/60 text-slate-800 bg-transparent hover:bg-white/10"
+              className="border-warning-200/60 text-slate-800 bg-transparent hover:bg-white/10"
               onClick={() => navigate("/transfer-history")}
             >
               <History className="w-4 h-4 mr-2" />
@@ -396,7 +396,7 @@ const AgentWallet = () => {
         </div>
 
         {/* Beans/Income Balance */}
-        <div className="bg-gradient-to-br from-amber-500 to-orange-500 rounded-2xl p-5 text-white shadow-lg">
+        <div className="bg-gradient-to-br from-warning-500 to-warning-500 rounded-2xl p-5 text-white shadow-lg">
           <div className="flex items-center gap-2 mb-1">
             <Gem className="w-5 h-5" />
             <span className="text-slate-700 text-sm">Income Balance (Beans)</span>
@@ -436,9 +436,9 @@ const AgentWallet = () => {
                       setShowTransfer(true);
                     }}
                     disabled={diamondBalance < amount}
-                    className="p-3 rounded-xl border border-gray-100 hover:border-emerald-300 hover:bg-emerald-50 transition-colors text-center disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-3 rounded-xl border border-gray-100 hover:border-success-300 hover:bg-success-50 transition-colors text-center disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <div className="flex items-center justify-center gap-1 text-yellow-500 font-bold">
+                    <div className="flex items-center justify-center gap-1 text-warning-500 font-bold">
                       <span>🪙</span>
                       <span>{amount.toLocaleString()}</span>
                     </div>
@@ -459,9 +459,9 @@ const AgentWallet = () => {
                       setShowExchange(true);
                     }}
                     disabled={beansBalance < amount}
-                    className="p-3 rounded-xl border border-gray-100 hover:border-amber-300 hover:bg-amber-50 transition-colors text-center disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-3 rounded-xl border border-gray-100 hover:border-warning-300 hover:bg-warning-50 transition-colors text-center disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <div className="flex items-center justify-center gap-1 text-amber-600 font-bold">
+                    <div className="flex items-center justify-center gap-1 text-warning-600 font-bold">
                       <Gem className="w-4 h-4" />
                       <span>{amount.toLocaleString()}</span>
                     </div>
@@ -476,12 +476,12 @@ const AgentWallet = () => {
 
       {/* Info Cards */}
       <div className="mx-4 mt-4 space-y-3">
-        <div className="bg-blue-50 rounded-2xl p-4 border border-blue-100">
+        <div className="bg-info-50 rounded-2xl p-4 border border-info-100">
           <div className="flex items-start gap-2">
-            <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+            <Info className="w-5 h-5 text-info-500 shrink-0 mt-0.5" />
             <div>
-              <h4 className="font-medium text-blue-800">Exchange Info</h4>
-              <ul className="text-sm text-blue-700 mt-1 space-y-1">
+              <h4 className="font-medium text-info-800">Exchange Info</h4>
+              <ul className="text-sm text-info-700 mt-1 space-y-1">
                 <li>• 1 Bean = 1 Coin (1:1 ratio)</li>
                 <li>• Minimum exchange: 10,000 beans</li>
                 <li>• Beans come from host commissions</li>
@@ -490,12 +490,12 @@ const AgentWallet = () => {
           </div>
         </div>
 
-        <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-100">
+        <div className="bg-success-50 rounded-2xl p-4 border border-success-100">
           <div className="flex items-start gap-2">
-            <Info className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+            <Info className="w-5 h-5 text-success-500 shrink-0 mt-0.5" />
             <div>
-              <h4 className="font-medium text-emerald-800">Transfer Info</h4>
-              <ul className="text-sm text-emerald-700 mt-1 space-y-1">
+              <h4 className="font-medium text-success-800">Transfer Info</h4>
+              <ul className="text-sm text-success-700 mt-1 space-y-1">
                 <li>• Send coins to users by their ID</li>
                 <li>• Minimum transfer: 10,000 coins</li>
                 <li>• Instant transfer</li>
@@ -511,7 +511,7 @@ const AgentWallet = () => {
           <h3 className="font-semibold">Recent Transfers</h3>
           <button 
             onClick={() => navigate("/transfer-history")}
-            className="text-sm text-emerald-600 font-medium"
+            className="text-sm text-success-600 font-medium"
           >
             View All
           </button>
@@ -539,10 +539,10 @@ const AgentWallet = () => {
                   <p className="text-xs text-gray-500">{formatDate(tx.created_at)}</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-sm text-orange-600">
+                  <p className="font-bold text-sm text-warning-600">
                     -{tx.amount.toLocaleString()}
                   </p>
-                  <Badge variant="outline" className="text-[10px] text-green-600 border-green-200">
+                  <Badge variant="outline" className="text-[10px] text-success-600 border-success-200">
                     <CheckCircle2 className="w-3 h-3 mr-0.5" />
                     Completed
                   </Badge>
@@ -565,7 +565,7 @@ const AgentWallet = () => {
             <div className="bg-gray-50 rounded-xl p-3">
               <p className="text-sm text-gray-600">Available Coins</p>
               <div className="flex items-center gap-1 mt-1">
-                <span className="text-yellow-500">🪙</span>
+                <span className="text-warning-500">🪙</span>
                 <span className="font-bold text-lg">{diamondBalance.toLocaleString()}</span>
               </div>
             </div>
@@ -619,7 +619,7 @@ const AgentWallet = () => {
                       <p className="font-medium text-sm">
                         {user.display_name || user.username || "Unknown"}
                         {user.is_verified && (
-                          <CheckCircle2 className="w-4 h-4 text-blue-500 inline ml-1" />
+                          <CheckCircle2 className="w-4 h-4 text-info-500 inline ml-1" />
                         )}
                       </p>
                       <p className="text-xs text-gray-500 truncate">UID: {user.app_uid || user.id.slice(0, 8)}</p>
@@ -634,20 +634,20 @@ const AgentWallet = () => {
 
             {/* Found User Display */}
             {foundUser && (
-              <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-xl">
-                <Avatar className="w-12 h-12 border-2 border-green-300">
+              <div className="flex items-center gap-3 p-3 bg-success-50 border border-success-200 rounded-xl">
+                <Avatar className="w-12 h-12 border-2 border-success-300">
                   <AvatarImage src={foundUser.avatar_url || ""} />
                   <AvatarFallback>
                     <User className="w-6 h-6" />
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <p className="font-semibold text-green-800">
+                  <p className="font-semibold text-success-800">
                     {foundUser.display_name || foundUser.username || "Unknown"}
                   </p>
-                  <p className="text-sm text-green-600">UID: {foundUser.app_uid || foundUser.id.slice(0, 8)}</p>
+                  <p className="text-sm text-success-600">UID: {foundUser.app_uid || foundUser.id.slice(0, 8)}</p>
                 </div>
-                <CheckCircle2 className="w-6 h-6 text-green-600" />
+                <CheckCircle2 className="w-6 h-6 text-success-600" />
               </div>
             )}
 
@@ -671,7 +671,7 @@ const AgentWallet = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => setTransferAmount(amount.toString())}
-                  className={transferAmount === amount.toString() ? "border-emerald-500 bg-emerald-50" : ""}
+                  className={transferAmount === amount.toString() ? "border-success-500 bg-success-50" : ""}
                   disabled={diamondBalance < amount}
                 >
                   {i === 3 ? "All" : amount.toLocaleString()}
@@ -680,9 +680,9 @@ const AgentWallet = () => {
             </div>
 
             {/* Warning */}
-            <div className="flex items-start gap-2 p-3 bg-yellow-50 rounded-xl">
-              <AlertCircle className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
-              <p className="text-sm text-yellow-800">
+            <div className="flex items-start gap-2 p-3 bg-warning-50 rounded-xl">
+              <AlertCircle className="w-5 h-5 text-warning-600 shrink-0 mt-0.5" />
+              <p className="text-sm text-warning-800">
                 Please verify the user ID before transferring. Coins sent to wrong ID cannot be recovered.
               </p>
             </div>
@@ -691,7 +691,7 @@ const AgentWallet = () => {
             <Button
               onClick={handleTransfer}
               disabled={isProcessing || !foundUser}
-              className="w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700"
+              className="w-full h-12 bg-gradient-to-r from-success-500 to-success-600 hover:from-success-600 hover:to-success-700"
             >
               {isProcessing ? (
                 <span className="flex items-center gap-2">
@@ -718,13 +718,13 @@ const AgentWallet = () => {
 
           <div className="p-4 space-y-4">
             {/* Current Beans Balance */}
-            <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-4 border border-amber-200">
-              <p className="text-sm text-amber-700">Available Beans</p>
+            <div className="bg-gradient-to-br from-warning-50 to-warning-50 rounded-xl p-4 border border-warning-200">
+              <p className="text-sm text-warning-700">Available Beans</p>
               <div className="flex items-center gap-2 mt-1">
-                <Gem className="w-6 h-6 text-amber-500" />
-                <span className="font-bold text-2xl text-amber-700">{beansBalance.toLocaleString()}</span>
+                <Gem className="w-6 h-6 text-warning-500" />
+                <span className="font-bold text-2xl text-warning-700">{beansBalance.toLocaleString()}</span>
               </div>
-              <p className="text-xs text-amber-600 mt-1">From host commissions</p>
+              <p className="text-xs text-warning-600 mt-1">From host commissions</p>
             </div>
 
             {/* Exchange Amount */}
@@ -738,10 +738,10 @@ const AgentWallet = () => {
                 className="mt-1"
               />
               {parseInt(exchangeAmount) > 0 && (
-                <div className="flex items-center gap-2 mt-2 p-2 bg-emerald-50 rounded-lg">
+                <div className="flex items-center gap-2 mt-2 p-2 bg-success-50 rounded-lg">
                   <span className="text-sm text-gray-600">You will receive:</span>
-                  <span className="text-yellow-500">🪙</span>
-                  <span className="font-bold text-emerald-600">
+                  <span className="text-warning-500">🪙</span>
+                  <span className="font-bold text-success-600">
                     {parseInt(exchangeAmount).toLocaleString()} Coins
                   </span>
                 </div>
@@ -756,7 +756,7 @@ const AgentWallet = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => setExchangeAmount(amount.toString())}
-                  className={exchangeAmount === amount.toString() ? "border-amber-500 bg-amber-50" : ""}
+                  className={exchangeAmount === amount.toString() ? "border-warning-500 bg-warning-50" : ""}
                   disabled={beansBalance < amount}
                 >
                   {i === 3 ? "All" : amount.toLocaleString()}
@@ -765,9 +765,9 @@ const AgentWallet = () => {
             </div>
 
             {/* Exchange Rate Info */}
-            <div className="flex items-start gap-2 p-3 bg-blue-50 rounded-xl">
-              <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
-              <div className="text-sm text-blue-700">
+            <div className="flex items-start gap-2 p-3 bg-info-50 rounded-xl">
+              <Info className="w-5 h-5 text-info-500 shrink-0 mt-0.5" />
+              <div className="text-sm text-info-700">
                 <p className="font-medium">Exchange Rate: 1:1</p>
                 <p>1 Bean = 1 Coin</p>
               </div>
@@ -777,7 +777,7 @@ const AgentWallet = () => {
             <Button
               onClick={handleExchange}
               disabled={isProcessing || !exchangeAmount || parseInt(exchangeAmount) < 10000}
-              className="w-full h-12 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+              className="w-full h-12 bg-gradient-to-r from-warning-500 to-warning-500 hover:from-warning-600 hover:to-warning-600"
             >
               {isProcessing ? (
                 <span className="flex items-center gap-2">

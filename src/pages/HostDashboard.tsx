@@ -348,7 +348,7 @@ const HostDashboard = () => {
 
       <main className="mobile-page-scrollable px-4 py-4 space-y-6">
         {/* Profile Card */}
-        <Card className="bg-gradient-to-br from-primary/20 to-purple-500/20 border-primary/30">
+        <Card className="bg-gradient-to-br from-primary/20 to-brand-500/20 border-primary/30">
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
               <AvatarWithFrame
@@ -364,7 +364,7 @@ const HostDashboard = () => {
               <div className="flex-1">
                 <h2 className="text-lg font-bold">{profile?.display_name || 'Host'}</h2>
                 <div className="flex items-center gap-2 mt-1">
-                  <Badge className="bg-green-500">Host Level {profile?.host_level || 1}</Badge>
+                  <Badge className="bg-success-500">Host Level {profile?.host_level || 1}</Badge>
                   {profile?.is_verified && (
                     <Badge variant="secondary">✓ Verified</Badge>
                   )}
@@ -376,52 +376,52 @@ const HostDashboard = () => {
 
         {/* Earnings Overview */}
         <div className="grid grid-cols-2 gap-3">
-          <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
+          <Card className="bg-gradient-to-br from-success-50 to-success-50 border-success-200">
             <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-emerald-700 mb-2">
+              <div className="flex items-center gap-2 text-success-700 mb-2">
                 <Wallet className="w-5 h-5" />
                 <span className="text-sm">Total Earnings</span>
               </div>
-              <p className="text-2xl font-bold text-emerald-700">
+              <p className="text-2xl font-bold text-success-700">
                 {fmtNum(stats.totalEarnings)}
               </p>
               <p className="text-xs text-muted-foreground mt-1">Beans</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200">
+          <Card className="bg-gradient-to-br from-info-50 to-info-50 border-info-200">
             <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-blue-700 mb-2">
+              <div className="flex items-center gap-2 text-info-700 mb-2">
                 <Calendar className="w-5 h-5" />
                 <span className="text-sm">This Week</span>
               </div>
-              <p className="text-2xl font-bold text-blue-700">
+              <p className="text-2xl font-bold text-info-700">
                 {fmtNum(stats.thisWeekEarnings)}
               </p>
               <p className="text-xs text-muted-foreground mt-1">Beans</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
+          <Card className="bg-gradient-to-br from-brand-50 to-brand-50 border-brand-200">
             <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-purple-700 mb-2">
+              <div className="flex items-center gap-2 text-brand-700 mb-2">
                 <TrendingUp className="w-5 h-5" />
                 <span className="text-sm">This Month</span>
               </div>
-              <p className="text-2xl font-bold text-purple-700">
+              <p className="text-2xl font-bold text-brand-700">
                 {fmtNum(stats.thisMonthEarnings)}
               </p>
               <p className="text-xs text-muted-foreground mt-1">Beans</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-orange-50 to-amber-50 border-amber-200">
+          <Card className="bg-gradient-to-br from-warning-50 to-warning-50 border-warning-200">
             <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-amber-700 mb-2">
+              <div className="flex items-center gap-2 text-warning-700 mb-2">
                 <Clock className="w-5 h-5" />
                 <span className="text-sm">Today</span>
               </div>
-              <p className="text-2xl font-bold text-amber-700">
+              <p className="text-2xl font-bold text-warning-700">
                 {fmtNum(stats.todayEarnings)}
               </p>
               <p className="text-xs text-muted-foreground mt-1">Beans</p>
@@ -430,7 +430,7 @@ const HostDashboard = () => {
         </div>
 
         {/* Current Earnings Balance (Auto-transfers to Agency) */}
-        <Card className="bg-gradient-to-r from-orange-500 to-orange-500 text-white">
+        <Card className="bg-gradient-to-r from-warning-500 to-warning-500 text-white">
           <CardContent className="p-5">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
@@ -464,7 +464,7 @@ const HostDashboard = () => {
 
         {/* Pending Earnings Card */}
         {stats.pendingEarnings > 0 && (
-          <Card className="bg-gradient-to-r from-orange-500 to-orange-500 text-white">
+          <Card className="bg-gradient-to-r from-warning-500 to-warning-500 text-white">
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div>
@@ -503,7 +503,7 @@ const HostDashboard = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Current Rate Display */}
-            <div className="flex items-center justify-between p-4 bg-gradient-to-r from-primary/10 to-purple-500/10 rounded-xl border border-primary/20">
+            <div className="flex items-center justify-between p-4 bg-gradient-to-r from-primary/10 to-brand-500/10 rounded-xl border border-primary/20">
               <div>
                 <p className="text-sm text-muted-foreground">Your Call Rate</p>
                 <p className="text-3xl font-bold text-primary">{fmtNum(callRate)}</p>
@@ -511,7 +511,7 @@ const HostDashboard = () => {
               </div>
               <div className="text-right">
                 <p className="text-sm text-muted-foreground">You Earn</p>
-                <p className="text-2xl font-bold text-green-500">{fmtNum(calculateHostEarnings(callRate))}</p>
+                <p className="text-2xl font-bold text-success-500">{fmtNum(calculateHostEarnings(callRate))}</p>
                 <p className="text-xs text-muted-foreground">Beans/min ({commissionPercent}%)</p>
               </div>
             </div>
@@ -542,9 +542,9 @@ const HostDashboard = () => {
                 <p className="text-lg font-bold text-foreground">{fmtNum(callRate)}</p>
                 <p className="text-[10px] text-muted-foreground">User Pays</p>
               </div>
-              <div className="p-2 bg-green-500/10 rounded-lg border border-green-500/20">
-                <p className="text-lg font-bold text-green-500">{fmtNum(calculateHostEarnings(callRate))}</p>
-                <p className="text-[10px] text-green-600">You Earn</p>
+              <div className="p-2 bg-success-500/10 rounded-lg border border-success-500/20">
+                <p className="text-lg font-bold text-success-500">{fmtNum(calculateHostEarnings(callRate))}</p>
+                <p className="text-[10px] text-success-600">You Earn</p>
               </div>
               <div className="p-2 bg-muted rounded-lg">
                 <p className="text-lg font-bold text-muted-foreground">{fmtNum(callRate - calculateHostEarnings(callRate))}</p>
@@ -556,7 +556,7 @@ const HostDashboard = () => {
             <Button 
               onClick={saveCallRate} 
               disabled={savingRate}
-              className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
+              className="w-full bg-gradient-to-r from-primary to-brand-600 hover:from-primary/90 hover:to-brand-600/90"
             >
               {savingRate ? (
                 <span className="flex items-center gap-2">
@@ -584,8 +584,8 @@ const HostDashboard = () => {
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-                  <Phone className="w-5 h-5 text-blue-700" />
+                <div className="w-10 h-10 rounded-full bg-info-500/20 flex items-center justify-center">
+                  <Phone className="w-5 h-5 text-info-700" />
                 </div>
                 <div>
                   <p className="font-medium">From Calls</p>
@@ -594,20 +594,20 @@ const HostDashboard = () => {
                   </p>
                 </div>
               </div>
-              <p className="font-bold text-blue-700">+{fmtNum(stats.callEarnings)}</p>
+              <p className="font-bold text-info-700">+{fmtNum(stats.callEarnings)}</p>
             </div>
 
             <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-pink-500/20 flex items-center justify-center">
-                  <Gift className="w-5 h-5 text-pink-700" />
+                <div className="w-10 h-10 rounded-full bg-brand-500/20 flex items-center justify-center">
+                  <Gift className="w-5 h-5 text-brand-700" />
                 </div>
                 <div>
                   <p className="font-medium">From Gifts</p>
                   <p className="text-xs text-muted-foreground">All gifts</p>
                 </div>
               </div>
-              <p className="font-bold text-pink-700">+{fmtNum(stats.giftEarnings)}</p>
+              <p className="font-bold text-brand-700">+{fmtNum(stats.giftEarnings)}</p>
             </div>
           </CardContent>
         </Card>
@@ -635,15 +635,15 @@ const HostDashboard = () => {
                 >
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      tx.type === 'call' ? 'bg-blue-500/20' : 
-                      tx.type === 'gift' ? 'bg-pink-500/20' : 'bg-green-500/20'
+                      tx.type === 'call' ? 'bg-info-500/20' : 
+                      tx.type === 'gift' ? 'bg-brand-500/20' : 'bg-success-500/20'
                     }`}>
                       {tx.type === 'call' ? (
-                        <Phone className="w-5 h-5 text-blue-700" />
+                        <Phone className="w-5 h-5 text-info-700" />
                       ) : tx.type === 'gift' ? (
-                        <Gift className="w-5 h-5 text-pink-700" />
+                        <Gift className="w-5 h-5 text-brand-700" />
                       ) : (
-                        <Download className="w-5 h-5 text-emerald-700" />
+                        <Download className="w-5 h-5 text-success-700" />
                       )}
                     </div>
                     <div>
@@ -658,7 +658,7 @@ const HostDashboard = () => {
                     </div>
                   </div>
                   <p className={`font-bold ${
-                    tx.type === 'withdrawal' ? 'text-red-600' : 'text-emerald-700'
+                    tx.type === 'withdrawal' ? 'text-danger-600' : 'text-success-700'
                   }`}>
                     {tx.type === 'withdrawal' ? '-' : '+'}
                     {fmtNum(tx.amount)}
