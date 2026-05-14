@@ -63,7 +63,6 @@ const languages = [
 // Pure pose / threshold logic lives in `@/lib/face-pose` so the regression
 // test runner + dev replay tool can exercise the exact same functions.
 import {
-  POSE_BASE,
   DEFAULT_CALIB,
   calibrateThresholds,
   evaluatePose,
