@@ -150,26 +150,61 @@ for (const file of walk(SRC)) {
   }
 }
 
-if (violations.length === 0) {
-  console.log("✓ dark-token scan: clean (0 violations)");
+// Build per-file count map.
+const counts = {};
+for (const v of violations) counts[v.file.split(sep).join("/")] = (counts[v.file.split(sep).join("/")] || 0) + 1;
+
+const BASELINE_PATH = join(ROOT, "scripts", "dark-tokens-baseline.json");
+const updateBaseline = process.argv.includes("--update-baseline");
+
+if (updateBaseline) {
+  writeFileSync(BASELINE_PATH, JSON.stringify(counts, null, 2) + "\n");
+  console.log(`✓ baseline updated: ${Object.keys(counts).length} file(s), ${violations.length} violation(s)`);
   process.exit(0);
 }
 
-// Group by file for readable output.
-const byFile = new Map();
-for (const v of violations) {
-  if (!byFile.has(v.file)) byFile.set(v.file, []);
-  byFile.get(v.file).push(v);
+const baseline = existsSync(BASELINE_PATH)
+  ? JSON.parse(readFileSync(BASELINE_PATH, "utf8"))
+  : {};
+
+// Regressions: files where current count > baseline count (or file is new).
+const regressions = [];
+for (const [file, count] of Object.entries(counts)) {
+  const base = baseline[file] || 0;
+  if (count > base) regressions.push({ file, count, base });
 }
 
-console.error(`\n✗ dark-token scan: ${violations.length} violation(s) across ${byFile.size} file(s)\n`);
-for (const [file, vs] of byFile) {
-  console.error(`  ${file}`);
-  for (const v of vs) {
+const total = violations.length;
+const baselineTotal = Object.values(baseline).reduce((a, b) => a + b, 0);
+
+if (regressions.length === 0) {
+  if (total < baselineTotal) {
+    console.log(`✓ dark-token scan: clean (${total} legacy violation(s), down from baseline ${baselineTotal}). Run \`npm run scan:dark:baseline\` to lock in.`);
+  } else {
+    console.log(`✓ dark-token scan: no regressions (${total} legacy violation(s) tracked in baseline)`);
+  }
+  process.exit(0);
+}
+
+// Group regressions' actual violations for readable output.
+const regressedFiles = new Set(regressions.map((r) => r.file));
+const byFile = new Map();
+for (const v of violations) {
+  const key = v.file.split(sep).join("/");
+  if (!regressedFiles.has(key)) continue;
+  if (!byFile.has(key)) byFile.set(key, []);
+  byFile.get(key).push(v);
+}
+
+console.error(`\n✗ dark-token scan: ${regressions.length} file(s) regressed beyond baseline\n`);
+for (const r of regressions) {
+  console.error(`  ${r.file}  (${r.base} → ${r.count})`);
+  for (const v of byFile.get(r.file) || []) {
     console.error(`    L${v.line}  [${v.rule}]  ${v.snippet}`);
     console.error(`             → ${v.msg}`);
   }
   console.error("");
 }
-console.error("Add `// dark-ok` on the line if intentional (e.g. text-white on a colored gradient hero card).\n");
+console.error("Fix the new violations, OR add `// dark-ok` on the line if intentional (e.g. text-white on a colored gradient hero card).");
+console.error("If you cleaned a file and just want to update the floor: `npm run scan:dark:baseline`.\n");
 process.exit(1);
