@@ -1017,6 +1017,7 @@ const FaceVerification = () => {
     setFaceVerified(false);
     setScanningStatus('idle');
     setPoseHistory([]);
+    setLiveDiag(null);
     if (poseCheckIntervalRef.current) {
       clearInterval(poseCheckIntervalRef.current);
       poseCheckIntervalRef.current = null;
