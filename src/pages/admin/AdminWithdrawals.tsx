@@ -780,7 +780,7 @@ export default function AdminWithdrawals() {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             {(() => {
-                              const proof = withdrawal.helper_payment_screenshot || pd?.helper_payment_screenshot;
+                              const proof = withdrawal.helper_payment_screenshot_signed || pd?.helper_payment_screenshot_signed || withdrawal.helper_payment_screenshot || pd?.helper_payment_screenshot;
                               if (!proof) return null;
                               return (
                                 <button
@@ -958,7 +958,7 @@ export default function AdminWithdrawals() {
               {/* Helper Payment Info - Transaction ID & Screenshot */}
               {(() => {
                 const helperTransactionId = selectedWithdrawal.helper_transaction_id || selectedWithdrawal.payment_details?.helper_transaction_id;
-                const helperPaymentScreenshot = selectedWithdrawal.helper_payment_screenshot || selectedWithdrawal.payment_details?.helper_payment_screenshot;
+                const helperPaymentScreenshot = selectedWithdrawal.helper_payment_screenshot_signed || selectedWithdrawal.payment_details?.helper_payment_screenshot_signed || selectedWithdrawal.helper_payment_screenshot || selectedWithdrawal.payment_details?.helper_payment_screenshot;
                 const helperPaymentNotes = selectedWithdrawal.helper_notes || selectedWithdrawal.payment_details?.helper_notes;
 
                 if (!helperTransactionId && !helperPaymentScreenshot && !helperPaymentNotes) return null;
