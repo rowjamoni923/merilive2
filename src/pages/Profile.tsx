@@ -1901,16 +1901,16 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               onClick={() => navigate("/recharge")}
               className="group relative"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-600/30 to-indigo-600/30 rounded-xl translate-y-0.5 blur-sm" />
-              <div className="relative bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-700 rounded-xl p-2 overflow-hidden shadow-lg group-active:scale-95 transition-all">
+              <div className="absolute inset-0 bg-gradient-to-br from-violet-700/40 to-indigo-900/40 rounded-xl translate-y-0.5 blur-sm" />
+              <div className="relative bg-gradient-to-br from-violet-600 via-purple-700 to-indigo-800 rounded-xl p-2 overflow-hidden shadow-lg ring-1 ring-white/10 group-active:scale-95 transition-all">
                 <div className="absolute inset-0 opacity-30">
-                  <div className="absolute top-0 right-0 w-12 h-12 bg-gradient-to-br from-white/20 to-transparent rounded-full -translate-y-4 translate-x-4" />
+                  <div className="absolute top-0 right-0 w-12 h-12 bg-gradient-to-br from-white/25 to-transparent rounded-full -translate-y-4 translate-x-4" />
                 </div>
                 
                 <div className="relative z-10">
                   <div className="flex items-center justify-between mb-0.5">
-                    <p className="text-purple-100 font-medium text-[8px]">My Diamonds</p>
-                    <span className="text-[6px] bg-white/20 backdrop-blur-sm text-white px-1 py-0.5 rounded-full font-medium">
+                    <p className="text-white/85 font-medium text-[8px] tracking-wide uppercase">My Diamonds</p>
+                    <span className="text-[6px] bg-white/15 backdrop-blur-sm text-white px-1.5 py-0.5 rounded-full font-semibold tracking-wide">
                       Top Up
                     </span>
                   </div>
@@ -1924,7 +1924,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                 </div>
               </div>
             </button>
-            
+
             {/* Beans Card - Clickable for hosts and agency owners */}
             <button 
               onClick={async () => {
