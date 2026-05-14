@@ -2094,7 +2094,7 @@ const Recharge = () => {
                   "flex-1 py-2 px-2 rounded-md text-xs font-semibold transition-all flex items-center justify-center gap-1",
                   selectedTab === tab.id
                     ? "bg-white text-primary shadow-md"
-                    : "text-slate-600 hover:text-white hover:bg-white/10"
+                    : "text-white/80 hover:text-white hover:bg-white/15"
                 )}
               >
                 {tab.icon}
