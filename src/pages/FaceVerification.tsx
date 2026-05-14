@@ -1882,7 +1882,7 @@ const FaceVerification = () => {
         <div className="flex flex-col items-center justify-center mt-12">
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring" }}
             className="w-28 h-28 rounded-full bg-gradient-to-r from-red-400 to-rose-500 flex items-center justify-center mb-4 shadow-2xl shadow-red-500/20">
-            <XCircle className="w-14 h-14 text-slate-800" />
+            <XCircle className="w-14 h-14 text-white" />
           </motion.div>
           <h2 className="text-2xl font-bold text-slate-800 mb-2">Verification Rejected</h2>
           {rejectionReason && (
