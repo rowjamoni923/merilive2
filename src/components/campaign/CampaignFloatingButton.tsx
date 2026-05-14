@@ -969,21 +969,50 @@ function CampaignFloatingButton() {
                             </button>
                           </>
                         ) : (
-                          <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-center">
-                            <p className="text-sm text-white/80">No local payment methods available right now.</p>
+                          <div className="rounded-2xl border border-amber-200/40 bg-gradient-to-br from-amber-50/10 to-orange-50/5 px-4 py-5 text-center">
+                            <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-amber-400/15">
+                              <Wallet className="h-5 w-5 text-amber-300" />
+                            </div>
+                            <p className="text-sm font-semibold text-white">No verified local agents online</p>
+                            <p className="mt-1 text-[11px] text-white/60 leading-relaxed">
+                              We couldn't find an active payroll trader for {userCountryCode} right now. Please try again in a moment.
+                            </p>
                           </div>
                         )}
                       </div>
                     )}
 
                     {selectedPaymentTab === 'google' && (
-                      <button
-                        type="button"
-                        onClick={handleContinueSelectedPayment}
-                        className="w-full rounded-2xl bg-gradient-to-r from-emerald-400 to-green-500 px-4 py-3.5 text-sm font-bold text-[#062b1d] shadow-lg"
-                      >
-                        Continue with Google Play
-                      </button>
+                      isPlayStoreNative ? (
+                        <button
+                          type="button"
+                          onClick={handleContinueSelectedPayment}
+                          className="w-full rounded-2xl bg-gradient-to-r from-emerald-400 to-green-500 px-4 py-3.5 text-sm font-bold text-[#062b1d] shadow-lg"
+                        >
+                          Continue with Google Play
+                        </button>
+                      ) : (
+                        <div className="space-y-2.5">
+                          <div className="rounded-2xl border border-emerald-200/30 bg-gradient-to-br from-emerald-500/10 to-green-600/5 px-4 py-3.5">
+                            <div className="flex items-start gap-2.5">
+                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-emerald-400/20 text-base">📲</div>
+                              <div className="flex-1 text-left">
+                                <p className="text-[13px] font-bold text-white">Available on Android app</p>
+                                <p className="mt-0.5 text-[11px] text-white/65 leading-snug">
+                                  Google Play Billing requires the MeriLive Android app. Use a local payment instead — same offer, instant.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleContinueSelectedPayment}
+                            className="w-full rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 px-4 py-3.5 text-sm font-bold text-[#2d1a00] shadow-lg"
+                          >
+                            Switch to Local Pay
+                          </button>
+                        </div>
+                      )
                     )}
 
                     {selectedPaymentTab === 'skrill' && (
