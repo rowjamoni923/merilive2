@@ -2324,7 +2324,7 @@ const Chat = () => {
         </div>
 
         {/* Message Input - Ultra Premium Dark Glass */}
-        <div className="flex-shrink-0 pt-2 safe-area-bottom" style={{ background: 'linear-gradient(to top, rgba(13,6,24,0.98) 0%, rgba(13,6,24,0.9) 70%, transparent 100%)' }}>
+        <div className="flex-shrink-0 pt-2 safe-area-bottom" style={{ background: 'linear-gradient(to top, hsl(40 40% 98%) 0%, hsl(40 40% 98% / 0.92) 70%, transparent 100%)', borderTop: '1px solid hsl(40 35% 88% / 0.5)' }}>
           {/* Media Uploader (direct gallery) */}
           <MediaUploader
             isOpen={showMediaUploader}
