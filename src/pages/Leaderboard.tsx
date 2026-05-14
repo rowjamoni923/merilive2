@@ -341,34 +341,34 @@ const Leaderboard = () => {
     <div 
       className="fixed inset-0 flex flex-col overflow-hidden"
       style={{ 
-        background: 'linear-gradient(180deg, #2a1810 0%, #1a0f08 30%, #0f0a05 60%, #1a0f08 100%)',
+        background: '#F7F8FA',
         height: isMobile ? `${viewportHeight}px` : '100vh',
       }}
     >
-      {/* Header - Golden Luxury */}
+      {/* Header - White Premium */}
       <div 
         className="flex-shrink-0 z-20"
         style={{ 
           paddingTop: isMobile ? `${safeAreaInsets.top}px` : undefined,
-          background: 'linear-gradient(180deg, rgba(42,24,16,0.95) 0%, rgba(30,16,8,0.98) 100%)',
-          borderBottom: '1px solid rgba(251,191,36,0.2)',
-          boxShadow: '0 4px 30px rgba(0,0,0,0.5)',
+          background: '#ffffff',
+          borderBottom: '1px solid rgba(15,23,42,0.08)',
+          boxShadow: '0 2px 12px rgba(15,23,42,0.04)',
         }}
       >
         <div className="flex items-center justify-between h-12 px-3">
-          <button onClick={() => navigate(-1)} className="p-2.5 -ml-1 active:bg-white/10 rounded-full transition-colors touch-manipulation">
-            <ArrowLeft className="w-5 h-5 text-amber-200" />
+          <button onClick={() => navigate(-1)} className="p-2.5 -ml-1 active:bg-slate-100 rounded-full transition-colors touch-manipulation">
+            <ArrowLeft className="w-5 h-5 text-slate-700" />
           </button>
-          <h1 className="text-base font-bold flex items-center gap-1.5" style={{ color: '#fbbf24' }}>
+          <h1 className="text-base font-bold flex items-center gap-1.5 text-slate-900">
             {customIcons?.leaderboard_header_icon ? (
               <img src={customIcons.leaderboard_header_icon} alt="" className="w-5 h-5 object-contain" />
             ) : (
-              <Crown className="w-4 h-4 text-amber-400" />
+              <Crown className="w-4 h-4 text-amber-500" />
             )}
             Leaderboard
           </h1>
-          <button onClick={() => setShowRules(true)} className="p-2.5 -mr-1 active:bg-white/10 rounded-full transition-colors touch-manipulation">
-            <HelpCircle className="w-5 h-5 text-amber-200/50" />
+          <button onClick={() => setShowRules(true)} className="p-2.5 -mr-1 active:bg-slate-100 rounded-full transition-colors touch-manipulation">
+            <HelpCircle className="w-5 h-5 text-slate-400" />
           </button>
         </div>
 
@@ -388,16 +388,16 @@ const Leaderboard = () => {
                 onClick={() => setActiveCategory(cat.id)}
                 className={cn(
                   "flex-1 flex items-center justify-center gap-1 py-2 text-[11px] font-bold transition-all touch-manipulation active:scale-95",
-                  isActive ? "text-amber-100" : "text-amber-400/50"
+                  isActive ? "text-white" : "text-slate-500"
                 )}
                 style={isActive ? {
                   background: cat.activeGrad,
                   boxShadow: `0 4px 15px ${cat.shadow}`,
                   borderRadius: '8px',
-                  border: '1px solid rgba(251,191,36,0.4)',
+                  border: '1px solid rgba(255,255,255,0.4)',
                 } : {
-                  background: 'rgba(251,191,36,0.06)',
-                  border: '1px solid rgba(251,191,36,0.12)',
+                  background: '#F1F5F9',
+                  border: '1px solid rgba(15,23,42,0.06)',
                   borderRadius: '8px',
                 }}
               >
@@ -423,14 +423,14 @@ const Leaderboard = () => {
                   onClick={() => setPeriodType(p)}
                   className={cn(
                     "px-5 py-1.5 rounded-full text-xs font-semibold transition-all touch-manipulation active:scale-95",
-                    isActive ? "text-amber-900" : "text-amber-400/50"
+                    isActive ? "text-amber-900" : "text-slate-500"
                   )}
                   style={isActive ? {
                     background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
                     boxShadow: '0 4px 15px rgba(251,191,36,0.3)',
                   } : {
-                    background: 'rgba(251,191,36,0.06)',
-                    border: '1px solid rgba(251,191,36,0.12)',
+                    background: '#F1F5F9',
+                    border: '1px solid rgba(15,23,42,0.06)',
                   }}
                 >
                   {p === "daily" ? "Day" : p === "weekly" ? "Week" : "Month"}
@@ -472,21 +472,21 @@ const Leaderboard = () => {
           </div>
         )}
 
-        {/* Countdown Timer - Golden */}
+        {/* Countdown Timer */}
         <div 
           className="flex justify-center items-center px-3 py-1.5"
-          style={{ background: 'rgba(0,0,0,0.4)', borderTop: '1px solid rgba(251,191,36,0.08)' }}
+          style={{ background: '#FFFBEB', borderTop: '1px solid rgba(251,191,36,0.15)' }}
         >
           <div className="flex items-center gap-1.5">
-            <Clock className="w-3 h-3 text-amber-400" />
-            <span className="text-amber-200/50 text-[10px] font-medium">
+            <Clock className="w-3 h-3 text-amber-600" />
+            <span className="text-slate-600 text-[10px] font-medium">
               {activeCategory === "pk_competition" && activePK
                 ? (activePK.status === "active" ? "Ends" : "Starts")
                 : getPeriodLabel() + " ends"}{" "}in
             </span>
             <span 
-              className="text-[10px] font-mono px-2 py-0.5 rounded-md text-amber-300 font-bold"
-              style={{ background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.2)' }}
+              className="text-[10px] font-mono px-2 py-0.5 rounded-md text-amber-700 font-bold"
+              style={{ background: 'rgba(251,191,36,0.18)', border: '1px solid rgba(251,191,36,0.35)' }}
             >
               {countdown.days > 0 && `${countdown.days}D `}
               {String(countdown.hours).padStart(2, '0')}:{String(countdown.minutes).padStart(2, '0')}:{String(countdown.seconds).padStart(2, '0')}
@@ -503,11 +503,11 @@ const Leaderboard = () => {
           </div>
         ) : rankings.length === 0 ? (
           <div className="text-center py-20">
-            <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.15)' }}>
-              <Users className="w-10 h-10 text-amber-400/30" />
+            <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: 'rgba(251,191,36,0.10)', border: '1px solid rgba(251,191,36,0.25)' }}>
+              <Users className="w-10 h-10 text-amber-500/60" />
             </div>
-            <p className="text-amber-200/40 text-base font-medium">No rankings yet</p>
-            <p className="text-amber-300/25 text-sm mt-1">Be the first to climb!</p>
+            <p className="text-slate-700 text-base font-medium">No rankings yet</p>
+            <p className="text-slate-400 text-sm mt-1">Be the first to climb!</p>
           </div>
         ) : (
           <>

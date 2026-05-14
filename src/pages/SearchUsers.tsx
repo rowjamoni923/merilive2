@@ -275,7 +275,7 @@ const SearchUsers = () => {
     return (
       <div
         key={user.id}
-        className="flex items-center gap-3 p-4 bg-card rounded-xl border border-border/50 cursor-pointer hover:bg-muted/50 transition-colors"
+        className="flex items-center gap-3 p-4 bg-white rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors text-slate-900"
         onClick={() => handleUserClick(user)}
       >
         {/* Avatar */}
@@ -309,7 +309,7 @@ const SearchUsers = () => {
             )}
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            <p className="text-sm text-muted-foreground truncate">
+            <p className="text-sm text-slate-500 truncate">
               {user.country_flag} {user.bio || (user.is_online ? 'Online' : 'Offline')}
             </p>
             {user.app_uid && (
@@ -377,19 +377,20 @@ const SearchUsers = () => {
   };
 
   return (
-    <div className="mobile-page bg-background">
+    <div className="mobile-page bg-[#F7F8FA]">
       {/* Header */}
-      <header className="sticky top-0 z-40 glass-card border-b border-border/50 safe-area-top">
+      <header className="sticky top-0 z-40 bg-white border-b border-slate-200/70 safe-area-top">
         <div className="px-4 py-3 flex items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => navigate(-1)}
+            className="text-slate-700 hover:bg-slate-100"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
             <Input
               placeholder="Enter App ID (8 digits)..."
               value={searchQuery}
@@ -398,7 +399,7 @@ const SearchUsers = () => {
                 const value = e.target.value.replace(/\D/g, '').slice(0, 8);
                 setSearchQuery(value);
               }}
-              className="pl-10 pr-10 rounded-full bg-muted border-0"
+              className="pl-10 pr-10 rounded-full bg-slate-100 border border-slate-200 text-slate-900 placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-slate-300"
               autoFocus
               inputMode="numeric"
               maxLength={8}
@@ -410,7 +411,7 @@ const SearchUsers = () => {
                 className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8"
                 onClick={() => setSearchQuery("")}
               >
-                <X className="w-4 h-4 text-muted-foreground" />
+                <X className="w-4 h-4 text-slate-500" />
               </Button>
             )}
           </div>
@@ -495,15 +496,15 @@ const SearchUsers = () => {
         )}
       </header>
 
-      <main className="mobile-page-scrollable px-4 py-4">
+      <main className="mobile-page-scrollable px-4 py-4 bg-[#F7F8FA]">
         {searchQuery || selectedTags.length > 0 ? (
           // Search Results
           <div className="space-y-3">
             {results.length === 0 ? (
               <div className="text-center py-16">
-                <Tag className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">No users found</h3>
-                <p className="text-muted-foreground text-sm">
+                <Tag className="w-16 h-16 mx-auto mb-4 text-slate-300" />
+                <h3 className="text-lg font-semibold mb-2 text-slate-900">No users found</h3>
+                <p className="text-slate-500 text-sm">
                   {selectedTags.length > 0 
                     ? "Try selecting different tags or removing some filters"
                     : "Try searching with a different name or ID"
@@ -512,7 +513,7 @@ const SearchUsers = () => {
               </div>
             ) : (
               <>
-                <p className="text-sm text-muted-foreground mb-3">
+                <p className="text-sm text-slate-500 mb-3">
                   {results.length} user{results.length !== 1 ? 's' : ''} found
                   {selectedTags.length > 0 && ` with ${selectedTags.length} tag${selectedTags.length > 1 ? 's' : ''}`}
                 </p>
@@ -526,8 +527,8 @@ const SearchUsers = () => {
             {recentSearches.length > 0 && (
               <>
                 <div className="flex items-center justify-between">
-                  <h2 className="font-semibold text-muted-foreground">Recent Searches</h2>
-                  <Button variant="ghost" size="sm" onClick={clearRecentSearches}>
+                  <h2 className="font-semibold text-slate-600">Recent Searches</h2>
+                  <Button variant="ghost" size="sm" onClick={clearRecentSearches} className="text-slate-600 hover:bg-slate-100">
                     Clear all
                   </Button>
                 </div>
@@ -539,9 +540,9 @@ const SearchUsers = () => {
 
             {recentSearches.length === 0 && (
               <div className="text-center py-16">
-                <Search className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">Search for users</h3>
-                <p className="text-muted-foreground text-sm max-w-xs mx-auto">
+                <Search className="w-16 h-16 mx-auto mb-4 text-slate-300" />
+                <h3 className="text-lg font-semibold mb-2 text-slate-900">Search for users</h3>
+                <p className="text-slate-500 text-sm max-w-xs mx-auto">
                   Find users by their display name, user ID, or filter by tags
                 </p>
               </div>
