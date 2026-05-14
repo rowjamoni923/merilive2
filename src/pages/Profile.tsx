@@ -979,6 +979,13 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
 
     try {
       const latestBalances = await refreshTransferBalances();
+      const isAgencyOwner = latestBalances.agencyBalance > 0 || Boolean(agencyData);
+      if (!isAgencyOwner && latestBalances.selfRechargeTotal <= 0) {
+        toast({ title: "Trader Wallet Empty", description: "Redirecting to Helper Dashboard for manual recharge." });
+        setShowTransferModal(false);
+        navigate('/helper-dashboard');
+        return;
+      }
       if (amount > latestBalances.selfRechargeTotal) {
         toast({ title: "Insufficient Balance", description: `You need ${amount.toLocaleString()} but have ${latestBalances.selfRechargeTotal.toLocaleString()} available for self recharge`, variant: "destructive" });
         return;
