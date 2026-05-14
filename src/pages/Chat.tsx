@@ -1812,7 +1812,7 @@ const Chat = () => {
             {/* Back Button */}
             <button
               type="button"
-              className="flex items-center justify-center w-9 h-9 rounded-full bg-white/[0.08] hover:bg-white/[0.15] active:scale-95 transition-all duration-150 shrink-0 border border-white/[0.08] backdrop-blur-xl"
+              className="flex items-center justify-center w-9 h-9 rounded-full bg-white/80 hover:bg-white active:scale-95 transition-all duration-150 shrink-0 border border-amber-200/60 shadow-sm"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -1824,7 +1824,7 @@ const Chat = () => {
                 fetchGroups();
               }}
             >
-              <ArrowLeft className="w-5 h-5 text-white" />
+              <ArrowLeft className="w-5 h-5 text-slate-800" />
             </button>
             
             {/* User Avatar with Premium Frame */}
