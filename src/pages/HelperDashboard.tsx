@@ -2603,7 +2603,7 @@ const HelperDashboard = () => {
                     
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className="text-white font-medium text-sm truncate">
+                        <p className="text-slate-800 font-medium text-sm truncate">
                           {transfer.sender_type === 'trader_to_user' 
                             ? transfer.receiver?.display_name || 'Unknown User'
                             : transfer.agency?.name || 'Unknown Agency'
