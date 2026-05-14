@@ -2023,7 +2023,7 @@ const Auth = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/50" />
         <div className="relative z-10 min-h-screen flex flex-col items-center justify-center gap-4">
           <div className="w-10 h-10 border-3 border-white/30 border-t-white rounded-full animate-spin" />
-          <p className="text-white/80 text-sm font-medium animate-pulse">Recovering your account...</p>
+          <p className="text-slate-700 text-sm font-medium animate-pulse">Recovering your account...</p>
         </div>
       </div>
     );
@@ -2111,11 +2111,11 @@ const Auth = () => {
                   <Building2 className="w-6 h-6 text-white" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-white/80 text-xs">You are invited by</p>
+                  <p className="text-slate-700 text-xs">You are invited by</p>
                   <p className="text-white font-bold">{agencyInfo.name}</p>
                   <div className="flex items-center gap-2 mt-1">
                     <Badge className="bg-white/20 text-white text-[10px]">{agencyInfo.level}</Badge>
-                    <span className="text-white/70 text-xs">{agencyInfo.total_hosts} hosts</span>
+                    <span className="text-slate-700 text-xs">{agencyInfo.total_hosts} hosts</span>
                   </div>
                 </div>
                 <Sparkles className="w-5 h-5 text-yellow-300 animate-pulse" />
@@ -2221,7 +2221,7 @@ const Auth = () => {
               {!showReferralInput ? (
                 <button
                   onClick={() => setShowReferralInput(true)}
-                  className="w-full text-center text-white/50 hover:text-white/80 text-[11px] py-1.5 transition-colors"
+                  className="w-full text-center text-slate-600 hover:text-slate-700 text-[11px] py-1.5 transition-colors"
                 >
                   🎁 Have a referral code? Tap here
                 </button>
@@ -2293,7 +2293,7 @@ const Auth = () => {
                 <Check className="w-3 h-3 text-white" />
               )}
             </div>
-            <span className={`text-[10px] leading-tight transition-colors ${agreed ? 'text-white/90' : 'text-white/50'}`}>
+            <span className={`text-[10px] leading-tight transition-colors ${agreed ? 'text-slate-800' : 'text-slate-600'}`}>
               <span className="underline decoration-white/30">Terms</span>
               {" & "}
               <span className="underline decoration-white/30">Privacy</span>
@@ -2510,7 +2510,7 @@ const Auth = () => {
                     setIsEmailFlow(false);
                     setAuthStep("login");
                   }}
-                  className="text-white/40 text-sm hover:text-white/70 transition-colors"
+                  className="text-slate-500 text-sm hover:text-slate-700 transition-colors"
                 >
                   Already have an account? <span className="text-pink-400 font-semibold hover:text-pink-300">Login</span>
                 </button>
@@ -2563,7 +2563,7 @@ const Auth = () => {
                     }}
                     placeholder="000000"
                     maxLength={6}
-                    className="relative h-16 w-52 text-center text-3xl font-bold tracking-[0.5em] bg-white border border-amber-200/70 border-0 text-slate-800 placeholder:text-white/20 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0"
+                    className="relative h-16 w-52 text-center text-3xl font-bold tracking-[0.5em] bg-white border border-amber-200/70 text-slate-800 placeholder:text-slate-300 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0"
                     autoFocus
                   />
                 </div>
@@ -2587,7 +2587,7 @@ const Auth = () => {
               
               {/* Resend Code */}
               <div className="text-center space-y-2">
-                <p className="text-white/35 text-sm">Didn't receive the code?</p>
+                <p className="text-slate-500 text-sm">Didn't receive the code?</p>
                 <button
                   onClick={handleResendEmailOtp}
                   disabled={otpLoading}
@@ -2638,7 +2638,7 @@ const Auth = () => {
                 <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
                   <div className="pl-4 pr-2"><Lock className="w-5 h-5 text-purple-400/70" /></div>
                   <Input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password (min 6 characters)" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl pr-10 focus-visible:ring-0 focus-visible:ring-offset-0" />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors">
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-600 transition-colors">
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
@@ -2692,7 +2692,7 @@ const Auth = () => {
               <div className="flex justify-center">
                 <div className="relative group">
                   <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-pink-500/50 via-purple-500/50 to-pink-500/50 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
-                  <Input type="text" value={otpCode} onChange={(e) => { const value = e.target.value.replace(/\D/g, '').slice(0, 6); setOtpCode(value); }} placeholder="000000" maxLength={6} className="relative h-16 w-52 text-center text-3xl font-bold tracking-[0.5em] bg-white border border-amber-200/70 border-0 text-slate-800 placeholder:text-white/20 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" autoFocus />
+                  <Input type="text" value={otpCode} onChange={(e) => { const value = e.target.value.replace(/\D/g, '').slice(0, 6); setOtpCode(value); }} placeholder="000000" maxLength={6} className="relative h-16 w-52 text-center text-3xl font-bold tracking-[0.5em] bg-white border border-amber-200/70 text-slate-800 placeholder:text-slate-300 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0" autoFocus />
                 </div>
               </div>
               
@@ -2708,7 +2708,7 @@ const Auth = () => {
               </Button>
               
               <div className="text-center space-y-2">
-                <p className="text-white/35 text-sm">Didn't receive the code?</p>
+                <p className="text-slate-500 text-sm">Didn't receive the code?</p>
                 <button onClick={handleResendOtp} disabled={otpLoading} className="text-pink-400 text-sm font-semibold hover:text-pink-300 transition-all disabled:opacity-40 hover:underline underline-offset-4">Resend Code</button>
               </div>
             </div>
@@ -2755,7 +2755,7 @@ const Auth = () => {
               </Button>
               
               <div className="text-center pt-1">
-                <button onClick={() => { setIsEmailFlow(true); setEmail(""); setAuthStep("email"); }} className="text-white/40 text-sm hover:text-white/70 transition-colors">
+                <button onClick={() => { setIsEmailFlow(true); setEmail(""); setAuthStep("email"); }} className="text-slate-500 text-sm hover:text-slate-700 transition-colors">
                   Don't have an account? <span className="text-pink-400 font-semibold hover:text-pink-300">Sign Up</span>
                 </button>
               </div>
@@ -2801,10 +2801,10 @@ const Auth = () => {
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-2xl">{selectedCountry.flag}</span>
-                      <span className="text-white font-semibold">{selectedCountry.code}</span>
-                      <span className="text-white/40 text-sm">{selectedCountry.name}</span>
+                      <span className="text-slate-800 font-semibold">{selectedCountry.code}</span>
+                      <span className="text-slate-500 text-sm">{selectedCountry.name}</span>
                     </div>
-                    <ChevronDown className={`w-5 h-5 text-white/40 transition-transform ${showCountryPicker ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-5 h-5 text-slate-500 transition-transform ${showCountryPicker ? 'rotate-180' : ''}`} />
                   </button>
 
                   {/* Country Dropdown */}
@@ -2812,13 +2812,13 @@ const Auth = () => {
                     <div className="absolute top-full left-0 right-0 mt-2 bg-[#1a1a2e] border border-white/10 rounded-2xl shadow-2xl shadow-black/50 z-50 max-h-64 overflow-hidden">
                       <div className="p-2 border-b border-white/10">
                         <div className="flex items-center bg-white border border-amber-200/70 rounded-xl px-3">
-                          <Search className="w-4 h-4 text-white/30" />
+                          <Search className="w-4 h-4 text-slate-500" />
                           <input
                             type="text"
                             value={countrySearch}
                             onChange={(e) => setCountrySearch(e.target.value)}
                             placeholder="Search country..."
-                            className="w-full h-10 bg-transparent border-0 text-white text-sm placeholder:text-slate-400 outline-none px-2"
+                            className="w-full h-10 bg-transparent border-0 text-slate-800 text-sm placeholder:text-slate-400 outline-none px-2"
                             autoFocus
                           />
                         </div>
@@ -2838,7 +2838,7 @@ const Auth = () => {
                             }`}
                           >
                             <span className="text-xl">{country.flag}</span>
-                            <span className="text-white/80 text-sm flex-1 text-left">{country.name}</span>
+                            <span className="text-slate-700 text-sm flex-1 text-left">{country.name}</span>
                             <span className="text-green-400/70 text-sm font-mono">{country.code}</span>
                           </button>
                         ))}
@@ -2896,7 +2896,7 @@ const Auth = () => {
               <div className="text-center pt-1">
                 <button
                   onClick={() => { setIsEmailFlow(true); setEmail(""); setAuthStep("email"); }}
-                  className="text-white/40 text-sm hover:text-white/70 transition-colors"
+                  className="text-slate-500 text-sm hover:text-slate-700 transition-colors"
                 >
                   Use email instead? <span className="text-green-400 font-semibold hover:text-green-300">Email Sign Up</span>
                 </button>
@@ -2943,7 +2943,7 @@ const Auth = () => {
                     }}
                     placeholder="000000"
                     maxLength={6}
-                    className="relative h-16 w-52 text-center text-3xl font-bold tracking-[0.5em] bg-white border border-amber-200/70 border-0 text-slate-800 placeholder:text-white/20 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0"
+                    className="relative h-16 w-52 text-center text-3xl font-bold tracking-[0.5em] bg-white border border-amber-200/70 text-slate-800 placeholder:text-slate-300 rounded-2xl focus-visible:ring-0 focus-visible:ring-offset-0"
                     autoFocus
                   />
                 </div>
@@ -2965,7 +2965,7 @@ const Auth = () => {
               </Button>
 
               <div className="text-center space-y-2">
-                <p className="text-white/35 text-sm">Didn't receive the code?</p>
+                <p className="text-slate-500 text-sm">Didn't receive the code?</p>
                 <button
                   onClick={handleResendPhoneOtp}
                   disabled={phoneOtpLoading}
@@ -3013,7 +3013,7 @@ const Auth = () => {
                 <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
                   <div className="pl-4 pr-2"><Lock className="w-5 h-5 text-green-400/70" /></div>
                   <Input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password (min 6 characters)" className="h-13 bg-transparent border-0 text-slate-800 placeholder:text-slate-400 rounded-2xl pr-10 focus-visible:ring-0 focus-visible:ring-offset-0" />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors">
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-600 transition-colors">
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
