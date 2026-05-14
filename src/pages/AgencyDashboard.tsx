@@ -1343,8 +1343,8 @@ const AgencyDashboard = () => {
         <Card className="border-0 shadow-md bg-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
-              <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-                <Building2 className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                <Building2 className="w-4 h-4 text-purple-600" />
               </div>
               Agency Information
             </CardTitle>
@@ -1352,8 +1352,8 @@ const AgencyDashboard = () => {
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-xl">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-                  <Hash className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <Hash className="w-5 h-5 text-purple-600" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Agency Code</p>
@@ -1364,8 +1364,8 @@ const AgencyDashboard = () => {
 
             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-xl">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center">
-                  <Star className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                  <Star className="w-5 h-5 text-amber-600" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Agency Level</p>
@@ -1376,8 +1376,8 @@ const AgencyDashboard = () => {
 
             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-xl">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
+                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                  <TrendingUp className="w-5 h-5 text-green-600" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Host Commission Rate</p>
@@ -1388,8 +1388,8 @@ const AgencyDashboard = () => {
 
             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-xl">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                  <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <Calendar className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Created</p>
@@ -1429,8 +1429,8 @@ const AgencyDashboard = () => {
             <Card className="border-0 shadow-md bg-card">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-                    <TrendingUp className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <TrendingUp className="w-4 h-4 text-purple-600" />
                   </div>
                   Weekly Income
                 </CardTitle>
@@ -1470,51 +1470,51 @@ const AgencyDashboard = () => {
 
             {/* Performance Stats */}
             <div className="grid grid-cols-2 gap-3">
-              <Card className="border-0 shadow-md bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20">
+              <Card className="border-0 shadow-md bg-gradient-to-br from-purple-50 to-indigo-50">
                 <CardContent className="p-4">
-                  <div className="w-10 h-10 bg-purple-100 dark:bg-purple-800/50 rounded-xl flex items-center justify-center mb-2">
-                    <Gift className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                  <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center mb-2">
+                    <Gift className="w-5 h-5 text-purple-600" />
                   </div>
-                  <p className="text-2xl font-bold text-purple-700 dark:text-purple-300">
+                  <p className="text-2xl font-bold text-purple-700">
                     {fmtNum(performance?.total_income || 0)}
                   </p>
-                  <p className="text-sm text-purple-600 dark:text-purple-400">Weekly Income</p>
+                  <p className="text-sm text-purple-600">Weekly Income</p>
                 </CardContent>
               </Card>
               
-              <Card className="border-0 shadow-md bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20">
+              <Card className="border-0 shadow-md bg-gradient-to-br from-emerald-50 to-teal-50">
                 <CardContent className="p-4">
-                  <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-800/50 rounded-xl flex items-center justify-center mb-2">
-                    <Users className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                  <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center mb-2">
+                    <Users className="w-5 h-5 text-emerald-600" />
                   </div>
-                  <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">
+                  <p className="text-2xl font-bold text-emerald-700">
                     {performance?.new_hosts_count || 0}
                   </p>
-                  <p className="text-sm text-emerald-600 dark:text-emerald-400">New Hosts</p>
+                  <p className="text-sm text-emerald-600">New Hosts</p>
                 </CardContent>
               </Card>
               
-              <Card className="border-0 shadow-md bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20">
+              <Card className="border-0 shadow-md bg-gradient-to-br from-amber-50 to-orange-50">
                 <CardContent className="p-4">
-                  <div className="w-10 h-10 bg-amber-100 dark:bg-amber-800/50 rounded-xl flex items-center justify-center mb-2">
-                    <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                  <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center mb-2">
+                    <Clock className="w-5 h-5 text-amber-600" />
                   </div>
-                  <p className="text-2xl font-bold text-amber-700 dark:text-amber-300">
+                  <p className="text-2xl font-bold text-amber-700">
                     {(performance?.total_host_hours || 0).toFixed(1)}h
                   </p>
-                  <p className="text-sm text-amber-600 dark:text-amber-400">Live Hours</p>
+                  <p className="text-sm text-amber-600">Live Hours</p>
                 </CardContent>
               </Card>
               
-              <Card className="border-0 shadow-md bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20">
+              <Card className="border-0 shadow-md bg-gradient-to-br from-yellow-50 to-amber-50">
                 <CardContent className="p-4">
-                  <div className="w-10 h-10 bg-yellow-100 dark:bg-yellow-800/50 rounded-xl flex items-center justify-center mb-2">
-                    <Crown className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                  <div className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center mb-2">
+                    <Crown className="w-5 h-5 text-yellow-600" />
                   </div>
-                  <p className="text-2xl font-bold text-yellow-700 dark:text-yellow-300">
+                  <p className="text-2xl font-bold text-yellow-700">
                     {fmtNum(performance?.golden_host_income || 0)}
                   </p>
-                  <p className="text-sm text-yellow-600 dark:text-yellow-400">Golden Income</p>
+                  <p className="text-sm text-yellow-600">Golden Income</p>
                 </CardContent>
               </Card>
             </div>
@@ -1523,8 +1523,8 @@ const AgencyDashboard = () => {
             <Card className="border-0 shadow-md">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                    <Target className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Target className="w-4 h-4 text-blue-600" />
                   </div>
                   Total Statistics
                 </CardTitle>
@@ -1532,17 +1532,17 @@ const AgencyDashboard = () => {
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between py-3 border-b border-border">
                   <span className="text-muted-foreground">Total Host Earnings</span>
-                  <span className="font-bold text-emerald-600 dark:text-emerald-400">{fmtNum(totalHostEarnings)}</span>
+                  <span className="font-bold text-emerald-600">{fmtNum(totalHostEarnings)}</span>
                 </div>
                 <div className="flex items-center justify-between py-3 border-b border-border">
                   <span className="text-muted-foreground">Your Commission ({actualCommissionRate}%)</span>
-                  <span className="font-bold text-purple-600 dark:text-purple-400">
+                  <span className="font-bold text-purple-600">
                     {fmtNum(Math.floor(totalHostEarnings * actualCommissionRate / 100))}
                   </span>
                 </div>
                 <div className="flex items-center justify-between py-3 border-b border-border">
                   <span className="text-muted-foreground">Sub-Agent Commission</span>
-                  <span className="font-bold text-blue-600 dark:text-blue-400">{fmtNum(totalSubAgentEarnings)}</span>
+                  <span className="font-bold text-blue-600">{fmtNum(totalSubAgentEarnings)}</span>
                 </div>
                 <div className="flex items-center justify-between py-3">
                   <span className="text-muted-foreground">Agency Created</span>
@@ -1662,8 +1662,8 @@ const AgencyDashboard = () => {
             <Card className="border-0 shadow-md">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <div className="w-8 h-8 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg flex items-center justify-center">
-                    <Crown className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
+                  <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                    <Crown className="w-4 h-4 text-yellow-600" />
                   </div>
                   Top Performers
                 </CardTitle>
@@ -1678,9 +1678,9 @@ const AgencyDashboard = () => {
                       className="flex items-center gap-3 py-3 border-b border-border last:border-0"
                     >
                       <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-                        index === 0 ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-400' :
-                        index === 1 ? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-white/85' :
-                        index === 2 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-400' :
+                        index === 0 ? 'bg-yellow-100 text-yellow-700' :
+                        index === 1 ? 'bg-gray-100 text-gray-700' :
+                        index === 2 ? 'bg-orange-100 text-orange-700' :
                         'bg-muted text-muted-foreground'
                       }`}>
                         {index + 1}
@@ -1702,7 +1702,7 @@ const AgencyDashboard = () => {
                         <p className="text-xs text-muted-foreground">Joined: {formatDate(host.joined_at)}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-emerald-600 dark:text-emerald-400">{fmtNum(host.profile?.total_earnings || 0)}</p>
+                        <p className="font-bold text-emerald-600">{fmtNum(host.profile?.total_earnings || 0)}</p>
                         <p className="text-xs text-muted-foreground">Earnings</p>
                       </div>
                     </div>
@@ -1720,22 +1720,22 @@ const AgencyDashboard = () => {
             </Card>
 
             {/* Host Invite Link Card */}
-            <Card className="border-0 shadow-md bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20">
+            <Card className="border-0 shadow-md bg-gradient-to-br from-blue-50 to-cyan-50">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="w-10 h-10 bg-blue-100 dark:bg-blue-800/50 rounded-xl flex items-center justify-center">
-                    <LinkIcon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <LinkIcon className="w-5 h-5 text-blue-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-blue-800 dark:text-blue-200">Host Invite Link</h3>
-                    <p className="text-xs text-blue-600 dark:text-blue-400">Share to recruit new hosts</p>
+                    <h3 className="font-semibold text-blue-800">Host Invite Link</h3>
+                    <p className="text-xs text-blue-600">Share to recruit new hosts</p>
                   </div>
                 </div>
                 <div className="flex gap-2">
                   <Button 
                     onClick={copyHostJoinLink}
                     variant="outline" 
-                    className="flex-1 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300"
+                    className="flex-1 border-blue-300 text-blue-700"
                   >
                     <Copy className="w-4 h-4 mr-2" />
                     Copy
@@ -1762,22 +1762,22 @@ const AgencyDashboard = () => {
 
           {/* Sub-Agents Tab */}
           <TabsContent value="subagents" className="mt-4 space-y-4">
-            <Card className="border-0 shadow-md bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20">
+            <Card className="border-0 shadow-md bg-gradient-to-br from-orange-50 to-amber-50">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="w-10 h-10 bg-orange-100 dark:bg-orange-800/50 rounded-xl flex items-center justify-center">
-                    <LinkIcon className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                  <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
+                    <LinkIcon className="w-5 h-5 text-orange-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-orange-800 dark:text-orange-200">Referral Link</h3>
-                    <p className="text-xs text-orange-600 dark:text-orange-400">Share to add sub-agents</p>
+                    <h3 className="font-semibold text-orange-800">Referral Link</h3>
+                    <p className="text-xs text-orange-600">Share to add sub-agents</p>
                   </div>
                 </div>
                 <div className="flex gap-2">
                   <Button 
                     onClick={copySubAgentLink}
                     variant="outline" 
-                    className="flex-1 border-orange-300 dark:border-orange-700 text-orange-700 dark:text-orange-300"
+                    className="flex-1 border-orange-300 text-orange-700"
                   >
                     <Copy className="w-4 h-4 mr-2" />
                     Copy
@@ -1796,13 +1796,13 @@ const AgencyDashboard = () => {
             <div className="grid grid-cols-2 gap-3">
               <Card className="border-0 shadow-md">
                 <CardContent className="p-4 text-center">
-                  <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">{subAgents.length}</p>
+                  <p className="text-3xl font-bold text-orange-600">{subAgents.length}</p>
                   <p className="text-sm text-muted-foreground">Total Sub-Agents</p>
                 </CardContent>
               </Card>
               <Card className="border-0 shadow-md">
                 <CardContent className="p-4 text-center">
-                  <p className="text-3xl font-bold text-green-600 dark:text-green-400">{fmtNum(totalSubAgentEarnings)}</p>
+                  <p className="text-3xl font-bold text-green-600">{fmtNum(totalSubAgentEarnings)}</p>
                   <p className="text-sm text-muted-foreground">Total Commission</p>
                 </CardContent>
               </Card>
@@ -1830,7 +1830,7 @@ const AgencyDashboard = () => {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold text-green-600 dark:text-green-400">{fmtNum(sa.total_earnings)}</p>
+                          <p className="font-bold text-green-600">{fmtNum(sa.total_earnings)}</p>
                           <p className="text-xs text-muted-foreground">{sa.commission_rate}%</p>
                         </div>
                       </div>
@@ -1852,8 +1852,8 @@ const AgencyDashboard = () => {
             <Card className="border-0 shadow-md">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <div className="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center">
-                    <Building2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                  <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
+                    <Building2 className="w-4 h-4 text-indigo-600" />
                   </div>
                   Sub-Agencies ({subAgencyCount})
                 </CardTitle>
@@ -1891,18 +1891,18 @@ const AgencyDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-md bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20">
+            <Card className="border-0 shadow-md bg-gradient-to-br from-purple-50 to-indigo-50">
               <CardContent className="p-4">
-                <h3 className="font-semibold text-purple-800 dark:text-purple-200 mb-3 flex items-center gap-2">
+                <h3 className="font-semibold text-purple-800 mb-3 flex items-center gap-2">
                   <Award className="w-5 h-5" />
                   Commission Structure
                 </h3>
-                <ul className="text-sm text-purple-700 dark:text-purple-300 space-y-2">
-                  <li className="flex items-center justify-between py-2 border-b border-purple-200 dark:border-purple-800">
+                <ul className="text-sm text-purple-700 space-y-2">
+                  <li className="flex items-center justify-between py-2 border-b border-purple-200">
                     <span>Sub-Agent Base Commission:</span>
                     <span className="font-bold">2%</span>
                   </li>
-                  <li className="flex items-center justify-between py-2 border-b border-purple-200 dark:border-purple-800">
+                  <li className="flex items-center justify-between py-2 border-b border-purple-200">
                     <span>Top Performer Bonus:</span>
                     <span className="font-bold">+1%</span>
                   </li>
@@ -1920,8 +1920,8 @@ const AgencyDashboard = () => {
             <Card className="border-0 shadow-md">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                    <TrendingUp className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <TrendingUp className="w-4 h-4 text-blue-600" />
                   </div>
                   Income Trend
                 </CardTitle>
@@ -1956,8 +1956,8 @@ const AgencyDashboard = () => {
             <Card className="border-0 shadow-md">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <div className="w-8 h-8 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center">
-                    <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                  <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
+                    <Clock className="w-4 h-4 text-amber-600" />
                   </div>
                   Live Hours
                 </CardTitle>
@@ -1986,8 +1986,8 @@ const AgencyDashboard = () => {
             <Card className="border-0 shadow-md">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                    <BarChart3 className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                    <BarChart3 className="w-4 h-4 text-green-600" />
                   </div>
                   Earnings Distribution
                 </CardTitle>
@@ -2033,26 +2033,26 @@ const AgencyDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-md bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20">
+            <Card className="border-0 shadow-md bg-gradient-to-br from-green-50 to-emerald-50">
               <CardContent className="p-4">
-                <h3 className="font-semibold text-green-800 dark:text-green-200 mb-3 flex items-center gap-2">
+                <h3 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
                   <Zap className="w-5 h-5" />
                   Compared to Last Week
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-white/60 dark:bg-white/10 rounded-xl p-4 text-center">
-                    <div className="flex items-center justify-center gap-1 text-green-600 dark:text-green-400">
+                  <div className="bg-white/60 rounded-xl p-4 text-center">
+                    <div className="flex items-center justify-center gap-1 text-green-600">
                       <TrendingUp className="w-5 h-5" />
                       <span className="text-xl font-bold">+12%</span>
                     </div>
-                    <p className="text-xs text-green-700 dark:text-green-300 mt-1">Income Growth</p>
+                    <p className="text-xs text-green-700 mt-1">Income Growth</p>
                   </div>
-                  <div className="bg-white/60 dark:bg-white/10 rounded-xl p-4 text-center">
-                    <div className="flex items-center justify-center gap-1 text-blue-600 dark:text-blue-400">
+                  <div className="bg-white/60 rounded-xl p-4 text-center">
+                    <div className="flex items-center justify-center gap-1 text-blue-600">
                       <TrendingUp className="w-5 h-5" />
                       <span className="text-xl font-bold">+8%</span>
                     </div>
-                    <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">Host Activity</p>
+                    <p className="text-xs text-blue-700 mt-1">Host Activity</p>
                   </div>
                 </div>
               </CardContent>
