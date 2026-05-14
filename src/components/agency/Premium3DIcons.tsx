@@ -2,7 +2,13 @@ import { memo } from "react";
 
 const iconSize = "w-9 h-9";
 
-// Each icon uses WHITE as primary color with subtle accents so they POP against any gradient background
+// Each icon uses WHITE as primary color with subtle accents so they POP against any gradient background.
+// Accent fills are routed through semantic CSS tokens (--success-*, --warning-*, --brand-*) so global
+// theme tweaks propagate automatically. Never reintroduce raw hex like #22c55e or #fbbf24 here.
+const ACCENT_SUCCESS = "hsl(var(--success-500))";
+const ACCENT_GOLD = "hsl(var(--warning-400))";
+const ACCENT_GOLD_DEEP = "hsl(var(--warning-500))";
+const TINT_BRAND_SOFT = "hsl(var(--brand-100))";
 
 export const HostsIcon3D = memo(() => (
   <div className="relative">
@@ -11,7 +17,7 @@ export const HostsIcon3D = memo(() => (
       <defs>
         <linearGradient id="host-white" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#ffffff" />
-          <stop offset="100%" stopColor="#e0e7ff" />
+          <stop offset="100%" stopColor={TINT_BRAND_SOFT} />
         </linearGradient>
       </defs>
       {/* Person back */}
@@ -21,7 +27,7 @@ export const HostsIcon3D = memo(() => (
       <circle cx="31" cy="15" r="6" fill="white" stroke="rgba(255,255,255,0.8)" strokeWidth="1" />
       <path d="M22 35 Q22 27 31 25 Q40 27 40 35 L40 37 L22 37 Z" fill="white" stroke="rgba(255,255,255,0.8)" strokeWidth="0.8" />
       {/* Plus badge */}
-      <circle cx="39" cy="13" r="6" fill="#22c55e" stroke="white" strokeWidth="1.5" />
+      <circle cx="39" cy="13" r="6" fill={ACCENT_SUCCESS} stroke="white" strokeWidth="1.5" />
       <path d="M36 13 L42 13 M39 10 L39 16" stroke="white" strokeWidth="2" strokeLinecap="round" />
     </svg>
   </div>
@@ -61,7 +67,7 @@ export const RankingIcon3D = memo(() => (
       <rect x="21" y="32" width="6" height="4" rx="1" fill="rgba(255,255,255,0.8)" />
       <rect x="16" y="36" width="16" height="4" rx="2" fill="white" stroke="rgba(255,255,255,0.6)" strokeWidth="0.5" />
       {/* Star */}
-      <polygon points="24,13 26,18 31,18 27,21 28.5,26 24,23 19.5,26 21,21 17,18 22,18" fill="#fbbf24" stroke="#f59e0b" strokeWidth="0.5" />
+      <polygon points="24,13 26,18 31,18 27,21 28.5,26 24,23 19.5,26 21,21 17,18 22,18" fill={ACCENT_GOLD} stroke={ACCENT_GOLD_DEEP} strokeWidth="0.5" />
     </svg>
   </div>
 ));
@@ -97,7 +103,7 @@ export const DiamondExchangeIcon3D = memo(() => (
       {/* Front coin */}
       <circle cx="30" cy="22" r="12" fill="white" stroke="rgba(255,255,255,0.8)" strokeWidth="1" />
       <circle cx="30" cy="22" r="9" fill="none" stroke="rgba(0,0,0,0.1)" strokeWidth="0.8" />
-      <text x="30" y="26" fontSize="12" fontWeight="bold" fill="#f59e0b" textAnchor="middle">$</text>
+      <text x="30" y="26" fontSize="12" fontWeight="bold" fill={ACCENT_GOLD_DEEP} textAnchor="middle">$</text>
       {/* Exchange arrows */}
       <path d="M16 38 L28 38 M25 35 L28 38 L25 41" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M32 44 L20 44 M23 41 L20 44 L23 47" stroke="rgba(255,255,255,0.7)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -115,7 +121,7 @@ export const PolicyIcon3D = memo(() => (
       {/* Inner shield outline */}
       <path d="M24 10 L34 16 L34 26 Q34 34 24 38 Q14 34 14 26 L14 16 Z" fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth="1" />
       {/* Checkmark */}
-      <path d="M18 24 L22 28 L31 18" stroke="#22c55e" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <path d="M18 24 L22 28 L31 18" stroke={ACCENT_SUCCESS} strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
     </svg>
   </div>
 ));
@@ -138,7 +144,7 @@ export const HistoryIcon3D = memo(() => (
       <line x1="24" y1="24" x2="24" y2="15" stroke="rgba(0,0,0,0.3)" strokeWidth="2.5" strokeLinecap="round" />
       <line x1="24" y1="24" x2="31" y2="20" stroke="rgba(0,0,0,0.2)" strokeWidth="2" strokeLinecap="round" />
       {/* Center dot */}
-      <circle cx="24" cy="24" r="2.5" fill="#f59e0b" />
+      <circle cx="24" cy="24" r="2.5" fill={ACCENT_GOLD_DEEP} />
       {/* Rewind arrow */}
       <path d="M9 9 L9 17 L17 17" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
     </svg>
