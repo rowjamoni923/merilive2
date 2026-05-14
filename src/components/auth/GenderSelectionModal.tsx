@@ -90,23 +90,23 @@ export const GenderSelectionModal = ({ isOpen, userId, onComplete }: GenderSelec
               >
                 <Sparkles className="w-10 h-10 text-purple-400" />
               </motion.div>
-              <h2 className="text-2xl font-bold text-white mb-2">
-                Welcome! 🎉
+              <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-pink-700 via-rose-600 to-amber-600 bg-clip-text text-transparent">
+                Welcome aboard
               </h2>
-              <p className="text-slate-500 text-sm">
-                Enter your name & select gender
+              <p className="text-slate-600 text-sm">
+                Enter your name and select your gender
               </p>
             </div>
 
             {/* Name Input */}
             <div className="mb-5">
-              <label className="text-slate-600 text-xs font-medium mb-1.5 block">Your Name</label>
+              <label className="text-slate-700 text-xs font-semibold mb-1.5 block">Your Name</label>
               <input
                 type="text"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 placeholder="Enter your name"
-                className="w-full h-11 px-4 rounded-xl bg-white/10 border border-amber-200/60 text-white placeholder:text-slate-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-sm"
+                className="w-full h-11 px-4 rounded-xl bg-white border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-pink-400 focus:ring-1 focus:ring-pink-400 text-sm"
                 maxLength={30}
               />
             </div>
