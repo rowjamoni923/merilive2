@@ -459,7 +459,7 @@ const Level = () => {
                     key={currentLevel}
                     initial={{ scale: 0.5, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="text-6xl font-black bg-gradient-to-b from-white to-white/60 bg-clip-text text-transparent"
+                    className="text-6xl font-black bg-gradient-to-br from-amber-500 via-orange-500 to-rose-500 bg-clip-text text-transparent drop-shadow-sm"
                   >
                     {currentLevel}
                   </motion.span>
