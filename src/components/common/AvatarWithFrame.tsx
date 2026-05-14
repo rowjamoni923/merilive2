@@ -42,16 +42,18 @@ interface AvatarWithFrameProps {
   frameId?: string | null;
 }
 
-// Size configurations - Frame is slightly LARGER than avatar for proper overlay
-// Size configs: frame overlays directly on avatar (same visual size)
+// Size configurations
+// Avatar fills the FULL container so no white ring shows between avatar and frame.
+// Frame is rendered slightly larger (frameInset negative) so its outer decoration
+// extends beyond the avatar disc while the inner hole sits flush around it.
 const sizeConfigs = {
-  xxs: { container: 24, avatar: 22, frameSize: 24, frameInset: -1, text: 'text-[6px]', online: 4 },
-  xs: { container: 36, avatar: 32, frameSize: 36, frameInset: -2, text: 'text-[7px]', online: 6 },
-  sm: { container: 48, avatar: 44, frameSize: 48, frameInset: -2, text: 'text-[10px]', online: 8 },
-  md: { container: 60, avatar: 54, frameSize: 60, frameInset: -3, text: 'text-xs', online: 10 },
-  lg: { container: 80, avatar: 72, frameSize: 80, frameInset: -4, text: 'text-sm', online: 12 },
-  xl: { container: 100, avatar: 90, frameSize: 100, frameInset: -5, text: 'text-base', online: 14 },
-  '2xl': { container: 124, avatar: 112, frameSize: 124, frameInset: -6, text: 'text-lg', online: 16 },
+  xxs: { container: 24, avatar: 24, frameSize: 28, frameInset: -2, text: 'text-[6px]', online: 4 },
+  xs:  { container: 36, avatar: 36, frameSize: 44, frameInset: -4, text: 'text-[7px]', online: 6 },
+  sm:  { container: 48, avatar: 48, frameSize: 58, frameInset: -5, text: 'text-[10px]', online: 8 },
+  md:  { container: 60, avatar: 60, frameSize: 74, frameInset: -7, text: 'text-xs',     online: 10 },
+  lg:  { container: 80, avatar: 80, frameSize: 98, frameInset: -9, text: 'text-sm',     online: 12 },
+  xl:  { container: 100, avatar: 100, frameSize: 124, frameInset: -12, text: 'text-base', online: 14 },
+  '2xl': { container: 124, avatar: 124, frameSize: 152, frameInset: -14, text: 'text-lg', online: 16 },
 };
 
 // Track broken frame URLs globally
