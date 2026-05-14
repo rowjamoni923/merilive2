@@ -892,7 +892,7 @@ const Settings = () => {
 
       {/* Language Selection Dialog - Premium Dark Theme */}
       <Dialog open={showLanguageDialog} onOpenChange={setShowLanguageDialog}>
-        <DialogContent className="sm:max-w-md max-h-[80vh] bg-white border border-white/10">
+        <DialogContent className="sm:max-w-md max-h-[80vh] bg-white border border-amber-200/40">
           <DialogHeader>
             <DialogTitle className="text-slate-800 text-center">{t("settings.selectLanguage")}</DialogTitle>
             <DialogDescription className="text-slate-700 text-center">
@@ -908,7 +908,7 @@ const Settings = () => {
                   className={`w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all ${
                     selectedLanguage === lang.code
                       ? "bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-500/50 text-white"
-                      : "bg-slate-50 hover:bg-slate-100 border border-white/5 text-white"
+                      : "bg-slate-50 hover:bg-slate-100 border border-amber-200/40 text-white"
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -932,7 +932,7 @@ const Settings = () => {
 
       {/* Permissions Dialog - Premium Luxurious UI */}
       <Dialog open={showPermissionsDialog} onOpenChange={setShowPermissionsDialog}>
-        <DialogContent className="sm:max-w-md bg-white border border-white/10">
+        <DialogContent className="sm:max-w-md bg-white border border-amber-200/40">
           <DialogHeader>
             <DialogTitle className="text-slate-800 text-center">{t("settings.notificationsPermissions")}</DialogTitle>
             <DialogDescription className="text-slate-700 text-center">
@@ -944,14 +944,14 @@ const Settings = () => {
               <button
                 type="button"
                 onClick={openPermissionSettings}
-                className="w-full rounded-2xl border border-white/10 bg-slate-50 p-3 text-left text-xs text-slate-500 active:scale-[0.98] transition-transform"
+                className="w-full rounded-2xl border border-amber-200/40 bg-slate-50 p-3 text-left text-xs text-slate-500 active:scale-[0.98] transition-transform"
               >
                 <p className="font-semibold text-slate-800 mb-1">App Permission Settings</p>
                 <p>Open Android app settings if a permission was blocked before.</p>
               </button>
             )}
             {isInIframe && (
-              <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
+              <div className="rounded-2xl border border-amber-300/60 bg-amber-500/10 p-3 text-xs text-amber-200">
                 <p className="font-semibold mb-1">⚠️ Preview Mode Limitation</p>
                 <p className="text-amber-200/80 mb-2">
                   Camera, Microphone & Location can't be granted inside this preview frame. Open the app in a full browser tab or in the installed Android app to enable them.
@@ -967,7 +967,7 @@ const Settings = () => {
             {/* Notifications */}
           <button 
             onClick={() => requestNotificationPermission()}
-            className="w-full flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-slate-800/80 to-slate-800/50 border border-white/5 cursor-pointer active:scale-[0.98] transition-transform"
+            className="w-full flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-white to-amber-50/60 border border-amber-200/40 cursor-pointer active:scale-[0.98] transition-transform"
           >
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600/30 to-pink-600/30 flex items-center justify-center border border-purple-500/20">
@@ -982,7 +982,7 @@ const Settings = () => {
               className={`relative w-14 h-8 rounded-full transition-all duration-300 pointer-events-none ${
                   permissions.notifications 
                     ? "bg-gradient-to-r from-purple-600 to-pink-600 shadow-lg shadow-purple-500/30" 
-                    : "bg-slate-200 border border-white/10"
+                    : "bg-slate-200 border border-amber-200/40"
                 }`}
               >
         <div className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow-md transition-all duration-300 pointer-events-none ${
@@ -994,7 +994,7 @@ const Settings = () => {
             {/* Camera */}
     <button 
       onClick={() => requestCameraPermission()}
-      className="w-full flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-slate-800/80 to-slate-800/50 border border-white/5 cursor-pointer active:scale-[0.98] transition-transform"
+      className="w-full flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-white to-amber-50/60 border border-amber-200/40 cursor-pointer active:scale-[0.98] transition-transform"
     >
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-600/30 to-rose-600/30 flex items-center justify-center border border-pink-500/20">
@@ -1009,7 +1009,7 @@ const Settings = () => {
         className={`relative w-14 h-8 rounded-full transition-all duration-300 pointer-events-none ${
                   permissions.camera 
                     ? "bg-gradient-to-r from-pink-600 to-rose-600 shadow-lg shadow-pink-500/30" 
-                    : "bg-slate-200 border border-white/10"
+                    : "bg-slate-200 border border-amber-200/40"
                 }`}
               >
         <div className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow-md transition-all duration-300 pointer-events-none ${
@@ -1021,7 +1021,7 @@ const Settings = () => {
             {/* Microphone */}
     <button 
       onClick={() => requestMicrophonePermission()}
-      className="w-full flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-slate-800/80 to-slate-800/50 border border-white/5 cursor-pointer active:scale-[0.98] transition-transform"
+      className="w-full flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-white to-amber-50/60 border border-amber-200/40 cursor-pointer active:scale-[0.98] transition-transform"
     >
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600/30 to-cyan-600/30 flex items-center justify-center border border-blue-500/20">
@@ -1036,7 +1036,7 @@ const Settings = () => {
         className={`relative w-14 h-8 rounded-full transition-all duration-300 pointer-events-none ${
                   permissions.microphone 
                     ? "bg-gradient-to-r from-blue-600 to-cyan-600 shadow-lg shadow-blue-500/30" 
-                    : "bg-slate-200 border border-white/10"
+                    : "bg-slate-200 border border-amber-200/40"
                 }`}
               >
         <div className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow-md transition-all duration-300 pointer-events-none ${
@@ -1048,7 +1048,7 @@ const Settings = () => {
             {/* Location */}
     <button 
       onClick={() => requestLocationPermission()}
-      className="w-full flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-slate-800/80 to-slate-800/50 border border-white/5 cursor-pointer active:scale-[0.98] transition-transform"
+      className="w-full flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-white to-amber-50/60 border border-amber-200/40 cursor-pointer active:scale-[0.98] transition-transform"
     >
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-600/30 to-emerald-600/30 flex items-center justify-center border border-green-500/20">
@@ -1063,7 +1063,7 @@ const Settings = () => {
         className={`relative w-14 h-8 rounded-full transition-all duration-300 pointer-events-none ${
                   permissions.location 
                     ? "bg-gradient-to-r from-green-600 to-emerald-600 shadow-lg shadow-green-500/30" 
-                    : "bg-slate-200 border border-white/10"
+                    : "bg-slate-200 border border-amber-200/40"
                 }`}
               >
         <div className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow-md transition-all duration-300 pointer-events-none ${

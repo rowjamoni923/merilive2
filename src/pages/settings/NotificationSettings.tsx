@@ -25,7 +25,7 @@ const CATEGORIES: NotificationCategory[] = [
   { key: 'agency', label: 'Agency', description: 'Agency notifications', icon: Building2, color: 'bg-purple-500' },
   { key: 'helper', label: 'Helper', description: 'Orders, payroll, level', icon: HeadphonesIcon, color: 'bg-teal-500' },
   { key: 'host', label: 'Host', description: 'Application status', icon: Crown, color: 'bg-yellow-500' },
-  { key: 'general', label: 'General', description: 'Other notifications', icon: Bell, color: 'bg-muted' },
+  { key: 'general', label: 'General', description: 'Other notifications', icon: Bell, color: 'bg-amber-50' },
 ];
 
 interface PrefState {
@@ -137,17 +137,17 @@ export default function NotificationSettings() {
 
   if (loading) {
     return (
-      <div className="mobile-page bg-background flex items-center justify-center">
+      <div className="mobile-page bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF] flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="mobile-page bg-background">
-      <div className="mobile-header bg-background border-b border-border">
+    <div className="mobile-page bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF]">
+      <div className="mobile-header bg-white/80 backdrop-blur-xl border-b border-amber-200/50 border-amber-200/60">
         <div className="flex items-center h-14 px-4">
-          <button onClick={() => navigate(-1)} className="p-2 -ml-2 hover:bg-muted rounded-full transition-colors">
+          <button onClick={() => navigate(-1)} className="p-2 -ml-2 hover:bg-amber-50 rounded-full transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <h1 className="flex-1 text-center text-lg font-semibold pr-7">Notification Settings</h1>
@@ -156,17 +156,17 @@ export default function NotificationSettings() {
 
       <div className="mobile-page-scrollable">
         {/* Global Sound Toggle */}
-        <div className="px-4 py-3 bg-muted/30 border-b border-border">
+        <div className="px-4 py-3 bg-amber-50/30 border-b border-amber-200/60">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               {globalSound ? (
                 <Volume2 className="w-5 h-5 text-primary" />
               ) : (
-                <VolumeX className="w-5 h-5 text-muted-foreground" />
+                <VolumeX className="w-5 h-5 text-slate-600" />
               )}
               <div>
-                <p className="font-medium text-foreground">Notification Sound</p>
-                <p className="text-xs text-muted-foreground">Play sound for all notifications</p>
+                <p className="font-medium text-slate-800">Notification Sound</p>
+                <p className="text-xs text-slate-600">Play sound for all notifications</p>
               </div>
             </div>
             <Switch checked={globalSound} onCheckedChange={toggleGlobalSound} />
@@ -185,8 +185,8 @@ export default function NotificationSettings() {
                     <Icon className="w-4 h-4 text-slate-800" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-foreground text-sm">{cat.label}</p>
-                    <p className="text-xs text-muted-foreground">{cat.description}</p>
+                    <p className="font-medium text-slate-800 text-sm">{cat.label}</p>
+                    <p className="text-xs text-slate-600">{cat.description}</p>
                   </div>
                   <Switch
                     checked={pref.enabled}
@@ -195,7 +195,7 @@ export default function NotificationSettings() {
                 </div>
                 {pref.enabled && (
                   <div className="ml-11 flex items-center gap-4 mt-1">
-                    <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <label className="flex items-center gap-2 text-xs text-slate-600">
                       <Switch
                         className="scale-75"
                         checked={pref.push_enabled}
@@ -203,7 +203,7 @@ export default function NotificationSettings() {
                       />
                       Push
                     </label>
-                    <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <label className="flex items-center gap-2 text-xs text-slate-600">
                       <Switch
                         className="scale-75"
                         checked={pref.sound_enabled}
@@ -218,7 +218,7 @@ export default function NotificationSettings() {
           })}
         </div>
 
-        <div className="p-4 text-center text-xs text-muted-foreground">
+        <div className="p-4 text-center text-xs text-slate-600">
           Disabled categories will not appear in your notifications. Push notifications require device permission to be enabled.
         </div>
       </div>

@@ -361,18 +361,18 @@ const EditProfile = () => {
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-slate-950 via-slate-900 to-black overflow-hidden">
+    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF] overflow-hidden">
       {/* Premium Dark Header */}
       <div 
         className="relative shrink-0 z-50"
         style={{ paddingTop: 'env(safe-area-inset-top)' }}
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-900/50 via-slate-900/80 to-pink-900/50 backdrop-blur-xl" />
+        <div className="absolute inset-0 bg-gradient-to-r from-amber-50/90 via-white/95 to-pink-50/90 backdrop-blur-xl" />
         <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
         <div className="relative flex items-center justify-between px-4 h-14">
           <button
             onClick={() => navigate(-1)}
-            className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center active:scale-95 transition-transform"
+            className="w-10 h-10 rounded-xl bg-white/5 border border-amber-200/40 flex items-center justify-center active:scale-95 transition-transform"
           >
             <ArrowLeft className="w-5 h-5 text-slate-800" />
           </button>
@@ -399,21 +399,21 @@ const EditProfile = () => {
       >
         {/* Avatar Hero Section */}
         <div className="relative pt-6 pb-8 px-4">
-          <div className="absolute inset-0 bg-gradient-to-b from-purple-900/20 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-b from-amber-100/40 via-transparent to-transparent" />
           <div className="relative flex flex-col items-center">
             <div className="relative">
               <label className="cursor-pointer block">
                 <div className="relative">
                   {/* Outer glow ring */}
                   <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 rounded-full opacity-75 blur-sm animate-pulse" />
-                  <Avatar className="relative w-28 h-28 ring-4 ring-slate-800 shadow-2xl">
+                  <Avatar className="relative w-28 h-28 ring-4 ring-amber-200 shadow-2xl">
                     <AvatarImage src={profile?.avatar_url || undefined} className="object-cover" />
                     <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white text-3xl font-bold">
                       {displayName?.charAt(0) || "U"}
                     </AvatarFallback>
                   </Avatar>
                   {/* Camera button */}
-                  <div className="absolute bottom-0 right-0 w-9 h-9 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center shadow-lg border-2 border-slate-900">
+                  <div className="absolute bottom-0 right-0 w-9 h-9 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center shadow-lg border-2 border-amber-200">
                     {uploading ? (
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     ) : (
@@ -439,7 +439,7 @@ const EditProfile = () => {
               </button>
             </div>
             {profile?.is_host && (
-              <div className="mt-3 flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-amber-600/20 to-orange-600/20 border border-amber-500/30 rounded-full">
+              <div className="mt-3 flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-amber-600/20 to-orange-600/20 border border-amber-300/60 rounded-full">
                 <Crown className="w-3.5 h-3.5 text-amber-400" />
                 <span className="text-xs font-semibold text-amber-400">Host Account</span>
               </div>
@@ -450,9 +450,9 @@ const EditProfile = () => {
         {/* Profile Settings */}
         <div className="px-4 space-y-4">
           {/* Basic Info Card */}
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl border border-white/5 overflow-hidden">
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl border border-amber-200/40 overflow-hidden">
             {/* My Avatar */}
-            <label className="flex items-center justify-between px-4 py-4 border-b border-white/5 active:bg-white/5 cursor-pointer">
+            <label className="flex items-center justify-between px-4 py-4 border-b border-amber-200/40 active:bg-white/5 cursor-pointer">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600/30 to-pink-600/30 flex items-center justify-center">
                   <Camera className="w-5 h-5 text-purple-400" />
@@ -480,7 +480,7 @@ const EditProfile = () => {
             {/* My Poster */}
             <button
               onClick={() => navigate("/my-poster")}
-              className="w-full flex items-center justify-between px-4 py-4 border-b border-white/5 active:bg-white/5"
+              className="w-full flex items-center justify-between px-4 py-4 border-b border-amber-200/40 active:bg-white/5"
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-fuchsia-600/30 to-pink-600/30 flex items-center justify-center">
@@ -497,7 +497,7 @@ const EditProfile = () => {
             {/* ID */}
             <button
               onClick={copyId}
-              className="w-full flex items-center justify-between px-4 py-4 border-b border-white/5 active:bg-white/5"
+              className="w-full flex items-center justify-between px-4 py-4 border-b border-amber-200/40 active:bg-white/5"
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600/30 to-cyan-600/30 flex items-center justify-center">
@@ -516,7 +516,7 @@ const EditProfile = () => {
             {/* Nickname */}
             <Sheet>
               <SheetTrigger asChild>
-                <button className="w-full flex items-center justify-between px-4 py-4 border-b border-white/5 active:bg-white/5">
+                <button className="w-full flex items-center justify-between px-4 py-4 border-b border-amber-200/40 active:bg-white/5">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600/30 to-purple-600/30 flex items-center justify-center">
                       <User className="w-5 h-5 text-violet-400" />
@@ -529,7 +529,7 @@ const EditProfile = () => {
                   </div>
                 </button>
               </SheetTrigger>
-              <SheetContent side="bottom" className="bg-white border-t border-white/10 rounded-t-3xl">
+              <SheetContent side="bottom" className="bg-white border-t border-amber-200/40 rounded-t-3xl">
                 <SheetHeader>
                   <SheetTitle className="text-slate-800 text-center">Edit Nickname</SheetTitle>
                 </SheetHeader>
@@ -556,7 +556,7 @@ const EditProfile = () => {
             {/* Gender - Only show edit option if not already set */}
             {profile?.gender && profile.gender.toLowerCase() !== "other" ? (
               // Gender already selected - show as read-only
-              <div className="w-full flex items-center justify-between px-4 py-4 border-b border-white/5">
+              <div className="w-full flex items-center justify-between px-4 py-4 border-b border-amber-200/40">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-600/30 to-pink-600/30 flex items-center justify-center">
                     <User className="w-5 h-5 text-rose-400" />
@@ -576,7 +576,7 @@ const EditProfile = () => {
               // Gender not set - allow selection
               <Sheet>
                 <SheetTrigger asChild>
-                  <button className="w-full flex items-center justify-between px-4 py-4 border-b border-white/5 active:bg-white/5">
+                  <button className="w-full flex items-center justify-between px-4 py-4 border-b border-amber-200/40 active:bg-white/5">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-600/30 to-pink-600/30 flex items-center justify-center">
                         <User className="w-5 h-5 text-rose-400" />
@@ -589,7 +589,7 @@ const EditProfile = () => {
                     </div>
                   </button>
                 </SheetTrigger>
-                <SheetContent side="bottom" className="bg-white border-t border-white/10 rounded-t-3xl">
+                <SheetContent side="bottom" className="bg-white border-t border-amber-200/40 rounded-t-3xl">
                   <SheetHeader>
                     <SheetTitle className="text-slate-800 text-center">Select Gender (One-time only)</SheetTitle>
                   </SheetHeader>
@@ -618,7 +618,7 @@ const EditProfile = () => {
                       className={`flex-1 py-5 rounded-2xl border-2 transition-all ${
                         gender === "Male" 
                           ? "bg-blue-600/20 border-blue-500 text-blue-400" 
-                          : "border-white/10 hover:border-white/20 text-slate-500"
+                          : "border-amber-200/40 hover:border-amber-200/60 text-slate-500"
                       }`}
                     >
                       <span className="text-2xl mb-2 block">👨</span>
@@ -646,7 +646,7 @@ const EditProfile = () => {
                       className={`flex-1 py-5 rounded-2xl border-2 transition-all ${
                         gender === "Female" 
                           ? "bg-pink-600/20 border-pink-500 text-pink-400" 
-                          : "border-white/10 hover:border-white/20 text-slate-500"
+                          : "border-amber-200/40 hover:border-amber-200/60 text-slate-500"
                       }`}
                     >
                       <span className="text-2xl mb-2 block">👩</span>
@@ -666,7 +666,7 @@ const EditProfile = () => {
             {/* Age */}
             <Sheet>
               <SheetTrigger asChild>
-                <button className="w-full flex items-center justify-between px-4 py-4 border-b border-white/5 active:bg-white/5">
+                <button className="w-full flex items-center justify-between px-4 py-4 border-b border-amber-200/40 active:bg-white/5">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-600/30 to-orange-600/30 flex items-center justify-center">
                       <Star className="w-5 h-5 text-amber-400" />
@@ -679,7 +679,7 @@ const EditProfile = () => {
                   </div>
                 </button>
               </SheetTrigger>
-              <SheetContent side="bottom" className="bg-white border-t border-white/10 rounded-t-3xl">
+              <SheetContent side="bottom" className="bg-white border-t border-amber-200/40 rounded-t-3xl">
                 <SheetHeader>
                   <SheetTitle className="text-slate-800 text-center">Enter Age</SheetTitle>
                 </SheetHeader>
@@ -705,7 +705,7 @@ const EditProfile = () => {
             </Sheet>
 
             {/* Region */}
-            <div className="flex items-center justify-between px-4 py-4 border-b border-white/5">
+            <div className="flex items-center justify-between px-4 py-4 border-b border-amber-200/40">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-600/30 to-green-600/30 flex items-center justify-center">
                   <MapPin className="w-5 h-5 text-emerald-400" />
@@ -721,7 +721,7 @@ const EditProfile = () => {
             </div>
 
             {/* Hide Location Toggle */}
-            <div className="flex items-center justify-between px-4 py-4 border-b border-white/5">
+            <div className="flex items-center justify-between px-4 py-4 border-b border-amber-200/40">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-600/30 to-orange-600/30 flex items-center justify-center">
                   {hideLocation ? (
@@ -761,7 +761,7 @@ const EditProfile = () => {
             {/* Language */}
             <Sheet>
               <SheetTrigger asChild>
-                <button className="w-full flex items-center justify-between px-4 py-4 border-b border-white/5 active:bg-white/5">
+                <button className="w-full flex items-center justify-between px-4 py-4 border-b border-amber-200/40 active:bg-white/5">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-600/30 to-blue-600/30 flex items-center justify-center">
                       <Globe className="w-5 h-5 text-cyan-400" />
@@ -774,7 +774,7 @@ const EditProfile = () => {
                   </div>
                 </button>
               </SheetTrigger>
-              <SheetContent side="bottom" className="bg-white border-t border-white/10 rounded-t-3xl">
+              <SheetContent side="bottom" className="bg-white border-t border-amber-200/40 rounded-t-3xl">
                 <SheetHeader>
                   <SheetTitle className="text-slate-800 text-center">Select Language</SheetTitle>
                 </SheetHeader>
@@ -786,7 +786,7 @@ const EditProfile = () => {
                       className={`py-3.5 rounded-xl font-semibold text-sm transition-all ${
                         language === lang 
                           ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/25" 
-                          : "bg-slate-100 text-white hover:bg-slate-200 border border-white/10"
+                          : "bg-slate-100 text-white hover:bg-slate-200 border border-amber-200/40"
                       }`}
                     >
                       {lang}
@@ -799,7 +799,7 @@ const EditProfile = () => {
             {/* Second Language */}
             <Sheet>
               <SheetTrigger asChild>
-                <button className="w-full flex items-center justify-between px-4 py-4 border-b border-white/5 active:bg-white/5">
+                <button className="w-full flex items-center justify-between px-4 py-4 border-b border-amber-200/40 active:bg-white/5">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600/30 to-violet-600/30 flex items-center justify-center">
                       <Globe className="w-5 h-5 text-purple-400" />
@@ -812,7 +812,7 @@ const EditProfile = () => {
                   </div>
                 </button>
               </SheetTrigger>
-              <SheetContent side="bottom" className="bg-white border-t border-white/10 rounded-t-3xl">
+              <SheetContent side="bottom" className="bg-white border-t border-amber-200/40 rounded-t-3xl">
                 <SheetHeader>
                   <SheetTitle className="text-slate-800 text-center">Select Second Language</SheetTitle>
                 </SheetHeader>
@@ -822,7 +822,7 @@ const EditProfile = () => {
                     className={`py-3.5 rounded-xl font-semibold text-sm transition-all ${
                       !secondLanguage 
                         ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/25" 
-                        : "bg-slate-100 text-white hover:bg-slate-200 border border-white/10"
+                        : "bg-slate-100 text-white hover:bg-slate-200 border border-amber-200/40"
                     }`}
                   >
                     None
@@ -834,7 +834,7 @@ const EditProfile = () => {
                       className={`py-3.5 rounded-xl font-semibold text-sm transition-all ${
                         secondLanguage === lang 
                           ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/25" 
-                          : "bg-slate-100 text-white hover:bg-slate-200 border border-white/10"
+                          : "bg-slate-100 text-white hover:bg-slate-200 border border-amber-200/40"
                       }`}
                     >
                       {lang}
@@ -847,7 +847,7 @@ const EditProfile = () => {
             {/* Tags */}
             <button
               onClick={() => navigate("/tags")}
-              className="w-full flex items-center justify-between px-4 py-4 border-b border-white/5 active:bg-white/5"
+              className="w-full flex items-center justify-between px-4 py-4 border-b border-amber-200/40 active:bg-white/5"
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600/30 to-violet-600/30 flex items-center justify-center">
@@ -873,7 +873,7 @@ const EditProfile = () => {
             {/* Bio */}
             <Sheet>
               <SheetTrigger asChild>
-                <button className="w-full flex items-center justify-between px-4 py-4 border-b border-white/5 active:bg-white/5">
+                <button className="w-full flex items-center justify-between px-4 py-4 border-b border-amber-200/40 active:bg-white/5">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-600/30 to-emerald-600/30 flex items-center justify-center">
                       <MessageCircle className="w-5 h-5 text-teal-400" />
@@ -888,7 +888,7 @@ const EditProfile = () => {
                   </div>
                 </button>
               </SheetTrigger>
-              <SheetContent side="bottom" className="bg-white border-t border-white/10 rounded-t-3xl h-[400px]">
+              <SheetContent side="bottom" className="bg-white border-t border-amber-200/40 rounded-t-3xl h-[400px]">
                 <SheetHeader>
                   <SheetTitle className="text-slate-800 text-center">Self-introduction</SheetTitle>
                 </SheetHeader>
@@ -934,8 +934,8 @@ const EditProfile = () => {
           </div>
 
           {/* Account Recovery Section */}
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl border border-white/5 overflow-hidden">
-            <div className="px-4 py-3 bg-gradient-to-r from-purple-900/30 to-pink-900/30 border-b border-white/5">
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl border border-amber-200/40 overflow-hidden">
+            <div className="px-4 py-3 bg-gradient-to-r from-purple-900/30 to-pink-900/30 border-b border-amber-200/40">
               <p className="text-xs font-semibold text-purple-400 uppercase tracking-wider">
                 Account Recovery
               </p>
@@ -944,7 +944,7 @@ const EditProfile = () => {
             {/* Email */}
             <button 
               onClick={() => setShowEmailModal(true)}
-              className="w-full flex items-center justify-between px-4 py-4 border-b border-white/5 active:bg-white/5"
+              className="w-full flex items-center justify-between px-4 py-4 border-b border-amber-200/40 active:bg-white/5"
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600/30 to-indigo-600/30 flex items-center justify-center">
@@ -981,8 +981,8 @@ const EditProfile = () => {
           </div>
 
           {/* Account Security Section */}
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl border border-white/5 overflow-hidden">
-            <div className="px-4 py-3 bg-gradient-to-r from-blue-900/30 to-indigo-900/30 border-b border-white/5">
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl border border-amber-200/40 overflow-hidden">
+            <div className="px-4 py-3 bg-gradient-to-r from-blue-900/30 to-indigo-900/30 border-b border-amber-200/40">
               <p className="text-xs font-semibold text-blue-400 uppercase tracking-wider">
                 Account Security
               </p>
@@ -1011,7 +1011,7 @@ const EditProfile = () => {
             <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/50" />
             <div className="absolute -inset-1 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 opacity-20 blur-xl" />
             <div className="relative flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600/50 to-pink-600/50 flex items-center justify-center backdrop-blur-sm border border-white/10">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600/50 to-pink-600/50 flex items-center justify-center backdrop-blur-sm border border-amber-200/40">
                 <Shield className="w-7 h-7 text-slate-800" />
               </div>
               <div className="flex-1">
@@ -1027,7 +1027,7 @@ const EditProfile = () => {
 
       {/* Phone Modal */}
       <Dialog open={showPhoneModal} onOpenChange={setShowPhoneModal}>
-        <DialogContent className="bg-white border border-white/10 rounded-2xl max-w-[90vw] sm:max-w-sm">
+        <DialogContent className="bg-white border border-amber-200/40 rounded-2xl max-w-[90vw] sm:max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-slate-800 text-center flex items-center justify-center gap-2">
               <Phone className="w-5 h-5 text-green-400" />
@@ -1060,7 +1060,7 @@ const EditProfile = () => {
 
       {/* Password Modal */}
       <Dialog open={showPasswordModal} onOpenChange={setShowPasswordModal}>
-        <DialogContent className="bg-white border border-white/10 rounded-2xl max-w-[90vw] sm:max-w-sm">
+        <DialogContent className="bg-white border border-amber-200/40 rounded-2xl max-w-[90vw] sm:max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-slate-800 text-center flex items-center justify-center gap-2">
               <Lock className="w-5 h-5 text-indigo-400" />
@@ -1112,7 +1112,7 @@ const EditProfile = () => {
 
       {/* Email Modal */}
       <Dialog open={showEmailModal} onOpenChange={setShowEmailModal}>
-        <DialogContent className="bg-white border border-white/10 rounded-2xl max-w-[90vw] sm:max-w-sm">
+        <DialogContent className="bg-white border border-amber-200/40 rounded-2xl max-w-[90vw] sm:max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-slate-800 text-center flex items-center justify-center gap-2">
               <Mail className="w-5 h-5 text-blue-400" />

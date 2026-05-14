@@ -2096,7 +2096,7 @@ const Chat = () => {
                           
                           return (
                             <motion.div 
-                              className="inline-flex flex-col items-center p-1.5 bg-gradient-to-br from-amber-50 to-slate-800/70 rounded-lg border border-amber-500/25 shadow-md backdrop-blur-sm"
+                              className="inline-flex flex-col items-center p-1.5 bg-gradient-to-br from-[#FFFBF2] to-[#F5EFDF]/70 rounded-lg border border-amber-500/25 shadow-md backdrop-blur-sm"
                               initial={{ opacity: 0, scale: 0.9 }}
                               animate={{ opacity: 1, scale: 1 }}
                               transition={{ duration: 0.2 }}
@@ -2681,8 +2681,8 @@ const Chat = () => {
                     onChange={(e) => handleMessageChange(e.target.value)}
                     placeholder="Type something..."
                     className={cn(
-                      "rounded-full bg-white/[0.06] border border-amber-200/60 pr-20 text-white placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-purple-500/40 focus-visible:border-purple-500/30 backdrop-blur-xl",
-                      inlineTranslateEnabled && "ring-1 ring-purple-500/40 border-purple-500/30"
+                      "rounded-full bg-white/[0.06] border border-amber-200/60 pr-20 text-white placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-purple-500/40 focus-visible:border-amber-300/60 backdrop-blur-xl",
+                      inlineTranslateEnabled && "ring-1 ring-purple-500/40 border-amber-300/60"
                     )}
                     onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
                     disabled={sending}
@@ -2865,7 +2865,7 @@ const Chat = () => {
                 {/* Translation Result - Shows below input */}
                 <div className={`rounded-xl border-2 border-dashed transition-all ${
                   translatedResult 
-                    ? 'border-purple-500/30 bg-purple-500/10' 
+                    ? 'border-amber-300/60 bg-purple-500/10' 
                     : 'border-white/[0.08] bg-white/[0.04]'
                 }`}>
                   <div className="p-3">
@@ -3205,23 +3205,23 @@ const Chat = () => {
       <Dialog open={showCreateGroup} onOpenChange={setShowCreateGroup}>
         <DialogContent className="max-w-sm mx-auto border border-amber-200/60" style={{ background: 'linear-gradient(180deg, hsl(40 40% 99%) 0%, hsl(40 40% 98%) 100%)' }}>
           <DialogHeader>
-            <DialogTitle className="text-white">Create a group</DialogTitle>
+            <DialogTitle className="text-slate-800">Create a group</DialogTitle>
           </DialogHeader>
           <div className="space-y-6 py-4">
             <div className="space-y-2">
-              <Label htmlFor="groupName" className="text-slate-600">Group Name</Label>
+              <Label htmlFor="groupName" className="text-slate-700 font-medium">Group Name</Label>
               <Input
                 id="groupName"
                 placeholder="Enter group name"
                 value={newGroupName}
                 onChange={(e) => setNewGroupName(e.target.value)}
-                className="bg-white/[0.06] border-white/[0.08] text-white placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-purple-500/40"
+                className="bg-white border-amber-200/60 text-slate-800 placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-purple-500/40"
               />
             </div>
 
             <div className="flex justify-center">
               <button 
-                className="w-20 h-20 rounded-full border-2 border-dashed border-purple-500/30 flex items-center justify-center hover:bg-white/[0.06] transition-colors overflow-hidden"
+                className="w-20 h-20 rounded-full border-2 border-dashed border-amber-300/60 flex items-center justify-center hover:bg-white/[0.06] transition-colors overflow-hidden"
                 onClick={() => groupPhotoInputRef.current?.click()}
               >
                 {newGroupPhotoPreview ? (
@@ -3287,7 +3287,7 @@ const Chat = () => {
       <Dialog open={showSearchGroup} onOpenChange={setShowSearchGroup}>
         <DialogContent className="max-w-sm mx-auto border border-amber-200/60" style={{ background: 'linear-gradient(180deg, hsl(40 40% 99%) 0%, hsl(40 40% 98%) 100%)' }}>
           <DialogHeader>
-            <DialogTitle className="text-white">Search Group</DialogTitle>
+            <DialogTitle className="text-slate-800">Search Group</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="relative">
