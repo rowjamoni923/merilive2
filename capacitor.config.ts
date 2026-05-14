@@ -117,9 +117,12 @@ const config: CapacitorConfig = {
       resizeOnFullScreen: true
     },
     // Status bar customization
+    // Status bar — light surface with dark icons (professional look)
+    // 'Light' style = dark icons (used on bright backgrounds)
     StatusBar: {
-      style: 'dark',
-      backgroundColor: '#0a0a0f'
+      style: 'Light',
+      backgroundColor: '#ffffff',
+      overlaysWebView: false
     },
     // Local notifications
     LocalNotifications: {
