@@ -2088,8 +2088,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               onClick={() => setShowTransferModal(true)}
               className="w-full group relative"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/30 to-pink-500/30 rounded-xl translate-y-0.5 blur-sm" />
-              <div className="relative bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500 rounded-xl p-2.5 overflow-hidden shadow-lg group-hover:shadow-xl transition-all duration-300 group-active:scale-95">
+              <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-800/40 to-indigo-900/40 rounded-xl translate-y-0.5 blur-sm" />
+              <div className="relative bg-gradient-to-br from-fuchsia-700 via-violet-700 to-indigo-800 rounded-xl p-2.5 overflow-hidden shadow-lg ring-1 ring-fuchsia-300/20 group-hover:shadow-xl transition-all duration-300 group-active:scale-95">
                 <div className="absolute inset-0 opacity-30">
                   <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-white/20 to-transparent rounded-full -translate-y-4 translate-x-4" />
                 </div>
