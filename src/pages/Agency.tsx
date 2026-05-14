@@ -160,7 +160,7 @@ const Agency = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-gradient-to-br from-purple-50 via-white to-indigo-50 overflow-hidden">
       {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 text-slate-800 safe-area-top shadow-lg">
+      <header className="flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 text-white safe-area-top shadow-lg">
         <div className="flex items-center h-14 px-4">
           <button 
             onClick={() => navigate(-1)}
@@ -181,7 +181,7 @@ const Agency = () => {
         {/* Main Content */}
         <div className="p-4 space-y-4">
         {/* Hero Banner */}
-        <div className="bg-gradient-to-br from-purple-600 via-indigo-600 to-purple-700 rounded-3xl p-6 text-slate-800 shadow-xl relative overflow-hidden">
+        <div className="bg-gradient-to-br from-purple-600 via-indigo-600 to-purple-700 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2 blur-xl" />
           
@@ -372,7 +372,7 @@ const Agency = () => {
           </div>
 
           {/* Helper Levels Info - Dynamic from Database */}
-          <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl p-4 text-slate-800">
+          <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl p-4 text-white">
             <h5 className="font-semibold mb-3 flex items-center gap-2">
               <Crown className="w-4 h-4" />
               Helper Level Commission Rates
@@ -425,7 +425,7 @@ const Agency = () => {
                 ))}
               </div>
               {diamondTier && (
-                <div className="mt-3 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-xl p-3 text-center text-slate-800">
+                <div className="mt-3 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-xl p-3 text-center text-white">
                   <p className="text-xs mb-1">💎 {diamondTier.level_name} ({diamondTier.level_code})</p>
                   <p className="text-2xl font-bold">{diamondTier.commission_rate}%</p>
                 </div>

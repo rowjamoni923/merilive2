@@ -1236,7 +1236,7 @@ const VIP = () => {
                         className={`px-6 ${
                           isOwned 
                             ? 'bg-green-500/20 text-green-400' 
-                            : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-slate-800'
+                            : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white'
                         }`}
                       >
                         {isOwned ? 'Active' : 'Subscribe'}

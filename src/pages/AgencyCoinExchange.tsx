@@ -691,7 +691,7 @@ const AgencyCoinExchange = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-amber-50 to-slate-800">
       {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-purple-600 to-pink-600 text-slate-800 safe-area-top">
+      <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-purple-600 to-pink-600 text-white safe-area-top">
         <div className="flex items-center h-14 px-4">
           <button 
             onClick={() => navigate(-1)}
@@ -708,7 +708,7 @@ const AgencyCoinExchange = () => {
         {/* Balance Cards */}
         <div className="mx-4 mt-4 grid grid-cols-2 gap-3">
         {/* Agency Beans Balance - from agencies.beans_balance */}
-        <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-4 text-slate-800 shadow-lg relative overflow-hidden">
+        <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-4 text-white shadow-lg relative overflow-hidden">
           <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-10 translate-x-10" />
           <div className="flex items-center gap-2 mb-2">
             <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
@@ -721,7 +721,7 @@ const AgencyCoinExchange = () => {
         </div>
 
         {/* Diamond Balance */}
-        <div className="bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl p-4 text-slate-800 shadow-lg relative overflow-hidden">
+        <div className="bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl p-4 text-white shadow-lg relative overflow-hidden">
           <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-10 translate-x-10" />
           <div className="flex items-center gap-2 mb-2">
             <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
@@ -753,7 +753,7 @@ const AgencyCoinExchange = () => {
         <Button
           variant={activeTab === "exchange" ? "default" : "outline"}
           onClick={() => setActiveTab("exchange")}
-          className={`flex-1 ${activeTab === "exchange" ? "bg-gradient-to-r from-amber-500 to-orange-600 border-0" : "border-amber-200/60 text-slate-800 hover:bg-white/10"}`}
+          className={`flex-1 ${activeTab === "exchange" ? "bg-gradient-to-r from-amber-500 to-orange-600 border-0" : "border-white/20 text-white hover:bg-white/10"}`}
         >
           <ArrowRightLeft className="w-4 h-4 mr-2" />
           Beans → Diamond
@@ -761,7 +761,7 @@ const AgencyCoinExchange = () => {
         <Button
           variant={activeTab === "send" ? "default" : "outline"}
           onClick={() => setActiveTab("send")}
-          className={`flex-1 ${activeTab === "send" ? "bg-gradient-to-r from-cyan-500 to-blue-600 border-0" : "border-amber-200/60 text-slate-800 hover:bg-white/10"}`}
+          className={`flex-1 ${activeTab === "send" ? "bg-gradient-to-r from-cyan-500 to-blue-600 border-0" : "border-white/20 text-white hover:bg-white/10"}`}
         >
           <Send className="w-4 h-4 mr-2" />
           Send Diamond
@@ -858,7 +858,7 @@ const AgencyCoinExchange = () => {
               <Button
                 onClick={handleExchange}
                 disabled={!beansAmount || (parseInt(beansAmount) || 0) < minimumExchangeAmount || totalBeansNeeded > ownerBeans}
-                className={`w-full h-12 text-slate-800 font-semibold text-sm ${
+                className={`w-full h-12 text-white font-semibold text-sm ${
                   totalBeansNeeded > ownerBeans || !beansAmount || (parseInt(beansAmount) || 0) < minimumExchangeAmount
                     ? 'bg-gray-500/50 cursor-not-allowed opacity-50'
                     : 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700'
@@ -889,8 +889,8 @@ const AgencyCoinExchange = () => {
               }}
               className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
                 sendSubTab === "user"
-                  ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-800 shadow-lg"
-                  : "text-slate-500 hover:text-slate-800 hover:bg-white/5"
+                  ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg"
+                  : "text-white/70 hover:text-white hover:bg-white/5"
               }`}
             >
               <Users className="w-4 h-4" />
@@ -904,8 +904,8 @@ const AgencyCoinExchange = () => {
               }}
               className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
                 sendSubTab === "agency"
-                  ? "bg-gradient-to-r from-purple-500 to-pink-600 text-slate-800 shadow-lg"
-                  : "text-slate-500 hover:text-slate-800 hover:bg-white/5"
+                  ? "bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg"
+                  : "text-white/70 hover:text-white hover:bg-white/5"
               }`}
             >
               <Diamond className="w-4 h-4" />
@@ -952,7 +952,7 @@ const AgencyCoinExchange = () => {
                       >
                         <Avatar className="w-10 h-10 border border-amber-200/60">
                           <AvatarImage src={user.avatar_url || ""} />
-                          <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-blue-500 text-slate-800">
+                          <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-blue-500 text-white">
                             {user.display_name?.charAt(0) || "U"}
                           </AvatarFallback>
                         </Avatar>
@@ -976,7 +976,7 @@ const AgencyCoinExchange = () => {
                     <div className="flex items-center gap-3">
                       <Avatar className="w-12 h-12 border-2 border-cyan-400">
                         <AvatarImage src={selectedUser.avatar_url || ""} />
-                        <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-blue-500 text-slate-800">
+                        <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-blue-500 text-white">
                           {selectedUser.display_name?.charAt(0) || "U"}
                         </AvatarFallback>
                       </Avatar>
@@ -1053,7 +1053,7 @@ const AgencyCoinExchange = () => {
                     <Button
                       onClick={handleSendDiamonds}
                       disabled={!diamondsToSend || (parseInt(diamondsToSend) || 0) > agency.diamond_balance || (parseInt(diamondsToSend) || 0) <= 0}
-                      className="w-full h-12 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-slate-800 font-semibold"
+                      className="w-full h-12 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold"
                     >
                       <Send className="w-5 h-5 mr-2" />
                       Send {(parseInt(diamondsToSend) || 0).toLocaleString()} 💎
@@ -1192,7 +1192,7 @@ const AgencyCoinExchange = () => {
                     <Button
                       onClick={handleSendDiamondsToAgency}
                       disabled={!diamondsToSend || (parseInt(diamondsToSend) || 0) > agency.diamond_balance || (parseInt(diamondsToSend) || 0) <= 0}
-                      className="w-full h-12 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-slate-800 font-semibold"
+                      className="w-full h-12 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-semibold"
                     >
                       <Send className="w-5 h-5 mr-2" />
                       Send {(parseInt(diamondsToSend) || 0).toLocaleString()} 💎 →

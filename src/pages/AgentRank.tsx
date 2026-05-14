@@ -266,8 +266,8 @@ const AgentRank = () => {
                 onClick={() => setPeriodType(p)}
                 className={`flex-1 py-2 rounded-xl text-sm font-bold transition-all active:scale-[0.98] ${
                   periodType === p
-                    ? "bg-gradient-to-r from-fuchsia-500 to-purple-600 text-slate-800 shadow-lg shadow-purple-500/30"
-                    : "bg-white/[0.06] text-slate-500 border border-white/[0.06]"
+                    ? "bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white shadow-lg shadow-purple-500/30"
+                    : "bg-white/[0.06] text-white/70 border border-white/[0.06]"
                 }`}
               >
                 {p === 'weekly' ? '📅 Weekly' : '📆 Monthly'}
@@ -420,7 +420,7 @@ const AgentRank = () => {
                   <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full border ${
                     isChamp 
                       ? 'bg-gradient-to-r from-yellow-500/20 to-amber-500/20 border-yellow-500/30' 
-                      : 'bg-white/[0.06] border-amber-200/60'
+                      : 'bg-white/[0.06] border-white/20'
                   }`}>
                     <Gem className={`${isChamp ? 'w-4 h-4' : 'w-3.5 h-3.5'} text-cyan-400`} />
                     <span className={`font-black ${isChamp ? 'text-sm text-yellow-300' : 'text-xs text-cyan-300'}`}>
@@ -484,7 +484,7 @@ const AgentRank = () => {
                   <div className="relative">
                     <Avatar className="w-11 h-11 border border-amber-200/60">
                       <AvatarImage src={agency.owner_avatar || agency.logo_url || undefined} className="object-cover" />
-                      <AvatarFallback className="bg-gradient-to-br from-purple-600 to-fuchsia-600 text-slate-800 font-bold text-sm">
+                      <AvatarFallback className="bg-gradient-to-br from-purple-600 to-fuchsia-600 text-white font-bold text-sm">
                         {agency.agency_name?.slice(0, 2)}
                       </AvatarFallback>
                     </Avatar>

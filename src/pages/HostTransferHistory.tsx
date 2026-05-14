@@ -167,7 +167,7 @@ const HostTransferHistory = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-background overflow-y-auto overflow-x-hidden">
       {/* Header */}
-      <div className="flex-shrink-0 sticky top-0 z-50 bg-gradient-to-r from-purple-600 to-indigo-600 text-slate-800 safe-area-top">
+      <div className="flex-shrink-0 sticky top-0 z-50 bg-gradient-to-r from-purple-600 to-indigo-600 text-white safe-area-top">
         <div className="flex items-center gap-3 p-4">
           <button
             type="button"
@@ -188,7 +188,7 @@ const HostTransferHistory = () => {
       <div className="p-4 space-y-4">
         {/* Main Stats */}
         <div className="grid grid-cols-2 gap-3">
-          <Card className="bg-gradient-to-br from-emerald-500 to-green-600 border-0 p-4 text-slate-800 col-span-2">
+          <Card className="bg-gradient-to-br from-emerald-500 to-green-600 border-0 p-4 text-white col-span-2">
             <div className="flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2 mb-1">
@@ -204,7 +204,7 @@ const HostTransferHistory = () => {
             </div>
           </Card>
 
-          <Card className="bg-gradient-to-br from-pink-500 to-rose-500 border-0 p-3 text-slate-800">
+          <Card className="bg-gradient-to-br from-pink-500 to-rose-500 border-0 p-3 text-white">
             <div className="flex items-center gap-2 mb-1">
               <Gift className="w-4 h-4" />
               <span className="text-xs opacity-90">Gift Earnings</span>
@@ -213,7 +213,7 @@ const HostTransferHistory = () => {
             <p className="text-[10px] opacity-80">Beans</p>
           </Card>
 
-          <Card className="bg-gradient-to-br from-blue-500 to-cyan-500 border-0 p-3 text-slate-800">
+          <Card className="bg-gradient-to-br from-blue-500 to-cyan-500 border-0 p-3 text-white">
             <div className="flex items-center gap-2 mb-1">
               <Phone className="w-4 h-4" />
               <span className="text-xs opacity-90">Call Earnings</span>
@@ -222,7 +222,7 @@ const HostTransferHistory = () => {
             <p className="text-[10px] opacity-80">Beans</p>
           </Card>
 
-          <Card className="bg-gradient-to-br from-amber-500 to-orange-500 border-0 p-3 text-slate-800">
+          <Card className="bg-gradient-to-br from-amber-500 to-orange-500 border-0 p-3 text-white">
             <div className="flex items-center gap-2 mb-1">
               <Calendar className="w-4 h-4" />
               <span className="text-xs opacity-90">This Week</span>
@@ -231,7 +231,7 @@ const HostTransferHistory = () => {
             <p className="text-[10px] opacity-80">Beans</p>
           </Card>
 
-          <Card className="bg-gradient-to-br from-purple-500 to-violet-500 border-0 p-3 text-slate-800">
+          <Card className="bg-gradient-to-br from-purple-500 to-violet-500 border-0 p-3 text-white">
             <div className="flex items-center gap-2 mb-1">
               <Clock className="w-4 h-4" />
               <span className="text-xs opacity-90">This Month</span>

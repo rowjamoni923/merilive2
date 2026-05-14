@@ -377,18 +377,18 @@ const Discover = () => {
       <div className="px-3 mb-3 -mt-3 pt-3">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="w-full bg-slate-100 rounded-full p-0.5 border border-slate-200 h-9">
-            <TabsTrigger value="all" className="flex-1 rounded-full h-8 text-xs text-slate-500 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-slate-800">
+            <TabsTrigger value="all" className="flex-1 rounded-full h-8 text-xs text-white/70 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white">
               All
             </TabsTrigger>
-            <TabsTrigger value="video" className="flex-1 rounded-full h-8 text-xs text-slate-500 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-slate-800">
+            <TabsTrigger value="video" className="flex-1 rounded-full h-8 text-xs text-white/70 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white">
               <Monitor className="w-3 h-3 mr-1" />
               Video
             </TabsTrigger>
-            <TabsTrigger value="audio" className="flex-1 rounded-full h-8 text-xs text-slate-500 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-slate-800">
+            <TabsTrigger value="audio" className="flex-1 rounded-full h-8 text-xs text-white/70 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white">
               <Mic className="w-3 h-3 mr-1" />
               Audio
             </TabsTrigger>
-            <TabsTrigger value="game" className="flex-1 rounded-full h-8 text-xs text-slate-500 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-rose-500 data-[state=active]:text-slate-800">
+            <TabsTrigger value="game" className="flex-1 rounded-full h-8 text-xs text-white/70 data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-rose-500 data-[state=active]:text-white">
               <Gamepad2 className="w-3 h-3 mr-1" />
               Game
             </TabsTrigger>
@@ -532,7 +532,7 @@ const Discover = () => {
                           )}>
                             <Avatar className="w-6 h-6 border border-white">
                               <AvatarImage src={hostAvatar || undefined} />
-                              <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-slate-800 text-[8px]">
+                              <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-white text-[8px]">
                                 {room.host?.display_name?.charAt(0) || 'H'}
                               </AvatarFallback>
                             </Avatar>

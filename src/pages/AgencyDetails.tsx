@@ -167,7 +167,7 @@ const AgencyDetailsPage = () => {
                 <div className="relative">
                   <Avatar className="w-16 h-16 border-2 border-amber-300">
                     <AvatarImage src={hostAgency.owner.avatar_url || undefined} />
-                    <AvatarFallback className="bg-gradient-to-br from-amber-400 to-orange-500 text-slate-800 text-xl">
+                    <AvatarFallback className="bg-gradient-to-br from-amber-400 to-orange-500 text-white text-xl">
                       {hostAgency.owner.display_name?.charAt(0) || 'O'}
                     </AvatarFallback>
                   </Avatar>
@@ -181,7 +181,7 @@ const AgencyDetailsPage = () => {
                     <Crown className="w-4 h-4 text-amber-500" />
                   </div>
                   <p className="text-sm text-gray-500">ID: {hostAgency.owner.app_uid}</p>
-                  <Badge className="mt-1 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-800 border-0">
+                  <Badge className="mt-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0">
                     Level {hostAgency.owner.user_level}
                   </Badge>
                 </div>

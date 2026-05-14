@@ -2033,7 +2033,7 @@ const FaceVerification = () => {
             const isDone = (step === 1 && userInfoDone) || (step === 2 && !userPhotoStep && userPhotoFile);
             return (
               <React.Fragment key={step}>
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${isDone ? 'bg-green-500 text-slate-800' : isActive ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-slate-800' : 'bg-white/10 text-slate-500'}`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${isDone ? 'bg-green-500 text-white' : isActive ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'bg-white/10 text-white/70'}`}>
                   {isDone ? <CheckCircle2 className="w-5 h-5" /> : step}
                 </div>
                 {step < 3 && <div className={`w-12 h-1 rounded-full ${isDone ? 'bg-gradient-to-r from-purple-500 to-pink-500' : 'bg-white/20'}`} />}
@@ -2197,8 +2197,8 @@ const FaceVerification = () => {
             <motion.div 
               className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold shadow-lg ${
                 currentStep >= step 
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-slate-800' 
-                  : 'bg-white/10 text-slate-500'
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' 
+                  : 'bg-white/10 text-white/70'
               }`}
               animate={currentStep === step ? { scale: [1, 1.05, 1] } : {}}
               transition={{ repeat: Infinity, duration: 2 }}

@@ -480,7 +480,7 @@ const Tasks = () => {
       </AnimatePresence>
 
       {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-400 text-slate-800 p-4 shadow-lg safe-area-top">
+      <header className="flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-400 text-white p-4 shadow-lg safe-area-top">
         <div className="flex items-center gap-3">
           <Button 
             variant="ghost" 
@@ -509,7 +509,7 @@ const Tasks = () => {
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 rounded-2xl p-5 shadow-xl text-slate-800 mb-6"
+          className="bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 rounded-2xl p-5 shadow-xl text-white mb-6"
         >
           <div className="flex items-center justify-between mb-3">
             <div>
@@ -616,7 +616,7 @@ const Tasks = () => {
               <Button
                 size="sm"
                 onClick={() => navigate('/go-live')}
-                className="w-full bg-gradient-to-r from-fuchsia-500 to-purple-600 text-slate-800 text-xs h-9 rounded-xl shadow-lg shadow-fuchsia-500/30"
+                className="w-full bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white text-xs h-9 rounded-xl shadow-lg shadow-fuchsia-500/30"
               >
                 <Video className="w-4 h-4 mr-1.5" />
                 Go Live
@@ -764,7 +764,7 @@ const Tasks = () => {
                         size="sm"
                         onClick={() => claimReward(task)}
                         disabled={claimingTask === task.id}
-                        className="bg-gradient-to-r from-amber-400 to-orange-500 text-slate-800 shadow-lg animate-pulse"
+                        className="bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-lg animate-pulse"
                       >
                         {claimingTask === task.id ? '...' : 'Claim'}
                       </Button>

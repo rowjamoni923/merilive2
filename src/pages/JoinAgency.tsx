@@ -270,7 +270,7 @@ const JoinAgency = () => {
     return (
       <div className="fixed inset-0 flex flex-col bg-background">
         {/* Header */}
-        <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-800 safe-area-top">
+        <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-amber-500 to-orange-500 text-white safe-area-top">
           <div className="flex items-center h-14 px-4">
             <button 
               onClick={() => navigate(-1)}
@@ -417,7 +417,7 @@ const JoinAgency = () => {
     return (
       <div className="fixed inset-0 flex flex-col bg-gray-50">
         {/* Header */}
-        <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-red-500 to-rose-500 text-slate-800 safe-area-top">
+        <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-red-500 to-rose-500 text-white safe-area-top">
           <div className="flex items-center h-14 px-4">
             <button 
               onClick={() => navigate(-1)}
@@ -459,7 +459,7 @@ const JoinAgency = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-gray-50">
       {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-green-500 to-emerald-600 text-slate-800 safe-area-top">
+      <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-green-500 to-emerald-600 text-white safe-area-top">
         <div className="flex items-center h-14 px-4">
           <button 
             onClick={() => navigate(-1)}
@@ -476,7 +476,7 @@ const JoinAgency = () => {
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
         {/* Hero */}
-        <div className="mx-4 mt-4 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-6 text-slate-800">
+        <div className="mx-4 mt-4 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-6 text-white">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
             <UserPlus className="w-6 h-6" />

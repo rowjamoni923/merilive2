@@ -360,7 +360,7 @@ const PayrollHelperGuide = () => {
         <div className="text-center space-y-3">
           <Button
             onClick={() => navigate("/helper-dashboard")}
-            className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-slate-800 font-bold py-6 text-base rounded-xl"
+            className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold py-6 text-base rounded-xl"
           >
             Go to Helper Dashboard
             <ArrowRight className="w-5 h-5 ml-2" />
