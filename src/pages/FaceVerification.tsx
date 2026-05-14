@@ -1501,11 +1501,11 @@ const FaceVerification = () => {
                 transition={{ duration: 2, repeat: Infinity, delay: 0.3 }}
               />
               <div className="absolute inset-4 rounded-full bg-gradient-to-br from-cyan-500/20 to-purple-500/20 flex items-center justify-center">
-                <ScanFace className="w-12 h-12 text-cyan-400" />
+                <ScanFace className="w-12 h-12 text-cyan-600" />
               </div>
             </motion.div>
             <p className="text-slate-700 text-center font-medium mb-1">Ready to Scan</p>
-            <p className="text-slate-400 text-xs text-center max-w-[200px]">Position your face in the oval and follow each instruction</p>
+            <p className="text-slate-600 text-xs text-center max-w-[200px]">Position your face in the oval and follow each instruction</p>
           </div>
         ) : faceVerified ? (
           <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-emerald-900/60 to-green-900/40">
