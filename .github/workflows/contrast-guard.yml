@@ -1,0 +1,46 @@
+name: Contrast Guard
+
+# Blocks merges when scripts/check-contrast.mjs finds new findings
+# beyond .contrast-baseline.json. Re-baseline with:
+#   npm run check:contrast:baseline   (only after intentional design changes)
+
+on:
+  pull_request:
+    branches: [main, master]
+    paths:
+      - "src/**"
+      - "scripts/check-contrast.mjs"
+      - ".contrast-baseline.json"
+      - "package.json"
+      - ".github/workflows/contrast-guard.yml"
+  push:
+    branches: [main, master]
+
+# Cancel superseded runs on the same PR/branch
+concurrency:
+  group: contrast-guard-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contrast:
+    name: Check contrast & readability
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      - name: Run contrast guard
+        run: npm run check:contrast
+
+      - name: Run Vitest contrast guard test
+        run: npx vitest run src/test/contrast.test.ts --reporter=verbose
