@@ -1349,7 +1349,7 @@ const AgencyDashboard = () => {
 
       {/* Agency Information Card */}
       <div className="mx-4 mt-4">
-        <Card className="border-0 shadow-md bg-card">
+        <Card className={premiumCardClass}>
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
               <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -1359,7 +1359,7 @@ const AgencyDashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-xl">
+            <div className={`flex items-center justify-between p-3 rounded-xl ${premiumTileClass}`}>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
                   <Hash className="w-5 h-5 text-purple-600" />
@@ -1371,7 +1371,7 @@ const AgencyDashboard = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-xl">
+            <div className={`flex items-center justify-between p-3 rounded-xl ${premiumTileClass}`}>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
                   <Star className="w-5 h-5 text-amber-600" />
@@ -1383,7 +1383,7 @@ const AgencyDashboard = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-xl">
+            <div className={`flex items-center justify-between p-3 rounded-xl ${premiumTileClass}`}>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                   <TrendingUp className="w-5 h-5 text-green-600" />
@@ -1395,7 +1395,7 @@ const AgencyDashboard = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-xl">
+            <div className={`flex items-center justify-between p-3 rounded-xl ${premiumTileClass}`}>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                   <Calendar className="w-5 h-5 text-blue-600" />
@@ -1413,20 +1413,20 @@ const AgencyDashboard = () => {
       {/* Tabs Section */}
       <div className="mx-4 mt-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full grid grid-cols-4 bg-muted/50 p-1 rounded-2xl h-12">
-            <TabsTrigger value="overview" className="text-xs rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-sm">
+          <TabsList className="w-full grid grid-cols-4 bg-white/90 border border-amber-100 p-1 rounded-2xl h-12 shadow-sm">
+            <TabsTrigger value="overview" className="text-xs rounded-xl text-muted-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-fuchsia-600 data-[state=active]:text-white data-[state=active]:shadow-sm">
               <BarChart3 className="w-4 h-4 mr-1" />
               Overview
             </TabsTrigger>
-            <TabsTrigger value="hosts" className="text-xs rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-sm">
+            <TabsTrigger value="hosts" className="text-xs rounded-xl text-muted-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-fuchsia-600 data-[state=active]:text-white data-[state=active]:shadow-sm">
               <Users className="w-4 h-4 mr-1" />
               Hosts
             </TabsTrigger>
-            <TabsTrigger value="subagents" className="text-xs rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-sm">
+            <TabsTrigger value="subagents" className="text-xs rounded-xl text-muted-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-fuchsia-600 data-[state=active]:text-white data-[state=active]:shadow-sm">
               <UserPlus className="w-4 h-4 mr-1" />
               Agents
             </TabsTrigger>
-            <TabsTrigger value="charts" className="text-xs rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-sm">
+            <TabsTrigger value="charts" className="text-xs rounded-xl text-muted-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-fuchsia-600 data-[state=active]:text-white data-[state=active]:shadow-sm">
               <TrendingUp className="w-4 h-4 mr-1" />
               Charts
             </TabsTrigger>
@@ -1435,7 +1435,7 @@ const AgencyDashboard = () => {
           {/* Overview Tab */}
           <TabsContent value="overview" className="mt-4 space-y-4">
             {/* Weekly Income Chart */}
-            <Card className="border-0 shadow-md bg-card">
+            <Card className={premiumCardClass}>
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
                   <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
