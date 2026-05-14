@@ -2944,12 +2944,12 @@ const Chat = () => {
       {/* Header - Ultra Premium */}
       <header className="flex-shrink-0 z-40 safe-area-top profile-home-card" style={{ borderRadius: 0, borderLeft: 'none', borderRight: 'none', borderTop: 'none' }}>
         <div className="px-4 py-3 flex items-center justify-between">
-          <h1 className="text-xl font-bold bg-gradient-to-r from-fuchsia-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">Messages</h1>
+          <h1 className="text-xl font-bold bg-gradient-to-r from-fuchsia-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">Messages</h1>
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full bg-white/[0.06] border border-white/[0.08] hover:bg-white/[0.1] text-white/85"
+              className="rounded-full bg-white/80 border border-amber-200/60 hover:bg-white text-slate-700 shadow-sm"
               onClick={() => navigate('/search')}
             >
               <MessageCircle className="w-5 h-5" />
@@ -2957,7 +2957,7 @@ const Chat = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full bg-white/[0.06] border border-white/[0.08] hover:bg-white/[0.1] text-white/85"
+              className="rounded-full bg-white/80 border border-amber-200/60 hover:bg-white text-slate-700 shadow-sm"
               onClick={() => setShowGroupActions(true)}
             >
               <Users className="w-5 h-5" />
@@ -2965,11 +2965,11 @@ const Chat = () => {
           </div>
         </div>
         
-        {/* Tabs - Premium Dark */}
+        {/* Tabs - Premium Light */}
         <div className="px-4">
           <Tabs value={chatTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 bg-white/[0.04] border border-white/[0.06] rounded-xl p-1">
-              <TabsTrigger value="messages" className="relative text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600/80 data-[state=active]:to-purple-600/80 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg text-white/80">
+            <TabsList className="grid w-full grid-cols-4 bg-white/70 border border-amber-200/50 rounded-xl p-1 shadow-inner">
+              <TabsTrigger value="messages" className="relative text-xs font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg text-slate-600">
                 Messages
                 {globalUnread.messages > 0 && (
                   <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-red-500 to-pink-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg shadow-red-500/30">
@@ -2977,7 +2977,7 @@ const Chat = () => {
                   </span>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="official" className="relative text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600/80 data-[state=active]:to-purple-600/80 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg text-white/80">
+              <TabsTrigger value="official" className="relative text-xs font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg text-slate-600">
                 Official
                 {globalUnread.official > 0 && (
                   <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg shadow-orange-500/30">
@@ -2985,7 +2985,7 @@ const Chat = () => {
                   </span>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="notifications" className="relative text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600/80 data-[state=active]:to-purple-600/80 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg text-white/80">
+              <TabsTrigger value="notifications" className="relative text-xs font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg text-slate-600">
                 Notifications
                 {globalUnread.notifications > 0 && (
                   <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg">
@@ -2993,10 +2993,10 @@ const Chat = () => {
                   </span>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="groups" className="relative text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600/80 data-[state=active]:to-purple-600/80 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg text-white/80">
+              <TabsTrigger value="groups" className="relative text-xs font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg text-slate-600">
                 Groups
                 {groups.length > 0 && (
-                  <span className="ml-1 text-xs text-white/85">({groups.length})</span>
+                  <span className="ml-1 text-xs text-slate-500">({groups.length})</span>
                 )}
               </TabsTrigger>
             </TabsList>
@@ -3005,12 +3005,12 @@ const Chat = () => {
 
         <div className="px-4 py-3">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/85" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
             <Input
               placeholder={chatTab === 'messages' ? "Search conversations..." : "Search groups..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 rounded-full bg-white/[0.05] border border-white/[0.08] text-white placeholder:text-white/85 focus-visible:ring-1 focus-visible:ring-purple-500/30"
+              className="pl-10 rounded-full bg-white/90 border border-amber-200/60 text-slate-900 placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-purple-400/40 shadow-sm"
             />
           </div>
         </div>
