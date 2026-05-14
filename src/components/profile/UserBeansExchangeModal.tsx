@@ -24,6 +24,26 @@ interface ExchangeTier {
   display_order: number;
 }
 
+interface CoinExchangeSettings {
+  beans_to_diamonds_rate: number;
+  exchange_fee_percent: number;
+  min_exchange_amount: number;
+}
+
+const normalizeCoinExchangeSettings = (value: any): CoinExchangeSettings | null => {
+  if (!value || typeof value !== "object") return null;
+  const rate = Number(value.beans_to_diamonds_rate ?? 0);
+  const fee = Number(value.exchange_fee_percent ?? 0);
+  const min = Number(value.min_exchange_amount ?? 0);
+  if (!Number.isFinite(rate) || rate <= 0 || !Number.isFinite(min) || min <= 0) return null;
+
+  return {
+    beans_to_diamonds_rate: rate,
+    exchange_fee_percent: Number.isFinite(fee) && fee >= 0 ? fee : 0,
+    min_exchange_amount: min,
+  };
+};
+
 interface UserBeansExchangeModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -36,6 +56,13 @@ function diamondsFor(tier: ExchangeTier, beans: number): number {
   if (!tier || beans <= 0) return 0;
   const bonus = 1 + (Number(tier.bonus_percent) || 0) / 100;
   return Math.floor(beans * Number(tier.exchange_rate) * bonus);
+}
+
+function diamondsForSettings(settings: CoinExchangeSettings, beans: number): number {
+  if (!settings || beans <= 0) return 0;
+  const rawDiamonds = Math.floor(beans / settings.beans_to_diamonds_rate);
+  const fee = Math.floor(rawDiamonds * settings.exchange_fee_percent / 100);
+  return Math.max(0, rawDiamonds - fee);
 }
 
 const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModalProps>(function UserBeansExchangeModal({
