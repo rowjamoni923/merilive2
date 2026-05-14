@@ -151,6 +151,69 @@ video::-ms-media-controls {
     --sidebar-accent-foreground: 222 35% 18%;
     --sidebar-border: 42 60% 88%;
     --sidebar-ring: 330 85% 55%;
+
+    /* Semantic palette tokens — muted, on-brand. Used app-wide for status colors */
+    /* success — soft jade */
+    --success-50:  150 50% 96%;
+    --success-100: 150 45% 90%;
+    --success-200: 150 40% 82%;
+    --success-300: 150 38% 70%;
+    --success-400: 150 38% 56%;
+    --success-500: 150 42% 44%;
+    --success-600: 152 48% 36%;
+    --success-700: 154 52% 28%;
+    --success-800: 156 54% 22%;
+    --success-900: 158 56% 16%;
+    /* warning — warm gold */
+    --warning-50:  42 95% 95%;
+    --warning-100: 42 90% 88%;
+    --warning-200: 40 88% 78%;
+    --warning-300: 38 88% 68%;
+    --warning-400: 36 88% 58%;
+    --warning-500: 34 86% 50%;
+    --warning-600: 30 80% 42%;
+    --warning-700: 26 76% 34%;
+    --warning-800: 24 72% 26%;
+    --warning-900: 22 68% 18%;
+    /* info — calm indigo */
+    --info-50:  220 90% 96%;
+    --info-100: 220 80% 90%;
+    --info-200: 220 70% 80%;
+    --info-300: 222 65% 68%;
+    --info-400: 224 60% 58%;
+    --info-500: 226 60% 50%;
+    --info-600: 228 60% 42%;
+    --info-700: 230 60% 34%;
+    --info-800: 232 58% 26%;
+    --info-900: 234 56% 18%;
+    /* danger — muted ruby */
+    --danger-50:  0 70% 96%;
+    --danger-100: 0 70% 90%;
+    --danger-200: 0 65% 82%;
+    --danger-300: 0 60% 72%;
+    --danger-400: 0 60% 60%;
+    --danger-500: 0 62% 50%;
+    --danger-600: 0 64% 42%;
+    --danger-700: 0 64% 34%;
+    --danger-800: 0 60% 26%;
+    --danger-900: 0 56% 18%;
+    /* brand — primary pink/purple family for accents (matches --primary/--secondary) */
+    --brand-50:  320 80% 96%;
+    --brand-100: 322 75% 90%;
+    --brand-200: 324 72% 82%;
+    --brand-300: 326 70% 72%;
+    --brand-400: 328 78% 62%;
+    --brand-500: 330 85% 55%;
+    --brand-600: 320 70% 46%;
+    --brand-700: 300 60% 38%;
+    --brand-800: 280 55% 30%;
+    --brand-900: 270 50% 22%;
+    /* chart palette — derived from semantic tokens */
+    --chart-1: 330 85% 55%;
+    --chart-2: 150 42% 44%;
+    --chart-3: 34 86% 50%;
+    --chart-4: 0 62% 50%;
+    --chart-5: 226 60% 50%;
   }
 
   /* Light mode override - Clean and modern admin style */
