@@ -2919,6 +2919,60 @@ input:focus-visible, textarea:focus-visible {
 }
 
 @layer components {
+  .agency-dashboard-light {
+    --background: 42 100% 98%;
+    --foreground: 224 48% 16%;
+    --card: 0 0% 100%;
+    --card-foreground: 224 48% 16%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 48% 16%;
+    --primary: 270 84% 56%;
+    --primary-foreground: 0 0% 100%;
+    --muted: 42 56% 94%;
+    --muted-foreground: 224 18% 42%;
+    --border: 38 68% 88%;
+    --input: 38 68% 88%;
+    background:
+      linear-gradient(180deg, hsl(42 100% 98%) 0%, hsl(38 88% 96%) 46%, hsl(34 76% 94%) 100%);
+  }
+
+  .agency-dashboard-light .agency-premium-card {
+    border: 1px solid hsl(38 68% 88% / 0.88);
+    background: linear-gradient(145deg, hsl(0 0% 100% / 0.98), hsl(42 100% 99% / 0.92));
+    color: hsl(var(--foreground));
+    box-shadow: 0 18px 46px -30px hsl(270 84% 40% / 0.38), inset 0 1px 0 hsl(0 0% 100% / 0.95);
+  }
+
+  .agency-dashboard-light .agency-premium-tile {
+    border: 1px solid hsl(38 68% 88% / 0.72);
+    background: linear-gradient(145deg, hsl(0 0% 100% / 0.92), hsl(42 100% 98% / 0.78));
+    box-shadow: 0 12px 30px -24px hsl(224 48% 16% / 0.45);
+  }
+
+  .agency-dashboard-light .agency-premium-action {
+    border-radius: 1rem;
+    padding: 1rem;
+    color: hsl(var(--primary-foreground));
+    text-align: center;
+    border: 1px solid hsl(0 0% 100% / 0.28);
+    box-shadow: 0 16px 32px -18px hsl(270 84% 40% / 0.65), inset 0 1px 0 hsl(0 0% 100% / 0.24);
+    transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .agency-dashboard-light .agency-premium-action:hover {
+    transform: translateY(-2px);
+    filter: saturate(1.08);
+    box-shadow: 0 20px 38px -18px hsl(270 84% 40% / 0.8), inset 0 1px 0 hsl(0 0% 100% / 0.28);
+  }
+
+  .agency-dashboard-light .agency-premium-action:active {
+    transform: scale(0.96);
+  }
+
   .live-game-dock {
     border-radius: 18px;
     border: 1px solid hsl(var(--live-game-gold) / 0.32);
