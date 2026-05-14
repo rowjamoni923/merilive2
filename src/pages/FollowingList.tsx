@@ -275,12 +275,12 @@ const FollowingList = () => {
           onClick={() => navigate(`/profile/${profile.id}`)}
         >
           <div className="flex items-center gap-2">
-            <p className="font-semibold truncate">{profile.display_name || 'User'}</p>
+            <p className="font-semibold truncate text-slate-800">{profile.display_name || 'User'}</p>
             {profile.is_host && (
               <span className="text-xs bg-pink-100 text-pink-600 px-2 py-0.5 rounded-full">Host</span>
             )}
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-slate-500">
             {profile.country_flag} {profile.is_online ? 'Online' : 'Offline'}
           </p>
         </div>
