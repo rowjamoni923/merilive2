@@ -59,113 +59,41 @@ const languages = [
   { code: "tl", name: "Filipino", flag: "🇵🇭" },
 ];
 
-// Country-based localized face verification instructions
-const getLocalizedInstructions = (countryName?: string) => {
-  const country = (countryName || '').toLowerCase();
-
-  // Hindi (India)
-  if (country.includes('india') || country.includes('भारत')) {
-    return [
-      { id: 'center', direction: 'सामने देखें', icon: ScanFace, description: 'अपना चेहरा सीधे कैमरे की ओर रखें', checkPose: (p: {yaw:number,pitch:number}) => Math.abs(p.yaw) < 15 && Math.abs(p.pitch) < 15 },
-      { id: 'left', direction: 'बाएं मुड़ें', icon: ArrowLeftIcon, description: 'धीरे से अपना सिर बाईं ओर घुमाएं', checkPose: (p: {yaw:number,pitch:number}) => p.yaw > 18 },
-      { id: 'right', direction: 'दाएं मुड़ें', icon: ArrowRightIcon, description: 'धीरे से अपना सिर दाईं ओर घुमाएं', checkPose: (p: {yaw:number,pitch:number}) => p.yaw < -18 },
-      { id: 'up', direction: 'ऊपर देखें', icon: ArrowUp, description: 'अपना सिर थोड़ा ऊपर उठाएं', checkPose: (p: {yaw:number,pitch:number}) => p.pitch < -12 },
-      { id: 'down', direction: 'नीचे देखें', icon: ArrowDown, description: 'अपना सिर थोड़ा नीचे झुकाएं', checkPose: (p: {yaw:number,pitch:number}) => p.pitch > 12 },
-    ];
-  }
-  
-  // Urdu (Pakistan)
-  if (country.includes('pakistan') || country.includes('پاکستان')) {
-    return [
-      { id: 'center', direction: 'سامنے دیکھیں', icon: ScanFace, description: 'اپنا چہرہ سیدھا کیمرے کی طرف رکھیں', checkPose: (p: {yaw:number,pitch:number}) => Math.abs(p.yaw) < 15 && Math.abs(p.pitch) < 15 },
-      { id: 'left', direction: 'بائیں مڑیں', icon: ArrowLeftIcon, description: 'آہستہ سے اپنا سر بائیں طرف موڑیں', checkPose: (p: {yaw:number,pitch:number}) => p.yaw > 18 },
-      { id: 'right', direction: 'دائیں مڑیں', icon: ArrowRightIcon, description: 'آہستہ سے اپنا سر دائیں طرف موڑیں', checkPose: (p: {yaw:number,pitch:number}) => p.yaw < -18 },
-      { id: 'up', direction: 'اوپر دیکھیں', icon: ArrowUp, description: 'اپنا سر تھوڑا اوپر اٹھائیں', checkPose: (p: {yaw:number,pitch:number}) => p.pitch < -12 },
-      { id: 'down', direction: 'نیچے دیکھیں', icon: ArrowDown, description: 'اپنا سر تھوڑا نیچے جھکائیں', checkPose: (p: {yaw:number,pitch:number}) => p.pitch > 12 },
-    ];
-  }
-  
-  // Arabic (Saudi Arabia, UAE, etc.)
-  if (country.includes('saudi') || country.includes('arab') || country.includes('uae') || country.includes('egypt') || country.includes('iraq')) {
-    return [
-      { id: 'center', direction: 'انظر للأمام', icon: ScanFace, description: 'أبقِ وجهك مستقيماً نحو الكاميرا', checkPose: (p: {yaw:number,pitch:number}) => Math.abs(p.yaw) < 15 && Math.abs(p.pitch) < 15 },
-      { id: 'left', direction: 'التفت يساراً', icon: ArrowLeftIcon, description: 'أدر رأسك ببطء نحو اليسار', checkPose: (p: {yaw:number,pitch:number}) => p.yaw > 18 },
-      { id: 'right', direction: 'التفت يميناً', icon: ArrowRightIcon, description: 'أدر رأسك ببطء نحو اليمين', checkPose: (p: {yaw:number,pitch:number}) => p.yaw < -18 },
-      { id: 'up', direction: 'انظر للأعلى', icon: ArrowUp, description: 'ارفع رأسك قليلاً للأعلى', checkPose: (p: {yaw:number,pitch:number}) => p.pitch < -12 },
-      { id: 'down', direction: 'انظر للأسفل', icon: ArrowDown, description: 'اخفض رأسك قليلاً للأسفل', checkPose: (p: {yaw:number,pitch:number}) => p.pitch > 12 },
-    ];
-  }
-  
-  // Indonesian
-  if (country.includes('indonesia')) {
-    return [
-      { id: 'center', direction: 'Lihat ke Depan', icon: ScanFace, description: 'Hadapkan wajah Anda langsung ke kamera', checkPose: (p: {yaw:number,pitch:number}) => Math.abs(p.yaw) < 15 && Math.abs(p.pitch) < 15 },
-      { id: 'left', direction: 'Putar ke Kiri', icon: ArrowLeftIcon, description: 'Putar kepala Anda perlahan ke kiri', checkPose: (p: {yaw:number,pitch:number}) => p.yaw > 18 },
-      { id: 'right', direction: 'Putar ke Kanan', icon: ArrowRightIcon, description: 'Putar kepala Anda perlahan ke kanan', checkPose: (p: {yaw:number,pitch:number}) => p.yaw < -18 },
-      { id: 'up', direction: 'Lihat ke Atas', icon: ArrowUp, description: 'Angkat kepala Anda sedikit ke atas', checkPose: (p: {yaw:number,pitch:number}) => p.pitch < -12 },
-      { id: 'down', direction: 'Lihat ke Bawah', icon: ArrowDown, description: 'Tundukkan kepala Anda sedikit ke bawah', checkPose: (p: {yaw:number,pitch:number}) => p.pitch > 12 },
-    ];
-  }
-
-  // Default: English
-  return [
-    { id: 'center', direction: 'Look Forward', icon: ScanFace, description: 'Keep your face straight towards camera', checkPose: (p: {yaw:number,pitch:number}) => Math.abs(p.yaw) < 15 && Math.abs(p.pitch) < 15 },
-    { id: 'left', direction: 'Turn Left', icon: ArrowLeftIcon, description: 'Slowly turn your head to the left', checkPose: (p: {yaw:number,pitch:number}) => p.yaw > 18 },
-    { id: 'right', direction: 'Turn Right', icon: ArrowRightIcon, description: 'Slowly turn your head to the right', checkPose: (p: {yaw:number,pitch:number}) => p.yaw < -18 },
-    { id: 'up', direction: 'Look Up', icon: ArrowUp, description: 'Tilt your head upward slightly', checkPose: (p: {yaw:number,pitch:number}) => p.pitch < -12 },
-    { id: 'down', direction: 'Look Down', icon: ArrowDown, description: 'Tilt your head downward slightly', checkPose: (p: {yaw:number,pitch:number}) => p.pitch > 12 },
-  ];
+// Pose thresholds — tuned for real-world mobile use (phone held below face,
+// natural lighting, slight head tilt). These are intentionally forgiving so
+// genuine users complete the flow on first try; the AWS Rekognition step that
+// runs AFTER submission is the strict identity gate (gender ≥86%, compare ≥72%,
+// face ≥80% — see service_auto_finalize_face_verification).
+const POSE = {
+  CENTER_YAW: 22,   // |yaw|  < 22  → looking forward
+  CENTER_PITCH: 22, // |pitch|< 22  → not tilted up/down
+  TURN_YAW: 14,     // |yaw|  > 14  → clear left/right turn
+  TILT_PITCH: 10,   // |pitch|> 10  → clear up/down tilt
 };
 
-// Localized failure/success messages
-const getLocalizedMessages = (countryName?: string) => {
-  const country = (countryName || '').toLowerCase();
+// Single English-only instruction set (per global English policy).
+const getLocalizedInstructions = (_countryName?: string) => [
+  { id: 'center', direction: 'Look Forward', icon: ScanFace, description: 'Keep your face straight towards the camera', checkPose: (p: { yaw: number; pitch: number }) => Math.abs(p.yaw) < POSE.CENTER_YAW && Math.abs(p.pitch) < POSE.CENTER_PITCH },
+  { id: 'left',   direction: 'Turn Left',    icon: ArrowLeftIcon,  description: 'Slowly turn your head to the left',  checkPose: (p: { yaw: number; pitch: number }) => p.yaw >  POSE.TURN_YAW },
+  { id: 'right',  direction: 'Turn Right',   icon: ArrowRightIcon, description: 'Slowly turn your head to the right', checkPose: (p: { yaw: number; pitch: number }) => p.yaw < -POSE.TURN_YAW },
+  { id: 'up',     direction: 'Look Up',      icon: ArrowUp,        description: 'Tilt your head upward slightly',     checkPose: (p: { yaw: number; pitch: number }) => p.pitch < -POSE.TILT_PITCH },
+  { id: 'down',   direction: 'Look Down',    icon: ArrowDown,      description: 'Tilt your head downward slightly',   checkPose: (p: { yaw: number; pitch: number }) => p.pitch >  POSE.TILT_PITCH },
+];
 
-  if (country.includes('india')) {
-    return {
-      failed: 'सत्यापन विफल',
-      failedDesc: 'प्रत्येक निर्देश का सावधानी से पालन करें। दिखाए अनुसार अपना सिर हिलाएं।',
-      success: '✅ फेस वेरिफिकेशन सफल!',
-      successDesc: 'सभी लाइवनेस चेक पास हो गए।',
-      startScan: 'फेस स्कैन शुरू करें',
-      tryAgain: 'पुनः प्रयास करें',
-      recording: 'रिकॉर्डिंग',
-      tips: '💡 अच्छी रोशनी सुनिश्चित करें • चश्मा/मास्क हटाएं • चेहरा ओवल में केंद्रित रखें',
-      beginCheck: 'लाइवनेस चेक शुरू करें',
-      cancel: 'रद्द करें',
-      staticFace: 'स्थिर चेहरा पाया गया। कृपया असली कैमरा उपयोग करें, फोटो नहीं।',
-    };
-  }
-  if (country.includes('pakistan')) {
-    return {
-      failed: 'تصدیق ناکام',
-      failedDesc: 'ہر ہدایت کو احتیاط سے فالو کریں۔ دکھائے گئے طریقے سے اپنا سر ہلائیں۔',
-      success: '✅ چہرے کی تصدیق کامیاب!',
-      successDesc: 'تمام لائیونیس چیکس پاس ہو گئے۔',
-      startScan: 'فیس اسکین شروع کریں',
-      tryAgain: 'دوبارہ کوشش کریں',
-      recording: 'ریکارڈنگ',
-      tips: '💡 اچھی روشنی یقینی بنائیں • عینک/ماسک ہٹائیں • چہرے کو بیضوی میں رکھیں',
-      beginCheck: 'لائیونیس چیک شروع کریں',
-      cancel: 'منسوخ کریں',
-      staticFace: 'جامد چہرہ پایا گیا۔ براہ کرم حقیقی کیمرا استعمال کریں، تصویر نہیں۔',
-    };
-  }
-  // Default English
-  return {
-    failed: 'Verification Failed',
-    failedDesc: 'Follow each instruction carefully. Move your head as shown.',
-    success: '✅ Face Verification Successful!',
-    successDesc: 'All liveness checks passed. Your identity has been verified.',
-    startScan: 'Start Face Scan',
-    tryAgain: 'Try Again',
-    recording: 'Recording',
-    tips: '💡 Ensure good lighting • Remove glasses/masks • Keep face centered in the oval',
-    beginCheck: 'Begin Liveness Check',
-    cancel: 'Cancel',
-    staticFace: 'Static face detected. Please use a real camera, not a photo.',
-  };
-};
+// Single English-only message set.
+const getLocalizedMessages = (_countryName?: string) => ({
+  failed: 'Verification Failed',
+  failedDesc: 'Follow each on-screen instruction carefully and move your head as shown.',
+  success: '✅ Face Verification Successful',
+  successDesc: 'All liveness checks passed. Your identity has been verified.',
+  startScan: 'Start Face Scan',
+  tryAgain: 'Try Again',
+  recording: 'Recording',
+  tips: '💡 Ensure good lighting • Remove glasses/masks • Keep your face centered in the oval',
+  beginCheck: 'Begin Liveness Check',
+  cancel: 'Cancel',
+  staticFace: 'Static face detected. Please use a real camera, not a photo.',
+});
 
 // Capture a frame from live video element as base64
 const captureFrameFromLiveVideo = (videoEl: HTMLVideoElement, size = 480): string | null => {
@@ -841,8 +769,8 @@ const FaceVerification = () => {
       timerRef.current = setInterval(() => {
         elapsed++;
         setVerificationTime(elapsed);
-        if (elapsed >= 30) {
-          // Time's up — check if all completed
+        if (elapsed >= 60) {
+          // Generous 60s window — check if all completed
           const allDone = instructionsCompletedRef.current.every(Boolean);
           finishVerification(allDone);
         }
@@ -878,8 +806,8 @@ const FaceVerification = () => {
       if (!result || !result.faceDetected) {
         consecutiveFails++;
         setScanningStatus('fail');
-        if (consecutiveFails >= 5) {
-          // Too many fails — no face visible
+        if (consecutiveFails >= 15) {
+          // ~15s of no face → give up
           finishVerification(false);
         }
         return;
@@ -927,7 +855,7 @@ const FaceVerification = () => {
           setScanningStatus('scanning');
         }
       }
-    }, 1500); // Check every 1.5 seconds
+    }, 1000); // Poll every 1s — faster lock-on without overloading Rekognition
   };
 
   // Finish verification
