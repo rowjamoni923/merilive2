@@ -286,7 +286,7 @@ const GoogleLibraryOrderRules = () => {
 
       {/* ======= Support Ticket Dialog ======= */}
       <Dialog open={showSupportDialog} onOpenChange={setShowSupportDialog}>
-        <DialogContent className="bg-gradient-to-b from-[#1a0a2e]/98 via-[#0f0520]/98 to-[#0a0318]/98 backdrop-blur-3xl border border-white/[0.08] text-white max-w-[380px] rounded-2xl p-0 overflow-hidden shadow-2xl shadow-purple-900/40 [&>button]:hidden">
+        <DialogContent className="bg-white border border-slate-200 text-slate-900 max-w-[380px] rounded-2xl p-0 overflow-hidden shadow-2xl shadow-slate-900/10 [&>button]:hidden">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-[2px] bg-gradient-to-r from-transparent via-green-500/60 to-transparent" />
 
           <AnimatePresence mode="wait">
@@ -297,22 +297,22 @@ const GoogleLibraryOrderRules = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 className="p-8 flex flex-col items-center gap-4"
               >
-                <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center">
-                  <CheckCircle2 className="w-8 h-8 text-green-400" />
+                <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
+                  <CheckCircle2 className="w-8 h-8 text-green-600" />
                 </div>
-                <h3 className="text-lg font-bold text-white">Ticket Submitted!</h3>
-                <p className="text-white/50 text-sm text-center">Our team will review and respond soon.</p>
+                <h3 className="text-lg font-bold text-slate-900">Ticket Submitted!</h3>
+                <p className="text-slate-500 text-sm text-center">Our team will review and respond soon.</p>
               </motion.div>
             ) : (
               <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-5 pt-6">
                 <DialogHeader className="space-y-2 mb-5">
-                  <DialogTitle className="text-white flex items-center gap-2.5 text-lg">
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-600/10 border border-green-500/30 flex items-center justify-center">
-                      <Headphones className="w-5 h-5 text-green-400" />
+                  <DialogTitle className="text-slate-900 flex items-center gap-2.5 text-lg">
+                    <div className="w-9 h-9 rounded-xl bg-green-50 border border-green-200 flex items-center justify-center">
+                      <Headphones className="w-5 h-5 text-green-600" />
                     </div>
                     Support Ticket
                   </DialogTitle>
-                  <DialogDescription className="text-white/50 text-sm">
+                  <DialogDescription className="text-slate-500 text-sm">
                     Tell us about your issue and we'll help you
                   </DialogDescription>
                 </DialogHeader>
@@ -326,14 +326,14 @@ const GoogleLibraryOrderRules = () => {
                         key={cat.key}
                         onClick={() => setSelectedCategory(cat.key)}
                         className={cn(
-                          "flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all",
+                          "flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all",
                           `bg-gradient-to-br ${cat.color}`,
                           isSelected ? cat.selectedBorder : cat.border,
-                          isSelected && "ring-1 ring-white/10"
+                          isSelected && "ring-2 ring-offset-1 ring-slate-300"
                         )}
                       >
                         <span className="text-xl">{cat.icon}</span>
-                        <span className={cn("text-[10px] font-medium leading-tight text-center", isSelected ? "text-white" : "text-white/60")}>
+                        <span className={cn("text-[10px] font-medium leading-tight text-center", isSelected ? "text-slate-900" : "text-slate-600")}>
                           {cat.label}
                         </span>
                       </button>
@@ -346,7 +346,7 @@ const GoogleLibraryOrderRules = () => {
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
                   placeholder="Subject (e.g., Task reward not received)"
-                  className="bg-white/[0.04] border-white/[0.08] text-white placeholder:text-white/25 rounded-xl mb-3 text-sm h-11"
+                  className="bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 rounded-xl mb-3 text-sm h-11"
                   maxLength={100}
                 />
 
@@ -355,7 +355,7 @@ const GoogleLibraryOrderRules = () => {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Describe your issue in detail (optional)..."
-                  className="bg-white/[0.04] border-white/[0.08] text-white placeholder:text-white/25 min-h-[80px] resize-none rounded-xl mb-4 text-sm"
+                  className="bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 min-h-[80px] resize-none rounded-xl mb-4 text-sm"
                   maxLength={1000}
                 />
 
@@ -377,7 +377,7 @@ const GoogleLibraryOrderRules = () => {
                   <Button
                     variant="ghost"
                     onClick={() => setShowSupportDialog(false)}
-                    className="w-full h-10 text-white/50 hover:text-white/80 hover:bg-white/[0.04] rounded-xl text-sm"
+                    className="w-full h-10 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl text-sm"
                   >
                     Cancel
                   </Button>
