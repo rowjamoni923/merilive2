@@ -439,15 +439,15 @@ const Invitation = () => {
                     className="relative rounded-xl overflow-hidden"
                     style={{
                       background: isCurrent
-                        ? 'linear-gradient(135deg, rgba(147,51,234,0.25), rgba(219,39,119,0.2))'
+                        ? 'linear-gradient(135deg, rgba(168,85,247,0.12), rgba(236,72,153,0.10))'
                         : isAchieved
-                          ? 'linear-gradient(135deg, rgba(34,197,94,0.15), rgba(16,185,129,0.1))'
-                          : 'rgba(255,255,255,0.04)',
+                          ? 'linear-gradient(135deg, rgba(34,197,94,0.10), rgba(16,185,129,0.06))'
+                          : 'linear-gradient(135deg, #ffffff, rgba(255,251,240,0.95))',
                       border: isCurrent
-                        ? '1px solid rgba(168,85,247,0.5)'
+                        ? '1px solid rgba(168,85,247,0.45)'
                         : isAchieved
-                          ? '1px solid rgba(34,197,94,0.3)'
-                          : '1px solid rgba(255,255,255,0.08)',
+                          ? '1px solid rgba(34,197,94,0.35)'
+                          : '1px solid rgba(218,180,90,0.35)',
                     }}
                   >
                     {/* Shimmer for current tier */}
