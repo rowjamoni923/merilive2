@@ -2068,7 +2068,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                     <p className="text-xl font-bold text-white drop-shadow-lg">
                       {(traderWallet + (agencyData?.diamond_balance || 0)).toLocaleString()} 💎
                     </p>
-                    <p className="text-[8px] text-emerald-100 mt-0.5 flex items-center gap-1">
+                    <p className="text-[8px] text-white/85 mt-0.5 flex items-center gap-1">
                       <Send className="w-2.5 h-2.5" />
                       Tap to transfer to User or Agency
                     </p>
