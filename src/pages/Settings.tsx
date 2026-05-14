@@ -907,8 +907,8 @@ const Settings = () => {
                   onClick={() => handleLanguageChange(lang.code)}
                   className={`w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all ${
                     selectedLanguage === lang.code
-                      ? "bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-500/50 text-white"
-                      : "bg-slate-50 hover:bg-slate-100 border border-amber-200/40 text-white"
+                      ? "bg-gradient-to-r from-purple-100 to-pink-100 border border-purple-300 text-slate-800 shadow-sm"
+                      : "bg-white hover:bg-amber-50/60 border border-amber-200/60 text-slate-800"
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -951,9 +951,9 @@ const Settings = () => {
               </button>
             )}
             {isInIframe && (
-              <div className="rounded-2xl border border-amber-300/60 bg-amber-500/10 p-3 text-xs text-amber-200">
+              <div className="rounded-2xl border border-amber-300/70 bg-amber-50 p-3 text-xs text-amber-900">
                 <p className="font-semibold mb-1">⚠️ Preview Mode Limitation</p>
-                <p className="text-amber-200/80 mb-2">
+                <p className="text-amber-800/90 mb-2">
                   Camera, Microphone & Location can't be granted inside this preview frame. Open the app in a full browser tab or in the installed Android app to enable them.
                 </p>
                 <button

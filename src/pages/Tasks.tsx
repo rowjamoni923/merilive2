@@ -446,7 +446,7 @@ const Tasks = () => {
   const totalDailyBonus = bonusSettings ? bonusSettings.beans_per_hour * bonusSettings.max_hours_per_day : 0;
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-background overflow-y-auto overflow-x-hidden">
+    <div className="fixed inset-0 flex flex-col bg-gradient-to-br from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF] overflow-y-auto overflow-x-hidden">
       {/* Reward Animation Overlay */}
       <AnimatePresence>
         {showReward && (
@@ -638,12 +638,12 @@ const Tasks = () => {
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: index * 0.1 }}
-                className={`bg-white/10 backdrop-blur-sm rounded-2xl p-4 shadow-md border-2 transition-all ${
+                className={`bg-white backdrop-blur-sm rounded-2xl p-4 shadow-md border-2 transition-all ${
                   status === 'claimed' 
-                    ? 'border-green-500/30 bg-green-500/10' 
+                    ? 'border-green-300 bg-green-50' 
                     : status === 'completed'
-                    ? 'border-amber-400/50 shadow-amber-500/10'
-                    : 'border-amber-200/40'
+                    ? 'border-amber-400 shadow-amber-300/30'
+                    : 'border-amber-200/60'
                 }`}
               >
                 <div className="flex items-center gap-4">
@@ -660,17 +660,17 @@ const Tasks = () => {
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-foreground">{task.title}</h3>
-                    <p className="text-xs text-muted-foreground mb-2">{task.description}</p>
+                    <h3 className="font-semibold text-slate-800">{task.title}</h3>
+                    <p className="text-xs text-slate-500 mb-2">{task.description}</p>
                     
                     {/* Progress Bar - hide for rating task */}
                     {task.requirement_type !== 'play_store_rating' && (
                       <div className="flex items-center gap-2">
                         <Progress 
                           value={progressPercent} 
-                          className="h-1.5 flex-1 bg-white/10"
+                          className="h-1.5 flex-1 bg-amber-100"
                         />
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-xs text-slate-500">
                           {task.requirement_type === 'live_minutes' 
                             ? `${progress[task.id]?.current_progress || 0} min / ${task.requirement_value} min`
                             : `${progress[task.id]?.current_progress || 0}/${task.requirement_value}`
@@ -793,8 +793,8 @@ const Tasks = () => {
         {tasks.length === 0 && !isEligibleForBonus && (
           <div className="text-center py-12">
             <Star className="w-16 h-16 text-amber-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-muted-foreground">No Tasks Available</h3>
-            <p className="text-sm text-muted-foreground/70">New tasks coming soon</p>
+            <h3 className="text-lg font-semibold text-slate-700">No Tasks Available</h3>
+            <p className="text-sm text-slate-500">New tasks coming soon</p>
           </div>
         )}
       </div>

@@ -439,15 +439,15 @@ const Invitation = () => {
                     className="relative rounded-xl overflow-hidden"
                     style={{
                       background: isCurrent
-                        ? 'linear-gradient(135deg, rgba(147,51,234,0.25), rgba(219,39,119,0.2))'
+                        ? 'linear-gradient(135deg, rgba(168,85,247,0.12), rgba(236,72,153,0.10))'
                         : isAchieved
-                          ? 'linear-gradient(135deg, rgba(34,197,94,0.15), rgba(16,185,129,0.1))'
-                          : 'rgba(255,255,255,0.04)',
+                          ? 'linear-gradient(135deg, rgba(34,197,94,0.10), rgba(16,185,129,0.06))'
+                          : 'linear-gradient(135deg, #ffffff, rgba(255,251,240,0.95))',
                       border: isCurrent
-                        ? '1px solid rgba(168,85,247,0.5)'
+                        ? '1px solid rgba(168,85,247,0.45)'
                         : isAchieved
-                          ? '1px solid rgba(34,197,94,0.3)'
-                          : '1px solid rgba(255,255,255,0.08)',
+                          ? '1px solid rgba(34,197,94,0.35)'
+                          : '1px solid rgba(218,180,90,0.35)',
                     }}
                   >
                     {/* Shimmer for current tier */}
@@ -490,7 +490,7 @@ const Invitation = () => {
                       {/* Rewards & Claim */}
                       <div className="flex flex-col gap-1 shrink-0 items-end">
                         {claimedTierIds.has(tier.id) ? (
-                          <span className="text-[10px] font-bold bg-green-500/20 text-green-400 border border-green-500/30 px-3 py-1.5 rounded-lg text-center">
+                          <span className="text-[10px] font-bold bg-green-100 text-green-700 border border-green-300 px-3 py-1.5 rounded-lg text-center">
                             ✓ Claimed
                           </span>
                         ) : isAchieved ? (
@@ -504,10 +504,10 @@ const Invitation = () => {
                           </Button>
                         ) : (
                           <div className="flex flex-col gap-1">
-                            <span className="text-[10px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/25 px-2 py-0.5 rounded-md text-center">
+                            <span className="text-[10px] font-semibold bg-amber-100 text-amber-700 border border-amber-300 px-2 py-0.5 rounded-md text-center">
                               +{(tier.reward_beans ?? 0).toLocaleString('en-US')} Beans
                             </span>
-                            <span className="text-[10px] font-semibold bg-violet-500/15 text-violet-300 border border-violet-500/25 px-2 py-0.5 rounded-md text-center">
+                            <span className="text-[10px] font-semibold bg-violet-100 text-violet-700 border border-violet-300 px-2 py-0.5 rounded-md text-center">
                               +{(tier.reward_coins ?? 0).toLocaleString('en-US')} Coins
                             </span>
                           </div>
