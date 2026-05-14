@@ -2432,10 +2432,10 @@ const Auth = () => {
 
       {/* Name Entry Dialog kept for backward compat but redirects to gender */}
       <Dialog open={authStep === "name"} onOpenChange={() => { setAuthStep("gender"); }}>
-        <DialogContent className="max-w-sm mx-auto bg-gradient-to-br from-gray-900 via-purple-900/50 to-gray-900 border-purple-500/30">
+        <DialogContent className="max-w-sm mx-auto bg-gradient-to-br from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF] border-amber-200/70">
           <DialogHeader>
-            <DialogTitle className="text-white text-center text-xl">Enter Your Name</DialogTitle>
-            <DialogDescription className="text-white/60 text-center">
+            <DialogTitle className="text-slate-800 text-center text-xl font-bold">Enter Your Name</DialogTitle>
+            <DialogDescription className="text-slate-600 text-center">
               This will be your display name
             </DialogDescription>
           </DialogHeader>
