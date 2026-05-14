@@ -2,7 +2,13 @@ import { memo } from "react";
 
 const iconSize = "w-9 h-9";
 
-// Each icon uses WHITE as primary color with subtle accents so they POP against any gradient background
+// Each icon uses WHITE as primary color with subtle accents so they POP against any gradient background.
+// Accent fills are routed through semantic CSS tokens (--success-*, --warning-*, --brand-*) so global
+// theme tweaks propagate automatically. Never reintroduce raw hex like #22c55e or #fbbf24 here.
+const ACCENT_SUCCESS = "hsl(var(--success-500))";
+const ACCENT_GOLD = "hsl(var(--warning-400))";
+const ACCENT_GOLD_DEEP = "hsl(var(--warning-500))";
+const TINT_BRAND_SOFT = "hsl(var(--brand-100))";
 
 export const HostsIcon3D = memo(() => (
   <div className="relative">
