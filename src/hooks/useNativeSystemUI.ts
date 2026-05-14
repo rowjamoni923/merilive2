@@ -72,10 +72,11 @@ export function useNativeSystemUI() {
     if (!isNativeApp()) return;
 
     try {
-      const { StatusBar } = await import('@capacitor/status-bar');
+      const { StatusBar, Style } = await import('@capacitor/status-bar');
       await StatusBar.show();
-      await StatusBar.setStyle({ style: (await import('@capacitor/status-bar')).Style.Dark });
-      await StatusBar.setBackgroundColor({ color: '#0a0a0f' });
+      await StatusBar.setOverlaysWebView({ overlay: false });
+      await StatusBar.setStyle({ style: Style.Dark }); // dark icons on white
+      await StatusBar.setBackgroundColor({ color: '#ffffff' });
     } catch (err) {
       console.warn('[SystemUI] Exit immersive failed:', err);
     }
