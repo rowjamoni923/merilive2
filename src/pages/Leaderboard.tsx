@@ -444,12 +444,12 @@ const Leaderboard = () => {
         {activeCategory === "pk_competition" && activePK && (
           <div className="px-3 pb-2">
             <div 
-              className="rounded-xl px-3 py-2"
-              style={{ background: 'rgba(251,191,36,0.06)', border: '1px solid rgba(251,191,36,0.2)' }}
+              className="rounded-xl px-3 py-2 bg-amber-50"
+              style={{ border: '1px solid rgba(251,191,36,0.30)' }}
             >
               <div className="flex items-center justify-between">
-                <p className="text-amber-100 text-xs font-semibold truncate flex-1">{activePK.title}</p>
-                <span className="text-[9px] px-2 py-0.5 rounded-full text-amber-300/80" style={{ background: 'rgba(251,191,36,0.1)' }}>
+                <p className="text-slate-900 text-xs font-semibold truncate flex-1">{activePK.title}</p>
+                <span className="text-[9px] px-2 py-0.5 rounded-full text-amber-700 font-semibold" style={{ background: 'rgba(251,191,36,0.18)' }}>
                   {activePK.competition_type === "gift_sending" ? "🎁 Sending"
                     : activePK.competition_type === "gift_receiving" ? "💝 Receiving"
                     : activePK.competition_type === "coins_spent" ? "💰 Diamonds"
@@ -457,7 +457,7 @@ const Leaderboard = () => {
                     : "⚡ Custom"}
                 </span>
               </div>
-              <p className="text-amber-400/40 text-[10px] mt-0.5">
+              <p className="text-slate-500 text-[10px] mt-0.5">
                 {activePK.status === "active" ? "🔴 Live" : "⏳ Upcoming"} • {new Date(activePK.start_date).toLocaleDateString()} - {new Date(activePK.end_date).toLocaleDateString()}
               </p>
             </div>
@@ -465,9 +465,9 @@ const Leaderboard = () => {
         )}
         {activeCategory === "pk_competition" && !loadingPK && !activePK && (
           <div className="px-3 pb-2">
-            <div className="rounded-xl px-3 py-4 text-center" style={{ background: 'rgba(251,191,36,0.04)', border: '1px solid rgba(251,191,36,0.1)' }}>
-              <Swords className="w-6 h-6 mx-auto mb-1 text-amber-400/30" />
-              <p className="text-amber-300/40 text-[10px]">No active PK competition</p>
+            <div className="rounded-xl px-3 py-4 text-center bg-slate-50" style={{ border: '1px solid rgba(15,23,42,0.08)' }}>
+              <Swords className="w-6 h-6 mx-auto mb-1 text-slate-400" />
+              <p className="text-slate-500 text-[10px]">No active PK competition</p>
             </div>
           </div>
         )}
