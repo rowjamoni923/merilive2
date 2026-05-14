@@ -1149,7 +1149,7 @@ const HelperDashboard = () => {
                   <span className="text-[20px]">💎</span>
                 </p>
                 {agencyDiamondBalance > 0 && (
-                  <p className="text-white/50 text-[10px] mt-1.5 leading-tight">
+                  <p className="text-slate-400 text-[10px] mt-1.5 leading-tight">
                     Helper{" "}
                     <span className="text-amber-200/80 font-semibold tabular-nums">
                       {(helperData?.wallet_balance || 0).toLocaleString()}
@@ -1210,7 +1210,7 @@ const HelperDashboard = () => {
                   </div>
                 </div>
                 <div className="flex justify-between items-center mt-1.5">
-                  <p className="text-[10px] text-white/60 tabular-nums font-medium">
+                  <p className="text-[10px] text-slate-500 tabular-nums font-medium">
                     ${currentCost.toFixed(0)} / ${nextLevelCost.toFixed(0)}
                   </p>
                   <Badge
@@ -1311,7 +1311,7 @@ const HelperDashboard = () => {
               placeholder="+880XXXXXXXXXX"
               value={whatsappNumber}
               onChange={(e) => setWhatsappNumber(e.target.value)}
-              className="flex-1 rounded-xl px-3 py-2 text-amber-50 text-sm placeholder:text-white/75 focus:outline-none transition-colors"
+              className="flex-1 rounded-xl px-3 py-2 text-amber-50 text-sm placeholder:text-slate-600 focus:outline-none transition-colors"
               style={{
                 background: "rgba(0,0,0,0.35)",
                 border: "1px solid rgba(16,185,129,0.30)",
@@ -1392,10 +1392,10 @@ const HelperDashboard = () => {
               <FileText className="w-5 h-5 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-white font-semibold text-sm">📖 Payroll Helper Guide</p>
-              <p className="text-white/85 text-[11px]">Learn roles, benefits & diamond trading</p>
+              <p className="text-slate-800 font-semibold text-sm">📖 Payroll Helper Guide</p>
+              <p className="text-slate-500 text-[11px]">Learn roles, benefits & diamond trading</p>
             </div>
-            <ArrowRight className="w-4 h-4 text-white/75" />
+            <ArrowRight className="w-4 h-4 text-slate-600" />
           </div>
         </div>
 
@@ -1415,7 +1415,7 @@ const HelperDashboard = () => {
                 <div key={req.id} className="bg-slate-50 rounded-lg p-3 flex items-center justify-between">
                   <div>
                     <p className="text-white text-sm font-medium">Level {req.requested_level} Upgrade</p>
-                    <p className="text-white/75 text-xs">${req.amount_usd} • {req.payment_method}</p>
+                    <p className="text-slate-600 text-xs">${req.amount_usd} • {req.payment_method}</p>
                   </div>
                   <Badge className="bg-amber-500/20 text-amber-400">{req.status}</Badge>
                 </div>
@@ -1441,7 +1441,7 @@ const HelperDashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="text-white/75 text-sm">
+            <p className="text-slate-600 text-sm">
               Add diamonds to your wallet by sending payment
             </p>
             
@@ -1473,7 +1473,7 @@ const HelperDashboard = () => {
                 {/* Level pricing reminder */}
                 {levelPricing && (
                   <div className="text-center p-2 bg-slate-100 rounded-lg">
-                    <p className="text-xs text-white/75">
+                    <p className="text-xs text-slate-600">
                       Level {helperData?.trader_level || 1} Rate: <span className="text-emerald-400 font-semibold">{levelPricing.diamond_amount.toLocaleString()} 💎 = ${levelPricing.price_usd}</span>
                     </p>
                   </div>
@@ -1498,7 +1498,7 @@ const HelperDashboard = () => {
                       </div>
                       {selectedDiamondPackage ? (
                         <div className="text-left">
-                          <span className="text-white font-bold text-base">
+                          <span className="text-slate-800 font-bold text-base">
                             {formatDiamonds(selectedDiamondPackage)} 💎
                           </span>
                           <p className="text-emerald-400 text-sm font-medium">
@@ -1506,7 +1506,7 @@ const HelperDashboard = () => {
                           </p>
                         </div>
                       ) : (
-                        <span className="text-white/85 font-medium">Select Diamond Package 💎</span>
+                        <span className="text-slate-500 font-medium">Select Diamond Package 💎</span>
                       )}
                     </div>
                     <div className={cn(
@@ -1542,8 +1542,8 @@ const HelperDashboard = () => {
                               💎
                             </div>
                             <div className="flex-1 text-left">
-                              <span className="text-white font-bold text-sm">{pkg.label}</span>
-                              <p className="text-white/75 text-xs">
+                              <span className="text-slate-800 font-bold text-sm">{pkg.label}</span>
+                              <p className="text-slate-600 text-xs">
                                 {pkg.diamonds.toLocaleString()} diamonds
                               </p>
                             </div>
@@ -1581,7 +1581,7 @@ const HelperDashboard = () => {
                     <div className="flex items-center justify-center gap-2">
                       <Crown className="w-5 h-5 text-purple-400" />
                       <span className="text-white font-semibold">Custom Amount</span>
-                      <span className="text-white/75 text-xs">(50 Lakh+)</span>
+                      <span className="text-slate-600 text-xs">(50 Lakh+)</span>
                     </div>
                   </button>
                   
@@ -1614,9 +1614,9 @@ const HelperDashboard = () => {
                 {(selectedDiamondPackage || (customDiamondAmount && parseInt(customDiamondAmount.replace(/,/g, '')) >= 500000)) && (
                   <div className="p-3 bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 rounded-xl border border-emerald-500/30">
                     <div className="flex items-center justify-between">
-                      <span className="text-white/75 text-sm">You will receive:</span>
+                      <span className="text-slate-600 text-sm">You will receive:</span>
                       <div className="text-right">
-                        <p className="text-white font-bold text-lg">
+                        <p className="text-slate-800 font-bold text-lg">
                           {formatDiamonds(selectedDiamondPackage || parseInt(customDiamondAmount.replace(/,/g, '')))} 💎
                         </p>
                         <p className="text-emerald-400 text-xs">
@@ -1652,7 +1652,7 @@ const HelperDashboard = () => {
                                 "p-3 rounded-lg border text-sm transition-all flex items-center gap-2",
                                 topupPaymentMethod === method.method_name
                                   ? "bg-emerald-500 border-emerald-400 text-white"
-                                  : "bg-slate-200 border-slate-300 text-white/85 hover:border-emerald-500"
+                                  : "bg-slate-200 border-slate-300 text-slate-500 hover:border-emerald-500"
                               )}
                             >
                               {method.logo_url ? (
@@ -1673,7 +1673,7 @@ const HelperDashboard = () => {
                           
                           <div className="space-y-2">
                             <div className="flex justify-between items-center">
-                              <span className="text-white/75 text-xs">Account Name:</span>
+                              <span className="text-slate-600 text-xs">Account Name:</span>
                               <div className="flex items-center gap-2">
                                 <span className="text-white text-sm">{selectedPaymentMethod.account_name}</span>
                                 <button
@@ -1689,7 +1689,7 @@ const HelperDashboard = () => {
                             </div>
                             
                             <div className="flex justify-between items-center">
-                              <span className="text-white/75 text-xs">ID/Number:</span>
+                              <span className="text-slate-600 text-xs">ID/Number:</span>
                               <div className="flex items-center gap-2">
                                 <span className="text-emerald-300 font-mono text-sm">{selectedPaymentMethod.account_number}</span>
                                 <button
@@ -1706,14 +1706,14 @@ const HelperDashboard = () => {
                             
                             {selectedPaymentMethod.bank_name && (
                               <div className="flex justify-between items-center">
-                                <span className="text-white/75 text-xs">Bank:</span>
-                                <span className="text-white/85 text-sm">{selectedPaymentMethod.bank_name}</span>
+                                <span className="text-slate-600 text-xs">Bank:</span>
+                                <span className="text-slate-500 text-sm">{selectedPaymentMethod.bank_name}</span>
                               </div>
                             )}
                           </div>
                           
                           {selectedPaymentMethod.instructions && (
-                            <p className="text-white/75 text-xs mt-3 italic border-t border-emerald-500/20 pt-2">
+                            <p className="text-slate-600 text-xs mt-3 italic border-t border-emerald-500/20 pt-2">
                               {selectedPaymentMethod.instructions}
                             </p>
                           )}
@@ -1738,7 +1738,7 @@ const HelperDashboard = () => {
                   ) : (
                     <div className="mt-2 p-4 rounded-lg bg-amber-500/10 border border-amber-500/30 text-center">
                       <p className="text-amber-400 text-sm font-medium">⚠️ No payment methods available</p>
-                      <p className="text-white/75 text-xs mt-1">Please contact admin to configure payment methods</p>
+                      <p className="text-slate-600 text-xs mt-1">Please contact admin to configure payment methods</p>
                     </div>
                   )}
                 </div>
@@ -1782,8 +1782,8 @@ const HelperDashboard = () => {
                           : "border-slate-300 bg-slate-100"
                       )}
                     >
-                      <Upload className={cn("w-5 h-5", topupProof ? "text-emerald-400" : "text-white/75")} />
-                      <span className={cn("text-sm", topupProof ? "text-emerald-400" : "text-white/75")}>
+                      <Upload className={cn("w-5 h-5", topupProof ? "text-emerald-400" : "text-slate-600")} />
+                      <span className={cn("text-sm", topupProof ? "text-emerald-400" : "text-slate-600")}>
                         {topupProof ? `✓ ${topupProof.name}` : "Upload payment proof (Required)"}
                       </span>
                     </label>
@@ -1827,7 +1827,7 @@ const HelperDashboard = () => {
                   <Button 
                     variant="outline" 
                     onClick={() => setShowTopupForm(false)}
-                    className="flex-1 border-slate-300 text-white/85"
+                    className="flex-1 border-slate-300 text-slate-500"
                   >
                     Cancel
                   </Button>
@@ -1845,7 +1845,7 @@ const HelperDashboard = () => {
         </Card>
 
         {/* Trader Levels */}
-        <Card className="bg-slate-50 border-slate-200">
+        <Card className="bg-white border-amber-200/60 shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-white text-base flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-purple-400" />
@@ -1874,7 +1874,7 @@ const HelperDashboard = () => {
                       ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-purple-500/50" 
                       : isUnlocked
                         ? "bg-slate-100 border-slate-300"
-                        : "bg-slate-50 border-slate-200 opacity-60"
+                        : "bg-white border-amber-200/60 shadow-sm opacity-60"
                   )}
                 >
                   <div className="flex items-center justify-between">
@@ -1887,12 +1887,12 @@ const HelperDashboard = () => {
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <p className="text-white font-bold">{level.level_name}</p>
+                          <p className="text-slate-800 font-bold">{level.level_name}</p>
                           {isCurrent && (
                             <Badge className="bg-green-500 text-white text-[10px]">Current</Badge>
                           )}
                         </div>
-                        <p className="text-white/75 text-xs">{level.description}</p>
+                        <p className="text-slate-600 text-xs">{level.description}</p>
                         {level.level_number === 5 && (
                           <p className="text-purple-400 text-xs mt-1 flex items-center gap-1">
                             <Banknote className="w-3 h-3" />
@@ -1904,8 +1904,8 @@ const HelperDashboard = () => {
                     <div className="text-right">
                       {level.upgrade_cost_usd > 0 ? (
                         <>
-                          <p className="text-white font-bold">${level.upgrade_cost_usd}</p>
-                          <p className="text-white/75 text-xs">Upgrade Cost</p>
+                          <p className="text-slate-800 font-bold">${level.upgrade_cost_usd}</p>
+                          <p className="text-slate-600 text-xs">Upgrade Cost</p>
                         </>
                       ) : (
                         <Badge className="bg-green-500/20 text-green-400 border-green-500/50">Free</Badge>
@@ -1916,17 +1916,17 @@ const HelperDashboard = () => {
                   {/* Level Details - Commission & Withdrawal Limits */}
                   <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-slate-200">
                     <div>
-                      <p className="text-white/85 text-xs">Commission</p>
+                      <p className="text-slate-500 text-xs">Commission</p>
                       <p className="text-cyan-400 font-bold">{level.commission_rate || 0}%</p>
                     </div>
                     <div>
-                      <p className="text-white/85 text-xs">Withdrawal Limits</p>
+                      <p className="text-slate-500 text-xs">Withdrawal Limits</p>
                       {level.min_withdrawal_amount > 0 || level.max_withdrawal_amount > 0 ? (
                         <p className="text-emerald-400 font-medium text-xs">
                           ${level.min_withdrawal_amount?.toLocaleString() || 0} - ${level.max_withdrawal_amount?.toLocaleString() || 0}
                         </p>
                       ) : (
-                        <p className="text-white/75 text-xs">Not Available</p>
+                        <p className="text-slate-600 text-xs">Not Available</p>
                       )}
                     </div>
                   </div>
@@ -2052,7 +2052,7 @@ const HelperDashboard = () => {
           <div className="space-y-4">
             <div className="bg-slate-50 rounded-xl p-4">
               <div className="flex items-center justify-between">
-                <span className="text-white/75">Upgrade Cost</span>
+                <span className="text-slate-600">Upgrade Cost</span>
                 <span className="text-2xl font-bold text-white">${selectedUpgradeLevel?.upgrade_cost_usd}</span>
               </div>
             </div>
@@ -2082,7 +2082,7 @@ const HelperDashboard = () => {
                           "p-3 rounded-lg border text-sm transition-all flex items-center gap-2",
                           paymentMethod === method.method_name
                             ? "bg-purple-500 border-purple-400 text-white"
-                            : "bg-slate-100 border-slate-200 text-white/85 hover:border-purple-500"
+                            : "bg-slate-100 border-slate-200 text-slate-500 hover:border-purple-500"
                         )}
                       >
                         {method.logo_url ? (
@@ -2096,7 +2096,7 @@ const HelperDashboard = () => {
                   })}
                 </div>
               ) : (
-                <div className="mt-2 p-3 rounded-lg bg-slate-100 border border-slate-200 text-white/75 text-sm">
+                <div className="mt-2 p-3 rounded-lg bg-slate-100 border border-slate-200 text-slate-600 text-sm">
                   No payment methods available. Please contact admin.
                 </div>
               )}
@@ -2107,7 +2107,7 @@ const HelperDashboard = () => {
                   <p className="text-xs text-purple-300 mb-2">Pay to this account:</p>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-white/75 text-xs">Account:</span>
+                      <span className="text-slate-600 text-xs">Account:</span>
                       <div className="flex items-center gap-2">
                         <span className="text-white text-sm font-medium">{selectedPaymentMethod.account_name}</span>
                         <button
@@ -2122,7 +2122,7 @@ const HelperDashboard = () => {
                       </div>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-white/75 text-xs">ID/Number:</span>
+                      <span className="text-slate-600 text-xs">ID/Number:</span>
                       <div className="flex items-center gap-2">
                         <span className="text-white text-sm font-mono">{selectedPaymentMethod.account_number}</span>
                         <button
@@ -2137,7 +2137,7 @@ const HelperDashboard = () => {
                       </div>
                     </div>
                     {selectedPaymentMethod.instructions && (
-                      <p className="text-xs text-white/75 mt-2 italic">{selectedPaymentMethod.instructions}</p>
+                      <p className="text-xs text-slate-600 mt-2 italic">{selectedPaymentMethod.instructions}</p>
                     )}
                   </div>
                   
@@ -2183,8 +2183,8 @@ const HelperDashboard = () => {
                   htmlFor="payment-proof"
                   className="flex items-center gap-2 p-3 rounded-lg border border-dashed border-slate-200 bg-slate-50 cursor-pointer hover:bg-slate-100"
                 >
-                  <Upload className="w-5 h-5 text-white/75" />
-                  <span className="text-white/75 text-sm">
+                  <Upload className="w-5 h-5 text-slate-600" />
+                  <span className="text-slate-600 text-sm">
                     {paymentProof ? paymentProof.name : "Upload payment proof"}
                   </span>
                 </label>
@@ -2206,7 +2206,7 @@ const HelperDashboard = () => {
               <Button 
                 variant="outline" 
                 onClick={() => setShowUpgradeModal(false)}
-                className="flex-1 border-slate-200 text-white/85"
+                className="flex-1 border-slate-200 text-slate-500"
               >
                 Cancel
               </Button>
@@ -2239,11 +2239,11 @@ const HelperDashboard = () => {
                   <Gem className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <p className="text-white font-bold">Level 5 Payroll Benefits</p>
+                  <p className="text-slate-800 font-bold">Level 5 Payroll Benefits</p>
                   <p className="text-purple-300 text-xs">Exclusive for Diamond Traders</p>
                 </div>
               </div>
-              <ul className="space-y-2 text-sm text-white/85">
+              <ul className="space-y-2 text-sm text-slate-500">
                 <li className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-400" />
                   Process agency withdrawal requests
@@ -2264,7 +2264,7 @@ const HelperDashboard = () => {
             </div>
 
             <div className="bg-slate-50 rounded-xl p-4">
-              <p className="text-white/75 text-sm">
+              <p className="text-slate-600 text-sm">
                 By applying for payroll access, you agree to process withdrawal requests promptly and maintain a professional standard of service.
               </p>
             </div>
@@ -2273,7 +2273,7 @@ const HelperDashboard = () => {
               <Button 
                 variant="outline" 
                 onClick={() => setShowPayrollModal(false)}
-                className="flex-1 border-slate-300 text-white/85"
+                className="flex-1 border-slate-300 text-slate-500"
               >
                 Cancel
               </Button>
@@ -2331,13 +2331,13 @@ const HelperDashboard = () => {
             {/* Current Balance */}
             <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-xl p-3 border border-emerald-500/30">
               <div className="flex items-center justify-between">
-                <span className="text-white/75 text-sm">Trader Wallet</span>
+                <span className="text-slate-600 text-sm">Trader Wallet</span>
                 <span className="text-emerald-400 font-bold text-lg">
                   {((helperData?.wallet_balance || 0) + (agencyDiamondBalance || 0)).toLocaleString()} 💎
                 </span>
               </div>
               {agencyDiamondBalance > 0 && (
-                <p className="text-white/75 text-[10px] mt-1">
+                <p className="text-slate-600 text-[10px] mt-1">
                   Helper {(helperData?.wallet_balance || 0).toLocaleString()} + Agency {agencyDiamondBalance.toLocaleString()}
                 </p>
               )}
@@ -2402,7 +2402,7 @@ const HelperDashboard = () => {
                       </Avatar>
                       <div>
                         <p className="text-white font-semibold">{searchedUser.display_name}</p>
-                        <p className="text-white/75 text-xs">ID: {searchedUser.app_uid}</p>
+                        <p className="text-slate-600 text-xs">ID: {searchedUser.app_uid}</p>
                       </div>
                     </div>
 
@@ -2474,10 +2474,10 @@ const HelperDashboard = () => {
                       </div>
                       <div>
                         <p className="text-white font-semibold">{searchedAgency.name}</p>
-                        <p className="text-white/75 text-xs">Code: {searchedAgency.agency_code}</p>
+                        <p className="text-slate-600 text-xs">Code: {searchedAgency.agency_code}</p>
                         <p className="text-purple-400 text-xs">Balance: {searchedAgency.wallet_balance?.toLocaleString() || 0} 💎</p>
                         {searchedAgency.owner_name && (
-                          <p className="text-white/85 text-xs">Owner: {searchedAgency.owner_name}</p>
+                          <p className="text-slate-500 text-xs">Owner: {searchedAgency.owner_name}</p>
                         )}
                       </div>
                     </div>
@@ -2575,7 +2575,7 @@ const HelperDashboard = () => {
           
           <div className="flex-1 overflow-y-auto space-y-3 pr-1">
             {transferHistory.length === 0 ? (
-              <div className="text-center py-8 text-white/75">
+              <div className="text-center py-8 text-slate-600">
                 No transfer history yet
               </div>
             ) : (
@@ -2622,13 +2622,13 @@ const HelperDashboard = () => {
                           {transfer.sender_type === 'trader_to_user' ? 'User' : 'Agency'}
                         </Badge>
                       </div>
-                      <p className="text-white/75 text-xs">
+                      <p className="text-slate-600 text-xs">
                         {transfer.sender_type === 'trader_to_user' 
                           ? `ID: ${transfer.receiver?.app_uid || 'N/A'}`
                           : `Code: ${transfer.agency?.agency_code || 'N/A'}`
                         }
                       </p>
-                      <p className="text-white/85 text-[10px]">
+                      <p className="text-slate-500 text-[10px]">
                         {new Date(transfer.created_at).toLocaleString()}
                       </p>
                     </div>
@@ -2637,7 +2637,7 @@ const HelperDashboard = () => {
                       <p className="text-emerald-400 font-bold">
                         -{transfer.amount.toLocaleString()}
                       </p>
-                      <p className="text-white/85 text-xs">💎</p>
+                      <p className="text-slate-500 text-xs">💎</p>
                     </div>
                   </div>
                 </div>
