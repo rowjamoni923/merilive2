@@ -134,7 +134,7 @@ const SearchUsers = () => {
       // Clean the query - only digits allowed for app_uid search
       const cleanQuery = query.replace(/\D/g, '');
 
-      let uidPromise: Promise<{ data: UserProfile[] | null }>;
+      let uidPromise: PromiseLike<{ data: UserProfile[] | null }>;
       if (cleanQuery.length === 0) {
         uidPromise = Promise.resolve({ data: [] as UserProfile[] });
       } else {
@@ -144,7 +144,7 @@ const SearchUsers = () => {
           .from('profiles_public')
           .select('id, display_name, username, avatar_url, is_online, is_verified, is_host, country_flag, bio, tags, app_uid')
           .or(`app_uid.eq.${padded},app_uid.ilike.%${cleanQuery}%`)
-          .limit(50);
+          .limit(50) as any;
       }
 
       const tagPromise = tags.length > 0
