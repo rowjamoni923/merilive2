@@ -1083,7 +1083,7 @@ const AgencyDashboard = () => {
 
       {/* Earnings Card - Compact */}
       <div className="mx-4 mt-2">
-        <Card className="bg-gradient-to-br from-slate-9500 via-orange-500 to-red-500 border-0 text-white overflow-hidden relative">
+        <Card className="bg-gradient-to-br from-orange-500 via-orange-500 to-red-500 border-0 text-white overflow-hidden relative">
           <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
           <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
           
@@ -1281,7 +1281,7 @@ const AgencyDashboard = () => {
           </button>
           <button
             onClick={() => navigate("/agent-rank")}
-            className="bg-gradient-to-br from-yellow-500 to-slate-9500 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+            className="bg-gradient-to-br from-yellow-500 to-orange-500 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
           >
             <RankingIcon3D />
             <span className="text-xs font-medium mt-1">Ranking</span>
@@ -1294,7 +1294,7 @@ const AgencyDashboard = () => {
                 setShowHelperDialog(true);
               }
             }}
-            className={`bg-gradient-to-br ${hasHelperAccess ? 'from-green-500 to-emerald-500' : helperPendingApplication ? 'from-yellow-500 to-slate-9500' : 'from-purple-500 to-pink-500'} rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform relative flex flex-col items-center justify-center`}
+            className={`bg-gradient-to-br ${hasHelperAccess ? 'from-green-500 to-emerald-500' : helperPendingApplication ? 'from-yellow-500 to-orange-500' : 'from-purple-500 to-pink-500'} rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform relative flex flex-col items-center justify-center`}
           >
             {hasHelperAccess && helperPendingCount > 0 && (
               <div className="absolute -top-2 -right-2 min-w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold px-1.5 shadow-lg animate-pulse border-2 border-white">
@@ -1315,7 +1315,7 @@ const AgencyDashboard = () => {
         <div className="grid grid-cols-3 gap-3 mt-3">
           <button
             onClick={() => navigate("/agency-coin-exchange")}
-            className="bg-gradient-to-br from-slate-9500 to-red-500 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+            className="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
           >
             <DiamondExchangeIcon3D />
             <span className="text-xs font-medium mt-1">Diamond Exchange</span>
@@ -1494,7 +1494,7 @@ const AgencyDashboard = () => {
                 </CardContent>
               </Card>
               
-              <Card className="border-0 shadow-md bg-gradient-to-br from-slate-950 to-slate-950 dark:from-amber-900/20 dark:to-orange-900/20">
+              <Card className="border-0 shadow-md bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20">
                 <CardContent className="p-4">
                   <div className="w-10 h-10 bg-amber-100 dark:bg-amber-800/50 rounded-xl flex items-center justify-center mb-2">
                     <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
@@ -2069,7 +2069,7 @@ const AgencyDashboard = () => {
             <>
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
-                  <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-slate-9500 rounded-xl flex items-center justify-center">
+                  <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center">
                     <Clock className="w-5 h-5 text-white" />
                   </div>
                   Application Pending
@@ -2080,7 +2080,7 @@ const AgencyDashboard = () => {
               </DialogHeader>
               
               <div className="space-y-4 mt-4">
-                <div className="bg-gradient-to-br from-yellow-50 to-slate-950 rounded-2xl p-6 text-center border border-yellow-200">
+                <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl p-6 text-center border border-yellow-200">
                   <div className="w-16 h-16 mx-auto bg-yellow-100 rounded-full flex items-center justify-center mb-4">
                     <Clock className="w-8 h-8 text-yellow-600" />
                   </div>

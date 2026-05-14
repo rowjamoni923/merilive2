@@ -639,7 +639,7 @@ const HelperDashboard = () => {
     { diamonds: 2500000, label: "25 Lakh", color: "from-purple-500 to-pink-500" },
     { diamonds: 3000000, label: "30 Lakh", color: "from-pink-500 to-rose-500" },
     { diamonds: 3500000, label: "35 Lakh", color: "from-rose-500 to-red-500" },
-    { diamonds: 4000000, label: "40 Lakh", color: "from-slate-9500 to-slate-9500" },
+    { diamonds: 4000000, label: "40 Lakh", color: "from-orange-500 to-orange-500" },
     { diamonds: 4500000, label: "45 Lakh", color: "from-yellow-500 to-amber-500" },
     { diamonds: 5000000, label: "50 Lakh", color: "from-emerald-400 to-cyan-400" },
   ];
@@ -1403,7 +1403,7 @@ const HelperDashboard = () => {
         
         {/* Pending Upgrade Requests */}
         {pendingRequests.length > 0 && (
-          <Card className="bg-gradient-to-r from-slate-9500/20 to-slate-9500/20 border-amber-500/50">
+          <Card className="bg-gradient-to-r from-orange-500/20 to-orange-500/20 border-amber-500/50">
             <CardHeader className="pb-2">
               <CardTitle className="text-white text-sm flex items-center gap-2">
                 <Clock className="w-4 h-4 text-amber-400" />

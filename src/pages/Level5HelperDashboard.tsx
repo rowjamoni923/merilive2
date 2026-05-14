@@ -3349,7 +3349,7 @@ const Level5HelperDashboard = () => {
                   
                   {/* Transaction ID - Highlighted */}
                   {(selectedAgencyWithdrawal.payment_details as any)?.transaction_id && (
-                    <div className="bg-gradient-to-r from-yellow-500/20 to-slate-9500/20 rounded-lg p-3 mb-3 border border-yellow-500/30">
+                    <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-lg p-3 mb-3 border border-yellow-500/30">
                       <div className="flex items-center justify-between">
                         <span className="text-white/75 text-xs">Transaction ID:</span>
                         <span className="text-yellow-400 font-mono text-lg font-bold">
