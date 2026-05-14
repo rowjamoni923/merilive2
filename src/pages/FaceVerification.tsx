@@ -911,13 +911,14 @@ const FaceVerification = () => {
   };
 
   // Compute a precise, user-facing hint about why the current step is not
-  // yet passing. Returns the hint text + severity + a 0..1 closeness score
-  // that drives the on-screen alignment meter.
+  // yet passing. Uses the live calibration so deltas are measured from the
+  // user's natural pose, not absolute zero.
   const computeStepDiag = (
     instrId: string,
     pose: { yaw: number; pitch: number },
     faceDetected: boolean,
     eyesOpen: boolean,
+    c: PoseCalibration,
   ): { hint: string; severity: LiveDiag['severity']; progress: number } => {
     if (!faceDetected) {
       return { hint: 'Face not detected — center your face in the oval', severity: 'error', progress: 0 };
@@ -925,42 +926,39 @@ const FaceVerification = () => {
     if (!eyesOpen) {
       return { hint: 'Keep your eyes open and look at the camera', severity: 'warn', progress: 0.3 };
     }
-    const ay = Math.abs(pose.yaw);
-    const ap = Math.abs(pose.pitch);
+    const dy = pose.yaw   - c.baselineYaw;
+    const dp = pose.pitch - c.baselinePitch;
+    const ady = Math.abs(dy);
+    const adp = Math.abs(dp);
     const clamp = (n: number) => Math.max(0, Math.min(1, n));
     switch (instrId) {
       case 'center': {
-        const need = Math.max(ay - POSE.CENTER_YAW + 4, ap - POSE.CENTER_PITCH + 4, 0);
-        const progress = clamp(1 - Math.max(ay, ap) / POSE.CENTER_YAW);
-        if (ay < POSE.CENTER_YAW && ap < POSE.CENTER_PITCH)
+        const progress = clamp(1 - Math.max(ady / c.centerYaw, adp / c.centerPitch));
+        if (ady < c.centerYaw && adp < c.centerPitch)
           return { hint: 'Hold steady — looks great', severity: 'ok', progress: 1 };
-        if (ay >= POSE.CENTER_YAW)
-          return { hint: `Face the camera straight (turn ${ay > 0 ? 'right' : 'left'} ~${Math.round(ay - POSE.CENTER_YAW + 4)}°)`, severity: 'warn', progress };
-        return { hint: `Level your head (tilt ${pose.pitch > 0 ? 'up' : 'down'} ~${Math.round(ap - POSE.CENTER_PITCH + 4)}°)`, severity: 'warn', progress };
+        if (ady >= c.centerYaw)
+          return { hint: `Face the camera straight (turn ${dy > 0 ? 'right' : 'left'} ~${Math.round(ady - c.centerYaw + 4)}°)`, severity: 'warn', progress };
+        return { hint: `Level your head (tilt ${dp > 0 ? 'up' : 'down'} ~${Math.round(adp - c.centerPitch + 4)}°)`, severity: 'warn', progress };
       }
       case 'left': {
-        const progress = clamp(pose.yaw / (POSE.TURN_YAW + 6));
-        if (pose.yaw > POSE.TURN_YAW) return { hint: 'Hold — capturing left angle', severity: 'ok', progress: 1 };
-        const need = Math.max(POSE.TURN_YAW - pose.yaw, 0);
-        return { hint: `Turn ~${Math.round(need + 4)}° more to your left`, severity: 'warn', progress };
+        const progress = clamp(dy / (c.turnYaw + 6));
+        if (dy > c.turnYaw) return { hint: 'Hold — capturing left angle', severity: 'ok', progress: 1 };
+        return { hint: `Turn ~${Math.round(Math.max(c.turnYaw - dy, 0) + 4)}° more to your left`, severity: 'warn', progress };
       }
       case 'right': {
-        const progress = clamp(-pose.yaw / (POSE.TURN_YAW + 6));
-        if (pose.yaw < -POSE.TURN_YAW) return { hint: 'Hold — capturing right angle', severity: 'ok', progress: 1 };
-        const need = Math.max(POSE.TURN_YAW + pose.yaw, 0);
-        return { hint: `Turn ~${Math.round(need + 4)}° more to your right`, severity: 'warn', progress };
+        const progress = clamp(-dy / (c.turnYaw + 6));
+        if (dy < -c.turnYaw) return { hint: 'Hold — capturing right angle', severity: 'ok', progress: 1 };
+        return { hint: `Turn ~${Math.round(Math.max(c.turnYaw + dy, 0) + 4)}° more to your right`, severity: 'warn', progress };
       }
       case 'up': {
-        const progress = clamp(-pose.pitch / (POSE.TILT_PITCH + 6));
-        if (pose.pitch < -POSE.TILT_PITCH) return { hint: 'Hold — capturing up angle', severity: 'ok', progress: 1 };
-        const need = Math.max(POSE.TILT_PITCH + pose.pitch, 0);
-        return { hint: `Tilt your head up ~${Math.round(need + 3)}° more`, severity: 'warn', progress };
+        const progress = clamp(-dp / (c.tiltPitch + 6));
+        if (dp < -c.tiltPitch) return { hint: 'Hold — capturing up angle', severity: 'ok', progress: 1 };
+        return { hint: `Tilt your head up ~${Math.round(Math.max(c.tiltPitch + dp, 0) + 3)}° more`, severity: 'warn', progress };
       }
       case 'down': {
-        const progress = clamp(pose.pitch / (POSE.TILT_PITCH + 6));
-        if (pose.pitch > POSE.TILT_PITCH) return { hint: 'Hold — capturing down angle', severity: 'ok', progress: 1 };
-        const need = Math.max(POSE.TILT_PITCH - pose.pitch, 0);
-        return { hint: `Tilt your head down ~${Math.round(need + 3)}° more`, severity: 'warn', progress };
+        const progress = clamp(dp / (c.tiltPitch + 6));
+        if (dp > c.tiltPitch) return { hint: 'Hold — capturing down angle', severity: 'ok', progress: 1 };
+        return { hint: `Tilt your head down ~${Math.round(Math.max(c.tiltPitch - dp, 0) + 3)}° more`, severity: 'warn', progress };
       }
       default:
         return { hint: 'Follow the on-screen instruction', severity: 'warn', progress: 0 };
