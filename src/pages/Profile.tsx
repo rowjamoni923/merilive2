@@ -904,7 +904,9 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
       const isAgencyOwner = latestBalances.agencyBalance > 0 || Boolean(agencyData);
 
       if (!isAgencyOwner && latestBalances.traderWallet <= 0) {
-        toast({ title: "Error", description: "No wallet found for transfer", variant: "destructive" });
+        toast({ title: "Trader Wallet Empty", description: "Redirecting to Helper Dashboard for manual recharge." });
+        setShowTransferModal(false);
+        navigate('/helper-dashboard');
         return;
       }
 
