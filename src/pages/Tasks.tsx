@@ -514,7 +514,7 @@ const Tasks = () => {
           <div className="flex items-center justify-between mb-3">
             <div>
               <h2 className="text-lg font-bold">Today's Tasks</h2>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-white/90">
                 {Object.values(progress).filter(p => p.is_claimed).length}/{tasks.length} Completed
               </p>
             </div>
