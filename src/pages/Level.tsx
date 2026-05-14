@@ -541,7 +541,7 @@ const Level = () => {
       {/* Scrollable Level Privileges Section */}
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
       <div className="px-4 pb-6">
-        <h2 className="text-xl font-bold text-white mb-4">Level Privileges</h2>
+        <h2 className="text-xl font-bold text-slate-800 mb-4">Level Privileges</h2>
         
         {/* Level Tabs */}
         <ScrollArea className="w-full mb-4">
@@ -557,14 +557,14 @@ const Level = () => {
                     ? levelType === 'host'
                       ? "bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/30"
                       : "bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg shadow-blue-500/30"
-                    : "bg-white/10 text-slate-500 hover:bg-white/20"
+                    : "profile-home-pill text-slate-600 hover:bg-amber-50"
                 )}
               >
                 Lv{level}
               </motion.button>
             ))}
           </div>
-          <ScrollBar orientation="horizontal" className="bg-white/10" />
+          <ScrollBar orientation="horizontal" className="bg-amber-100" />
         </ScrollArea>
 
         {/* Privilege Items - Filtered by selected level tab */}
@@ -585,8 +585,8 @@ const Level = () => {
                 className={cn(
                   "w-full flex items-center gap-4 p-4 rounded-2xl transition-all",
                   isUnlocked 
-                    ? "bg-white/10 hover:bg-white/15 border border-white/10" 
-                    : "bg-white/5 opacity-60 border border-white/5"
+                    ? "profile-home-section hover:bg-amber-50/40" 
+                    : "profile-home-section opacity-60"
                 )}
               >
                 <div 
@@ -599,11 +599,11 @@ const Level = () => {
                   <IconComponent className="w-7 h-7" style={{ color: privilege.icon_color }} />
                 </div>
                 <div className="flex-1 text-left">
-                  <h3 className="font-semibold text-white">{privilege.name}</h3>
-                  <p className="text-sm text-slate-700">{privilege.description}</p>
+                  <h3 className="font-semibold text-slate-800">{privilege.name}</h3>
+                  <p className="text-sm text-slate-600">{privilege.description}</p>
                 </div>
                 {!isUnlocked && (
-                  <span className="text-xs text-slate-600 px-2 py-1 rounded-full bg-white/10">
+                  <span className="text-xs text-slate-600 px-2 py-1 rounded-full bg-amber-100/80 border border-amber-200/60">
                     Lv{privilege.unlock_level}
                   </span>
                 )}
@@ -626,10 +626,10 @@ const Level = () => {
 
       {/* Level Rules Section */}
       <div className="px-4 pb-32">
-        <h2 className="text-xl font-bold text-white mb-4">Level Rule</h2>
+        <h2 className="text-xl font-bold text-slate-800 mb-4">Level Rule</h2>
         
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
-            <p className="text-sm text-slate-500 mb-4">
+        <div className="profile-home-section rounded-2xl p-4">
+            <p className="text-sm text-slate-600 mb-4">
               {levelType === 'host' 
                 ? 'Host level is determined from your current weekly beans earnings using the live admin tier rules.'
                 : 'User level is determined from your lifetime total top-up using the live admin tier rules.'
