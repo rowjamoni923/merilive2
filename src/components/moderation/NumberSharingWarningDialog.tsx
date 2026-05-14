@@ -41,24 +41,26 @@ export function NumberSharingWarningDialog({
   if (isGenericWarning) {
     return (
       <AlertDialog open={open} onOpenChange={onClose}>
-        <AlertDialogContent className="bg-red-950 border-red-500/50 max-w-sm">
+        <AlertDialogContent className="bg-gradient-to-br from-[#FFFBF2] via-[#FAF5EA] to-rose-50 border border-rose-200/70 max-w-sm rounded-2xl shadow-2xl shadow-rose-900/10">
           <AlertDialogHeader>
             <DialogBody className="flex justify-center mb-2">
-              <ShieldAlert className="w-12 h-12 text-red-400 animate-pulse" />
+              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-rose-500 to-red-600 flex items-center justify-center shadow-lg shadow-rose-500/30">
+                <ShieldAlert className="w-7 h-7 text-white animate-pulse" />
+              </div>
             </DialogBody>
-            <AlertDialogTitle className="text-red-300 text-center text-lg">
+            <AlertDialogTitle className="text-slate-900 text-center text-lg font-bold">
               🚫 Contact Sharing Prohibited
             </AlertDialogTitle>
             <AlertDialogDescription className="text-center space-y-3">
-              <p className="text-gray-200 text-sm">
-                Sharing phone numbers, social media links, or personal contact information is <strong className="text-white">strictly prohibited</strong> on this platform.
+              <p className="text-slate-700 text-sm">
+                Sharing phone numbers, social media links, or personal contact information is <strong className="text-rose-700">strictly prohibited</strong> on this platform.
               </p>
-              <div className="bg-red-900/50 rounded-lg p-3">
-                <p className="text-red-200 font-medium text-sm">
+              <div className="bg-rose-100/70 border border-rose-200 rounded-lg p-3">
+                <p className="text-rose-800 font-medium text-sm">
                   ⚠️ Your message was flagged and reported to admin
                 </p>
               </div>
-              <p className="text-gray-400 text-xs">
+              <p className="text-slate-500 text-xs">
                 Repeated violations may result in account suspension or permanent ban.
               </p>
             </AlertDialogDescription>
@@ -66,7 +68,7 @@ export function NumberSharingWarningDialog({
           <AlertDialogFooter className="justify-center">
             <AlertDialogAction
               onClick={onClose}
-              className="bg-red-600 hover:bg-red-700 text-white min-w-[120px]"
+              className="bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white min-w-[140px] rounded-xl shadow-lg shadow-rose-500/25"
             >
               OK, I Understand
             </AlertDialogAction>
@@ -79,23 +81,25 @@ export function NumberSharingWarningDialog({
   if (isBanned) {
     return (
       <AlertDialog open={open} onOpenChange={onClose}>
-        <AlertDialogContent className="bg-red-950 border-red-500/50 max-w-sm">
+        <AlertDialogContent className="bg-gradient-to-br from-[#FFFBF2] via-[#FAF5EA] to-rose-50 border border-rose-300/70 max-w-sm rounded-2xl shadow-2xl shadow-rose-900/10">
           <AlertDialogHeader>
             <DialogBody className="flex justify-center mb-2">
-              <Ban className="w-12 h-12 text-red-400 animate-pulse" />
+              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-rose-600 to-red-700 flex items-center justify-center shadow-lg shadow-rose-500/30">
+                <Ban className="w-7 h-7 text-white animate-pulse" />
+              </div>
             </DialogBody>
-            <AlertDialogTitle className="text-red-300 text-center text-lg">
+            <AlertDialogTitle className="text-slate-900 text-center text-lg font-bold">
               ⛔ Account Suspended
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-red-200/80 text-center text-sm">
-              Your account has been permanently suspended due to repeated contact sharing violations. 
+            <AlertDialogDescription className="text-slate-700 text-center text-sm">
+              Your account has been permanently suspended due to repeated contact sharing violations.
               You are no longer allowed to use this platform.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="justify-center">
             <AlertDialogAction
               onClick={onClose}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-700 hover:to-red-800 text-white rounded-xl shadow-lg shadow-rose-500/25"
             >
               OK
             </AlertDialogAction>
