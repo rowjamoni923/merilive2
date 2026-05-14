@@ -603,7 +603,7 @@ const HostVerification = () => {
   if (existingApplication && existingApplication.status !== 'pending') {
     return (
       <div className="fixed inset-0 bg-background flex flex-col items-center justify-center p-4">
-        <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 shadow-lg text-center max-w-sm border border-white/10">
+        <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 shadow-lg text-center max-w-sm border border-amber-200/60">
           {existingApplication.status === 'under_review' && (
             <>
               <div className="w-20 h-20 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -631,7 +631,7 @@ const HostVerification = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-background overflow-y-auto overflow-x-hidden">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-gradient-to-r from-pink-500 to-purple-600 text-white">
+      <div className="sticky top-0 z-10 bg-gradient-to-r from-pink-500 to-purple-600 text-slate-800">
         <div className="flex items-center h-14 px-4">
           <button onClick={() => navigate(-1)} className="p-2 -ml-2">
             <ArrowLeft className="w-5 h-5" />
@@ -646,7 +646,7 @@ const HostVerification = () => {
             {[1, 2, 3].map((step) => (
               <div key={step} className="flex items-center">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                  currentStep >= step ? 'bg-white text-purple-600' : 'bg-white/30 text-white'
+                  currentStep >= step ? 'bg-white text-purple-600' : 'bg-white/30 text-slate-800'
                 }`}>
                   {currentStep > step ? <CheckCircle2 className="w-5 h-5" /> : step}
                 </div>
@@ -658,7 +658,7 @@ const HostVerification = () => {
               </div>
             ))}
           </div>
-          <div className="flex justify-between text-xs text-white/80">
+          <div className="flex justify-between text-xs text-slate-700">
             <span>Profile</span>
             <span>Video</span>
             <span>Face</span>
@@ -708,7 +708,7 @@ const HostVerification = () => {
             {agencyVerified && agencyInfo && (
               <div className="mt-3 p-3 bg-green-50 rounded-xl border border-green-200 flex items-center gap-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                  <Building2 className="w-5 h-5 text-white" />
+                  <Building2 className="w-5 h-5 text-slate-800" />
                 </div>
                 <div className="flex-1">
                   <p className="font-semibold text-green-800">{agencyInfo.name}</p>
@@ -834,7 +834,7 @@ const HostVerification = () => {
             </p>
             
             {/* Video Preview / Recording */}
-            <div className="aspect-[9/16] max-h-[400px] bg-gray-900 rounded-xl overflow-hidden relative mb-4">
+            <div className="aspect-[9/16] max-h-[400px] bg-white/90 rounded-xl overflow-hidden relative mb-4">
               {isRecording ? (
                 <>
                   <video 
@@ -844,7 +844,7 @@ const HostVerification = () => {
                     playsInline
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                  <div className="absolute top-4 left-4 bg-red-500 text-slate-800 px-3 py-1 rounded-full text-sm flex items-center gap-2">
                     <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
                     REC {recordingTime}s / 10s
                   </div>
@@ -857,7 +857,7 @@ const HostVerification = () => {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center text-white/50">
+                <div className="w-full h-full flex flex-col items-center justify-center text-slate-500">
                   <Film className="w-16 h-16 mb-4" />
                   <p>Record or upload a video</p>
                 </div>
@@ -932,7 +932,7 @@ const HostVerification = () => {
             </p>
             
             {/* Face Verification Area */}
-            <div className="aspect-square max-w-[300px] mx-auto bg-gray-900 rounded-2xl overflow-hidden relative mb-4">
+            <div className="aspect-square max-w-[300px] mx-auto bg-white/90 rounded-2xl overflow-hidden relative mb-4">
               {faceVerificationImage ? (
                 <img 
                   src={faceVerificationImage} 
@@ -950,11 +950,11 @@ const HostVerification = () => {
                   />
                   {/* Face guide overlay */}
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="w-48 h-48 border-4 border-white/50 rounded-full" />
+                    <div className="w-48 h-48 border-4 border-amber-200/60 rounded-full" />
                   </div>
                 </>
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center text-white/50">
+                <div className="w-full h-full flex flex-col items-center justify-center text-slate-500">
                   <User className="w-16 h-16 mb-4" />
                   <p className="text-center px-4">Start Camera</p>
                 </div>
@@ -962,7 +962,7 @@ const HostVerification = () => {
               
               {faceVerified && (
                 <div className="absolute inset-0 bg-green-500/80 flex items-center justify-center">
-                  <div className="text-center text-white">
+                  <div className="text-center text-slate-800">
                     <CheckCircle2 className="w-16 h-16 mx-auto mb-2" />
                     <p className="font-bold">Verified!</p>
                   </div>

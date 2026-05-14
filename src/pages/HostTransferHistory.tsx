@@ -167,7 +167,7 @@ const HostTransferHistory = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-background overflow-y-auto overflow-x-hidden">
       {/* Header */}
-      <div className="flex-shrink-0 sticky top-0 z-50 bg-gradient-to-r from-purple-600 to-indigo-600 text-white safe-area-top">
+      <div className="flex-shrink-0 sticky top-0 z-50 bg-gradient-to-r from-purple-600 to-indigo-600 text-slate-800 safe-area-top">
         <div className="flex items-center gap-3 p-4">
           <button
             type="button"
@@ -178,7 +178,7 @@ const HostTransferHistory = () => {
           </button>
           <div>
             <h1 className="text-lg font-bold">Weekly Earnings Report</h1>
-            <p className="text-xs text-white/80">Your weekly income details</p>
+            <p className="text-xs text-slate-700">Your weekly income details</p>
           </div>
         </div>
       </div>
@@ -188,7 +188,7 @@ const HostTransferHistory = () => {
       <div className="p-4 space-y-4">
         {/* Main Stats */}
         <div className="grid grid-cols-2 gap-3">
-          <Card className="bg-gradient-to-br from-emerald-500 to-green-600 border-0 p-4 text-white col-span-2">
+          <Card className="bg-gradient-to-br from-emerald-500 to-green-600 border-0 p-4 text-slate-800 col-span-2">
             <div className="flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2 mb-1">
@@ -204,7 +204,7 @@ const HostTransferHistory = () => {
             </div>
           </Card>
 
-          <Card className="bg-gradient-to-br from-pink-500 to-rose-500 border-0 p-3 text-white">
+          <Card className="bg-gradient-to-br from-pink-500 to-rose-500 border-0 p-3 text-slate-800">
             <div className="flex items-center gap-2 mb-1">
               <Gift className="w-4 h-4" />
               <span className="text-xs opacity-90">Gift Earnings</span>
@@ -213,7 +213,7 @@ const HostTransferHistory = () => {
             <p className="text-[10px] opacity-80">Beans</p>
           </Card>
 
-          <Card className="bg-gradient-to-br from-blue-500 to-cyan-500 border-0 p-3 text-white">
+          <Card className="bg-gradient-to-br from-blue-500 to-cyan-500 border-0 p-3 text-slate-800">
             <div className="flex items-center gap-2 mb-1">
               <Phone className="w-4 h-4" />
               <span className="text-xs opacity-90">Call Earnings</span>
@@ -222,7 +222,7 @@ const HostTransferHistory = () => {
             <p className="text-[10px] opacity-80">Beans</p>
           </Card>
 
-          <Card className="bg-gradient-to-br from-amber-500 to-orange-500 border-0 p-3 text-white">
+          <Card className="bg-gradient-to-br from-amber-500 to-orange-500 border-0 p-3 text-slate-800">
             <div className="flex items-center gap-2 mb-1">
               <Calendar className="w-4 h-4" />
               <span className="text-xs opacity-90">This Week</span>
@@ -231,7 +231,7 @@ const HostTransferHistory = () => {
             <p className="text-[10px] opacity-80">Beans</p>
           </Card>
 
-          <Card className="bg-gradient-to-br from-purple-500 to-violet-500 border-0 p-3 text-white">
+          <Card className="bg-gradient-to-br from-purple-500 to-violet-500 border-0 p-3 text-slate-800">
             <div className="flex items-center gap-2 mb-1">
               <Clock className="w-4 h-4" />
               <span className="text-xs opacity-90">This Month</span>
@@ -250,7 +250,7 @@ const HostTransferHistory = () => {
           
           {weeklyEarnings.length === 0 ? (
             <Card className="p-8 text-center bg-white">
-              <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+              <Calendar className="w-12 h-12 mx-auto mb-3 text-slate-500" />
               <p className="text-gray-500 font-medium">No Earnings Report</p>
               <p className="text-xs text-gray-400 mt-1">
                 Your weekly earnings report will appear here
@@ -264,7 +264,7 @@ const HostTransferHistory = () => {
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
-                        <Calendar className="w-5 h-5 text-white" />
+                        <Calendar className="w-5 h-5 text-slate-800" />
                       </div>
                       <div>
                         <p className="font-semibold text-sm text-gray-800">
@@ -275,7 +275,7 @@ const HostTransferHistory = () => {
                         </p>
                       </div>
                     </div>
-                    <Badge className={`${earning.status === 'completed' ? 'bg-emerald-500' : 'bg-amber-500'} text-white border-0`}>
+                    <Badge className={`${earning.status === 'completed' ? 'bg-emerald-500' : 'bg-amber-500'} text-slate-800 border-0`}>
                       {earning.status === 'completed' ? 'Completed' : 'Processing'}
                     </Badge>
                   </div>

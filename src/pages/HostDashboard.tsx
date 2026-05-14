@@ -430,14 +430,14 @@ const HostDashboard = () => {
         </div>
 
         {/* Current Earnings Balance (Auto-transfers to Agency) */}
-        <Card className="bg-gradient-to-r from-amber-500 to-orange-500 text-white">
+        <Card className="bg-gradient-to-r from-amber-500 to-orange-500 text-slate-800">
           <CardContent className="p-5">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-                <Coins className="w-6 h-6 text-white" />
+                <Coins className="w-6 h-6 text-slate-800" />
               </div>
               <div className="flex-1">
-                <p className="text-white/80 text-sm">Current Earnings Balance</p>
+                <p className="text-slate-700 text-sm">Current Earnings Balance</p>
                 <p className="text-3xl font-bold">
                   {fmtNum(stats.withdrawableBalance)} <span className="text-lg">Beans</span>
                 </p>
@@ -448,11 +448,11 @@ const HostDashboard = () => {
             <div className="mt-4 bg-white/20 rounded-xl p-4">
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-                  <ArrowUpRight className="w-5 h-5 text-white" />
+                  <ArrowUpRight className="w-5 h-5 text-slate-800" />
                 </div>
                 <div>
-                  <p className="font-semibold text-white">Auto Transfer to Agency</p>
-                  <p className="text-sm text-white/80 mt-1">
+                  <p className="font-semibold text-slate-800">Auto Transfer to Agency</p>
+                  <p className="text-sm text-slate-700 mt-1">
                     All your beans are automatically transferred to the agency weekly. 
                     Contact your agency for payment.
                   </p>
@@ -464,11 +464,11 @@ const HostDashboard = () => {
 
         {/* Pending Earnings Card */}
         {stats.pendingEarnings > 0 && (
-          <Card className="bg-gradient-to-r from-amber-500 to-orange-500 text-white">
+          <Card className="bg-gradient-to-r from-amber-500 to-orange-500 text-slate-800">
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-white/80 text-sm flex items-center gap-2">
+                  <p className="text-slate-700 text-sm flex items-center gap-2">
                     <Clock className="w-4 h-4" />
                     Pending Earnings (received from agency)
                   </p>
@@ -479,7 +479,7 @@ const HostDashboard = () => {
               </div>
               {stats.nextTransferDate && (
                 <div className="mt-3 bg-white/20 rounded-lg p-3">
-                  <p className="text-sm text-white/90">
+                  <p className="text-sm text-slate-700">
                     <Calendar className="w-4 h-4 inline mr-2" />
                     Next Transfer: {new Date(stats.nextTransferDate).toLocaleDateString('en-US', {
                       weekday: 'long',

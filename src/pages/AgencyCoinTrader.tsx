@@ -459,14 +459,14 @@ const AgencyCoinTrader = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-background">
       {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r from-emerald-600 to-teal-600 text-white safe-area-top">
+      <header className="flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r from-emerald-600 to-teal-600 text-slate-800 safe-area-top">
         <div className="px-4 py-3 flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => navigate(-1)}>
+          <Button variant="ghost" size="icon" className="text-slate-800 hover:bg-white/20" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex-1">
             <h1 className="text-lg font-bold">Diamond Trader</h1>
-            <p className="text-xs text-white/70">{agency?.name}</p>
+            <p className="text-xs text-slate-600">{agency?.name}</p>
           </div>
         </div>
       </header>
@@ -475,18 +475,18 @@ const AgencyCoinTrader = () => {
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
         <main className="px-4 py-4 space-y-4">
         {/* Trader Wallet — unified diamond pool (helper + agency) */}
-        <Card className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white border-0">
+        <Card className="bg-gradient-to-br from-emerald-500 to-teal-600 text-slate-800 border-0">
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
                 <Coins className="w-7 h-7" />
               </div>
               <div>
-                <p className="text-white/80 text-sm">Trader Wallet</p>
+                <p className="text-slate-700 text-sm">Trader Wallet</p>
                 <p className="text-3xl font-bold">
                   {((helperData?.wallet_balance ?? 0) + (agency?.diamond_balance ?? 0)).toLocaleString()} 💎
                 </p>
-                <p className="text-xs text-white/60">
+                <p className="text-xs text-slate-500">
                   Helper {(helperData?.wallet_balance ?? 0).toLocaleString()} + Agency {(agency?.diamond_balance ?? 0).toLocaleString()}
                 </p>
               </div>
@@ -633,7 +633,7 @@ const AgencyCoinTrader = () => {
                         <div className={`w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center ${
                           selectedPaymentMethod === 'epay' ? 'bg-purple-500' : 'bg-purple-100'
                         }`}>
-                          <span className={`text-xl font-bold ${selectedPaymentMethod === 'epay' ? 'text-white' : 'text-purple-600'}`}>e</span>
+                          <span className={`text-xl font-bold ${selectedPaymentMethod === 'epay' ? 'text-slate-800' : 'text-purple-600'}`}>e</span>
                         </div>
                         <p className="font-semibold text-sm">ePay</p>
                         <p className="text-xs text-muted-foreground">E-Payment</p>
@@ -653,7 +653,7 @@ const AgencyCoinTrader = () => {
                         <div className={`w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center ${
                           selectedPaymentMethod === 'binance' ? 'bg-yellow-500' : 'bg-yellow-100'
                         }`}>
-                          <span className={`text-xl font-bold ${selectedPaymentMethod === 'binance' ? 'text-white' : 'text-yellow-600'}`}>₿</span>
+                          <span className={`text-xl font-bold ${selectedPaymentMethod === 'binance' ? 'text-slate-800' : 'text-yellow-600'}`}>₿</span>
                         </div>
                         <p className="font-semibold text-sm">Binance</p>
                         <p className="text-xs text-muted-foreground">Crypto</p>
@@ -1055,7 +1055,7 @@ const AgencyCoinTrader = () => {
               Cancel
             </Button>
             <Button
-              className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
+              className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-800"
               onClick={() => {
                 setShowHelperUpgradeDialog(false);
                 navigate('/agency-dashboard?openHelper=1');

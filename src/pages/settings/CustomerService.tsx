@@ -101,7 +101,7 @@ const CustomerService = () => {
         >
           {isPremium && (
             <div className="absolute top-3 right-3">
-              <span className="px-2 py-1 text-xs bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-full flex items-center gap-1">
+              <span className="px-2 py-1 text-xs bg-gradient-to-r from-amber-400 to-orange-500 text-slate-800 rounded-full flex items-center gap-1">
                 <Sparkles className="w-3 h-3" />
                 Priority Support
               </span>

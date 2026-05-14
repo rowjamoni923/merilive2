@@ -1517,7 +1517,7 @@ const FaceVerification = () => {
       <div className="flex items-center gap-3 mb-5">
         <div className="relative">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
-            <ScanFace className="w-6 h-6 text-white" />
+            <ScanFace className="w-6 h-6 text-slate-800" />
           </div>
           {verificationRecording && (
             <motion.div 
@@ -1528,8 +1528,8 @@ const FaceVerification = () => {
           )}
         </div>
         <div>
-          <h2 className="font-bold text-white text-lg">Live Face Scan</h2>
-          <p className="text-white/40 text-sm">
+          <h2 className="font-bold text-slate-800 text-lg">Live Face Scan</h2>
+          <p className="text-slate-400 text-sm">
             {verificationRecording ? `Step ${currentInstruction + 1} of ${faceInstructions.length}` : 'AI-powered identity verification'}
           </p>
         </div>
@@ -1538,7 +1538,7 @@ const FaceVerification = () => {
       {/* Progress Bar */}
       {verificationRecording && (
         <div className="mb-4">
-          <div className="flex justify-between text-xs text-white/50 mb-1.5">
+          <div className="flex justify-between text-xs text-slate-500 mb-1.5">
             <span>Liveness Check Progress</span>
             <span>{completedCount}/{faceInstructions.length} steps</span>
           </div>
@@ -1553,7 +1553,7 @@ const FaceVerification = () => {
       )}
       
       {/* Video Container with Face Oval */}
-      <div className="relative aspect-[3/4] w-full max-w-sm mx-auto rounded-3xl overflow-hidden bg-black mb-5 shadow-2xl">
+      <div className="relative aspect-[3/4] w-full max-w-sm mx-auto rounded-3xl overflow-hidden bg-white/80 mb-5 shadow-2xl">
         {!faceStream && !faceVerified ? (
           <div className="w-full h-full flex flex-col items-center justify-center p-6 bg-gradient-to-br from-[#1a0a30] to-[#0a0615]">
             <motion.div
@@ -1576,8 +1576,8 @@ const FaceVerification = () => {
                 <ScanFace className="w-12 h-12 text-cyan-400" />
               </div>
             </motion.div>
-            <p className="text-white/80 text-center font-medium mb-1">Ready to Scan</p>
-            <p className="text-white/40 text-xs text-center max-w-[200px]">Position your face in the oval and follow each instruction</p>
+            <p className="text-slate-700 text-center font-medium mb-1">Ready to Scan</p>
+            <p className="text-slate-400 text-xs text-center max-w-[200px]">Position your face in the oval and follow each instruction</p>
           </div>
         ) : faceVerified ? (
           <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-emerald-900/60 to-green-900/40">
@@ -1593,16 +1593,16 @@ const FaceVerification = () => {
                   transition={{ duration: 2, repeat: Infinity }}
                 />
                 <div className="w-28 h-28 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-green-500/30">
-                  <CheckCircle2 className="w-14 h-14 text-white" />
+                  <CheckCircle2 className="w-14 h-14 text-slate-800" />
                 </div>
               </div>
             </motion.div>
-            <h3 className="text-xl font-bold text-white mt-6 mb-2">Scan Complete!</h3>
+            <h3 className="text-xl font-bold text-slate-800 mt-6 mb-2">Scan Complete!</h3>
             <p className="text-green-300 text-sm">All {faceInstructions.length} liveness checks passed</p>
             <div className="flex gap-1 mt-3">
               {instructionsCompleted.map((_, idx) => (
                 <div key={idx} className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
-                  <CheckCircle2 className="w-4 h-4 text-white" />
+                  <CheckCircle2 className="w-4 h-4 text-slate-800" />
                 </div>
               ))}
             </div>
@@ -1623,10 +1623,10 @@ const FaceVerification = () => {
             
             {/* Loading overlay */}
             {faceStream && !cameraReady && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/60">
+              <div className="absolute inset-0 flex items-center justify-center bg-white/80">
                 <div className="flex flex-col items-center">
                   <Loader2 className="w-12 h-12 text-cyan-400 animate-spin mb-2" />
-                  <p className="text-white/70 text-sm">Initializing camera...</p>
+                  <p className="text-slate-600 text-sm">Initializing camera...</p>
                 </div>
               </div>
             )}
@@ -1677,7 +1677,7 @@ const FaceVerification = () => {
                   exit={{ opacity: 0, y: 20, scale: 0.9 }}
                   className="absolute top-3 left-3 right-3"
                 >
-                  <div className="bg-black/80 backdrop-blur-xl rounded-2xl px-4 py-3 border border-white/10">
+                  <div className="bg-white/80 backdrop-blur-xl rounded-2xl px-4 py-3 border border-amber-200/60">
                     <div className="flex items-center gap-3">
                       <motion.div 
                         className={`w-10 h-10 rounded-xl flex items-center justify-center ${
@@ -1689,17 +1689,17 @@ const FaceVerification = () => {
                         transition={{ duration: 0.5, repeat: Infinity }}
                       >
                         {scanningStatus === 'pass' ? (
-                          <CheckCircle2 className="w-5 h-5 text-white" />
+                          <CheckCircle2 className="w-5 h-5 text-slate-800" />
                         ) : (() => {
                           const Icon = faceInstructions[currentInstruction]?.icon || ScanFace;
-                          return <Icon className="w-5 h-5 text-white" />;
+                          return <Icon className="w-5 h-5 text-slate-800" />;
                         })()}
                       </motion.div>
                       <div className="flex-1">
-                        <p className="text-white font-bold">
+                        <p className="text-slate-800 font-bold">
                           {faceInstructions[currentInstruction]?.direction}
                         </p>
-                        <p className="text-white/50 text-xs">
+                        <p className="text-slate-500 text-xs">
                           {faceInstructions[currentInstruction]?.description}
                         </p>
                       </div>
@@ -1725,34 +1725,34 @@ const FaceVerification = () => {
                           ? 'bg-green-500 border-green-400' 
                           : idx === currentInstruction 
                             ? 'border-cyan-400 bg-cyan-500/20' 
-                            : 'border-white/20 bg-white/5'
+                            : 'border-amber-200/60 bg-white/5'
                       }`}
                       animate={completed ? { scale: [1, 1.15, 1] } : idx === currentInstruction ? { borderColor: ['#22d3ee', '#a855f7', '#22d3ee'] } : {}}
                       transition={{ duration: 1.5, repeat: Infinity }}
                     >
                       {completed ? (
-                        <CheckCircle2 className="w-5 h-5 text-white" />
+                        <CheckCircle2 className="w-5 h-5 text-slate-800" />
                       ) : (
-                        <span className="text-white/70 text-xs font-bold">{idx + 1}</span>
+                        <span className="text-slate-600 text-xs font-bold">{idx + 1}</span>
                       )}
                     </motion.div>
                   ))}
                 </div>
                 
                 {/* Timer bar */}
-                <div className="bg-black/70 backdrop-blur-md rounded-full px-4 py-2 flex items-center justify-between">
+                <div className="bg-white/80 backdrop-blur-md rounded-full px-4 py-2 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
-                    <span className="text-white/60 text-xs">{localizedMsg.recording}</span>
+                    <span className="text-slate-500 text-xs">{localizedMsg.recording}</span>
                   </div>
-                  <span className="text-white font-mono font-bold text-sm">{Math.max(0, 30 - verificationTime)}s</span>
+                  <span className="text-slate-800 font-mono font-bold text-sm">{Math.max(0, 30 - verificationTime)}s</span>
                 </div>
               </div>
             )}
             
             {/* Verification failed overlay */}
             {verificationFailed && (
-              <div className="absolute inset-0 bg-black/85 flex flex-col items-center justify-center backdrop-blur-sm">
+              <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center backdrop-blur-sm">
                 <motion.div 
                   initial={{ scale: 0 }} 
                   animate={{ scale: 1 }} 
@@ -1761,11 +1761,11 @@ const FaceVerification = () => {
                 >
                   <XCircle className="w-12 h-12 text-red-400" />
                 </motion.div>
-                <p className="text-white font-bold text-lg mb-1">{localizedMsg.failed}</p>
-                <p className="text-white/50 text-sm text-center px-6 mb-1">
+                <p className="text-slate-800 font-bold text-lg mb-1">{localizedMsg.failed}</p>
+                <p className="text-slate-500 text-sm text-center px-6 mb-1">
                   {localizedMsg.failedDesc}
                 </p>
-                <p className="text-white/30 text-xs">Attempt {failedAttempts}</p>
+                <p className="text-slate-500 text-xs">Attempt {failedAttempts}</p>
               </div>
             )}
           </>
@@ -1815,7 +1815,7 @@ const FaceVerification = () => {
           </Button>
           <Button
             variant="outline"
-            className="w-full border-white/20 text-white hover:bg-white/10 rounded-xl"
+            className="w-full border-amber-200/60 text-slate-800 hover:bg-white/10 rounded-xl"
             onClick={stopFaceCamera}
           >
             {localizedMsg.cancel}
@@ -1864,12 +1864,12 @@ const FaceVerification = () => {
     <div className="relative mb-6">
       <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 via-pink-500/10 to-transparent blur-3xl -z-10" />
       <div className="flex items-center gap-3 mb-2">
-        <Button size="icon" variant="ghost" className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/10" onClick={() => navigate(-1)}>
-          <ArrowLeft className="w-5 h-5 text-white" />
+        <Button size="icon" variant="ghost" className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-amber-200/60" onClick={() => navigate(-1)}>
+          <ArrowLeft className="w-5 h-5 text-slate-800" />
         </Button>
         <div>
           <h1 className="text-xl font-black bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent">{title}</h1>
-          {subtitle && <p className="text-white/50 text-sm">{subtitle}</p>}
+          {subtitle && <p className="text-slate-500 text-sm">{subtitle}</p>}
         </div>
       </div>
     </div>
@@ -1882,29 +1882,29 @@ const FaceVerification = () => {
         <div className="flex flex-col items-center justify-center mt-12">
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring" }}
             className="w-28 h-28 rounded-full bg-gradient-to-r from-red-400 to-rose-500 flex items-center justify-center mb-4 shadow-2xl shadow-red-500/20">
-            <XCircle className="w-14 h-14 text-white" />
+            <XCircle className="w-14 h-14 text-slate-800" />
           </motion.div>
-          <h2 className="text-2xl font-bold text-white mb-2">Verification Rejected</h2>
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">Verification Rejected</h2>
           {rejectionReason && (
             <p className="text-red-300 text-center px-6 mb-2 text-sm">Reason: {rejectionReason}</p>
           )}
           
           {isContactSupportRequired ? (
             <>
-              <p className="text-white/60 text-center px-6 mb-4">To resolve this issue, please contact our Support Team.</p>
+              <p className="text-slate-500 text-center px-6 mb-4">To resolve this issue, please contact our Support Team.</p>
               <Button
                 className="mt-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl px-8 shadow-lg shadow-blue-500/20"
                 onClick={() => navigate('/support')}
               >
                 💬 Support Chat
               </Button>
-              <Button variant="ghost" className="mt-3 text-white/50" onClick={() => navigate('/profile')}>
+              <Button variant="ghost" className="mt-3 text-slate-500" onClick={() => navigate('/profile')}>
                 Back to Profile
               </Button>
             </>
           ) : (
             <>
-              <p className="text-white/60 text-center px-6 mb-4">Your previous verification was rejected. Please try again with a clear face photo/video.</p>
+              <p className="text-slate-500 text-center px-6 mb-4">Your previous verification was rejected. Please try again with a clear face photo/video.</p>
               <Button
                 className="mt-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl px-8 shadow-lg shadow-purple-500/20"
                 onClick={async () => {
@@ -1919,7 +1919,7 @@ const FaceVerification = () => {
               >
                 🔄 Try Again
               </Button>
-              <p className="text-white/40 text-xs text-center mt-3 px-8">
+              <p className="text-slate-400 text-xs text-center mt-3 px-8">
                 Please ensure good lighting and remove any face coverings before retrying.
               </p>
             </>
@@ -1938,10 +1938,10 @@ const FaceVerification = () => {
         <div className="flex flex-col items-center justify-center mt-12">
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring" }}
             className="w-28 h-28 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 flex items-center justify-center mb-4 shadow-2xl shadow-amber-500/20">
-            <Loader2 className="w-14 h-14 text-white animate-spin" />
+            <Loader2 className="w-14 h-14 text-slate-800 animate-spin" />
           </motion.div>
-          <h2 className="text-2xl font-bold text-white mb-2">Under Review</h2>
-          <p className="text-white/60 text-center px-6">Your face verification has already been submitted and is pending admin review. Please wait for approval.</p>
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">Under Review</h2>
+          <p className="text-slate-500 text-center px-6">Your face verification has already been submitted and is pending admin review. Please wait for approval.</p>
           <Button className="mt-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl px-8 shadow-lg shadow-purple-500/20" onClick={() => navigate('/profile')}>
             Back to Profile
           </Button>
@@ -1963,10 +1963,10 @@ const FaceVerification = () => {
             transition={{ type: "spring" }}
             className="w-28 h-28 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center mb-4 shadow-2xl shadow-green-500/20"
           >
-            <CheckCircle2 className="w-14 h-14 text-white" />
+            <CheckCircle2 className="w-14 h-14 text-slate-800" />
           </motion.div>
-          <h2 className="text-2xl font-bold text-white mb-2">Already Verified!</h2>
-          <p className="text-white/60 text-center">Your face verification is complete</p>
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">Already Verified!</h2>
+          <p className="text-slate-500 text-center">Your face verification is complete</p>
           <Button
             className="mt-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl px-8 shadow-lg shadow-purple-500/20"
             onClick={() => navigate('/profile')}
@@ -2033,7 +2033,7 @@ const FaceVerification = () => {
             const isDone = (step === 1 && userInfoDone) || (step === 2 && !userPhotoStep && userPhotoFile);
             return (
               <React.Fragment key={step}>
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${isDone ? 'bg-green-500 text-white' : isActive ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' : 'bg-white/10 text-white/50'}`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${isDone ? 'bg-green-500 text-slate-800' : isActive ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-slate-800' : 'bg-white/10 text-slate-500'}`}>
                   {isDone ? <CheckCircle2 className="w-5 h-5" /> : step}
                 </div>
                 {step < 3 && <div className={`w-12 h-1 rounded-full ${isDone ? 'bg-gradient-to-r from-purple-500 to-pink-500' : 'bg-white/20'}`} />}
@@ -2045,40 +2045,40 @@ const FaceVerification = () => {
         {/* Step 1: Basic Info */}
         {!userInfoDone && (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
-            <div className="bg-gradient-to-br from-indigo-900/50 to-purple-900/50 rounded-3xl p-5 border border-purple-500/20">
-              <h2 className="font-bold text-white mb-5 flex items-center gap-3">
+            <div className="bg-gradient-to-br from-rose-50 to-orange-50 rounded-3xl p-5 border border-purple-500/20">
+              <h2 className="font-bold text-slate-800 mb-5 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                  <User className="w-5 h-5 text-white" />
+                  <User className="w-5 h-5 text-slate-800" />
                 </div>
                 Basic Information
               </h2>
               
               <div className="space-y-4">
                 <div>
-                  <Label className="text-white/80 text-sm">Full Name *</Label>
+                  <Label className="text-slate-700 text-sm">Full Name *</Label>
                   <Input
                     placeholder="Enter your name"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="bg-white/5 border-white/10 text-white mt-1 h-12 rounded-xl"
+                    className="bg-white/5 border-amber-200/60 text-slate-800 mt-1 h-12 rounded-xl"
                   />
                 </div>
                 
                 <div>
-                  <Label className="text-white/80 text-sm">Age *</Label>
+                  <Label className="text-slate-700 text-sm">Age *</Label>
                   <Input
                     type="number"
                     placeholder="18+"
                     value={age}
                     onChange={(e) => setAge(e.target.value)}
-                    className="bg-white/5 border-white/10 text-white mt-1 h-12 rounded-xl"
+                    className="bg-white/5 border-amber-200/60 text-slate-800 mt-1 h-12 rounded-xl"
                   />
                 </div>
                 
                 <div>
-                  <Label className="text-white/80 text-sm">Language *</Label>
+                  <Label className="text-slate-700 text-sm">Language *</Label>
                   <Select value={language} onValueChange={setLanguage}>
-                    <SelectTrigger className="bg-white/5 border-white/10 text-white mt-1 h-12 rounded-xl">
+                    <SelectTrigger className="bg-white/5 border-amber-200/60 text-slate-800 mt-1 h-12 rounded-xl">
                       <SelectValue placeholder="Select language" />
                     </SelectTrigger>
                     <SelectContent>
@@ -2109,16 +2109,16 @@ const FaceVerification = () => {
             <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-2xl p-4">
               <div className="flex items-center gap-3">
                 <div className="w-14 h-14 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
-                  <ImagePlus className="w-7 h-7 text-white" />
+                  <ImagePlus className="w-7 h-7 text-slate-800" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-white text-lg">Step 2: Profile Photo</h3>
-                  <p className="text-sm text-white/70">Upload a clear photo of your face</p>
+                  <h3 className="font-bold text-slate-800 text-lg">Step 2: Profile Photo</h3>
+                  <p className="text-sm text-slate-600">Upload a clear photo of your face</p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-slate-800/50 rounded-3xl p-6 border border-white/10">
+            <div className="bg-white/80 rounded-3xl p-6 border border-amber-200/60">
               <input ref={userPhotoInputRef} type="file" accept="image/*" onChange={handleUserPhotoSelect} className="hidden" />
               
               {userPhotoPreview ? (
@@ -2127,7 +2127,7 @@ const FaceVerification = () => {
                     <img src={userPhotoPreview} alt="Profile" className="w-full h-full object-cover" />
                   </div>
                   <div className="flex gap-3">
-                    <Button variant="outline" className="flex-1 border-white/20 text-white" onClick={() => { setUserPhotoFile(null); setUserPhotoPreview(null); }}>
+                    <Button variant="outline" className="flex-1 border-amber-200/60 text-slate-800" onClick={() => { setUserPhotoFile(null); setUserPhotoPreview(null); }}>
                       <RotateCcw className="w-4 h-4 mr-2" /> Change
                     </Button>
                     <Button className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500" onClick={() => setUserPhotoStep(false)}>
@@ -2140,8 +2140,8 @@ const FaceVerification = () => {
                   <div className="w-24 h-24 mx-auto rounded-full bg-white/10 flex items-center justify-center mb-4 cursor-pointer hover:bg-white/20 transition-colors">
                     <Upload className="w-10 h-10 text-purple-400" />
                   </div>
-                  <p className="text-white font-medium mb-1">Tap to upload your photo</p>
-                  <p className="text-white/50 text-sm">Clear face photo required for verification</p>
+                  <p className="text-slate-800 font-medium mb-1">Tap to upload your photo</p>
+                  <p className="text-slate-500 text-sm">Clear face photo required for verification</p>
                 </div>
               )}
             </div>
@@ -2152,7 +2152,7 @@ const FaceVerification = () => {
               </p>
             </div>
 
-            <Button variant="ghost" className="w-full text-white/50" onClick={() => { setFullName(""); setAge(""); setLanguage(""); }}>
+            <Button variant="ghost" className="w-full text-slate-500" onClick={() => { setFullName(""); setAge(""); setLanguage(""); }}>
               ← Back to Info
             </Button>
           </motion.div>
@@ -2164,18 +2164,18 @@ const FaceVerification = () => {
             <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-2xl p-4 mb-2">
               <div className="flex items-center gap-3">
                 <div className="w-14 h-14 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
-                  <ShieldCheck className="w-7 h-7 text-white" />
+                  <ShieldCheck className="w-7 h-7 text-slate-800" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-white text-lg">Step 3: Face Verification</h3>
-                  <p className="text-sm text-white/70">Record a 10-second face video</p>
+                  <h3 className="font-bold text-slate-800 text-lg">Step 3: Face Verification</h3>
+                  <p className="text-sm text-slate-600">Record a 10-second face video</p>
                 </div>
               </div>
             </div>
 
             {renderFaceVerificationSection()}
 
-            <Button variant="ghost" className="w-full text-white/50" onClick={() => setUserPhotoStep(true)}>
+            <Button variant="ghost" className="w-full text-slate-500" onClick={() => setUserPhotoStep(true)}>
               ← Back to Photo Upload
             </Button>
           </motion.div>
@@ -2197,8 +2197,8 @@ const FaceVerification = () => {
             <motion.div 
               className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold shadow-lg ${
                 currentStep >= step 
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' 
-                  : 'bg-white/10 text-white/50'
+                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-slate-800' 
+                  : 'bg-white/10 text-slate-500'
               }`}
               animate={currentStep === step ? { scale: [1, 1.05, 1] } : {}}
               transition={{ repeat: Infinity, duration: 2 }}
@@ -2221,10 +2221,10 @@ const FaceVerification = () => {
           animate={{ opacity: 1, x: 0 }}
           className="space-y-4"
         >
-          <div className="bg-gradient-to-br from-indigo-900/50 to-purple-900/50 rounded-3xl p-5 border border-purple-500/20">
-            <h2 className="font-bold text-white mb-5 flex items-center gap-3">
+          <div className="bg-gradient-to-br from-rose-50 to-orange-50 rounded-3xl p-5 border border-purple-500/20">
+            <h2 className="font-bold text-slate-800 mb-5 flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                <User className="w-5 h-5 text-white" />
+                <User className="w-5 h-5 text-slate-800" />
               </div>
               Basic Information
             </h2>
@@ -2248,35 +2248,35 @@ const FaceVerification = () => {
                 className="hidden" 
                 onChange={handlePhotoSelect}
               />
-              <p className="text-xs text-white/50 mt-2">Upload profile photo</p>
+              <p className="text-xs text-slate-500 mt-2">Upload profile photo</p>
             </div>
             
             <div className="space-y-4">
               <div>
-                <Label className="text-white/80 text-sm">Full Name</Label>
+                <Label className="text-slate-700 text-sm">Full Name</Label>
                 <Input
                   placeholder="Enter your name"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="bg-white/5 border-white/10 text-white mt-1 h-12 rounded-xl"
+                  className="bg-white/5 border-amber-200/60 text-slate-800 mt-1 h-12 rounded-xl"
                 />
               </div>
               
               <div>
-                <Label className="text-white/80 text-sm">Age</Label>
+                <Label className="text-slate-700 text-sm">Age</Label>
                 <Input
                   type="number"
                   placeholder="18+"
                   value={age}
                   onChange={(e) => setAge(e.target.value)}
-                  className="bg-white/5 border-white/10 text-white mt-1 h-12 rounded-xl"
+                  className="bg-white/5 border-amber-200/60 text-slate-800 mt-1 h-12 rounded-xl"
                 />
               </div>
               
               <div>
-                <Label className="text-white/80 text-sm">Language</Label>
+                <Label className="text-slate-700 text-sm">Language</Label>
                 <Select value={language} onValueChange={setLanguage}>
-                  <SelectTrigger className="bg-white/5 border-white/10 text-white mt-1 h-12 rounded-xl">
+                  <SelectTrigger className="bg-white/5 border-amber-200/60 text-slate-800 mt-1 h-12 rounded-xl">
                     <SelectValue placeholder="Select language" />
                   </SelectTrigger>
                   <SelectContent>
@@ -2307,16 +2307,16 @@ const FaceVerification = () => {
           animate={{ opacity: 1, x: 0 }}
           className="space-y-4"
         >
-          <div className="bg-gradient-to-br from-indigo-900/50 to-purple-900/50 rounded-3xl p-5 border border-purple-500/20">
-            <h2 className="font-bold text-white mb-4 flex items-center gap-3">
+          <div className="bg-gradient-to-br from-rose-50 to-orange-50 rounded-3xl p-5 border border-purple-500/20">
+            <h2 className="font-bold text-slate-800 mb-4 flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center">
-                <Film className="w-5 h-5 text-white" />
+                <Film className="w-5 h-5 text-slate-800" />
               </div>
               Video Upload
             </h2>
             
             {/* Video Upload/Record */}
-            <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black/50 border border-white/10 mb-4 relative shadow-lg">
+            <div className="aspect-video w-full rounded-2xl overflow-hidden bg-white/80 border border-amber-200/60 mb-4 relative shadow-lg">
               {videoPreview ? (
                 <video src={videoPreview} controls className="w-full h-full object-cover" />
               ) : isRecording ? (
@@ -2330,13 +2330,13 @@ const FaceVerification = () => {
                   />
                   <div className="absolute top-3 left-3 flex items-center gap-2 bg-red-500 px-4 py-1.5 rounded-full shadow-lg">
                     <div className="w-2.5 h-2.5 rounded-full bg-white animate-pulse" />
-                    <span className="text-white text-sm font-bold">{recordingTime}s / 15s</span>
+                    <span className="text-slate-800 text-sm font-bold">{recordingTime}s / 15s</span>
                   </div>
                 </>
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center">
-                  <Film className="w-16 h-16 text-white/30 mb-3" />
-                  <p className="text-white/50 text-sm">Record or upload video</p>
+                  <Film className="w-16 h-16 text-slate-500 mb-3" />
+                  <p className="text-slate-500 text-sm">Record or upload video</p>
                 </div>
               )}
             </div>
@@ -2353,7 +2353,7 @@ const FaceVerification = () => {
                   </Button>
                   <Button
                     variant="outline"
-                    className="flex-1 border-white/20 text-white hover:bg-white/10 h-12 rounded-xl"
+                    className="flex-1 border-amber-200/60 text-slate-800 hover:bg-white/10 h-12 rounded-xl"
                     onClick={() => videoInputRef.current?.click()}
                   >
                     <Upload className="w-5 h-5 mr-2" />
@@ -2372,7 +2372,7 @@ const FaceVerification = () => {
               {videoPreview && (
                 <Button
                   variant="outline"
-                  className="w-full border-white/20 text-white hover:bg-white/10 h-12 rounded-xl"
+                  className="w-full border-amber-200/60 text-slate-800 hover:bg-white/10 h-12 rounded-xl"
                   onClick={() => {
                     setVideoPreview(null);
                     setVideoFile(null);
@@ -2393,10 +2393,10 @@ const FaceVerification = () => {
           </div>
           
           {/* Host Photos */}
-          <div className="bg-gradient-to-br from-indigo-900/50 to-purple-900/50 rounded-3xl p-5 border border-purple-500/20">
-            <h2 className="font-bold text-white mb-4 flex items-center gap-3">
+          <div className="bg-gradient-to-br from-rose-50 to-orange-50 rounded-3xl p-5 border border-purple-500/20">
+            <h2 className="font-bold text-slate-800 mb-4 flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-                <ImagePlus className="w-5 h-5 text-white" />
+                <ImagePlus className="w-5 h-5 text-slate-800" />
               </div>
               Photos Upload (up to 3)
             </h2>
@@ -2405,13 +2405,13 @@ const FaceVerification = () => {
               {[0, 1, 2].map((index) => (
                 <div 
                   key={index}
-                  className="aspect-square rounded-2xl bg-white/10 border-2 border-dashed border-white/20 flex items-center justify-center cursor-pointer hover:bg-white/15 transition overflow-hidden shadow-lg"
+                  className="aspect-square rounded-2xl bg-white/10 border-2 border-dashed border-amber-200/60 flex items-center justify-center cursor-pointer hover:bg-white/15 transition overflow-hidden shadow-lg"
                   onClick={() => hostPhotosInputRef.current?.click()}
                 >
                   {hostPhotosPreviews[index] ? (
                     <img src={hostPhotosPreviews[index]} alt={`Photo ${index + 1}`} className="w-full h-full object-cover" />
                   ) : (
-                    <Camera className="w-8 h-8 text-white/30" />
+                    <Camera className="w-8 h-8 text-slate-500" />
                   )}
                 </div>
               ))}
@@ -2429,7 +2429,7 @@ const FaceVerification = () => {
           <div className="flex gap-3">
             <Button
               variant="outline"
-              className="flex-1 border-white/20 text-white hover:bg-white/10 h-14 rounded-2xl"
+              className="flex-1 border-amber-200/60 text-slate-800 hover:bg-white/10 h-14 rounded-2xl"
               onClick={() => setCurrentStep(1)}
             >
               Back
@@ -2456,7 +2456,7 @@ const FaceVerification = () => {
           {!faceVerified && (
             <Button
               variant="outline"
-              className="w-full border-white/20 text-white hover:bg-white/10 h-12 rounded-xl"
+              className="w-full border-amber-200/60 text-slate-800 hover:bg-white/10 h-12 rounded-xl"
               onClick={() => {
                 stopFaceCamera();
                 setCurrentStep(2);
@@ -2470,11 +2470,11 @@ const FaceVerification = () => {
       
       {/* Existing Account Modal */}
       {showExistingAccountModal && existingAccount && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-white/80 backdrop-blur-sm">
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="w-full max-w-sm bg-gradient-to-br from-purple-900 to-indigo-900 rounded-3xl p-6 border border-purple-500/30 shadow-2xl"
+            className="w-full max-w-sm bg-gradient-to-br from-rose-50 to-orange-50 rounded-3xl p-6 border border-purple-500/30 shadow-2xl"
           >
             <div className="text-center">
               <div className="w-20 h-20 mx-auto mb-4 rounded-full overflow-hidden border-4 border-purple-500/50">
@@ -2482,21 +2482,21 @@ const FaceVerification = () => {
                   <img src={existingAccount.avatarUrl} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full bg-purple-600 flex items-center justify-center">
-                    <User className="w-10 h-10 text-white" />
+                    <User className="w-10 h-10 text-slate-800" />
                   </div>
                 )}
               </div>
               
-              <h3 className="text-xl font-bold text-white mb-2">
+              <h3 className="text-xl font-bold text-slate-800 mb-2">
                 Account Already Exists
               </h3>
               
-              <p className="text-white/70 text-sm mb-4">
+              <p className="text-slate-600 text-sm mb-4">
                 This face is already registered with an account:
               </p>
               
               <div className="p-3 rounded-xl bg-white/10 mb-4">
-                <p className="font-semibold text-white">{existingAccount.displayName}</p>
+                <p className="font-semibold text-slate-800">{existingAccount.displayName}</p>
                 {existingAccount.isDeleted && (
                   <Badge className="mt-2 bg-amber-500/20 text-amber-300 border-amber-500/30">
                     Deletion Scheduled
@@ -2504,7 +2504,7 @@ const FaceVerification = () => {
                 )}
               </div>
               
-              <p className="text-white/60 text-xs mb-6">
+              <p className="text-slate-500 text-xs mb-6">
                 One face can only be used for one host account. Please login to your existing account.
               </p>
               
@@ -2523,7 +2523,7 @@ const FaceVerification = () => {
                 
                 <Button
                   variant="ghost"
-                  className="w-full text-white/60 hover:text-white hover:bg-white/10"
+                  className="w-full text-slate-500 hover:text-slate-800 hover:bg-white/10"
                   onClick={() => {
                     setShowExistingAccountModal(false);
                     setFaceVerified(false);

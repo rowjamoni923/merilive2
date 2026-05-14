@@ -160,7 +160,7 @@ const Agency = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-gradient-to-br from-purple-50 via-white to-indigo-50 overflow-hidden">
       {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 text-white safe-area-top shadow-lg">
+      <header className="flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 text-slate-800 safe-area-top shadow-lg">
         <div className="flex items-center h-14 px-4">
           <button 
             onClick={() => navigate(-1)}
@@ -181,7 +181,7 @@ const Agency = () => {
         {/* Main Content */}
         <div className="p-4 space-y-4">
         {/* Hero Banner */}
-        <div className="bg-gradient-to-br from-purple-600 via-indigo-600 to-purple-700 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
+        <div className="bg-gradient-to-br from-purple-600 via-indigo-600 to-purple-700 rounded-3xl p-6 text-slate-800 shadow-xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2 blur-xl" />
           
@@ -192,11 +192,11 @@ const Agency = () => {
               </div>
               <div>
                 <h2 className="text-xl font-bold">Become an Agency Owner</h2>
-                <p className="text-white/80 text-sm">Manage hosts & earn commission</p>
+                <p className="text-slate-700 text-sm">Manage hosts & earn commission</p>
               </div>
             </div>
             
-            <p className="text-white/70 text-sm">
+            <p className="text-slate-600 text-sm">
               Create your own agency or join an existing one to start earning from host commissions.
             </p>
           </div>
@@ -209,7 +209,7 @@ const Agency = () => {
         >
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/25">
-              <Building2 className="w-7 h-7 text-white" />
+              <Building2 className="w-7 h-7 text-slate-800" />
             </div>
             <div className="flex-1">
               <h3 className="font-bold text-lg text-gray-800">Create Agency</h3>
@@ -226,7 +226,7 @@ const Agency = () => {
         >
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/25">
-              <UserPlus className="w-7 h-7 text-white" />
+              <UserPlus className="w-7 h-7 text-slate-800" />
             </div>
             <div className="flex-1">
               <h3 className="font-bold text-lg text-gray-800">Join Agency</h3>
@@ -297,7 +297,7 @@ const Agency = () => {
         <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-5 shadow-lg border border-emerald-200 space-y-4">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg">
-              <BadgeDollarSign className="w-6 h-6 text-white" />
+              <BadgeDollarSign className="w-6 h-6 text-slate-800" />
             </div>
             <div>
               <h4 className="font-bold text-gray-800">Become a Payroll Helper</h4>
@@ -372,7 +372,7 @@ const Agency = () => {
           </div>
 
           {/* Helper Levels Info - Dynamic from Database */}
-          <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl p-4 text-white">
+          <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl p-4 text-slate-800">
             <h5 className="font-semibold mb-3 flex items-center gap-2">
               <Crown className="w-4 h-4" />
               Helper Level Commission Rates
@@ -390,19 +390,19 @@ const Agency = () => {
                       }`}
                     >
                       <p className="font-bold">{tier.level_name}</p>
-                      <p className={index === helperTiers.length - 1 ? 'text-white/90' : 'text-white/80'}>
+                      <p className={index === helperTiers.length - 1 ? 'text-slate-700' : 'text-slate-700'}>
                         {tier.commission_rate}%
                       </p>
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-white/70 mt-3 text-center">
+                <p className="text-xs text-slate-600 mt-3 text-center">
                   Commission rates based on weekly transaction volume
                 </p>
               </>
             ) : (
               <div className="text-center py-2">
-                <p className="text-sm text-white/80">Loading helper levels...</p>
+                <p className="text-sm text-slate-700">Loading helper levels...</p>
               </div>
             )}
           </div>
@@ -425,7 +425,7 @@ const Agency = () => {
                 ))}
               </div>
               {diamondTier && (
-                <div className="mt-3 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-xl p-3 text-center text-white">
+                <div className="mt-3 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-xl p-3 text-center text-slate-800">
                   <p className="text-xs mb-1">💎 {diamondTier.level_name} ({diamondTier.level_code})</p>
                   <p className="text-2xl font-bold">{diamondTier.commission_rate}%</p>
                 </div>
