@@ -424,7 +424,7 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
                  </DialogTitle>
                  <DialogDescription className="text-slate-600 text-center">
                    Enter the 6-digit code sent to{" "}
-                   <span className="text-emerald-400 font-medium">{selectedCountry.code}{phoneNumber}</span>
+                   <span className="text-emerald-600 font-medium">{selectedCountry.code}{phoneNumber}</span>
                  </DialogDescription>
                </DialogHeader>
                
