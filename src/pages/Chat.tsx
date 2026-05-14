@@ -2310,7 +2310,7 @@ const Chat = () => {
                     showAnimation={false}
                   />
                 </div>
-                <div className="rounded-2xl rounded-bl-sm px-4 py-2.5" style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 100%)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div className="rounded-2xl rounded-bl-sm px-4 py-2.5 shadow-sm" style={{ background: 'linear-gradient(135deg, #ffffff 0%, hsl(40 40% 99%) 100%)', border: '1px solid hsl(40 35% 88% / 0.7)' }}>
                   <div className="flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: '0ms' }} />
                     <span className="w-1.5 h-1.5 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: '150ms' }} />
