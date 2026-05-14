@@ -14,7 +14,9 @@
     "scan:dark": "node scripts/scan-dark-tokens.mjs",
     "scan:dark:baseline": "node scripts/scan-dark-tokens.mjs --update-baseline",
     "fix:dark": "node scripts/fix-dark-tokens.mjs",
-    "fix:dark:dry": "node scripts/fix-dark-tokens.mjs --dry"
+    "fix:dark:dry": "node scripts/fix-dark-tokens.mjs --dry",
+    "check:contrast": "node scripts/check-contrast.mjs",
+    "check:contrast:baseline": "node scripts/check-contrast.mjs --baseline"
   },
   "dependencies": {
     "@capacitor-firebase/authentication": "^8.0.1",
