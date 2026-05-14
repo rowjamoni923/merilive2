@@ -2134,7 +2134,7 @@ const Auth = () => {
               >
                 <Avatar className="w-12 h-12 border-2 border-amber-400">
                   <AvatarImage src={lastUser.avatarUrl || undefined} />
- <AvatarFallback className="bg-gradient-to-br from-amber-400 to-orange-500 text-slate-900">
+  <AvatarFallback className="bg-gradient-to-br from-amber-400 to-orange-500 text-white"> {/* dark-ok */}
                     {lastUser.displayName?.charAt(0) || "U"}
                   </AvatarFallback>
                 </Avatar>
@@ -2142,13 +2142,14 @@ const Auth = () => {
                   <p className="font-semibold text-foreground">{lastUser.displayName || "User"}</p>
                   <p className="text-xs text-muted-foreground">{lastUser.email}</p>
                 </div>
- <Badge className="bg-amber-500 text-slate-900 border-0 px-2 py-0.5 text-xs">
-                  Latest Login
+  <Badge className="bg-amber-500 text-white border-0 px-2 py-0.5 text-xs"> {/* dark-ok */}
+                  Continue
                 </Badge>
               </button>
               <button
                 onClick={clearLastUser}
- className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-slate-900 rounded-full flex items-center justify-center shadow-md hover:bg-red-600 transition-colors"
+                aria-label="Remove saved account"
+  className="absolute -top-2 -right-2 w-6 h-6 bg-rose-500 text-white rounded-full flex items-center justify-center shadow-md hover:bg-rose-600 transition-colors" /* dark-ok */
               >
                 <X className="w-3 h-3" />
               </button>
