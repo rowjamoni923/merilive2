@@ -21,6 +21,7 @@ interface RatingClaim {
   id: string;
   user_id: string;
   screenshot_url: string;
+  screenshot_signed?: string | null;
   status: string;
   reward_type: string;
   reward_amount: number;
