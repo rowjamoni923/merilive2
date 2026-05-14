@@ -715,9 +715,9 @@ const AgencyCoinExchange = () => {
               <Coins className="w-5 h-5" />
             </div>
           </div>
-          <p className="text-slate-600 text-xs">Total Beans</p>
+          <p className="text-white/85 text-xs">Total Beans</p>
           <p className="text-2xl font-bold">{(agency.beans_balance || 0).toLocaleString()}</p>
-          <p className="text-slate-500 text-[10px] mt-1">Exchangeable to Diamonds</p>
+          <p className="text-white/70 text-[10px] mt-1">Exchangeable to Diamonds</p>
         </div>
 
         {/* Diamond Balance */}
