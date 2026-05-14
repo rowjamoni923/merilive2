@@ -806,8 +806,8 @@ const FaceVerification = () => {
       if (!result || !result.faceDetected) {
         consecutiveFails++;
         setScanningStatus('fail');
-        if (consecutiveFails >= 5) {
-          // Too many fails — no face visible
+        if (consecutiveFails >= 15) {
+          // ~15s of no face → give up
           finishVerification(false);
         }
         return;
