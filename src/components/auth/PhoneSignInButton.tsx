@@ -416,7 +416,7 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
                <DialogHeader>
                  <div className="flex justify-center mb-4">
                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
-                     <Check className="w-8 h-8 text-slate-800" />
+                     <Check className="w-8 h-8 text-white" />
                    </div>
                  </div>
                  <DialogTitle className="text-slate-800 text-center text-xl">
