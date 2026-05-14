@@ -3068,8 +3068,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
             </Button>
 
             {/* Current Diamond Balance */}
-            <div className="text-center text-sm text-slate-700">
-              Agency Diamonds: <span className="text-cyan-400 font-semibold">{(agencyData?.diamond_balance || 0).toLocaleString()} 💎</span>
+            <div className="text-center text-sm text-slate-600">
+              Agency Diamonds: <span className="text-cyan-600 font-semibold">{(agencyData?.diamond_balance || 0).toLocaleString()} 💎</span>
             </div>
           </div>
         </DialogContent>
