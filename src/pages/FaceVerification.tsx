@@ -1184,8 +1184,10 @@ const FaceVerification = () => {
         if (yawVariance < 5 && pitchVariance < 5) {
           // Suspiciously static — likely a photo
           console.log('[FaceVerify] ⚠️ Anti-spoof: pose too static, likely photo');
+          pushDebug({ kind: 'antispoof_fail', yawVariance, pitchVariance, samples: poseHistory.length });
           setVerificationFailed(true);
           setFailedAttempts(prev => prev + 1);
+          buildAndStoreDebugReport('antispoof');
           toast({
             title: "❌ " + localizedMsg.failed,
             description: localizedMsg.staticFace,
@@ -1195,14 +1197,23 @@ const FaceVerification = () => {
         }
       }
       
+      pushDebug({ kind: 'finish', success: true });
       setFaceVerified(true);
       toast({
         title: localizedMsg.success,
         description: localizedMsg.successDesc,
       });
     } else {
+      pushDebug({
+        kind: 'finish',
+        success: false,
+        stepsCompleted: [...instructionsCompletedRef.current],
+        stuckOnStep: currentInstructionRef.current,
+        stuckOnInstruction: faceInstructions[currentInstructionRef.current]?.id,
+      });
       setVerificationFailed(true);
       setFailedAttempts(prev => prev + 1);
+      buildAndStoreDebugReport('failed');
       toast({
         title: "❌ " + localizedMsg.failed,
         description: localizedMsg.failedDesc,
