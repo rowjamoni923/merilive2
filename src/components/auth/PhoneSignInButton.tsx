@@ -263,7 +263,7 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
                      </div>
                      
                      {/* Country List */}
-                     <ScrollArea className="h-48 rounded-xl border border-amber-300/60 bg-white/5">
+                     <ScrollArea className="h-48 rounded-xl border border-amber-200 bg-white/80">
                        <div className="p-2 space-y-1">
                          {filteredCountries.map((country) => (
                            <button
