@@ -207,13 +207,13 @@ export default function BlogPage() {
           </div>
 
           {/* Mobile Section Toggle */}
-          <div className="flex md:hidden items-center gap-2 mt-4 bg-white/5 rounded-full p-1">
+          <div className="flex md:hidden items-center gap-2 mt-4 bg-amber-50/70 border border-amber-200/60 rounded-full p-1">
             <button
               onClick={() => setActiveSection("about")}
               className={`flex-1 px-4 py-2 rounded-full text-sm font-medium transition-all ${
                 activeSection === "about" 
-                  ? "bg-purple-500 text-white" 
-                  : "text-white/60 hover:text-white"
+                  ? "bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-md shadow-pink-500/30" 
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               About
@@ -222,8 +222,8 @@ export default function BlogPage() {
               onClick={() => setActiveSection("blog")}
               className={`flex-1 px-4 py-2 rounded-full text-sm font-medium transition-all ${
                 activeSection === "blog" 
-                  ? "bg-purple-500 text-white" 
-                  : "text-white/60 hover:text-white"
+                  ? "bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-md shadow-pink-500/30" 
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               Blog
