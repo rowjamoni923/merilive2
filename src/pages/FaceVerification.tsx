@@ -1868,8 +1868,8 @@ const FaceVerification = () => {
           <ArrowLeft className="w-5 h-5 text-slate-800" />
         </Button>
         <div>
-          <h1 className="text-xl font-black bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent">{title}</h1>
-          {subtitle && <p className="text-slate-500 text-sm">{subtitle}</p>}
+          <h1 className="text-xl font-black tracking-tight bg-gradient-to-r from-purple-700 via-fuchsia-600 to-pink-600 bg-clip-text text-transparent">{title}</h1>
+          {subtitle && <p className="text-slate-600 text-sm">{subtitle}</p>}
         </div>
       </div>
     </div>
@@ -1882,7 +1882,7 @@ const FaceVerification = () => {
         <div className="flex flex-col items-center justify-center mt-12">
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring" }}
             className="w-28 h-28 rounded-full bg-gradient-to-r from-red-400 to-rose-500 flex items-center justify-center mb-4 shadow-2xl shadow-red-500/20">
-            <XCircle className="w-14 h-14 text-slate-800" />
+            <XCircle className="w-14 h-14 text-white" />
           </motion.div>
           <h2 className="text-2xl font-bold text-slate-800 mb-2">Verification Rejected</h2>
           {rejectionReason && (
@@ -2045,40 +2045,40 @@ const FaceVerification = () => {
         {/* Step 1: Basic Info */}
         {!userInfoDone && (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
-            <div className="bg-gradient-to-br from-rose-50 to-orange-50 rounded-3xl p-5 border border-purple-500/20">
-              <h2 className="font-bold text-slate-800 mb-5 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                  <User className="w-5 h-5 text-slate-800" />
+            <div className="bg-white rounded-3xl p-5 border border-purple-200 shadow-lg shadow-purple-500/5">
+              <h2 className="font-bold text-slate-900 mb-5 flex items-center gap-3 text-lg">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-md shadow-purple-500/30">
+                  <User className="w-5 h-5 text-white" />
                 </div>
                 Basic Information
               </h2>
               
               <div className="space-y-4">
                 <div>
-                  <Label className="text-slate-700 text-sm">Full Name *</Label>
+                  <Label className="text-slate-700 text-sm font-semibold">Full Name *</Label>
                   <Input
                     placeholder="Enter your name"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="bg-white/5 border-amber-200/60 text-slate-800 mt-1 h-12 rounded-xl"
+                    className="bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 mt-1.5 h-12 rounded-xl focus:border-purple-400 focus:ring-1 focus:ring-purple-400"
                   />
                 </div>
                 
                 <div>
-                  <Label className="text-slate-700 text-sm">Age *</Label>
+                  <Label className="text-slate-700 text-sm font-semibold">Age *</Label>
                   <Input
                     type="number"
                     placeholder="18+"
                     value={age}
                     onChange={(e) => setAge(e.target.value)}
-                    className="bg-white/5 border-amber-200/60 text-slate-800 mt-1 h-12 rounded-xl"
+                    className="bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 mt-1.5 h-12 rounded-xl focus:border-purple-400 focus:ring-1 focus:ring-purple-400"
                   />
                 </div>
                 
                 <div>
-                  <Label className="text-slate-700 text-sm">Language *</Label>
+                  <Label className="text-slate-700 text-sm font-semibold">Language *</Label>
                   <Select value={language} onValueChange={setLanguage}>
-                    <SelectTrigger className="bg-white/5 border-amber-200/60 text-slate-800 mt-1 h-12 rounded-xl">
+                    <SelectTrigger className="bg-white border-slate-200 text-slate-900 mt-1.5 h-12 rounded-xl focus:border-purple-400 focus:ring-1 focus:ring-purple-400">
                       <SelectValue placeholder="Select language" />
                     </SelectTrigger>
                     <SelectContent>
@@ -2094,7 +2094,7 @@ const FaceVerification = () => {
             </div>
             
             <Button
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 h-14 rounded-2xl text-lg font-bold"
+              className="w-full bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-600 hover:from-purple-500 hover:via-fuchsia-400 hover:to-pink-500 text-white h-14 rounded-2xl text-lg font-bold shadow-lg shadow-purple-600/25 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100"
               onClick={saveUserStep1}
               disabled={!fullName.trim() || !age || parseInt(age || "0", 10) < 18 || !language}
             >
@@ -2109,7 +2109,7 @@ const FaceVerification = () => {
             <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-2xl p-4">
               <div className="flex items-center gap-3">
                 <div className="w-14 h-14 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
-                  <ImagePlus className="w-7 h-7 text-slate-800" />
+                  <ImagePlus className="w-7 h-7 text-white" />
                 </div>
                 <div>
                   <h3 className="font-bold text-slate-800 text-lg">Step 2: Profile Photo</h3>
@@ -2146,8 +2146,8 @@ const FaceVerification = () => {
               )}
             </div>
 
-            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3">
-              <p className="text-blue-300 text-xs text-center">
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
+              <p className="text-blue-800 text-xs text-center">
                 📸 This photo will be compared with your face video to verify your identity. Make sure your face is clearly visible.
               </p>
             </div>
@@ -2164,7 +2164,7 @@ const FaceVerification = () => {
             <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-2xl p-4 mb-2">
               <div className="flex items-center gap-3">
                 <div className="w-14 h-14 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
-                  <ShieldCheck className="w-7 h-7 text-slate-800" />
+                  <ShieldCheck className="w-7 h-7 text-white" />
                 </div>
                 <div>
                   <h3 className="font-bold text-slate-800 text-lg">Step 3: Face Verification</h3>
@@ -2221,10 +2221,10 @@ const FaceVerification = () => {
           animate={{ opacity: 1, x: 0 }}
           className="space-y-4"
         >
-          <div className="bg-gradient-to-br from-rose-50 to-orange-50 rounded-3xl p-5 border border-purple-500/20">
-            <h2 className="font-bold text-slate-800 mb-5 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                <User className="w-5 h-5 text-slate-800" />
+          <div className="bg-white rounded-3xl p-5 border border-purple-200 shadow-lg shadow-purple-500/5">
+            <h2 className="font-bold text-slate-900 mb-5 flex items-center gap-3 text-lg">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-md shadow-purple-500/30">
+                <User className="w-5 h-5 text-white" />
               </div>
               Basic Information
             </h2>
@@ -2232,13 +2232,13 @@ const FaceVerification = () => {
             {/* Profile Photo */}
             <div className="flex flex-col items-center mb-5">
               <div 
-                className="w-28 h-28 rounded-3xl bg-amber-50/70 border-2 border-dashed border-purple-400/50 flex items-center justify-center cursor-pointer hover:bg-amber-50/70 transition overflow-hidden shadow-lg"
+                className="w-28 h-28 rounded-3xl bg-purple-50 border-2 border-dashed border-purple-300 flex items-center justify-center cursor-pointer hover:bg-purple-100 transition overflow-hidden shadow-md"
                 onClick={() => photoInputRef.current?.click()}
               >
                 {photoPreview ? (
                   <img src={photoPreview} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
-                  <Camera className="w-10 h-10 text-purple-400" />
+                  <Camera className="w-10 h-10 text-purple-500" />
                 )}
               </div>
               <input 
@@ -2248,35 +2248,35 @@ const FaceVerification = () => {
                 className="hidden" 
                 onChange={handlePhotoSelect}
               />
-              <p className="text-xs text-slate-500 mt-2">Upload profile photo</p>
+              <p className="text-xs text-slate-600 mt-2">Upload profile photo</p>
             </div>
             
             <div className="space-y-4">
               <div>
-                <Label className="text-slate-700 text-sm">Full Name</Label>
+                <Label className="text-slate-700 text-sm font-semibold">Full Name</Label>
                 <Input
                   placeholder="Enter your name"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="bg-white/5 border-amber-200/60 text-slate-800 mt-1 h-12 rounded-xl"
+                  className="bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 mt-1.5 h-12 rounded-xl focus:border-purple-400 focus:ring-1 focus:ring-purple-400"
                 />
               </div>
               
               <div>
-                <Label className="text-slate-700 text-sm">Age</Label>
+                <Label className="text-slate-700 text-sm font-semibold">Age</Label>
                 <Input
                   type="number"
                   placeholder="18+"
                   value={age}
                   onChange={(e) => setAge(e.target.value)}
-                  className="bg-white/5 border-amber-200/60 text-slate-800 mt-1 h-12 rounded-xl"
+                  className="bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 mt-1.5 h-12 rounded-xl focus:border-purple-400 focus:ring-1 focus:ring-purple-400"
                 />
               </div>
               
               <div>
-                <Label className="text-slate-700 text-sm">Language</Label>
+                <Label className="text-slate-700 text-sm font-semibold">Language</Label>
                 <Select value={language} onValueChange={setLanguage}>
-                  <SelectTrigger className="bg-white/5 border-amber-200/60 text-slate-800 mt-1 h-12 rounded-xl">
+                  <SelectTrigger className="bg-white border-slate-200 text-slate-900 mt-1.5 h-12 rounded-xl focus:border-purple-400 focus:ring-1 focus:ring-purple-400">
                     <SelectValue placeholder="Select language" />
                   </SelectTrigger>
                   <SelectContent>
@@ -2292,7 +2292,7 @@ const FaceVerification = () => {
           </div>
           
           <Button
-            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 h-14 rounded-2xl text-lg font-bold"
+            className="w-full bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-600 hover:from-purple-500 hover:via-fuchsia-400 hover:to-pink-500 text-white h-14 rounded-2xl text-lg font-bold shadow-lg shadow-purple-600/25 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100"
             onClick={saveHostStep1}
             disabled={loading || !fullName.trim() || !age || parseInt(age || "0", 10) < 18 || !language || !photoFile}
           >
