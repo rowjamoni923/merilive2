@@ -2597,7 +2597,7 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
                               )}
                             </div>
                             <div className="min-w-0 flex-1">
-                              <p className="text-white text-sm font-semibold truncate">
+                              <p className="text-slate-800 text-sm font-semibold truncate">
                                 {isSent ? 'Sent to' : 'Received from'} {tx.counterparty_name || 'User'}
                               </p>
                               <p className="text-slate-700 text-[10px]">
