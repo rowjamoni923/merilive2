@@ -397,17 +397,17 @@ const SearchUsers = () => {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
             <Input
-              placeholder="Enter App ID (8 digits)..."
+              placeholder="Enter App ID (10 digits)..."
               value={searchQuery}
               onChange={(e) => {
                 // Only allow digits
-                const value = e.target.value.replace(/\D/g, '').slice(0, 8);
+                const value = e.target.value.replace(/\D/g, '').slice(0, 10);
                 setSearchQuery(value);
               }}
               className="pl-10 pr-10 rounded-full bg-slate-100 border border-slate-200 text-slate-900 placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-slate-300"
               autoFocus
               inputMode="numeric"
-              maxLength={8}
+              maxLength={10}
             />
             {searchQuery && (
               <Button
