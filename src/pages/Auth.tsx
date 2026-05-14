@@ -2022,7 +2022,7 @@ const Auth = () => {
         <AuthBackground branding={branding} />
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/50" />
         <div className="relative z-10 min-h-screen flex flex-col items-center justify-center gap-4">
-          <div className="w-10 h-10 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+ <div className="w-10 h-10 border-3 border-slate-200/30 border-t-white rounded-full animate-spin" />
           <p className="text-slate-700 text-sm font-medium animate-pulse">Recovering your account...</p>
         </div>
       </div>
@@ -2089,7 +2089,7 @@ const Auth = () => {
              <div className="flex items-center gap-3 mt-1">
                <div className="h-px w-10 bg-gradient-to-r from-transparent via-white/60 to-transparent" />
                <h2 
-                 className="text-3xl font-bold text-white uppercase"
+ className="text-3xl font-bold text-slate-900 uppercase"
                  style={{ 
                    fontFamily: "'Montserrat', sans-serif",
                    letterSpacing: '0.5em',
@@ -2108,13 +2108,13 @@ const Auth = () => {
             <div className="mb-4 p-4 bg-gradient-to-r from-purple-500/90 to-pink-500/90 backdrop-blur-sm rounded-2xl shadow-lg">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-                  <Building2 className="w-6 h-6 text-white" />
+ <Building2 className="w-6 h-6 text-slate-900" />
                 </div>
                 <div className="flex-1">
                   <p className="text-slate-700 text-xs">You are invited by</p>
-                  <p className="text-white font-bold">{agencyInfo.name}</p>
+ <p className="text-slate-900 font-bold">{agencyInfo.name}</p>
                   <div className="flex items-center gap-2 mt-1">
-                    <Badge className="bg-white/20 text-white text-[10px]">{agencyInfo.level}</Badge>
+ <Badge className="bg-white/20 text-slate-900 text-[10px]">{agencyInfo.level}</Badge>
                     <span className="text-slate-700 text-xs">{agencyInfo.total_hosts} hosts</span>
                   </div>
                 </div>
@@ -2134,7 +2134,7 @@ const Auth = () => {
               >
                 <Avatar className="w-12 h-12 border-2 border-amber-400">
                   <AvatarImage src={lastUser.avatarUrl || undefined} />
-                  <AvatarFallback className="bg-gradient-to-br from-amber-400 to-orange-500 text-white">
+ <AvatarFallback className="bg-gradient-to-br from-amber-400 to-orange-500 text-slate-900">
                     {lastUser.displayName?.charAt(0) || "U"}
                   </AvatarFallback>
                 </Avatar>
@@ -2142,13 +2142,13 @@ const Auth = () => {
                   <p className="font-semibold text-foreground">{lastUser.displayName || "User"}</p>
                   <p className="text-xs text-muted-foreground">{lastUser.email}</p>
                 </div>
-                <Badge className="bg-amber-500 text-white border-0 px-2 py-0.5 text-xs">
+ <Badge className="bg-amber-500 text-slate-900 border-0 px-2 py-0.5 text-xs">
                   Latest Login
                 </Badge>
               </button>
               <button
                 onClick={clearLastUser}
-                className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-md hover:bg-red-600 transition-colors"
+ className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-slate-900 rounded-full flex items-center justify-center shadow-md hover:bg-red-600 transition-colors"
               >
                 <X className="w-3 h-3" />
               </button>
@@ -2158,11 +2158,11 @@ const Auth = () => {
           {/* Start Button - Premium Mobile Design */}
           <Button
             onClick={handleStartClick}
-            className="w-full h-11 rounded-2xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-500 hover:from-purple-700 hover:via-fuchsia-600 hover:to-pink-600 text-white text-sm font-bold shadow-[0_6px_24px_-6px_rgba(168,85,247,0.5)] border border-purple-400/30 transition-all duration-300 active:scale-[0.98] backdrop-blur-md"
+ className="w-full h-11 rounded-2xl bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-500 hover:from-purple-700 hover:via-fuchsia-600 hover:to-pink-600 text-slate-900 text-sm font-bold shadow-[0_6px_24px_-6px_rgba(168,85,247,0.5)] border border-purple-400/30 transition-all duration-300 active:scale-[0.98] backdrop-blur-md"
             disabled={loading}
           >
             {loading ? (
-              <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+ <div className="w-5 h-5 border-2 border-slate-200/40 border-t-white rounded-full animate-spin" />
             ) : (
               <span className="flex items-center gap-2">
                 <Rocket3DIcon className="w-5 h-5" />
@@ -2186,7 +2186,7 @@ const Auth = () => {
               setPhoneOtpCode("");
               setAuthStep("phone_input");
             }}
-            className="w-full h-11 rounded-2xl bg-gradient-to-r from-green-500 via-emerald-500 to-green-600 hover:from-green-600 hover:via-emerald-600 hover:to-green-700 text-white text-sm font-semibold shadow-[0_6px_24px_-6px_rgba(16,185,129,0.4)] border border-green-400/30 transition-all duration-300 active:scale-[0.98] backdrop-blur-md"
+ className="w-full h-11 rounded-2xl bg-gradient-to-r from-green-500 via-emerald-500 to-green-600 hover:from-green-600 hover:via-emerald-600 hover:to-green-700 text-slate-900 text-sm font-semibold shadow-[0_6px_24px_-6px_rgba(16,185,129,0.4)] border border-green-400/30 transition-all duration-300 active:scale-[0.98] backdrop-blur-md"
           >
             <Phone className="w-5 h-5 mr-2" />
             <span>Phone Number</span>
@@ -2208,7 +2208,7 @@ const Auth = () => {
               setEmail("");
               setAuthStep("email");
             }}
-            className="w-full h-11 rounded-2xl bg-gradient-to-r from-white via-gray-50 to-white hover:from-gray-50 hover:via-white hover:to-gray-50 text-gray-700 text-sm font-semibold shadow-[0_6px_24px_-6px_rgba(255,255,255,0.3)] border border-white/60 transition-all duration-300 active:scale-[0.98] backdrop-blur-md"
+ className="w-full h-11 rounded-2xl bg-gradient-to-r from-white via-gray-50 to-white hover:from-gray-50 hover:via-white hover:to-gray-50 text-gray-700 text-sm font-semibold shadow-[0_6px_24px_-6px_rgba(255,255,255,0.3)] border border-slate-200/60 transition-all duration-300 active:scale-[0.98] backdrop-blur-md"
           >
             <Mail className="w-5 h-5 mr-2 text-gray-600" />
             <span>Email</span>
@@ -2253,7 +2253,7 @@ const Auth = () => {
                       }
                     }}
                     size="sm"
-                    className="h-10 px-4 bg-amber-500 hover:bg-amber-600 text-white rounded-xl"
+ className="h-10 px-4 bg-amber-500 hover:bg-amber-600 text-slate-900 rounded-xl"
                   >
                     Apply
                   </Button>
@@ -2278,7 +2278,7 @@ const Auth = () => {
               transition-all duration-300 backdrop-blur-md
               ${agreed 
                 ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-400/40 shadow-[0_0_20px_-5px_rgba(16,185,129,0.3)]' 
-                : 'bg-white/5 border border-white/10 hover:border-white/20'
+ :'bg-white/5 border border-slate-200/10 hover:border-slate-200/20'
               }
             `}
           >
@@ -2286,11 +2286,11 @@ const Auth = () => {
               w-4 h-4 rounded-md flex items-center justify-center transition-all duration-300
               ${agreed 
                 ? 'bg-gradient-to-br from-emerald-400 to-teal-500 shadow-lg' 
-                : 'bg-white/10 border border-white/30'
+ :'bg-white/10 border border-slate-200/30'
               }
             `}>
               {agreed && (
-                <Check className="w-3 h-3 text-white" />
+ <Check className="w-3 h-3 text-slate-900" />
               )}
             </div>
             <span className={`text-[10px] leading-tight transition-colors ${agreed ? 'text-slate-800' : 'text-slate-600'}`}>
@@ -2359,7 +2359,7 @@ const Auth = () => {
                 </div>
                 {selectedGender === "male" && (
                   <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center shadow-md">
-                    <Check className="w-4 h-4 text-white" />
+ <Check className="w-4 h-4 text-slate-900" />
                   </div>
                 )}
               </button>
@@ -2388,7 +2388,7 @@ const Auth = () => {
                 </div>
                 {selectedGender === "female" && (
                   <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-pink-500 flex items-center justify-center shadow-md">
-                    <Check className="w-4 h-4 text-white" />
+ <Check className="w-4 h-4 text-slate-900" />
                   </div>
                 )}
               </button>
@@ -2415,10 +2415,10 @@ const Auth = () => {
                 }
               }}
               disabled={loading || !displayName.trim() || !selectedGender}
-              className="w-full h-12 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-bold text-base disabled:opacity-50 shadow-lg shadow-pink-500/30"
+ className="w-full h-12 rounded-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-slate-900 font-bold text-base disabled:opacity-50 shadow-lg shadow-pink-500/30"
             >
               {loading ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+ <div className="w-5 h-5 border-2 border-slate-200 border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
                   <Sparkles className="w-5 h-5 mr-2" />
@@ -2459,11 +2459,11 @@ const Auth = () => {
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-br from-pink-500 to-purple-600 rounded-full blur-lg opacity-60 animate-pulse" />
                   <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-pink-500 via-purple-500 to-violet-600 flex items-center justify-center shadow-lg shadow-purple-500/30 ring-2 ring-white/10">
-                    <Mail className="w-9 h-9 text-white drop-shadow-lg" />
+ <Mail className="w-9 h-9 text-slate-900 drop-shadow-lg" />
                   </div>
                 </div>
               </div>
-              <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 bg-clip-text text-transparent">
+ <DialogTitle className="text-slate-900 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 bg-clip-text text-transparent">
                 Enter Your Email
               </DialogTitle>
               <DialogDescription className="text-slate-600 text-center text-sm mt-1">
@@ -2492,10 +2492,10 @@ const Auth = () => {
               <Button
                 onClick={handleSendEmailOtp}
                 disabled={loading || !email.trim()}
-                className="w-full h-14 bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 hover:from-pink-500 hover:via-rose-400 hover:to-pink-500 text-white font-bold rounded-2xl text-base shadow-lg shadow-pink-600/25 transition-all duration-300 hover:shadow-xl hover:shadow-pink-500/30 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100"
+ className="w-full h-14 bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 hover:from-pink-500 hover:via-rose-400 hover:to-pink-500 text-slate-900 font-bold rounded-2xl text-base shadow-lg shadow-pink-600/25 transition-all duration-300 hover:shadow-xl hover:shadow-pink-500/30 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100"
               >
                 {loading ? (
-                  <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+ <div className="w-6 h-6 border-2 border-slate-200/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
                     <Mail className="w-5 h-5 mr-2.5" />
@@ -2537,11 +2537,11 @@ const Auth = () => {
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 to-cyan-600 rounded-full blur-lg opacity-50 animate-pulse" />
                   <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500 via-green-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/30 ring-2 ring-white/10">
-                    <Lock className="w-9 h-9 text-white drop-shadow-lg" />
+ <Lock className="w-9 h-9 text-slate-900 drop-shadow-lg" />
                   </div>
                 </div>
               </div>
-              <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600 bg-clip-text text-transparent">
+ <DialogTitle className="text-slate-900 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600 bg-clip-text text-transparent">
                 Enter Verification Code
               </DialogTitle>
               <DialogDescription className="text-slate-600 text-center text-sm mt-1">
@@ -2573,10 +2573,10 @@ const Auth = () => {
               <Button
                 onClick={handleVerifyEmailOtp}
                 disabled={otpLoading || otpCode.length !== 6}
-                className="w-full h-14 bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-600 hover:from-emerald-500 hover:via-green-400 hover:to-emerald-500 text-white font-bold rounded-2xl text-base shadow-lg shadow-emerald-600/25 transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/30 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100"
+ className="w-full h-14 bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-600 hover:from-emerald-500 hover:via-green-400 hover:to-emerald-500 text-slate-900 font-bold rounded-2xl text-base shadow-lg shadow-emerald-600/25 transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/30 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100"
               >
                 {otpLoading ? (
-                  <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+ <div className="w-6 h-6 border-2 border-slate-200/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
                     <Check className="w-5 h-5 mr-2.5" />
@@ -2616,11 +2616,11 @@ const Auth = () => {
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full blur-lg opacity-50 animate-pulse" />
                   <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-violet-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30 ring-2 ring-white/10">
-                    <User className="w-9 h-9 text-white drop-shadow-lg" />
+ <User className="w-9 h-9 text-slate-900 drop-shadow-lg" />
                   </div>
                 </div>
               </div>
-              <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 bg-clip-text text-transparent">Complete Your Profile</DialogTitle>
+ <DialogTitle className="text-slate-900 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 bg-clip-text text-transparent">Complete Your Profile</DialogTitle>
               <DialogDescription className="text-slate-600 text-center text-sm mt-1">Set your name and password</DialogDescription>
             </DialogHeader>
             
@@ -2652,9 +2652,9 @@ const Auth = () => {
                 </div>
               </div>
               
-              <Button onClick={handleCreateEmailAccount} disabled={loading || !displayName.trim() || !password.trim() || !confirmPassword.trim()} className="w-full h-14 bg-gradient-to-r from-violet-600 via-purple-500 to-pink-500 hover:from-violet-500 hover:via-purple-400 hover:to-pink-400 text-white font-bold rounded-2xl text-base shadow-lg shadow-purple-600/25 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100">
+ <Button onClick={handleCreateEmailAccount} disabled={loading || !displayName.trim() || !password.trim() || !confirmPassword.trim()} className="w-full h-14 bg-gradient-to-r from-violet-600 via-purple-500 to-pink-500 hover:from-violet-500 hover:via-purple-400 hover:to-pink-400 text-slate-900 font-bold rounded-2xl text-base shadow-lg shadow-purple-600/25 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100">
                 {loading ? (
-                  <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+ <div className="w-6 h-6 border-2 border-slate-200/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
                     <span className="mr-2">🚀</span>
@@ -2684,7 +2684,7 @@ const Auth = () => {
                   </div>
                 </div>
               </div>
-              <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 bg-clip-text text-transparent">Verify Your Email</DialogTitle>
+ <DialogTitle className="text-slate-900 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 bg-clip-text text-transparent">Verify Your Email</DialogTitle>
               <DialogDescription className="text-slate-600 text-center text-sm mt-1">Enter the 6-digit code sent to <span className="text-pink-400 font-medium">{email}</span></DialogDescription>
             </DialogHeader>
             
@@ -2696,9 +2696,9 @@ const Auth = () => {
                 </div>
               </div>
               
-              <Button onClick={handleVerifyOtp} disabled={otpLoading || otpCode.length !== 6} className="w-full h-14 bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-600 hover:from-emerald-500 hover:via-green-400 hover:to-emerald-500 text-white font-bold rounded-2xl text-base shadow-lg shadow-emerald-600/25 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100">
+ <Button onClick={handleVerifyOtp} disabled={otpLoading || otpCode.length !== 6} className="w-full h-14 bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-600 hover:from-emerald-500 hover:via-green-400 hover:to-emerald-500 text-slate-900 font-bold rounded-2xl text-base shadow-lg shadow-emerald-600/25 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100">
                 {otpLoading ? (
-                  <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+ <div className="w-6 h-6 border-2 border-slate-200/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
                     <Check className="w-5 h-5 mr-2.5" />
@@ -2725,7 +2725,7 @@ const Auth = () => {
             {/* Close button handled by DialogContent */}
 
             <DialogHeader className="relative z-10">
-              <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-indigo-100 to-white bg-clip-text text-transparent">Welcome Back</DialogTitle>
+ <DialogTitle className="text-slate-900 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-indigo-100 to-white bg-clip-text text-transparent">Welcome Back</DialogTitle>
               <DialogDescription className="text-slate-600 text-center text-sm mt-1">Login to your account</DialogDescription>
             </DialogHeader>
             
@@ -2746,9 +2746,9 @@ const Auth = () => {
                 </div>
               </div>
               
-              <Button onClick={handleLoginAuth} disabled={loading || !email.trim() || !password.trim()} className="w-full h-14 bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 hover:from-pink-500 hover:via-rose-400 hover:to-pink-500 text-white font-bold rounded-2xl text-base shadow-lg shadow-pink-600/25 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100">
+ <Button onClick={handleLoginAuth} disabled={loading || !email.trim() || !password.trim()} className="w-full h-14 bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 hover:from-pink-500 hover:via-rose-400 hover:to-pink-500 text-slate-900 font-bold rounded-2xl text-base shadow-lg shadow-pink-600/25 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100">
                 {loading ? (
-                  <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+ <div className="w-6 h-6 border-2 border-slate-200/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   "Login"
                 )}
@@ -2777,11 +2777,11 @@ const Auth = () => {
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full blur-lg opacity-60 animate-pulse" />
                   <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-green-500 via-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-green-500/30 ring-2 ring-white/10">
-                    <Phone className="w-9 h-9 text-white drop-shadow-lg" />
+ <Phone className="w-9 h-9 text-slate-900 drop-shadow-lg" />
                   </div>
                 </div>
               </div>
-              <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-green-100 to-white bg-clip-text text-transparent">
+ <DialogTitle className="text-slate-900 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-green-100 to-white bg-clip-text text-transparent">
                 Enter Phone Number
               </DialogTitle>
               <DialogDescription className="text-slate-600 text-center text-sm mt-1">
@@ -2797,7 +2797,7 @@ const Auth = () => {
                   <button
                     type="button"
                     onClick={() => setShowCountryPicker(!showCountryPicker)}
-                    className="w-full h-14 flex items-center justify-between px-4 bg-white border border-amber-200/70 rounded-2xl border border-white/10 hover:border-green-500/40 transition-colors"
+ className="w-full h-14 flex items-center justify-between px-4 bg-white border border-amber-200/70 rounded-2xl border border-slate-200/10 hover:border-green-500/40 transition-colors"
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-2xl">{selectedCountry.flag}</span>
@@ -2809,8 +2809,8 @@ const Auth = () => {
 
                   {/* Country Dropdown */}
                   {showCountryPicker && (
-                    <div className="absolute top-full left-0 right-0 mt-2 bg-[#1a1a2e] border border-white/10 rounded-2xl shadow-2xl shadow-black/50 z-50 max-h-64 overflow-hidden">
-                      <div className="p-2 border-b border-white/10">
+ <div className="absolute top-full left-0 right-0 mt-2 bg-[#1a1a2e] border border-slate-200/10 rounded-2xl shadow-2xl shadow-black/50 z-50 max-h-64 overflow-hidden">
+ <div className="p-2 border-b border-slate-200/10">
                         <div className="flex items-center bg-white border border-amber-200/70 rounded-xl px-3">
                           <Search className="w-4 h-4 text-slate-500" />
                           <input
@@ -2851,7 +2851,7 @@ const Auth = () => {
                 <div className="relative group">
                   <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-green-500/50 via-emerald-500/50 to-green-500/50 opacity-60 group-focus-within:opacity-100 transition-opacity blur-[0.5px]" />
                   <div className="relative flex items-center bg-white border border-amber-200/70 rounded-2xl overflow-hidden">
-                    <div className="pl-4 pr-2 flex items-center gap-1.5 border-r border-white/10">
+ <div className="pl-4 pr-2 flex items-center gap-1.5 border-r border-slate-200/10">
                       <span className="text-lg">{selectedCountry.flag}</span>
                       <span className="text-green-400 font-semibold text-sm">{selectedCountryCode}</span>
                     </div>
@@ -2881,10 +2881,10 @@ const Auth = () => {
               <Button
                 onClick={handleSendPhoneOtp}
                 disabled={loading || !phoneNumber.trim()}
-                className="w-full h-14 bg-gradient-to-r from-green-600 via-emerald-500 to-green-600 hover:from-green-500 hover:via-emerald-400 hover:to-green-500 text-white font-bold rounded-2xl text-base shadow-lg shadow-green-600/25 transition-all duration-300 hover:shadow-xl hover:shadow-green-500/30 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100"
+ className="w-full h-14 bg-gradient-to-r from-green-600 via-emerald-500 to-green-600 hover:from-green-500 hover:via-emerald-400 hover:to-green-500 text-slate-900 font-bold rounded-2xl text-base shadow-lg shadow-green-600/25 transition-all duration-300 hover:shadow-xl hover:shadow-green-500/30 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100"
               >
                 {loading ? (
-                  <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+ <div className="w-6 h-6 border-2 border-slate-200/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
                     <MessageCircle className="w-5 h-5 mr-2.5" />
@@ -2918,11 +2918,11 @@ const Auth = () => {
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-teal-600 rounded-full blur-lg opacity-50 animate-pulse" />
                   <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-green-500 via-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-green-500/30 ring-2 ring-white/10">
-                    <Lock className="w-9 h-9 text-white drop-shadow-lg" />
+ <Lock className="w-9 h-9 text-slate-900 drop-shadow-lg" />
                   </div>
                 </div>
               </div>
-              <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-green-100 to-white bg-clip-text text-transparent">
+ <DialogTitle className="text-slate-900 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-green-100 to-white bg-clip-text text-transparent">
                 WhatsApp Verification
               </DialogTitle>
               <DialogDescription className="text-slate-600 text-center text-sm mt-1">
@@ -2952,10 +2952,10 @@ const Auth = () => {
               <Button
                 onClick={handleVerifyPhoneOtp}
                 disabled={phoneOtpLoading || phoneOtpCode.length !== 6}
-                className="w-full h-14 bg-gradient-to-r from-green-600 via-emerald-500 to-green-600 hover:from-green-500 hover:via-emerald-400 hover:to-green-500 text-white font-bold rounded-2xl text-base shadow-lg shadow-green-600/25 transition-all duration-300 hover:shadow-xl hover:shadow-green-500/30 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100"
+ className="w-full h-14 bg-gradient-to-r from-green-600 via-emerald-500 to-green-600 hover:from-green-500 hover:via-emerald-400 hover:to-green-500 text-slate-900 font-bold rounded-2xl text-base shadow-lg shadow-green-600/25 transition-all duration-300 hover:shadow-xl hover:shadow-green-500/30 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100"
               >
                 {phoneOtpLoading ? (
-                  <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+ <div className="w-6 h-6 border-2 border-slate-200/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
                     <Check className="w-5 h-5 mr-2.5" />
@@ -2991,11 +2991,11 @@ const Auth = () => {
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full blur-lg opacity-50 animate-pulse" />
                   <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-green-500 via-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-green-500/30 ring-2 ring-white/10">
-                    <User className="w-9 h-9 text-white drop-shadow-lg" />
+ <User className="w-9 h-9 text-slate-900 drop-shadow-lg" />
                   </div>
                 </div>
               </div>
-              <DialogTitle className="text-white text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-green-100 to-white bg-clip-text text-transparent">Complete Your Profile</DialogTitle>
+ <DialogTitle className="text-slate-900 text-center text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-green-100 to-white bg-clip-text text-transparent">Complete Your Profile</DialogTitle>
               <DialogDescription className="text-slate-600 text-center text-sm mt-1">Set your name and password</DialogDescription>
             </DialogHeader>
 
@@ -3027,9 +3027,9 @@ const Auth = () => {
                 </div>
               </div>
 
-              <Button onClick={handleCreatePhoneAccount} disabled={loading || !displayName.trim() || !password.trim() || !confirmPassword.trim()} className="w-full h-14 bg-gradient-to-r from-green-600 via-emerald-500 to-teal-500 hover:from-green-500 hover:via-emerald-400 hover:to-teal-400 text-white font-bold rounded-2xl text-base shadow-lg shadow-green-600/25 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100">
+ <Button onClick={handleCreatePhoneAccount} disabled={loading || !displayName.trim() || !password.trim() || !confirmPassword.trim()} className="w-full h-14 bg-gradient-to-r from-green-600 via-emerald-500 to-teal-500 hover:from-green-500 hover:via-emerald-400 hover:to-teal-400 text-slate-900 font-bold rounded-2xl text-base shadow-lg shadow-green-600/25 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100">
                 {loading ? (
-                  <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+ <div className="w-6 h-6 border-2 border-slate-200/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
                     <span className="mr-2">🚀</span>

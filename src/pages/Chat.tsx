@@ -1879,7 +1879,7 @@ const Chat = () => {
                   {chatName}
                 </h2>
                 {!isGroup && (
-                  <div className="flex items-center gap-0.5 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-md shrink-0">
+ <div className="flex items-center gap-0.5 bg-gradient-to-r from-amber-400 to-orange-500 text-slate-900 text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-md shrink-0">
                     <Crown className="w-2.5 h-2.5" />
                     <span>Lv.{userLevel}</span>
                   </div>
@@ -2047,7 +2047,7 @@ const Chat = () => {
                       ) : (
                         <Avatar className="w-7 h-7 border border-purple-200/30">
                           <AvatarImage src={senderAvatar || undefined} className="object-cover" />
-                          <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-white text-[10px]">
+ <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-slate-900 text-[10px]">
                             {senderName[0]}
                           </AvatarFallback>
                         </Avatar>
@@ -2142,21 +2142,21 @@ const Chat = () => {
                               {isMine && diamondsAmount ? (
                                 <div className="flex items-center gap-1 px-2 py-0.5 mt-1 bg-gradient-to-r from-rose-500 to-red-600 rounded-full shadow-md shadow-rose-500/30">
                                   <img src={diamondGem3D} alt="" className="w-3 h-3 object-contain drop-shadow" />
-                                  <span className="text-[9px] font-bold text-white">
+ <span className="text-[9px] font-bold text-slate-900">
                                     -{Number(diamondsAmount).toLocaleString()}
                                   </span>
                                 </div>
                               ) : !isMine && beansAmount ? (
                                 <div className="flex items-center gap-1 px-2 py-0.5 mt-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full shadow-md shadow-amber-500/30">
                                   <Beans3DIcon size={12} />
-                                  <span className="text-[9px] font-bold text-white">
+ <span className="text-[9px] font-bold text-slate-900">
                                     +{Number(beansAmount).toLocaleString()}
                                   </span>
                                 </div>
                               ) : beansAmount ? (
                                 <div className="flex items-center gap-1 px-2 py-0.5 mt-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full shadow-md">
                                   <Beans3DIcon size={12} />
-                                  <span className="text-[9px] font-bold text-white">
+ <span className="text-[9px] font-bold text-slate-900">
                                     +{Number(beansAmount).toLocaleString()}
                                   </span>
                                 </div>
@@ -2215,7 +2215,7 @@ const Chat = () => {
                             <div className={cn(
                               "rounded-2xl px-3 py-2",
                               isMine
-                                ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-br-sm"
+ ?"bg-gradient-to-r from-purple-500 to-pink-500 text-slate-900 rounded-br-sm"
                                 : "bg-muted rounded-bl-sm"
                             )}>
                               <div className="flex items-center gap-2">
@@ -2245,7 +2245,7 @@ const Chat = () => {
                             className={cn(
                               "rounded-2xl px-2.5 py-1.5 max-w-full text-[13px] leading-[1.35]",
                               isMine
-                                ? "bg-gradient-to-br from-fuchsia-500 via-purple-500 to-violet-600 text-white rounded-br-sm shadow-md shadow-purple-500/20"
+ ?"bg-gradient-to-br from-fuchsia-500 via-purple-500 to-violet-600 text-slate-900 rounded-br-sm shadow-md shadow-purple-500/20"
                                 : "rounded-bl-sm text-slate-800 shadow-sm",
                               msg._optimistic && "opacity-70"
                             )}
@@ -2346,7 +2346,7 @@ const Chat = () => {
           
           {/* Inline Translation Bar - Shows when enabled */}
           {inlineTranslateEnabled && !isGroup && (
-            <div className="px-4 py-2 border-t border-white/[0.06]">
+ <div className="px-4 py-2 border-t border-slate-200/[0.06]">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-[10px] text-slate-600 font-medium">Auto-translate to:</span>
                 <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
@@ -2356,8 +2356,8 @@ const Chat = () => {
                       onClick={() => handleInlineLangChange(lang.code)}
                       className={`flex items-center gap-0.5 px-2.5 py-1 rounded-full text-[10px] whitespace-nowrap transition-all border ${
                         inlineTargetLang === lang.code
-                          ? 'bg-gradient-to-r from-purple-500/80 to-pink-500/80 text-white border-purple-400/30'
-                          : 'bg-white/[0.06] text-white/85 border-white/[0.08] hover:bg-white/[0.1]'
+ ?'bg-gradient-to-r from-purple-500/80 to-pink-500/80 text-slate-900 border-purple-400/30'
+ :'bg-white/[0.06] text-slate-700/85 border-slate-200/[0.08] hover:bg-white/[0.1]'
                       }`}
                     >
                       <span>{lang.flag}</span>
@@ -2464,7 +2464,7 @@ const Chat = () => {
                         }
                       }, 50);
                     }}
-                    className="flex-shrink-0 px-3 py-1.5 rounded-full bg-white/[0.06] border border-white/[0.1] backdrop-blur-xl"
+ className="flex-shrink-0 px-3 py-1.5 rounded-full bg-white/[0.06] border border-slate-200/[0.1] backdrop-blur-xl"
                   >
                     <span className="text-xs text-slate-900 whitespace-nowrap">{quickMsg}</span>
                   </motion.button>
@@ -2529,11 +2529,11 @@ const Chat = () => {
                   )}
                 >
                   {sendingVoice ? (
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+ <div className="w-5 h-5 border-2 border-slate-200 border-t-transparent rounded-full animate-spin" />
                   ) : isRecording ? (
                     <div className="w-4 h-4 bg-white rounded-sm" />
                   ) : (
-                    <Send className="w-5 h-5 text-white" />
+ <Send className="w-5 h-5 text-slate-900" />
                   )}
                 </motion.button>
               </>
@@ -2657,7 +2657,7 @@ const Chat = () => {
                   disabled={sending}
                   className="w-11 h-11 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center shadow-lg"
                 >
-                  <Send className="w-5 h-5 text-white" />
+ <Send className="w-5 h-5 text-slate-900" />
                 </motion.button>
               </>
             ) : (
@@ -2681,7 +2681,7 @@ const Chat = () => {
                     onChange={(e) => handleMessageChange(e.target.value)}
                     placeholder="Type something..."
                     className={cn(
-                      "rounded-full bg-white/[0.06] border border-amber-200/60 pr-20 text-white placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-purple-500/40 focus-visible:border-amber-300/60 backdrop-blur-xl",
+"rounded-full bg-white/[0.06] border border-amber-200/60 pr-20 text-slate-900 placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-purple-500/40 focus-visible:border-amber-300/60 backdrop-blur-xl",
                       inlineTranslateEnabled && "ring-1 ring-purple-500/40 border-amber-300/60"
                     )}
                     onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
@@ -2722,7 +2722,7 @@ const Chat = () => {
                     disabled={sending}
                     className="w-11 h-11 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center shadow-lg"
                   >
-                    <Send className="w-5 h-5 text-white" />
+ <Send className="w-5 h-5 text-slate-900" />
                   </motion.button>
                 )}
               </>
@@ -2748,7 +2748,7 @@ const Chat = () => {
                     "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 border backdrop-blur-xl",
                     inlineTranslateEnabled 
                       ? "bg-gradient-to-br from-purple-500/30 to-violet-500/30 border-purple-400/40 shadow-lg shadow-purple-500/20" 
-                      : "bg-white/[0.06] border-white/[0.08] hover:bg-white/[0.1]"
+ :"bg-white/[0.06] border-slate-200/[0.08] hover:bg-white/[0.1]"
                   )}>
                     <Languages className={cn(
                       "w-5 h-5",
@@ -2840,7 +2840,7 @@ const Chat = () => {
                         onClick={() => handleLanguageChange(lang.code)}
                         className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium transition-all ${
                           selectedLanguage === lang.code
-                            ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md'
+ ?'bg-gradient-to-r from-purple-500 to-pink-500 text-slate-900 shadow-md'
                             : 'bg-muted hover:bg-muted/80 text-foreground'
                         }`}
                       >
@@ -2866,7 +2866,7 @@ const Chat = () => {
                 <div className={`rounded-xl border-2 border-dashed transition-all ${
                   translatedResult 
                     ? 'border-amber-300/60 bg-purple-500/10' 
-                    : 'border-white/[0.08] bg-white/[0.04]'
+ :'border-slate-200/[0.08] bg-white/[0.04]'
                 }`}>
                   <div className="p-3">
                     <div className="flex items-center justify-between mb-1">
@@ -2969,31 +2969,31 @@ const Chat = () => {
         <div className="px-4">
           <Tabs value={chatTab} onValueChange={handleTabChange} className="w-full">
             <TabsList className="grid w-full grid-cols-4 bg-white/70 border border-amber-200/50 rounded-xl p-1 shadow-inner">
-              <TabsTrigger value="messages" className="relative text-xs font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg text-white/80">
+ <TabsTrigger value="messages" className="relative text-xs font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600 data-[state=active]:to-purple-600 data-[state=active]:text-slate-900 data-[state=active]:shadow-md rounded-lg text-slate-700/80">
                 Messages
                 {globalUnread.messages > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-red-500 to-pink-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg shadow-red-500/30">
+ <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-red-500 to-pink-500 text-slate-900 text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg shadow-red-500/30">
                     {formatBadgeCount(globalUnread.messages)}
                   </span>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="official" className="relative text-xs font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg text-white/80">
+ <TabsTrigger value="official" className="relative text-xs font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600 data-[state=active]:to-purple-600 data-[state=active]:text-slate-900 data-[state=active]:shadow-md rounded-lg text-slate-700/80">
                 Official
                 {globalUnread.official > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg shadow-orange-500/30">
+ <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-900 text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg shadow-orange-500/30">
                     {formatBadgeCount(globalUnread.official)}
                   </span>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="notifications" className="relative text-xs font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg text-white/80">
+ <TabsTrigger value="notifications" className="relative text-xs font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600 data-[state=active]:to-purple-600 data-[state=active]:text-slate-900 data-[state=active]:shadow-md rounded-lg text-slate-700/80">
                 Notifications
                 {globalUnread.notifications > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg">
+ <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-gradient-to-r from-purple-500 to-pink-500 text-slate-900 text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg">
                     {formatBadgeCount(globalUnread.notifications)}
                   </span>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="groups" className="relative text-xs font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-md rounded-lg text-white/80">
+ <TabsTrigger value="groups" className="relative text-xs font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-fuchsia-600 data-[state=active]:to-purple-600 data-[state=active]:text-slate-900 data-[state=active]:shadow-md rounded-lg text-slate-700/80">
                 Groups
                 {groups.length > 0 && (
                   <span className="ml-1 text-xs text-slate-500">({groups.length})</span>
@@ -3048,7 +3048,7 @@ const Chat = () => {
             <h3 className="text-lg font-semibold mb-2 text-slate-700">No conversations yet</h3>
             <p className="text-slate-600 text-sm mb-4">Start a conversation with someone!</p>
             <Button
-              className="rounded-full font-bold text-white"
+ className="rounded-full font-bold text-slate-900"
               style={{ background: 'linear-gradient(135deg, #d946ef 0%, #a855f7 100%)', boxShadow: '0 4px 15px rgba(168,85,247,0.3)' }}
               onClick={() => navigate('/')}
             >
@@ -3081,13 +3081,13 @@ const Chat = () => {
                   ) : (
                     <Avatar className="w-14 h-14 ring-2 ring-purple-500/20">
                       <AvatarImage src={conv.other_user?.avatar_url || undefined} />
-                      <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white">
+ <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-slate-900">
                         {conv.other_user?.display_name?.[0] || '?'}
                       </AvatarFallback>
                     </Avatar>
                   )}
                   {conv.other_user?.is_online && (
-                    <span className="absolute bottom-0 right-0 w-4 h-4 bg-gradient-to-r from-green-400 to-emerald-400 border-2 border-white rounded-full z-10 shadow-lg shadow-green-500/30" />
+ <span className="absolute bottom-0 right-0 w-4 h-4 bg-gradient-to-r from-green-400 to-emerald-400 border-2 border-slate-200 rounded-full z-10 shadow-lg shadow-green-500/30" />
                   )}
                 </div>
                 <div className="flex-1 text-left min-w-0">
@@ -3104,7 +3104,7 @@ const Chat = () => {
                   <div className="flex items-center justify-between mt-0.5">
                     <p className="text-sm text-slate-600 truncate">{conv.last_message || 'No messages yet'}</p>
                     {conv.unread_count > 0 && (
-                      <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 rounded-full ml-2 shrink-0 shadow-lg shadow-red-500/20 text-[10px] px-2">
+ <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-slate-900 border-0 rounded-full ml-2 shrink-0 shadow-lg shadow-red-500/20 text-[10px] px-2">
                         {conv.unread_count}
                       </Badge>
                     )}
@@ -3124,7 +3124,7 @@ const Chat = () => {
             <h3 className="text-lg font-semibold mb-2 text-slate-700">No groups yet</h3>
             <p className="text-slate-600 text-sm mb-4">Create or join a group!</p>
             <Button
-              className="rounded-full font-bold text-white"
+ className="rounded-full font-bold text-slate-900"
               style={{ background: 'linear-gradient(135deg, #d946ef 0%, #a855f7 100%)', boxShadow: '0 4px 15px rgba(168,85,247,0.3)' }}
               onClick={() => setShowGroupActions(true)}
             >
@@ -3142,7 +3142,7 @@ const Chat = () => {
               >
                 <Avatar className="w-14 h-14 ring-2 ring-purple-500/20">
                   <AvatarImage src={group.avatar_url || undefined} />
-                  <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white">
+ <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-slate-900">
                     <Users className="w-6 h-6" />
                   </AvatarFallback>
                 </Avatar>
@@ -3152,7 +3152,7 @@ const Chat = () => {
                     <span className="text-xs text-slate-600">({group.member_count})</span>
                   </div>
                   {group.is_owner && (
-                    <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 text-xs mt-1">
+ <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-slate-900 border-0 text-xs mt-1">
                       <Crown className="w-3 h-3 mr-1" />
                       Owner
                     </Badge>
@@ -3272,7 +3272,7 @@ const Chat = () => {
             </div>
 
             <Button
-              className="w-full rounded-full font-bold text-white"
+ className="w-full rounded-full font-bold text-slate-900"
               style={{ background: 'linear-gradient(135deg, #d946ef 0%, #a855f7 50%, #7c3aed 100%)', boxShadow: '0 4px 20px rgba(168,85,247,0.4)' }}
               onClick={handleCreateGroup}
               disabled={!newGroupName.trim() || creatingGroup}
@@ -3296,12 +3296,12 @@ const Chat = () => {
                 value={groupSearchQuery}
                 onChange={(e) => setGroupSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearchGroup()}
-                className="pr-12 bg-white/[0.06] border-white/[0.08] text-white placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-purple-500/40"
+ className="pr-12 bg-white/[0.06] border-slate-200/[0.08] text-slate-900 placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-purple-500/40"
               />
               <Button
                 size="icon"
                 variant="ghost"
-                className="absolute right-1 top-1/2 -translate-y-1/2 text-slate-700 hover:text-white hover:bg-white/[0.08]"
+ className="absolute right-1 top-1/2 -translate-y-1/2 text-slate-700 hover:text-slate-900 hover:bg-white/[0.08]"
                 onClick={handleSearchGroup}
               >
                 <Search className="w-5 h-5" />
@@ -3317,7 +3317,7 @@ const Chat = () => {
                   >
                     <Avatar className="w-12 h-12 ring-2 ring-purple-500/20">
                       <AvatarImage src={group.avatar_url || undefined} />
-                      <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white">
+ <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-slate-900">
                         <Users className="w-5 h-5" />
                       </AvatarFallback>
                     </Avatar>
@@ -3329,7 +3329,7 @@ const Chat = () => {
                     </div>
                     <Button
                       size="sm"
-                      className="rounded-full font-bold text-white"
+ className="rounded-full font-bold text-slate-900"
                       style={{ background: 'linear-gradient(135deg, #d946ef 0%, #a855f7 100%)', boxShadow: '0 2px 10px rgba(168,85,247,0.3)' }}
                       onClick={() => handleJoinGroup(group.id)}
                     >

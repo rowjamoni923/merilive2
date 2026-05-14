@@ -686,7 +686,7 @@ const ProfileDetail = () => {
           animate={{ scale: 1, opacity: 1 }}
           className="max-w-sm w-full text-center space-y-5"
         >
-          <button onClick={() => navigate(-1)} className="absolute top-4 left-4 p-2 rounded-full bg-white/10 text-white">
+ <button onClick={() => navigate(-1)} className="absolute top-4 left-4 p-2 rounded-full bg-white/10 text-slate-900">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <motion.div
@@ -698,17 +698,17 @@ const ProfileDetail = () => {
             <ShieldX className="w-12 h-12 text-red-600" />
           </motion.div>
           <motion.h1 initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }}
-            className="text-xl font-bold text-white">
+ className="text-xl font-bold text-slate-900">
             Account Permanently Banned
           </motion.h1>
           <motion.p initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }}
-            className="text-white/80 text-sm leading-relaxed">
+ className="text-slate-700/80 text-sm leading-relaxed">
             This account has been permanently suspended for violating our Community Guidelines. 
             All associated data, host privileges, and agency memberships have been revoked.
           </motion.p>
           <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }}>
             <Button variant="outline" onClick={() => navigate(-1)}
-              className="bg-white/5 border-white/10 text-white hover:bg-white/10">
+ className="bg-white/5 border-slate-200/10 text-slate-900 hover:bg-white/10">
               <ArrowLeft className="w-4 h-4 mr-2" /> Go Back
             </Button>
           </motion.div>
@@ -741,7 +741,7 @@ const ProfileDetail = () => {
           <Button variant="outline" onClick={() => navigate(-1)}>Go Back</Button>
           {isOwnProfile && (
             <Button 
-              className="bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+ className="bg-gradient-to-r from-purple-500 to-pink-500 text-slate-900"
               onClick={handleLogoutAndReregister}
             >
               Create New Account
@@ -838,9 +838,9 @@ const ProfileDetail = () => {
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate(-1)}
-            className="w-10 h-10 rounded-full bg-black/35 backdrop-blur-xl border border-white/10 flex items-center justify-center"
+ className="w-10 h-10 rounded-full bg-slate-100/35 backdrop-blur-xl border border-slate-200/10 flex items-center justify-center"
           >
-            <ArrowLeft className="w-5 h-5 text-white" />
+ <ArrowLeft className="w-5 h-5 text-slate-900" />
           </motion.button>
 
           <div className="flex items-center gap-2">
@@ -848,29 +848,29 @@ const ProfileDetail = () => {
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={() => navigate("/edit-profile")}
-                  className="w-10 h-10 rounded-full bg-black/35 backdrop-blur-xl border border-white/10 flex items-center justify-center"
+ className="w-10 h-10 rounded-full bg-slate-100/35 backdrop-blur-xl border border-slate-200/10 flex items-center justify-center"
               >
-                  <Edit2 className="w-5 h-5 text-white" />
+ <Edit2 className="w-5 h-5 text-slate-900" />
               </motion.button>
             ) : (
               <>
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setShowReportDialog(true)}
-                    className="w-10 h-10 rounded-full bg-black/35 backdrop-blur-xl border border-white/10 flex items-center justify-center"
+ className="w-10 h-10 rounded-full bg-slate-100/35 backdrop-blur-xl border border-slate-200/10 flex items-center justify-center"
                 >
-                    <Flag className="w-5 h-5 text-white" />
+ <Flag className="w-5 h-5 text-slate-900" />
                 </motion.button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <motion.button
                       whileTap={{ scale: 0.95 }}
-                      className="w-10 h-10 rounded-full bg-black/35 backdrop-blur-xl border border-white/10 flex items-center justify-center"
+ className="w-10 h-10 rounded-full bg-slate-100/35 backdrop-blur-xl border border-slate-200/10 flex items-center justify-center"
                     >
-                      <MoreVertical className="w-5 h-5 text-white" />
+ <MoreVertical className="w-5 h-5 text-slate-900" />
                     </motion.button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48 bg-[#1a1a2e] border-white/10">
+ <DropdownMenuContent align="end" className="w-48 bg-[#1a1a2e] border-slate-200/10">
                     <DropdownMenuItem 
                       onClick={() => setShowBlockDialog(true)}
                       className="text-red-600 focus:text-red-700"
@@ -903,9 +903,9 @@ const ProfileDetail = () => {
                 animate={{ scale: [1, 1.4, 1], opacity: [1, 0.5, 1] }}
                 transition={{ duration: 1, repeat: Infinity }}
               />
-              <span className="text-white text-xs font-bold">LIVE</span>
-              <span className="text-white/70 text-[10px]">👁 {activeLiveStream.viewer_count || 0}</span>
-              <ChevronRight className="w-3.5 h-3.5 text-white/70" />
+ <span className="text-slate-900 text-xs font-bold">LIVE</span>
+ <span className="text-slate-700/70 text-[10px]">👁 {activeLiveStream.viewer_count || 0}</span>
+ <ChevronRight className="w-3.5 h-3.5 text-slate-700/70" />
             </motion.button>
           )}
         </div>
@@ -961,7 +961,7 @@ const ProfileDetail = () => {
                 </h1>
                 {(profile.is_verified || (profile as any).is_face_verified) && (
                   <div className="w-5 h-5 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30">
-                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+ <svg className="w-3 h-3 text-slate-900" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   </div>
@@ -970,7 +970,7 @@ const ProfileDetail = () => {
               
               {/* Level Badge, Status & ID */}
               <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                <Badge className="bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white border-0 text-[10px] shadow-lg shadow-fuchsia-500/20 px-2.5 py-0.5 font-bold flex items-center gap-1">
+ <Badge className="bg-gradient-to-r from-fuchsia-600 to-purple-600 text-slate-900 border-0 text-[10px] shadow-lg shadow-fuchsia-500/20 px-2.5 py-0.5 font-bold flex items-center gap-1">
                   {levelIcon?.icon_url && (levelIcon.icon_url.startsWith('http') || levelIcon.icon_url.startsWith('/')) ? (
                     <img src={levelIcon.icon_url} alt={`Lv${level}`} className="w-3.5 h-3.5 object-contain rounded-sm" />
                   ) : null}
@@ -980,17 +980,17 @@ const ProfileDetail = () => {
                 
                 {/* Status: Live > Busy (in call) > Online */}
                 {activeLiveStream ? (
-                  <Badge className="bg-gradient-to-r from-red-500 to-rose-500 text-white border-0 text-[10px] shadow-lg shadow-red-500/30 px-2 py-0.5 animate-pulse">
+ <Badge className="bg-gradient-to-r from-red-500 to-rose-500 text-slate-900 border-0 text-[10px] shadow-lg shadow-red-500/30 px-2 py-0.5 animate-pulse">
                     <div className="w-1.5 h-1.5 bg-white rounded-full mr-1" />
                     🔴 Live
                   </Badge>
                 ) : profile.is_in_call ? (
-                  <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 text-[10px] shadow-lg shadow-amber-500/20 px-2 py-0.5">
+ <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-slate-900 border-0 text-[10px] shadow-lg shadow-amber-500/20 px-2 py-0.5">
                     <Phone className="w-3 h-3 mr-1" />
                     Busy
                   </Badge>
                 ) : profile.is_online ? (
-                  <Badge className="bg-gradient-to-r from-emerald-500 to-green-500 text-white border-0 text-[10px] shadow-lg shadow-emerald-500/20 px-2 py-0.5">
+ <Badge className="bg-gradient-to-r from-emerald-500 to-green-500 text-slate-900 border-0 text-[10px] shadow-lg shadow-emerald-500/20 px-2 py-0.5">
                     <div className="w-1.5 h-1.5 bg-white rounded-full mr-1 animate-pulse" />
                     Online
                   </Badge>
@@ -998,15 +998,15 @@ const ProfileDetail = () => {
 
                 {/* ID Badge - inline with level & status */}
                 <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white border border-slate-200 backdrop-blur-sm">
-                  <span className="w-3.5 h-3.5 rounded-full bg-gradient-to-r from-fuchsia-500 to-purple-500 flex items-center justify-center text-white text-[6px] font-bold">ID</span>
+ <span className="w-3.5 h-3.5 rounded-full bg-gradient-to-r from-fuchsia-500 to-purple-500 flex items-center justify-center text-slate-900 text-[6px] font-bold">ID</span>
                   <span className="text-slate-700 font-mono text-[10px] tracking-wider">{profile.app_uid || "00000000"}</span>
                 </div>
 
                 {profile.age && profile.gender && (
                   <Badge className={`text-[10px] shadow-lg px-2 py-0.5 border-0 ${
                     profile.gender === 'female' 
-                      ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-pink-500/20' 
-                      : 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-blue-500/20'
+ ?'bg-gradient-to-r from-pink-500 to-rose-500 text-slate-900 shadow-pink-500/20' 
+ :'bg-gradient-to-r from-blue-500 to-cyan-500 text-slate-900 shadow-blue-500/20'
                   }`}>
                     {profile.gender === 'female' ? '♀️' : '♂️'} {profile.age}
                   </Badge>
@@ -1040,7 +1040,7 @@ const ProfileDetail = () => {
                   className={`mt-2.5 px-5 py-1.5 rounded-full text-xs font-bold transition-all ${
                     isFollowing 
                       ? "bg-white text-slate-700 border border-slate-200 backdrop-blur-sm" 
-                      : "bg-gradient-to-r from-fuchsia-500 via-purple-500 to-pink-500 text-white shadow-lg shadow-fuchsia-500/30"
+ :"bg-gradient-to-r from-fuchsia-500 via-purple-500 to-pink-500 text-slate-900 shadow-lg shadow-fuchsia-500/30"
                   }`}
                 >
                   {isFollowing ? "✓ Following" : "💕 Follow"}
@@ -1068,7 +1068,7 @@ const ProfileDetail = () => {
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-base">✨</span>
                   <span className="text-slate-950 font-bold text-sm">Privileges & Animations</span>
-                  <Badge className="bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white border-0 text-[9px] px-2 py-0.5 font-bold ml-auto">
+ <Badge className="bg-gradient-to-r from-fuchsia-600 to-purple-600 text-slate-900 border-0 text-[9px] px-2 py-0.5 font-bold ml-auto">
                     Lv{level}
                   </Badge>
                 </div>
@@ -1227,7 +1227,7 @@ const ProfileDetail = () => {
 
             {/* Interest Tags from Database */}
             {profile.tags && profile.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 pt-2 border-t border-white/5">
+ <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-200/5">
                 {profile.tags.map((tag, index) => {
                     const style = tagStyles[tag] || { bg: "bg-slate-50", text: "text-slate-700", icon: "✨" };
                   return (
@@ -1279,7 +1279,7 @@ const ProfileDetail = () => {
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={handleToggleAvailability}
-              className="w-full mt-4 flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold text-white transition-all"
+ className="w-full mt-4 flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold text-slate-900 transition-all"
               style={{
                 background: hostAvailability === 'online'
                   ? 'linear-gradient(135deg, rgba(239,68,68,0.8), rgba(220,38,38,0.8))'
@@ -1303,7 +1303,7 @@ const ProfileDetail = () => {
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={() => navigate(`/chat?user=${userId}`)}
-                className="flex items-center justify-center gap-2 py-4 rounded-2xl text-white font-semibold relative overflow-hidden"
+ className="flex items-center justify-center gap-2 py-4 rounded-2xl text-slate-900 font-semibold relative overflow-hidden"
                 style={{
                   background: 'linear-gradient(135deg, rgba(168,85,247,0.8), rgba(236,72,153,0.8))',
                   boxShadow: '0 8px 30px rgba(168,85,247,0.3)',
@@ -1317,14 +1317,14 @@ const ProfileDetail = () => {
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={handleCallClick}
-                  className="flex flex-col items-center justify-center gap-1 py-3 rounded-2xl text-white font-semibold relative overflow-hidden"
+ className="flex flex-col items-center justify-center gap-1 py-3 rounded-2xl text-slate-900 font-semibold relative overflow-hidden"
                   style={{
                     background: 'linear-gradient(135deg, rgba(52,211,153,0.8), rgba(16,185,129,0.8))',
                     boxShadow: '0 8px 30px rgba(16,185,129,0.3)',
                   }}
                 >
                   <motion.div
-                    className="absolute inset-0 rounded-2xl border-2 border-white/20"
+ className="absolute inset-0 rounded-2xl border-2 border-slate-200/20"
                     animate={{ scale: [1, 1.05, 1], opacity: [0.5, 0, 0.5] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   />
@@ -1342,7 +1342,7 @@ const ProfileDetail = () => {
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setShowGiftPanel(true)}
-                className="flex items-center justify-center gap-2 py-4 rounded-2xl text-white font-semibold"
+ className="flex items-center justify-center gap-2 py-4 rounded-2xl text-slate-900 font-semibold"
                 style={{
                   background: 'linear-gradient(135deg, rgba(245,158,11,0.8), rgba(249,115,22,0.8))',
                   boxShadow: '0 8px 30px rgba(245,158,11,0.3)',
@@ -1431,9 +1431,9 @@ const ProfileDetail = () => {
       )}
 
       <Dialog open={showGiftSendersModal} onOpenChange={setShowGiftSendersModal}>
-        <DialogContent className="max-w-sm mx-auto max-h-[80vh] bg-[#141428] border-white/10">
+ <DialogContent className="max-w-sm mx-auto max-h-[80vh] bg-[#141428] border-slate-200/10">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-white">
+ <DialogTitle className="flex items-center gap-2 text-slate-900">
               {selectedGift?.icon.startsWith("http") ? (
                 selectedGift.icon.endsWith(".svga") ? (
                   <UniversalFramePlayer
@@ -1450,7 +1450,7 @@ const ProfileDetail = () => {
               )}
               <span>{selectedGift?.name || "Gift"} Senders</span>
             </DialogTitle>
-            <DialogDescription className="text-white/75">
+ <DialogDescription className="text-slate-700/75">
               Total: {selectedGift?.count || 0} gifts received
             </DialogDescription>
           </DialogHeader>
@@ -1474,17 +1474,17 @@ const ProfileDetail = () => {
                   >
                     <Avatar className="w-12 h-12 border border-fuchsia-500/30">
                       <AvatarImage src={gift.sender_avatar || undefined} />
-                      <AvatarFallback className="bg-gradient-to-br from-fuchsia-600 to-purple-600 text-white font-bold">
+ <AvatarFallback className="bg-gradient-to-br from-fuchsia-600 to-purple-600 text-slate-900 font-bold">
                         {gift.sender_name.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm truncate text-white/90">{gift.sender_name}</p>
+ <p className="font-semibold text-sm truncate text-slate-700/90">{gift.sender_name}</p>
                       {gift.sender_uid && (
-                        <p className="text-xs text-white/70 flex items-center gap-1">
+ <p className="text-xs text-slate-700/70 flex items-center gap-1">
                           <span className="w-4 h-4 rounded-full bg-gradient-to-r from-fuchsia-500 to-purple-600 flex items-center justify-center">
-                            <span className="text-white font-bold text-[6px]">ID</span>
+ <span className="text-slate-900 font-bold text-[6px]">ID</span>
                           </span>
                           {gift.sender_uid}
                         </p>
@@ -1496,7 +1496,7 @@ const ProfileDetail = () => {
                         <span className="text-lg">💎</span>
                         <span className="text-sm">{gift.coin_amount}</span>
                       </div>
-                      <p className="text-[10px] text-white/70">
+ <p className="text-[10px] text-slate-700/70">
                         {new Date(gift.created_at).toLocaleDateString()}
                       </p>
                     </div>
@@ -1504,7 +1504,7 @@ const ProfileDetail = () => {
                 ))}
               
               {giftsWithSenders.filter(g => g.gift_id === selectedGift?.id).length === 0 && (
-                <div className="text-center py-6 text-white/70">
+ <div className="text-center py-6 text-slate-700/70">
                   <span className="text-3xl">🔍</span>
                   <p className="text-sm mt-2">No sender information available</p>
                 </div>
@@ -1513,7 +1513,7 @@ const ProfileDetail = () => {
           </ScrollArea>
           
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowGiftSendersModal(false)} className="w-full border-white/10 text-white/70 hover:bg-white/5">
+ <Button variant="outline" onClick={() => setShowGiftSendersModal(false)} className="w-full border-slate-200/10 text-slate-700/70 hover:bg-white/5">
               Close
             </Button>
           </DialogFooter>
@@ -1546,9 +1546,9 @@ const ProfileDetail = () => {
                     className="flex-shrink-0 w-48 rounded-2xl p-4 text-left profile-home-section"
                   >
                     <div className="flex items-center gap-3">
-                      <Avatar className="w-12 h-12 border border-white/10">
+ <Avatar className="w-12 h-12 border border-slate-200/10">
                         <AvatarImage src={group.avatar_url || undefined} />
-                        <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white">
+ <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-slate-900">
                           {group.name.charAt(0)}
                         </AvatarFallback>
                       </Avatar>

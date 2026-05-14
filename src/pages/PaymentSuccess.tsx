@@ -175,31 +175,31 @@ const PaymentSuccess = () => {
             <div className="w-20 h-20 mx-auto rounded-full bg-white/10 flex items-center justify-center">
               <Loader2 className="w-10 h-10 text-purple-400 animate-spin" />
             </div>
-            <h2 className="text-xl font-bold text-white">Verifying Payment...</h2>
+ <h2 className="text-xl font-bold text-slate-900">Verifying Payment...</h2>
             <p className="text-slate-500 text-sm">Please wait while we confirm your payment</p>
           </div>
         ) : result?.needsManualProof && !proofSubmitted ? (
           <div className="text-center space-y-5">
             <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/30">
-              <Upload className="w-10 h-10 text-white" />
+ <Upload className="w-10 h-10 text-slate-900" />
             </div>
-            <h2 className="text-2xl font-bold text-white">Auto-verification Missed</h2>
+ <h2 className="text-2xl font-bold text-slate-900">Auto-verification Missed</h2>
             <p className="text-slate-600 text-sm">
               No worries — submit your Transaction ID and payment screenshot. Our helper will review and credit your diamonds within minutes.
             </p>
 
             <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-5 border border-amber-200/60 space-y-4 text-left">
               <div className="space-y-2">
-                <Label className="text-white text-sm">Transaction ID *</Label>
+ <Label className="text-slate-900 text-sm">Transaction ID *</Label>
                 <Input
                   value={trxId}
                   onChange={(e) => setTrxId(e.target.value)}
                   placeholder="e.g. 8KX9A2B7"
-                  className="bg-white/10 border-amber-200/60 text-white placeholder:text-slate-400"
+ className="bg-white/10 border-amber-200/60 text-slate-900 placeholder:text-slate-400"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-white text-sm">Payment Screenshot *</Label>
+ <Label className="text-slate-900 text-sm">Payment Screenshot *</Label>
                 <label className="block">
                   <input
                     type="file"
@@ -222,7 +222,7 @@ const PaymentSuccess = () => {
               <Button
                 onClick={submitManualProof}
                 disabled={submittingProof}
-                className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white"
+ className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-slate-900"
               >
                 {submittingProof ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Upload className="w-4 h-4 mr-2" />}
                 Submit for Review
@@ -232,7 +232,7 @@ const PaymentSuccess = () => {
             <Button
               onClick={() => navigate("/")}
               variant="outline"
-              className="w-full bg-white/10 border-amber-200/60 text-white"
+ className="w-full bg-white/10 border-amber-200/60 text-slate-900"
             >
               <Home className="w-4 h-4 mr-1" /> I'll do this later
             </Button>
@@ -240,29 +240,29 @@ const PaymentSuccess = () => {
         ) : result?.needsManualProof && proofSubmitted ? (
           <div className="text-center space-y-5">
             <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center">
-              <CheckCircle className="w-10 h-10 text-white" />
+ <CheckCircle className="w-10 h-10 text-slate-900" />
             </div>
-            <h2 className="text-2xl font-bold text-white">Submitted for Review!</h2>
+ <h2 className="text-2xl font-bold text-slate-900">Submitted for Review!</h2>
             <p className="text-slate-600 text-sm">
               Your Transaction ID and screenshot have been sent to the helper. You'll receive a notification when diamonds are credited.
             </p>
-            <Button onClick={() => navigate("/")} className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+ <Button onClick={() => navigate("/")} className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-slate-900">
               <Home className="w-4 h-4 mr-1" /> Home
             </Button>
           </div>
         ) : result?.success ? (
           <div className="text-center space-y-5">
             <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center shadow-lg shadow-green-500/30">
-              <CheckCircle className="w-10 h-10 text-white" />
+ <CheckCircle className="w-10 h-10 text-slate-900" />
             </div>
-            <h2 className="text-2xl font-bold text-white">
+ <h2 className="text-2xl font-bold text-slate-900">
               {result.already_processed ? "Already Credited!" : "Payment Successful! 🎉"}
             </h2>
             {result.total_coins ? (
               <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-5 border border-amber-200/60 space-y-3">
                 <div className="flex items-center justify-center gap-2">
                   <Diamond className="w-6 h-6 text-cyan-400" />
-                  <span className="text-3xl font-bold text-white">{formatNumber(result.total_coins)}</span>
+ <span className="text-3xl font-bold text-slate-900">{formatNumber(result.total_coins)}</span>
                 </div>
                 <p className="text-slate-500 text-sm">Diamonds credited to your account</p>
                 {result.bonus_coins && result.bonus_coins > 0 && (
@@ -276,11 +276,11 @@ const PaymentSuccess = () => {
             ) : null}
             <div className="flex gap-3 pt-2">
               <Button onClick={() => navigate("/recharge")} variant="outline"
-                className="flex-1 bg-white/10 border-amber-200/60 text-white hover:bg-white/20">
+ className="flex-1 bg-white/10 border-amber-200/60 text-slate-900 hover:bg-white/20">
                 <ArrowLeft className="w-4 h-4 mr-1" /> Recharge
               </Button>
               <Button onClick={() => navigate("/")}
-                className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+ className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-slate-900">
                 <Home className="w-4 h-4 mr-1" /> Home
               </Button>
             </div>
@@ -288,12 +288,12 @@ const PaymentSuccess = () => {
         ) : (
           <div className="text-center space-y-5">
             <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center">
-              <XCircle className="w-10 h-10 text-white" />
+ <XCircle className="w-10 h-10 text-slate-900" />
             </div>
-            <h2 className="text-xl font-bold text-white">Payment Failed</h2>
+ <h2 className="text-xl font-bold text-slate-900">Payment Failed</h2>
             <p className="text-slate-500 text-sm">{result?.error || "Something went wrong"}</p>
             <Button onClick={() => navigate("/recharge")}
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+ className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-slate-900">
               <ArrowLeft className="w-4 h-4 mr-1" /> Try Again
             </Button>
           </div>

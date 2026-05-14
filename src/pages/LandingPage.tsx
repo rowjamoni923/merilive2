@@ -171,11 +171,11 @@ const LandingPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#030308] text-white overflow-x-hidden selection:bg-pink-500/30">
+ <div className="min-h-screen bg-[#030308] text-slate-900 overflow-x-hidden selection:bg-pink-500/30">
       {/* Floating Header */}
       <motion.header
         style={{ opacity: headerOpacity }}
-        className="fixed top-0 left-0 right-0 z-50 backdrop-blur-2xl bg-[#030308]/80 border-b border-white/[0.04]"
+ className="fixed top-0 left-0 right-0 z-50 backdrop-blur-2xl bg-[#030308]/80 border-b border-slate-200/[0.04]"
       >
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -255,7 +255,7 @@ const LandingPage = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="text-lg md:text-xl text-white/45 mb-3 font-light tracking-wide"
+ className="text-lg md:text-xl text-slate-700/45 mb-3 font-light tracking-wide"
           >
             Live Streaming · Video Call · Party Room · Virtual Gifts
           </motion.p>
@@ -264,7 +264,7 @@ const LandingPage = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
-            className="text-sm text-white/25 mb-12 max-w-md mx-auto"
+ className="text-sm text-slate-700/25 mb-12 max-w-md mx-auto"
           >
             Stream live, connect with friends, earn money as a host, and experience the future of social entertainment
           </motion.p>
@@ -279,7 +279,7 @@ const LandingPage = () => {
             <Button
               onClick={openAgencyList}
               size="lg"
-              className="h-16 px-12 bg-gradient-to-r from-amber-500 via-orange-500 to-pink-600 hover:from-amber-600 hover:via-orange-600 hover:to-pink-700 text-white font-extrabold rounded-2xl shadow-[0_8px_40px_rgba(245,158,11,0.35)] hover:shadow-[0_12px_50px_rgba(245,158,11,0.5)] transition-all duration-300 text-lg group"
+ className="h-16 px-12 bg-gradient-to-r from-amber-500 via-orange-500 to-pink-600 hover:from-amber-600 hover:via-orange-600 hover:to-pink-700 text-slate-900 font-extrabold rounded-2xl shadow-[0_8px_40px_rgba(245,158,11,0.35)] hover:shadow-[0_12px_50px_rgba(245,158,11,0.5)] transition-all duration-300 text-lg group"
             >
               <Users className="w-6 h-6 mr-2.5 group-hover:scale-110 transition-transform" />
               Become a Host
@@ -294,7 +294,7 @@ const LandingPage = () => {
               className="group relative"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-green-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="relative bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-3 hover:border-white/20 transition-all duration-300 hover:scale-105 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+ <div className="relative bg-slate-100/40 backdrop-blur-xl border border-slate-200/10 rounded-2xl p-3 hover:border-slate-200/20 transition-all duration-300 hover:scale-105 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
                 <img src={googlePlayBadge} alt="Get it on Google Play" className="h-12 md:h-14" />
               </div>
             </a>
@@ -309,7 +309,7 @@ const LandingPage = () => {
           >
             <button
               onClick={handleAPKDownload}
-              className="text-xs text-white/25 hover:text-white/50 transition-colors underline underline-offset-4 decoration-white/10 hover:decoration-white/30"
+ className="text-xs text-slate-700/25 hover:text-slate-700/50 transition-colors underline underline-offset-4 decoration-white/10 hover:decoration-white/30"
             >
               Or download APK directly
             </button>
@@ -328,15 +328,15 @@ const LandingPage = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1 + i * 0.1 }}
-                className="relative text-center group p-5 rounded-2xl bg-white/[0.03] border border-white/[0.06] backdrop-blur-xl hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-500 overflow-hidden"
+ className="relative text-center group p-5 rounded-2xl bg-white/[0.03] border border-slate-200/[0.06] backdrop-blur-xl hover:bg-white/[0.06] hover:border-slate-200/[0.12] transition-all duration-500 overflow-hidden"
               >
                 {/* Glow effect */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-[0.08] transition-opacity duration-500 rounded-2xl`} />
                 <div className={`w-12 h-12 mx-auto mb-3 rounded-2xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-300`}>
-                  <stat.icon className="w-5 h-5 text-white" />
+ <stat.icon className="w-5 h-5 text-slate-900" />
                 </div>
                 <div className="text-2xl font-black bg-gradient-to-b from-white to-white/60 bg-clip-text text-transparent relative z-10">{stat.value}</div>
-                <div className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-bold mt-1 relative z-10">{stat.label}</div>
+ <div className="text-[10px] text-slate-700/30 uppercase tracking-[0.2em] font-bold mt-1 relative z-10">{stat.label}</div>
               </motion.div>
             ))}
           </motion.div>
@@ -347,7 +347,7 @@ const LandingPage = () => {
           animate={{ y: [0, 10, 0] }}
           transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
         >
-          <ChevronDown className="w-5 h-5 text-white/15" />
+ <ChevronDown className="w-5 h-5 text-slate-700/15" />
         </motion.div>
       </section>
 
@@ -373,7 +373,7 @@ const LandingPage = () => {
                   
                   <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-r ${event.gradient_colors}`}>
                     {/* Inner glass overlay */}
-                    <div className="absolute inset-0 bg-black/15 backdrop-blur-[2px]" />
+ <div className="absolute inset-0 bg-slate-100/15 backdrop-blur-[2px]" />
                     
                     {/* Ambient orbs */}
                     <div className="absolute -right-16 -top-16 w-56 h-56 bg-white/10 rounded-full blur-3xl" />
@@ -391,8 +391,8 @@ const LandingPage = () => {
                     {/* Content */}
                     <div className="relative z-10 p-7 md:p-9 flex items-start gap-5">
                       {/* Event Icon */}
-                      <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-xl border border-white/25 flex items-center justify-center shadow-[0_8px_32px_rgba(0,0,0,0.2)] group-hover:scale-110 transition-transform duration-300">
-                        <IconComp className="w-7 h-7 text-white drop-shadow-lg" />
+ <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-white/15 backdrop-blur-xl border border-slate-200/25 flex items-center justify-center shadow-[0_8px_32px_rgba(0,0,0,0.2)] group-hover:scale-110 transition-transform duration-300">
+ <IconComp className="w-7 h-7 text-slate-900 drop-shadow-lg" />
                       </div>
                       
                       <div className="flex-1 min-w-0">
@@ -401,7 +401,7 @@ const LandingPage = () => {
                             initial={{ opacity: 0, x: -10 }}
                             whileInView={{ opacity: 1, x: 0 }}
                             viewport={{ once: true }}
-                            className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-xl border border-white/30 text-[11px] font-bold uppercase tracking-wider mb-3 shadow-lg"
+ className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-xl border border-slate-200/30 text-[11px] font-bold uppercase tracking-wider mb-3 shadow-lg"
                           >
                             <span className="relative flex h-1.5 w-1.5">
                               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
@@ -410,11 +410,11 @@ const LandingPage = () => {
                             {event.badge_text}
                           </motion.span>
                         )}
-                        <h3 className="text-2xl md:text-3xl font-black mb-2 text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.3)] tracking-tight">{event.title}</h3>
-                        {event.subtitle && <p className="text-white/85 text-sm font-medium mb-1.5">{event.subtitle}</p>}
-                        {event.description && <p className="text-white/60 text-sm max-w-xl leading-relaxed">{event.description}</p>}
+ <h3 className="text-2xl md:text-3xl font-black mb-2 text-slate-900 drop-shadow-[0_2px_10px_rgba(0,0,0,0.3)] tracking-tight">{event.title}</h3>
+ {event.subtitle && <p className="text-slate-700/85 text-sm font-medium mb-1.5">{event.subtitle}</p>}
+ {event.description && <p className="text-slate-700/60 text-sm max-w-xl leading-relaxed">{event.description}</p>}
                         {event.link_url && (
-                          <a href={event.link_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 mt-5 px-5 py-2.5 rounded-xl bg-white/15 backdrop-blur-xl border border-white/25 text-sm font-bold text-white hover:bg-white/25 transition-all duration-300 shadow-lg group/link">
+ <a href={event.link_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 mt-5 px-5 py-2.5 rounded-xl bg-white/15 backdrop-blur-xl border border-slate-200/25 text-sm font-bold text-slate-900 hover:bg-white/25 transition-all duration-300 shadow-lg group/link">
                             {event.link_label || "Learn More"} <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
                           </a>
                         )}
@@ -449,7 +449,7 @@ const LandingPage = () => {
                   {/* Subtle border glow */}
                   <div className="absolute -inset-[0.5px] bg-gradient-to-r from-blue-500/30 via-indigo-500/20 to-purple-500/30 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   
-                  <div className="relative flex items-center gap-5 p-5 md:p-6 rounded-2xl bg-white/[0.03] border border-white/[0.07] backdrop-blur-xl hover:bg-white/[0.06] hover:border-white/[0.15] transition-all duration-500 overflow-hidden">
+ <div className="relative flex items-center gap-5 p-5 md:p-6 rounded-2xl bg-white/[0.03] border border-slate-200/[0.07] backdrop-blur-xl hover:bg-white/[0.06] hover:border-slate-200/[0.15] transition-all duration-500 overflow-hidden">
                     {/* Ambient glow on hover */}
                     <div className="absolute -right-20 -top-20 w-48 h-48 bg-gradient-to-br from-blue-500/5 to-indigo-500/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     
@@ -469,8 +469,8 @@ const LandingPage = () => {
                     
                     {/* Content */}
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-bold text-white/90 truncate">{item.title}</h4>
-                      {item.description && <p className="text-xs text-white/40 truncate mt-0.5 leading-relaxed">{item.description}</p>}
+ <h4 className="text-sm font-bold text-slate-700/90 truncate">{item.title}</h4>
+ {item.description && <p className="text-xs text-slate-700/40 truncate mt-0.5 leading-relaxed">{item.description}</p>}
                     </div>
                     
                     {/* Badge */}
@@ -481,7 +481,7 @@ const LandingPage = () => {
                     )}
                     
                     {/* Arrow indicator */}
-                    <ArrowRight className="w-4 h-4 text-white/15 group-hover:text-white/40 group-hover:translate-x-1 transition-all duration-300 flex-shrink-0" />
+ <ArrowRight className="w-4 h-4 text-slate-700/15 group-hover:text-slate-700/40 group-hover:translate-x-1 transition-all duration-300 flex-shrink-0" />
                   </div>
                 </motion.div>
               );
@@ -508,7 +508,7 @@ const LandingPage = () => {
               Everything in{" "}
               <span className="bg-gradient-to-r from-pink-400 via-rose-400 to-purple-400 bg-clip-text text-transparent">One App</span>
             </h2>
-            <p className="text-white/30 max-w-lg mx-auto text-sm leading-relaxed">
+ <p className="text-slate-700/30 max-w-lg mx-auto text-sm leading-relaxed">
               From live streaming to video calls, party rooms to virtual gifts — the complete entertainment platform
             </p>
           </motion.div>
@@ -523,16 +523,16 @@ const LandingPage = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.08 }}
-                  className="group relative p-7 rounded-3xl bg-gradient-to-br from-white/[0.04] to-white/[0.01] border border-white/[0.06] hover:border-white/[0.15] transition-all duration-500 hover:bg-white/[0.06] backdrop-blur-xl overflow-hidden"
+ className="group relative p-7 rounded-3xl bg-gradient-to-br from-white/[0.04] to-white/[0.01] border border-slate-200/[0.06] hover:border-slate-200/[0.15] transition-all duration-500 hover:bg-white/[0.06] backdrop-blur-xl overflow-hidden"
                 >
                   {/* Background glow */}
                   <div className={`absolute -right-10 -top-10 w-32 h-32 bg-gradient-to-br ${feature.gradient_colors} rounded-full blur-[60px] opacity-10 group-hover:opacity-25 transition-opacity duration-500`} />
                   <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.gradient_colors} flex items-center justify-center mb-5 shadow-xl shadow-black/20 group-hover:scale-110 group-hover:shadow-2xl transition-all duration-300 ring-1 ring-white/10`}>
-                    <IconComp className="w-7 h-7 text-white" />
+ <IconComp className="w-7 h-7 text-slate-900" />
                   </div>
-                  <h3 className="text-lg font-bold mb-1.5 text-white/90 relative z-10">{feature.title}</h3>
+ <h3 className="text-lg font-bold mb-1.5 text-slate-700/90 relative z-10">{feature.title}</h3>
                   {feature.subtitle && <p className="text-xs text-pink-600/60 mb-2 relative z-10">{feature.subtitle}</p>}
-                  <p className="text-sm text-white/35 leading-relaxed relative z-10">{feature.description}</p>
+ <p className="text-sm text-slate-700/35 leading-relaxed relative z-10">{feature.description}</p>
                 </motion.div>
               );
             })}
@@ -566,7 +566,7 @@ const LandingPage = () => {
           <h2 className="text-4xl md:text-5xl font-black mb-4 tracking-tight">
             Start Your <span className="bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">Journey</span>
           </h2>
-          <p className="text-white/30 mb-12 text-sm max-w-md mx-auto leading-relaxed">
+ <p className="text-slate-700/30 mb-12 text-sm max-w-md mx-auto leading-relaxed">
             Download MeriLive and join a community of millions. Your audience is waiting.
           </p>
           
@@ -577,7 +577,7 @@ const LandingPage = () => {
               rel="noopener noreferrer"
               className="group"
             >
-              <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-3 hover:border-white/20 transition-all duration-300 hover:scale-105 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+ <div className="bg-slate-100/40 backdrop-blur-xl border border-slate-200/10 rounded-2xl p-3 hover:border-slate-200/20 transition-all duration-300 hover:scale-105 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
                 <img src={googlePlayBadge} alt="Get it on Google Play" className="h-14 md:h-16" />
               </div>
             </a>
@@ -589,7 +589,7 @@ const LandingPage = () => {
               rel="noopener noreferrer"
               className="group"
             >
-              <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-3 hover:border-white/20 transition-all duration-300 hover:scale-105 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+ <div className="bg-slate-100/40 backdrop-blur-xl border border-slate-200/10 rounded-2xl p-3 hover:border-slate-200/20 transition-all duration-300 hover:scale-105 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
                 <img src={googlePlayBadge} alt="Get it on Google Play" className="h-12 md:h-14" />
               </div>
             </a>
@@ -598,24 +598,24 @@ const LandingPage = () => {
       </section>
 
       {/* SEO Content Section - visible to crawlers, subtle for users */}
-      <section className="py-16 px-4 border-t border-white/[0.03]">
+ <section className="py-16 px-4 border-t border-slate-200/[0.03]">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl font-bold text-white/60 mb-6">Best Live Streaming App - MeriLive</h2>
-          <div className="grid md:grid-cols-2 gap-8 text-sm text-white/20 leading-relaxed">
+ <h2 className="text-2xl font-bold text-slate-700/60 mb-6">Best Live Streaming App - MeriLive</h2>
+ <div className="grid md:grid-cols-2 gap-8 text-sm text-slate-700/20 leading-relaxed">
             <article>
-              <h3 className="text-white/40 font-semibold mb-2">🎬 Live Streaming & Video Call Platform</h3>
+ <h3 className="text-slate-700/40 font-semibold mb-2">🎬 Live Streaming & Video Call Platform</h3>
               <p>MeriLive is the best free live streaming app for Android. Go live, start live video streaming, join live video chat rooms, and connect with millions worldwide. Our live broadcast platform supports HD live streaming, multi-guest live rooms, PK battles, and real-time live interaction. Whether you want to watch live streams, become a live streamer, or earn money from live streaming - MeriLive is the #1 choice.</p>
             </article>
             <article>
-              <h3 className="text-white/40 font-semibold mb-2">💰 Earn Money as a Live Streaming Host</h3>
+ <h3 className="text-slate-700/40 font-semibold mb-2">💰 Earn Money as a Live Streaming Host</h3>
               <p>Become a host on MeriLive and earn $10-$100+ per day through virtual gifts, video calls, and daily task rewards. Join a live streaming agency, complete host verification, and start your live streaming career. Our agency system connects you with top agencies offering training, support, and higher earnings. The best platform for content creators and live streamers to monetize their talent.</p>
             </article>
             <article>
-              <h3 className="text-white/40 font-semibold mb-2">🎉 Party Rooms & Social Entertainment</h3>
+ <h3 className="text-slate-700/40 font-semibold mb-2">🎉 Party Rooms & Social Entertainment</h3>
               <p>Join live party rooms, sing karaoke, play interactive games, and socialize with friends. MeriLive offers the best social live streaming experience with virtual gifts, animated effects, beauty filters, and AR face filters. Send luxury gifts, climb the leaderboard, and become a VIP. The ultimate live entertainment app for social interaction and fun.</p>
             </article>
             <article>
-              <h3 className="text-white/40 font-semibold mb-2">📱 Download MeriLive - Free Live Streaming App</h3>
+ <h3 className="text-slate-700/40 font-semibold mb-2">📱 Download MeriLive - Free Live Streaming App</h3>
               <p>Download MeriLive free from Google Play Store. Available worldwide with support for English, Bengali, Hindi, and Arabic. Features include live streaming, video calls, party rooms, virtual gifts, games, PK competitions, host earnings, agency system, daily rewards, and 24/7 customer support. The most popular live streaming app in Bangladesh, India, and South Asia. Start streaming live today!</p>
             </article>
           </div>
@@ -623,7 +623,7 @@ const LandingPage = () => {
       </section>
 
       {/* Footer */}
-      <footer className="py-16 px-4 border-t border-white/[0.06] bg-gradient-to-t from-black/60 to-transparent">
+ <footer className="py-16 px-4 border-t border-slate-200/[0.06] bg-gradient-to-t from-black/60 to-transparent">
         <div className="max-w-5xl mx-auto space-y-10">
           {/* Top: Brand + Links */}
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
@@ -632,19 +632,19 @@ const LandingPage = () => {
               <img src={meriliveLogo} alt="MeriLive - Best Live Streaming App" className="w-12 h-12 rounded-2xl shadow-lg ring-1 ring-white/10" />
               <div>
                 <span className="font-bold text-xl bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">MeriLive</span>
-                <p className="text-xs text-white/30 mt-0.5">Best Live Streaming & Video Call Platform</p>
+ <p className="text-xs text-slate-700/30 mt-0.5">Best Live Streaming & Video Call Platform</p>
               </div>
             </div>
 
             {/* Navigation Links */}
             <nav className="flex flex-wrap gap-x-6 gap-y-2 text-sm" aria-label="Footer navigation">
-              <a href="/privacy-policy" className="text-white/40 hover:text-white/70 transition-colors duration-200">
+ <a href="/privacy-policy" className="text-slate-700/40 hover:text-slate-700/70 transition-colors duration-200">
                 Privacy
               </a>
-              <a href="/terms" className="text-white/40 hover:text-white/70 transition-colors duration-200">
+ <a href="/terms" className="text-slate-700/40 hover:text-slate-700/70 transition-colors duration-200">
                 Terms
               </a>
-              <a href="/contact" className="text-white/40 hover:text-white/70 transition-colors duration-200">
+ <a href="/contact" className="text-slate-700/40 hover:text-slate-700/70 transition-colors duration-200">
                 Contact
               </a>
             </nav>
@@ -655,7 +655,7 @@ const LandingPage = () => {
 
           {/* Bottom: Download + Copyright */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-white/20 order-2 sm:order-1">© 2026 MeriLive. All rights reserved.</p>
+ <p className="text-xs text-slate-700/20 order-2 sm:order-1">© 2026 MeriLive. All rights reserved.</p>
             <div className="flex items-center gap-4 order-1 sm:order-2">
               <a href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" aria-label="Download MeriLive on Google Play Store">
                 <img src={googlePlayBadge} alt="Download MeriLive on Google Play" className="h-10 hover:scale-105 transition-transform duration-200" />
@@ -672,7 +672,7 @@ const LandingPage = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+ className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-100/70 backdrop-blur-sm"
             onClick={() => setShowAgencyList(false)}
           >
             <motion.div
@@ -686,13 +686,13 @@ const LandingPage = () => {
               {/* Header */}
               <div className="bg-gradient-to-r from-amber-600 via-orange-600 to-pink-600 p-5 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Building2 className="w-6 h-6 text-white" />
+ <Building2 className="w-6 h-6 text-slate-900" />
                   <div>
-                    <h3 className="text-white font-bold text-lg">Our Agencies</h3>
-                    <p className="text-white/70 text-xs">Join any agency to become a host</p>
+ <h3 className="text-slate-900 font-bold text-lg">Our Agencies</h3>
+ <p className="text-slate-700/70 text-xs">Join any agency to become a host</p>
                   </div>
                 </div>
-                <button onClick={() => setShowAgencyList(false)} className="text-white/70 hover:text-white p-1.5 rounded-full hover:bg-white/10 transition-colors">
+ <button onClick={() => setShowAgencyList(false)} className="text-slate-700/70 hover:text-slate-900 p-1.5 rounded-full hover:bg-white/10 transition-colors">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -704,7 +704,7 @@ const LandingPage = () => {
                     <div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
                   </div>
                 ) : agencies.length === 0 ? (
-                  <p className="text-center text-white/40 py-16">No agencies available</p>
+ <p className="text-center text-slate-700/40 py-16">No agencies available</p>
                 ) : (
                   agencies.map((agency, i) => (
                     <motion.div
@@ -725,12 +725,12 @@ const LandingPage = () => {
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-white font-semibold text-sm truncate">{agency.country_flag && <span className="mr-1">{agency.country_flag}</span>}{agency.name}</h4>
+ <h4 className="text-slate-900 font-semibold text-sm truncate">{agency.country_flag && <span className="mr-1">{agency.country_flag}</span>}{agency.name}</h4>
                         <div className="flex items-center gap-2 mt-1">
                           <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 font-mono font-bold border border-amber-500/20">
                             {agency.agency_code}
                           </span>
-                          <span className="text-[11px] text-white/30">
+ <span className="text-[11px] text-slate-700/30">
                             {agency.total_hosts || 0} hosts
                           </span>
                         </div>
@@ -754,7 +754,7 @@ const LandingPage = () => {
 
               {/* Footer */}
               <div className="bg-[#0d0800] border-t border-amber-500/10 p-4 text-center">
-                <p className="text-white/30 text-xs">
+ <p className="text-slate-700/30 text-xs">
                   Download the app → Apply as Host → Enter the agency code
                 </p>
               </div>
