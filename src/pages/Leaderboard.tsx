@@ -472,21 +472,21 @@ const Leaderboard = () => {
           </div>
         )}
 
-        {/* Countdown Timer - Golden */}
+        {/* Countdown Timer */}
         <div 
           className="flex justify-center items-center px-3 py-1.5"
-          style={{ background: 'rgba(0,0,0,0.4)', borderTop: '1px solid rgba(251,191,36,0.08)' }}
+          style={{ background: '#FFFBEB', borderTop: '1px solid rgba(251,191,36,0.15)' }}
         >
           <div className="flex items-center gap-1.5">
-            <Clock className="w-3 h-3 text-amber-400" />
-            <span className="text-amber-200/50 text-[10px] font-medium">
+            <Clock className="w-3 h-3 text-amber-600" />
+            <span className="text-slate-600 text-[10px] font-medium">
               {activeCategory === "pk_competition" && activePK
                 ? (activePK.status === "active" ? "Ends" : "Starts")
                 : getPeriodLabel() + " ends"}{" "}in
             </span>
             <span 
-              className="text-[10px] font-mono px-2 py-0.5 rounded-md text-amber-300 font-bold"
-              style={{ background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.2)' }}
+              className="text-[10px] font-mono px-2 py-0.5 rounded-md text-amber-700 font-bold"
+              style={{ background: 'rgba(251,191,36,0.18)', border: '1px solid rgba(251,191,36,0.35)' }}
             >
               {countdown.days > 0 && `${countdown.days}D `}
               {String(countdown.hours).padStart(2, '0')}:{String(countdown.minutes).padStart(2, '0')}:{String(countdown.seconds).padStart(2, '0')}
@@ -503,11 +503,11 @@ const Leaderboard = () => {
           </div>
         ) : rankings.length === 0 ? (
           <div className="text-center py-20">
-            <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.15)' }}>
-              <Users className="w-10 h-10 text-amber-400/30" />
+            <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ background: 'rgba(251,191,36,0.10)', border: '1px solid rgba(251,191,36,0.25)' }}>
+              <Users className="w-10 h-10 text-amber-500/60" />
             </div>
-            <p className="text-amber-200/40 text-base font-medium">No rankings yet</p>
-            <p className="text-amber-300/25 text-sm mt-1">Be the first to climb!</p>
+            <p className="text-slate-700 text-base font-medium">No rankings yet</p>
+            <p className="text-slate-400 text-sm mt-1">Be the first to climb!</p>
           </div>
         ) : (
           <>
