@@ -73,6 +73,10 @@ import { recordClientError } from "@/utils/clientErrorLog";
 // Helper for formatting numbers with English numerals
 const fmtNum = (num: number | null | undefined) => formatNum(num);
 
+const premiumCardClass = "bg-white/95 text-slate-900 border border-amber-100/80 shadow-[0_18px_45px_-28px_rgba(124,58,237,0.35)]";
+const premiumTileClass = "bg-white/85 border border-amber-100/70 shadow-[0_12px_30px_-24px_rgba(15,23,42,0.45)]";
+const premiumActionClass = "rounded-2xl p-4 text-white text-center shadow-[0_16px_32px_-18px_rgba(79,70,229,0.65)] hover:-translate-y-0.5 hover:shadow-[0_20px_38px_-18px_rgba(79,70,229,0.8)] transition-all active:scale-95 flex flex-col items-center justify-center border border-white/25";
+
 interface Agency {
   id: string;
   name: string;
@@ -732,7 +736,12 @@ const AgencyDashboard = () => {
   };
 
   if (isLoading) {
-    return <LoadingSpinner fullScreen text="Loading Dashboard..." />;
+    return (
+      <div className="agency-dashboard-light min-h-screen flex flex-col items-center justify-center bg-background text-foreground">
+        <Loader2 className="w-8 h-8 animate-spin text-primary mb-3" />
+        <p className="text-sm font-semibold text-muted-foreground">Loading Dashboard...</p>
+      </div>
+    );
   }
 
   if (!agency) {
@@ -758,10 +767,10 @@ const AgencyDashboard = () => {
     switch (level) {
       case "A5": return { color: "from-purple-500 to-pink-500", icon: "👑", name: tierName || "Legend" };
       case "A4": return { color: "from-yellow-400 to-amber-500", icon: "🌟", name: tierName || "Elite" };
-      case "A3": return { color: "from-gray-300 to-gray-400", icon: "✨", name: tierName || "Pro" };
+      case "A3": return { color: "from-cyan-500 to-blue-500", icon: "✨", name: tierName || "Pro" };
       case "A2": return { color: "from-orange-400 to-red-400", icon: "🔥", name: tierName || "Rising" };
-      case "A1": return { color: "from-slate-400 to-slate-500", icon: "⭐", name: tierName || "Starter" };
-      default: return { color: "from-gray-400 to-gray-500", icon: "📌", name: tierName || "Basic" };
+      case "A1": return { color: "from-violet-500 to-fuchsia-500", icon: "⭐", name: tierName || "Starter" };
+      default: return { color: "from-violet-500 to-indigo-500", icon: "📌", name: tierName || "Basic" };
     }
   };
 
@@ -778,7 +787,7 @@ const AgencyDashboard = () => {
   ];
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-background overflow-y-auto overflow-x-hidden">
+    <div className="agency-dashboard-light fixed inset-0 flex flex-col overflow-y-auto overflow-x-hidden text-foreground">
       {/* Modern Header */}
       <div className="sticky top-0 z-50 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 flex-shrink-0 safe-area-top">
         <div className="flex items-center justify-between h-14 px-4">
