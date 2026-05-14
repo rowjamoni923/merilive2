@@ -2108,14 +2108,14 @@ const Auth = () => {
             <div className="mb-4 p-4 bg-gradient-to-r from-purple-500/90 to-pink-500/90 backdrop-blur-sm rounded-2xl shadow-lg">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
- <Building2 className="w-6 h-6 text-slate-900" />
+                  <Building2 className="w-6 h-6 text-white" /> {/* dark-ok */}
                 </div>
                 <div className="flex-1">
-                  <p className="text-slate-700 text-xs">You are invited by</p>
- <p className="text-slate-900 font-bold">{agencyInfo.name}</p>
+                  <p className="text-white/80 text-xs">You've been invited by</p> {/* dark-ok */}
+                  <p className="text-white font-bold">{agencyInfo.name}</p> {/* dark-ok */}
                   <div className="flex items-center gap-2 mt-1">
- <Badge className="bg-white/20 text-slate-900 text-[10px]">{agencyInfo.level}</Badge>
-                    <span className="text-slate-700 text-xs">{agencyInfo.total_hosts} hosts</span>
+                    <Badge className="bg-white/20 text-white text-[10px] border-white/20">{agencyInfo.level}</Badge> {/* dark-ok */}
+                    <span className="text-white/80 text-xs">{agencyInfo.total_hosts} hosts</span> {/* dark-ok */}
                   </div>
                 </div>
                 <Sparkles className="w-5 h-5 text-yellow-300 animate-pulse" />
