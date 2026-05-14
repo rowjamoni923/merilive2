@@ -240,12 +240,12 @@ export const ProfileReelsSection = ({ userId, isOwnProfile }: ProfileReelsSectio
                     </DropdownMenuTrigger>
                     <DropdownMenuContent 
                       align="end" 
-                      className="w-40 bg-slate-900 border-white/10"
+                      className="w-40 bg-white border border-slate-200 shadow-lg"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <DropdownMenuItem 
                         onClick={() => handleTogglePrivacy(reel.id, reel.is_active)}
-                        className="text-white hover:bg-white/10 cursor-pointer gap-2"
+                        className="text-slate-700 hover:bg-slate-100 focus:bg-slate-100 cursor-pointer gap-2"
                       >
                         {reel.is_active ? (
                           <>
