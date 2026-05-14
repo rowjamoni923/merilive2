@@ -639,15 +639,21 @@ function CampaignFloatingButton() {
 
                 {/* Image disc with bevel */}
                 <div
-                  className="absolute inset-[5px] rounded-full overflow-hidden"
+                  className="absolute inset-[5px] rounded-full overflow-hidden flex items-center justify-center"
                   style={{
-                    border: '1.5px solid rgba(255,255,255,0.35)',
-                    background: 'radial-gradient(circle at 30% 25%, #2a1645 0%, #0a0612 80%)',
-                    boxShadow: 'inset 0 -6px 12px rgba(0,0,0,0.6), inset 0 4px 10px rgba(255,255,255,0.18)',
+                    border: '1.5px solid rgba(255,255,255,0.6)',
+                    background: campaign.banner_image_url
+                      ? 'radial-gradient(circle at 30% 25%, #ffffff 0%, #fff7ed 80%)'
+                      : 'radial-gradient(circle at 30% 25%, #2a1645 0%, #0a0612 80%)',
+                    boxShadow: 'inset 0 -4px 10px rgba(0,0,0,0.18), inset 0 3px 8px rgba(255,255,255,0.55)',
                   }}
                 >
                   {campaign.banner_image_url ? (
-                    <img src={campaign.banner_image_url} alt="" className="w-full h-full rounded-full object-cover" />
+                    <img
+                      src={campaign.banner_image_url}
+                      alt=""
+                      className="w-full h-full object-contain p-1"
+                    />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <motion.span
@@ -659,13 +665,15 @@ function CampaignFloatingButton() {
                       </motion.span>
                     </div>
                   )}
-                  {/* Top gloss highlight */}
-                  <div
-                    className="absolute inset-0 rounded-full pointer-events-none"
-                    style={{
-                      background: 'radial-gradient(ellipse 70% 35% at 50% 12%, rgba(255,255,255,0.55), transparent 70%)',
-                    }}
-                  />
+                  {/* Top gloss highlight — only on emoji fallback to avoid washing out the logo */}
+                  {!campaign.banner_image_url && (
+                    <div
+                      className="absolute inset-0 rounded-full pointer-events-none"
+                      style={{
+                        background: 'radial-gradient(ellipse 70% 35% at 50% 12%, rgba(255,255,255,0.55), transparent 70%)',
+                      }}
+                    />
+                  )}
                 </div>
 
                 {/* Sparkle dots */}
