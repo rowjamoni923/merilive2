@@ -2314,9 +2314,9 @@ const Auth = () => {
                 <Sparkles className="w-8 h-8 text-pink-500" />
               </div>
             </div>
-            <DialogTitle className="text-slate-800 text-center text-2xl font-bold">Welcome! 🎉</DialogTitle>
+            <DialogTitle className="text-slate-800 text-center text-2xl font-bold">Welcome aboard</DialogTitle>
             <DialogDescription className="text-slate-600 text-center text-sm">
-              Enter your name & select gender
+              Tell us your name and select your gender to continue
             </DialogDescription>
           </DialogHeader>
           
