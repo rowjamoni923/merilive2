@@ -464,7 +464,7 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
                      onClick={() => setStep("phone")}
                      className="text-slate-600 text-sm hover:text-slate-800 transition-colors"
                    >
-                     Didn't receive code? <span className="text-emerald-400">Resend</span>
+                     Didn't receive code? <span className="text-emerald-600 font-semibold">Resend</span>
                    </button>
                  </div>
                </div>
