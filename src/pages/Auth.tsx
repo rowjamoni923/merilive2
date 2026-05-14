@@ -2249,12 +2249,12 @@ const Auth = () => {
                         }
                         setReferralCode(code);
                         fetchAgencyInfo(code);
-                        toast({ title: "✅ Code saved!", description: "Female → joins agency as host. Male → invitation reward." });
+                        toast({ title: "Code applied", description: "Your referral code has been saved." });
                         setShowReferralInput(false);
                       }
                     }}
                     size="sm"
- className="h-10 px-4 bg-amber-500 hover:bg-amber-600 text-slate-900 rounded-xl"
+  className="h-10 px-4 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-semibold" /* dark-ok */
                   >
                     Apply
                   </Button>
