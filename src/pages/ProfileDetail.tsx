@@ -1585,7 +1585,7 @@ const ProfileDetail = () => {
             </ScrollArea>
           ) : (
             <div className="rounded-2xl p-6 text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <Users className="w-10 h-10 text-white/20 mx-auto mb-2" />
+              <Users className="w-10 h-10 text-white/70 mx-auto mb-2" />
               <p className="text-sm text-white/70">No groups joined yet</p>
             </div>
           )}

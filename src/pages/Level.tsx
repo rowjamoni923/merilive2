@@ -478,7 +478,7 @@ const Level = () => {
                       <Diamond className="w-3.5 h-3.5 text-amber-400" />
                       <span className="text-amber-300">{formatNumber(currentDiamonds)}</span>
                     </span>
-                    <span className="text-white/50 text-xs">Lv{getNextLevelData().level}</span>
+                    <span className="text-white/85 text-xs">Lv{getNextLevelData().level}</span>
                   </div>
                   <div className="relative">
                     <Progress 
@@ -600,14 +600,14 @@ const Level = () => {
                 </div>
                 <div className="flex-1 text-left">
                   <h3 className="font-semibold text-white">{privilege.name}</h3>
-                  <p className="text-sm text-white/60">{privilege.description}</p>
+                  <p className="text-sm text-white/90">{privilege.description}</p>
                 </div>
                 {!isUnlocked && (
-                  <span className="text-xs text-white/40 px-2 py-1 rounded-full bg-white/10">
+                  <span className="text-xs text-white/80 px-2 py-1 rounded-full bg-white/10">
                     Lv{privilege.unlock_level}
                   </span>
                 )}
-                <ChevronRight className="w-5 h-5 text-white/40" />
+                <ChevronRight className="w-5 h-5 text-white/80" />
               </motion.button>
             );
           })}

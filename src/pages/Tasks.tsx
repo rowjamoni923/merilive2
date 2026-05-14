@@ -582,9 +582,9 @@ const Tasks = () => {
                       {completed ? (
                         <Check className="w-4 h-4 text-white" />
                       ) : (
-                        <Clock className="w-3.5 h-3.5 text-white/30" />
+                        <Clock className="w-3.5 h-3.5 text-white/75" />
                       )}
-                      <span className={`text-[8px] font-bold mt-0.5 ${completed ? 'text-white' : 'text-white/30'}`}>
+                      <span className={`text-[8px] font-bold mt-0.5 ${completed ? 'text-white' : 'text-white/75'}`}>
                         {i + 1}h
                       </span>
                     </div>
@@ -599,17 +599,17 @@ const Tasks = () => {
               <div className="flex items-center justify-around mb-3">
                 <div className="text-center">
                   <p className="text-amber-400 font-bold text-sm">{(bonusProgress?.beans_earned || 0).toLocaleString()}</p>
-                  <p className="text-[9px] text-white/40">Earned Today</p>
+                  <p className="text-[9px] text-white/80">Earned Today</p>
                 </div>
                 <div className="w-px h-6 bg-white/10" />
                 <div className="text-center">
                   <p className="text-white font-bold text-sm">{totalDailyBonus.toLocaleString()}</p>
-                  <p className="text-[9px] text-white/40">Max/Day</p>
+                  <p className="text-[9px] text-white/80">Max/Day</p>
                 </div>
                 <div className="w-px h-6 bg-white/10" />
                 <div className="text-center">
                   <p className="text-fuchsia-400 font-bold text-sm">Day {bonusProgress?.day_number || 1}/{bonusSettings.eligible_days}</p>
-                  <p className="text-[9px] text-white/40">Period</p>
+                  <p className="text-[9px] text-white/80">Period</p>
                 </div>
               </div>
               {/* Go Live button - full width */}

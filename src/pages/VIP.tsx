@@ -1152,7 +1152,7 @@ const VIP = () => {
                   <VIPBadge tier={currentVIPTier} size="lg" />
                   <div>
                     <p className="text-white font-semibold">Current Status</p>
-                    <p className="text-white/60 text-sm">
+                    <p className="text-white/90 text-sm">
                       Expires: {vipExpiresAt ? new Date(vipExpiresAt).toLocaleDateString() : 'N/A'}
                     </p>
                   </div>
@@ -1210,7 +1210,7 @@ const VIP = () => {
 
                   {/* Privileges */}
                   <div className="p-4 bg-slate-900/90">
-                    <p className="text-white/60 text-sm mb-3">{tier.description}</p>
+                    <p className="text-white/90 text-sm mb-3">{tier.description}</p>
                     
                     <div className="grid grid-cols-2 gap-2 mb-4">
                       {privileges.slice(0, 6).map((priv, i) => (
@@ -1257,7 +1257,7 @@ const VIP = () => {
                 <Sparkles className="w-10 h-10 text-purple-400" />
               </div>
               <h3 className="text-white font-semibold text-lg mb-2">No Privileges Yet</h3>
-              <p className="text-white/60 text-sm mb-4">
+              <p className="text-white/90 text-sm mb-4">
                 Level up or purchase items from the shop to unlock privileges
               </p>
               <Button 
@@ -1288,7 +1288,7 @@ const VIP = () => {
                     <div className="flex items-center gap-2 text-lg font-bold mb-3">
                       <span>{icon}</span>
                       <span className="text-white">{title}</span>
-                        <span className="text-white/50 text-sm font-normal ml-auto">Choose 1</span>
+                        <span className="text-white/85 text-sm font-normal ml-auto">Choose 1</span>
                     </div>
                     
                     <div className="flex flex-wrap gap-3">
@@ -1404,7 +1404,7 @@ const VIP = () => {
               <div className="text-center">
                 <VIPBadge tier={selectedTier.tier_level} size="lg" />
                 <h3 className="text-white font-bold text-xl mt-3">{selectedTier.tier_name}</h3>
-                <p className="text-white/60">{selectedTier.duration_days} Days Membership</p>
+                <p className="text-white/90">{selectedTier.duration_days} Days Membership</p>
               </div>
 
               <div className="flex items-center justify-center gap-2 py-4 bg-amber-500/10 rounded-xl">
@@ -1414,7 +1414,7 @@ const VIP = () => {
                 </span>
               </div>
 
-              <div className="text-center text-sm text-white/60">
+              <div className="text-center text-sm text-white/90">
                 Your balance: {userDiamonds.toLocaleString()} diamonds
               </div>
 

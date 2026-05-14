@@ -338,7 +338,7 @@ const Invitation = () => {
             </div>
             <div>
               <h1 className="text-white font-bold text-base">Share Leaderboard</h1>
-              <p className="text-white/50 text-[10px]">Share to climb the ranks!</p>
+              <p className="text-white/85 text-[10px]">Share to climb the ranks!</p>
             </div>
           </div>
         </div>
@@ -384,7 +384,7 @@ const Invitation = () => {
               <span className="text-white font-bold text-lg tracking-wide">Share & Win!</span>
               <Sparkles className="w-5 h-5 text-amber-400 animate-pulse" />
             </div>
-            <p className="text-white/60 text-sm text-center mb-4">
+            <p className="text-white/90 text-sm text-center mb-4">
               Share your link. More signups, higher rank!
             </p>
             <div className="flex gap-2">
@@ -482,7 +482,7 @@ const Invitation = () => {
                             </span>
                           )}
                         </div>
-                        <p className="text-white/40 text-xs mt-0.5">
+                        <p className="text-white/80 text-xs mt-0.5">
                           {tier.min_invites}{tier.max_invites ? `-${tier.max_invites}` : '+'} Invites
                         </p>
                       </div>
@@ -539,12 +539,12 @@ const Invitation = () => {
                 </div>
                 <div>
                   <p className="text-white font-bold text-sm">Your Rank</p>
-                  <p className="text-white/50 text-xs">{myRank.total_invites} Invites</p>
+                  <p className="text-white/85 text-xs">{myRank.total_invites} Invites</p>
                 </div>
               </div>
               <div className="text-right">
                 <p className="text-amber-400 font-bold">+{myRank.beans_earned}</p>
-                <p className="text-white/40 text-[10px]">Beans Earned</p>
+                <p className="text-white/80 text-[10px]">Beans Earned</p>
               </div>
             </div>
           </motion.div>
@@ -567,7 +567,7 @@ const Invitation = () => {
                 <Users className="w-5 h-5 text-violet-400" />
                 <h3 className="text-white font-bold text-base">My Invites</h3>
               </div>
-              <span className="text-xs text-white/50 bg-white/10 px-2.5 py-1 rounded-full font-medium">
+              <span className="text-xs text-white/85 bg-white/10 px-2.5 py-1 rounded-full font-medium">
                 {myInvitedUsers.length} people
               </span>
             </div>
@@ -592,7 +592,7 @@ const Invitation = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-white text-sm font-medium truncate">{user.display_name}</p>
-                      <p className="text-white/30 text-[10px]">
+                      <p className="text-white/75 text-[10px]">
                         Joined {new Date(user.created_at).toLocaleDateString()}
                       </p>
                     </div>
@@ -604,8 +604,8 @@ const Invitation = () => {
               ) : (
                 <div className="text-center py-8">
                   <Users className="w-10 h-10 text-white/10 mx-auto mb-2" />
-                  <p className="text-white/30 text-sm">No invites yet</p>
-                  <p className="text-white/20 text-xs mt-1">Share your link to start inviting!</p>
+                  <p className="text-white/75 text-sm">No invites yet</p>
+                  <p className="text-white/70 text-xs mt-1">Share your link to start inviting!</p>
                 </div>
               )}
             </div>
@@ -717,7 +717,7 @@ const Invitation = () => {
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${
                   entry.rank <= 10
                     ? 'bg-gradient-to-br from-fuchsia-600 to-violet-600 text-white shadow-md shadow-purple-500/20'
-                    : 'bg-white/10 text-white/60'
+                    : 'bg-white/10 text-white/90'
                 }`}>
                   {entry.rank}
                 </div>
@@ -732,12 +732,12 @@ const Invitation = () => {
 
                 <div className="flex-1 min-w-0">
                   <p className="text-white text-sm font-medium truncate">{entry.display_name}</p>
-                  <p className="text-white/40 text-[10px]">{entry.total_invites} invites</p>
+                  <p className="text-white/80 text-[10px]">{entry.total_invites} invites</p>
                 </div>
 
                 <div className="text-right shrink-0">
                   <p className="text-amber-400 font-bold text-xs">+{entry.beans_earned}</p>
-                  <p className="text-white/30 text-[9px]">Beans</p>
+                  <p className="text-white/75 text-[9px]">Beans</p>
                 </div>
               </motion.div>
             ))}
@@ -745,7 +745,7 @@ const Invitation = () => {
             {leaderboard.length === 0 && (
               <div className="text-center py-12">
                 <Trophy className="w-14 h-14 text-white/15 mx-auto mb-3" />
-                <p className="text-white/40 font-medium">No leaders yet</p>
+                <p className="text-white/80 font-medium">No leaders yet</p>
                 <p className="text-white/25 text-sm mt-1">Share to be first!</p>
               </div>
             )}
@@ -762,14 +762,14 @@ const Invitation = () => {
           <div className="rounded-xl p-4 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
             <Star className="w-7 h-7 text-amber-400 mx-auto mb-1.5" />
             <p className="text-xl font-bold text-white">{leaderboard.length}</p>
-            <p className="text-white/40 text-xs">Participants</p>
+            <p className="text-white/80 text-xs">Participants</p>
           </div>
           <div className="rounded-xl p-4 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
             <Users className="w-7 h-7 text-violet-400 mx-auto mb-1.5" />
             <p className="text-xl font-bold text-white">
               {leaderboard.reduce((sum, e) => sum + e.total_invites, 0)}
             </p>
-            <p className="text-white/40 text-xs">Total Invites</p>
+            <p className="text-white/80 text-xs">Total Invites</p>
           </div>
         </motion.div>
       </div>

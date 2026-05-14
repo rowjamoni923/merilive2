@@ -945,7 +945,7 @@ const AgencyDashboard = () => {
                     <p className="text-white text-xs font-bold">
                       ⚠️ {daysRemaining} Days Remaining
                     </p>
-                    <p className="text-white/60 text-[10px]">
+                    <p className="text-white/90 text-[10px]">
                       Minimum 10 active hosts required within 30 days
                     </p>
                   </div>
@@ -956,7 +956,7 @@ const AgencyDashboard = () => {
                   </div>
                 </div>
                 <Progress value={progress} className="h-2 bg-white/10" />
-                <p className="text-white/50 text-[9px] mt-1.5 text-center">
+                <p className="text-white/85 text-[9px] mt-1.5 text-center">
                   {daysRemaining <= 5 
                     ? '⛔ Agency will be auto-deactivated if target not met!'
                     : `Add ${10 - activeHostCount} more hosts to secure your agency`
@@ -1072,7 +1072,7 @@ const AgencyDashboard = () => {
                     <p className="text-xs font-medium truncate">
                       {parentAgency.owner_profile.display_name || "Agency Owner"}
                     </p>
-                    <p className="text-[10px] text-white/60">Agency Owner</p>
+                    <p className="text-[10px] text-white/90">Agency Owner</p>
                   </div>
                 </div>
               )}
@@ -1103,7 +1103,7 @@ const AgencyDashboard = () => {
                     Total Beans <ChevronRight className="w-3 h-3" />
                   </p>
                   <p className="text-xl font-bold">{fmtNum(agencyBeansBalance)}</p>
-                  <p className="text-[9px] text-white/60">Tap to view commission history</p>
+                  <p className="text-[9px] text-white/90">Tap to view commission history</p>
                 </div>
               </button>
               <div className="text-right bg-white/20 backdrop-blur-sm rounded-lg p-2">
@@ -1172,7 +1172,7 @@ const AgencyDashboard = () => {
                 </div>
                 
                 {withdrawals.length === 0 ? (
-                  <div className="text-center py-4 text-white/60 text-xs">
+                  <div className="text-center py-4 text-white/90 text-xs">
                     No withdrawal history yet
                   </div>
                 ) : (
@@ -1209,7 +1209,7 @@ const AgencyDashboard = () => {
                                   <p className="text-xs font-semibold text-white">
                                     {(w.amount / coinsToUsdRate).toFixed(2)} USD
                                   </p>
-                                  <p className="text-[10px] text-slate-400">
+                                  <p className="text-[10px] text-slate-200">
                                     {w.payment_method?.toUpperCase()} • {new Date(w.requested_at).toLocaleDateString()}
                                   </p>
                                 </div>
@@ -1254,9 +1254,9 @@ const AgencyDashboard = () => {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-white font-semibold text-sm">📖 Payroll Helper Guide</p>
-              <p className="text-white/60 text-[11px]">Learn roles, benefits & diamond trading</p>
+              <p className="text-white/90 text-[11px]">Learn roles, benefits & diamond trading</p>
             </div>
-            <ArrowRight className="w-4 h-4 text-white/50" />
+            <ArrowRight className="w-4 h-4 text-white/85" />
           </div>
         </div>
       </div>
@@ -1561,7 +1561,7 @@ const AgencyDashboard = () => {
                     </div>
                     <div>
                       <span>Withdrawal History</span>
-                      <p className="text-xs font-normal text-slate-400">{withdrawals.length} total requests</p>
+                      <p className="text-xs font-normal text-slate-200">{withdrawals.length} total requests</p>
                     </div>
                   </CardTitle>
                   <Button 
@@ -1577,7 +1577,7 @@ const AgencyDashboard = () => {
               </CardHeader>
               <CardContent>
                 {withdrawals.length === 0 ? (
-                  <div className="text-center py-8 text-slate-400">
+                  <div className="text-center py-8 text-slate-200">
                     <Wallet className="w-12 h-12 mx-auto mb-2 opacity-50" />
                     <p>No withdrawal history yet</p>
                   </div>
@@ -1626,14 +1626,14 @@ const AgencyDashboard = () => {
                             <div className="flex items-center gap-2 mb-1">
                               <span className="text-lg">{countryFlag}</span>
                               <span className="text-white font-bold">{fmtNum(withdrawal.amount)}</span>
-                              <span className="text-slate-400 text-sm">Beans</span>
+                              <span className="text-slate-200 text-sm">Beans</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm">
                               <span className="bg-gradient-to-r from-pink-500/30 to-purple-500/30 text-pink-300 px-2 py-0.5 rounded-md text-xs font-medium border border-pink-500/30">
                                 {withdrawal.payment_method?.toUpperCase()}
                               </span>
-                              <span className="text-slate-500">•</span>
-                              <span className="text-slate-400 text-xs">
+                              <span className="text-slate-300">•</span>
+                              <span className="text-slate-200 text-xs">
                                 {new Date(withdrawal.requested_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                               </span>
                             </div>
@@ -2166,7 +2166,7 @@ const AgencyDashboard = () => {
                     </Avatar>
                     <div className="flex-1">
                       <p className="font-semibold">{parentAgency.owner_profile.display_name || "Agency Owner"}</p>
-                      <p className="text-xs text-gray-500">Agency Owner</p>
+                      <p className="text-xs text-gray-300">Agency Owner</p>
                     </div>
                   </div>
                 )}
