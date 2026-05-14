@@ -180,7 +180,7 @@ const AgencyHostManagement = () => {
           }
         }).catch(console.error);
 
-        toast({ title: "✅ Host Approved", description: `${hostData.host?.display_name || 'Host'} approved` });
+        toast({ title: "Host Approved", description: `${hostData.host?.display_name || 'Host'} approved` });
       } else {
         throw new Error("Failed to approve host");
       }
@@ -236,7 +236,7 @@ const AgencyHostManagement = () => {
 
   const copyLink = () => {
     navigator.clipboard.writeText(inviteLink);
-    toast({ title: "✅ Link Copied" });
+    toast({ title: "Link Copied" });
   };
 
   const shareLink = async () => {

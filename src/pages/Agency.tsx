@@ -426,7 +426,7 @@ const Agency = () => {
               </div>
               {diamondTier && (
                 <div className="mt-3 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-xl p-3 text-center text-white">
-                  <p className="text-xs mb-1">💎 {diamondTier.level_name} ({diamondTier.level_code})</p>
+                  <p className="text-xs mb-1">{diamondTier.level_name} ({diamondTier.level_code})</p>
                   <p className="text-2xl font-bold">{diamondTier.commission_rate}%</p>
                 </div>
               )}

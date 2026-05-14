@@ -314,7 +314,7 @@ const AgencyCoinTrader = () => {
             note: `Agency bought ${Math.floor(amount)} coins from user`
           });
 
-        toast({ title: "✅ Coins purchased successfully" });
+        toast({ title: "Coins purchased successfully" });
 
       } else {
         // Agency sells coins to user - ATOMIC two-tier deduction
@@ -355,7 +355,7 @@ const AgencyCoinTrader = () => {
             note: `Agency sold ${Math.floor(amount)} coins to user`
           });
 
-        toast({ title: "✅ Coins sold successfully" });
+        toast({ title: "Coins sold successfully" });
       }
 
       // Reset and refresh
@@ -415,7 +415,7 @@ const AgencyCoinTrader = () => {
       if (error) throw error;
 
       toast({
-        title: "✅ Order Submitted!",
+        title: "Order Submitted",
         description: `Order for ${amount.toLocaleString()} coins is being processed.`,
       });
 
@@ -484,7 +484,7 @@ const AgencyCoinTrader = () => {
               <div>
                 <p className="text-slate-700 text-sm">Trader Wallet</p>
                 <p className="text-3xl font-bold">
-                  {((helperData?.wallet_balance ?? 0) + (agency?.diamond_balance ?? 0)).toLocaleString()} 💎
+                  {((helperData?.wallet_balance ?? 0) + (agency?.diamond_balance ?? 0)).toLocaleString()}
                 </p>
                 <p className="text-xs text-slate-500">
                   Helper {(helperData?.wallet_balance ?? 0).toLocaleString()} + Agency {(agency?.diamond_balance ?? 0).toLocaleString()}
@@ -695,7 +695,7 @@ const AgencyCoinTrader = () => {
                         
                         <div className="mt-4 p-3 bg-white/50 rounded-lg border border-dashed">
                           <p className="text-xs text-center text-muted-foreground">
-                            ⚠️ After payment, your order will be processed manually. Coins are usually added within 1-2 hours.
+                            After payment, your order will be processed manually. Coins are usually added within 1-2 hours.
                           </p>
                         </div>
                       </CardContent>
@@ -816,7 +816,7 @@ const AgencyCoinTrader = () => {
                     onChange={(e) => setTradeAmount(e.target.value)}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Trader Wallet: {((agency?.diamond_balance || 0) + (helperData?.wallet_balance || 0)).toLocaleString()} 💎
+                    Trader Wallet: {((agency?.diamond_balance || 0) + (helperData?.wallet_balance || 0)).toLocaleString()}
                   </p>
                   {tradeAmount && (
                     <div className="bg-green-50 rounded-lg p-3">
@@ -1001,7 +1001,7 @@ const AgencyCoinTrader = () => {
           </div>
           
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-700">
-            <p className="font-medium mb-1">📌 Important:</p>
+            <p className="font-medium mb-1">Important:</p>
             <ul className="list-disc list-inside space-y-1 text-xs">
               <li>Send the exact amount to the payment ID</li>
               <li>Wait after making the payment</li>
@@ -1043,7 +1043,7 @@ const AgencyCoinTrader = () => {
 
           <div className="rounded-xl border border-amber-300/40 bg-gradient-to-br from-amber-50 to-orange-50 p-4 space-y-2">
             <p className="text-sm font-semibold text-amber-800">
-              🚀 Become a Level 1 Helper
+              Become a Level 1 Helper
             </p>
             <p className="text-xs text-amber-700/80 leading-relaxed">
               Your Trader Wallet is automatically created with your agency, but to use it for recharging users you must first take the Helper Section. Once your Level 1 Helper application is approved, the Trader Wallet will be fully unlocked.
