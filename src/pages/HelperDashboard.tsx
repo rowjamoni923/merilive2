@@ -1030,7 +1030,7 @@ const HelperDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-900 to-slate-800">
+      <div className="min-h-screen flex items-center justify-center bg-[#F7F8FA]">
         <div className="animate-spin w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full" />
       </div>
     );
@@ -1311,7 +1311,7 @@ const HelperDashboard = () => {
               placeholder="+880XXXXXXXXXX"
               value={whatsappNumber}
               onChange={(e) => setWhatsappNumber(e.target.value)}
-              className="flex-1 rounded-xl px-3 py-2 text-amber-50 text-sm placeholder:text-white/75 focus:outline-none transition-colors"
+              className="flex-1 rounded-xl px-3 py-2 text-amber-50 text-sm placeholder:text-slate-600 focus:outline-none transition-colors"
               style={{
                 background: "rgba(0,0,0,0.35)",
                 border: "1px solid rgba(16,185,129,0.30)",
@@ -1393,9 +1393,9 @@ const HelperDashboard = () => {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-white font-semibold text-sm">📖 Payroll Helper Guide</p>
-              <p className="text-white/90 text-[11px]">Learn roles, benefits & diamond trading</p>
+              <p className="text-slate-700 text-[11px]">Learn roles, benefits & diamond trading</p>
             </div>
-            <ArrowRight className="w-4 h-4 text-white/85" />
+            <ArrowRight className="w-4 h-4 text-slate-600" />
           </div>
         </div>
 
@@ -1412,7 +1412,7 @@ const HelperDashboard = () => {
             </CardHeader>
             <CardContent className="space-y-2 max-h-48 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
               {pendingRequests.map((req) => (
-                <div key={req.id} className="bg-slate-800/50 rounded-lg p-3 flex items-center justify-between">
+                <div key={req.id} className="bg-slate-50 rounded-lg p-3 flex items-center justify-between">
                   <div>
                     <p className="text-white text-sm font-medium">Level {req.requested_level} Upgrade</p>
                     <p className="text-slate-200 text-xs">${req.amount_usd} • {req.payment_method}</p>
@@ -1441,7 +1441,7 @@ const HelperDashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="text-white/80 text-sm">
+            <p className="text-slate-600 text-sm">
               Add diamonds to your wallet by sending payment
             </p>
             
@@ -1469,10 +1469,10 @@ const HelperDashboard = () => {
                 Request Manual Top-up
               </Button>
             ) : (
-              <div className="space-y-4 bg-slate-800/50 rounded-xl p-4">
+              <div className="space-y-4 bg-slate-50 rounded-xl p-4">
                 {/* Level pricing reminder */}
                 {levelPricing && (
-                  <div className="text-center p-2 bg-slate-700/50 rounded-lg">
+                  <div className="text-center p-2 bg-slate-100 rounded-lg">
                     <p className="text-xs text-slate-200">
                       Level {helperData?.trader_level || 1} Rate: <span className="text-emerald-400 font-semibold">{levelPricing.diamond_amount.toLocaleString()} 💎 = ${levelPricing.price_usd}</span>
                     </p>
@@ -1486,10 +1486,10 @@ const HelperDashboard = () => {
                     className={cn(
                       "w-full p-4 rounded-xl border-2 transition-all flex items-center justify-between",
                       showDiamondPackages
-                        ? "bg-slate-700 border-cyan-500 ring-2 ring-cyan-500/20"
+                        ? "bg-slate-200 border-cyan-500 ring-2 ring-cyan-500/20"
                         : selectedDiamondPackage
                         ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border-cyan-500/50"
-                        : "bg-slate-700/50 border-slate-600 hover:border-cyan-500/50"
+                        : "bg-slate-100 border-slate-300 hover:border-cyan-500/50"
                     )}
                   >
                     <div className="flex items-center gap-3">
@@ -1506,11 +1506,11 @@ const HelperDashboard = () => {
                           </p>
                         </div>
                       ) : (
-                        <span className="text-slate-300 font-medium">Select Diamond Package 💎</span>
+                        <span className="text-slate-700 font-medium">Select Diamond Package 💎</span>
                       )}
                     </div>
                     <div className={cn(
-                      "w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center transition-transform duration-200",
+                      "w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center transition-transform duration-200",
                       showDiamondPackages && "rotate-180"
                     )}>
                       <ArrowLeft className="w-4 h-4 text-white -rotate-90" />
@@ -1519,7 +1519,7 @@ const HelperDashboard = () => {
                   
                   {/* Dropdown List */}
                   {showDiamondPackages && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-slate-800 border-2 border-cyan-500/50 rounded-xl shadow-2xl overflow-hidden animate-in slide-in-from-top-2 duration-200">
+                    <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-slate-100 border-2 border-cyan-500/50 rounded-xl shadow-2xl overflow-hidden animate-in slide-in-from-top-2 duration-200">
                       <div className="max-h-80 overflow-y-auto">
                         {diamondPackages.map((pkg, index) => (
                           <button
@@ -1529,10 +1529,10 @@ const HelperDashboard = () => {
                               setShowDiamondPackages(false);
                             }}
                             className={cn(
-                              "w-full p-3 flex items-center gap-3 transition-all border-b border-slate-700 last:border-b-0",
+                              "w-full p-3 flex items-center gap-3 transition-all border-b border-slate-200 last:border-b-0",
                               selectedDiamondPackage === pkg.diamonds
                                 ? "bg-gradient-to-r from-cyan-500/30 to-blue-500/30"
-                                : "hover:bg-slate-700/70"
+                                : "hover:bg-slate-100"
                             )}
                           >
                             <div className={cn(
@@ -1565,7 +1565,7 @@ const HelperDashboard = () => {
                 </div>
 
                 {/* Custom Amount Option */}
-                <div className="border-t border-slate-700 pt-4">
+                <div className="border-t border-slate-200 pt-4">
                   <button
                     onClick={() => {
                       setShowCustomAmount(!showCustomAmount);
@@ -1575,7 +1575,7 @@ const HelperDashboard = () => {
                       "w-full p-3 rounded-xl border-2 border-dashed transition-all",
                       showCustomAmount
                         ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-purple-500"
-                        : "bg-slate-700/30 border-slate-600 hover:border-purple-500/50"
+                        : "bg-slate-100 border-slate-300 hover:border-purple-500/50"
                     )}
                   >
                     <div className="flex items-center justify-center gap-2">
@@ -1592,7 +1592,7 @@ const HelperDashboard = () => {
                         placeholder="Enter diamonds (min: 5,00,000)"
                         value={customDiamondAmount}
                         onChange={(e) => handleCustomAmountChange(e.target.value)}
-                        className="bg-slate-700 border-purple-500/50 text-white text-center text-lg font-bold"
+                        className="bg-slate-200 border-purple-500/50 text-white text-center text-lg font-bold"
                       />
                       {parseInt(customDiamondAmount.replace(/,/g, '')) >= 500000 && (
                         <div className="p-2 bg-purple-500/10 rounded-lg border border-purple-500/30">
@@ -1614,7 +1614,7 @@ const HelperDashboard = () => {
                 {(selectedDiamondPackage || (customDiamondAmount && parseInt(customDiamondAmount.replace(/,/g, '')) >= 500000)) && (
                   <div className="p-3 bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 rounded-xl border border-emerald-500/30">
                     <div className="flex items-center justify-between">
-                      <span className="text-white/80 text-sm">You will receive:</span>
+                      <span className="text-slate-600 text-sm">You will receive:</span>
                       <div className="text-right">
                         <p className="text-white font-bold text-lg">
                           {formatDiamonds(selectedDiamondPackage || parseInt(customDiamondAmount.replace(/,/g, '')))} 💎
@@ -1652,7 +1652,7 @@ const HelperDashboard = () => {
                                 "p-3 rounded-lg border text-sm transition-all flex items-center gap-2",
                                 topupPaymentMethod === method.method_name
                                   ? "bg-emerald-500 border-emerald-400 text-white"
-                                  : "bg-slate-700 border-slate-600 text-slate-300 hover:border-emerald-500"
+                                  : "bg-slate-200 border-slate-300 text-slate-700 hover:border-emerald-500"
                               )}
                             >
                               {method.logo_url ? (
@@ -1707,7 +1707,7 @@ const HelperDashboard = () => {
                             {selectedPaymentMethod.bank_name && (
                               <div className="flex justify-between items-center">
                                 <span className="text-slate-200 text-xs">Bank:</span>
-                                <span className="text-slate-300 text-sm">{selectedPaymentMethod.bank_name}</span>
+                                <span className="text-slate-700 text-sm">{selectedPaymentMethod.bank_name}</span>
                               </div>
                             )}
                           </div>
@@ -1752,7 +1752,7 @@ const HelperDashboard = () => {
                     value={topupTransactionId}
                     onChange={(e) => setTopupTransactionId(e.target.value)}
                     className={cn(
-                      "bg-slate-700 border-slate-600 text-white mt-1",
+                      "bg-slate-200 border-slate-300 text-white mt-1",
                       !topupTransactionId.trim() && topupAmount ? "border-red-500/50" : ""
                     )}
                   />
@@ -1776,10 +1776,10 @@ const HelperDashboard = () => {
                     <label
                       htmlFor="topup-proof"
                       className={cn(
-                        "flex items-center gap-2 p-3 rounded-lg border border-dashed cursor-pointer hover:bg-slate-700",
+                        "flex items-center gap-2 p-3 rounded-lg border border-dashed cursor-pointer hover:bg-slate-200",
                         !topupProof && topupAmount 
                           ? "border-red-500/50 bg-red-500/10" 
-                          : "border-slate-600 bg-slate-700/50"
+                          : "border-slate-300 bg-slate-100"
                       )}
                     >
                       <Upload className={cn("w-5 h-5", topupProof ? "text-emerald-400" : "text-slate-200")} />
@@ -1799,7 +1799,7 @@ const HelperDashboard = () => {
                     placeholder="Any additional details..."
                     value={topupNote}
                     onChange={(e) => setTopupNote(e.target.value)}
-                    className="bg-slate-700 border-slate-600 text-white mt-1"
+                    className="bg-slate-200 border-slate-300 text-white mt-1"
                     rows={2}
                   />
                 </div>
@@ -1827,7 +1827,7 @@ const HelperDashboard = () => {
                   <Button 
                     variant="outline" 
                     onClick={() => setShowTopupForm(false)}
-                    className="flex-1 border-slate-600 text-slate-300"
+                    className="flex-1 border-slate-300 text-slate-700"
                   >
                     Cancel
                   </Button>
@@ -1845,7 +1845,7 @@ const HelperDashboard = () => {
         </Card>
 
         {/* Trader Levels */}
-        <Card className="bg-slate-800/50 border-slate-700">
+        <Card className="bg-slate-50 border-slate-200">
           <CardHeader className="pb-2">
             <CardTitle className="text-white text-base flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-purple-400" />
@@ -1873,8 +1873,8 @@ const HelperDashboard = () => {
                     isCurrent 
                       ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-purple-500/50" 
                       : isUnlocked
-                        ? "bg-slate-700/50 border-slate-600"
-                        : "bg-slate-800/50 border-slate-700 opacity-60"
+                        ? "bg-slate-100 border-slate-300"
+                        : "bg-slate-50 border-slate-200 opacity-60"
                   )}
                 >
                   <div className="flex items-center justify-between">
@@ -1914,13 +1914,13 @@ const HelperDashboard = () => {
                   </div>
                   
                   {/* Level Details - Commission & Withdrawal Limits */}
-                  <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-slate-700/50">
+                  <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-slate-200">
                     <div>
-                      <p className="text-slate-300 text-xs">Commission</p>
+                      <p className="text-slate-700 text-xs">Commission</p>
                       <p className="text-cyan-400 font-bold">{level.commission_rate || 0}%</p>
                     </div>
                     <div>
-                      <p className="text-slate-300 text-xs">Withdrawal Limits</p>
+                      <p className="text-slate-700 text-xs">Withdrawal Limits</p>
                       {level.min_withdrawal_amount > 0 || level.max_withdrawal_amount > 0 ? (
                         <p className="text-emerald-400 font-medium text-xs">
                           ${level.min_withdrawal_amount?.toLocaleString() || 0} - ${level.max_withdrawal_amount?.toLocaleString() || 0}
@@ -2041,7 +2041,7 @@ const HelperDashboard = () => {
 
       {/* Upgrade Application Modal */}
       <Dialog open={showUpgradeModal} onOpenChange={setShowUpgradeModal}>
-        <DialogContent className="bg-slate-900 border-slate-700 max-w-md">
+        <DialogContent className="bg-white border-slate-200 max-w-md">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Crown className="w-5 h-5 text-purple-400" />
@@ -2050,7 +2050,7 @@ const HelperDashboard = () => {
           </DialogHeader>
           
           <div className="space-y-4">
-            <div className="bg-slate-800/50 rounded-xl p-4">
+            <div className="bg-slate-50 rounded-xl p-4">
               <div className="flex items-center justify-between">
                 <span className="text-slate-200">Upgrade Cost</span>
                 <span className="text-2xl font-bold text-white">${selectedUpgradeLevel?.upgrade_cost_usd}</span>
@@ -2082,7 +2082,7 @@ const HelperDashboard = () => {
                           "p-3 rounded-lg border text-sm transition-all flex items-center gap-2",
                           paymentMethod === method.method_name
                             ? "bg-purple-500 border-purple-400 text-white"
-                            : "bg-slate-800 border-slate-700 text-slate-300 hover:border-purple-500"
+                            : "bg-slate-100 border-slate-200 text-slate-700 hover:border-purple-500"
                         )}
                       >
                         {method.logo_url ? (
@@ -2096,7 +2096,7 @@ const HelperDashboard = () => {
                   })}
                 </div>
               ) : (
-                <div className="mt-2 p-3 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 text-sm">
+                <div className="mt-2 p-3 rounded-lg bg-slate-100 border border-slate-200 text-slate-200 text-sm">
                   No payment methods available. Please contact admin.
                 </div>
               )}
@@ -2115,7 +2115,7 @@ const HelperDashboard = () => {
                             navigator.clipboard.writeText(selectedPaymentMethod.account_name);
                             toast({ title: "Copied! ✅", description: "Account name copied to clipboard" });
                           }}
-                          className="p-1 rounded bg-slate-700 hover:bg-slate-600 transition-colors"
+                          className="p-1 rounded bg-slate-200 hover:bg-slate-200 transition-colors"
                         >
                           <Copy className="w-3 h-3 text-purple-400" />
                         </button>
@@ -2130,7 +2130,7 @@ const HelperDashboard = () => {
                             navigator.clipboard.writeText(selectedPaymentMethod.account_number);
                             toast({ title: "Copied! ✅", description: "Account ID/Number copied to clipboard" });
                           }}
-                          className="p-1 rounded bg-slate-700 hover:bg-slate-600 transition-colors"
+                          className="p-1 rounded bg-slate-200 hover:bg-slate-200 transition-colors"
                         >
                           <Copy className="w-3 h-3 text-purple-400" />
                         </button>
@@ -2165,7 +2165,7 @@ const HelperDashboard = () => {
                 placeholder="Enter transaction ID"
                 value={transactionId}
                 onChange={(e) => setTransactionId(e.target.value)}
-                className="bg-slate-800 border-slate-700 text-white mt-1"
+                className="bg-slate-100 border-slate-200 text-white mt-1"
               />
             </div>
 
@@ -2181,7 +2181,7 @@ const HelperDashboard = () => {
                 />
                 <label
                   htmlFor="payment-proof"
-                  className="flex items-center gap-2 p-3 rounded-lg border border-dashed border-slate-700 bg-slate-800/50 cursor-pointer hover:bg-slate-800"
+                  className="flex items-center gap-2 p-3 rounded-lg border border-dashed border-slate-200 bg-slate-50 cursor-pointer hover:bg-slate-100"
                 >
                   <Upload className="w-5 h-5 text-slate-200" />
                   <span className="text-slate-200 text-sm">
@@ -2197,7 +2197,7 @@ const HelperDashboard = () => {
                 placeholder="Any additional details..."
                 value={paymentNote}
                 onChange={(e) => setPaymentNote(e.target.value)}
-                className="bg-slate-800 border-slate-700 text-white mt-1"
+                className="bg-slate-100 border-slate-200 text-white mt-1"
                 rows={2}
               />
             </div>
@@ -2206,7 +2206,7 @@ const HelperDashboard = () => {
               <Button 
                 variant="outline" 
                 onClick={() => setShowUpgradeModal(false)}
-                className="flex-1 border-slate-700 text-slate-300"
+                className="flex-1 border-slate-200 text-slate-700"
               >
                 Cancel
               </Button>
@@ -2224,7 +2224,7 @@ const HelperDashboard = () => {
 
       {/* Payroll Application Modal */}
       <Dialog open={showPayrollModal} onOpenChange={setShowPayrollModal}>
-        <DialogContent className="bg-slate-900 border-slate-700 max-w-md">
+        <DialogContent className="bg-white border-slate-200 max-w-md">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Banknote className="w-5 h-5 text-purple-400" />
@@ -2243,7 +2243,7 @@ const HelperDashboard = () => {
                   <p className="text-purple-300 text-xs">Exclusive for Diamond Traders</p>
                 </div>
               </div>
-              <ul className="space-y-2 text-sm text-slate-300">
+              <ul className="space-y-2 text-sm text-slate-700">
                 <li className="flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-green-400" />
                   Process agency withdrawal requests
@@ -2263,7 +2263,7 @@ const HelperDashboard = () => {
               </ul>
             </div>
 
-            <div className="bg-slate-800/50 rounded-xl p-4">
+            <div className="bg-slate-50 rounded-xl p-4">
               <p className="text-slate-200 text-sm">
                 By applying for payroll access, you agree to process withdrawal requests promptly and maintain a professional standard of service.
               </p>
@@ -2273,7 +2273,7 @@ const HelperDashboard = () => {
               <Button 
                 variant="outline" 
                 onClick={() => setShowPayrollModal(false)}
-                className="flex-1 border-slate-600 text-slate-300"
+                className="flex-1 border-slate-300 text-slate-700"
               >
                 Cancel
               </Button>
@@ -2319,7 +2319,7 @@ const HelperDashboard = () => {
 
       {/* Transfer to User/Agency Modal */}
       <Dialog open={showTransferModal} onOpenChange={setShowTransferModal}>
-        <DialogContent className="bg-slate-900 border-slate-700 max-w-md">
+        <DialogContent className="bg-white border-slate-200 max-w-md">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Send className="w-5 h-5 text-emerald-400" />
@@ -2331,13 +2331,13 @@ const HelperDashboard = () => {
             {/* Current Balance */}
             <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-xl p-3 border border-emerald-500/30">
               <div className="flex items-center justify-between">
-                <span className="text-white/80 text-sm">Trader Wallet</span>
+                <span className="text-slate-600 text-sm">Trader Wallet</span>
                 <span className="text-emerald-400 font-bold text-lg">
                   {((helperData?.wallet_balance || 0) + (agencyDiamondBalance || 0)).toLocaleString()} 💎
                 </span>
               </div>
               {agencyDiamondBalance > 0 && (
-                <p className="text-white/85 text-[10px] mt-1">
+                <p className="text-slate-600 text-[10px] mt-1">
                   Helper {(helperData?.wallet_balance || 0).toLocaleString()} + Agency {agencyDiamondBalance.toLocaleString()}
                 </p>
               )}
@@ -2350,7 +2350,7 @@ const HelperDashboard = () => {
               setSearchedUser(null);
               setSearchedAgency(null);
             }}>
-              <TabsList className="w-full bg-slate-800">
+              <TabsList className="w-full bg-slate-100">
                 <TabsTrigger value="user" className="flex-1 gap-1 text-xs data-[state=active]:bg-cyan-500">
                   <User className="w-3.5 h-3.5" />
                   User
@@ -2374,7 +2374,7 @@ const HelperDashboard = () => {
                       placeholder="Enter App UID (e.g. ABC123)"
                       value={transferSearchQuery}
                       onChange={(e) => setTransferSearchQuery(e.target.value.toUpperCase())}
-                      className="bg-slate-800 border-slate-600 text-white uppercase"
+                      className="bg-slate-100 border-slate-300 text-white uppercase"
                     />
                     <Button 
                       onClick={handleSearchUser}
@@ -2392,7 +2392,7 @@ const HelperDashboard = () => {
 
                 {/* User Found */}
                 {searchedUser && (
-                  <div className="bg-slate-800/50 rounded-xl p-4 border border-cyan-500/30">
+                  <div className="bg-slate-50 rounded-xl p-4 border border-cyan-500/30">
                     <div className="flex items-center gap-3 mb-3">
                       <Avatar className="w-12 h-12 border-2 border-cyan-500">
                         <AvatarImage src={searchedUser.avatar_url} />
@@ -2414,7 +2414,7 @@ const HelperDashboard = () => {
                         placeholder="Enter amount to transfer"
                         value={transferAmount}
                         onChange={(e) => setTransferAmount(e.target.value)}
-                        className="bg-slate-700 border-slate-600 text-white text-lg font-bold"
+                        className="bg-slate-200 border-slate-300 text-white text-lg font-bold"
                       />
                     </div>
 
@@ -2449,7 +2449,7 @@ const HelperDashboard = () => {
                       placeholder="Enter Owner's App UID"
                       value={transferSearchQuery}
                       onChange={(e) => setTransferSearchQuery(e.target.value.toUpperCase())}
-                      className="bg-slate-800 border-slate-600 text-white uppercase"
+                      className="bg-slate-100 border-slate-300 text-white uppercase"
                     />
                     <Button 
                       onClick={handleSearchAgency}
@@ -2467,7 +2467,7 @@ const HelperDashboard = () => {
 
                 {/* Agency Found */}
                 {searchedAgency && (
-                  <div className="bg-slate-800/50 rounded-xl p-4 border border-purple-500/30">
+                  <div className="bg-slate-50 rounded-xl p-4 border border-purple-500/30">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
                         <Building2 className="w-6 h-6 text-white" />
@@ -2477,7 +2477,7 @@ const HelperDashboard = () => {
                         <p className="text-slate-200 text-xs">Code: {searchedAgency.agency_code}</p>
                         <p className="text-purple-400 text-xs">Balance: {searchedAgency.wallet_balance?.toLocaleString() || 0} 💎</p>
                         {searchedAgency.owner_name && (
-                          <p className="text-slate-300 text-xs">Owner: {searchedAgency.owner_name}</p>
+                          <p className="text-slate-700 text-xs">Owner: {searchedAgency.owner_name}</p>
                         )}
                       </div>
                     </div>
@@ -2490,7 +2490,7 @@ const HelperDashboard = () => {
                         placeholder="Enter amount to transfer"
                         value={transferAmount}
                         onChange={(e) => setTransferAmount(e.target.value)}
-                        className="bg-slate-700 border-slate-600 text-white text-lg font-bold"
+                        className="bg-slate-200 border-slate-300 text-white text-lg font-bold"
                       />
                     </div>
 
@@ -2535,7 +2535,7 @@ const HelperDashboard = () => {
                       placeholder="Enter amount"
                       value={transferAmount}
                       onChange={(e) => setTransferAmount(e.target.value)}
-                      className="bg-slate-700 border-slate-600 text-white text-lg font-bold"
+                      className="bg-slate-200 border-slate-300 text-white text-lg font-bold"
                     />
                   </div>
 
@@ -2565,7 +2565,7 @@ const HelperDashboard = () => {
 
       {/* Transfer History Modal */}
       <Dialog open={showTransferHistory} onOpenChange={setShowTransferHistory}>
-        <DialogContent className="bg-slate-900 border-slate-700 max-w-md max-h-[80vh] overflow-hidden flex flex-col">
+        <DialogContent className="bg-white border-slate-200 max-w-md max-h-[80vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <History className="w-5 h-5 text-cyan-400" />
@@ -2628,7 +2628,7 @@ const HelperDashboard = () => {
                           : `Code: ${transfer.agency?.agency_code || 'N/A'}`
                         }
                       </p>
-                      <p className="text-slate-300 text-[10px]">
+                      <p className="text-slate-700 text-[10px]">
                         {new Date(transfer.created_at).toLocaleString()}
                       </p>
                     </div>
@@ -2637,7 +2637,7 @@ const HelperDashboard = () => {
                       <p className="text-emerald-400 font-bold">
                         -{transfer.amount.toLocaleString()}
                       </p>
-                      <p className="text-slate-300 text-xs">💎</p>
+                      <p className="text-slate-700 text-xs">💎</p>
                     </div>
                   </div>
                 </div>

@@ -389,7 +389,7 @@ const Level = () => {
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-purple-900 via-purple-800 to-slate-900 overflow-hidden">
+    <div className="fixed inset-0 flex flex-col bg-[#F7F8FA] via-purple-800 to-slate-900 overflow-hidden">
       {/* Header */}
       <div className="flex-shrink-0">
         <header className="relative safe-area-top">
@@ -454,7 +454,7 @@ const Level = () => {
                 </div>
                 {/* Level Display */}
                 <div className="flex items-baseline gap-2 mb-4">
-                  <span className="text-lg text-white/70 font-medium">Level</span>
+                  <span className="text-lg text-slate-500 font-medium">Level</span>
                   <motion.span 
                     key={currentLevel}
                     initial={{ scale: 0.5, opacity: 0 }}
@@ -468,7 +468,7 @@ const Level = () => {
                 {/* Progress Section */}
                 <div className="mb-3">
                   <div className="flex items-center justify-between text-sm mb-2">
-                    <span className="text-white/80 font-medium flex items-center gap-1.5">
+                    <span className="text-slate-600 font-medium flex items-center gap-1.5">
                       <span className={cn(
                         "px-2 py-0.5 rounded-full text-xs",
                         levelType === 'host' ? "bg-pink-500/40" : "bg-blue-500/40"
@@ -478,7 +478,7 @@ const Level = () => {
                       <Diamond className="w-3.5 h-3.5 text-amber-400" />
                       <span className="text-amber-300">{formatNumber(currentDiamonds)}</span>
                     </span>
-                    <span className="text-white/85 text-xs">Lv{getNextLevelData().level}</span>
+                    <span className="text-slate-600 text-xs">Lv{getNextLevelData().level}</span>
                   </div>
                   <div className="relative">
                     <Progress 
@@ -557,7 +557,7 @@ const Level = () => {
                     ? levelType === 'host'
                       ? "bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/30"
                       : "bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg shadow-blue-500/30"
-                    : "bg-white/10 text-white/70 hover:bg-white/20"
+                    : "bg-white/10 text-slate-500 hover:bg-white/20"
                 )}
               >
                 Lv{level}
@@ -600,14 +600,14 @@ const Level = () => {
                 </div>
                 <div className="flex-1 text-left">
                   <h3 className="font-semibold text-white">{privilege.name}</h3>
-                  <p className="text-sm text-white/90">{privilege.description}</p>
+                  <p className="text-sm text-slate-700">{privilege.description}</p>
                 </div>
                 {!isUnlocked && (
-                  <span className="text-xs text-white/80 px-2 py-1 rounded-full bg-white/10">
+                  <span className="text-xs text-slate-600 px-2 py-1 rounded-full bg-white/10">
                     Lv{privilege.unlock_level}
                   </span>
                 )}
-                <ChevronRight className="w-5 h-5 text-white/80" />
+                <ChevronRight className="w-5 h-5 text-slate-600" />
               </motion.button>
             );
           })}
@@ -629,7 +629,7 @@ const Level = () => {
         <h2 className="text-xl font-bold text-white mb-4">Level Rule</h2>
         
         <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
-            <p className="text-sm text-white/70 mb-4">
+            <p className="text-sm text-slate-500 mb-4">
               {levelType === 'host' 
                 ? 'Host level is determined from your current weekly beans earnings using the live admin tier rules.'
                 : 'User level is determined from your lifetime total top-up using the live admin tier rules.'
@@ -638,8 +638,8 @@ const Level = () => {
             
             <div className="rounded-xl overflow-hidden border border-white/10">
               <div className="grid grid-cols-2 bg-white/5">
-                <div className="p-3 font-semibold text-white/80 text-center border-r border-white/10">Level</div>
-                <div className="p-3 font-semibold text-white/80 text-center">
+                <div className="p-3 font-semibold text-slate-600 text-center border-r border-white/10">Level</div>
+                <div className="p-3 font-semibold text-slate-600 text-center">
                   {levelType === 'host' ? 'Weekly Earnings' : 'Total Top-up'}
                 </div>
               </div>
@@ -660,7 +660,7 @@ const Level = () => {
                     {level.icon} Lv{level.level}
                   </span>
                 </div>
-                <div className="p-3 text-center text-white/70 font-medium">
+                <div className="p-3 text-center text-slate-500 font-medium">
                   {formatNumber(level.minDiamonds)}
                 </div>
               </div>
@@ -670,7 +670,7 @@ const Level = () => {
       </div>
 
       {/* Bottom Action */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 safe-area-bottom bg-slate-900/90 backdrop-blur-xl border-t border-white/10">
+      <div className="fixed bottom-0 left-0 right-0 p-4 safe-area-bottom bg-white/95 backdrop-blur-xl border-t border-white/10">
         <motion.div whileTap={{ scale: 0.98 }}>
           <Button
             onClick={() => navigate(levelType === 'host' ? '/host-dashboard' : '/recharge')}

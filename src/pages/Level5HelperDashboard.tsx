@@ -1286,14 +1286,14 @@ const Level5HelperDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-900 to-slate-800">
+      <div className="min-h-screen flex items-center justify-center bg-[#F7F8FA]">
         <Loader2 className="w-8 h-8 animate-spin text-cyan-500" />
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-b from-slate-900 to-slate-800 flex flex-col overflow-hidden">
+    <div className="fixed inset-0 bg-[#F7F8FA] flex flex-col overflow-hidden">
       <div 
         className="flex-1 overflow-y-auto overscroll-contain"
         style={{ 
@@ -1309,7 +1309,7 @@ const Level5HelperDashboard = () => {
           </Button>
           <div className="flex-1">
             <h1 className="font-bold text-lg text-white">Diamond Helper</h1>
-            <p className="text-white/80 text-xs">Level 5 • Payroll System</p>
+            <p className="text-slate-600 text-xs">Level 5 • Payroll System</p>
           </div>
           <Button 
             variant="ghost" 
@@ -1330,15 +1330,15 @@ const Level5HelperDashboard = () => {
         <div className="grid grid-cols-4 gap-1.5">
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 text-center">
             <p className="text-base font-bold text-white">{agencyWithdrawals.length}</p>
-            <p className="text-[9px] text-white/70">Agency</p>
+            <p className="text-[9px] text-slate-500">Agency</p>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 text-center">
             <p className="text-base font-bold text-white">{withdrawalRequests.filter(w => w.status === 'pending').length}</p>
-            <p className="text-[9px] text-white/70">Pending</p>
+            <p className="text-[9px] text-slate-500">Pending</p>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 text-center">
             <p className="text-base font-bold text-white">{countryPaymentMethods.length}</p>
-            <p className="text-[9px] text-white/70">Methods</p>
+            <p className="text-[9px] text-slate-500">Methods</p>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 text-center overflow-hidden">
             <p className="text-xs font-bold text-white truncate">
@@ -1351,7 +1351,7 @@ const Level5HelperDashboard = () => {
                     : totalWallet.toLocaleString();
               })()}
             </p>
-            <p className="text-[9px] text-white/70">💎 Trader Wallet</p>
+            <p className="text-[9px] text-slate-500">💎 Trader Wallet</p>
           </div>
         </div>
 
@@ -1369,7 +1369,7 @@ const Level5HelperDashboard = () => {
       {/* Main Tabs */}
       <div className="px-4 mt-4">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full bg-slate-800 rounded-xl p-1 grid grid-cols-5">
+          <TabsList className="w-full bg-slate-100 rounded-xl p-1 grid grid-cols-5">
             <TabsTrigger value="agency-withdrawals" className="data-[state=active]:bg-orange-500 data-[state=active]:text-white rounded-lg text-[10px] px-1">
               <Building2 className="w-3 h-3 mr-0.5" />
               Agency
@@ -1425,11 +1425,11 @@ const Level5HelperDashboard = () => {
             </div>
             
             {agencyWithdrawals.length === 0 ? (
-              <Card className="bg-slate-800/50 border-slate-700">
+              <Card className="bg-slate-50 border-slate-200">
                 <CardContent className="p-8 text-center">
-                  <Building2 className="w-12 h-12 mx-auto text-slate-300 mb-3" />
+                  <Building2 className="w-12 h-12 mx-auto text-slate-700 mb-3" />
                   <p className="text-slate-200">No pending agency withdrawals</p>
-                  <p className="text-xs text-slate-300 mt-1">
+                  <p className="text-xs text-slate-700 mt-1">
                     All withdrawals are cleared 🎉
                   </p>
                 </CardContent>
@@ -1449,7 +1449,7 @@ const Level5HelperDashboard = () => {
                   <Card 
                     key={withdrawal.id}
                     className={cn(
-                      "bg-slate-800/50 border-slate-700 transition-all",
+                      "bg-slate-50 border-slate-200 transition-all",
                       isLockedByOther ? "border-orange-500/50" : "",
                       isLockedByMe && "border-l-4 border-l-cyan-500",
                       isProcessing && "border-l-4 border-l-blue-500"
@@ -1473,7 +1473,7 @@ const Level5HelperDashboard = () => {
                               isLockedByOther ? "bg-orange-500 animate-pulse" :
                               isLockedByMe ? "bg-cyan-500" :
                               isProcessing ? "bg-blue-500" :
-                              "bg-slate-500"
+                              "bg-slate-300"
                             )}>
                               {isAvailable ? "🟡 Pending" :
                                isLockedByOther ? "⏳ Processing" : 
@@ -1502,7 +1502,7 @@ const Level5HelperDashboard = () => {
                               ≈ {withdrawal.currency_code} {withdrawal.local_currency_amount.toLocaleString()}
                             </p>
                           )}
-                          <p className="text-slate-300 text-[10px]">
+                          <p className="text-slate-700 text-[10px]">
                             {format(new Date(withdrawal.requested_at), 'dd MMM')}
                           </p>
                         </div>
@@ -1593,11 +1593,11 @@ const Level5HelperDashboard = () => {
             </div>
             
             {helperOrders.length === 0 ? (
-              <Card className="bg-slate-800/50 border-slate-700">
+              <Card className="bg-slate-50 border-slate-200">
                 <CardContent className="p-8 text-center">
-                  <Package className="w-12 h-12 mx-auto text-slate-300 mb-3" />
+                  <Package className="w-12 h-12 mx-auto text-slate-700 mb-3" />
                   <p className="text-slate-200">No orders yet</p>
-                  <p className="text-xs text-slate-300 mt-1">
+                  <p className="text-xs text-slate-700 mt-1">
                     Orders from users will appear here
                   </p>
                 </CardContent>
@@ -1607,7 +1607,7 @@ const Level5HelperDashboard = () => {
                 <Card 
                   key={order.id}
                   className={cn(
-                    "bg-slate-800/50 border-slate-700",
+                    "bg-slate-50 border-slate-200",
                     order.status === 'pending' && "border-l-4 border-l-yellow-500",
                     order.status === 'completed' && "border-l-4 border-l-green-500",
                     order.status === 'cancelled' && "border-l-4 border-l-red-500"
@@ -1636,7 +1636,7 @@ const Level5HelperDashboard = () => {
                           </Badge>
                         </div>
                         <p className="text-slate-200 text-xs">ID: {order.user?.app_uid}</p>
-                        <p className="text-slate-300 text-[10px]">
+                        <p className="text-slate-700 text-[10px]">
                           {format(new Date(order.created_at), 'dd MMM yyyy, hh:mm a')}
                         </p>
                       </div>
@@ -1653,12 +1653,12 @@ const Level5HelperDashboard = () => {
 
                     {/* Transaction ID and Payment Details */}
                     {order.payment_details && (
-                      <div className="mt-3 pt-3 border-t border-slate-700">
-                        <div className="bg-slate-900/50 rounded-lg p-3">
+                      <div className="mt-3 pt-3 border-t border-slate-200">
+                        <div className="bg-white/80 rounded-lg p-3">
                           <p className="text-slate-200 text-xs mb-2">📝 Payment Details</p>
                           {(order.payment_details.transaction_id || order.payment_details.user_transaction_id) && (
                             <div className="flex items-center justify-between mb-2">
-                              <span className="text-slate-300 text-xs">Transaction ID:</span>
+                              <span className="text-slate-700 text-xs">Transaction ID:</span>
                               <span className="text-yellow-400 font-mono text-sm font-bold">
                                 {order.payment_details.transaction_id || order.payment_details.user_transaction_id}
                               </span>
@@ -1673,13 +1673,13 @@ const Level5HelperDashboard = () => {
                           )}
                           {order.payment_details.account_name && (
                             <div className="flex items-center justify-between mb-1">
-                              <span className="text-slate-300 text-xs">Paid to:</span>
+                              <span className="text-slate-700 text-xs">Paid to:</span>
                               <span className="text-white text-xs">{order.payment_details.account_name}</span>
                             </div>
                           )}
                           {order.payment_details.account_number && (
                             <div className="flex items-center justify-between">
-                              <span className="text-slate-300 text-xs">Number:</span>
+                              <span className="text-slate-700 text-xs">Number:</span>
                               <span className="text-green-400 text-xs font-mono">{order.payment_details.account_number}</span>
                             </div>
                           )}
@@ -1689,7 +1689,7 @@ const Level5HelperDashboard = () => {
 
                     {/* View Payment Proof if available */}
                     {order.user_payment_proof && (
-                      <div className="mt-3 pt-3 border-t border-slate-700">
+                      <div className="mt-3 pt-3 border-t border-slate-200">
                         <Button
                           size="sm"
                           variant="outline"
@@ -1704,7 +1704,7 @@ const Level5HelperDashboard = () => {
 
                     {/* Process Order Buttons for Pending */}
                     {(order.status === 'pending' || order.status === 'gateway_pending') && (
-                      <div className="flex gap-2 mt-3 pt-3 border-t border-slate-700">
+                      <div className="flex gap-2 mt-3 pt-3 border-t border-slate-200">
                         <Button
                           size="sm"
                           className="flex-1 bg-green-500 hover:bg-green-600 text-white text-xs"
@@ -1840,11 +1840,11 @@ const Level5HelperDashboard = () => {
             </div>
             
             {countryPaymentMethods.length === 0 ? (
-              <Card className="bg-slate-800/50 border-slate-700">
+              <Card className="bg-slate-50 border-slate-200">
                 <CardContent className="p-8 text-center">
-                  <CreditCard className="w-12 h-12 mx-auto text-slate-300 mb-3" />
+                  <CreditCard className="w-12 h-12 mx-auto text-slate-700 mb-3" />
                   <p className="text-slate-200">No payment methods added</p>
-                  <p className="text-xs text-slate-300 mt-1">Add payment methods for your assigned countries</p>
+                  <p className="text-xs text-slate-700 mt-1">Add payment methods for your assigned countries</p>
                   <Button 
                     onClick={() => setShowCountryPaymentDialog(true)}
                     className="mt-4 bg-emerald-500 hover:bg-emerald-600"
@@ -1863,11 +1863,11 @@ const Level5HelperDashboard = () => {
                   return acc;
                 }, {} as Record<string, CountryPaymentMethod[]>)
               ).map(([country, methods]) => (
-                <Card key={country} className="bg-slate-800/50 border-slate-700">
+                <Card key={country} className="bg-slate-50 border-slate-200">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm text-white flex items-center gap-2">
                       🌍 {country}
-                      <Badge className="bg-slate-600 text-xs">{methods.length} methods</Badge>
+                      <Badge className="bg-slate-200 text-xs">{methods.length} methods</Badge>
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
@@ -1876,7 +1876,7 @@ const Level5HelperDashboard = () => {
                       return (
                         <div 
                           key={method.id}
-                          className="flex items-center gap-3 p-3 bg-slate-700/50 rounded-xl"
+                          className="flex items-center gap-3 p-3 bg-slate-100 rounded-xl"
                         >
                           <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center bg-gradient-to-r", config.color)}>
                             <span className="text-lg">{config.icon}</span>
@@ -1914,11 +1914,11 @@ const Level5HelperDashboard = () => {
           {/* Withdrawals Tab */}
           <TabsContent value="withdrawals" className="mt-4 space-y-3">
             {withdrawalRequests.length === 0 ? (
-              <Card className="bg-slate-800/50 border-slate-700">
+              <Card className="bg-slate-50 border-slate-200">
                 <CardContent className="p-8 text-center">
-                  <Banknote className="w-12 h-12 mx-auto text-slate-300 mb-3" />
+                  <Banknote className="w-12 h-12 mx-auto text-slate-700 mb-3" />
                   <p className="text-slate-200">No withdrawal requests yet</p>
-                  <p className="text-xs text-slate-300 mt-1">Requests will appear here when agencies submit withdrawals</p>
+                  <p className="text-xs text-slate-700 mt-1">Requests will appear here when agencies submit withdrawals</p>
                 </CardContent>
               </Card>
             ) : (
@@ -1929,14 +1929,14 @@ const Level5HelperDashboard = () => {
                 return (
                   <Card 
                     key={request.id}
-                    className="bg-slate-800/50 border-slate-700 cursor-pointer hover:bg-slate-800/70 transition-all"
+                    className="bg-slate-50 border-slate-200 cursor-pointer hover:bg-slate-50 transition-all"
                     onClick={() => { setSelectedWithdrawal(request); setShowWithdrawalDialog(true); }}
                   >
                     <CardContent className="p-4">
                       <div className="flex items-center gap-3">
-                        <Avatar className="w-12 h-12 border-2 border-slate-600">
+                        <Avatar className="w-12 h-12 border-2 border-slate-300">
                           <AvatarImage src={request.agency?.logo_url || request.host?.avatar_url} />
-                          <AvatarFallback className="bg-slate-700">
+                          <AvatarFallback className="bg-slate-200">
                             {request.agency ? <Building2 className="w-5 h-5" /> : <User className="w-5 h-5" />}
                           </AvatarFallback>
                         </Avatar>
@@ -1960,11 +1960,11 @@ const Level5HelperDashboard = () => {
                             {request.currency_code} {request.local_amount?.toLocaleString()}
                           </p>
                         </div>
-                        <ChevronRight className="w-5 h-5 text-slate-300" />
+                        <ChevronRight className="w-5 h-5 text-slate-700" />
                       </div>
                       
                       {request.diamond_reward > 0 && (
-                        <div className="mt-2 pt-2 border-t border-slate-700 flex items-center gap-2">
+                        <div className="mt-2 pt-2 border-t border-slate-200 flex items-center gap-2">
                           <Gem className="w-4 h-4 text-cyan-400" />
                           <span className="text-xs text-cyan-400">+{request.diamond_reward.toLocaleString()} diamonds reward</span>
                         </div>
@@ -1987,11 +1987,11 @@ const Level5HelperDashboard = () => {
             </Button>
 
             {paymentMethods.length === 0 ? (
-              <Card className="bg-slate-800/50 border-slate-700">
+              <Card className="bg-slate-50 border-slate-200">
                 <CardContent className="p-8 text-center">
-                  <CreditCard className="w-12 h-12 mx-auto text-slate-300 mb-3" />
+                  <CreditCard className="w-12 h-12 mx-auto text-slate-700 mb-3" />
                   <p className="text-slate-200">No payment methods added</p>
-                  <p className="text-xs text-slate-300 mt-1">Add your payment methods to receive payments</p>
+                  <p className="text-xs text-slate-700 mt-1">Add your payment methods to receive payments</p>
                 </CardContent>
               </Card>
             ) : (
@@ -1999,7 +1999,7 @@ const Level5HelperDashboard = () => {
                 const typeConfig = getPaymentTypeConfig(method.payment_type);
                 
                 return (
-                  <Card key={method.id} className="bg-slate-800/50 border-slate-700">
+                  <Card key={method.id} className="bg-slate-50 border-slate-200">
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
                         <div className={cn(
@@ -2027,7 +2027,7 @@ const Level5HelperDashboard = () => {
                                 navigator.clipboard.writeText(method.account_name);
                                 toast({ title: "Copied! ✅", description: "Account name copied" });
                               }}
-                              className="p-1 rounded bg-slate-700 hover:bg-slate-600 transition-colors flex-shrink-0"
+                              className="p-1 rounded bg-slate-200 hover:bg-slate-200 transition-colors flex-shrink-0"
                             >
                               <Copy className="w-3 h-3 text-emerald-400" />
                             </button>
@@ -2035,13 +2035,13 @@ const Level5HelperDashboard = () => {
                           
                           {/* Account Number with Copy */}
                           <div className="flex items-center justify-between gap-2">
-                            <p className="text-xs text-slate-300 font-mono truncate">{method.account_number}</p>
+                            <p className="text-xs text-slate-700 font-mono truncate">{method.account_number}</p>
                             <button
                               onClick={() => {
                                 navigator.clipboard.writeText(method.account_number);
                                 toast({ title: "Copied! ✅", description: "Account number copied" });
                               }}
-                              className="p-1 rounded bg-slate-700 hover:bg-slate-600 transition-colors flex-shrink-0"
+                              className="p-1 rounded bg-slate-200 hover:bg-slate-200 transition-colors flex-shrink-0"
                             >
                               <Copy className="w-3 h-3 text-emerald-400" />
                             </button>
@@ -2076,11 +2076,11 @@ const Level5HelperDashboard = () => {
             </div>
             
             {completedOrders.length === 0 && completedWithdrawals.length === 0 ? (
-              <Card className="bg-slate-800/50 border-slate-700">
+              <Card className="bg-slate-50 border-slate-200">
                 <CardContent className="p-8 text-center">
-                  <Clock className="w-12 h-12 mx-auto text-slate-300 mb-3" />
+                  <Clock className="w-12 h-12 mx-auto text-slate-700 mb-3" />
                   <p className="text-slate-200">No transaction history yet</p>
-                  <p className="text-xs text-slate-300 mt-1">
+                  <p className="text-xs text-slate-700 mt-1">
                     Your processing, completed, and rejected records will appear here
                   </p>
                 </CardContent>
@@ -2123,12 +2123,12 @@ const Level5HelperDashboard = () => {
                       const config = statusConfig[displayStatus as keyof typeof statusConfig] || statusConfig.processing;
 
                       return (
-                        <Card key={withdrawal.id} className={cn("bg-slate-800/50 border-slate-700 border-l-4", config.card)}>
+                        <Card key={withdrawal.id} className={cn("bg-slate-50 border-slate-200 border-l-4", config.card)}>
                           <CardContent className="p-3">
                             <div className="flex items-center gap-3">
-                              <Avatar className="w-10 h-10 border-2 border-slate-600">
+                              <Avatar className="w-10 h-10 border-2 border-slate-300">
                                 <AvatarImage src={withdrawal.agency?.logo_url} />
-                                <AvatarFallback className="bg-slate-700 text-orange-400">
+                                <AvatarFallback className="bg-slate-200 text-orange-400">
                                   <Building2 className="w-4 h-4" />
                                 </AvatarFallback>
                               </Avatar>
@@ -2153,7 +2153,7 @@ const Level5HelperDashboard = () => {
                                   {helperReward.toLocaleString()} 💎
                                 </p>
                                 <p className="text-cyan-400 text-[10px]">Net diamonds after admin fee</p>
-                                <p className="text-slate-300 text-[10px]">
+                                <p className="text-slate-700 text-[10px]">
                                   {format(new Date(withdrawal.processed_at || withdrawal.requested_at), 'dd MMM')}
                                 </p>
                               </div>
@@ -2170,7 +2170,7 @@ const Level5HelperDashboard = () => {
                   <div className="space-y-2">
                     <p className="text-xs text-blue-400 font-medium mt-4">📦 Payroll Orders</p>
                     {completedOrders.map((order) => (
-                      <Card key={order.id} className="bg-slate-800/50 border-slate-700 border-l-4 border-l-green-500">
+                      <Card key={order.id} className="bg-slate-50 border-slate-200 border-l-4 border-l-green-500">
                         <CardContent className="p-3">
                           <div className="flex items-center gap-3">
                             <Avatar className="w-10 h-10 border-2 border-blue-500">
@@ -2193,7 +2193,7 @@ const Level5HelperDashboard = () => {
                               <p className="text-slate-200 text-xs">
                                 {order.currency_code === 'BDT' ? 'Tk ' : '$'}{order.amount_local?.toFixed(0)}
                               </p>
-                              <p className="text-slate-300 text-[10px]">
+                              <p className="text-slate-700 text-[10px]">
                                 {order.processed_at ? format(new Date(order.processed_at), 'dd MMM') : ''}
                               </p>
                             </div>
@@ -2220,11 +2220,11 @@ const Level5HelperDashboard = () => {
             </div>
             
             {adminMessages.length === 0 ? (
-              <Card className="bg-slate-800/50 border-slate-700">
+              <Card className="bg-slate-50 border-slate-200">
                 <CardContent className="p-8 text-center">
-                  <Bell className="w-12 h-12 mx-auto text-slate-300 mb-3" />
+                  <Bell className="w-12 h-12 mx-auto text-slate-700 mb-3" />
                   <p className="text-slate-200">No messages from admin</p>
-                  <p className="text-xs text-slate-300 mt-1">
+                  <p className="text-xs text-slate-700 mt-1">
                     Important announcements will appear here
                   </p>
                 </CardContent>
@@ -2235,7 +2235,7 @@ const Level5HelperDashboard = () => {
                   key={msg.id} 
                   onClick={() => openMessageDetail(msg)}
                   className={cn(
-                    "bg-slate-800/50 border-slate-700 cursor-pointer hover:bg-slate-800 transition-colors",
+                    "bg-slate-50 border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors",
                     !msg.is_read && "border-l-4 border-l-purple-500",
                     msg.priority === 'urgent' && "border-l-4 border-l-red-500",
                     msg.priority === 'high' && "border-l-4 border-l-orange-500"
@@ -2274,7 +2274,7 @@ const Level5HelperDashboard = () => {
                         </div>
                         <p className="text-xs text-slate-200 mt-1 line-clamp-2">{msg.message}</p>
                         <div className="flex items-center justify-between mt-1">
-                          <p className="text-[10px] text-slate-300">
+                          <p className="text-[10px] text-slate-700">
                             {format(new Date(msg.created_at), 'dd MMM yyyy, HH:mm')}
                           </p>
                           <div className="flex items-center gap-1 text-purple-400">
@@ -2294,9 +2294,9 @@ const Level5HelperDashboard = () => {
 
       {/* Message Detail & Reply Dialog */}
       <Dialog open={!!selectedMessage} onOpenChange={(open) => !open && setSelectedMessage(null)}>
-        <DialogContent className="bg-slate-900 border-slate-700 w-[calc(100%-2rem)] max-w-md max-h-[90vh] flex flex-col p-0 rounded-2xl mx-auto">
+        <DialogContent className="bg-white border-slate-200 w-[calc(100%-2rem)] max-w-md max-h-[90vh] flex flex-col p-0 rounded-2xl mx-auto">
           {/* Compact Header */}
-          <DialogHeader className="px-4 pt-4 pb-3 border-b border-slate-700/50">
+          <DialogHeader className="px-4 pt-4 pb-3 border-b border-slate-200">
             <div className="flex items-center gap-3">
               <div className={cn(
                 "w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0",
@@ -2320,7 +2320,7 @@ const Level5HelperDashboard = () => {
                   {selectedMessage?.priority === 'high' && (
                     <Badge className="bg-orange-500 text-[9px] px-1.5 py-0">Important</Badge>
                   )}
-                  <span className="text-[10px] text-slate-300">
+                  <span className="text-[10px] text-slate-700">
                     {selectedMessage && format(new Date(selectedMessage.created_at), 'dd MMM yyyy, HH:mm')}
                   </span>
                 </div>
@@ -2335,7 +2335,7 @@ const Level5HelperDashboard = () => {
               <div className="flex items-center gap-1.5 mb-1.5">
                 <Crown className="w-3 h-3 text-purple-400" />
                 <span className="text-[10px] text-purple-400 font-medium">Admin</span>
-                <span className="text-[10px] text-slate-300">
+                <span className="text-[10px] text-slate-700">
                   {selectedMessage && format(new Date(selectedMessage.created_at), 'dd MMM, HH:mm')}
                 </span>
               </div>
@@ -2371,7 +2371,7 @@ const Level5HelperDashboard = () => {
                       )}>
                         {reply.sender_type === 'helper' ? 'You' : 'Admin'}
                       </span>
-                      <span className="text-[10px] text-slate-300">
+                      <span className="text-[10px] text-slate-700">
                         {format(new Date(reply.created_at), 'dd MMM, HH:mm')}
                       </span>
                     </div>
@@ -2387,7 +2387,7 @@ const Level5HelperDashboard = () => {
                           <img 
                             src={reply.screenshot_url} 
                             alt="Screenshot" 
-                            className="w-full max-w-[200px] h-auto max-h-32 rounded-lg border border-slate-600 hover:opacity-80 transition-opacity object-cover"
+                            className="w-full max-w-[200px] h-auto max-h-32 rounded-lg border border-slate-300 hover:opacity-80 transition-opacity object-cover"
                           />
                         </a>
                       </div>
@@ -2399,14 +2399,14 @@ const Level5HelperDashboard = () => {
           </div>
 
           {/* Reply Input - Fixed at Bottom */}
-          <div className="p-3 border-t border-slate-700 bg-slate-900/80">
+          <div className="p-3 border-t border-slate-200 bg-white/95">
             {/* Screenshot Preview */}
             {replyScreenshot && (
               <div className="relative inline-block mb-2">
                 <img 
                   src={URL.createObjectURL(replyScreenshot)} 
                   alt="Screenshot preview" 
-                  className="h-16 rounded-lg border border-slate-600"
+                  className="h-16 rounded-lg border border-slate-300"
                 />
                 <Button
                   size="sm"
@@ -2423,7 +2423,7 @@ const Level5HelperDashboard = () => {
               value={replyContent}
               onChange={(e) => setReplyContent(e.target.value)}
               placeholder="Type your reply..."
-              className="bg-slate-800 border-slate-700 text-white text-sm resize-none min-h-[44px] max-h-[80px] mb-2"
+              className="bg-slate-100 border-slate-200 text-white text-sm resize-none min-h-[44px] max-h-[80px] mb-2"
               rows={1}
             />
             
@@ -2444,7 +2444,7 @@ const Level5HelperDashboard = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => document.getElementById('reply-screenshot')?.click()}
-                  className="border-slate-600 text-slate-300 hover:bg-slate-800 h-9 text-xs"
+                  className="border-slate-300 text-slate-700 hover:bg-slate-100 h-9 text-xs"
                 >
                   <ImagePlus className="w-3.5 h-3.5 mr-1" />
                   Add Screenshot
@@ -2472,19 +2472,19 @@ const Level5HelperDashboard = () => {
 
       {/* Add Payment Method Dialog */}
       <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
-        <DialogContent className="bg-slate-900 border-slate-700 max-w-md">
+        <DialogContent className="bg-white border-slate-200 max-w-md">
           <DialogHeader>
             <DialogTitle className="text-white">Add Payment Method</DialogTitle>
           </DialogHeader>
           
           <div className="space-y-4">
             <div>
-              <Label className="text-slate-300">Country *</Label>
+              <Label className="text-slate-700">Country *</Label>
               <Select value={selectedPaymentCountry} onValueChange={setSelectedPaymentCountry}>
-                <SelectTrigger className="bg-slate-800 border-slate-700 text-white mt-1">
+                <SelectTrigger className="bg-slate-100 border-slate-200 text-white mt-1">
                   <SelectValue placeholder="Select country" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700">
+                <SelectContent className="bg-slate-100 border-slate-200">
                   {assignedCountries.length > 0 ? (
                     assignedCountries.map((code) => {
                       const rate = currencyRates.find(r => r.country_code === code);
@@ -2504,12 +2504,12 @@ const Level5HelperDashboard = () => {
             </div>
 
             <div>
-              <Label className="text-slate-300">Payment Type</Label>
+              <Label className="text-slate-700">Payment Type</Label>
               <Select value={paymentType} onValueChange={setPaymentType}>
-                <SelectTrigger className="bg-slate-800 border-slate-700 text-white mt-1">
+                <SelectTrigger className="bg-slate-100 border-slate-200 text-white mt-1">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700">
+                <SelectContent className="bg-slate-100 border-slate-200">
                   {availablePaymentMethods.map((method) => {
                     const config = getPaymentTypeConfig(method.method_type);
                     return (
@@ -2526,33 +2526,33 @@ const Level5HelperDashboard = () => {
             </div>
 
             <div>
-              <Label className="text-slate-300">Account Name *</Label>
+              <Label className="text-slate-700">Account Name *</Label>
               <Input
                 value={accountName}
                 onChange={(e) => setAccountName(e.target.value)}
                 placeholder="Enter account holder name"
-                className="bg-slate-800 border-slate-700 text-white mt-1"
+                className="bg-slate-100 border-slate-200 text-white mt-1"
               />
             </div>
 
             <div>
-              <Label className="text-slate-300">Account Number *</Label>
+              <Label className="text-slate-700">Account Number *</Label>
               <Input
                 value={accountNumber}
                 onChange={(e) => setAccountNumber(e.target.value)}
                 placeholder="Enter account number"
-                className="bg-slate-800 border-slate-700 text-white mt-1"
+                className="bg-slate-100 border-slate-200 text-white mt-1"
               />
             </div>
 
             {paymentType === 'bank' && (
               <div>
-                <Label className="text-slate-300">Bank Name</Label>
+                <Label className="text-slate-700">Bank Name</Label>
                 <Input
                   value={bankName}
                   onChange={(e) => setBankName(e.target.value)}
                   placeholder="Enter bank name"
-                  className="bg-slate-800 border-slate-700 text-white mt-1"
+                  className="bg-slate-100 border-slate-200 text-white mt-1"
                 />
               </div>
             )}
@@ -2566,7 +2566,7 @@ const Level5HelperDashboard = () => {
                   id="is-merchant-legacy"
                   checked={isMerchant}
                   onChange={(e) => setIsMerchant(e.target.checked)}
-                  className="w-4 h-4 rounded border-slate-600"
+                  className="w-4 h-4 rounded border-slate-300"
                 />
                 <Label htmlFor="is-merchant-legacy" className="text-amber-300 font-medium text-sm cursor-pointer">
                   ⚡ This is a Merchant Account (Auto-Verify)
@@ -2574,12 +2574,12 @@ const Level5HelperDashboard = () => {
               </div>
               {isMerchant && (
                 <div className="mt-2">
-                  <Label className="text-slate-300 text-xs">Merchant Number / API ID</Label>
+                  <Label className="text-slate-700 text-xs">Merchant Number / API ID</Label>
                   <Input
                     value={merchantNumber}
                     onChange={(e) => setMerchantNumber(e.target.value)}
                     placeholder="Enter merchant number"
-                    className="bg-slate-800 border-amber-500/30 text-white mt-1"
+                    className="bg-slate-100 border-amber-500/30 text-white mt-1"
                   />
                   <p className="text-xs text-amber-400/70 mt-1">
                     Payments to this merchant will be auto-verified
@@ -2591,7 +2591,7 @@ const Level5HelperDashboard = () => {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowPaymentDialog(false)} className="border-slate-700">
+            <Button variant="outline" onClick={() => setShowPaymentDialog(false)} className="border-slate-200">
               Cancel
             </Button>
             <Button 
@@ -2608,7 +2608,7 @@ const Level5HelperDashboard = () => {
 
       {/* Withdrawal Detail Dialog */}
       <Dialog open={showWithdrawalDialog} onOpenChange={setShowWithdrawalDialog}>
-        <DialogContent className="bg-slate-900 border-slate-700 max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-white border-slate-200 max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white">Withdrawal Details</DialogTitle>
           </DialogHeader>
@@ -2635,12 +2635,12 @@ const Level5HelperDashboard = () => {
               </div>
 
               {/* Agency/Host Info */}
-              <Card className="bg-slate-800/50 border-slate-700">
+              <Card className="bg-slate-50 border-slate-200">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
                     <Avatar className="w-12 h-12">
                       <AvatarImage src={selectedWithdrawal.agency?.logo_url || selectedWithdrawal.host?.avatar_url} />
-                      <AvatarFallback className="bg-slate-700">
+                      <AvatarFallback className="bg-slate-200">
                         {selectedWithdrawal.agency ? <Building2 className="w-5 h-5" /> : <User className="w-5 h-5" />}
                       </AvatarFallback>
                     </Avatar>
@@ -2657,7 +2657,7 @@ const Level5HelperDashboard = () => {
               </Card>
 
               {/* Status */}
-              <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-xl">
+              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
                 <span className="text-slate-200">Status</span>
                 <Badge className={cn("text-white", getStatusBadge(selectedWithdrawal.status).color)}>
                   {getStatusBadge(selectedWithdrawal.status).label}
@@ -2668,12 +2668,12 @@ const Level5HelperDashboard = () => {
               {selectedWithdrawal.status === 'pending' && (
                 <>
                   <div>
-                    <Label className="text-slate-300">Notes (Optional)</Label>
+                    <Label className="text-slate-700">Notes (Optional)</Label>
                     <Textarea
                       value={helperNotes}
                       onChange={(e) => setHelperNotes(e.target.value)}
                       placeholder="Add any notes..."
-                      className="bg-slate-800 border-slate-700 text-white mt-1"
+                      className="bg-slate-100 border-slate-200 text-white mt-1"
                       rows={2}
                     />
                   </div>
@@ -2692,7 +2692,7 @@ const Level5HelperDashboard = () => {
               {selectedWithdrawal.status === 'paid' && (
                 <>
                   <div>
-                    <Label className="text-slate-300">Upload Payment Screenshot *</Label>
+                    <Label className="text-slate-700">Upload Payment Screenshot *</Label>
                     <div className="mt-2">
                       <input
                         type="file"
@@ -2703,7 +2703,7 @@ const Level5HelperDashboard = () => {
                       />
                       <label 
                         htmlFor="screenshot-upload"
-                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-600 rounded-xl cursor-pointer hover:border-cyan-500 transition-colors"
+                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 rounded-xl cursor-pointer hover:border-cyan-500 transition-colors"
                       >
                         {screenshotFile ? (
                           <div className="text-center">
@@ -2712,7 +2712,7 @@ const Level5HelperDashboard = () => {
                           </div>
                         ) : (
                           <div className="text-center">
-                            <Camera className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                            <Camera className="w-8 h-8 text-slate-700 mx-auto mb-2" />
                             <p className="text-sm text-slate-200">Click to upload screenshot</p>
                           </div>
                         )}
@@ -2721,12 +2721,12 @@ const Level5HelperDashboard = () => {
                   </div>
 
                   <div>
-                    <Label className="text-slate-300">Notes (Optional)</Label>
+                    <Label className="text-slate-700">Notes (Optional)</Label>
                     <Textarea
                       value={helperNotes}
                       onChange={(e) => setHelperNotes(e.target.value)}
                       placeholder="Add any notes..."
-                      className="bg-slate-800 border-slate-700 text-white mt-1"
+                      className="bg-slate-100 border-slate-200 text-white mt-1"
                       rows={2}
                     />
                   </div>
@@ -2763,7 +2763,7 @@ const Level5HelperDashboard = () => {
 
               {selectedWithdrawal.payment_screenshot_url && (
                 <div>
-                  <Label className="text-slate-300">Payment Screenshot</Label>
+                  <Label className="text-slate-700">Payment Screenshot</Label>
                   <div className="mt-2 rounded-xl overflow-hidden">
                     <img 
                       src={selectedWithdrawal.payment_screenshot_url} 
@@ -2780,19 +2780,19 @@ const Level5HelperDashboard = () => {
 
       {/* Country Payment Method Dialog */}
       <Dialog open={showCountryPaymentDialog} onOpenChange={setShowCountryPaymentDialog}>
-        <DialogContent className="bg-slate-900 border-slate-700 max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-white border-slate-200 max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white">Add Country Payment Method</DialogTitle>
           </DialogHeader>
           
           <div className="space-y-4">
             <div>
-              <Label className="text-slate-300">Select Country *</Label>
+              <Label className="text-slate-700">Select Country *</Label>
               <Select value={selectedCountry} onValueChange={setSelectedCountry}>
-                <SelectTrigger className="bg-slate-800 border-slate-700 text-white mt-1">
+                <SelectTrigger className="bg-slate-100 border-slate-200 text-white mt-1">
                   <SelectValue placeholder="Choose a country..." />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700 max-h-60">
+                <SelectContent className="bg-slate-100 border-slate-200 max-h-60">
                   {[
                     { code: 'BD', name: '🇧🇩 Bangladesh', currency: 'BDT' },
                     { code: 'IN', name: '🇮🇳 India', currency: 'INR' },
@@ -2884,12 +2884,12 @@ const Level5HelperDashboard = () => {
             </div>
 
             <div>
-              <Label className="text-slate-300">Payment Method Type *</Label>
+              <Label className="text-slate-700">Payment Method Type *</Label>
               <Select value={paymentType} onValueChange={setPaymentType}>
-                <SelectTrigger className="bg-slate-800 border-slate-700 text-white mt-1">
+                <SelectTrigger className="bg-slate-100 border-slate-200 text-white mt-1">
                   <SelectValue placeholder={selectedCountry ? "Select payment method..." : "Select a country first"} />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700 max-h-72">
+                <SelectContent className="bg-slate-100 border-slate-200 max-h-72">
                   {/* ═══ AUTO PAYMENT GATEWAYS — country specific (from payment_gateways table) ═══ */}
                   {countryGateways.filter(g => g.is_integrated).length > 0 && (
                     <div className="px-2 py-1 text-[10px] text-amber-400 font-bold uppercase tracking-wider">
@@ -2953,36 +2953,36 @@ const Level5HelperDashboard = () => {
 
             {!['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType) && (
               <div>
-                <Label className="text-slate-300">Account Holder Name *</Label>
+                <Label className="text-slate-700">Account Holder Name *</Label>
                 <Input
                   value={accountName}
                   onChange={(e) => setAccountName(e.target.value)}
                   placeholder="Enter account holder name"
-                  className="bg-slate-800 border-slate-700 text-white mt-1"
+                  className="bg-slate-100 border-slate-200 text-white mt-1"
                 />
               </div>
             )}
 
             {!['zinipay', 'sslcommerz', 'aamarpay'].includes(paymentType) && (
               <div>
-                <Label className="text-slate-300">Account Number / Wallet *</Label>
+                <Label className="text-slate-700">Account Number / Wallet *</Label>
                 <Input
                   value={accountNumber}
                   onChange={(e) => setAccountNumber(e.target.value)}
                   placeholder="Enter account number or wallet address"
-                  className="bg-slate-800 border-slate-700 text-white mt-1"
+                  className="bg-slate-100 border-slate-200 text-white mt-1"
                 />
               </div>
             )}
 
             {paymentType === 'bank' && (
               <div>
-                <Label className="text-slate-300">Bank Name</Label>
+                <Label className="text-slate-700">Bank Name</Label>
                 <Input
                   value={bankName}
                   onChange={(e) => setBankName(e.target.value)}
                   placeholder="Enter bank name"
-                  className="bg-slate-800 border-slate-700 text-white mt-1"
+                  className="bg-slate-100 border-slate-200 text-white mt-1"
                 />
               </div>
             )}
@@ -3000,12 +3000,12 @@ const Level5HelperDashboard = () => {
 
                 {/* Display As */}
                 <div>
-                  <Label className="text-slate-300 text-xs">Display As (visible to users) *</Label>
+                  <Label className="text-slate-700 text-xs">Display As (visible to users) *</Label>
                   <Select value={gatewayDisplayMethod} onValueChange={setGatewayDisplayMethod}>
-                    <SelectTrigger className="bg-slate-800 border-emerald-500/30 text-white mt-1">
+                    <SelectTrigger className="bg-slate-100 border-emerald-500/30 text-white mt-1">
                       <SelectValue placeholder="Select method..." />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-slate-700">
+                    <SelectContent className="bg-slate-100 border-slate-200">
                       <SelectItem value="bkash" className="text-white">📱 bKash</SelectItem>
                       <SelectItem value="nagad" className="text-white">💳 Nagad</SelectItem>
                       <SelectItem value="rocket" className="text-white">🚀 Rocket</SelectItem>
@@ -3016,12 +3016,12 @@ const Level5HelperDashboard = () => {
 
                 {/* Personal Number */}
                 <div>
-                  <Label className="text-slate-300 text-xs">Personal Number (visible to users) *</Label>
+                  <Label className="text-slate-700 text-xs">Personal Number (visible to users) *</Label>
                   <Input
                     value={gatewayDisplayNumber}
                     onChange={(e) => setGatewayDisplayNumber(e.target.value)}
                     placeholder="e.g., 01700000000"
-                    className="bg-slate-800 border-emerald-500/30 text-white mt-1"
+                    className="bg-slate-100 border-emerald-500/30 text-white mt-1"
                   />
                 </div>
 
@@ -3030,12 +3030,12 @@ const Level5HelperDashboard = () => {
                   <p className="text-[10px] text-emerald-400/50 mb-2">🔒 ZiniPay Credentials (hidden from users)</p>
                 </div>
                 <div>
-                  <Label className="text-slate-300 text-xs">ZiniPay API Key *</Label>
+                  <Label className="text-slate-700 text-xs">ZiniPay API Key *</Label>
                   <Input
                     value={accountName}
                     onChange={(e) => setAccountName(e.target.value)}
                     placeholder="zp_api_xxxxx"
-                    className="bg-slate-800 border-emerald-500/30 text-white mt-1"
+                    className="bg-slate-100 border-emerald-500/30 text-white mt-1"
                     type="password"
                   />
                 </div>
@@ -3065,21 +3065,21 @@ const Level5HelperDashboard = () => {
                   </p>
 
                   <div>
-                    <Label className="text-slate-300 text-xs">Display As (visible to users) *</Label>
+                    <Label className="text-slate-700 text-xs">Display As (visible to users) *</Label>
                     <Input
                       value={gatewayDisplayMethod}
                       onChange={(e) => setGatewayDisplayMethod(e.target.value)}
                       placeholder={`e.g., ${matched.name}`}
-                      className="bg-slate-800 border-purple-500/30 text-white mt-1"
+                      className="bg-slate-100 border-purple-500/30 text-white mt-1"
                     />
                   </div>
                   <div>
-                    <Label className="text-slate-300 text-xs">Display Number / Account (visible to users) *</Label>
+                    <Label className="text-slate-700 text-xs">Display Number / Account (visible to users) *</Label>
                     <Input
                       value={gatewayDisplayNumber}
                       onChange={(e) => setGatewayDisplayNumber(e.target.value)}
                       placeholder="e.g., merchant phone, UPI ID, etc."
-                      className="bg-slate-800 border-purple-500/30 text-white mt-1"
+                      className="bg-slate-100 border-purple-500/30 text-white mt-1"
                     />
                   </div>
 
@@ -3087,21 +3087,21 @@ const Level5HelperDashboard = () => {
                     <p className="text-[10px] text-purple-400/50 mb-2">🔒 {matched.name} Credentials (hidden from users)</p>
                   </div>
                   <div>
-                    <Label className="text-slate-300 text-xs">API Key / Merchant ID *</Label>
+                    <Label className="text-slate-700 text-xs">API Key / Merchant ID *</Label>
                     <Input
                       value={accountName}
                       onChange={(e) => setAccountName(e.target.value)}
                       placeholder="Enter API key or merchant ID"
-                      className="bg-slate-800 border-purple-500/30 text-white mt-1"
+                      className="bg-slate-100 border-purple-500/30 text-white mt-1"
                     />
                   </div>
                   <div>
-                    <Label className="text-slate-300 text-xs">API Secret / Salt Key *</Label>
+                    <Label className="text-slate-700 text-xs">API Secret / Salt Key *</Label>
                     <Input
                       value={accountNumber}
                       onChange={(e) => setAccountNumber(e.target.value)}
                       placeholder="Enter API secret or salt key"
-                      className="bg-slate-800 border-purple-500/30 text-white mt-1"
+                      className="bg-slate-100 border-purple-500/30 text-white mt-1"
                       type="password"
                     />
                   </div>
@@ -3124,12 +3124,12 @@ const Level5HelperDashboard = () => {
 
                 {/* Display As */}
                 <div>
-                  <Label className="text-slate-300 text-xs">Display As (User will see this) *</Label>
+                  <Label className="text-slate-700 text-xs">Display As (User will see this) *</Label>
                   <Select value={gatewayDisplayMethod} onValueChange={setGatewayDisplayMethod}>
-                    <SelectTrigger className="bg-slate-800 border-cyan-500/30 text-white mt-1">
+                    <SelectTrigger className="bg-slate-100 border-cyan-500/30 text-white mt-1">
                       <SelectValue placeholder="Select display method..." />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-slate-700">
+                    <SelectContent className="bg-slate-100 border-slate-200">
                       <SelectItem value="bkash" className="text-white">📱 bKash</SelectItem>
                       <SelectItem value="nagad" className="text-white">💳 Nagad</SelectItem>
                       <SelectItem value="rocket" className="text-white">🚀 Rocket</SelectItem>
@@ -3140,12 +3140,12 @@ const Level5HelperDashboard = () => {
                 </div>
 
                 <div>
-                  <Label className="text-slate-300 text-xs">Display Number (shown to users) *</Label>
+                  <Label className="text-slate-700 text-xs">Display Number (shown to users) *</Label>
                   <Input
                     value={gatewayDisplayNumber}
                     onChange={(e) => setGatewayDisplayNumber(e.target.value)}
                     placeholder="e.g., 01700000000 (bKash/Nagad number)"
-                    className="bg-slate-800 border-cyan-500/30 text-white mt-1"
+                    className="bg-slate-100 border-cyan-500/30 text-white mt-1"
                   />
                 </div>
 
@@ -3153,23 +3153,23 @@ const Level5HelperDashboard = () => {
                   <p className="text-[10px] text-cyan-400/50 mb-2">🔒 Gateway Credentials (hidden from users)</p>
                 </div>
                 <div>
-                  <Label className="text-slate-300 text-xs">Store ID *</Label>
+                  <Label className="text-slate-700 text-xs">Store ID *</Label>
                   <Input
                     value={accountName}
                     onChange={(e) => setAccountName(e.target.value)}
                     placeholder={paymentType === 'sslcommerz' ? 'e.g., merilivestore' : 'e.g., aamarpaystore'}
-                    className="bg-slate-800 border-cyan-500/30 text-white mt-1"
+                    className="bg-slate-100 border-cyan-500/30 text-white mt-1"
                   />
                 </div>
                 <div>
-                  <Label className="text-slate-300 text-xs">
+                  <Label className="text-slate-700 text-xs">
                     {paymentType === 'sslcommerz' ? 'Store Password *' : 'Signature Key *'}
                   </Label>
                   <Input
                     value={accountNumber}
                     onChange={(e) => setAccountNumber(e.target.value)}
                     placeholder={paymentType === 'sslcommerz' ? 'Enter store password' : 'Enter signature key'}
-                    className="bg-slate-800 border-cyan-500/30 text-white mt-1"
+                    className="bg-slate-100 border-cyan-500/30 text-white mt-1"
                     type="password"
                   />
                 </div>
@@ -3184,26 +3184,26 @@ const Level5HelperDashboard = () => {
             )}
 
             <div>
-              <Label className="text-slate-300">Instructions (Optional)</Label>
+              <Label className="text-slate-700">Instructions (Optional)</Label>
               <Textarea
                 value={methodInstructions}
                 onChange={(e) => setMethodInstructions(e.target.value)}
                 placeholder="Any special instructions for payment..."
-                className="bg-slate-800 border-slate-700 text-white mt-1"
+                className="bg-slate-100 border-slate-200 text-white mt-1"
                 rows={2}
               />
             </div>
 
             {/* Logo Upload */}
             <div>
-              <Label className="text-slate-300">Payment Method Logo (Optional)</Label>
+              <Label className="text-slate-700">Payment Method Logo (Optional)</Label>
               <div className="mt-2 flex items-center gap-4">
                 {paymentLogoFile ? (
                   <div className="relative">
                     <img 
                       src={URL.createObjectURL(paymentLogoFile)} 
                       alt="Logo preview" 
-                      className="w-16 h-16 rounded-lg object-cover border border-slate-600"
+                      className="w-16 h-16 rounded-lg object-cover border border-slate-300"
                     />
                     <button
                       type="button"
@@ -3214,7 +3214,7 @@ const Level5HelperDashboard = () => {
                     </button>
                   </div>
                 ) : (
-                  <label className="flex flex-col items-center justify-center w-16 h-16 border-2 border-dashed border-slate-600 rounded-lg cursor-pointer hover:border-pink-500 transition-colors">
+                  <label className="flex flex-col items-center justify-center w-16 h-16 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-pink-500 transition-colors">
                     <Upload className="w-5 h-5 text-slate-200" />
                     <span className="text-xs text-slate-200 mt-1">Logo</span>
                     <input
@@ -3228,7 +3228,7 @@ const Level5HelperDashboard = () => {
                     />
                   </label>
                 )}
-                <p className="text-xs text-slate-300">
+                <p className="text-xs text-slate-700">
                   Upload a logo for this payment method (PNG, JPG)
                 </p>
               </div>
@@ -3243,7 +3243,7 @@ const Level5HelperDashboard = () => {
                   id="is-merchant-country"
                   checked={isMerchant}
                   onChange={(e) => setIsMerchant(e.target.checked)}
-                  className="w-4 h-4 rounded border-slate-600"
+                  className="w-4 h-4 rounded border-slate-300"
                 />
                 <Label htmlFor="is-merchant-country" className="text-amber-300 font-medium text-sm cursor-pointer">
                   ⚡ This is a Merchant Account (Auto-Verify)
@@ -3251,12 +3251,12 @@ const Level5HelperDashboard = () => {
               </div>
               {isMerchant && (
                 <div className="mt-2">
-                  <Label className="text-slate-300 text-xs">Merchant Number / API ID</Label>
+                  <Label className="text-slate-700 text-xs">Merchant Number / API ID</Label>
                   <Input
                     value={merchantNumber}
                     onChange={(e) => setMerchantNumber(e.target.value)}
                     placeholder="Enter merchant number"
-                    className="bg-slate-800 border-amber-500/30 text-white mt-1"
+                    className="bg-slate-100 border-amber-500/30 text-white mt-1"
                   />
                   <p className="text-xs text-amber-400/70 mt-1">
                     Payments to this merchant will be auto-verified
@@ -3268,7 +3268,7 @@ const Level5HelperDashboard = () => {
           </div>
 
           <DialogFooter className="mt-4">
-            <Button variant="outline" onClick={() => { setShowCountryPaymentDialog(false); resetPaymentForm(); setSelectedCountry(""); setMethodInstructions(""); }} className="border-slate-700">
+            <Button variant="outline" onClick={() => { setShowCountryPaymentDialog(false); resetPaymentForm(); setSelectedCountry(""); setMethodInstructions(""); }} className="border-slate-200">
               Cancel
             </Button>
             <Button 
@@ -3289,7 +3289,7 @@ const Level5HelperDashboard = () => {
           handleCloseAgencyWithdrawalDialog();
         }
       }}>
-        <DialogContent className="bg-slate-900 border-slate-700 max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-white border-slate-200 max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Building2 className="w-5 h-5 text-orange-400" />
@@ -3300,7 +3300,7 @@ const Level5HelperDashboard = () => {
           {selectedAgencyWithdrawal && (
             <div className="space-y-4">
               {/* Agency Info */}
-              <div className="flex items-center gap-3 p-3 bg-slate-800/50 rounded-xl">
+              <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
                 <Avatar className="w-14 h-14 border-2 border-orange-500">
                   <AvatarImage src={selectedAgencyWithdrawal.agency?.logo_url} />
                   <AvatarFallback className="bg-orange-500/20">
@@ -3341,7 +3341,7 @@ const Level5HelperDashboard = () => {
 
               {/* Payment Details - Show Transaction ID and Account Info */}
               {selectedAgencyWithdrawal.payment_details && (
-                <div className="bg-slate-800/50 rounded-xl p-4">
+                <div className="bg-slate-50 rounded-xl p-4">
                   <p className="text-white font-semibold mb-3 flex items-center gap-2">
                     <CreditCard className="w-4 h-4 text-cyan-400" />
                     📝 Payment Details
@@ -3368,7 +3368,7 @@ const Level5HelperDashboard = () => {
                         const flagMap: Record<string, string> = { BD: '🇧🇩', IN: '🇮🇳', PK: '🇵🇰', NP: '🇳🇵', ID: '🇮🇩', PH: '🇵🇭', MY: '🇲🇾', TH: '🇹🇭', VN: '🇻🇳', LK: '🇱🇰', AE: '🇦🇪', SA: '🇸🇦', US: '🇺🇸', GB: '🇬🇧' };
                         const nameMap: Record<string, string> = { BD: 'Bangladesh', IN: 'India', PK: 'Pakistan', NP: 'Nepal', ID: 'Indonesia', PH: 'Philippines', MY: 'Malaysia', TH: 'Thailand', VN: 'Vietnam', LK: 'Sri Lanka', AE: 'UAE', SA: 'Saudi Arabia', US: 'USA', GB: 'UK' };
                         return (
-                          <div className="flex items-center gap-1.5 bg-slate-700/50 px-3 py-1.5 rounded-lg">
+                          <div className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-lg">
                             <span className="text-lg">{flagMap[cc] || '🌍'}</span>
                             <span className="text-white font-bold">{nameMap[cc] || cc || 'Unknown'}</span>
                           </div>
@@ -3414,7 +3414,7 @@ const Level5HelperDashboard = () => {
                     
                     {/* USD Amount */}
                     {(selectedAgencyWithdrawal.payment_details as any)?.usd_amount && (
-                      <div className="flex items-center justify-between bg-slate-900/50 rounded-lg p-2">
+                      <div className="flex items-center justify-between bg-white/80 rounded-lg p-2">
                         <span className="text-slate-200">Payable USD Amount:</span>
                         <span className="text-cyan-400 font-bold">
                           ${resolveNetWithdrawalUsd(selectedAgencyWithdrawal).toFixed(2)}
@@ -3424,7 +3424,7 @@ const Level5HelperDashboard = () => {
 
                     {/* Account Name */}
                     {(selectedAgencyWithdrawal.payment_details as any)?.account_name && (
-                      <div className="flex items-center justify-between bg-slate-900/50 rounded-lg p-2">
+                      <div className="flex items-center justify-between bg-white/80 rounded-lg p-2">
                         <span className="text-slate-200">Paid to:</span>
                         <span className="text-green-400 font-semibold">
                           {(selectedAgencyWithdrawal.payment_details as any).account_name}
@@ -3434,7 +3434,7 @@ const Level5HelperDashboard = () => {
                     
                     {/* Account Number with Copy */}
                     {(selectedAgencyWithdrawal.payment_details as any)?.account_number && (
-                      <div className="flex items-center justify-between bg-slate-900/50 rounded-lg p-2">
+                      <div className="flex items-center justify-between bg-white/80 rounded-lg p-2">
                         <span className="text-slate-200">Number:</span>
                         <div className="flex items-center gap-2">
                           <span className="text-green-400 font-mono font-semibold">
@@ -3455,7 +3455,7 @@ const Level5HelperDashboard = () => {
                     
                     {/* Bank Name if exists */}
                     {(selectedAgencyWithdrawal.payment_details as any)?.bank_name && (
-                      <div className="flex items-center justify-between bg-slate-900/50 rounded-lg p-2">
+                      <div className="flex items-center justify-between bg-white/80 rounded-lg p-2">
                         <span className="text-slate-200">Bank:</span>
                         <span className="text-white font-medium">
                           {(selectedAgencyWithdrawal.payment_details as any).bank_name}
@@ -3465,7 +3465,7 @@ const Level5HelperDashboard = () => {
                     
                     {/* Additional Info */}
                     {(selectedAgencyWithdrawal.payment_details as any)?.additional_info && (
-                      <div className="bg-slate-900/50 rounded-lg p-2">
+                      <div className="bg-white/80 rounded-lg p-2">
                         <span className="text-slate-200 text-xs block mb-1">Additional Info:</span>
                         <span className="text-white text-sm">
                           {(selectedAgencyWithdrawal.payment_details as any).additional_info}
@@ -3478,7 +3478,7 @@ const Level5HelperDashboard = () => {
               
               {/* Agency's Payment Screenshot (if they uploaded one) */}
               {(selectedAgencyWithdrawal.payment_details as any)?.payment_screenshot_url && (
-                <div className="bg-slate-800/50 rounded-xl p-4">
+                <div className="bg-slate-50 rounded-xl p-4">
                   <p className="text-white font-semibold mb-3 flex items-center gap-2">
                     <Eye className="w-4 h-4 text-blue-400" />
                     📸 Agency Payment Screenshot
@@ -3491,7 +3491,7 @@ const Level5HelperDashboard = () => {
                       onClick={() => imageViewer.openImage((selectedAgencyWithdrawal.payment_details as any).payment_screenshot_url)}
                     />
                   </div>
-                  <p className="text-xs text-slate-300 text-center mt-2">Click to view full size</p>
+                  <p className="text-xs text-slate-700 text-center mt-2">Click to view full size</p>
                 </div>
               )}
 
@@ -3505,7 +3505,7 @@ const Level5HelperDashboard = () => {
                 <>
                   {/* Upload Screenshot */}
                   <div>
-                    <Label className="text-slate-300">Upload Payment Screenshot *</Label>
+                    <Label className="text-slate-700">Upload Payment Screenshot *</Label>
                     <div className="mt-2">
                       <input
                         type="file"
@@ -3520,14 +3520,14 @@ const Level5HelperDashboard = () => {
                           "flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-all",
                           screenshotFile 
                             ? "border-green-500 bg-green-500/10" 
-                            : "border-slate-600 hover:border-cyan-500 bg-slate-800/50"
+                            : "border-slate-300 hover:border-cyan-500 bg-slate-50"
                         )}
                       >
                         {screenshotFile ? (
                           <div className="text-center">
                             <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-2" />
                             <p className="text-green-400 text-sm">{screenshotFile.name}</p>
-                            <p className="text-xs text-slate-300">Click to change</p>
+                            <p className="text-xs text-slate-700">Click to change</p>
                           </div>
                         ) : (
                           <div className="text-center">
@@ -3541,26 +3541,26 @@ const Level5HelperDashboard = () => {
 
                   {/* Transaction ID (required) */}
                   <div>
-                    <Label className="text-slate-300">Transaction ID *</Label>
+                    <Label className="text-slate-700">Transaction ID *</Label>
                     <Input
                       value={helperTransactionId}
                       onChange={(e) => setHelperTransactionId(e.target.value)}
                       placeholder="e.g. TRX123456789"
                       maxLength={120}
-                      className="bg-slate-800 border-slate-700 text-white mt-1 font-mono"
+                      className="bg-slate-100 border-slate-200 text-white mt-1 font-mono"
                     />
-                    <p className="text-[10px] text-slate-300 mt-1">Required — paste the payment reference / TX ID (min 4 characters)</p>
+                    <p className="text-[10px] text-slate-700 mt-1">Required — paste the payment reference / TX ID (min 4 characters)</p>
                   </div>
 
                   {/* Notes (optional) */}
                   <div>
-                    <Label className="text-slate-300">Notes (optional)</Label>
+                    <Label className="text-slate-700">Notes (optional)</Label>
                     <Textarea
                       value={helperNotes}
                       onChange={(e) => setHelperNotes(e.target.value)}
                       placeholder="Any additional info for admin..."
                       maxLength={500}
-                      className="bg-slate-800 border-slate-700 text-white mt-1"
+                      className="bg-slate-100 border-slate-200 text-white mt-1"
                       rows={2}
                     />
                   </div>
@@ -3575,7 +3575,7 @@ const Level5HelperDashboard = () => {
                     Submit Payment - Send for Approval
                   </Button>
 
-                  <p className="text-xs text-slate-300 text-center">
+                  <p className="text-xs text-slate-700 text-center">
                     * Agency will receive automatic notification after payment submission
                   </p>
                 </>
@@ -3593,8 +3593,8 @@ const Level5HelperDashboard = () => {
               {/* Payment Screenshot if exists */}
               {selectedAgencyWithdrawal.helper_payment_screenshot && (
                 <div>
-                  <Label className="text-slate-300">Payment Screenshot</Label>
-                  <div className="mt-2 rounded-xl overflow-hidden border border-slate-700">
+                  <Label className="text-slate-700">Payment Screenshot</Label>
+                  <div className="mt-2 rounded-xl overflow-hidden border border-slate-200">
                     <img 
                       src={selectedAgencyWithdrawal.helper_payment_screenshot} 
                       alt="Payment proof" 
