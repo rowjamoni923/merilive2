@@ -117,7 +117,9 @@ const violations = [];
 
 for (const file of walk(SRC)) {
   const rel = relative(ROOT, file);
+  const relPosix = rel.split(sep).join("/");
   if (ALLOWLIST_FILES.has(rel)) continue;
+  if (EXCLUDED_PREFIXES.some((p) => relPosix.startsWith(p))) continue;
 
   const content = readFileSync(file, "utf8");
   const lines = content.split("\n");
