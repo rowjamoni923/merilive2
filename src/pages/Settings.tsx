@@ -894,7 +894,7 @@ const Settings = () => {
       <Dialog open={showLanguageDialog} onOpenChange={setShowLanguageDialog}>
         <DialogContent className="sm:max-w-md max-h-[80vh] bg-white border border-white/10">
           <DialogHeader>
-            <DialogTitle className="text-white text-center">{t("settings.selectLanguage")}</DialogTitle>
+            <DialogTitle className="text-slate-800 text-center">{t("settings.selectLanguage")}</DialogTitle>
             <DialogDescription className="text-slate-700 text-center">
               {t("settings.chooseLanguage")}
             </DialogDescription>
@@ -907,20 +907,20 @@ const Settings = () => {
                   onClick={() => handleLanguageChange(lang.code)}
                   className={`w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all ${
                     selectedLanguage === lang.code
-                      ? "bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-500/50 text-white"
-                      : "bg-slate-50 hover:bg-slate-100 border border-white/5 text-white"
+                      ? "bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-500/50 text-slate-800"
+                      : "bg-slate-50 hover:bg-slate-100 border border-white/5 text-slate-800"
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">{lang.flag}</span>
                     <div className="text-left">
-                      <p className="font-semibold text-white">{lang.displayName}</p>
+                      <p className="font-semibold text-slate-800">{lang.displayName}</p>
                       <p className="text-xs text-slate-600">{lang.name}</p>
                     </div>
                   </div>
                   {selectedLanguage === lang.code && (
                     <div className="w-6 h-6 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                      <Check className="w-4 h-4 text-white" />
+                      <Check className="w-4 h-4 text-slate-800" />
                     </div>
                   )}
                 </button>
@@ -934,7 +934,7 @@ const Settings = () => {
       <Dialog open={showPermissionsDialog} onOpenChange={setShowPermissionsDialog}>
         <DialogContent className="sm:max-w-md bg-white border border-white/10">
           <DialogHeader>
-            <DialogTitle className="text-white text-center">{t("settings.notificationsPermissions")}</DialogTitle>
+            <DialogTitle className="text-slate-800 text-center">{t("settings.notificationsPermissions")}</DialogTitle>
             <DialogDescription className="text-slate-700 text-center">
               {t("settings.managePermissions")}
             </DialogDescription>
@@ -946,7 +946,7 @@ const Settings = () => {
                 onClick={openPermissionSettings}
                 className="w-full rounded-2xl border border-white/10 bg-slate-50 p-3 text-left text-xs text-slate-500 active:scale-[0.98] transition-transform"
               >
-                <p className="font-semibold text-white mb-1">App Permission Settings</p>
+                <p className="font-semibold text-slate-800 mb-1">App Permission Settings</p>
                 <p>Open Android app settings if a permission was blocked before.</p>
               </button>
             )}
@@ -958,7 +958,7 @@ const Settings = () => {
                 </p>
                 <button
                   onClick={() => window.open(window.location.href, '_blank', 'noopener,noreferrer')}
-                  className="w-full h-9 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-semibold"
+                  className="w-full h-9 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 text-slate-800 text-xs font-semibold"
                 >
                   Open in Full Tab
                 </button>
@@ -974,7 +974,7 @@ const Settings = () => {
                   <Bell className="w-5 h-5 text-purple-400" />
                 </div>
                 <div>
-                   <p className="font-semibold text-white">{t("settings.pushNotifications")}</p>
+                   <p className="font-semibold text-slate-800">{t("settings.pushNotifications")}</p>
                    <p className="text-xs text-slate-600">{t("settings.receiveAlerts")}</p>
                 </div>
               </div>
@@ -1001,7 +1001,7 @@ const Settings = () => {
                   <Camera className="w-5 h-5 text-pink-400" />
                 </div>
                 <div>
-                   <p className="font-semibold text-white">{t("settings.cameraAccess")}</p>
+                   <p className="font-semibold text-slate-800">{t("settings.cameraAccess")}</p>
                    <p className="text-xs text-slate-600">{t("settings.forLiveStreaming")}</p>
                 </div>
               </div>
@@ -1028,7 +1028,7 @@ const Settings = () => {
                   <Mic className="w-5 h-5 text-blue-400" />
                 </div>
                 <div>
-                   <p className="font-semibold text-white">{t("settings.microphoneAccess")}</p>
+                   <p className="font-semibold text-slate-800">{t("settings.microphoneAccess")}</p>
                    <p className="text-xs text-slate-600">{t("settings.forAudioStreaming")}</p>
                 </div>
               </div>
@@ -1055,7 +1055,7 @@ const Settings = () => {
                   <MapPin className="w-5 h-5 text-green-400" />
                 </div>
                 <div>
-                   <p className="font-semibold text-white">{t("settings.locationAccess")}</p>
+                   <p className="font-semibold text-slate-800">{t("settings.locationAccess")}</p>
                    <p className="text-xs text-slate-600">{t("settings.showRegionFlag")}</p>
                 </div>
               </div>
@@ -1075,7 +1075,7 @@ const Settings = () => {
           <DialogFooter>
             <Button 
               onClick={() => setShowPermissionsDialog(false)} 
-              className="w-full h-12 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 text-white font-semibold"
+              className="w-full h-12 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 text-slate-800 font-semibold"
             >
               {t("common.done")}
             </Button>

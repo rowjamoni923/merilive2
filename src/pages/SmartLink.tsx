@@ -268,7 +268,7 @@ const SmartLink = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-rose-50 via-purple-800 to-orange-50 flex flex-col items-center justify-center p-6">
         <img src={meriliveLogo} alt="MeriLive" className="w-24 h-24 mb-6 animate-pulse" />
-        <div className="flex items-center gap-3 text-white">
+        <div className="flex items-center gap-3 text-slate-800">
           <Loader2 className="w-6 h-6 animate-spin" />
           <span className="text-lg">Checking your link...</span>
         </div>
@@ -290,7 +290,7 @@ const SmartLink = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-rose-50 via-purple-800 to-orange-50 flex flex-col items-center justify-center p-6 overflow-y-auto overflow-x-hidden">
         <img src={meriliveLogo} alt="MeriLive" className="w-28 h-28 mb-6" />
-        <h1 className="text-3xl font-bold text-white mb-2">MeriLive</h1>
+        <h1 className="text-3xl font-bold text-slate-800 mb-2">MeriLive</h1>
         <p className="text-slate-600 text-center mb-6 max-w-xs">
           Live streaming, video calls, party rooms and more!
         </p>
@@ -304,7 +304,7 @@ const SmartLink = () => {
             </p>
             <div className="flex items-center gap-2">
               <div className="flex-1 bg-white/80 rounded-xl px-4 py-3.5 border border-amber-400/30">
-                <p className="text-white font-mono text-2xl font-bold tracking-widest text-center">
+                <p className="text-slate-800 font-mono text-2xl font-bold tracking-widest text-center">
                   {invitationRef}
                 </p>
               </div>
@@ -323,7 +323,7 @@ const SmartLink = () => {
           {/* Play Store Download - Primary CTA */}
           <Button
             onClick={handleDownload}
-            className="w-full h-14 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white text-lg font-semibold rounded-xl shadow-lg shadow-green-500/30"
+            className="w-full h-14 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-slate-800 text-lg font-semibold rounded-xl shadow-lg shadow-green-500/30"
           >
             <Download className="w-5 h-5 mr-2" />
             Download from Play Store
@@ -333,15 +333,15 @@ const SmartLink = () => {
           <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-amber-200/60 space-y-2.5">
             <p className="text-slate-700 text-xs font-semibold mb-2">📋 How to get rewards:</p>
             <div className="flex items-start gap-2">
-              <span className="w-5 h-5 bg-amber-500 text-white rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">1</span>
+              <span className="w-5 h-5 bg-amber-500 text-slate-800 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">1</span>
               <p className="text-slate-500 text-xs">Copy the referral code above</p>
             </div>
             <div className="flex items-start gap-2">
-              <span className="w-5 h-5 bg-amber-500 text-white rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">2</span>
+              <span className="w-5 h-5 bg-amber-500 text-slate-800 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">2</span>
               <p className="text-slate-500 text-xs">Download & install MeriLive from Play Store</p>
             </div>
             <div className="flex items-start gap-2">
-              <span className="w-5 h-5 bg-amber-500 text-white rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">3</span>
+              <span className="w-5 h-5 bg-amber-500 text-slate-800 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">3</span>
               <p className="text-slate-500 text-xs">Sign up and enter the referral code</p>
             </div>
           </div>
@@ -359,7 +359,7 @@ const SmartLink = () => {
           {/* Already have app */}
           <button
             onClick={tryOpenApp}
-            className="w-full text-center text-slate-500 hover:text-white text-sm py-2 flex items-center justify-center gap-1"
+            className="w-full text-center text-slate-500 hover:text-slate-800 text-sm py-2 flex items-center justify-center gap-1"
           >
             App already installed? Click here
             <ArrowRight className="w-4 h-4" />
@@ -373,7 +373,7 @@ const SmartLink = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-rose-50 via-purple-800 to-orange-50 flex flex-col items-center justify-center p-6">
         <img src={meriliveLogo} alt="MeriLive" className="w-24 h-24 mb-6 animate-pulse" />
-        <div className="flex items-center gap-3 text-white">
+        <div className="flex items-center gap-3 text-slate-800">
           <Loader2 className="w-6 h-6 animate-spin" />
           <span className="text-lg">Opening MeriLive...</span>
         </div>
@@ -385,7 +385,7 @@ const SmartLink = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-purple-800 to-orange-50 flex flex-col items-center justify-center p-6 overflow-y-auto overflow-x-hidden">
       <img src={meriliveLogo} alt="MeriLive" className="w-28 h-28 mb-6" />
-      <h1 className="text-3xl font-bold text-white mb-2">MeriLive</h1>
+      <h1 className="text-3xl font-bold text-slate-800 mb-2">MeriLive</h1>
       <p className="text-slate-600 text-center mb-8 max-w-xs">
         Live streaming, video calls, party rooms and more!
       </p>
@@ -395,7 +395,7 @@ const SmartLink = () => {
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-amber-200/60 mb-6">
             <div className="flex items-center gap-3 mb-2">
               <Smartphone className="w-6 h-6 text-amber-400" />
-              <p className="text-white font-medium">Install the App</p>
+              <p className="text-slate-800 font-medium">Install the App</p>
             </div>
             <p className="text-slate-500 text-sm">
               Download MeriLive app to join via your referral link
@@ -407,7 +407,7 @@ const SmartLink = () => {
               <p className="text-amber-300 text-xs font-medium mb-2">📋 Agency Code — Use in the app</p>
               <div className="flex items-center gap-2">
                 <div className="flex-1 bg-white/80 rounded-xl px-4 py-3 border border-amber-400/20">
-                  <p className="text-white font-mono text-xl font-bold tracking-wider text-center">
+                  <p className="text-slate-800 font-mono text-xl font-bold tracking-wider text-center">
                     {code || rawRef}
                   </p>
                 </div>
@@ -426,7 +426,7 @@ const SmartLink = () => {
 
           <Button
             onClick={handleDownload}
-            className="w-full h-14 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white text-lg font-semibold rounded-xl shadow-lg"
+            className="w-full h-14 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-slate-800 text-lg font-semibold rounded-xl shadow-lg"
           >
             <Download className="w-5 h-5 mr-2" />
             Download from Play Store
@@ -443,7 +443,7 @@ const SmartLink = () => {
 
           <button
             onClick={tryOpenApp}
-            className="w-full text-center text-slate-500 hover:text-white text-sm py-2 flex items-center justify-center gap-1"
+            className="w-full text-center text-slate-500 hover:text-slate-800 text-sm py-2 flex items-center justify-center gap-1"
           >
             App already installed? Click here
             <ArrowRight className="w-4 h-4" />
@@ -454,7 +454,7 @@ const SmartLink = () => {
       {rawRef && !code && resolvedRefType !== "agency" && (
         <div className="mt-8 bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2 border border-amber-200/60">
           <p className="text-slate-500 text-xs">
-            Referral Code: <span className="text-white font-mono font-bold">{rawRef}</span>
+            Referral Code: <span className="text-slate-800 font-mono font-bold">{rawRef}</span>
           </p>
         </div>
       )}

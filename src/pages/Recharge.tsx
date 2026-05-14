@@ -2038,16 +2038,16 @@ const Recharge = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-xl text-white hover:bg-white/20 w-10 h-10"
+              className="rounded-xl text-slate-800 hover:bg-white/20 w-10 h-10"
               onClick={() => navigate(-1)}
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="text-white font-bold text-lg">Diamond Store</h1>
+            <h1 className="text-slate-800 font-bold text-lg">Diamond Store</h1>
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-xl text-white hover:bg-white/20 w-10 h-10"
+              className="rounded-xl text-slate-800 hover:bg-white/20 w-10 h-10"
               onClick={() => navigate('/recharge-history')}
             >
               <FileText className="w-5 h-5" />
@@ -2064,8 +2064,8 @@ const Recharge = () => {
                   <Diamond3DIcon size={24} />
                 </div>
                 <div>
-                  <p className="text-white/85 text-[10px] font-semibold uppercase tracking-wider">Your Balance</p>
-                  <span className="text-xl font-bold text-white">
+                  <p className="text-slate-800/85 text-[10px] font-semibold uppercase tracking-wider">Your Balance</p>
+                  <span className="text-xl font-bold text-slate-800">
                     {formatNumber(currentBalance)}
                   </span>
                 </div>
@@ -2073,8 +2073,8 @@ const Recharge = () => {
               
               {currencyRate && (
                 <div className="bg-white/20 backdrop-blur-sm rounded-lg px-2.5 py-1.5 text-right">
-                  <p className="text-white/85 text-[9px] font-semibold uppercase tracking-wider">Currency</p>
-                  <p className="text-white font-bold text-sm">
+                  <p className="text-slate-800/85 text-[9px] font-semibold uppercase tracking-wider">Currency</p>
+                  <p className="text-slate-800 font-bold text-sm">
                     {currencyRate.currency_symbol} {currencyRate.currency_code}
                   </p>
                 </div>
@@ -2094,7 +2094,7 @@ const Recharge = () => {
                   "flex-1 py-2 px-2 rounded-md text-xs font-semibold transition-all flex items-center justify-center gap-1",
                   selectedTab === tab.id
                     ? "bg-white text-primary shadow-md"
-                    : "text-white/80 hover:text-white hover:bg-white/15"
+                    : "text-slate-800/80 hover:text-slate-800 hover:bg-white/15"
                 )}
               >
                 {tab.icon}
@@ -2288,20 +2288,20 @@ const Recharge = () => {
                           <div className="flex items-center gap-3 p-3">
                             <div className={cn(
                               "w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0",
-                              globalRank <= 3 ? "bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow" : "bg-gray-100 text-slate-700"
+                              globalRank <= 3 ? "bg-gradient-to-br from-amber-400 to-orange-500 text-slate-800 shadow" : "bg-gray-100 text-slate-700"
                             )}>
                               {globalRank <= 3 ? ['🥇','🥈','🥉'][globalRank-1] : `#${globalRank}`}
                             </div>
                             <div className="relative shrink-0">
                               <img src={helper.avatar || '/placeholder.svg'} alt={helper.name} loading="eager" decoding="async" className="w-11 h-11 rounded-xl object-cover ring-2 ring-amber-200" />
-                              <div className={cn("absolute -top-1 -left-1 px-1 py-0.5 rounded text-[8px] font-bold text-white shadow bg-gradient-to-r", levelColors)}>
+                              <div className={cn("absolute -top-1 -left-1 px-1 py-0.5 rounded text-[8px] font-bold text-slate-800 shadow bg-gradient-to-r", levelColors)}>
                                 Lv.{helper.traderLevel}
                               </div>
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-1.5">
                                 <h3 className="font-bold text-gray-800 text-sm truncate">{helper.name}</h3>
-                                <Badge className={cn("text-[8px] font-bold border-0 text-white bg-gradient-to-r px-1.5 py-0", levelColors)}>Trader</Badge>
+                                <Badge className={cn("text-[8px] font-bold border-0 text-slate-800 bg-gradient-to-r px-1.5 py-0", levelColors)}>Trader</Badge>
                               </div>
                               <div className="flex items-center gap-1.5 mt-0.5">
                                 <span className={`text-[10px] font-medium ${helper.isOnline ? 'text-green-500' : 'text-gray-200'}`}>
@@ -2361,7 +2361,7 @@ const Recharge = () => {
                                   href={`https://wa.me/${helper.whatsappNumber.replace(/\D/g, '')}?text=${encodeURIComponent(userAppUid ? `Hi, I want to buy coins. My UID: ${userAppUid}` : 'Hi, I want to buy coins.')}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="flex items-center gap-1 px-2.5 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl text-[11px] font-bold shadow-md hover:shadow-lg transition-all active:scale-95"
+                                  className="flex items-center gap-1 px-2.5 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-slate-800 rounded-xl text-[11px] font-bold shadow-md hover:shadow-lg transition-all active:scale-95"
                                 >
                                   <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="currentColor">
                                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
@@ -2374,7 +2374,7 @@ const Recharge = () => {
                                   const autoMsg = userAppUid ? `Hi, I want to buy coins. My UID: ${userAppUid}` : `Hi, I want to buy coins.`;
                                   navigate(`/chat?user=${helper.id}&autoMessage=${encodeURIComponent(autoMsg)}`);
                                 }}
-                                className="flex items-center gap-1 px-2.5 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl text-[11px] font-bold shadow-md hover:shadow-lg transition-all active:scale-95"
+                                className="flex items-center gap-1 px-2.5 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-800 rounded-xl text-[11px] font-bold shadow-md hover:shadow-lg transition-all active:scale-95"
                               >
                                 <MessageCircle className="w-3.5 h-3.5" />
                                 <span>Chat</span>
@@ -2428,7 +2428,7 @@ const Recharge = () => {
                     <div className="flex-1 text-left">
                       <p className={cn(
                         "font-bold text-[13px]",
-                        selectedPaymentMethod === 'playstore' ? "text-white" : "text-gray-800"
+                        selectedPaymentMethod === 'playstore' ? "text-slate-800" : "text-gray-800"
                       )}>
                         Google Play
                       </p>
@@ -2441,7 +2441,7 @@ const Recharge = () => {
                     </div>
                     {selectedPaymentMethod === 'playstore' && (
                       <div className="w-5 h-5 rounded-full bg-white/25 flex items-center justify-center">
-                        <Check className="w-3 h-3 text-white" />
+                        <Check className="w-3 h-3 text-slate-800" />
                       </div>
                     )}
                   </div>
@@ -2468,7 +2468,7 @@ const Recharge = () => {
                       <div className="flex-1 text-left">
                         <p className={cn(
                           "font-bold text-[13px]",
-                          selectedPaymentMethod === 'stripe' ? "text-white" : "text-gray-800"
+                          selectedPaymentMethod === 'stripe' ? "text-slate-800" : "text-gray-800"
                         )}>
                           {(() => {
                             const cc = userCountryCode?.toUpperCase();
@@ -2489,7 +2489,7 @@ const Recharge = () => {
                       </div>
                       {selectedPaymentMethod === 'stripe' && (
                         <div className="w-5 h-5 rounded-full bg-white/25 flex items-center justify-center">
-                          <Check className="w-3 h-3 text-white" />
+                          <Check className="w-3 h-3 text-slate-800" />
                         </div>
                       )}
                     </div>
@@ -2519,7 +2519,7 @@ const Recharge = () => {
                       <div className="flex-1 text-left">
                         <p className={cn(
                           "font-bold text-[13px]",
-                          selectedPaymentMethod === 'local' ? "text-white" : "text-gray-800"
+                          selectedPaymentMethod === 'local' ? "text-slate-800" : "text-gray-800"
                         )}>
                           Recommend
                         </p>
@@ -2534,7 +2534,7 @@ const Recharge = () => {
                       </div>
                       {selectedPaymentMethod === 'local' && (
                         <div className="w-5 h-5 rounded-full bg-white/25 flex items-center justify-center">
-                          <Check className="w-3 h-3 text-white" />
+                          <Check className="w-3 h-3 text-slate-800" />
                         </div>
                       )}
                     </div>
@@ -2578,7 +2578,7 @@ const Recharge = () => {
                             className={cn(
                               "flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-bold transition-all border-2",
                               isSelected
-                                ? `bg-gradient-to-r ${colors.color} text-white shadow-lg border-transparent`
+                                ? `bg-gradient-to-r ${colors.color} text-slate-800 shadow-lg border-transparent`
                                 : `bg-white ${colors.bg} border-gray-100 text-gray-700 hover:shadow-md`
                             )}
                           >
@@ -2878,7 +2878,7 @@ const Recharge = () => {
                           {pkg.bonus_percentage > 0 && (
                             <div className="absolute -top-1.5 -right-1.5">
                               <div className="w-5 h-5 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md ring-2 ring-white">
-                                <Sparkles className="w-2.5 h-2.5 text-white" />
+                                <Sparkles className="w-2.5 h-2.5 text-slate-800" />
                               </div>
                             </div>
                           )}
@@ -2923,7 +2923,7 @@ const Recharge = () => {
                         disabled={playStoreProcessing || stripeProcessing}
                         className={cn(
                           "w-full py-2.5 rounded-xl text-center font-bold text-[13px] transition-all",
-                          "bg-gradient-to-r from-purple-600 via-fuchsia-600 to-purple-600 text-white",
+                          "bg-gradient-to-r from-purple-600 via-fuchsia-600 to-purple-600 text-slate-800",
                           "shadow-[0_4px_16px_-3px_rgba(147,51,234,0.5)]",
                           "hover:shadow-[0_6px_24px_-3px_rgba(147,51,234,0.6)] hover:brightness-110",
                           isCardProcessing && "opacity-50 cursor-not-allowed"
@@ -2959,7 +2959,7 @@ const Recharge = () => {
       <Dialog open={showGatewayModal} onOpenChange={setShowGatewayModal}>
         <DialogContent className="max-w-md mx-4 rounded-3xl max-h-[85svh] overflow-y-auto overscroll-contain touch-pan-y bg-[#F7F8FA] border-slate-200" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'env(safe-area-inset-bottom)' } as React.CSSProperties}>
           <DialogHeader>
-            <DialogTitle className="text-center text-xl font-bold text-white flex items-center justify-center gap-2">
+            <DialogTitle className="text-center text-xl font-bold text-slate-800 flex items-center justify-center gap-2">
               <Wallet className="w-5 h-5 text-purple-400" />
               Select Payment Method
             </DialogTitle>
@@ -3003,14 +3003,14 @@ const Recharge = () => {
                               e.currentTarget.nextElementSibling?.classList.remove('hidden');
                             }}
                           />
-                          <span className="hidden text-base font-black text-white">{paymentBrandFallback(gateway.name)}</span>
+                          <span className="hidden text-base font-black text-slate-800">{paymentBrandFallback(gateway.name)}</span>
                         </>
                       ) : (
-                        <span className="text-base font-black text-white">{paymentBrandFallback(gateway.name)}</span>
+                        <span className="text-base font-black text-slate-800">{paymentBrandFallback(gateway.name)}</span>
                       )}
                     </div>
                     <div className="flex-1 text-left">
-                      <h3 className="font-bold text-white text-lg">{gateway.name}</h3>
+                      <h3 className="font-bold text-slate-800 text-lg">{gateway.name}</h3>
                       <p className="text-sm text-slate-600 line-clamp-1">{gateway.description}</p>
                       {gateway.fee_percentage > 0 && (
                         <p className="text-xs text-orange-400 mt-0.5">+{gateway.fee_percentage}% fee</p>
@@ -3022,7 +3022,7 @@ const Recharge = () => {
                         ? "border-purple-500 bg-purple-500" 
                         : "border-slate-500 group-hover:border-purple-400"
                     )}>
-                      {isSelected && <Check className="w-4 h-4 text-white" />}
+                      {isSelected && <Check className="w-4 h-4 text-slate-800" />}
                     </div>
                   </button>
                 );
@@ -3052,7 +3052,7 @@ const Recharge = () => {
           resetPaymentForm();
         }
       }}>
-        <DialogContent className="max-w-md mx-4 rounded-3xl max-h-[88svh] overflow-y-auto overscroll-contain touch-pan-y bg-[#F7F8FA] border-slate-200 text-white" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'env(safe-area-inset-bottom)' } as React.CSSProperties}>
+        <DialogContent className="max-w-md mx-4 rounded-3xl max-h-[88svh] overflow-y-auto overscroll-contain touch-pan-y bg-[#F7F8FA] border-slate-200 text-slate-800" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'env(safe-area-inset-bottom)' } as React.CSSProperties}>
           {paymentStep === "form" && selectedGateway && selectedPackage && (
             <>
               <DialogHeader>
@@ -3150,7 +3150,7 @@ const Recharge = () => {
                         <img src={paymentProof} alt="Payment proof" className="w-full h-32 object-cover" />
                         <button
                           onClick={() => setPaymentProof(null)}
-                          className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full"
+                          className="absolute top-2 right-2 bg-red-500 text-slate-800 p-1 rounded-full"
                         >
                           <X className="w-4 h-4" />
                         </button>
@@ -3181,7 +3181,7 @@ const Recharge = () => {
                 <Button
                   onClick={handleSubmitPayment}
                   disabled={!transactionId.trim() || processingPayment}
-                  className="w-full py-6 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold text-lg"
+                  className="w-full py-6 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-slate-800 font-bold text-lg"
                 >
                   Submit Payment for Verification
                 </Button>
@@ -3247,7 +3247,7 @@ const Recharge = () => {
                     <div className="w-9 h-9 rounded-xl bg-purple-500/20 flex items-center justify-center">
                       <CreditCard className="w-5 h-5 text-purple-400" />
                     </div>
-                    <h3 className="text-base font-bold text-white">Secure Payment</h3>
+                    <h3 className="text-base font-bold text-slate-800">Secure Payment</h3>
                   </div>
                   <button type="button" onClick={resetHelperPaymentForm} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
                     <X className="w-4 h-4 text-slate-700" />
@@ -3261,13 +3261,13 @@ const Recharge = () => {
                 <div className="rounded-2xl bg-white/5 border border-white/10 p-3 mb-3">
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Amount</span>
-                    <span className="text-xl font-bold text-white">
+                    <span className="text-xl font-bold text-slate-800">
                       {selectedPackage?.price_usd ? convertToLocalCurrency(selectedPackage.price_usd) : ''}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-slate-600">You'll receive</span>
-                    <span className="text-sm font-semibold text-white">
+                    <span className="text-sm font-semibold text-slate-800">
                       💎 {formatNumber(selectedPackage.coins)} Diamonds
                     </span>
                   </div>
@@ -3298,7 +3298,7 @@ const Recharge = () => {
                         })()}
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-white">{selectedHelperMethod.method_name}</p>
+                        <p className="text-sm font-bold text-slate-800">{selectedHelperMethod.method_name}</p>
                         <p className="text-[10px] text-slate-600">{selectedHelperMethod.additional_info?.gateway_type ? 'Merchant' : (selectedHelperMethod.account_name || selectedHelperMethod.method_name)}</p>
                       </div>
                     </div>
@@ -3315,7 +3315,7 @@ const Recharge = () => {
                       {selectedHelperMethod.method_name} Number
                     </p>
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-lg font-bold text-white tracking-wide break-all">
+                      <p className="text-lg font-bold text-slate-800 tracking-wide break-all">
                         {selectedHelperMethod.account_number}
                       </p>
                       <button
@@ -3341,7 +3341,7 @@ const Recharge = () => {
                     </p>
                   </div>
                   <p className="text-[11px] leading-5 text-slate-500">
-                    👉 You must send the <strong className="text-white">exact amount shown below</strong>, including decimals.
+                    👉 You must send the <strong className="text-slate-800">exact amount shown below</strong>, including decimals.
                   </p>
                   <p className="mt-1 text-[11px] text-slate-700">
                     💰 Amount to send: <strong className="text-amber-300">{selectedPackage?.price_usd ? convertToLocalCurrency(selectedPackage.price_usd) : ''}</strong>
@@ -3399,7 +3399,7 @@ const Recharge = () => {
                       onChange={(e) => setHelperTransactionId(e.target.value)}
                       onInput={(e) => setHelperTransactionId((e.target as HTMLInputElement).value)}
                       placeholder="Enter your TrxID here"
-                      className="mt-1 w-full rounded-xl text-sm h-10 px-3 border border-white/10 bg-white/5 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-400/30"
+                      className="mt-1 w-full rounded-xl text-sm h-10 px-3 border border-white/10 bg-white/5 text-slate-800 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-400/30"
                       autoComplete="off"
                       inputMode="text"
                       style={{ userSelect: 'text', WebkitUserSelect: 'text' } as React.CSSProperties}
@@ -3422,7 +3422,7 @@ const Recharge = () => {
                             <img src={helperPaymentProof} alt="Payment proof" className="w-full h-28 object-cover" />
                             <button
                               onClick={() => setHelperPaymentProof(null)}
-                              className="absolute top-2 right-2 bg-red-500/80 text-white p-1 rounded-full"
+                              className="absolute top-2 right-2 bg-red-500/80 text-slate-800 p-1 rounded-full"
                             >
                               <X className="w-3.5 h-3.5" />
                             </button>

@@ -16,9 +16,9 @@ const PolicyDetail = () => {
               onClick={() => navigate(-1)}
               className="p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors"
             >
-              <ArrowLeft className="w-5 h-5 text-white" />
+              <ArrowLeft className="w-5 h-5 text-slate-800" />
             </button>
-            <h1 className="text-lg font-bold text-white">Policy Not Found</h1>
+            <h1 className="text-lg font-bold text-slate-800">Policy Not Found</h1>
           </div>
         </div>
         <div className="flex-1 flex items-center justify-center">
@@ -37,10 +37,10 @@ const PolicyDetail = () => {
             onClick={() => navigate(-1)}
             className="p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors"
           >
-            <ArrowLeft className="w-5 h-5 text-white" />
+            <ArrowLeft className="w-5 h-5 text-slate-800" />
           </button>
           <div className="flex-1 min-w-0">
-            <h1 className="text-base font-bold text-white truncate">
+            <h1 className="text-base font-bold text-slate-800 truncate">
               {policy.title}
             </h1>
           </div>
@@ -54,7 +54,7 @@ const PolicyDetail = () => {
       >
         {/* Hero */}
         <div className={`bg-gradient-to-r ${policy.accentColor} px-5 py-6`}>
-          <h2 className="text-2xl font-extrabold text-white leading-tight">
+          <h2 className="text-2xl font-extrabold text-slate-800 leading-tight">
             {policy.title}
           </h2>
           <p className="text-slate-600 text-sm mt-1.5">{policy.subtitle}</p>
@@ -72,7 +72,7 @@ const PolicyDetail = () => {
                 {section.icon && (
                   <span className="text-xl">{section.icon}</span>
                 )}
-                <h3 className="text-white font-bold text-[15px]">
+                <h3 className="text-slate-800 font-bold text-[15px]">
                   {section.title}
                 </h3>
               </div>

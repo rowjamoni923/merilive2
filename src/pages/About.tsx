@@ -50,7 +50,7 @@ const About = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-white overflow-x-hidden">
+    <div className="min-h-screen bg-[#0a0a0f] text-slate-800 overflow-x-hidden">
       {/* JSON-LD Structured Data */}
       <script
         type="application/ld+json"
@@ -119,7 +119,7 @@ const About = () => {
           >
             <Button
               size="lg"
-              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-lg px-8 py-6 rounded-2xl shadow-lg shadow-green-500/30"
+              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-slate-800 font-bold text-lg px-8 py-6 rounded-2xl shadow-lg shadow-green-500/30"
               onClick={() => openInApp(PLAY_STORE_URL)}
             >
               <Play className="w-5 h-5 mr-2" />
@@ -128,7 +128,7 @@ const About = () => {
             <Button
               size="lg"
               variant="outline"
-              className="border-amber-200/60 text-white hover:bg-white/10 font-bold text-lg px-8 py-6 rounded-2xl"
+              className="border-amber-200/60 text-slate-800 hover:bg-white/10 font-bold text-lg px-8 py-6 rounded-2xl"
               onClick={() => openInApp(APK_DOWNLOAD_URL)}
             >
               <Download className="w-5 h-5 mr-2" />
@@ -164,7 +164,7 @@ const About = () => {
               variants={fadeUp} custom={i}
             >
               <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${f.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                <f.icon className="w-6 h-6 text-white" />
+                <f.icon className="w-6 h-6 text-slate-800" />
               </div>
               <h3 className="font-bold text-lg mb-2">{f.title}</h3>
               <p className="text-slate-500 text-sm">{f.desc}</p>
@@ -200,7 +200,7 @@ const About = () => {
                 variants={fadeUp} custom={i}
               >
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center flex-shrink-0">
-                  <ChevronRight className="w-4 h-4 text-white" />
+                  <ChevronRight className="w-4 h-4 text-slate-800" />
                 </div>
                 <span className="text-slate-700 text-sm">{b}</span>
               </motion.div>
@@ -214,7 +214,7 @@ const About = () => {
           >
             <Button
               size="lg"
-              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold rounded-2xl px-8 py-6"
+              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-slate-800 font-bold rounded-2xl px-8 py-6"
               onClick={() => openInApp(PLAY_STORE_URL)}
             >
               <Smartphone className="w-5 h-5 mr-2" />
@@ -251,7 +251,7 @@ const About = () => {
                 variants={fadeUp} custom={i}
               >
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0">
-                  <b.icon className="w-5 h-5 text-white" />
+                  <b.icon className="w-5 h-5 text-slate-800" />
                 </div>
                 <span className="text-slate-700 text-sm">{b.text}</span>
               </motion.div>
@@ -291,7 +291,7 @@ const About = () => {
           >
             <Button
               size="lg"
-              className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold rounded-2xl px-8 py-6"
+              className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-slate-800 font-bold rounded-2xl px-8 py-6"
               onClick={() => openInApp('/policies')}
             >
               <Building2 className="w-5 h-5 mr-2" />
@@ -300,7 +300,7 @@ const About = () => {
             <Button
               size="lg"
               variant="outline"
-              className="border-amber-200/60 text-white hover:bg-white/10 font-bold rounded-2xl px-8 py-6"
+              className="border-amber-200/60 text-slate-800 hover:bg-white/10 font-bold rounded-2xl px-8 py-6"
               onClick={() => openInApp(PLAY_STORE_URL)}
             >
               <ExternalLink className="w-5 h-5 mr-2" />
@@ -328,7 +328,7 @@ const About = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-lg px-8 py-6 rounded-2xl shadow-lg shadow-green-500/30"
+                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-slate-800 font-bold text-lg px-8 py-6 rounded-2xl shadow-lg shadow-green-500/30"
                 onClick={() => openInApp(PLAY_STORE_URL)}
               >
                 <Play className="w-5 h-5 mr-2" />
@@ -337,7 +337,7 @@ const About = () => {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-amber-200/60 text-white hover:bg-white/10 font-bold text-lg px-8 py-6 rounded-2xl"
+                className="border-amber-200/60 text-slate-800 hover:bg-white/10 font-bold text-lg px-8 py-6 rounded-2xl"
                 onClick={() => openInApp(APK_DOWNLOAD_URL)}
               >
                 <Download className="w-5 h-5 mr-2" />
@@ -357,7 +357,7 @@ const About = () => {
             <a href={`${PRODUCTION_DOMAIN}/policies`} className="hover:text-slate-600 transition-colors">Policies</a>
             <a href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" className="hover:text-slate-600 transition-colors">Play Store</a>
           </div>
-          <p className="text-white/20 text-xs mt-6">© {new Date().getFullYear()} MeriLive. All rights reserved.</p>
+          <p className="text-slate-800/20 text-xs mt-6">© {new Date().getFullYear()} MeriLive. All rights reserved.</p>
         </div>
       </footer>
     </div>

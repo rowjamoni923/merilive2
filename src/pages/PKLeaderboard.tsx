@@ -203,11 +203,11 @@ const PKLeaderboard = () => {
         
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="text-white hover:bg-white/10">
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="text-slate-800 hover:bg-white/10">
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div className="flex-1">
-              <h1 className="text-lg font-bold text-white">{competition.title}</h1>
+              <h1 className="text-lg font-bold text-slate-800">{competition.title}</h1>
               {competition.description && (
                 <p className="text-slate-600 text-xs">{competition.description}</p>
               )}
@@ -217,12 +217,12 @@ const PKLeaderboard = () => {
           {/* Timer & Stats */}
           <div className="flex items-center gap-4 mt-2">
             <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm rounded-full px-3 py-1.5">
-              <Clock className="w-3.5 h-3.5 text-white" />
-              <span className="text-white text-xs font-medium">{timeLeft}</span>
+              <Clock className="w-3.5 h-3.5 text-slate-800" />
+              <span className="text-slate-800 text-xs font-medium">{timeLeft}</span>
             </div>
             <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm rounded-full px-3 py-1.5">
-              <Users className="w-3.5 h-3.5 text-white" />
-              <span className="text-white text-xs font-medium">{participants.length} participants</span>
+              <Users className="w-3.5 h-3.5 text-slate-800" />
+              <span className="text-slate-800 text-xs font-medium">{participants.length} participants</span>
             </div>
           </div>
 
@@ -231,8 +231,8 @@ const PKLeaderboard = () => {
             <div className="mt-3 bg-white/15 backdrop-blur-sm rounded-lg p-3 flex items-center gap-3">
               <Trophy className="w-5 h-5 text-yellow-300" />
               <div>
-                <p className="text-white text-xs">Your Rank</p>
-                <p className="text-white text-lg font-bold">#{myRank}</p>
+                <p className="text-slate-800 text-xs">Your Rank</p>
+                <p className="text-slate-800 text-lg font-bold">#{myRank}</p>
               </div>
               {getRewardForRank(myRank) && (
                 <div className="ml-auto text-right">

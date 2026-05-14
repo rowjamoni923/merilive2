@@ -26,7 +26,7 @@ export default function Parcels() {
       {/* Header */}
       <div className="sticky top-0 z-30 bg-gradient-to-b from-[#1a0e2e] to-background border-b border-amber-200/60">
         <div className="flex items-center gap-3 px-4 py-3">
-          <button onClick={() => navigate(-1)} className="text-slate-600 hover:text-white">
+          <button onClick={() => navigate(-1)} className="text-slate-600 hover:text-slate-800">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2">
@@ -56,7 +56,7 @@ export default function Parcels() {
         </div>
       ) : parcels.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-60 gap-3 px-6">
-          <Gift className="w-16 h-16 text-white/10" />
+          <Gift className="w-16 h-16 text-slate-800/10" />
           <p className="text-muted-foreground text-center">No parcels available right now. Keep using the app to earn rewards!</p>
         </div>
       ) : (

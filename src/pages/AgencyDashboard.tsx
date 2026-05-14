@@ -786,9 +786,9 @@ const AgencyDashboard = () => {
             onClick={() => navigate(-1)}
             className="p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors"
           >
-            <ArrowLeft className="w-5 h-5 text-white" />
+            <ArrowLeft className="w-5 h-5 text-slate-800" />
           </button>
-          <h1 className="text-lg font-bold text-white flex items-center gap-2">
+          <h1 className="text-lg font-bold text-slate-800 flex items-center gap-2">
             <Sparkles className="w-5 h-5" />
             Agency Dashboard
           </h1>
@@ -796,7 +796,7 @@ const AgencyDashboard = () => {
             onClick={() => navigate("/agent-rank")}
             className="p-2 hover:bg-white/10 rounded-full transition-colors"
           >
-            <Trophy className="w-5 h-5 text-white" />
+            <Trophy className="w-5 h-5 text-slate-800" />
           </button>
         </div>
       </div>
@@ -812,7 +812,7 @@ const AgencyDashboard = () => {
 
       {/* Agency Hero Card - Compact */}
       <div className="mx-3 -mt-0 relative">
-        <div className={`bg-gradient-to-br ${levelInfo.color} rounded-2xl p-3 text-white shadow-xl relative overflow-hidden`}>
+        <div className={`bg-gradient-to-br ${levelInfo.color} rounded-2xl p-3 text-slate-800 shadow-xl relative overflow-hidden`}>
           {/* Decorative Elements */}
           <div className="absolute top-0 right-0 w-28 h-28 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-xl" />
           <div className="absolute bottom-0 left-0 w-20 h-20 bg-black/10 rounded-full translate-y-1/2 -translate-x-1/2 blur-lg" />
@@ -857,7 +857,7 @@ const AgencyDashboard = () => {
                 variant="ghost"
                 size="sm"
                 onClick={copyAgencyCode}
-                className="text-white hover:bg-white/20 h-8 w-8 p-0 rounded-lg"
+                className="text-slate-800 hover:bg-white/20 h-8 w-8 p-0 rounded-lg"
               >
                 {copiedCode ? (
                   <CheckCircle2 className="w-4 h-4" />
@@ -942,7 +942,7 @@ const AgencyDashboard = () => {
                     }`} />
                   </div>
                   <div className="flex-1">
-                    <p className="text-white text-xs font-bold">
+                    <p className="text-slate-800 text-xs font-bold">
                       ⚠️ {daysRemaining} Days Remaining
                     </p>
                     <p className="text-slate-700 text-[10px]">
@@ -995,7 +995,7 @@ const AgencyDashboard = () => {
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="text-white text-sm font-medium">{ph.profile?.display_name || 'Unknown'}</p>
+                      <p className="text-slate-800 text-sm font-medium">{ph.profile?.display_name || 'Unknown'}</p>
                       <p className="text-amber-300/60 text-[10px]">
                         {ph.profile?.app_uid ? `UID: ${ph.profile.app_uid}` : ''} • {new Date(ph.joined_at).toLocaleDateString()}
                       </p>
@@ -1006,7 +1006,7 @@ const AgencyDashboard = () => {
                       size="sm"
                       onClick={() => handleApproveHost(ph.host_id)}
                       disabled={approvingHostId === ph.host_id || rejectingHostId === ph.host_id}
-                      className="bg-green-600 hover:bg-green-500 text-white h-7 px-3 text-xs rounded-lg"
+                      className="bg-green-600 hover:bg-green-500 text-slate-800 h-7 px-3 text-xs rounded-lg"
                     >
                       {approvingHostId === ph.host_id ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3 mr-1" />}
                       Approve
@@ -1031,7 +1031,7 @@ const AgencyDashboard = () => {
       {/* Parent Agency Card (if sub-agency) */}
       {parentAgency && (
         <div className="mx-4 mt-2">
-          <Card className="bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 border-0 text-white overflow-hidden relative">
+          <Card className="bg-gradient-to-br from-purple-600 via-indigo-600 to-blue-600 border-0 text-slate-800 overflow-hidden relative">
             <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
             <CardContent className="p-3 relative z-10">
               <div className="flex items-center justify-between">
@@ -1043,7 +1043,7 @@ const AgencyDashboard = () => {
                     <p className="text-slate-500 text-[10px] uppercase tracking-wide">Parent Agency</p>
                     <p className="font-bold">{parentAgency.name}</p>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <Badge className="bg-white/20 text-white text-[10px] h-4 px-1.5">
+                      <Badge className="bg-white/20 text-slate-800 text-[10px] h-4 px-1.5">
                         {parentAgency.level}
                       </Badge>
                       <span className="text-xs text-slate-500">{parentAgency.agency_code}</span>
@@ -1053,7 +1053,7 @@ const AgencyDashboard = () => {
                 <Button
                   onClick={() => setShowParentContactModal(true)}
                   size="sm"
-                  className="bg-white/20 hover:bg-white/30 text-white border-0 h-8"
+                  className="bg-white/20 hover:bg-white/30 text-slate-800 border-0 h-8"
                 >
                   <MessageCircle className="w-4 h-4 mr-1" />
                   Contact
@@ -1064,7 +1064,7 @@ const AgencyDashboard = () => {
                 <div className="mt-2 bg-white/10 rounded-lg p-2 flex items-center gap-2">
                   <Avatar className="w-8 h-8 border border-white/30">
                     <AvatarImage src={parentAgency.owner_profile.avatar_url || ""} />
-                    <AvatarFallback className="bg-white/20 text-white text-xs">
+                    <AvatarFallback className="bg-white/20 text-slate-800 text-xs">
                       {parentAgency.owner_profile.display_name?.charAt(0) || "?"}
                     </AvatarFallback>
                   </Avatar>
@@ -1083,7 +1083,7 @@ const AgencyDashboard = () => {
 
       {/* Earnings Card - Compact */}
       <div className="mx-4 mt-2">
-        <Card className="bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 border-0 text-white overflow-hidden relative">
+        <Card className="bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 border-0 text-slate-800 overflow-hidden relative">
           <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
           <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
           
@@ -1144,14 +1144,14 @@ const AgencyDashboard = () => {
             <div className="grid grid-cols-2 gap-2">
               <Button
                 onClick={() => navigate("/agency-withdrawal")}
-                className="bg-white/20 hover:bg-white/30 text-white border-0 h-9 text-xs"
+                className="bg-white/20 hover:bg-white/30 text-slate-800 border-0 h-9 text-xs"
               >
                 <Wallet className="w-4 h-4 mr-1.5" />
                 Withdraw
               </Button>
               <Button
                 onClick={() => setShowWithdrawalHistory(!showWithdrawalHistory)}
-                className={`${showWithdrawalHistory ? 'bg-white/40' : 'bg-white/20'} hover:bg-white/30 text-white border-0 h-9 text-xs`}
+                className={`${showWithdrawalHistory ? 'bg-white/40' : 'bg-white/20'} hover:bg-white/30 text-slate-800 border-0 h-9 text-xs`}
               >
                 <Calendar className="w-4 h-4 mr-1.5" />
                 History
@@ -1206,7 +1206,7 @@ const AgencyDashboard = () => {
                                   )}
                                 </div>
                                 <div>
-                                  <p className="text-xs font-semibold text-white">
+                                  <p className="text-xs font-semibold text-slate-800">
                                     {(w.amount / coinsToUsdRate).toFixed(2)} USD
                                   </p>
                                   <p className="text-[10px] text-slate-600">
@@ -1250,10 +1250,10 @@ const AgencyDashboard = () => {
         >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-              <FileText className="w-5 h-5 text-white" />
+              <FileText className="w-5 h-5 text-slate-800" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-white font-semibold text-sm">📖 Payroll Helper Guide</p>
+              <p className="text-slate-800 font-semibold text-sm">📖 Payroll Helper Guide</p>
               <p className="text-slate-700 text-[11px]">Learn roles, benefits & diamond trading</p>
             </div>
             <ArrowRight className="w-4 h-4 text-slate-600" />
@@ -1267,21 +1267,21 @@ const AgencyDashboard = () => {
         <div className="grid grid-cols-4 gap-3">
           <button
             onClick={() => navigate("/agency-host-management")}
-            className="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+            className="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl p-4 text-slate-800 text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
           >
             <HostsIcon3D />
             <span className="text-xs font-medium mt-1">Hosts</span>
           </button>
           <button
             onClick={() => navigate("/agency-withdrawal")}
-            className="bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+            className="bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl p-4 text-slate-800 text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
           >
             <WithdrawIcon3D />
             <span className="text-xs font-medium mt-1">Withdraw</span>
           </button>
           <button
             onClick={() => navigate("/agent-rank")}
-            className="bg-gradient-to-br from-yellow-500 to-orange-500 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+            className="bg-gradient-to-br from-yellow-500 to-orange-500 rounded-2xl p-4 text-slate-800 text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
           >
             <RankingIcon3D />
             <span className="text-xs font-medium mt-1">Ranking</span>
@@ -1294,10 +1294,10 @@ const AgencyDashboard = () => {
                 setShowHelperDialog(true);
               }
             }}
-            className={`bg-gradient-to-br ${hasHelperAccess ? 'from-green-500 to-emerald-500' : helperPendingApplication ? 'from-yellow-500 to-orange-500' : 'from-purple-500 to-pink-500'} rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform relative flex flex-col items-center justify-center`}
+            className={`bg-gradient-to-br ${hasHelperAccess ? 'from-green-500 to-emerald-500' : helperPendingApplication ? 'from-yellow-500 to-orange-500' : 'from-purple-500 to-pink-500'} rounded-2xl p-4 text-slate-800 text-center shadow-lg hover:scale-105 transition-transform relative flex flex-col items-center justify-center`}
           >
             {hasHelperAccess && helperPendingCount > 0 && (
-              <div className="absolute -top-2 -right-2 min-w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold px-1.5 shadow-lg animate-pulse border-2 border-white">
+              <div className="absolute -top-2 -right-2 min-w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-slate-800 text-xs font-bold px-1.5 shadow-lg animate-pulse border-2 border-white">
                 {helperPendingCount > 99 ? '99+' : helperPendingCount}
               </div>
             )}
@@ -1315,21 +1315,21 @@ const AgencyDashboard = () => {
         <div className="grid grid-cols-3 gap-3 mt-3">
           <button
             onClick={() => navigate("/agency-coin-exchange")}
-            className="bg-gradient-to-br from-amber-500 to-red-500 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+            className="bg-gradient-to-br from-amber-500 to-red-500 rounded-2xl p-4 text-slate-800 text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
           >
             <DiamondExchangeIcon3D />
             <span className="text-xs font-medium mt-1">Diamond Exchange</span>
           </button>
           <button
             onClick={() => navigate("/agency-policy")}
-            className="bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+            className="bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl p-4 text-slate-800 text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
           >
             <PolicyIcon3D />
             <span className="text-xs font-medium mt-1">Policy</span>
           </button>
           <button
             onClick={() => navigate("/agency-transfer-history")}
-            className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+            className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-4 text-slate-800 text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
           >
             <HistoryIcon3D />
             <span className="text-xs font-medium mt-1">History</span>
@@ -1555,7 +1555,7 @@ const AgencyDashboard = () => {
             <Card className="border-0 shadow-md bg-white">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-base flex items-center gap-2 text-white">
+                  <CardTitle className="text-base flex items-center gap-2 text-slate-800">
                     <div className="w-10 h-10 bg-indigo-500/30 rounded-xl flex items-center justify-center">
                       <Clock className="w-5 h-5 text-indigo-400" />
                     </div>
@@ -1614,18 +1614,18 @@ const AgencyDashboard = () => {
                         >
                           {/* Status Icon */}
                           <div className={`w-12 h-12 rounded-xl ${config.iconBg} flex items-center justify-center shadow-lg shrink-0`}>
-                            {displayStatus === 'pending' && <Clock className="w-6 h-6 text-white" />}
-                            {displayStatus === 'processing' && <Loader2 className="w-6 h-6 text-white animate-spin" />}
-                            {displayStatus === 'completed' && <CheckCircle2 className="w-6 h-6 text-white" />}
-                            {displayStatus === 'approved' && <CheckCircle2 className="w-6 h-6 text-white" />}
-                            {displayStatus === 'rejected' && <Clock className="w-6 h-6 text-white" />}
+                            {displayStatus === 'pending' && <Clock className="w-6 h-6 text-slate-800" />}
+                            {displayStatus === 'processing' && <Loader2 className="w-6 h-6 text-slate-800 animate-spin" />}
+                            {displayStatus === 'completed' && <CheckCircle2 className="w-6 h-6 text-slate-800" />}
+                            {displayStatus === 'approved' && <CheckCircle2 className="w-6 h-6 text-slate-800" />}
+                            {displayStatus === 'rejected' && <Clock className="w-6 h-6 text-slate-800" />}
                           </div>
                           
                           {/* Content */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
                               <span className="text-lg">{countryFlag}</span>
-                              <span className="text-white font-bold">{fmtNum(withdrawal.amount)}</span>
+                              <span className="text-slate-800 font-bold">{fmtNum(withdrawal.amount)}</span>
                               <span className="text-slate-600 text-sm">Beans</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm">
@@ -1742,7 +1742,7 @@ const AgencyDashboard = () => {
                   </Button>
                   <Button 
                     onClick={shareHostJoinLink}
-                    className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
+                    className="flex-1 bg-blue-500 hover:bg-blue-600 text-slate-800"
                   >
                     <Share2 className="w-4 h-4 mr-2" />
                     Share
@@ -1784,7 +1784,7 @@ const AgencyDashboard = () => {
                   </Button>
                   <Button 
                     onClick={shareSubAgentLink}
-                    className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
+                    className="flex-1 bg-orange-500 hover:bg-orange-600 text-slate-800"
                   >
                     <Share2 className="w-4 h-4 mr-2" />
                     Share
@@ -1864,7 +1864,7 @@ const AgencyDashboard = () => {
                     {subAgencies.map((sa: any) => (
                       <div key={sa.id} className="flex items-center gap-3 py-3 border-b border-border last:border-0">
                         <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
-                          <Building2 className="w-5 h-5 text-white" />
+                          <Building2 className="w-5 h-5 text-slate-800" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium truncate">{sa.name}</p>
@@ -2070,7 +2070,7 @@ const AgencyDashboard = () => {
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center">
-                    <Clock className="w-5 h-5 text-white" />
+                    <Clock className="w-5 h-5 text-slate-800" />
                   </div>
                   Application Pending
                 </DialogTitle>
@@ -2129,7 +2129,7 @@ const AgencyDashboard = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                <MessageCircle className="w-5 h-5 text-white" />
+                <MessageCircle className="w-5 h-5 text-slate-800" />
               </div>
               Contact Parent Agency
             </DialogTitle>
@@ -2143,7 +2143,7 @@ const AgencyDashboard = () => {
               <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl p-4 border border-purple-200">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                    <Building2 className="w-7 h-7 text-white" />
+                    <Building2 className="w-7 h-7 text-slate-800" />
                   </div>
                   <div>
                     <p className="font-bold text-lg text-purple-800">{parentAgency.name}</p>

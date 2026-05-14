@@ -1290,7 +1290,7 @@ const HelperDashboard = () => {
             >
               <svg
                 viewBox="0 0 24 24"
-                className="w-4 h-4 text-white"
+                className="w-4 h-4 text-slate-800"
                 fill="currentColor"
               >
                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
@@ -1389,10 +1389,10 @@ const HelperDashboard = () => {
         >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-              <FileText className="w-5 h-5 text-white" />
+              <FileText className="w-5 h-5 text-slate-800" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-white font-semibold text-sm">📖 Payroll Helper Guide</p>
+              <p className="text-slate-800 font-semibold text-sm">📖 Payroll Helper Guide</p>
               <p className="text-slate-700 text-[11px]">Learn roles, benefits & diamond trading</p>
             </div>
             <ArrowRight className="w-4 h-4 text-slate-600" />
@@ -1405,7 +1405,7 @@ const HelperDashboard = () => {
         {pendingRequests.length > 0 && (
           <Card className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border-amber-500/50">
             <CardHeader className="pb-2">
-              <CardTitle className="text-white text-sm flex items-center gap-2">
+              <CardTitle className="text-slate-800 text-sm flex items-center gap-2">
                 <Clock className="w-4 h-4 text-amber-400" />
                 Pending Upgrade Requests
               </CardTitle>
@@ -1414,7 +1414,7 @@ const HelperDashboard = () => {
               {pendingRequests.map((req) => (
                 <div key={req.id} className="bg-slate-50 rounded-lg p-3 flex items-center justify-between">
                   <div>
-                    <p className="text-white text-sm font-medium">Level {req.requested_level} Upgrade</p>
+                    <p className="text-slate-800 text-sm font-medium">Level {req.requested_level} Upgrade</p>
                     <p className="text-slate-600 text-xs">${req.amount_usd} • {req.payment_method}</p>
                   </div>
                   <Badge className="bg-amber-500/20 text-amber-400">{req.status}</Badge>
@@ -1435,7 +1435,7 @@ const HelperDashboard = () => {
         {/* Manual Top-up Section */}
         <Card className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border-emerald-500/50">
           <CardHeader className="pb-2">
-            <CardTitle className="text-white text-base flex items-center gap-2">
+            <CardTitle className="text-slate-800 text-base flex items-center gap-2">
               <DollarSign className="w-5 h-5 text-emerald-400" />
               Manual Top-up
             </CardTitle>
@@ -1451,7 +1451,7 @@ const HelperDashboard = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Gem className="w-4 h-4 text-purple-400" />
-                    <span className="text-white text-sm font-medium">Your Level {helperData?.trader_level || 1} Rate</span>
+                    <span className="text-slate-800 text-sm font-medium">Your Level {helperData?.trader_level || 1} Rate</span>
                   </div>
                   <Badge className="bg-purple-500/30 text-purple-300">
                     {levelPricing.diamond_amount.toLocaleString()} 💎 = ${levelPricing.price_usd}
@@ -1463,7 +1463,7 @@ const HelperDashboard = () => {
             {!showTopupForm ? (
               <Button 
                 onClick={() => setShowTopupForm(true)}
-                className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white h-11"
+                className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-800 h-11"
               >
                 <Send className="w-4 h-4 mr-2" />
                 Request Manual Top-up
@@ -1494,11 +1494,11 @@ const HelperDashboard = () => {
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
-                        <Gem className="w-5 h-5 text-white" />
+                        <Gem className="w-5 h-5 text-slate-800" />
                       </div>
                       {selectedDiamondPackage ? (
                         <div className="text-left">
-                          <span className="text-white font-bold text-base">
+                          <span className="text-slate-800 font-bold text-base">
                             {formatDiamonds(selectedDiamondPackage)} 💎
                           </span>
                           <p className="text-emerald-400 text-sm font-medium">
@@ -1513,7 +1513,7 @@ const HelperDashboard = () => {
                       "w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center transition-transform duration-200",
                       showDiamondPackages && "rotate-180"
                     )}>
-                      <ArrowLeft className="w-4 h-4 text-white -rotate-90" />
+                      <ArrowLeft className="w-4 h-4 text-slate-800 -rotate-90" />
                     </div>
                   </button>
                   
@@ -1542,7 +1542,7 @@ const HelperDashboard = () => {
                               💎
                             </div>
                             <div className="flex-1 text-left">
-                              <span className="text-white font-bold text-sm">{pkg.label}</span>
+                              <span className="text-slate-800 font-bold text-sm">{pkg.label}</span>
                               <p className="text-slate-600 text-xs">
                                 {pkg.diamonds.toLocaleString()} diamonds
                               </p>
@@ -1580,7 +1580,7 @@ const HelperDashboard = () => {
                   >
                     <div className="flex items-center justify-center gap-2">
                       <Crown className="w-5 h-5 text-purple-400" />
-                      <span className="text-white font-semibold">Custom Amount</span>
+                      <span className="text-slate-800 font-semibold">Custom Amount</span>
                       <span className="text-slate-600 text-xs">(50 Lakh+)</span>
                     </div>
                   </button>
@@ -1592,7 +1592,7 @@ const HelperDashboard = () => {
                         placeholder="Enter diamonds (min: 5,00,000)"
                         value={customDiamondAmount}
                         onChange={(e) => handleCustomAmountChange(e.target.value)}
-                        className="bg-slate-200 border-purple-500/50 text-white text-center text-lg font-bold"
+                        className="bg-slate-200 border-purple-500/50 text-slate-800 text-center text-lg font-bold"
                       />
                       {parseInt(customDiamondAmount.replace(/,/g, '')) >= 500000 && (
                         <div className="p-2 bg-purple-500/10 rounded-lg border border-purple-500/30">
@@ -1616,7 +1616,7 @@ const HelperDashboard = () => {
                     <div className="flex items-center justify-between">
                       <span className="text-slate-600 text-sm">You will receive:</span>
                       <div className="text-right">
-                        <p className="text-white font-bold text-lg">
+                        <p className="text-slate-800 font-bold text-lg">
                           {formatDiamonds(selectedDiamondPackage || parseInt(customDiamondAmount.replace(/,/g, '')))} 💎
                         </p>
                         <p className="text-emerald-400 text-xs">
@@ -1628,7 +1628,7 @@ const HelperDashboard = () => {
                 )}
 
                 <div>
-                  <Label className="text-white text-sm">Payment Method</Label>
+                  <Label className="text-slate-800 text-sm">Payment Method</Label>
                   {paymentMethods.length > 0 ? (
                     <>
                       <div className="grid grid-cols-2 gap-2 mt-1">
@@ -1651,7 +1651,7 @@ const HelperDashboard = () => {
                               className={cn(
                                 "p-3 rounded-lg border text-sm transition-all flex items-center gap-2",
                                 topupPaymentMethod === method.method_name
-                                  ? "bg-emerald-500 border-emerald-400 text-white"
+                                  ? "bg-emerald-500 border-emerald-400 text-slate-800"
                                   : "bg-slate-200 border-slate-300 text-slate-700 hover:border-emerald-500"
                               )}
                             >
@@ -1675,7 +1675,7 @@ const HelperDashboard = () => {
                             <div className="flex justify-between items-center">
                               <span className="text-slate-600 text-xs">Account Name:</span>
                               <div className="flex items-center gap-2">
-                                <span className="text-white text-sm">{selectedPaymentMethod.account_name}</span>
+                                <span className="text-slate-800 text-sm">{selectedPaymentMethod.account_name}</span>
                                 <button
                                   onClick={() => {
                                     navigator.clipboard.writeText(selectedPaymentMethod.account_name);
@@ -1744,7 +1744,7 @@ const HelperDashboard = () => {
                 </div>
 
                 <div>
-                  <Label className="text-white text-sm">
+                  <Label className="text-slate-800 text-sm">
                     Transaction ID <span className="text-red-400">*</span>
                   </Label>
                   <Input
@@ -1752,7 +1752,7 @@ const HelperDashboard = () => {
                     value={topupTransactionId}
                     onChange={(e) => setTopupTransactionId(e.target.value)}
                     className={cn(
-                      "bg-slate-200 border-slate-300 text-white mt-1",
+                      "bg-slate-200 border-slate-300 text-slate-800 mt-1",
                       !topupTransactionId.trim() && topupAmount ? "border-red-500/50" : ""
                     )}
                   />
@@ -1762,7 +1762,7 @@ const HelperDashboard = () => {
                 </div>
 
                 <div>
-                  <Label className="text-white text-sm">
+                  <Label className="text-slate-800 text-sm">
                     Payment Screenshot <span className="text-red-400">*</span>
                   </Label>
                   <div className="mt-1">
@@ -1794,12 +1794,12 @@ const HelperDashboard = () => {
                 </div>
 
                 <div>
-                  <Label className="text-white text-sm">Note (Optional)</Label>
+                  <Label className="text-slate-800 text-sm">Note (Optional)</Label>
                   <Textarea
                     placeholder="Any additional details..."
                     value={topupNote}
                     onChange={(e) => setTopupNote(e.target.value)}
-                    className="bg-slate-200 border-slate-300 text-white mt-1"
+                    className="bg-slate-200 border-slate-300 text-slate-800 mt-1"
                     rows={2}
                   />
                 </div>
@@ -1847,7 +1847,7 @@ const HelperDashboard = () => {
         {/* Trader Levels */}
         <Card className="bg-slate-50 border-slate-200">
           <CardHeader className="pb-2">
-            <CardTitle className="text-white text-base flex items-center gap-2">
+            <CardTitle className="text-slate-800 text-base flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-purple-400" />
               Trader Levels
             </CardTitle>
@@ -1883,13 +1883,13 @@ const HelperDashboard = () => {
                         "w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r",
                         badge.color
                       )}>
-                        <Icon className="w-6 h-6 text-white" />
+                        <Icon className="w-6 h-6 text-slate-800" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <p className="text-white font-bold">{level.level_name}</p>
+                          <p className="text-slate-800 font-bold">{level.level_name}</p>
                           {isCurrent && (
-                            <Badge className="bg-green-500 text-white text-[10px]">Current</Badge>
+                            <Badge className="bg-green-500 text-slate-800 text-[10px]">Current</Badge>
                           )}
                         </div>
                         <p className="text-slate-600 text-xs">{level.description}</p>
@@ -1904,7 +1904,7 @@ const HelperDashboard = () => {
                     <div className="text-right">
                       {level.upgrade_cost_usd > 0 ? (
                         <>
-                          <p className="text-white font-bold">${level.upgrade_cost_usd}</p>
+                          <p className="text-slate-800 font-bold">${level.upgrade_cost_usd}</p>
                           <p className="text-slate-600 text-xs">Upgrade Cost</p>
                         </>
                       ) : (
@@ -1939,7 +1939,7 @@ const HelperDashboard = () => {
                         setSelectedUpgradeLevel(level);
                         setShowUpgradeModal(true);
                       }}
-                      className="w-full mt-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white h-10"
+                      className="w-full mt-3 bg-gradient-to-r from-purple-500 to-pink-500 text-slate-800 h-10"
                     >
                       <Crown className="w-4 h-4 mr-2" />
                       Apply for Level 5 - ${level.upgrade_cost_usd}
@@ -1986,7 +1986,7 @@ const HelperDashboard = () => {
                       {!helperData?.payroll_status && !helperData?.payroll_enabled && (
                         <Button 
                           onClick={() => setShowPayrollModal(true)}
-                          className="w-full mt-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white h-9 text-xs"
+                          className="w-full mt-3 bg-gradient-to-r from-purple-500 to-pink-500 text-slate-800 h-9 text-xs"
                         >
                           <Crown className="w-3 h-3 mr-1" />
                           Apply for Payroll Access
@@ -2012,7 +2012,7 @@ const HelperDashboard = () => {
                           </div>
                           <Button 
                             onClick={() => setShowPayrollModal(true)}
-                            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white h-9 text-xs"
+                            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-slate-800 h-9 text-xs"
                           >
                             <Crown className="w-3 h-3 mr-1" />
                             Re-apply for Payroll Access
@@ -2024,7 +2024,7 @@ const HelperDashboard = () => {
                       {helperData?.payroll_enabled && (
                         <Button 
                           onClick={() => navigate('/level5-helper-dashboard')}
-                          className="w-full mt-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white h-9 text-xs"
+                          className="w-full mt-3 bg-gradient-to-r from-green-500 to-emerald-500 text-slate-800 h-9 text-xs"
                         >
                           <CheckCircle className="w-3 h-3 mr-1" />
                           Open Level 5 Dashboard
@@ -2043,7 +2043,7 @@ const HelperDashboard = () => {
       <Dialog open={showUpgradeModal} onOpenChange={setShowUpgradeModal}>
         <DialogContent className="bg-white border-slate-200 max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-white flex items-center gap-2">
+            <DialogTitle className="text-slate-800 flex items-center gap-2">
               <Crown className="w-5 h-5 text-purple-400" />
               Apply for {selectedUpgradeLevel?.level_name}
             </DialogTitle>
@@ -2053,12 +2053,12 @@ const HelperDashboard = () => {
             <div className="bg-slate-50 rounded-xl p-4">
               <div className="flex items-center justify-between">
                 <span className="text-slate-600">Upgrade Cost</span>
-                <span className="text-2xl font-bold text-white">${selectedUpgradeLevel?.upgrade_cost_usd}</span>
+                <span className="text-2xl font-bold text-slate-800">${selectedUpgradeLevel?.upgrade_cost_usd}</span>
               </div>
             </div>
 
             <div>
-              <Label className="text-white text-sm">Payment Method</Label>
+              <Label className="text-slate-800 text-sm">Payment Method</Label>
               {paymentMethods.length > 0 ? (
                 <div className="grid grid-cols-2 gap-2 mt-2">
                   {paymentMethods.map((method) => {
@@ -2081,7 +2081,7 @@ const HelperDashboard = () => {
                         className={cn(
                           "p-3 rounded-lg border text-sm transition-all flex items-center gap-2",
                           paymentMethod === method.method_name
-                            ? "bg-purple-500 border-purple-400 text-white"
+                            ? "bg-purple-500 border-purple-400 text-slate-800"
                             : "bg-slate-100 border-slate-200 text-slate-700 hover:border-purple-500"
                         )}
                       >
@@ -2109,7 +2109,7 @@ const HelperDashboard = () => {
                     <div className="flex justify-between items-center">
                       <span className="text-slate-600 text-xs">Account:</span>
                       <div className="flex items-center gap-2">
-                        <span className="text-white text-sm font-medium">{selectedPaymentMethod.account_name}</span>
+                        <span className="text-slate-800 text-sm font-medium">{selectedPaymentMethod.account_name}</span>
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(selectedPaymentMethod.account_name);
@@ -2124,7 +2124,7 @@ const HelperDashboard = () => {
                     <div className="flex justify-between items-center">
                       <span className="text-slate-600 text-xs">ID/Number:</span>
                       <div className="flex items-center gap-2">
-                        <span className="text-white text-sm font-mono">{selectedPaymentMethod.account_number}</span>
+                        <span className="text-slate-800 text-sm font-mono">{selectedPaymentMethod.account_number}</span>
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(selectedPaymentMethod.account_number);
@@ -2160,17 +2160,17 @@ const HelperDashboard = () => {
             </div>
 
             <div>
-              <Label className="text-white text-sm">Transaction ID</Label>
+              <Label className="text-slate-800 text-sm">Transaction ID</Label>
               <Input
                 placeholder="Enter transaction ID"
                 value={transactionId}
                 onChange={(e) => setTransactionId(e.target.value)}
-                className="bg-slate-100 border-slate-200 text-white mt-1"
+                className="bg-slate-100 border-slate-200 text-slate-800 mt-1"
               />
             </div>
 
             <div>
-              <Label className="text-white text-sm">Payment Screenshot</Label>
+              <Label className="text-slate-800 text-sm">Payment Screenshot</Label>
               <div className="mt-1">
                 <input
                   type="file"
@@ -2192,12 +2192,12 @@ const HelperDashboard = () => {
             </div>
 
             <div>
-              <Label className="text-white text-sm">Note (Optional)</Label>
+              <Label className="text-slate-800 text-sm">Note (Optional)</Label>
               <Textarea
                 placeholder="Any additional details..."
                 value={paymentNote}
                 onChange={(e) => setPaymentNote(e.target.value)}
-                className="bg-slate-100 border-slate-200 text-white mt-1"
+                className="bg-slate-100 border-slate-200 text-slate-800 mt-1"
                 rows={2}
               />
             </div>
@@ -2213,7 +2213,7 @@ const HelperDashboard = () => {
               <Button 
                 onClick={handleApplyUpgrade}
                 disabled={processing}
-                className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+                className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-slate-800"
               >
                 {processing ? (uploadingProof ? "Uploading..." : "Submitting...") : "Submit Application"}
               </Button>
@@ -2226,7 +2226,7 @@ const HelperDashboard = () => {
       <Dialog open={showPayrollModal} onOpenChange={setShowPayrollModal}>
         <DialogContent className="bg-white border-slate-200 max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-white flex items-center gap-2">
+            <DialogTitle className="text-slate-800 flex items-center gap-2">
               <Banknote className="w-5 h-5 text-purple-400" />
               Apply for Payroll Access
             </DialogTitle>
@@ -2236,10 +2236,10 @@ const HelperDashboard = () => {
             <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl p-4 border border-purple-500/30">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                  <Gem className="w-6 h-6 text-white" />
+                  <Gem className="w-6 h-6 text-slate-800" />
                 </div>
                 <div>
-                  <p className="text-white font-bold">Level 5 Payroll Benefits</p>
+                  <p className="text-slate-800 font-bold">Level 5 Payroll Benefits</p>
                   <p className="text-purple-300 text-xs">Exclusive for Diamond Traders</p>
                 </div>
               </div>
@@ -2308,7 +2308,7 @@ const HelperDashboard = () => {
                   }
                 }}
                 disabled={payrollProcessing}
-                className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+                className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-slate-800"
               >
                 {payrollProcessing ? "Submitting..." : "Submit Application"}
               </Button>
@@ -2321,7 +2321,7 @@ const HelperDashboard = () => {
       <Dialog open={showTransferModal} onOpenChange={setShowTransferModal}>
         <DialogContent className="bg-white border-slate-200 max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-white flex items-center gap-2">
+            <DialogTitle className="text-slate-800 flex items-center gap-2">
               <Send className="w-5 h-5 text-emerald-400" />
               Transfer Diamonds
             </DialogTitle>
@@ -2368,13 +2368,13 @@ const HelperDashboard = () => {
               <TabsContent value="user" className="mt-4 space-y-4">
                 {/* Search by App UID */}
                 <div>
-                  <Label className="text-white text-sm">Search by App UID</Label>
+                  <Label className="text-slate-800 text-sm">Search by App UID</Label>
                   <div className="flex gap-2 mt-1">
                     <Input
                       placeholder="Enter App UID (e.g. ABC123)"
                       value={transferSearchQuery}
                       onChange={(e) => setTransferSearchQuery(e.target.value.toUpperCase())}
-                      className="bg-slate-100 border-slate-300 text-white uppercase"
+                      className="bg-slate-100 border-slate-300 text-slate-800 uppercase"
                     />
                     <Button 
                       onClick={handleSearchUser}
@@ -2397,24 +2397,24 @@ const HelperDashboard = () => {
                       <Avatar className="w-12 h-12 border-2 border-cyan-500">
                         <AvatarImage src={searchedUser.avatar_url} />
                         <AvatarFallback className="bg-cyan-500">
-                          <User className="w-5 h-5 text-white" />
+                          <User className="w-5 h-5 text-slate-800" />
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="text-white font-semibold">{searchedUser.display_name}</p>
+                        <p className="text-slate-800 font-semibold">{searchedUser.display_name}</p>
                         <p className="text-slate-600 text-xs">ID: {searchedUser.app_uid}</p>
                       </div>
                     </div>
 
                     {/* Amount Input */}
                     <div className="space-y-2">
-                      <Label className="text-white text-sm">Diamond Amount</Label>
+                      <Label className="text-slate-800 text-sm">Diamond Amount</Label>
                       <Input
                         type="number"
                         placeholder="Enter amount to transfer"
                         value={transferAmount}
                         onChange={(e) => setTransferAmount(e.target.value)}
-                        className="bg-slate-200 border-slate-300 text-white text-lg font-bold"
+                        className="bg-slate-200 border-slate-300 text-slate-800 text-lg font-bold"
                       />
                     </div>
 
@@ -2443,13 +2443,13 @@ const HelperDashboard = () => {
               <TabsContent value="agency" className="mt-4 space-y-4">
                 {/* Search by Agency Owner UID */}
                 <div>
-                  <Label className="text-white text-sm">Search Agency by Owner's App UID</Label>
+                  <Label className="text-slate-800 text-sm">Search Agency by Owner's App UID</Label>
                   <div className="flex gap-2 mt-1">
                     <Input
                       placeholder="Enter Owner's App UID"
                       value={transferSearchQuery}
                       onChange={(e) => setTransferSearchQuery(e.target.value.toUpperCase())}
-                      className="bg-slate-100 border-slate-300 text-white uppercase"
+                      className="bg-slate-100 border-slate-300 text-slate-800 uppercase"
                     />
                     <Button 
                       onClick={handleSearchAgency}
@@ -2470,10 +2470,10 @@ const HelperDashboard = () => {
                   <div className="bg-slate-50 rounded-xl p-4 border border-purple-500/30">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                        <Building2 className="w-6 h-6 text-white" />
+                        <Building2 className="w-6 h-6 text-slate-800" />
                       </div>
                       <div>
-                        <p className="text-white font-semibold">{searchedAgency.name}</p>
+                        <p className="text-slate-800 font-semibold">{searchedAgency.name}</p>
                         <p className="text-slate-600 text-xs">Code: {searchedAgency.agency_code}</p>
                         <p className="text-purple-400 text-xs">Balance: {searchedAgency.wallet_balance?.toLocaleString() || 0} 💎</p>
                         {searchedAgency.owner_name && (
@@ -2484,13 +2484,13 @@ const HelperDashboard = () => {
 
                     {/* Amount Input */}
                     <div className="space-y-2">
-                      <Label className="text-white text-sm">Diamond Amount</Label>
+                      <Label className="text-slate-800 text-sm">Diamond Amount</Label>
                       <Input
                         type="number"
                         placeholder="Enter amount to transfer"
                         value={transferAmount}
                         onChange={(e) => setTransferAmount(e.target.value)}
-                        className="bg-slate-200 border-slate-300 text-white text-lg font-bold"
+                        className="bg-slate-200 border-slate-300 text-slate-800 text-lg font-bold"
                       />
                     </div>
 
@@ -2520,22 +2520,22 @@ const HelperDashboard = () => {
                 <div className="bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-xl p-4 border border-emerald-500/30">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
-                      <Gem className="w-6 h-6 text-white" />
+                      <Gem className="w-6 h-6 text-slate-800" />
                     </div>
                     <div>
-                      <p className="text-white font-semibold">Self Recharge</p>
+                      <p className="text-slate-800 font-semibold">Self Recharge</p>
                       <p className="text-emerald-300 text-xs">Transfer from wallet to your own diamond balance</p>
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-white text-sm">Diamond Amount</Label>
+                    <Label className="text-slate-800 text-sm">Diamond Amount</Label>
                     <Input
                       type="number"
                       placeholder="Enter amount"
                       value={transferAmount}
                       onChange={(e) => setTransferAmount(e.target.value)}
-                      className="bg-slate-200 border-slate-300 text-white text-lg font-bold"
+                      className="bg-slate-200 border-slate-300 text-slate-800 text-lg font-bold"
                     />
                   </div>
 
@@ -2567,7 +2567,7 @@ const HelperDashboard = () => {
       <Dialog open={showTransferHistory} onOpenChange={setShowTransferHistory}>
         <DialogContent className="bg-white border-slate-200 max-w-md max-h-[80vh] overflow-hidden flex flex-col">
           <DialogHeader>
-            <DialogTitle className="text-white flex items-center gap-2">
+            <DialogTitle className="text-slate-800 flex items-center gap-2">
               <History className="w-5 h-5 text-cyan-400" />
               Transfer History
             </DialogTitle>
@@ -2594,18 +2594,18 @@ const HelperDashboard = () => {
                       <Avatar className="w-10 h-10 border-2 border-cyan-500">
                         <AvatarImage src={transfer.receiver?.avatar_url} />
                         <AvatarFallback className="bg-cyan-500">
-                          <User className="w-4 h-4 text-white" />
+                          <User className="w-4 h-4 text-slate-800" />
                         </AvatarFallback>
                       </Avatar>
                     ) : (
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                        <Building2 className="w-5 h-5 text-white" />
+                        <Building2 className="w-5 h-5 text-slate-800" />
                       </div>
                     )}
                     
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className="text-white font-medium text-sm truncate">
+                        <p className="text-slate-800 font-medium text-sm truncate">
                           {transfer.sender_type === 'trader_to_user' 
                             ? transfer.receiver?.display_name || 'Unknown User'
                             : transfer.agency?.name || 'Unknown Agency'
