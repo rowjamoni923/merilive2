@@ -1875,7 +1875,7 @@ const Chat = () => {
               }}
             >
               <div className="flex items-center gap-2">
-                <h2 className="font-bold text-white text-sm truncate max-w-[140px] drop-shadow-md">
+                <h2 className="font-bold text-slate-900 text-sm truncate max-w-[140px] drop-shadow-md">
                   {chatName}
                 </h2>
                 {!isGroup && (
@@ -1890,7 +1890,7 @@ const Chat = () => {
               </div>
               <div className="flex items-center gap-1.5 mt-0.5">
                 {!isGroup && isOtherTyping ? (
-                  <span className="text-[10px] text-pink-300 font-medium flex items-center gap-1">
+                  <span className="text-[10px] text-fuchsia-600 font-semibold flex items-center gap-1">
                     <span className="flex gap-0.5">
                       <span className="w-1 h-1 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: '0ms' }} />
                       <span className="w-1 h-1 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -1900,7 +1900,7 @@ const Chat = () => {
                   </span>
                 ) : !isGroup && (
                   selectedConversation?.other_user?.is_online ? (
-                    <span className="text-[10px] text-green-200 font-medium flex items-center gap-1">
+                    <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
                       <span className="w-2 h-2 rounded-full bg-green-400 shadow-glow animate-pulse" />
                       Online
                     </span>
@@ -1923,7 +1923,7 @@ const Chat = () => {
             {isGroup && (
               <button
                 type="button"
-                className="w-9 h-9 rounded-full bg-white/[0.08] flex items-center justify-center shrink-0 relative z-20 border border-amber-200/60"
+                className="w-9 h-9 rounded-full bg-white/85 flex items-center justify-center shrink-0 relative z-20 border border-amber-200/60 shadow-sm"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -1931,7 +1931,7 @@ const Chat = () => {
                   setShowGroupSettings(true);
                 }}
               >
-                <Settings className="w-5 h-5 text-white pointer-events-none" />
+                <Settings className="w-5 h-5 text-slate-700 pointer-events-none" />
               </button>
             )}
 
@@ -1941,12 +1941,12 @@ const Chat = () => {
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
-                    className="w-9 h-9 rounded-full bg-white/[0.08] flex items-center justify-center shrink-0 relative z-20 border border-amber-200/60 backdrop-blur-xl"
+                    className="w-9 h-9 rounded-full bg-white/85 flex items-center justify-center shrink-0 relative z-20 border border-amber-200/60 shadow-sm backdrop-blur-xl"
                   >
-                    <MoreVertical className="w-5 h-5 text-white pointer-events-none" />
+                    <MoreVertical className="w-5 h-5 text-slate-700 pointer-events-none" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-gradient-to-b from-[#1a0a2e]/98 via-[#0f0520]/98 to-[#0a0318]/98 backdrop-blur-3xl border border-amber-200/60 rounded-2xl min-w-[220px] shadow-2xl shadow-purple-900/40 p-1.5 overflow-hidden max-h-[70vh] overflow-y-auto">
+                <DropdownMenuContent align="end" className="bg-white border border-amber-200/60 rounded-2xl min-w-[220px] shadow-xl p-1.5 overflow-hidden max-h-[70vh] overflow-y-auto">
                   {/* Decorative top glow */}
                   <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-[1px] bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
                   
@@ -1955,7 +1955,7 @@ const Chat = () => {
                       const otherId = selectedConversation?.other_user?.id;
                       if (otherId) navigate(`/profile-detail/${otherId}`);
                     }}
-                    className="text-slate-700 hover:text-white hover:bg-white/[0.06] cursor-pointer gap-3 py-3 px-3 rounded-xl transition-all"
+                    className="text-slate-700 hover:text-slate-900 hover:bg-amber-50 cursor-pointer gap-3 py-3 px-3 rounded-xl transition-all"
                   >
                     <div className="w-8 h-8 rounded-lg bg-purple-500/15 border border-purple-500/20 flex items-center justify-center">
                       <Users className="w-4 h-4 text-purple-400" />
