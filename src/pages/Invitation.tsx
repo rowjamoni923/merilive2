@@ -371,26 +371,22 @@ const Invitation = () => {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.1 }}
-          className="relative overflow-hidden rounded-2xl"
-          style={{
-            background: 'linear-gradient(135deg, rgba(147,51,234,0.3), rgba(219,39,119,0.3))',
-            border: '1px solid rgba(168,85,247,0.3)',
-          }}
+          className="relative overflow-hidden rounded-2xl bg-white border border-amber-200/70 shadow-lg shadow-amber-900/5"
         >
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(168,85,247,0.15),transparent_70%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(168,85,247,0.08),transparent_70%)]" />
           <div className="relative p-5">
             <div className="flex items-center justify-center gap-2 mb-3">
-              <Sparkles className="w-5 h-5 text-amber-400 animate-pulse" />
-              <span className="text-slate-800 font-bold text-lg tracking-wide">Share & Win!</span>
-              <Sparkles className="w-5 h-5 text-amber-400 animate-pulse" />
+              <Sparkles className="w-5 h-5 text-amber-500 animate-pulse" />
+              <span className="text-slate-900 font-bold text-lg tracking-wide">Share & Win!</span>
+              <Sparkles className="w-5 h-5 text-amber-500 animate-pulse" />
             </div>
-            <p className="text-slate-700 text-sm text-center mb-4">
+            <p className="text-slate-600 text-sm text-center mb-4">
               Share your link. More signups, higher rank!
             </p>
             <div className="flex gap-2">
               <Button
                 onClick={handleShare}
-                className="flex-1 bg-gradient-to-r from-fuchsia-600 to-violet-600 hover:from-fuchsia-500 hover:to-violet-500 text-white font-bold py-5 rounded-xl shadow-lg shadow-purple-500/30"
+                className="flex-1 bg-gradient-to-r from-fuchsia-600 to-violet-600 hover:from-fuchsia-500 hover:to-violet-500 text-white font-bold py-5 rounded-xl shadow-lg shadow-purple-500/25"
               >
                 <Share2 className="w-4 h-4 mr-2" />
                 Share Link
@@ -398,9 +394,9 @@ const Invitation = () => {
               <Button
                 onClick={copyLink}
                 variant="outline"
-                className="border-amber-200/60 text-slate-800 hover:bg-white/10 py-5 rounded-xl px-4"
+                className="border-amber-200/70 bg-amber-50/50 text-slate-800 hover:bg-amber-100 py-5 rounded-xl px-4"
               >
-                {copied ? <CheckCircle className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                {copied ? <CheckCircle className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
               </Button>
             </div>
           </div>
