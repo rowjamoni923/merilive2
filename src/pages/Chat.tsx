@@ -3287,7 +3287,7 @@ const Chat = () => {
       <Dialog open={showSearchGroup} onOpenChange={setShowSearchGroup}>
         <DialogContent className="max-w-sm mx-auto border border-amber-200/60" style={{ background: 'linear-gradient(180deg, hsl(40 40% 99%) 0%, hsl(40 40% 98%) 100%)' }}>
           <DialogHeader>
-            <DialogTitle className="text-white">Search Group</DialogTitle>
+            <DialogTitle className="text-slate-800">Search Group</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="relative">
