@@ -423,14 +423,14 @@ const Leaderboard = () => {
                   onClick={() => setPeriodType(p)}
                   className={cn(
                     "px-5 py-1.5 rounded-full text-xs font-semibold transition-all touch-manipulation active:scale-95",
-                    isActive ? "text-amber-900" : "text-amber-400/50"
+                    isActive ? "text-amber-900" : "text-slate-500"
                   )}
                   style={isActive ? {
                     background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
                     boxShadow: '0 4px 15px rgba(251,191,36,0.3)',
                   } : {
-                    background: 'rgba(251,191,36,0.06)',
-                    border: '1px solid rgba(251,191,36,0.12)',
+                    background: '#F1F5F9',
+                    border: '1px solid rgba(15,23,42,0.06)',
                   }}
                 >
                   {p === "daily" ? "Day" : p === "weekly" ? "Week" : "Month"}
