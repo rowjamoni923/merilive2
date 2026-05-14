@@ -119,7 +119,10 @@ const PayrollHelperGuide = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div
+      className="fixed inset-0 overflow-y-auto overscroll-contain bg-background"
+      style={{ WebkitOverflowScrolling: 'touch' }}
+    >
       {/* Header */}
       <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="flex items-center gap-3 px-4 py-3">
