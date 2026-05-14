@@ -1088,6 +1088,7 @@ const App = () => {
             <Toaster />
             <SonnerToaster />
             <BrowserRouter>
+              <ScrollToTop />
               <Suspense fallback={null}><DeepLinkHandler /></Suspense>
               <Suspense fallback={null}><AndroidBackButtonHandler /></Suspense>
               <Suspense fallback={null}><GlobalScreenSecurity /></Suspense>
