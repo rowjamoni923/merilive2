@@ -196,7 +196,7 @@ const MyPoster = () => {
                   onClick={() => handleDelete(image.id, image.image_url)}
                   className="absolute top-2 right-2 w-6 h-6 bg-white/80 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                 >
-                  <X className="w-4 h-4 text-white" />
+                  <X className="w-4 h-4 text-slate-800" />
                 </button>
               </motion.div>
             ))}

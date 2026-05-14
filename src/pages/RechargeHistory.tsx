@@ -183,12 +183,12 @@ const RechargeHistory = () => {
     switch (status) {
       case 'completed':
       case 'approved':
-        return 'bg-gradient-to-r from-green-500 to-emerald-500 text-white';
+        return 'bg-gradient-to-r from-green-500 to-emerald-500 text-slate-800';
       case 'rejected':
       case 'failed':
-        return 'bg-gradient-to-r from-red-500 to-rose-500 text-white';
+        return 'bg-gradient-to-r from-red-500 to-rose-500 text-slate-800';
       default:
-        return 'bg-gradient-to-r from-amber-500 to-orange-500 text-white';
+        return 'bg-gradient-to-r from-amber-500 to-orange-500 text-slate-800';
     }
   };
 
@@ -269,12 +269,12 @@ const RechargeHistory = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full text-white hover:bg-white/20"
+              className="rounded-full text-slate-800 hover:bg-white/20"
               onClick={() => navigate(-1)}
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="text-xl font-bold text-white">Recharge History</h1>
+            <h1 className="text-xl font-bold text-slate-800">Recharge History</h1>
           </div>
         </header>
 
@@ -286,14 +286,14 @@ const RechargeHistory = () => {
                 <Clock className="w-4 h-4 text-amber-300" />
                 <span className="text-slate-600 text-xs">Pending</span>
               </div>
-              <p className="text-2xl font-bold text-white">{pendingCount}</p>
+              <p className="text-2xl font-bold text-slate-800">{pendingCount}</p>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-amber-200/60">
               <div className="flex items-center gap-2 mb-1">
                 <Check className="w-4 h-4 text-green-300" />
                 <span className="text-slate-600 text-xs">Processed</span>
               </div>
-              <p className="text-2xl font-bold text-white">{completedCount}</p>
+              <p className="text-2xl font-bold text-slate-800">{completedCount}</p>
             </div>
           </div>
         </div>
@@ -305,19 +305,19 @@ const RechargeHistory = () => {
           <TabsList className="w-full bg-white/80 backdrop-blur-sm border border-amber-200/60 rounded-2xl p-1 h-auto">
             <TabsTrigger 
               value="all" 
-              className="flex-1 rounded-xl py-2.5 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white"
+              className="flex-1 rounded-xl py-2.5 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-slate-800"
             >
                All ({rechargeOrders.length})
             </TabsTrigger>
             <TabsTrigger 
               value="pending" 
-              className="flex-1 rounded-xl py-2.5 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white"
+              className="flex-1 rounded-xl py-2.5 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-slate-800"
             >
               Pending ({pendingCount})
             </TabsTrigger>
             <TabsTrigger 
               value="completed" 
-              className="flex-1 rounded-xl py-2.5 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white"
+              className="flex-1 rounded-xl py-2.5 text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-slate-800"
             >
               Done ({completedCount})
             </TabsTrigger>
@@ -360,7 +360,7 @@ const RechargeHistory = () => {
                        {getPaymentMethodIcon(request.payment_method || '')}
                     </div>
                     <div>
-                      <p className="font-bold text-white text-lg">
+                      <p className="font-bold text-slate-800 text-lg">
                         +{request.coin_amount?.toLocaleString() || 0} 
                         <span className="text-purple-400 ml-1">💎</span>
                       </p>

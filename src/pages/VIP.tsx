@@ -1090,12 +1090,12 @@ const VIP = () => {
             size="icon"
             variant="ghost"
             onClick={() => navigate(-1)}
-            className="text-white hover:bg-white/10 w-9 h-9 rounded-full"
+            className="text-slate-800 hover:bg-white/10 w-9 h-9 rounded-full"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
           
-          <h1 className="text-lg font-bold text-white flex items-center gap-2">
+          <h1 className="text-lg font-bold text-slate-800 flex items-center gap-2">
             <Crown className="w-5 h-5 text-amber-400" />
             VIP Membership
           </h1>
@@ -1151,7 +1151,7 @@ const VIP = () => {
                 <div className="flex items-center gap-3">
                   <VIPBadge tier={currentVIPTier} size="lg" />
                   <div>
-                    <p className="text-white font-semibold">Current Status</p>
+                    <p className="text-slate-800 font-semibold">Current Status</p>
                     <p className="text-slate-700 text-sm">
                       Expires: {vipExpiresAt ? new Date(vipExpiresAt).toLocaleDateString() : 'N/A'}
                     </p>
@@ -1192,16 +1192,16 @@ const VIP = () => {
                               autoPlay
                             />
                           ) : (
-                            <TierIcon className="w-6 h-6 text-white" />
+                            <TierIcon className="w-6 h-6 text-slate-800" />
                           )}
                         </div>
                         <div>
-                          <h3 className="text-white font-bold text-lg">{tier.tier_name}</h3>
+                          <h3 className="text-slate-800 font-bold text-lg">{tier.tier_name}</h3>
                           <p className="text-slate-600 text-sm">{tier.duration_days} Days</p>
                         </div>
                       </div>
                       {isOwned && (
-                        <Badge className="bg-green-500 text-white border-0">
+                        <Badge className="bg-green-500 text-slate-800 border-0">
                           <Check className="w-3 h-3 mr-1" /> Active
                         </Badge>
                       )}
@@ -1225,7 +1225,7 @@ const VIP = () => {
                     <div className="flex items-center justify-between pt-3 border-t border-white/10">
                       <div className="flex items-center gap-2">
                         <Diamond3DIcon size={20} />
-                        <span className="text-white font-bold text-lg">
+                        <span className="text-slate-800 font-bold text-lg">
                           {tier.price_diamonds.toLocaleString()}
                         </span>
                       </div>
@@ -1236,7 +1236,7 @@ const VIP = () => {
                         className={`px-6 ${
                           isOwned 
                             ? 'bg-green-500/20 text-green-400' 
-                            : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white'
+                            : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-slate-800'
                         }`}
                       >
                         {isOwned ? 'Active' : 'Subscribe'}
@@ -1256,7 +1256,7 @@ const VIP = () => {
               <div className="w-20 h-20 rounded-full bg-purple-500/20 flex items-center justify-center mb-4">
                 <Sparkles className="w-10 h-10 text-purple-400" />
               </div>
-              <h3 className="text-white font-semibold text-lg mb-2">No Privileges Yet</h3>
+              <h3 className="text-slate-800 font-semibold text-lg mb-2">No Privileges Yet</h3>
               <p className="text-slate-700 text-sm mb-4">
                 Level up or purchase items from the shop to unlock privileges
               </p>
@@ -1287,7 +1287,7 @@ const VIP = () => {
                   >
                     <div className="flex items-center gap-2 text-lg font-bold mb-3">
                       <span>{icon}</span>
-                      <span className="text-white">{title}</span>
+                      <span className="text-slate-800">{title}</span>
                         <span className="text-slate-600 text-sm font-normal ml-auto">Choose 1</span>
                     </div>
                     
@@ -1327,7 +1327,7 @@ const VIP = () => {
                             {/* Equipped indicator */}
                             {priv.is_equipped && (
                               <div className="absolute top-1 right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                                <Check className="w-3 h-3 text-white" />
+                                <Check className="w-3 h-3 text-slate-800" />
                               </div>
                             )}
                             
@@ -1370,7 +1370,7 @@ const VIP = () => {
                             }}
                             className={priv.is_equipped
                               ? 'mt-2 h-7 rounded-full bg-green-500/20 text-green-400 hover:bg-green-500/20'
-                              : 'mt-2 h-7 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white'}
+                              : 'mt-2 h-7 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-slate-800'}
                           >
                             {priv.is_equipped ? 'Equipped' : 'Equip'}
                           </Button>
@@ -1396,14 +1396,14 @@ const VIP = () => {
       <Dialog open={!!selectedTier} onOpenChange={() => setSelectedTier(null)}>
         <DialogContent className="bg-white border-purple-500/30 max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-white text-center">Confirm VIP Purchase</DialogTitle>
+            <DialogTitle className="text-slate-800 text-center">Confirm VIP Purchase</DialogTitle>
           </DialogHeader>
           
           {selectedTier && (
             <div className="space-y-4">
               <div className="text-center">
                 <VIPBadge tier={selectedTier.tier_level} size="lg" />
-                <h3 className="text-white font-bold text-xl mt-3">{selectedTier.tier_name}</h3>
+                <h3 className="text-slate-800 font-bold text-xl mt-3">{selectedTier.tier_name}</h3>
                 <p className="text-slate-700">{selectedTier.duration_days} Days Membership</p>
               </div>
 
@@ -1422,7 +1422,7 @@ const VIP = () => {
                 <Button
                   variant="outline"
                   onClick={() => setSelectedTier(null)}
-                  className="flex-1 border-white/20 text-white"
+                  className="flex-1 border-white/20 text-slate-800"
                 >
                   Cancel
                 </Button>

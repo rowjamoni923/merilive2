@@ -145,7 +145,7 @@ const Rewards = () => {
             className={cn(
               "flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium transition-all",
               activeTab === tab.key
-                ? "bg-gradient-to-r from-primary to-secondary text-white shadow-lg"
+                ? "bg-gradient-to-r from-primary to-secondary text-slate-800 shadow-lg"
                 : "bg-white/5 text-slate-500 hover:bg-white/10"
             )}
           >
@@ -165,10 +165,10 @@ const Rewards = () => {
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <p className="text-sm text-purple-300 font-medium">Login Streak</p>
-                  <p className="text-2xl font-bold text-white">{loginReward.streak.current_streak} Days</p>
+                  <p className="text-2xl font-bold text-slate-800">{loginReward.streak.current_streak} Days</p>
                 </div>
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-                  <Star className="w-6 h-6 text-white" />
+                  <Star className="w-6 h-6 text-slate-800" />
                 </div>
               </div>
               <p className="text-xs text-slate-500">Login every day to keep your streak and earn bigger rewards!</p>
@@ -220,7 +220,7 @@ const Rewards = () => {
               <Button
                 onClick={loginReward.claimReward}
                 disabled={loginReward.claiming}
-                className="w-full h-12 text-base font-bold rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-0"
+                className="w-full h-12 text-base font-bold rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-800 border-0"
               >
                 {loginReward.claiming ? "Claiming..." : `🎁 Claim Day ${currentDay} (+${loginReward.todayReward.reward_coins} Coins)`}
               </Button>
@@ -244,10 +244,10 @@ const Rewards = () => {
               <div className="flex items-center justify-between mb-2">
                 <div>
                   <p className="text-sm text-emerald-300 font-medium">This Week's Spending</p>
-                  <p className="text-2xl font-bold text-white">{userWeeklySpend.toLocaleString()} <span className="text-sm text-slate-500">diamonds</span></p>
+                  <p className="text-2xl font-bold text-slate-800">{userWeeklySpend.toLocaleString()} <span className="text-sm text-slate-500">diamonds</span></p>
                 </div>
                 <div className="px-3 py-1.5 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500">
-                  <span className="text-xs font-bold text-white">{currentTier?.tier_name || 'No Tier'}</span>
+                  <span className="text-xs font-bold text-slate-800">{currentTier?.tier_name || 'No Tier'}</span>
                 </div>
               </div>
               {currentTier && (
@@ -284,10 +284,10 @@ const Rewards = () => {
                           tier.tier_name === 'Silver' ? "bg-gradient-to-br from-slate-300 to-slate-400" :
                           "bg-gradient-to-br from-amber-700 to-amber-800"
                         )}>
-                          <Crown className="w-5 h-5 text-white" />
+                          <Crown className="w-5 h-5 text-slate-800" />
                         </div>
                         <div>
-                          <p className="font-bold text-white">{tier.tier_name}</p>
+                          <p className="font-bold text-slate-800">{tier.tier_name}</p>
                           <p className="text-xs text-slate-500">
                             {tier.min_spend.toLocaleString()}{tier.max_spend ? ` - ${tier.max_spend.toLocaleString()}` : '+'} diamonds/week
                           </p>
@@ -320,9 +320,9 @@ const Rewards = () => {
           <>
             {limitedOffers.length === 0 ? (
               <div className="text-center py-12">
-                <Sparkles className="w-12 h-12 text-white/20 mx-auto mb-3" />
+                <Sparkles className="w-12 h-12 text-slate-800/20 mx-auto mb-3" />
                 <p className="text-slate-400 font-medium">No active offers right now</p>
-                <p className="text-xs text-white/25 mt-1">Check back soon for exciting deals!</p>
+                <p className="text-xs text-slate-800/25 mt-1">Check back soon for exciting deals!</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -335,7 +335,7 @@ const Rewards = () => {
                     <div className="flex items-start justify-between mb-2">
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <Badge className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-[10px] border-0">
+                          <Badge className="bg-gradient-to-r from-pink-500 to-purple-500 text-slate-800 text-[10px] border-0">
                             {offer.badge_text}
                           </Badge>
                           <span className="flex items-center gap-1 text-xs text-slate-500">
@@ -343,7 +343,7 @@ const Rewards = () => {
                             {getTimeRemaining(offer.ends_at)}
                           </span>
                         </div>
-                        <h3 className="text-base font-bold text-white">{offer.title}</h3>
+                        <h3 className="text-base font-bold text-slate-800">{offer.title}</h3>
                         <p className="text-xs text-slate-500 mt-1">{offer.description}</p>
                       </div>
                       <div className="text-right ml-3">
@@ -351,7 +351,7 @@ const Rewards = () => {
                         <p className="text-[10px] text-slate-400">bonus</p>
                       </div>
                     </div>
-                    <Button className="w-full mt-2 h-10 rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 text-white border-0 text-sm font-bold">
+                    <Button className="w-full mt-2 h-10 rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 text-slate-800 border-0 text-sm font-bold">
                       Recharge Now <ChevronRight className="w-4 h-4 ml-1" />
                     </Button>
                   </div>

@@ -462,16 +462,16 @@ const Tasks = () => {
               exit={{ scale: 0, rotate: 180 }}
               className="bg-gradient-to-br from-amber-400 to-orange-500 p-8 rounded-3xl shadow-2xl text-center"
             >
-              <Sparkles className="w-16 h-16 text-white mx-auto mb-4 animate-pulse" />
-              <h2 className="text-2xl font-bold text-white mb-4">🎉 Congratulations!</h2>
+              <Sparkles className="w-16 h-16 text-slate-800 mx-auto mb-4 animate-pulse" />
+              <h2 className="text-2xl font-bold text-slate-800 mb-4">🎉 Congratulations!</h2>
               <div className="flex gap-6 justify-center">
                 <div className="bg-white/20 px-4 py-2 rounded-xl">
-                  <p className="text-white text-sm">Beans</p>
-                  <p className="text-2xl font-bold text-white">+{showReward.beans}</p>
+                  <p className="text-slate-800 text-sm">Beans</p>
+                  <p className="text-2xl font-bold text-slate-800">+{showReward.beans}</p>
                 </div>
                 <div className="bg-white/20 px-4 py-2 rounded-xl">
-                  <p className="text-white text-sm">Diamonds</p>
-                  <p className="text-2xl font-bold text-white">+{showReward.diamonds}</p>
+                  <p className="text-slate-800 text-sm">Diamonds</p>
+                  <p className="text-2xl font-bold text-slate-800">+{showReward.diamonds}</p>
                 </div>
               </div>
             </motion.div>
@@ -480,19 +480,19 @@ const Tasks = () => {
       </AnimatePresence>
 
       {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-400 text-white p-4 shadow-lg safe-area-top">
+      <header className="flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-400 text-slate-800 p-4 shadow-lg safe-area-top">
         <div className="flex items-center gap-3">
           <Button 
             variant="ghost" 
             size="icon" 
             onClick={() => navigate(-1)}
-            className="text-white hover:bg-white/20"
+            className="text-slate-800 hover:bg-white/20"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex items-center gap-2">
             <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-              <Star className="w-5 h-5 text-white" />
+              <Star className="w-5 h-5 text-slate-800" />
             </div>
             <div>
               <h1 className="text-xl font-bold">Task Center</h1>
@@ -509,7 +509,7 @@ const Tasks = () => {
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 rounded-2xl p-5 shadow-xl text-white mb-6"
+          className="bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-500 rounded-2xl p-5 shadow-xl text-slate-800 mb-6"
         >
           <div className="flex items-center justify-between mb-3">
             <div>
@@ -544,10 +544,10 @@ const Tasks = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-fuchsia-500 to-purple-600 flex items-center justify-center shadow-lg shadow-fuchsia-500/30">
-                    <Flame className="w-5 h-5 text-white" />
+                    <Flame className="w-5 h-5 text-slate-800" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-white text-sm flex items-center gap-1.5">
+                    <h3 className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
                       🔥 New Host Live Bonus
                       <span className="text-[9px] bg-gradient-to-r from-amber-400 to-orange-500 px-1.5 py-0.5 rounded-full font-bold">
                         LIMITED
@@ -580,11 +580,11 @@ const Tasks = () => {
                       }`}
                     >
                       {completed ? (
-                        <Check className="w-4 h-4 text-white" />
+                        <Check className="w-4 h-4 text-slate-800" />
                       ) : (
                         <Clock className="w-3.5 h-3.5 text-slate-600" />
                       )}
-                      <span className={`text-[8px] font-bold mt-0.5 ${completed ? 'text-white' : 'text-slate-600'}`}>
+                      <span className={`text-[8px] font-bold mt-0.5 ${completed ? 'text-slate-800' : 'text-slate-600'}`}>
                         {i + 1}h
                       </span>
                     </div>
@@ -603,7 +603,7 @@ const Tasks = () => {
                 </div>
                 <div className="w-px h-6 bg-white/10" />
                 <div className="text-center">
-                  <p className="text-white font-bold text-sm">{totalDailyBonus.toLocaleString()}</p>
+                  <p className="text-slate-800 font-bold text-sm">{totalDailyBonus.toLocaleString()}</p>
                   <p className="text-[9px] text-slate-600">Max/Day</p>
                 </div>
                 <div className="w-px h-6 bg-white/10" />
@@ -616,7 +616,7 @@ const Tasks = () => {
               <Button
                 size="sm"
                 onClick={() => navigate('/go-live')}
-                className="w-full bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white text-xs h-9 rounded-xl shadow-lg shadow-fuchsia-500/30"
+                className="w-full bg-gradient-to-r from-fuchsia-500 to-purple-600 text-slate-800 text-xs h-9 rounded-xl shadow-lg shadow-fuchsia-500/30"
               >
                 <Video className="w-4 h-4 mr-1.5" />
                 Go Live
@@ -732,7 +732,7 @@ const Tasks = () => {
                         <div className="flex flex-col gap-1.5">
                           <Button
                             size="sm"
-                            className="text-white text-xs h-8 gap-1 rounded-lg font-bold border-0"
+                            className="text-slate-800 text-xs h-8 gap-1 rounded-lg font-bold border-0"
                             style={{
                               background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
                               boxShadow: '0 3px 12px rgba(245,158,11,0.4)',
@@ -764,7 +764,7 @@ const Tasks = () => {
                         size="sm"
                         onClick={() => claimReward(task)}
                         disabled={claimingTask === task.id}
-                        className="bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-lg animate-pulse"
+                        className="bg-gradient-to-r from-amber-400 to-orange-500 text-slate-800 shadow-lg animate-pulse"
                       >
                         {claimingTask === task.id ? '...' : 'Claim'}
                       </Button>
@@ -812,7 +812,7 @@ const Tasks = () => {
           {!ratingSubmitted ? (
             <>
               <DialogHeader className="px-5 pt-5 pb-0">
-                <DialogTitle className="text-white text-center text-base font-bold tracking-wide">
+                <DialogTitle className="text-slate-800 text-center text-base font-bold tracking-wide">
                   📸 Submit Rating Proof
                 </DialogTitle>
               </DialogHeader>
@@ -882,7 +882,7 @@ const Tasks = () => {
                   <Button
                     onClick={() => fileRef.current?.click()}
                     disabled={ratingUploading}
-                    className="w-full h-12 gap-2 font-bold rounded-xl text-white border-0"
+                    className="w-full h-12 gap-2 font-bold rounded-xl text-slate-800 border-0"
                     style={{
                       background: ratingUploading
                         ? 'rgba(167,139,250,0.15)'
@@ -927,7 +927,7 @@ const Tasks = () => {
                 </div>
               </motion.div>
               <div>
-                <p className="text-white font-bold text-lg">Submitted Successfully! 🎉</p>
+                <p className="text-slate-800 font-bold text-lg">Submitted Successfully! 🎉</p>
                 <p className="text-purple-200/50 text-sm mt-2 leading-relaxed">
                   Your screenshot has been submitted for review. You'll receive your reward once approved by admin.
                 </p>
@@ -938,7 +938,7 @@ const Tasks = () => {
               </div>
               <Button
                 onClick={() => setShowRatingUpload(false)}
-                className="w-full h-10 rounded-xl text-white font-bold border-0"
+                className="w-full h-10 rounded-xl text-slate-800 font-bold border-0"
                 style={{
                   background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
                   boxShadow: '0 4px 20px rgba(124,58,237,0.3)',

@@ -374,13 +374,13 @@ const EditProfile = () => {
             onClick={() => navigate(-1)}
             className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center active:scale-95 transition-transform"
           >
-            <ArrowLeft className="w-5 h-5 text-white" />
+            <ArrowLeft className="w-5 h-5 text-slate-800" />
           </button>
-          <h1 className="text-lg font-bold text-white">My Profile</h1>
+          <h1 className="text-lg font-bold text-slate-800">My Profile</h1>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-4 h-10 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold text-sm flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50"
+            className="px-4 h-10 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-slate-800 font-semibold text-sm flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50"
           >
             {saving ? (
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -408,7 +408,7 @@ const EditProfile = () => {
                   <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 rounded-full opacity-75 blur-sm animate-pulse" />
                   <Avatar className="relative w-28 h-28 ring-4 ring-slate-800 shadow-2xl">
                     <AvatarImage src={profile?.avatar_url || undefined} className="object-cover" />
-                    <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white text-3xl font-bold">
+                    <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-slate-800 text-3xl font-bold">
                       {displayName?.charAt(0) || "U"}
                     </AvatarFallback>
                   </Avatar>
@@ -417,7 +417,7 @@ const EditProfile = () => {
                     {uploading ? (
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     ) : (
-                      <Camera className="w-4 h-4 text-white" />
+                      <Camera className="w-4 h-4 text-slate-800" />
                     )}
                   </div>
                 </div>
@@ -431,7 +431,7 @@ const EditProfile = () => {
                 />
               </label>
             </div>
-            <h2 className="mt-4 text-xl font-bold text-white">{displayName || "Set Nickname"}</h2>
+            <h2 className="mt-4 text-xl font-bold text-slate-800">{displayName || "Set Nickname"}</h2>
             <div className="flex items-center gap-2 mt-1">
               <span className="text-sm text-slate-600">ID: {profile?.app_uid || "N/A"}</span>
               <button onClick={copyId} className="p-1 hover:bg-white/10 rounded">
@@ -457,12 +457,12 @@ const EditProfile = () => {
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600/30 to-pink-600/30 flex items-center justify-center">
                   <Camera className="w-5 h-5 text-purple-400" />
                 </div>
-                <span className="font-medium text-white">My Avatar</span>
+                <span className="font-medium text-slate-800">My Avatar</span>
               </div>
               <div className="flex items-center gap-3">
                 <Avatar className="w-9 h-9 ring-2 ring-purple-500/30">
                   <AvatarImage src={profile?.avatar_url || undefined} />
-                  <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-white text-xs">
+                  <AvatarFallback className="bg-gradient-to-br from-purple-600 to-pink-600 text-slate-800 text-xs">
                     {displayName?.charAt(0) || "U"}
                   </AvatarFallback>
                 </Avatar>
@@ -486,7 +486,7 @@ const EditProfile = () => {
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-fuchsia-600/30 to-pink-600/30 flex items-center justify-center">
                   <Image className="w-5 h-5 text-fuchsia-400" />
                 </div>
-                <span className="font-medium text-white">My Poster</span>
+                <span className="font-medium text-slate-800">My Poster</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-slate-600">Upload photos</span>
@@ -503,12 +503,12 @@ const EditProfile = () => {
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600/30 to-cyan-600/30 flex items-center justify-center">
                   <Hash className="w-5 h-5 text-blue-400" />
                 </div>
-                <span className="font-medium text-white">ID</span>
+                <span className="font-medium text-slate-800">ID</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-slate-600 font-mono">{profile?.app_uid || "N/A"}</span>
                 <div className="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full">
-                  <span className="text-xs font-semibold text-white">Copy</span>
+                  <span className="text-xs font-semibold text-slate-800">Copy</span>
                 </div>
               </div>
             </button>
@@ -521,7 +521,7 @@ const EditProfile = () => {
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600/30 to-purple-600/30 flex items-center justify-center">
                       <User className="w-5 h-5 text-violet-400" />
                     </div>
-                    <span className="font-medium text-white">Nickname</span>
+                    <span className="font-medium text-slate-800">Nickname</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-slate-600 truncate max-w-[120px]">{displayName || "Set nickname"}</span>
@@ -531,7 +531,7 @@ const EditProfile = () => {
               </SheetTrigger>
               <SheetContent side="bottom" className="bg-white border-t border-white/10 rounded-t-3xl">
                 <SheetHeader>
-                  <SheetTitle className="text-white text-center">Edit Nickname</SheetTitle>
+                  <SheetTitle className="text-slate-800 text-center">Edit Nickname</SheetTitle>
                 </SheetHeader>
                 <div className="mt-6 space-y-4">
                   <Input
@@ -539,7 +539,7 @@ const EditProfile = () => {
                     onChange={(e) => setDisplayName(e.target.value)}
                     placeholder="Enter your nickname"
                     maxLength={20}
-                    className="h-12 rounded-xl bg-slate-100 border-white/10 text-white placeholder:text-slate-600"
+                    className="h-12 rounded-xl bg-white border-amber-200/60 text-slate-800 placeholder:text-slate-600"
                   />
                   <p className="text-xs text-slate-600 text-center">{displayName.length}/20 characters</p>
                   <Button 
@@ -561,7 +561,7 @@ const EditProfile = () => {
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-600/30 to-pink-600/30 flex items-center justify-center">
                     <User className="w-5 h-5 text-rose-400" />
                   </div>
-                  <span className="font-medium text-white">Gender</span>
+                  <span className="font-medium text-slate-800">Gender</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={`text-sm font-medium ${profile.gender.toLowerCase() === "female" ? "text-pink-400" : "text-blue-400"}`}>
@@ -581,7 +581,7 @@ const EditProfile = () => {
                       <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-600/30 to-pink-600/30 flex items-center justify-center">
                         <User className="w-5 h-5 text-rose-400" />
                       </div>
-                      <span className="font-medium text-white">Gender</span>
+                      <span className="font-medium text-slate-800">Gender</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-amber-400 animate-pulse">⚠️ Required</span>
@@ -591,7 +591,7 @@ const EditProfile = () => {
                 </SheetTrigger>
                 <SheetContent side="bottom" className="bg-white border-t border-white/10 rounded-t-3xl">
                   <SheetHeader>
-                    <SheetTitle className="text-white text-center">Select Gender (One-time only)</SheetTitle>
+                    <SheetTitle className="text-slate-800 text-center">Select Gender (One-time only)</SheetTitle>
                   </SheetHeader>
                   <p className="text-center text-xs text-amber-400 mt-2">
                     ⚠️ This selection cannot be changed later
@@ -671,7 +671,7 @@ const EditProfile = () => {
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-600/30 to-orange-600/30 flex items-center justify-center">
                       <Star className="w-5 h-5 text-amber-400" />
                     </div>
-                    <span className="font-medium text-white">Age</span>
+                    <span className="font-medium text-slate-800">Age</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-slate-600">{age || "Not set"}</span>
@@ -681,7 +681,7 @@ const EditProfile = () => {
               </SheetTrigger>
               <SheetContent side="bottom" className="bg-white border-t border-white/10 rounded-t-3xl">
                 <SheetHeader>
-                  <SheetTitle className="text-white text-center">Enter Age</SheetTitle>
+                  <SheetTitle className="text-slate-800 text-center">Enter Age</SheetTitle>
                 </SheetHeader>
                 <div className="mt-6 space-y-4">
                   <Input
@@ -691,7 +691,7 @@ const EditProfile = () => {
                     placeholder="Enter your age"
                     min={18}
                     max={100}
-                    className="h-14 rounded-xl bg-slate-100 border-white/10 text-white text-center text-2xl placeholder:text-slate-600"
+                    className="h-14 rounded-xl bg-white border-amber-200/60 text-slate-800 text-center text-2xl placeholder:text-slate-600"
                   />
                   <Button 
                     className="w-full h-12 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90" 
@@ -710,7 +710,7 @@ const EditProfile = () => {
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-600/30 to-green-600/30 flex items-center justify-center">
                   <MapPin className="w-5 h-5 text-emerald-400" />
                 </div>
-                <span className="font-medium text-white">Region</span>
+                <span className="font-medium text-slate-800">Region</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-slate-600">
@@ -731,7 +731,7 @@ const EditProfile = () => {
                   )}
                 </div>
                 <div>
-                  <span className="font-medium text-white">Hide Location</span>
+                  <span className="font-medium text-slate-800">Hide Location</span>
                   <p className="text-xs text-slate-600 mt-0.5">Others won't see your location</p>
                 </div>
               </div>
@@ -766,7 +766,7 @@ const EditProfile = () => {
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-600/30 to-blue-600/30 flex items-center justify-center">
                       <Globe className="w-5 h-5 text-cyan-400" />
                     </div>
-                    <span className="font-medium text-white">Language</span>
+                    <span className="font-medium text-slate-800">Language</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-purple-400">{language}</span>
@@ -776,7 +776,7 @@ const EditProfile = () => {
               </SheetTrigger>
               <SheetContent side="bottom" className="bg-white border-t border-white/10 rounded-t-3xl">
                 <SheetHeader>
-                  <SheetTitle className="text-white text-center">Select Language</SheetTitle>
+                  <SheetTitle className="text-slate-800 text-center">Select Language</SheetTitle>
                 </SheetHeader>
                 <div className="mt-6 grid grid-cols-2 gap-3">
                   {["Bengali", "English", "Hindi", "Arabic", "Spanish", "Chinese"].map((lang) => (
@@ -785,8 +785,8 @@ const EditProfile = () => {
                       onClick={() => setLanguage(lang)}
                       className={`py-3.5 rounded-xl font-semibold text-sm transition-all ${
                         language === lang 
-                          ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/25" 
-                          : "bg-slate-100 text-white hover:bg-slate-200 border border-white/10"
+                          ? "bg-gradient-to-r from-purple-600 to-pink-600 text-slate-800 shadow-lg shadow-purple-500/25" 
+                          : "bg-slate-100 text-slate-800 hover:bg-slate-200 border border-white/10"
                       }`}
                     >
                       {lang}
@@ -804,7 +804,7 @@ const EditProfile = () => {
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600/30 to-violet-600/30 flex items-center justify-center">
                       <Globe className="w-5 h-5 text-purple-400" />
                     </div>
-                    <span className="font-medium text-white">Second Language</span>
+                    <span className="font-medium text-slate-800">Second Language</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-purple-400">{secondLanguage || "None"}</span>
@@ -814,15 +814,15 @@ const EditProfile = () => {
               </SheetTrigger>
               <SheetContent side="bottom" className="bg-white border-t border-white/10 rounded-t-3xl">
                 <SheetHeader>
-                  <SheetTitle className="text-white text-center">Select Second Language</SheetTitle>
+                  <SheetTitle className="text-slate-800 text-center">Select Second Language</SheetTitle>
                 </SheetHeader>
                 <div className="mt-6 grid grid-cols-2 gap-3 max-h-[50vh] overflow-y-auto pb-4">
                   <button
                     onClick={() => setSecondLanguage("")}
                     className={`py-3.5 rounded-xl font-semibold text-sm transition-all ${
                       !secondLanguage 
-                        ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/25" 
-                        : "bg-slate-100 text-white hover:bg-slate-200 border border-white/10"
+                        ? "bg-gradient-to-r from-purple-600 to-pink-600 text-slate-800 shadow-lg shadow-purple-500/25" 
+                        : "bg-slate-100 text-slate-800 hover:bg-slate-200 border border-white/10"
                     }`}
                   >
                     None
@@ -833,8 +833,8 @@ const EditProfile = () => {
                       onClick={() => setSecondLanguage(lang)}
                       className={`py-3.5 rounded-xl font-semibold text-sm transition-all ${
                         secondLanguage === lang 
-                          ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/25" 
-                          : "bg-slate-100 text-white hover:bg-slate-200 border border-white/10"
+                          ? "bg-gradient-to-r from-purple-600 to-pink-600 text-slate-800 shadow-lg shadow-purple-500/25" 
+                          : "bg-slate-100 text-slate-800 hover:bg-slate-200 border border-white/10"
                       }`}
                     >
                       {lang}
@@ -853,7 +853,7 @@ const EditProfile = () => {
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600/30 to-violet-600/30 flex items-center justify-center">
                   <Hash className="w-5 h-5 text-indigo-400" />
                 </div>
-                <span className="font-medium text-white">Tags</span>
+                <span className="font-medium text-slate-800">Tags</span>
               </div>
               <div className="flex items-center gap-2">
                 {tags.length > 0 ? (
@@ -878,7 +878,7 @@ const EditProfile = () => {
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-600/30 to-emerald-600/30 flex items-center justify-center">
                       <MessageCircle className="w-5 h-5 text-teal-400" />
                     </div>
-                    <span className="font-medium text-white">Self-introduction</span>
+                    <span className="font-medium text-slate-800">Self-introduction</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-slate-600 truncate max-w-[100px]">
@@ -890,7 +890,7 @@ const EditProfile = () => {
               </SheetTrigger>
               <SheetContent side="bottom" className="bg-white border-t border-white/10 rounded-t-3xl h-[400px]">
                 <SheetHeader>
-                  <SheetTitle className="text-white text-center">Self-introduction</SheetTitle>
+                  <SheetTitle className="text-slate-800 text-center">Self-introduction</SheetTitle>
                 </SheetHeader>
                 <div className="mt-6 space-y-4">
                   <Textarea
@@ -899,7 +899,7 @@ const EditProfile = () => {
                     placeholder="Write something about yourself..."
                     maxLength={200}
                     rows={5}
-                    className="rounded-xl bg-slate-100 border-white/10 text-white placeholder:text-slate-600 resize-none"
+                    className="rounded-xl bg-white border-amber-200/60 text-slate-800 placeholder:text-slate-600 resize-none"
                   />
                   <p className="text-xs text-slate-600 text-center">{bio.length}/200 characters</p>
                   <Button 
@@ -922,11 +922,11 @@ const EditProfile = () => {
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-600/30 to-yellow-600/30 flex items-center justify-center">
                   <Palette className="w-5 h-5 text-amber-400" />
                 </div>
-                <span className="font-medium text-white">Cosmetics</span>
+                <span className="font-medium text-slate-800">Cosmetics</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
-                  <Sparkles className="w-4 h-4 text-white" />
+                  <Sparkles className="w-4 h-4 text-slate-800" />
                 </div>
                 <ChevronRight className="w-5 h-5 text-slate-600" />
               </div>
@@ -950,7 +950,7 @@ const EditProfile = () => {
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600/30 to-indigo-600/30 flex items-center justify-center">
                   <Mail className="w-5 h-5 text-blue-400" />
                 </div>
-                <span className="font-medium text-white">Email</span>
+                <span className="font-medium text-slate-800">Email</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-slate-600 truncate max-w-[140px]">
@@ -969,7 +969,7 @@ const EditProfile = () => {
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-600/30 to-emerald-600/30 flex items-center justify-center">
                   <Phone className="w-5 h-5 text-green-400" />
                 </div>
-                <span className="font-medium text-white">Phone</span>
+                <span className="font-medium text-slate-800">Phone</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-slate-600">
@@ -997,7 +997,7 @@ const EditProfile = () => {
                   <Lock className="w-5 h-5 text-indigo-400" />
                 </div>
                 <div className="text-left">
-                  <span className="font-medium text-white block">Change Password</span>
+                  <span className="font-medium text-slate-800 block">Change Password</span>
                   <span className="text-xs text-slate-600">Secure your account</span>
                 </div>
               </div>
@@ -1012,10 +1012,10 @@ const EditProfile = () => {
             <div className="absolute -inset-1 bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 opacity-20 blur-xl" />
             <div className="relative flex items-center gap-4">
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600/50 to-pink-600/50 flex items-center justify-center backdrop-blur-sm border border-white/10">
-                <Shield className="w-7 h-7 text-white" />
+                <Shield className="w-7 h-7 text-slate-800" />
               </div>
               <div className="flex-1">
-                <p className="font-bold text-white text-lg">Keep Your Account Safe</p>
+                <p className="font-bold text-slate-800 text-lg">Keep Your Account Safe</p>
                 <p className="text-slate-700 text-sm mt-0.5">
                   Add phone & password for better security
                 </p>
@@ -1029,7 +1029,7 @@ const EditProfile = () => {
       <Dialog open={showPhoneModal} onOpenChange={setShowPhoneModal}>
         <DialogContent className="bg-white border border-white/10 rounded-2xl max-w-[90vw] sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-white text-center flex items-center justify-center gap-2">
+            <DialogTitle className="text-slate-800 text-center flex items-center justify-center gap-2">
               <Phone className="w-5 h-5 text-green-400" />
               Add Phone Number
             </DialogTitle>
@@ -1042,7 +1042,7 @@ const EditProfile = () => {
                 value={newPhone}
                 onChange={(e) => setNewPhone(e.target.value)}
                 placeholder="+880 1XXXXXXXXX"
-                className="mt-2 h-12 rounded-xl bg-slate-100 border-white/10 text-white placeholder:text-slate-600"
+                className="mt-2 h-12 rounded-xl bg-white border-amber-200/60 text-slate-800 placeholder:text-slate-600"
               />
             </div>
             <Button 
@@ -1062,7 +1062,7 @@ const EditProfile = () => {
       <Dialog open={showPasswordModal} onOpenChange={setShowPasswordModal}>
         <DialogContent className="bg-white border border-white/10 rounded-2xl max-w-[90vw] sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-white text-center flex items-center justify-center gap-2">
+            <DialogTitle className="text-slate-800 text-center flex items-center justify-center gap-2">
               <Lock className="w-5 h-5 text-indigo-400" />
               Change Password
             </DialogTitle>
@@ -1076,7 +1076,7 @@ const EditProfile = () => {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Enter new password"
-                  className="h-12 rounded-xl bg-slate-100 border-white/10 text-white placeholder:text-slate-600 pr-12"
+                  className="h-12 rounded-xl bg-white border-amber-200/60 text-slate-800 placeholder:text-slate-600 pr-12"
                 />
                 <button
                   type="button"
@@ -1094,7 +1094,7 @@ const EditProfile = () => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirm new password"
-                className="mt-2 h-12 rounded-xl bg-slate-100 border-white/10 text-white placeholder:text-slate-600"
+                className="mt-2 h-12 rounded-xl bg-white border-amber-200/60 text-slate-800 placeholder:text-slate-600"
               />
             </div>
             <Button 
@@ -1114,7 +1114,7 @@ const EditProfile = () => {
       <Dialog open={showEmailModal} onOpenChange={setShowEmailModal}>
         <DialogContent className="bg-white border border-white/10 rounded-2xl max-w-[90vw] sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-white text-center flex items-center justify-center gap-2">
+            <DialogTitle className="text-slate-800 text-center flex items-center justify-center gap-2">
               <Mail className="w-5 h-5 text-blue-400" />
               Link Email Account
             </DialogTitle>
@@ -1127,7 +1127,7 @@ const EditProfile = () => {
                 value={linkEmail}
                 onChange={(e) => setLinkEmail(e.target.value)}
                 placeholder="your@email.com"
-                className="mt-2 h-12 rounded-xl bg-slate-100 border-white/10 text-white placeholder:text-slate-600"
+                className="mt-2 h-12 rounded-xl bg-white border-amber-200/60 text-slate-800 placeholder:text-slate-600"
               />
             </div>
             <div>
@@ -1138,7 +1138,7 @@ const EditProfile = () => {
                   value={linkPassword}
                   onChange={(e) => setLinkPassword(e.target.value)}
                   placeholder="Create a password"
-                  className="h-12 rounded-xl bg-slate-100 border-white/10 text-white placeholder:text-slate-600 pr-12"
+                  className="h-12 rounded-xl bg-white border-amber-200/60 text-slate-800 placeholder:text-slate-600 pr-12"
                 />
                 <button
                   type="button"

@@ -329,15 +329,15 @@ const Invitation = () => {
       {/* Header */}
       <header className="flex-shrink-0 z-40 backdrop-blur-xl border-b border-white/10">
         <div className="flex items-center gap-3 px-4 py-3 safe-area-top" style={{ background: 'linear-gradient(135deg, rgba(30,0,50,0.95), rgba(60,0,80,0.95))' }}>
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="text-slate-600 hover:text-white hover:bg-white/10 w-9 h-9">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="text-slate-600 hover:text-slate-800 hover:bg-white/10 w-9 h-9">
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
-              <Trophy className="w-5 h-5 text-white" />
+              <Trophy className="w-5 h-5 text-slate-800" />
             </div>
             <div>
-              <h1 className="text-white font-bold text-base">Share Leaderboard</h1>
+              <h1 className="text-slate-800 font-bold text-base">Share Leaderboard</h1>
               <p className="text-slate-600 text-[10px]">Share to climb the ranks!</p>
             </div>
           </div>
@@ -381,7 +381,7 @@ const Invitation = () => {
           <div className="relative p-5">
             <div className="flex items-center justify-center gap-2 mb-3">
               <Sparkles className="w-5 h-5 text-amber-400 animate-pulse" />
-              <span className="text-white font-bold text-lg tracking-wide">Share & Win!</span>
+              <span className="text-slate-800 font-bold text-lg tracking-wide">Share & Win!</span>
               <Sparkles className="w-5 h-5 text-amber-400 animate-pulse" />
             </div>
             <p className="text-slate-700 text-sm text-center mb-4">
@@ -390,7 +390,7 @@ const Invitation = () => {
             <div className="flex gap-2">
               <Button
                 onClick={handleShare}
-                className="flex-1 bg-gradient-to-r from-fuchsia-600 to-violet-600 hover:from-fuchsia-500 hover:to-violet-500 text-white font-bold py-5 rounded-xl shadow-lg shadow-purple-500/30"
+                className="flex-1 bg-gradient-to-r from-fuchsia-600 to-violet-600 hover:from-fuchsia-500 hover:to-violet-500 text-slate-800 font-bold py-5 rounded-xl shadow-lg shadow-purple-500/30"
               >
                 <Share2 className="w-4 h-4 mr-2" />
                 Share Link
@@ -398,7 +398,7 @@ const Invitation = () => {
               <Button
                 onClick={copyLink}
                 variant="outline"
-                className="border-white/20 text-white hover:bg-white/10 py-5 rounded-xl px-4"
+                className="border-white/20 text-slate-800 hover:bg-white/10 py-5 rounded-xl px-4"
               >
                 {copied ? <CheckCircle className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
               </Button>
@@ -420,7 +420,7 @@ const Invitation = () => {
           >
             <div className="flex items-center gap-2 px-5 pt-5 pb-3">
               <Gift className="w-5 h-5 text-amber-400" />
-              <h3 className="text-white font-bold text-base">Reward Tiers</h3>
+              <h3 className="text-slate-800 font-bold text-base">Reward Tiers</h3>
             </div>
             
             <div className="px-4 pb-4 space-y-2.5">
@@ -470,14 +470,14 @@ const Invitation = () => {
                       {/* Tier Info */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="text-white font-bold text-sm">{tier.tier_name}</p>
+                          <p className="text-slate-800 font-bold text-sm">{tier.tier_name}</p>
                           {isCurrent && (
-                            <span className="px-2 py-0.5 bg-gradient-to-r from-fuchsia-600 to-violet-600 text-white text-[9px] font-bold rounded-full uppercase tracking-wider">
+                            <span className="px-2 py-0.5 bg-gradient-to-r from-fuchsia-600 to-violet-600 text-slate-800 text-[9px] font-bold rounded-full uppercase tracking-wider">
                               Current
                             </span>
                           )}
                           {isAchieved && !isCurrent && (
-                            <span className="px-2 py-0.5 bg-green-500/80 text-white text-[9px] font-bold rounded-full">
+                            <span className="px-2 py-0.5 bg-green-500/80 text-slate-800 text-[9px] font-bold rounded-full">
                               ✓ Done
                             </span>
                           )}
@@ -498,7 +498,7 @@ const Invitation = () => {
                             size="sm"
                             onClick={() => claimTierReward(tier)}
                             disabled={claimingTierId === tier.id}
-                            className="h-7 px-3 text-[10px] font-bold bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white border-0 rounded-lg shadow-lg shadow-amber-500/30 animate-pulse"
+                            className="h-7 px-3 text-[10px] font-bold bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-800 border-0 rounded-lg shadow-lg shadow-amber-500/30 animate-pulse"
                           >
                             {claimingTierId === tier.id ? '...' : '🎁 Claim'}
                           </Button>
@@ -534,11 +534,11 @@ const Invitation = () => {
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-amber-500/30">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-slate-800 font-bold text-lg shadow-lg shadow-amber-500/30">
                   #{myRank.rank}
                 </div>
                 <div>
-                  <p className="text-white font-bold text-sm">Your Rank</p>
+                  <p className="text-slate-800 font-bold text-sm">Your Rank</p>
                   <p className="text-slate-600 text-xs">{myRank.total_invites} Invites</p>
                 </div>
               </div>
@@ -565,7 +565,7 @@ const Invitation = () => {
             <div className="flex items-center justify-between px-5 pt-5 pb-3">
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5 text-violet-400" />
-                <h3 className="text-white font-bold text-base">My Invites</h3>
+                <h3 className="text-slate-800 font-bold text-base">My Invites</h3>
               </div>
               <span className="text-xs text-slate-600 bg-white/10 px-2.5 py-1 rounded-full font-medium">
                 {myInvitedUsers.length} people
@@ -591,7 +591,7 @@ const Invitation = () => {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-white text-sm font-medium truncate">{user.display_name}</p>
+                      <p className="text-slate-800 text-sm font-medium truncate">{user.display_name}</p>
                       <p className="text-slate-600 text-[10px]">
                         Joined {new Date(user.created_at).toLocaleDateString()}
                       </p>
@@ -628,15 +628,15 @@ const Invitation = () => {
                     {leaderboard[1]?.avatar_url ? (
                       <img src={leaderboard[1].avatar_url} alt="" className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-white font-bold text-lg">{(leaderboard[1]?.display_name || 'U')[0]}</span>
+                      <span className="text-slate-800 font-bold text-lg">{(leaderboard[1]?.display_name || 'U')[0]}</span>
                     )}
                   </div>
                 </div>
-                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-gradient-to-b from-gray-300 to-gray-400 flex items-center justify-center text-white text-xs font-bold shadow-md">2</div>
+                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-gradient-to-b from-gray-300 to-gray-400 flex items-center justify-center text-slate-800 text-xs font-bold shadow-md">2</div>
               </div>
               <p className="text-slate-500 text-[10px] font-medium mt-3 truncate max-w-16 text-center">{leaderboard[1]?.display_name}</p>
               <div className="bg-gradient-to-t from-gray-400/50 to-gray-300/30 w-20 h-14 rounded-t-lg flex items-center justify-center mt-1">
-                <p className="text-white font-bold text-sm">{leaderboard[1]?.total_invites}</p>
+                <p className="text-slate-800 font-bold text-sm">{leaderboard[1]?.total_invites}</p>
               </div>
             </motion.div>
 
@@ -653,11 +653,11 @@ const Invitation = () => {
                     )}
                   </div>
                 </div>
-                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-gradient-to-b from-yellow-400 to-amber-500 flex items-center justify-center text-white text-xs font-bold shadow-md">1</div>
+                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-gradient-to-b from-yellow-400 to-amber-500 flex items-center justify-center text-slate-800 text-xs font-bold shadow-md">1</div>
               </div>
               <p className="text-amber-300 text-[10px] font-bold mt-3 truncate max-w-20 text-center">{leaderboard[0]?.display_name}</p>
               <div className="bg-gradient-to-t from-amber-500/50 to-yellow-400/30 w-24 h-20 rounded-t-lg flex items-center justify-center mt-1">
-                <p className="text-white font-bold">{leaderboard[0]?.total_invites}</p>
+                <p className="text-slate-800 font-bold">{leaderboard[0]?.total_invites}</p>
               </div>
             </motion.div>
 
@@ -673,11 +673,11 @@ const Invitation = () => {
                     )}
                   </div>
                 </div>
-                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-gradient-to-b from-amber-600 to-orange-700 flex items-center justify-center text-white text-xs font-bold shadow-md">3</div>
+                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-gradient-to-b from-amber-600 to-orange-700 flex items-center justify-center text-slate-800 text-xs font-bold shadow-md">3</div>
               </div>
               <p className="text-slate-500 text-[10px] font-medium mt-3 truncate max-w-16 text-center">{leaderboard[2]?.display_name}</p>
               <div className="bg-gradient-to-t from-amber-600/50 to-orange-500/30 w-20 h-10 rounded-t-lg flex items-center justify-center mt-1">
-                <p className="text-white font-bold text-sm">{leaderboard[2]?.total_invites}</p>
+                <p className="text-slate-800 font-bold text-sm">{leaderboard[2]?.total_invites}</p>
               </div>
             </motion.div>
           </motion.div>
@@ -696,7 +696,7 @@ const Invitation = () => {
         >
           <div className="flex items-center gap-2 px-5 pt-5 pb-3">
             <Flame className="w-5 h-5 text-orange-400" />
-            <h3 className="text-white font-bold text-base">Top 100 Leaderboard</h3>
+            <h3 className="text-slate-800 font-bold text-base">Top 100 Leaderboard</h3>
           </div>
 
           <div className="px-4 pb-4 space-y-1.5 max-h-96 overflow-y-auto">
@@ -716,7 +716,7 @@ const Invitation = () => {
               >
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${
                   entry.rank <= 10
-                    ? 'bg-gradient-to-br from-fuchsia-600 to-violet-600 text-white shadow-md shadow-purple-500/20'
+                    ? 'bg-gradient-to-br from-fuchsia-600 to-violet-600 text-slate-800 shadow-md shadow-purple-500/20'
                     : 'bg-white/10 text-slate-700'
                 }`}>
                   {entry.rank}
@@ -731,7 +731,7 @@ const Invitation = () => {
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <p className="text-white text-sm font-medium truncate">{entry.display_name}</p>
+                  <p className="text-slate-800 text-sm font-medium truncate">{entry.display_name}</p>
                   <p className="text-slate-600 text-[10px]">{entry.total_invites} invites</p>
                 </div>
 
@@ -761,12 +761,12 @@ const Invitation = () => {
         >
           <div className="rounded-xl p-4 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
             <Star className="w-7 h-7 text-amber-400 mx-auto mb-1.5" />
-            <p className="text-xl font-bold text-white">{leaderboard.length}</p>
+            <p className="text-xl font-bold text-slate-800">{leaderboard.length}</p>
             <p className="text-slate-600 text-xs">Participants</p>
           </div>
           <div className="rounded-xl p-4 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
             <Users className="w-7 h-7 text-violet-400 mx-auto mb-1.5" />
-            <p className="text-xl font-bold text-white">
+            <p className="text-xl font-bold text-slate-800">
               {leaderboard.reduce((sum, e) => sum + e.total_invites, 0)}
             </p>
             <p className="text-slate-600 text-xs">Total Invites</p>

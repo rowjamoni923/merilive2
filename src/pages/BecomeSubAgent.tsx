@@ -215,7 +215,7 @@ const BecomeSubAgent = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-gray-50">
       {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-orange-500 to-amber-500 text-white safe-area-top">
+      <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-orange-500 to-amber-500 text-slate-800 safe-area-top">
         <div className="flex items-center h-14 px-4">
           <button 
             onClick={() => navigate(-1)}
@@ -232,7 +232,7 @@ const BecomeSubAgent = () => {
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
         {/* Hero */}
-        <div className="mx-4 mt-4 bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl p-6 text-white">
+        <div className="mx-4 mt-4 bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl p-6 text-slate-800">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
             <Users className="w-6 h-6" />
@@ -338,12 +338,12 @@ const BecomeSubAgent = () => {
               <div className="mt-4 p-4 bg-orange-50 rounded-xl border border-orange-200">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                    <Building2 className="w-6 h-6 text-white" />
+                    <Building2 className="w-6 h-6 text-slate-800" />
                   </div>
                   <div className="flex-1">
                     <p className="font-semibold">{agency.name}</p>
                     <div className="flex items-center gap-2">
-                      <Badge className="bg-green-500 text-white text-xs">{agency.level}</Badge>
+                      <Badge className="bg-green-500 text-slate-800 text-xs">{agency.level}</Badge>
                       <span className="text-xs text-gray-500">{agency.total_hosts} Hosts</span>
                     </div>
                   </div>
@@ -415,7 +415,7 @@ const BecomeSubAgent = () => {
           <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl p-4 border border-purple-200">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                <Building2 className="w-5 h-5 text-white" />
+                <Building2 className="w-5 h-5 text-slate-800" />
               </div>
               <div>
                 <h3 className="font-semibold text-purple-800">Create Your Own Agency</h3>
