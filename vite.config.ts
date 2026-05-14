@@ -1,7 +1,29 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import { spawnSync } from "node:child_process";
 import { componentTagger } from "lovable-tagger";
+
+// Fail the build if dark-theme tokens (bg-black / bg-slate-900 / text-white on
+// light surfaces, etc.) regress beyond `scripts/dark-tokens-baseline.json`.
+// See scripts/scan-dark-tokens.mjs for the rule set + per-line `// dark-ok` opt-out.
+const darkTokenScanner = () => ({
+  name: "dark-token-scanner",
+  apply: "build" as const,
+  buildStart(this: { error: (msg: string) => never }) {
+    const result = spawnSync(
+      process.execPath,
+      [path.resolve(__dirname, "scripts/scan-dark-tokens.mjs")],
+      { stdio: "inherit" },
+    );
+    if (result.status !== 0) {
+      this.error(
+        "dark-token scanner found regressions — fix them or add `// dark-ok` per line. " +
+        "See output above. To re-baseline after a cleanup, run `npm run scan:dark:baseline`.",
+      );
+    }
+  },
+});
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -12,7 +34,7 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
   },
-  plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+  plugins: [react(), darkTokenScanner(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
