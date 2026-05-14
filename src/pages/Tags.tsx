@@ -342,20 +342,20 @@ const Tags = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-[#FFFBF2] via-[#FAF5EA] to-[#F5EFDF]">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-lg border-b border-border">
+      <div className="sticky top-0 z-10 bg-white/85 backdrop-blur-lg border-b border-amber-200/60">
         <div className="flex items-center justify-between px-4 h-14 safe-area-top">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="text-slate-700 hover:bg-amber-100/60">
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-lg font-bold text-foreground">Select Tags</h1>
+          <h1 className="text-lg font-bold text-slate-800">Select Tags</h1>
           <Button
             variant="ghost"
             size="sm"
             onClick={handleSave}
             disabled={saving}
-            className="text-primary font-semibold"
+            className="text-pink-600 font-semibold hover:bg-pink-50"
           >
             {saving ? "Saving..." : "Save"}
           </Button>
@@ -364,8 +364,8 @@ const Tags = () => {
 
       {/* Selected Tags Preview */}
       {selectedTags.length > 0 && (
-        <div className="px-4 py-3 bg-card border-b border-border">
-          <p className="text-sm text-muted-foreground mb-2">
+        <div className="px-4 py-3 bg-white/70 border-b border-amber-200/60">
+          <p className="text-sm text-slate-600 mb-2">
             Selected Tags: {selectedTags.length}/15
           </p>
           <div className="flex flex-wrap gap-2">
@@ -373,7 +373,7 @@ const Tags = () => {
               <button
                 key={tagName}
                 onClick={() => toggleTag(tagName)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground text-xs rounded-full font-medium shadow-sm"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs rounded-full font-medium shadow-sm"
               >
                 <span>{getTagIcon(tagName)}</span>
                 <span>{tagName}</span>
@@ -390,13 +390,13 @@ const Tags = () => {
           const isExpanded = expandedCategory === category.name || expandedCategory === null;
           const selectedCount = category.tags.filter(t => selectedTags.includes(t.name)).length;
           return (
-            <div key={category.name} className="border-b border-border/50">
+            <div key={category.name} className="border-b border-amber-200/40">
               {/* Category Header */}
               <button
                 onClick={() => setExpandedCategory(
                   expandedCategory === category.name ? null : category.name
                 )}
-                className="w-full px-4 py-4 flex items-center justify-between hover:bg-muted/50 transition-colors"
+                className="w-full px-4 py-4 flex items-center justify-between hover:bg-amber-50/60 transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <div className={cn(
@@ -406,15 +406,15 @@ const Tags = () => {
                     <span className="drop-shadow-sm">{category.icon}</span>
                   </div>
                   <div className="text-left">
-                    <h3 className="font-semibold text-foreground text-base">{category.name}</h3>
-                    <p className="text-xs text-muted-foreground">
+                    <h3 className="font-semibold text-slate-800 text-base">{category.name}</h3>
+                    <p className="text-xs text-slate-500">
                       {selectedCount} selected
                     </p>
                   </div>
                 </div>
                 <svg
                   className={cn(
-                    "w-5 h-5 text-muted-foreground transition-transform",
+                    "w-5 h-5 text-slate-400 transition-transform",
                     expandedCategory === category.name && "rotate-180"
                   )}
                   fill="none"
@@ -438,7 +438,7 @@ const Tags = () => {
                           "flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 active:scale-95 touch-manipulation border",
                           isSelected
                             ? `bg-gradient-to-r ${category.color} text-white border-transparent shadow-md`
-                            : "bg-card text-foreground border-border hover:border-primary/50 hover:bg-primary/5"
+                            : "bg-white text-slate-700 border-amber-200/60 hover:border-pink-300 hover:bg-pink-50/40"
                         )}
                       >
                         <span className="text-base">{tag.icon}</span>
