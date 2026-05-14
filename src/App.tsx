@@ -144,6 +144,7 @@ const MyPoster = lazy(() => import("./pages/MyPoster"));
 const HostDashboard = lazy(() => import("./pages/HostDashboard"));
 const HostVerification = lazy(() => import("./pages/HostVerification"));
 const FaceVerification = lazy(() => import("./pages/FaceVerification"));
+const FacePoseRegression = lazy(() => import("./pages/FacePoseRegression"));
 const AgencyWithdrawal = lazy(() => import("./pages/AgencyWithdrawal"));
 const AgencyTransferHistory = lazy(() => import("./pages/AgencyTransferHistory"));
 const AgencyCommissionHistory = lazy(() => import("./pages/AgencyCommissionHistory"));
@@ -1181,6 +1182,7 @@ const App = () => {
                 <Route path="/host-dashboard" element={<ProtectedRoute session={session}><HostDashboard /></ProtectedRoute>} />
                 <Route path="/host-verification" element={<ProtectedRoute session={session}><HostVerification /></ProtectedRoute>} />
                 <Route path="/face-verification" element={<ProtectedRoute session={session}><FaceVerification /></ProtectedRoute>} />
+                <Route path="/dev/face-pose-tests" element={<ProtectedRoute session={session}><FacePoseRegression /></ProtectedRoute>} />
                 <Route path="/helper-dashboard" element={<ProtectedRoute session={session}><HelperDashboard /></ProtectedRoute>} />
                 <Route path="/level5-helper-dashboard" element={<ProtectedRoute session={session}><Level5HelperDashboard /></ProtectedRoute>} />
                 <Route path="/payroll-helper-guide" element={<PayrollHelperGuide />} />
