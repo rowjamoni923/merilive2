@@ -235,9 +235,9 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
              <>
                <DialogHeader>
                  <div className="flex justify-center mb-4">
-                   <div className="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
-                     <Phone className="w-8 h-8 text-slate-800" />
-                   </div>
+                     <div className="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                       <Phone className="w-8 h-8 text-white" />
+                     </div>
                  </div>
                  <DialogTitle className="text-slate-800 text-center text-xl">
                    Enter Phone Number
