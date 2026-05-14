@@ -789,6 +789,7 @@ const Leaderboard = () => {
       {/* Rules & Rewards Drawer */}
       <Drawer open={showRules} onOpenChange={setShowRules}>
         <DrawerContent 
+          data-light-drawer
           className="max-h-[85vh] border-0 bg-white"
         >
           <DrawerHeader className="pb-3 border-b border-slate-200 bg-white">
