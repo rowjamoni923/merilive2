@@ -670,7 +670,7 @@ const Tasks = () => {
                           value={progressPercent} 
                           className="h-1.5 flex-1 bg-amber-100"
                         />
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-xs text-slate-500">
                           {task.requirement_type === 'live_minutes' 
                             ? `${progress[task.id]?.current_progress || 0} min / ${task.requirement_value} min`
                             : `${progress[task.id]?.current_progress || 0}/${task.requirement_value}`
