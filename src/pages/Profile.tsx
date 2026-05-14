@@ -2009,27 +2009,26 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               }}
               className="group relative w-full text-left"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-amber-600/40 to-orange-700/40 rounded-xl translate-y-0.5 blur-sm" />
-              <div className="relative bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 rounded-xl p-2 overflow-hidden shadow-lg ring-1 ring-amber-300/30 group-active:scale-95 transition-transform">
-                <div className="absolute inset-0 opacity-40">
-                  <div className="absolute top-0 right-0 w-12 h-12 bg-gradient-to-br from-white/30 to-transparent rounded-full -translate-y-4 translate-x-4" />
-                </div>
-                
+              <div className="absolute inset-0 bg-amber-500/20 rounded-xl translate-y-1 blur-md" />
+              <div className="relative bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 rounded-xl p-2.5 overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.6)] border border-white/10 group-active:scale-[0.97] transition-transform">
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-400/60 to-transparent" />
+                <div className="absolute -top-8 -right-8 w-20 h-20 bg-amber-500/15 rounded-full blur-2xl" />
+
                 <div className="relative z-10">
-                  <div className="flex items-center justify-between mb-0.5">
-                    <p className="text-amber-950 font-semibold text-[8px] tracking-wide uppercase">My Beans</p>
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-amber-200/80 font-semibold text-[8px] tracking-[0.12em] uppercase">My Beans</p>
                      {!profile?.is_host && !profile?.is_agency_owner ? (
-                       <span className="text-[6px] bg-amber-950/80 text-amber-50 px-1.5 py-0.5 rounded-full font-semibold tracking-wide">
+                       <span className="text-[6px] bg-amber-500/15 border border-amber-400/30 text-amber-100 px-1.5 py-0.5 rounded-full font-semibold tracking-wide">
                          Exchange
                        </span>
                      ) : ((isHostPersona && isFemale) || isAgencyOwner) && (
-                      <ChevronRight className="w-3 h-3 text-amber-950/70" />
+                      <ChevronRight className="w-3 h-3 text-amber-200/70" />
                     )}
                   </div>
-                  <p className={`text-xl font-bold drop-shadow-sm ${beans < 0 ? 'text-red-900' : 'text-amber-950'}`}>{beans.toLocaleString()}</p>
+                  <p className={`text-xl font-bold drop-shadow-[0_2px_8px_rgba(251,191,36,0.3)] ${beans < 0 ? 'text-red-400' : 'text-white'}`}>{beans.toLocaleString()}</p>
                 </div>
-                
-                <div className="absolute right-1 bottom-1">
+
+                <div className="absolute right-1.5 bottom-1.5 opacity-90">
                   <Beans3DIcon size={28} />
                 </div>
               </div>
