@@ -341,34 +341,34 @@ const Leaderboard = () => {
     <div 
       className="fixed inset-0 flex flex-col overflow-hidden"
       style={{ 
-        background: 'linear-gradient(180deg, #2a1810 0%, #1a0f08 30%, #0f0a05 60%, #1a0f08 100%)',
+        background: '#F7F8FA',
         height: isMobile ? `${viewportHeight}px` : '100vh',
       }}
     >
-      {/* Header - Golden Luxury */}
+      {/* Header - White Premium */}
       <div 
         className="flex-shrink-0 z-20"
         style={{ 
           paddingTop: isMobile ? `${safeAreaInsets.top}px` : undefined,
-          background: 'linear-gradient(180deg, rgba(42,24,16,0.95) 0%, rgba(30,16,8,0.98) 100%)',
-          borderBottom: '1px solid rgba(251,191,36,0.2)',
-          boxShadow: '0 4px 30px rgba(0,0,0,0.5)',
+          background: '#ffffff',
+          borderBottom: '1px solid rgba(15,23,42,0.08)',
+          boxShadow: '0 2px 12px rgba(15,23,42,0.04)',
         }}
       >
         <div className="flex items-center justify-between h-12 px-3">
-          <button onClick={() => navigate(-1)} className="p-2.5 -ml-1 active:bg-white/10 rounded-full transition-colors touch-manipulation">
-            <ArrowLeft className="w-5 h-5 text-amber-200" />
+          <button onClick={() => navigate(-1)} className="p-2.5 -ml-1 active:bg-slate-100 rounded-full transition-colors touch-manipulation">
+            <ArrowLeft className="w-5 h-5 text-slate-700" />
           </button>
-          <h1 className="text-base font-bold flex items-center gap-1.5" style={{ color: '#fbbf24' }}>
+          <h1 className="text-base font-bold flex items-center gap-1.5 text-slate-900">
             {customIcons?.leaderboard_header_icon ? (
               <img src={customIcons.leaderboard_header_icon} alt="" className="w-5 h-5 object-contain" />
             ) : (
-              <Crown className="w-4 h-4 text-amber-400" />
+              <Crown className="w-4 h-4 text-amber-500" />
             )}
             Leaderboard
           </h1>
-          <button onClick={() => setShowRules(true)} className="p-2.5 -mr-1 active:bg-white/10 rounded-full transition-colors touch-manipulation">
-            <HelpCircle className="w-5 h-5 text-amber-200/50" />
+          <button onClick={() => setShowRules(true)} className="p-2.5 -mr-1 active:bg-slate-100 rounded-full transition-colors touch-manipulation">
+            <HelpCircle className="w-5 h-5 text-slate-400" />
           </button>
         </div>
 
