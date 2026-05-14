@@ -1075,14 +1075,14 @@ const VIP = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-900 via-purple-950/30 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-[#F7F8FA] flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-gradient-to-b from-slate-900 via-purple-950/30 to-slate-900 overflow-hidden">
+    <div className="fixed inset-0 flex flex-col bg-[#F7F8FA] overflow-hidden">
       {/* Header */}
       <div className="sticky top-0 z-50 bg-gradient-to-r from-purple-900/95 via-pink-900/95 to-purple-900/95 backdrop-blur-xl safe-area-top border-b border-white/10">
         <div className="flex items-center justify-between px-4 py-3">
@@ -1109,7 +1109,7 @@ const VIP = () => {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-        <TabsList className="mx-4 mt-3 bg-slate-800/50 border border-white/10 p-1 rounded-xl">
+        <TabsList className="mx-4 mt-3 bg-slate-50 border border-white/10 p-1 rounded-xl">
           <TabsTrigger 
             value="vip" 
             className="flex-1 rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500"
@@ -1152,7 +1152,7 @@ const VIP = () => {
                   <VIPBadge tier={currentVIPTier} size="lg" />
                   <div>
                     <p className="text-white font-semibold">Current Status</p>
-                    <p className="text-white/90 text-sm">
+                    <p className="text-slate-700 text-sm">
                       Expires: {vipExpiresAt ? new Date(vipExpiresAt).toLocaleDateString() : 'N/A'}
                     </p>
                   </div>
@@ -1197,7 +1197,7 @@ const VIP = () => {
                         </div>
                         <div>
                           <h3 className="text-white font-bold text-lg">{tier.tier_name}</h3>
-                          <p className="text-white/80 text-sm">{tier.duration_days} Days</p>
+                          <p className="text-slate-600 text-sm">{tier.duration_days} Days</p>
                         </div>
                       </div>
                       {isOwned && (
@@ -1209,12 +1209,12 @@ const VIP = () => {
                   </div>
 
                   {/* Privileges */}
-                  <div className="p-4 bg-slate-900/90">
-                    <p className="text-white/90 text-sm mb-3">{tier.description}</p>
+                  <div className="p-4 bg-white/95">
+                    <p className="text-slate-700 text-sm mb-3">{tier.description}</p>
                     
                     <div className="grid grid-cols-2 gap-2 mb-4">
                       {privileges.slice(0, 6).map((priv, i) => (
-                        <div key={i} className="flex items-center gap-2 text-white/80 text-sm">
+                        <div key={i} className="flex items-center gap-2 text-slate-600 text-sm">
                           <priv.icon className="w-4 h-4 text-purple-400" />
                           <span>{priv.label}</span>
                         </div>
@@ -1257,7 +1257,7 @@ const VIP = () => {
                 <Sparkles className="w-10 h-10 text-purple-400" />
               </div>
               <h3 className="text-white font-semibold text-lg mb-2">No Privileges Yet</h3>
-              <p className="text-white/90 text-sm mb-4">
+              <p className="text-slate-700 text-sm mb-4">
                 Level up or purchase items from the shop to unlock privileges
               </p>
               <Button 
@@ -1288,7 +1288,7 @@ const VIP = () => {
                     <div className="flex items-center gap-2 text-lg font-bold mb-3">
                       <span>{icon}</span>
                       <span className="text-white">{title}</span>
-                        <span className="text-white/85 text-sm font-normal ml-auto">Choose 1</span>
+                        <span className="text-slate-600 text-sm font-normal ml-auto">Choose 1</span>
                     </div>
                     
                     <div className="flex flex-wrap gap-3">
@@ -1333,13 +1333,13 @@ const VIP = () => {
                             
                             {/* Loading state */}
                             {equipping === priv.id && (
-                              <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                              <div className="absolute inset-0 bg-white/95 flex items-center justify-center">
                                 <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
                               </div>
                             )}
                           </div>
                           
-                          <div className="mt-1 max-w-20 truncate text-center text-[11px] font-medium text-white/90">
+                          <div className="mt-1 max-w-20 truncate text-center text-[11px] font-medium text-slate-700">
                             {priv.name}
                           </div>
 
@@ -1383,7 +1383,7 @@ const VIP = () => {
               
               {/* Info Note */}
               <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-4 mt-4">
-                <p className="text-white/70 text-sm text-center">
+                <p className="text-slate-500 text-sm text-center">
                   💡 Equipped items will be displayed across all sections: Profile, Live Stream, Party Rooms, and Chat
                 </p>
               </div>
@@ -1394,7 +1394,7 @@ const VIP = () => {
 
       {/* Purchase Confirmation Modal */}
       <Dialog open={!!selectedTier} onOpenChange={() => setSelectedTier(null)}>
-        <DialogContent className="bg-slate-900 border-purple-500/30 max-w-sm">
+        <DialogContent className="bg-white border-purple-500/30 max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-white text-center">Confirm VIP Purchase</DialogTitle>
           </DialogHeader>
@@ -1404,7 +1404,7 @@ const VIP = () => {
               <div className="text-center">
                 <VIPBadge tier={selectedTier.tier_level} size="lg" />
                 <h3 className="text-white font-bold text-xl mt-3">{selectedTier.tier_name}</h3>
-                <p className="text-white/90">{selectedTier.duration_days} Days Membership</p>
+                <p className="text-slate-700">{selectedTier.duration_days} Days Membership</p>
               </div>
 
               <div className="flex items-center justify-center gap-2 py-4 bg-amber-500/10 rounded-xl">
@@ -1414,7 +1414,7 @@ const VIP = () => {
                 </span>
               </div>
 
-              <div className="text-center text-sm text-white/90">
+              <div className="text-center text-sm text-slate-700">
                 Your balance: {userDiamonds.toLocaleString()} diamonds
               </div>
 

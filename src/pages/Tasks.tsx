@@ -454,7 +454,7 @@ const Tasks = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-white/90"
           >
             <motion.div
               initial={{ scale: 0, rotate: -180 }}
@@ -496,7 +496,7 @@ const Tasks = () => {
             </div>
             <div>
               <h1 className="text-xl font-bold">Task Center</h1>
-              <p className="text-xs text-white/80">Complete daily tasks, earn rewards</p>
+              <p className="text-xs text-slate-600">Complete daily tasks, earn rewards</p>
             </div>
           </div>
         </div>
@@ -514,7 +514,7 @@ const Tasks = () => {
           <div className="flex items-center justify-between mb-3">
             <div>
               <h2 className="text-lg font-bold">Today's Tasks</h2>
-              <p className="text-sm text-white/80">
+              <p className="text-sm text-slate-600">
                 {Object.values(progress).filter(p => p.is_claimed).length}/{tasks.length} Completed
               </p>
             </div>
@@ -582,9 +582,9 @@ const Tasks = () => {
                       {completed ? (
                         <Check className="w-4 h-4 text-white" />
                       ) : (
-                        <Clock className="w-3.5 h-3.5 text-white/75" />
+                        <Clock className="w-3.5 h-3.5 text-slate-600" />
                       )}
-                      <span className={`text-[8px] font-bold mt-0.5 ${completed ? 'text-white' : 'text-white/75'}`}>
+                      <span className={`text-[8px] font-bold mt-0.5 ${completed ? 'text-white' : 'text-slate-600'}`}>
                         {i + 1}h
                       </span>
                     </div>
@@ -599,17 +599,17 @@ const Tasks = () => {
               <div className="flex items-center justify-around mb-3">
                 <div className="text-center">
                   <p className="text-amber-400 font-bold text-sm">{(bonusProgress?.beans_earned || 0).toLocaleString()}</p>
-                  <p className="text-[9px] text-white/80">Earned Today</p>
+                  <p className="text-[9px] text-slate-600">Earned Today</p>
                 </div>
                 <div className="w-px h-6 bg-white/10" />
                 <div className="text-center">
                   <p className="text-white font-bold text-sm">{totalDailyBonus.toLocaleString()}</p>
-                  <p className="text-[9px] text-white/80">Max/Day</p>
+                  <p className="text-[9px] text-slate-600">Max/Day</p>
                 </div>
                 <div className="w-px h-6 bg-white/10" />
                 <div className="text-center">
                   <p className="text-fuchsia-400 font-bold text-sm">Day {bonusProgress?.day_number || 1}/{bonusSettings.eligible_days}</p>
-                  <p className="text-[9px] text-white/80">Period</p>
+                  <p className="text-[9px] text-slate-600">Period</p>
                 </div>
               </div>
               {/* Go Live button - full width */}
@@ -772,7 +772,7 @@ const Tasks = () => {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="border-white/20 text-white/70 hover:bg-white/10"
+                        className="border-white/20 text-slate-500 hover:bg-white/10"
                         onClick={() => {
                           const route = taskNavigationMap[task.requirement_type];
                           if (route) {

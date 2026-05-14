@@ -315,7 +315,7 @@ const Invitation = () => {
 
   const getRankIcon = (rank: number) => {
     if (rank === 1) return <Crown className="w-5 h-5 text-yellow-400" />;
-    if (rank === 2) return <Medal className="w-5 h-5 text-gray-300" />;
+    if (rank === 2) return <Medal className="w-5 h-5 text-slate-700" />;
     if (rank === 3) return <Medal className="w-5 h-5 text-amber-600" />;
     return null;
   };
@@ -329,7 +329,7 @@ const Invitation = () => {
       {/* Header */}
       <header className="flex-shrink-0 z-40 backdrop-blur-xl border-b border-white/10">
         <div className="flex items-center gap-3 px-4 py-3 safe-area-top" style={{ background: 'linear-gradient(135deg, rgba(30,0,50,0.95), rgba(60,0,80,0.95))' }}>
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="text-white/80 hover:text-white hover:bg-white/10 w-9 h-9">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="text-slate-600 hover:text-white hover:bg-white/10 w-9 h-9">
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex items-center gap-2.5">
@@ -338,7 +338,7 @@ const Invitation = () => {
             </div>
             <div>
               <h1 className="text-white font-bold text-base">Share Leaderboard</h1>
-              <p className="text-white/85 text-[10px]">Share to climb the ranks!</p>
+              <p className="text-slate-600 text-[10px]">Share to climb the ranks!</p>
             </div>
           </div>
         </div>
@@ -384,7 +384,7 @@ const Invitation = () => {
               <span className="text-white font-bold text-lg tracking-wide">Share & Win!</span>
               <Sparkles className="w-5 h-5 text-amber-400 animate-pulse" />
             </div>
-            <p className="text-white/90 text-sm text-center mb-4">
+            <p className="text-slate-700 text-sm text-center mb-4">
               Share your link. More signups, higher rank!
             </p>
             <div className="flex gap-2">
@@ -482,7 +482,7 @@ const Invitation = () => {
                             </span>
                           )}
                         </div>
-                        <p className="text-white/80 text-xs mt-0.5">
+                        <p className="text-slate-600 text-xs mt-0.5">
                           {tier.min_invites}{tier.max_invites ? `-${tier.max_invites}` : '+'} Invites
                         </p>
                       </div>
@@ -539,12 +539,12 @@ const Invitation = () => {
                 </div>
                 <div>
                   <p className="text-white font-bold text-sm">Your Rank</p>
-                  <p className="text-white/85 text-xs">{myRank.total_invites} Invites</p>
+                  <p className="text-slate-600 text-xs">{myRank.total_invites} Invites</p>
                 </div>
               </div>
               <div className="text-right">
                 <p className="text-amber-400 font-bold">+{myRank.beans_earned}</p>
-                <p className="text-white/80 text-[10px]">Beans Earned</p>
+                <p className="text-slate-600 text-[10px]">Beans Earned</p>
               </div>
             </div>
           </motion.div>
@@ -567,7 +567,7 @@ const Invitation = () => {
                 <Users className="w-5 h-5 text-violet-400" />
                 <h3 className="text-white font-bold text-base">My Invites</h3>
               </div>
-              <span className="text-xs text-white/85 bg-white/10 px-2.5 py-1 rounded-full font-medium">
+              <span className="text-xs text-slate-600 bg-white/10 px-2.5 py-1 rounded-full font-medium">
                 {myInvitedUsers.length} people
               </span>
             </div>
@@ -587,12 +587,12 @@ const Invitation = () => {
                       {user.avatar_url ? (
                         <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
                       ) : (
-                        <span className="text-white/80 font-bold text-sm">{user.display_name[0]}</span>
+                        <span className="text-slate-600 font-bold text-sm">{user.display_name[0]}</span>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-white text-sm font-medium truncate">{user.display_name}</p>
-                      <p className="text-white/75 text-[10px]">
+                      <p className="text-slate-600 text-[10px]">
                         Joined {new Date(user.created_at).toLocaleDateString()}
                       </p>
                     </div>
@@ -604,8 +604,8 @@ const Invitation = () => {
               ) : (
                 <div className="text-center py-8">
                   <Users className="w-10 h-10 text-white/10 mx-auto mb-2" />
-                  <p className="text-white/75 text-sm">No invites yet</p>
-                  <p className="text-white/70 text-xs mt-1">Share your link to start inviting!</p>
+                  <p className="text-slate-600 text-sm">No invites yet</p>
+                  <p className="text-slate-500 text-xs mt-1">Share your link to start inviting!</p>
                 </div>
               )}
             </div>
@@ -624,7 +624,7 @@ const Invitation = () => {
             <motion.div initial={{ y: 50 }} animate={{ y: 0 }} transition={{ delay: 0.3 }} className="flex flex-col items-center">
               <div className="relative">
                 <div className="w-16 h-16 rounded-full p-0.5 shadow-lg" style={{ background: 'linear-gradient(135deg, #94a3b8, #e2e8f0)' }}>
-                  <div className="w-full h-full rounded-full overflow-hidden bg-slate-700 flex items-center justify-center">
+                  <div className="w-full h-full rounded-full overflow-hidden bg-slate-200 flex items-center justify-center">
                     {leaderboard[1]?.avatar_url ? (
                       <img src={leaderboard[1].avatar_url} alt="" className="w-full h-full object-cover" />
                     ) : (
@@ -634,7 +634,7 @@ const Invitation = () => {
                 </div>
                 <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-gradient-to-b from-gray-300 to-gray-400 flex items-center justify-center text-white text-xs font-bold shadow-md">2</div>
               </div>
-              <p className="text-white/70 text-[10px] font-medium mt-3 truncate max-w-16 text-center">{leaderboard[1]?.display_name}</p>
+              <p className="text-slate-500 text-[10px] font-medium mt-3 truncate max-w-16 text-center">{leaderboard[1]?.display_name}</p>
               <div className="bg-gradient-to-t from-gray-400/50 to-gray-300/30 w-20 h-14 rounded-t-lg flex items-center justify-center mt-1">
                 <p className="text-white font-bold text-sm">{leaderboard[1]?.total_invites}</p>
               </div>
@@ -675,7 +675,7 @@ const Invitation = () => {
                 </div>
                 <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-gradient-to-b from-amber-600 to-orange-700 flex items-center justify-center text-white text-xs font-bold shadow-md">3</div>
               </div>
-              <p className="text-white/70 text-[10px] font-medium mt-3 truncate max-w-16 text-center">{leaderboard[2]?.display_name}</p>
+              <p className="text-slate-500 text-[10px] font-medium mt-3 truncate max-w-16 text-center">{leaderboard[2]?.display_name}</p>
               <div className="bg-gradient-to-t from-amber-600/50 to-orange-500/30 w-20 h-10 rounded-t-lg flex items-center justify-center mt-1">
                 <p className="text-white font-bold text-sm">{leaderboard[2]?.total_invites}</p>
               </div>
@@ -717,7 +717,7 @@ const Invitation = () => {
                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${
                   entry.rank <= 10
                     ? 'bg-gradient-to-br from-fuchsia-600 to-violet-600 text-white shadow-md shadow-purple-500/20'
-                    : 'bg-white/10 text-white/90'
+                    : 'bg-white/10 text-slate-700'
                 }`}>
                   {entry.rank}
                 </div>
@@ -726,18 +726,18 @@ const Invitation = () => {
                   {entry.avatar_url ? (
                     <img src={entry.avatar_url} alt="" className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-white/80 font-bold text-sm">{entry.display_name[0]}</span>
+                    <span className="text-slate-600 font-bold text-sm">{entry.display_name[0]}</span>
                   )}
                 </div>
 
                 <div className="flex-1 min-w-0">
                   <p className="text-white text-sm font-medium truncate">{entry.display_name}</p>
-                  <p className="text-white/80 text-[10px]">{entry.total_invites} invites</p>
+                  <p className="text-slate-600 text-[10px]">{entry.total_invites} invites</p>
                 </div>
 
                 <div className="text-right shrink-0">
                   <p className="text-amber-400 font-bold text-xs">+{entry.beans_earned}</p>
-                  <p className="text-white/75 text-[9px]">Beans</p>
+                  <p className="text-slate-600 text-[9px]">Beans</p>
                 </div>
               </motion.div>
             ))}
@@ -745,7 +745,7 @@ const Invitation = () => {
             {leaderboard.length === 0 && (
               <div className="text-center py-12">
                 <Trophy className="w-14 h-14 text-white/15 mx-auto mb-3" />
-                <p className="text-white/80 font-medium">No leaders yet</p>
+                <p className="text-slate-600 font-medium">No leaders yet</p>
                 <p className="text-white/25 text-sm mt-1">Share to be first!</p>
               </div>
             )}
@@ -762,14 +762,14 @@ const Invitation = () => {
           <div className="rounded-xl p-4 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
             <Star className="w-7 h-7 text-amber-400 mx-auto mb-1.5" />
             <p className="text-xl font-bold text-white">{leaderboard.length}</p>
-            <p className="text-white/80 text-xs">Participants</p>
+            <p className="text-slate-600 text-xs">Participants</p>
           </div>
           <div className="rounded-xl p-4 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
             <Users className="w-7 h-7 text-violet-400 mx-auto mb-1.5" />
             <p className="text-xl font-bold text-white">
               {leaderboard.reduce((sum, e) => sum + e.total_invites, 0)}
             </p>
-            <p className="text-white/80 text-xs">Total Invites</p>
+            <p className="text-slate-600 text-xs">Total Invites</p>
           </div>
         </motion.div>
       </div>

@@ -840,7 +840,7 @@ const AgencyDashboard = () => {
                   </div>
                 </div>
                 <h2 className="text-lg font-bold truncate">{agency.name}</h2>
-                <p className="text-white/80 text-xs flex items-center gap-1">
+                <p className="text-slate-600 text-xs flex items-center gap-1">
                   <Percent className="w-3 h-3" />
                   <span className="font-semibold">{actualCommissionRate}%</span> Commission Rate
                 </p>
@@ -850,7 +850,7 @@ const AgencyDashboard = () => {
             {/* Agency Code Card - Compact */}
             <div className="mt-3 bg-white/15 backdrop-blur-sm rounded-xl p-2.5 flex items-center justify-between border border-white/20">
               <div>
-                <p className="text-white/70 text-[10px] uppercase tracking-wide">Agency Code</p>
+                <p className="text-slate-500 text-[10px] uppercase tracking-wide">Agency Code</p>
                 <p className="font-mono font-bold text-base tracking-wider">{agency.agency_code}</p>
               </div>
               <Button
@@ -875,7 +875,7 @@ const AgencyDashboard = () => {
               >
                 <Users className="w-3.5 h-3.5 mx-auto mb-0.5" />
                 <p className="text-sm font-bold">{hosts.length || agency.total_hosts}</p>
-                <p className="text-[7px] text-white/70 uppercase">Hosts</p>
+                <p className="text-[7px] text-slate-500 uppercase">Hosts</p>
                 {pendingHosts.length > 0 && (
                   <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-[10px] font-bold flex items-center justify-center animate-pulse">
                     {pendingHosts.length}
@@ -888,7 +888,7 @@ const AgencyDashboard = () => {
               >
                 <UserPlus className="w-3.5 h-3.5 mx-auto mb-0.5" />
                 <p className="text-sm font-bold">{subAgencyCount || subAgents.length}</p>
-                <p className="text-[7px] text-white/70 uppercase">Agents</p>
+                <p className="text-[7px] text-slate-500 uppercase">Agents</p>
               </button>
               <div 
                 className="bg-white/15 backdrop-blur-sm rounded-lg p-1.5 text-center border border-white/10 overflow-hidden"
@@ -899,7 +899,7 @@ const AgencyDashboard = () => {
                     ? `${(agencyBeansBalance / 1000000).toFixed(1)}M`
                     : `${(agencyBeansBalance / 1000).toFixed(0)}K`}
                 </p>
-                <p className="text-[7px] text-white/70 uppercase">Beans</p>
+                <p className="text-[7px] text-slate-500 uppercase">Beans</p>
               </div>
               <button 
                 onClick={() => navigate("/agency-host-management?filter=online")}
@@ -907,7 +907,7 @@ const AgencyDashboard = () => {
               >
                 <Activity className="w-3.5 h-3.5 mx-auto mb-0.5 text-green-300" />
                 <p className="text-sm font-bold text-green-300">{onlineHosts}</p>
-                <p className="text-[7px] text-white/70 uppercase">Online</p>
+                <p className="text-[7px] text-slate-500 uppercase">Online</p>
               </button>
             </div>
           </div>
@@ -945,7 +945,7 @@ const AgencyDashboard = () => {
                     <p className="text-white text-xs font-bold">
                       ⚠️ {daysRemaining} Days Remaining
                     </p>
-                    <p className="text-white/90 text-[10px]">
+                    <p className="text-slate-700 text-[10px]">
                       Minimum 10 active hosts required within 30 days
                     </p>
                   </div>
@@ -956,7 +956,7 @@ const AgencyDashboard = () => {
                   </div>
                 </div>
                 <Progress value={progress} className="h-2 bg-white/10" />
-                <p className="text-white/85 text-[9px] mt-1.5 text-center">
+                <p className="text-slate-600 text-[9px] mt-1.5 text-center">
                   {daysRemaining <= 5 
                     ? '⛔ Agency will be auto-deactivated if target not met!'
                     : `Add ${10 - activeHostCount} more hosts to secure your agency`
@@ -1040,13 +1040,13 @@ const AgencyDashboard = () => {
                     <Building2 className="w-6 h-6" />
                   </div>
                   <div>
-                    <p className="text-white/70 text-[10px] uppercase tracking-wide">Parent Agency</p>
+                    <p className="text-slate-500 text-[10px] uppercase tracking-wide">Parent Agency</p>
                     <p className="font-bold">{parentAgency.name}</p>
                     <div className="flex items-center gap-2 mt-0.5">
                       <Badge className="bg-white/20 text-white text-[10px] h-4 px-1.5">
                         {parentAgency.level}
                       </Badge>
-                      <span className="text-xs text-white/70">{parentAgency.agency_code}</span>
+                      <span className="text-xs text-slate-500">{parentAgency.agency_code}</span>
                     </div>
                   </div>
                 </div>
@@ -1072,7 +1072,7 @@ const AgencyDashboard = () => {
                     <p className="text-xs font-medium truncate">
                       {parentAgency.owner_profile.display_name || "Agency Owner"}
                     </p>
-                    <p className="text-[10px] text-white/90">Agency Owner</p>
+                    <p className="text-[10px] text-slate-700">Agency Owner</p>
                   </div>
                 </div>
               )}
@@ -1099,15 +1099,15 @@ const AgencyDashboard = () => {
                   <Coins className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="text-white/80 text-[10px] uppercase tracking-wide flex items-center gap-1">
+                  <p className="text-slate-600 text-[10px] uppercase tracking-wide flex items-center gap-1">
                     Total Beans <ChevronRight className="w-3 h-3" />
                   </p>
                   <p className="text-xl font-bold">{fmtNum(agencyBeansBalance)}</p>
-                  <p className="text-[9px] text-white/90">Tap to view commission history</p>
+                  <p className="text-[9px] text-slate-700">Tap to view commission history</p>
                 </div>
               </button>
               <div className="text-right bg-white/20 backdrop-blur-sm rounded-lg p-2">
-                <p className="text-white/80 text-[10px] flex items-center gap-0.5 justify-end">
+                <p className="text-slate-600 text-[10px] flex items-center gap-0.5 justify-end">
                   <DollarSign className="w-2.5 h-2.5" />
                   USD Value
                 </p>
@@ -1122,7 +1122,7 @@ const AgencyDashboard = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <span className="text-sm">{localCurrency.flag}</span>
-                  <span className="text-xs text-white/80">{localCurrency.code} Value</span>
+                  <span className="text-xs text-slate-600">{localCurrency.code} Value</span>
                 </div>
                 <span className="text-sm font-bold text-cyan-200">
                   {localCurrency.symbol}{localValue.toFixed(2)}
@@ -1133,8 +1133,8 @@ const AgencyDashboard = () => {
             {/* Exchange Rate Info - Compact */}
             <div className="bg-white/15 backdrop-blur-sm rounded-lg p-2 flex items-center justify-between mb-2 border border-white/20">
               <div className="flex items-center gap-1.5">
-                <ArrowRightLeft className="w-3 h-3 text-white/70" />
-                <span className="text-xs text-white/80">Exchange Rate</span>
+                <ArrowRightLeft className="w-3 h-3 text-slate-500" />
+                <span className="text-xs text-slate-600">Exchange Rate</span>
               </div>
               <span className="text-[10px] font-semibold">
                 {fmtNum(coinsToUsdRate)} Beans = $1 | $1 = {localCurrency.symbol}{localExchangeRate.toFixed(2)}
@@ -1160,9 +1160,9 @@ const AgencyDashboard = () => {
 
             {/* Inline Withdrawal History */}
             {showWithdrawalHistory && (
-              <div className="mt-3 bg-slate-900/90 backdrop-blur-md rounded-xl p-3 border border-slate-700/50 max-h-64 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+              <div className="mt-3 bg-white/95 backdrop-blur-md rounded-xl p-3 border border-slate-200 max-h-64 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-xs font-semibold text-white/90">Withdrawal History</h4>
+                  <h4 className="text-xs font-semibold text-slate-700">Withdrawal History</h4>
                   <button 
                     onClick={() => navigate("/agency-transfer-history")}
                     className="text-[10px] text-cyan-300 hover:underline"
@@ -1172,7 +1172,7 @@ const AgencyDashboard = () => {
                 </div>
                 
                 {withdrawals.length === 0 ? (
-                  <div className="text-center py-4 text-white/90 text-xs">
+                  <div className="text-center py-4 text-slate-700 text-xs">
                     No withdrawal history yet
                   </div>
                 ) : (
@@ -1180,7 +1180,7 @@ const AgencyDashboard = () => {
                     {withdrawals.slice(0, 5).map((w) => (
                       <div 
                         key={w.id}
-                        className="bg-slate-800/80 rounded-lg p-2.5 flex items-center justify-between border border-slate-700/40"
+                        className="bg-white/95 rounded-lg p-2.5 flex items-center justify-between border border-slate-200/40"
                       >
                         <div className="flex items-center gap-2">
                           {(() => {
@@ -1254,9 +1254,9 @@ const AgencyDashboard = () => {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-white font-semibold text-sm">📖 Payroll Helper Guide</p>
-              <p className="text-white/90 text-[11px]">Learn roles, benefits & diamond trading</p>
+              <p className="text-slate-700 text-[11px]">Learn roles, benefits & diamond trading</p>
             </div>
-            <ArrowRight className="w-4 h-4 text-white/85" />
+            <ArrowRight className="w-4 h-4 text-slate-600" />
           </div>
         </div>
       </div>
@@ -1552,7 +1552,7 @@ const AgencyDashboard = () => {
             </Card>
 
             {/* Withdrawal History */}
-            <Card className="border-0 shadow-md bg-gradient-to-br from-slate-800 to-slate-900">
+            <Card className="border-0 shadow-md bg-white">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base flex items-center gap-2 text-white">
@@ -1610,7 +1610,7 @@ const AgencyDashboard = () => {
                         <div 
                           key={withdrawal.id}
                           onClick={() => navigate('/agency-withdrawal')}
-                          className="flex items-center gap-3 p-3 rounded-xl bg-slate-700/50 hover:bg-slate-700/70 transition-colors cursor-pointer"
+                          className="flex items-center gap-3 p-3 rounded-xl bg-slate-100 hover:bg-slate-100 transition-colors cursor-pointer"
                         >
                           {/* Status Icon */}
                           <div className={`w-12 h-12 rounded-xl ${config.iconBg} flex items-center justify-center shadow-lg shrink-0`}>
@@ -1632,7 +1632,7 @@ const AgencyDashboard = () => {
                               <span className="bg-gradient-to-r from-pink-500/30 to-purple-500/30 text-pink-300 px-2 py-0.5 rounded-md text-xs font-medium border border-pink-500/30">
                                 {withdrawal.payment_method?.toUpperCase()}
                               </span>
-                              <span className="text-slate-300">•</span>
+                              <span className="text-slate-700">•</span>
                               <span className="text-slate-200 text-xs">
                                 {new Date(withdrawal.requested_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                               </span>
@@ -1679,7 +1679,7 @@ const AgencyDashboard = () => {
                     >
                       <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
                         index === 0 ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-400' :
-                        index === 1 ? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' :
+                        index === 1 ? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-slate-700' :
                         index === 2 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-400' :
                         'bg-muted text-muted-foreground'
                       }`}>
@@ -2166,7 +2166,7 @@ const AgencyDashboard = () => {
                     </Avatar>
                     <div className="flex-1">
                       <p className="font-semibold">{parentAgency.owner_profile.display_name || "Agency Owner"}</p>
-                      <p className="text-xs text-gray-300">Agency Owner</p>
+                      <p className="text-xs text-slate-700">Agency Owner</p>
                     </div>
                   </div>
                 )}

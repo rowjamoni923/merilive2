@@ -892,10 +892,10 @@ const Settings = () => {
 
       {/* Language Selection Dialog - Premium Dark Theme */}
       <Dialog open={showLanguageDialog} onOpenChange={setShowLanguageDialog}>
-        <DialogContent className="sm:max-w-md max-h-[80vh] bg-slate-900 border border-white/10">
+        <DialogContent className="sm:max-w-md max-h-[80vh] bg-white border border-white/10">
           <DialogHeader>
             <DialogTitle className="text-white text-center">{t("settings.selectLanguage")}</DialogTitle>
-            <DialogDescription className="text-white/90 text-center">
+            <DialogDescription className="text-slate-700 text-center">
               {t("settings.chooseLanguage")}
             </DialogDescription>
           </DialogHeader>
@@ -908,14 +908,14 @@ const Settings = () => {
                   className={`w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all ${
                     selectedLanguage === lang.code
                       ? "bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-500/50 text-white"
-                      : "bg-slate-800/50 hover:bg-slate-700/70 border border-white/5 text-white"
+                      : "bg-slate-50 hover:bg-slate-100 border border-white/5 text-white"
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">{lang.flag}</span>
                     <div className="text-left">
                       <p className="font-semibold text-white">{lang.displayName}</p>
-                      <p className="text-xs text-white/85">{lang.name}</p>
+                      <p className="text-xs text-slate-600">{lang.name}</p>
                     </div>
                   </div>
                   {selectedLanguage === lang.code && (
@@ -932,10 +932,10 @@ const Settings = () => {
 
       {/* Permissions Dialog - Premium Luxurious UI */}
       <Dialog open={showPermissionsDialog} onOpenChange={setShowPermissionsDialog}>
-        <DialogContent className="sm:max-w-md bg-slate-900 border border-white/10">
+        <DialogContent className="sm:max-w-md bg-white border border-white/10">
           <DialogHeader>
             <DialogTitle className="text-white text-center">{t("settings.notificationsPermissions")}</DialogTitle>
-            <DialogDescription className="text-white/90 text-center">
+            <DialogDescription className="text-slate-700 text-center">
               {t("settings.managePermissions")}
             </DialogDescription>
           </DialogHeader>
@@ -944,7 +944,7 @@ const Settings = () => {
               <button
                 type="button"
                 onClick={openPermissionSettings}
-                className="w-full rounded-2xl border border-white/10 bg-slate-800/70 p-3 text-left text-xs text-white/70 active:scale-[0.98] transition-transform"
+                className="w-full rounded-2xl border border-white/10 bg-slate-50 p-3 text-left text-xs text-slate-500 active:scale-[0.98] transition-transform"
               >
                 <p className="font-semibold text-white mb-1">App Permission Settings</p>
                 <p>Open Android app settings if a permission was blocked before.</p>
@@ -975,14 +975,14 @@ const Settings = () => {
                 </div>
                 <div>
                    <p className="font-semibold text-white">{t("settings.pushNotifications")}</p>
-                   <p className="text-xs text-white/85">{t("settings.receiveAlerts")}</p>
+                   <p className="text-xs text-slate-600">{t("settings.receiveAlerts")}</p>
                 </div>
               </div>
             <div
               className={`relative w-14 h-8 rounded-full transition-all duration-300 pointer-events-none ${
                   permissions.notifications 
                     ? "bg-gradient-to-r from-purple-600 to-pink-600 shadow-lg shadow-purple-500/30" 
-                    : "bg-slate-700 border border-white/10"
+                    : "bg-slate-200 border border-white/10"
                 }`}
               >
         <div className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow-md transition-all duration-300 pointer-events-none ${
@@ -1002,14 +1002,14 @@ const Settings = () => {
                 </div>
                 <div>
                    <p className="font-semibold text-white">{t("settings.cameraAccess")}</p>
-                   <p className="text-xs text-white/85">{t("settings.forLiveStreaming")}</p>
+                   <p className="text-xs text-slate-600">{t("settings.forLiveStreaming")}</p>
                 </div>
               </div>
       <div
         className={`relative w-14 h-8 rounded-full transition-all duration-300 pointer-events-none ${
                   permissions.camera 
                     ? "bg-gradient-to-r from-pink-600 to-rose-600 shadow-lg shadow-pink-500/30" 
-                    : "bg-slate-700 border border-white/10"
+                    : "bg-slate-200 border border-white/10"
                 }`}
               >
         <div className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow-md transition-all duration-300 pointer-events-none ${
@@ -1029,14 +1029,14 @@ const Settings = () => {
                 </div>
                 <div>
                    <p className="font-semibold text-white">{t("settings.microphoneAccess")}</p>
-                   <p className="text-xs text-white/85">{t("settings.forAudioStreaming")}</p>
+                   <p className="text-xs text-slate-600">{t("settings.forAudioStreaming")}</p>
                 </div>
               </div>
       <div
         className={`relative w-14 h-8 rounded-full transition-all duration-300 pointer-events-none ${
                   permissions.microphone 
                     ? "bg-gradient-to-r from-blue-600 to-cyan-600 shadow-lg shadow-blue-500/30" 
-                    : "bg-slate-700 border border-white/10"
+                    : "bg-slate-200 border border-white/10"
                 }`}
               >
         <div className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow-md transition-all duration-300 pointer-events-none ${
@@ -1056,14 +1056,14 @@ const Settings = () => {
                 </div>
                 <div>
                    <p className="font-semibold text-white">{t("settings.locationAccess")}</p>
-                   <p className="text-xs text-white/85">{t("settings.showRegionFlag")}</p>
+                   <p className="text-xs text-slate-600">{t("settings.showRegionFlag")}</p>
                 </div>
               </div>
       <div
         className={`relative w-14 h-8 rounded-full transition-all duration-300 pointer-events-none ${
                   permissions.location 
                     ? "bg-gradient-to-r from-green-600 to-emerald-600 shadow-lg shadow-green-500/30" 
-                    : "bg-slate-700 border border-white/10"
+                    : "bg-slate-200 border border-white/10"
                 }`}
               >
         <div className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow-md transition-all duration-300 pointer-events-none ${
