@@ -880,7 +880,7 @@ const AgencyCoinExchange = () => {
       {activeTab === "send" && (
         <div className="mx-4 mt-4 space-y-4">
           {/* Sub-tabs: User Top-up | Agency */}
-          <div className="flex gap-2 bg-white/5 p-1 rounded-xl">
+          <div className="flex gap-2 bg-slate-100 p-1 rounded-xl">
             <button
               onClick={() => {
                 setSendSubTab("user");
