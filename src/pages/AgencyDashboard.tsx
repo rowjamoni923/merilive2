@@ -1081,7 +1081,7 @@ const AgencyDashboard = () => {
                     <p className="text-xs font-medium truncate">
                       {parentAgency.owner_profile.display_name || "Agency Owner"}
                     </p>
-                    <p className="text-[10px] text-white/85">Agency Owner</p>
+                    <p className="text-[10px] text-muted-foreground">Agency Owner</p>
                   </div>
                 </div>
               )}
@@ -1479,7 +1479,7 @@ const AgencyDashboard = () => {
 
             {/* Performance Stats */}
             <div className="grid grid-cols-2 gap-3">
-              <Card className="border-0 shadow-md bg-gradient-to-br from-purple-50 to-indigo-50">
+              <Card className="agency-premium-card bg-gradient-to-br from-purple-50 to-indigo-50">
                 <CardContent className="p-4">
                   <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center mb-2">
                     <Gift className="w-5 h-5 text-purple-600" />
@@ -1491,7 +1491,7 @@ const AgencyDashboard = () => {
                 </CardContent>
               </Card>
               
-              <Card className="border-0 shadow-md bg-gradient-to-br from-emerald-50 to-teal-50">
+              <Card className="agency-premium-card bg-gradient-to-br from-emerald-50 to-teal-50">
                 <CardContent className="p-4">
                   <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center mb-2">
                     <Users className="w-5 h-5 text-emerald-600" />
@@ -1503,7 +1503,7 @@ const AgencyDashboard = () => {
                 </CardContent>
               </Card>
               
-              <Card className="border-0 shadow-md bg-gradient-to-br from-amber-50 to-orange-50">
+              <Card className="agency-premium-card bg-gradient-to-br from-amber-50 to-orange-50">
                 <CardContent className="p-4">
                   <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center mb-2">
                     <Clock className="w-5 h-5 text-amber-600" />
@@ -1515,7 +1515,7 @@ const AgencyDashboard = () => {
                 </CardContent>
               </Card>
               
-              <Card className="border-0 shadow-md bg-gradient-to-br from-yellow-50 to-amber-50">
+              <Card className="agency-premium-card bg-gradient-to-br from-yellow-50 to-amber-50">
                 <CardContent className="p-4">
                   <div className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center mb-2">
                     <Crown className="w-5 h-5 text-yellow-600" />
@@ -1668,7 +1668,7 @@ const AgencyDashboard = () => {
 
           {/* Hosts Tab */}
           <TabsContent value="hosts" className="mt-4 space-y-4">
-            <Card className="border-0 shadow-md">
+            <Card className="agency-premium-card">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
                   <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
@@ -1729,7 +1729,7 @@ const AgencyDashboard = () => {
             </Card>
 
             {/* Host Invite Link Card */}
-            <Card className="border-0 shadow-md bg-gradient-to-br from-blue-50 to-cyan-50">
+            <Card className="agency-premium-card bg-gradient-to-br from-blue-50 to-cyan-50">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
@@ -1771,7 +1771,7 @@ const AgencyDashboard = () => {
 
           {/* Sub-Agents Tab */}
           <TabsContent value="subagents" className="mt-4 space-y-4">
-            <Card className="border-0 shadow-md bg-gradient-to-br from-orange-50 to-amber-50">
+            <Card className="agency-premium-card bg-gradient-to-br from-orange-50 to-amber-50">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
@@ -1803,13 +1803,13 @@ const AgencyDashboard = () => {
             </Card>
 
             <div className="grid grid-cols-2 gap-3">
-              <Card className="border-0 shadow-md">
+              <Card className="agency-premium-card">
                 <CardContent className="p-4 text-center">
                   <p className="text-3xl font-bold text-orange-600">{subAgents.length}</p>
                   <p className="text-sm text-muted-foreground">Total Sub-Agents</p>
                 </CardContent>
               </Card>
-              <Card className="border-0 shadow-md">
+              <Card className="agency-premium-card">
                 <CardContent className="p-4 text-center">
                   <p className="text-3xl font-bold text-green-600">{fmtNum(totalSubAgentEarnings)}</p>
                   <p className="text-sm text-muted-foreground">Total Commission</p>
@@ -1817,7 +1817,7 @@ const AgencyDashboard = () => {
               </Card>
             </div>
 
-            <Card className="border-0 shadow-md">
+            <Card className="agency-premium-card">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base">Sub-Agent List</CardTitle>
               </CardHeader>
@@ -1858,7 +1858,7 @@ const AgencyDashboard = () => {
             </Card>
 
             {/* Sub-Agencies List */}
-            <Card className="border-0 shadow-md">
+            <Card className="agency-premium-card">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
                   <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
@@ -1900,7 +1900,7 @@ const AgencyDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-md bg-gradient-to-br from-purple-50 to-indigo-50">
+            <Card className="agency-premium-card bg-gradient-to-br from-purple-50 to-indigo-50">
               <CardContent className="p-4">
                 <h3 className="font-semibold text-purple-800 mb-3 flex items-center gap-2">
                   <Award className="w-5 h-5" />
@@ -1926,7 +1926,7 @@ const AgencyDashboard = () => {
 
           {/* Charts Tab */}
           <TabsContent value="charts" className="mt-4 space-y-4">
-            <Card className="border-0 shadow-md">
+            <Card className="agency-premium-card">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
                   <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -1962,7 +1962,7 @@ const AgencyDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-md">
+            <Card className="agency-premium-card">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
                   <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
@@ -1992,7 +1992,7 @@ const AgencyDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-md">
+            <Card className="agency-premium-card">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
                   <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
@@ -2042,7 +2042,7 @@ const AgencyDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-md bg-gradient-to-br from-green-50 to-emerald-50">
+            <Card className="agency-premium-card bg-gradient-to-br from-green-50 to-emerald-50">
               <CardContent className="p-4">
                 <h3 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
                   <Zap className="w-5 h-5" />
