@@ -348,7 +348,7 @@ export default function BlogPage() {
           </section>
 
           {/* About Company Section */}
-          <section className="py-16 px-4 bg-white/5">
+          <section className="py-16 px-4 bg-white/60 border-y border-amber-200/60">
             <div className="container mx-auto">
               <div className="grid md:grid-cols-2 gap-12 items-center">
                 <motion.div
@@ -356,13 +356,13 @@ export default function BlogPage() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.5 }}
                 >
-                  <Badge className="mb-4 bg-purple-500/20 text-purple-300 border-purple-500/30">
+                  <Badge className="mb-4 bg-pink-100 text-pink-700 border border-pink-200">
                     About Us
                   </Badge>
-                  <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+                  <h2 className="text-3xl md:text-4xl font-bold text-slate-800 mb-6">
                     Empowering Creators Worldwide
                   </h2>
-                  <div className="space-y-4 text-muted-foreground">
+                  <div className="space-y-4 text-slate-600">
                     <p>
                       MeriLive is a leading live streaming and social entertainment platform that connects content creators with their audience through innovative features and interactive experiences.
                     </p>
@@ -375,16 +375,16 @@ export default function BlogPage() {
                   </div>
                   <div className="mt-8 flex flex-wrap gap-4">
                     <div className="flex items-center gap-2 text-sm">
-                      <Heart className="w-4 h-4 text-pink-400" />
-                      <span className="text-white">Community First</span>
+                      <Heart className="w-4 h-4 text-pink-500" />
+                      <span className="text-slate-800 font-medium">Community First</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
-                      <Shield className="w-4 h-4 text-green-400" />
-                      <span className="text-white">Safe & Secure</span>
+                      <Shield className="w-4 h-4 text-emerald-500" />
+                      <span className="text-slate-800 font-medium">Safe & Secure</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
-                      <Star className="w-4 h-4 text-yellow-400" />
-                      <span className="text-white">Top Rated</span>
+                      <Star className="w-4 h-4 text-amber-500" />
+                      <span className="text-slate-800 font-medium">Top Rated</span>
                     </div>
                   </div>
                 </motion.div>
@@ -395,13 +395,13 @@ export default function BlogPage() {
                   transition={{ duration: 0.5 }}
                   className="relative"
                 >
-                  <div className="aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-white/10 flex items-center justify-center">
+                  <div className="aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-pink-100 to-rose-100 border border-amber-200/60 flex items-center justify-center shadow-xl shadow-pink-500/10">
                     <div className="text-center p-8">
-                      <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mx-auto mb-4">
+                      <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-pink-500/40">
                         <span className="text-white font-bold text-3xl">M</span>
                       </div>
-                      <h3 className="text-2xl font-bold text-white mb-2">MeriLive</h3>
-                      <p className="text-purple-300">Live Streaming & Video Calls</p>
+                      <h3 className="text-2xl font-bold text-slate-800 mb-2">MeriLive</h3>
+                      <p className="text-pink-600 font-medium">Live Streaming & Video Calls</p>
                     </div>
                   </div>
                 </motion.div>
