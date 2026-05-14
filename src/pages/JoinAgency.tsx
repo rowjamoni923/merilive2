@@ -270,7 +270,7 @@ const JoinAgency = () => {
     return (
       <div className="fixed inset-0 flex flex-col bg-background">
         {/* Header */}
-        <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-amber-500 to-orange-500 text-white safe-area-top">
+        <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-800 safe-area-top">
           <div className="flex items-center h-14 px-4">
             <button 
               onClick={() => navigate(-1)}
@@ -296,7 +296,7 @@ const JoinAgency = () => {
                   <Clock className="w-12 h-12 text-amber-500 animate-pulse" />
                 </div>
                 <div className="absolute -top-1 -right-1 w-8 h-8 bg-amber-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm">⏳</span>
+                  <span className="text-slate-800 text-sm">⏳</span>
                 </div>
               </div>
             </div>
@@ -316,11 +316,11 @@ const JoinAgency = () => {
                     <Avatar className="w-14 h-14 rounded-xl">
                       <AvatarImage src={pendingRequest.agency_logo_url} />
                       <AvatarFallback>
-                        <Building2 className="w-7 h-7 text-white" />
+                        <Building2 className="w-7 h-7 text-slate-800" />
                       </AvatarFallback>
                     </Avatar>
                   ) : (
-                    <Building2 className="w-7 h-7 text-white" />
+                    <Building2 className="w-7 h-7 text-slate-800" />
                   )}
                 </div>
                 <div className="flex-1">
@@ -337,7 +337,7 @@ const JoinAgency = () => {
             <div className="space-y-3 mb-6">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                  <CheckCircle2 className="w-4 h-4 text-white" />
+                  <CheckCircle2 className="w-4 h-4 text-slate-800" />
                 </div>
                 <div className="flex-1">
                   <p className="font-medium text-gray-800">Request Submitted</p>
@@ -355,7 +355,7 @@ const JoinAgency = () => {
               
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-amber-500 rounded-full flex items-center justify-center animate-pulse">
-                  <Clock className="w-4 h-4 text-white" />
+                  <Clock className="w-4 h-4 text-slate-800" />
                 </div>
                 <div className="flex-1">
                   <p className="font-medium text-gray-800">Waiting for Approval</p>
@@ -365,7 +365,7 @@ const JoinAgency = () => {
               
               <div className="flex items-center gap-3 opacity-40">
                 <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                  <UserPlus className="w-4 h-4 text-white" />
+                  <UserPlus className="w-4 h-4 text-slate-800" />
                 </div>
                 <div className="flex-1">
                   <p className="font-medium text-gray-500">Join Approved</p>
@@ -417,7 +417,7 @@ const JoinAgency = () => {
     return (
       <div className="fixed inset-0 flex flex-col bg-gray-50">
         {/* Header */}
-        <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-red-500 to-rose-500 text-white safe-area-top">
+        <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-red-500 to-rose-500 text-slate-800 safe-area-top">
           <div className="flex items-center h-14 px-4">
             <button 
               onClick={() => navigate(-1)}
@@ -459,7 +459,7 @@ const JoinAgency = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-gray-50">
       {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-green-500 to-emerald-600 text-white safe-area-top">
+      <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-green-500 to-emerald-600 text-slate-800 safe-area-top">
         <div className="flex items-center h-14 px-4">
           <button 
             onClick={() => navigate(-1)}
@@ -476,14 +476,14 @@ const JoinAgency = () => {
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
         {/* Hero */}
-        <div className="mx-4 mt-4 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-6 text-white">
+        <div className="mx-4 mt-4 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-6 text-slate-800">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
             <UserPlus className="w-6 h-6" />
           </div>
           <div>
             <h2 className="text-xl font-bold">Join Agency</h2>
-            <p className="text-white/80 text-sm">Join with agency code</p>
+            <p className="text-slate-700 text-sm">Join with agency code</p>
           </div>
         </div>
       </div>
@@ -521,14 +521,14 @@ const JoinAgency = () => {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                  <Building2 className="w-6 h-6 text-white" />
+                  <Building2 className="w-6 h-6 text-slate-800" />
                 </div>
                 <div>
                   <p className="font-semibold text-green-800">{foundAgency.name}</p>
                   <p className="text-xs text-green-600">Code: {foundAgency.agency_code}</p>
                 </div>
               </div>
-              <Badge className="bg-green-500 text-white">{foundAgency.level}</Badge>
+              <Badge className="bg-green-500 text-slate-800">{foundAgency.level}</Badge>
             </div>
 
             <div className="flex items-center gap-4 mb-4 text-sm text-green-700">

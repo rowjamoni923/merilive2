@@ -286,7 +286,7 @@ const CreateAgency = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-gray-50">
       {/* Header */}
-      <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-purple-600 to-indigo-600 text-white safe-area-top">
+      <header className="flex-shrink-0 sticky top-0 z-10 bg-gradient-to-r from-purple-600 to-indigo-600 text-slate-800 safe-area-top">
         <div className="flex items-center h-14 px-4">
           <button 
             onClick={() => navigate(-1)}
@@ -301,28 +301,28 @@ const CreateAgency = () => {
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'var(--content-bottom-padding)' }}>
         {/* Hero Section */}
-        <div className="mx-4 mt-4 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl p-6 text-white">
+        <div className="mx-4 mt-4 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl p-6 text-slate-800">
         <div className="flex items-center gap-3 mb-3">
           <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
             <Building2 className="w-6 h-6" />
           </div>
           <div>
             <h2 className="text-xl font-bold">Start Your Agency</h2>
-            <p className="text-white/80 text-sm">Build your team and earn together</p>
+            <p className="text-slate-700 text-sm">Build your team and earn together</p>
           </div>
         </div>
         <div className="grid grid-cols-3 gap-3 mt-4">
           <div className="bg-white/10 rounded-xl p-3 text-center">
             <p className="text-2xl font-bold">4%</p>
-            <p className="text-xs text-white/70">Commission</p>
+            <p className="text-xs text-slate-600">Commission</p>
           </div>
           <div className="bg-white/10 rounded-xl p-3 text-center">
             <p className="text-2xl font-bold">∞</p>
-            <p className="text-xs text-white/70">Hosts</p>
+            <p className="text-xs text-slate-600">Hosts</p>
           </div>
           <div className="bg-white/10 rounded-xl p-3 text-center">
             <p className="text-2xl font-bold">24/7</p>
-            <p className="text-xs text-white/70">Support</p>
+            <p className="text-xs text-slate-600">Support</p>
           </div>
         </div>
       </div>
@@ -332,7 +332,7 @@ const CreateAgency = () => {
         <div className="mx-4 mt-4 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl p-4 border border-purple-200">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
-              <LinkIcon className="w-5 h-5 text-white" />
+              <LinkIcon className="w-5 h-5 text-slate-800" />
             </div>
             <div>
               <h3 className="font-semibold text-purple-800">Creating as Sub-Agency</h3>
@@ -504,7 +504,7 @@ const CreateAgency = () => {
       <div className="mx-4 mt-4 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-4 border border-emerald-200">
         <div className="flex items-center gap-2 mb-4">
           <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
-            <Wallet className="w-5 h-5 text-white" />
+            <Wallet className="w-5 h-5 text-slate-800" />
           </div>
           <div>
             <h3 className="font-bold text-emerald-800">💰 Payroll Member System</h3>
@@ -519,7 +519,7 @@ const CreateAgency = () => {
               key={index}
               className="bg-white rounded-xl p-3 border border-emerald-100 shadow-sm"
             >
-              <div className={`w-8 h-8 bg-gradient-to-br ${benefit.color} rounded-lg flex items-center justify-center text-white mb-2`}>
+              <div className={`w-8 h-8 bg-gradient-to-br ${benefit.color} rounded-lg flex items-center justify-center text-slate-800 mb-2`}>
                 {benefit.icon}
               </div>
               <h4 className="font-semibold text-gray-800 text-xs">{benefit.title}</h4>
@@ -530,7 +530,7 @@ const CreateAgency = () => {
 
         {/* Payroll Levels Table */}
         <div className="bg-white rounded-xl border border-emerald-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-3 py-2">
+          <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-slate-800 px-3 py-2">
             <h4 className="font-semibold text-sm flex items-center gap-2">
               <TrendingUp className="w-4 h-4" />
               Payroll Levels & Requirements
@@ -541,10 +541,10 @@ const CreateAgency = () => {
               <div key={index} className="flex items-center justify-between px-3 py-2.5">
                 <div className="flex items-center gap-2">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                    index === 4 ? "bg-gradient-to-br from-amber-400 to-orange-500 text-white" :
-                    index === 3 ? "bg-gradient-to-br from-purple-400 to-pink-500 text-white" :
-                    index === 2 ? "bg-gradient-to-br from-blue-400 to-cyan-500 text-white" :
-                    index === 1 ? "bg-gradient-to-br from-emerald-400 to-green-500 text-white" :
+                    index === 4 ? "bg-gradient-to-br from-amber-400 to-orange-500 text-slate-800" :
+                    index === 3 ? "bg-gradient-to-br from-purple-400 to-pink-500 text-slate-800" :
+                    index === 2 ? "bg-gradient-to-br from-blue-400 to-cyan-500 text-slate-800" :
+                    index === 1 ? "bg-gradient-to-br from-emerald-400 to-green-500 text-slate-800" :
                     "bg-gray-200 text-gray-600"
                   }`}>
                     {index + 1}
@@ -568,19 +568,19 @@ const CreateAgency = () => {
           </h4>
           <ol className="space-y-1.5 text-xs text-emerald-700">
             <li className="flex items-start gap-2">
-              <span className="w-5 h-5 bg-emerald-500 text-white rounded-full flex items-center justify-center text-[10px] font-bold shrink-0">1</span>
+              <span className="w-5 h-5 bg-emerald-500 text-slate-800 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0">1</span>
               <span>Create your agency and start managing hosts</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="w-5 h-5 bg-emerald-500 text-white rounded-full flex items-center justify-center text-[10px] font-bold shrink-0">2</span>
+              <span className="w-5 h-5 bg-emerald-500 text-slate-800 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0">2</span>
               <span>Reach minimum 50,000 diamonds in your wallet</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="w-5 h-5 bg-emerald-500 text-white rounded-full flex items-center justify-center text-[10px] font-bold shrink-0">3</span>
+              <span className="w-5 h-5 bg-emerald-500 text-slate-800 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0">3</span>
               <span>Apply for Payroll from Agency Dashboard</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="w-5 h-5 bg-emerald-500 text-white rounded-full flex items-center justify-center text-[10px] font-bold shrink-0">4</span>
+              <span className="w-5 h-5 bg-emerald-500 text-slate-800 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0">4</span>
               <span>Get approved and start receiving orders!</span>
             </li>
           </ol>
@@ -620,7 +620,7 @@ const CreateAgency = () => {
           className={`w-full h-12 transition-all ${
             isSubmitting || !codeAvailable || !formData.name.trim() || !formData.email.trim() || !formData.whatsapp.trim()
               ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-              : "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
+              : "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-slate-800"
           }`}
         >
           {isSubmitting ? (

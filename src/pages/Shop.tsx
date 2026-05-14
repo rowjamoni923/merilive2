@@ -127,7 +127,7 @@ const ShopItemCard = ({
       {item.is_featured && (
         <div className="absolute top-2 right-2 z-10">
           <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/40">
-            <Zap className="w-3.5 h-3.5 text-white" />
+            <Zap className="w-3.5 h-3.5 text-slate-800" />
           </div>
         </div>
       )}
@@ -136,7 +136,7 @@ const ShopItemCard = ({
       {owned && (
         <div className="absolute top-2 left-2 z-10">
           <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-green-600 flex items-center justify-center shadow-lg shadow-green-500/40">
-            <Check className="w-3.5 h-3.5 text-white" />
+            <Check className="w-3.5 h-3.5 text-slate-800" />
           </div>
         </div>
       )}
@@ -187,7 +187,7 @@ const ShopItemCard = ({
       {/* Item Info */}
       <div className="px-3 pb-3 space-y-2">
         {/* Name */}
-        <p className="text-white text-sm font-semibold truncate text-center">{item.name}</p>
+        <p className="text-slate-800 text-sm font-semibold truncate text-center">{item.name}</p>
         
         {/* Price with diamond icon */}
         <div className="flex items-center justify-center gap-1.5">
@@ -214,7 +214,7 @@ const ShopItemCard = ({
         ) : (
           <button 
             onClick={(e) => { e.stopPropagation(); onPreview(); }}
-            className="w-full py-2 rounded-full text-xs font-bold text-white transition-all active:scale-95"
+            className="w-full py-2 rounded-full text-xs font-bold text-slate-800 transition-all active:scale-95"
             style={{
               background: 'linear-gradient(135deg, #d946ef 0%, #a855f7 50%, #7c3aed 100%)',
               boxShadow: '0 4px 15px rgba(168,85,247,0.4), inset 0 1px 0 rgba(255,255,255,0.15)',
@@ -494,12 +494,12 @@ const Shop = () => {
             size="icon"
             variant="ghost"
             onClick={() => navigate(-1)}
-            className="text-white hover:bg-white/10 w-9 h-9 rounded-full"
+            className="text-slate-800 hover:bg-white/10 w-9 h-9 rounded-full"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
           
-          <h1 className="text-lg font-bold text-white tracking-wide">My Store</h1>
+          <h1 className="text-lg font-bold text-slate-800 tracking-wide">My Store</h1>
           
           <div className="flex items-center gap-2">
             <div 
@@ -532,7 +532,7 @@ const Shop = () => {
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
                   className={`rounded-full flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 px-5 py-2 text-sm font-semibold transition-all duration-300 ${
-                    isActive ? 'text-white' : 'text-purple-300/70'
+                    isActive ? 'text-slate-800' : 'text-purple-300/70'
                   }`}
                   style={isActive ? {
                     background: 'linear-gradient(135deg, #d946ef 0%, #a855f7 50%, #7c3aed 100%)',
@@ -603,7 +603,7 @@ const Shop = () => {
           {selectedItem && (
             <>
               <DialogHeader>
-                <DialogTitle className="text-white text-center text-lg font-bold">
+                <DialogTitle className="text-slate-800 text-center text-lg font-bold">
                   {selectedItem.name}
                 </DialogTitle>
               </DialogHeader>
@@ -681,7 +681,7 @@ const Shop = () => {
                     <p className="text-purple-300/50 text-xs mb-1">
                       {selectedItem.duration_days ? 'Duration' : 'Min Level'}
                     </p>
-                    <p className="text-white font-bold">
+                    <p className="text-slate-800 font-bold">
                       {selectedItem.duration_days ? `${selectedItem.duration_days} Days` : `Lv.${selectedItem.min_level}`}
                     </p>
                   </div>
@@ -706,7 +706,7 @@ const Shop = () => {
                 ) : !canAfford(selectedItem.price_diamonds) ? (
                   <button 
                     onClick={() => navigate("/recharge")}
-                    className="w-full py-3 rounded-full font-bold text-white transition-all active:scale-95"
+                    className="w-full py-3 rounded-full font-bold text-slate-800 transition-all active:scale-95"
                     style={{
                       background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
                       boxShadow: '0 4px 20px rgba(245,158,11,0.4)',
@@ -718,7 +718,7 @@ const Shop = () => {
                   <button
                     onClick={() => handlePurchase(selectedItem)}
                     disabled={purchasing}
-                    className="w-full py-3 rounded-full font-bold text-white transition-all active:scale-95 disabled:opacity-50"
+                    className="w-full py-3 rounded-full font-bold text-slate-800 transition-all active:scale-95 disabled:opacity-50"
                     style={{
                       background: 'linear-gradient(135deg, #d946ef 0%, #a855f7 50%, #7c3aed 100%)',
                       boxShadow: '0 4px 25px rgba(168,85,247,0.5), inset 0 1px 0 rgba(255,255,255,0.15)',

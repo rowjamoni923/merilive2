@@ -353,7 +353,7 @@ const HostApplication = () => {
   if (step === 'success') {
     return (
       <div className="fixed inset-0 flex flex-col bg-background overflow-y-auto overflow-x-hidden">
-        <div className="sticky top-0 z-10 bg-gradient-to-r from-pink-500 to-purple-600 text-white">
+        <div className="sticky top-0 z-10 bg-gradient-to-r from-pink-500 to-purple-600 text-slate-800">
           <div className="flex items-center h-14 px-4">
             <h1 className="flex-1 text-center text-lg font-semibold">Success!</h1>
           </div>
@@ -361,7 +361,7 @@ const HostApplication = () => {
 
         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
           <div className="w-24 h-24 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mb-6">
-            <CheckCircle2 className="w-12 h-12 text-white" />
+            <CheckCircle2 className="w-12 h-12 text-slate-800" />
           </div>
           <h2 className="text-2xl font-bold text-foreground mb-2">Congratulations! 🎉</h2>
           <p className="text-muted-foreground mb-6">
@@ -381,7 +381,7 @@ const HostApplication = () => {
   return (
     <div className="fixed inset-0 flex flex-col bg-background overflow-y-auto overflow-x-hidden">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-gradient-to-r from-pink-500 to-purple-600 text-white">
+      <div className="sticky top-0 z-10 bg-gradient-to-r from-pink-500 to-purple-600 text-slate-800">
         <div className="flex items-center h-14 px-4">
           <button 
             onClick={() => step === 'form' ? navigate(-1) : setStep('form')}
@@ -394,17 +394,17 @@ const HostApplication = () => {
       </div>
 
       {/* Banner */}
-      <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-4 pb-6 pt-2">
+      <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-slate-800 px-4 pb-6 pt-2">
         <div className="text-center">
           <h2 className="text-xl font-bold mb-1">Join as a Host!</h2>
-          <p className="text-white/80 text-sm">Earn money by live streaming</p>
+          <p className="text-slate-700 text-sm">Earn money by live streaming</p>
         </div>
       </div>
 
       {step === 'form' && (
         <>
           {/* Requirements */}
-          <div className="mx-4 -mt-4 bg-white/5 backdrop-blur-sm rounded-2xl p-4 shadow-sm border border-white/10">
+          <div className="mx-4 -mt-4 bg-white/5 backdrop-blur-sm rounded-2xl p-4 shadow-sm border border-amber-200/60">
             <div className="flex items-center gap-2 mb-3">
               <Info className="w-5 h-5 text-purple-500" />
               <h3 className="font-semibold">Requirements</h3>
@@ -420,7 +420,7 @@ const HostApplication = () => {
           </div>
 
           {/* Application Form */}
-          <div className="mx-4 mt-4 bg-white/5 backdrop-blur-sm rounded-2xl p-4 shadow-sm border border-white/10">
+          <div className="mx-4 mt-4 bg-white/5 backdrop-blur-sm rounded-2xl p-4 shadow-sm border border-amber-200/60">
             <h3 className="font-semibold mb-4">Application Form</h3>
             
             <div className="space-y-4">
@@ -578,7 +578,7 @@ const HostApplication = () => {
           <div className="bg-white rounded-2xl p-6 shadow-sm border">
             <div className="text-center mb-6">
               <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="w-8 h-8 text-white" />
+                <Shield className="w-8 h-8 text-slate-800" />
               </div>
               
               <h3 className="font-bold text-lg">Two-Step Verification</h3>
@@ -596,7 +596,7 @@ const HostApplication = () => {
             {verificationStep === 1 && (
               <div className="bg-purple-50 rounded-xl p-4 border border-purple-200">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="w-8 h-8 rounded-full bg-purple-500 text-white flex items-center justify-center text-sm font-bold">1</div>
+                  <div className="w-8 h-8 rounded-full bg-purple-500 text-slate-800 flex items-center justify-center text-sm font-bold">1</div>
                   <h4 className="font-semibold text-purple-800">App Verification</h4>
                 </div>
                 <p className="text-xs text-purple-600 mb-4">
@@ -646,7 +646,7 @@ const HostApplication = () => {
 
                 <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
                   <div className="flex items-center gap-2 mb-3">
-                    <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-bold">2</div>
+                    <div className="w-8 h-8 rounded-full bg-blue-500 text-slate-800 flex items-center justify-center text-sm font-bold">2</div>
                     <h4 className="font-semibold text-blue-800">Email Verification</h4>
                   </div>
 

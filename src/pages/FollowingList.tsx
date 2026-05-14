@@ -253,7 +253,7 @@ const FollowingList = () => {
         >
           <Avatar className="w-14 h-14">
             <AvatarImage src={profile.avatar_url || undefined} />
-            <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-white">
+            <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-slate-800">
               {profile.display_name?.[0] || '?'}
             </AvatarFallback>
           </Avatar>
@@ -262,7 +262,7 @@ const FollowingList = () => {
           )}
           {profile.is_verified && (
             <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white">
-              <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-2.5 h-2.5 text-slate-800" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
               </svg>
             </div>
@@ -293,7 +293,7 @@ const FollowingList = () => {
               className="w-10 h-10 rounded-full bg-gradient-to-r from-green-500 to-emerald-500"
               onClick={() => handleCall(profile.id)}
             >
-              <Phone className="w-4 h-4 text-white" />
+              <Phone className="w-4 h-4 text-slate-800" />
             </Button>
           )}
           
@@ -383,7 +383,7 @@ const FollowingList = () => {
               <TabsTrigger value="following" className="relative">
                 Following
                 {following.length > 0 && (
-                  <span className="ml-1 text-xs bg-purple-500 text-white px-1.5 rounded-full">
+                  <span className="ml-1 text-xs bg-purple-500 text-slate-800 px-1.5 rounded-full">
                     {following.length}
                   </span>
                 )}
@@ -391,7 +391,7 @@ const FollowingList = () => {
               <TabsTrigger value="followers" className="relative">
                 Followers
                 {followers.length > 0 && (
-                  <span className="ml-1 text-xs bg-purple-500 text-white px-1.5 rounded-full">
+                  <span className="ml-1 text-xs bg-purple-500 text-slate-800 px-1.5 rounded-full">
                     {followers.length}
                   </span>
                 )}
@@ -399,7 +399,7 @@ const FollowingList = () => {
               <TabsTrigger value="friends" className="relative">
                 Friends
                 {friends.length > 0 && (
-                  <span className="ml-1 text-xs bg-pink-500 text-white px-1.5 rounded-full">
+                  <span className="ml-1 text-xs bg-pink-500 text-slate-800 px-1.5 rounded-full">
                     {friends.length}
                   </span>
                 )}
