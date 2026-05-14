@@ -25,6 +25,7 @@ import { format } from "date-fns";
 
 import { adminSendNotification } from "@/utils/adminNotification";
 import { recordAdminError } from "@/utils/adminErrorLog";
+import { resolveAdminStorageImageUrl } from "@/utils/adminStorageImages";
 
 import { formatAdminError } from "@/utils/formatAdminError";
 interface PaymentDetails {
@@ -36,6 +37,7 @@ interface PaymentDetails {
   helper_payment_screenshot?: string;
   helper_notes?: string;
   helper_processed_at?: string;
+  helper_payment_screenshot_signed?: string;
   // Fee details (admin only)
   withdrawal_fee_usd?: number;
   withdrawal_fee_beans?: number;
@@ -166,18 +168,24 @@ const AdminPayrollOrders = () => {
       if (agencyError) throw agencyError;
       
       // Transform helper orders
-      const helperOrders: PayrollOrder[] = (helperOrdersData || []).map(order => ({
-        ...order,
-        order_type: 'helper_order' as const,
-        payment_details: order.payment_details as PaymentDetails | null
+      const helperOrders: PayrollOrder[] = await Promise.all((helperOrdersData || []).map(async (order) => {
+        const paymentDetails = order.payment_details as PaymentDetails | null;
+        const signedProof = await resolveAdminStorageImageUrl(order.user_payment_proof);
+        return {
+          ...order,
+          user_payment_proof: signedProof,
+          order_type: 'helper_order' as const,
+          payment_details: paymentDetails
+        };
       }));
 
       // Transform agency withdrawals to match PayrollOrder interface
-      const agencyOrders: PayrollOrder[] = (agencyWithdrawalsData || []).map(aw => {
+      const agencyOrders: PayrollOrder[] = await Promise.all((agencyWithdrawalsData || []).map(async (aw) => {
         const paymentDetails = (aw.payment_details as PaymentDetails | null) || null;
         const helperTransactionId = paymentDetails?.helper_transaction_id || null;
         const helperPaymentScreenshot = paymentDetails?.helper_payment_screenshot || null;
         const helperPaymentNotes = paymentDetails?.helper_notes || null;
+        const signedProof = await resolveAdminStorageImageUrl(helperPaymentScreenshot);
 
         return {
           id: aw.id,
@@ -188,9 +196,9 @@ const AdminPayrollOrders = () => {
           amount_local: aw.local_currency_amount || aw.amount,
           currency_code: aw.currency_code || 'USD',
           payment_method: aw.payment_method || 'Agency Withdrawal',
-          payment_details: paymentDetails,
+          payment_details: paymentDetails ? { ...paymentDetails, helper_payment_screenshot_signed: signedProof || undefined } : null,
           user_country_code: aw.country_code || paymentDetails?.country_code || '',
-          user_payment_proof: helperPaymentScreenshot,
+          user_payment_proof: signedProof,
           status: aw.status,
           helper_notes: helperPaymentNotes,
           created_at: aw.requested_at,
@@ -199,7 +207,7 @@ const AdminPayrollOrders = () => {
           helper: aw.helper,
           agency: aw.agency
         };
-      });
+      }));
 
       // Combine and sort by date
       const allOrders = [...helperOrders, ...agencyOrders].sort((a, b) => 
