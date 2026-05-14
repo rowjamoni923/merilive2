@@ -179,7 +179,7 @@ export const ReportUserDialog = forwardRef<HTMLDivElement, ReportUserDialogProps
                         exit={{ scale: 0, opacity: 0 }}
                         className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-green-500 flex items-center justify-center shadow-md shadow-green-500/30"
                       >
-                        <CheckCircle2 className="w-3.5 h-3.5 text-slate-800" />
+                        <CheckCircle2 className="w-3.5 h-3.5 text-white" />
                       </motion.div>
                     )}
                   </AnimatePresence>
