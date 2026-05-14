@@ -1901,25 +1901,24 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               onClick={() => navigate("/recharge")}
               className="group relative"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-violet-700/40 to-indigo-900/40 rounded-xl translate-y-0.5 blur-sm" />
-              <div className="relative bg-gradient-to-br from-violet-600 via-purple-700 to-indigo-800 rounded-xl p-2 overflow-hidden shadow-lg ring-1 ring-white/10 group-active:scale-95 transition-all">
-                <div className="absolute inset-0 opacity-30">
-                  <div className="absolute top-0 right-0 w-12 h-12 bg-gradient-to-br from-white/25 to-transparent rounded-full -translate-y-4 translate-x-4" />
-                </div>
-                
+              <div className="absolute inset-0 bg-cyan-500/20 rounded-xl translate-y-1 blur-md" />
+              <div className="relative bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 rounded-xl p-2.5 overflow-hidden shadow-[0_4px_20px_-4px_rgba(0,0,0,0.6)] border border-white/10 group-active:scale-[0.97] transition-all">
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-400/60 to-transparent" />
+                <div className="absolute -top-8 -right-8 w-20 h-20 bg-cyan-500/15 rounded-full blur-2xl" />
+
                 <div className="relative z-10">
-                  <div className="flex items-center justify-between mb-0.5">
-                    <p className="text-white/85 font-medium text-[8px] tracking-wide uppercase">My Diamonds</p>
-                    <span className="text-[6px] bg-white/15 backdrop-blur-sm text-white px-1.5 py-0.5 rounded-full font-semibold tracking-wide">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-cyan-200/80 font-semibold text-[8px] tracking-[0.12em] uppercase">My Diamonds</p>
+                    <span className="text-[6px] bg-cyan-500/15 border border-cyan-400/30 text-cyan-100 px-1.5 py-0.5 rounded-full font-semibold tracking-wide">
                       Top Up
                     </span>
                   </div>
-                  <p className="text-xl font-bold text-white drop-shadow-lg">
+                  <p className="text-xl font-bold text-white drop-shadow-[0_2px_8px_rgba(34,211,238,0.35)]">
                      {resolvedDiamondBalance.toLocaleString()}
                   </p>
                 </div>
-                
-                <div className="absolute right-1 bottom-1">
+
+                <div className="absolute right-1.5 bottom-1.5 opacity-90">
                   <Diamond3DIcon size={28} />
                 </div>
               </div>
