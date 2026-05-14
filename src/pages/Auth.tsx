@@ -2234,7 +2234,7 @@ const Auth = () => {
                       value={manualReferralCode}
                       onChange={(e) => setManualReferralCode(e.target.value.toUpperCase())}
                       placeholder="Enter referral code"
-                      className="pl-9 h-10 bg-white/10 border-amber-400/30 text-slate-800 placeholder:text-slate-400 rounded-xl text-sm font-mono tracking-wider"
+                      className="pl-9 h-10 bg-white/10 border-amber-400/40 text-white placeholder:text-white/50 rounded-xl text-sm font-mono tracking-wider" /* dark-ok */
                     />
                   </div>
                   <Button
