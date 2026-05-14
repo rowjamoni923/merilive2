@@ -762,9 +762,8 @@ const ProfileDetail = () => {
 
   return (
     <div 
-      className="fixed inset-0"
+      className="fixed inset-0 profile-home-shell"
       style={{ 
-        background: 'linear-gradient(180deg, #0c0618 0%, #110a24 30%, #0d0719 60%, #080412 100%)',
         overflowY: 'scroll',
         overflowX: 'hidden',
         WebkitOverflowScrolling: 'touch',
@@ -803,9 +802,9 @@ const ProfileDetail = () => {
           </motion.div>
         </AnimatePresence>
         {/* Premium gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-[#0c0618]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-[#f7f8fa]" />
         {/* Subtle vignette */}
-        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at center, transparent 50%, rgba(12,6,24,0.7) 100%)' }} />
+        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at center, transparent 50%, rgba(15,23,42,0.22) 100%)' }} />
 
         {/* Slideshow Indicators */}
         {posterImages.length > 1 && (
@@ -821,14 +820,14 @@ const ProfileDetail = () => {
                 }`}
               />
             ))}
-            <button
+              <button
               onClick={() => setIsPaused(!isPaused)}
-              className="ml-2 w-7 h-7 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center"
+                className="ml-2 w-7 h-7 rounded-full bg-white/90 backdrop-blur-xl border border-slate-200 flex items-center justify-center shadow-sm"
             >
               {isPaused ? (
-                <Play className="w-3 h-3 text-white" />
+                <Play className="w-3 h-3 text-slate-700" />
               ) : (
-                <Pause className="w-3 h-3 text-white" />
+                <Pause className="w-3 h-3 text-slate-700" />
               )}
             </button>
           </div>
@@ -839,9 +838,9 @@ const ProfileDetail = () => {
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate(-1)}
-            className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-xl border border-white/10 flex items-center justify-center"
+            className="w-10 h-10 rounded-full profile-home-icon-button flex items-center justify-center"
           >
-            <ArrowLeft className="w-5 h-5 text-white" />
+            <ArrowLeft className="w-5 h-5 text-slate-700" />
           </motion.button>
 
           <div className="flex items-center gap-2">
@@ -849,26 +848,26 @@ const ProfileDetail = () => {
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={() => navigate("/edit-profile")}
-                className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-xl border border-white/10 flex items-center justify-center"
+                  className="w-10 h-10 rounded-full profile-home-icon-button flex items-center justify-center"
               >
-                <Edit2 className="w-5 h-5 text-white" />
+                  <Edit2 className="w-5 h-5 text-slate-700" />
               </motion.button>
             ) : (
               <>
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setShowReportDialog(true)}
-                  className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-xl border border-white/10 flex items-center justify-center"
+                    className="w-10 h-10 rounded-full profile-home-icon-button flex items-center justify-center"
                 >
-                  <Flag className="w-5 h-5 text-white" />
+                    <Flag className="w-5 h-5 text-slate-700" />
                 </motion.button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <motion.button
                       whileTap={{ scale: 0.95 }}
-                      className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-xl border border-white/10 flex items-center justify-center"
+                      className="w-10 h-10 rounded-full profile-home-icon-button flex items-center justify-center"
                     >
-                      <MoreVertical className="w-5 h-5 text-white" />
+                      <MoreVertical className="w-5 h-5 text-slate-700" />
                     </motion.button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48 bg-[#1a1a2e] border-white/10">
