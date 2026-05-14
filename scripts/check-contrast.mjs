@@ -79,6 +79,13 @@ const SATURATED_GRADIENT = new RegExp(
 const FAINT_TEXT_ON_DARK = new RegExp(
   `${NB}text-(?:slate|gray|zinc|neutral|stone)-(?:300|400|500)${NA}`
 );
+// C4: light → dark → light gradient (the CallEndedModal banner bug)
+const LIGHT_GRAD_STOP = `(?:\\[#(?:[Ff][AaCcEeFf0-9]|[CcDdEeFf][0-9A-Fa-f])[A-Fa-f0-9]{4}\\]|white|slate-(?:50|100|200)|amber-(?:50|100)|rose-50|pink-50|blue-50|emerald-50|stone-(?:50|100))`;
+const MIXED_DARK_VIA = new RegExp(
+  `from-${LIGHT_GRAD_STOP}[^"'\`]*?via-(?:(?:slate|gray|zinc|neutral|stone)-(?:700|800|900|950)|black)|` +
+  `via-(?:(?:slate|gray|zinc|neutral|stone)-(?:700|800|900|950)|black)[^"'\`]*?to-${LIGHT_GRAD_STOP}`
+);
+
 
 // Match every className=" … " | className={\` … \`} | className={" … "} substring,
 // even when it spans lines (for clsx/template-literal style).
@@ -118,6 +125,9 @@ function scanFile(file) {
     }
     if (SATURATED_GRADIENT.test(cls) && FAINT_TEXT_ON_DARK.test(cls)) {
       findings.push({ file, line: lineNo, rule: 'C3', detail: 'faint text on saturated gradient', cls });
+    }
+    if (MIXED_DARK_VIA.test(cls)) {
+      findings.push({ file, line: lineNo, rule: 'C4', detail: 'dark gradient stop between light stops (text disappears in middle)', cls });
     }
   }
   return findings;
