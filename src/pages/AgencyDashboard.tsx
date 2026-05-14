@@ -1602,11 +1602,11 @@ const AgencyDashboard = () => {
                         : withdrawal.status;
                       
                       const statusConfig: Record<string, { iconBg: string; text: string }> = {
-                        completed: { iconBg: 'bg-emerald-500', text: 'text-emerald-400' },
-                        pending: { iconBg: 'bg-amber-500', text: 'text-amber-400' },
-                        processing: { iconBg: 'bg-blue-500', text: 'text-blue-400' },
-                        rejected: { iconBg: 'bg-red-500', text: 'text-red-400' },
-                        approved: { iconBg: 'bg-emerald-500', text: 'text-emerald-400' }
+                        completed: { iconBg: 'bg-emerald-500', text: 'text-emerald-600' },
+                        pending: { iconBg: 'bg-amber-500', text: 'text-amber-600' },
+                        processing: { iconBg: 'bg-blue-500', text: 'text-blue-600' },
+                        rejected: { iconBg: 'bg-red-500', text: 'text-red-600' },
+                        approved: { iconBg: 'bg-emerald-500', text: 'text-emerald-600' }
                       };
                       const config = statusConfig[displayStatus] || statusConfig.pending;
                       
@@ -2175,7 +2175,7 @@ const AgencyDashboard = () => {
                     </Avatar>
                     <div className="flex-1">
                       <p className="font-semibold">{parentAgency.owner_profile.display_name || "Agency Owner"}</p>
-                      <p className="text-xs text-white/85">Agency Owner</p>
+                      <p className="text-xs text-muted-foreground">Agency Owner</p>
                     </div>
                   </div>
                 )}
