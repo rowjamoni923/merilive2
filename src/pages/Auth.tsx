@@ -2898,9 +2898,9 @@ const Auth = () => {
               <div className="text-center pt-1">
                 <button
                   onClick={() => { setIsEmailFlow(true); setEmail(""); setAuthStep("email"); }}
-                  className="text-slate-500 text-sm hover:text-slate-700 transition-colors"
+                  className="text-slate-600 text-sm hover:text-slate-800 transition-colors"
                 >
-                  Use email instead? <span className="text-green-400 font-semibold hover:text-green-300">Email Sign Up</span>
+                  Use email instead? <span className="text-emerald-700 font-semibold hover:text-emerald-800">Email Sign Up</span>
                 </button>
               </div>
             </div>
