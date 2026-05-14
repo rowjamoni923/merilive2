@@ -2051,7 +2051,7 @@ const HelperDashboard = () => {
             <div className="bg-slate-50 rounded-xl p-4">
               <div className="flex items-center justify-between">
                 <span className="text-slate-600">Upgrade Cost</span>
-                <span className="text-2xl font-bold text-white">${selectedUpgradeLevel?.upgrade_cost_usd}</span>
+                <span className="text-2xl font-bold text-amber-700">${selectedUpgradeLevel?.upgrade_cost_usd}</span>
               </div>
             </div>
 
