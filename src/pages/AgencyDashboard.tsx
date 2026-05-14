@@ -1169,19 +1169,19 @@ const AgencyDashboard = () => {
 
             {/* Inline Withdrawal History */}
             {showWithdrawalHistory && (
-              <div className="mt-3 bg-white/95 backdrop-blur-md rounded-xl p-3 border border-slate-200 max-h-64 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+              <div className="mt-3 bg-white/95 backdrop-blur-md rounded-xl p-3 border border-border max-h-64 overflow-y-auto shadow-xl" style={{ WebkitOverflowScrolling: 'touch' }}>
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-xs font-semibold text-white/85">Withdrawal History</h4>
+                  <h4 className="text-xs font-semibold text-foreground">Withdrawal History</h4>
                   <button 
                     onClick={() => navigate("/agency-transfer-history")}
-                    className="text-[10px] text-cyan-300 hover:underline"
+                    className="text-[10px] text-primary font-semibold hover:underline"
                   >
                     View All →
                   </button>
                 </div>
                 
                 {withdrawals.length === 0 ? (
-                  <div className="text-center py-4 text-white/85 text-xs">
+                  <div className="text-center py-4 text-muted-foreground text-xs">
                     No withdrawal history yet
                   </div>
                 ) : (
@@ -1189,7 +1189,7 @@ const AgencyDashboard = () => {
                     {withdrawals.slice(0, 5).map((w) => (
                       <div 
                         key={w.id}
-                        className="bg-white/95 rounded-lg p-2.5 flex items-center justify-between border border-slate-200/40"
+                        className="bg-white rounded-lg p-2.5 flex items-center justify-between border border-border shadow-sm"
                       >
                         <div className="flex items-center gap-2">
                           {(() => {
@@ -1202,23 +1202,23 @@ const AgencyDashboard = () => {
                                   displayStatus === 'completed' ? 'bg-green-500/30' :
                                   displayStatus === 'pending' ? 'bg-yellow-500/30' :
                                   displayStatus === 'processing' ? 'bg-blue-500/30' :
-                                  displayStatus === 'rejected' ? 'bg-red-500/30' : 'bg-gray-500/30'
+                                  displayStatus === 'rejected' ? 'bg-red-100' : 'bg-muted'
                                 }`}>
                                   {displayStatus === 'completed' ? (
-                                    <CheckCircle2 className="w-4 h-4 text-green-400" />
+                                    <CheckCircle2 className="w-4 h-4 text-green-600" />
                                   ) : displayStatus === 'pending' ? (
-                                    <Clock className="w-4 h-4 text-yellow-400" />
+                                    <Clock className="w-4 h-4 text-yellow-600" />
                                   ) : displayStatus === 'processing' ? (
-                                    <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />
+                                    <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
                                   ) : (
-                                    <XCircle className="w-4 h-4 text-red-400" />
+                                    <XCircle className="w-4 h-4 text-red-600" />
                                   )}
                                 </div>
                                 <div>
-                                  <p className="text-xs font-semibold text-white">
+                                  <p className="text-xs font-semibold text-foreground">
                                     {(w.amount / coinsToUsdRate).toFixed(2)} USD
                                   </p>
-                                  <p className="text-[10px] text-white/75">
+                                  <p className="text-[10px] text-muted-foreground">
                                     {w.payment_method?.toUpperCase()} • {new Date(w.requested_at).toLocaleDateString()}
                                   </p>
                                 </div>
@@ -1232,10 +1232,10 @@ const AgencyDashboard = () => {
                             : w.status;
                           return (
                             <Badge className={`text-[10px] ${
-                              displayStatus === 'completed' ? 'bg-green-500/20 text-green-400' :
-                              displayStatus === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
-                              displayStatus === 'processing' ? 'bg-blue-500/20 text-blue-400' :
-                              'bg-red-500/20 text-red-400'
+                              displayStatus === 'completed' ? 'bg-green-100 text-green-700' :
+                              displayStatus === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                              displayStatus === 'processing' ? 'bg-blue-100 text-blue-700' :
+                              'bg-red-100 text-red-700'
                             } border-0`}>
                               {displayStatus}
                             </Badge>
