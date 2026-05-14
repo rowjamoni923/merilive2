@@ -548,47 +548,22 @@ const Index = () => {
           borderBottom: '1px solid rgba(15, 23, 42, 0.06)',
         }}
       >
-        {/* Row 1: Search bar + Leaderboard pill */}
-        <div className="flex items-center gap-2 px-3 pt-2.5 pb-2">
-          {/* Search bar — visible pill, full-width */}
+        <div className="flex items-center justify-center px-3 py-2.5 relative">
+          {/* Search Button - Left Side (icon only, matches home white theme) */}
           <button
             aria-label="Search"
             onClick={() => navigate('/search')}
-            className="flex-1 min-w-0 h-9 rounded-full flex items-center gap-2 px-3 active:scale-[0.99] touch-manipulation transition-transform"
+            className="absolute left-3 h-9 w-9 rounded-full flex items-center justify-center active:scale-95 touch-manipulation transition-transform"
             style={{
-              background: '#F1F5F9',
-              border: '1px solid rgba(15, 23, 42, 0.08)',
-              boxShadow: 'inset 0 1px 2px rgba(15, 23, 42, 0.04)',
+              background: 'linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)',
+              border: '1px solid rgba(15, 23, 42, 0.10)',
+              boxShadow: '0 2px 6px -2px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255,255,255,0.9)',
             }}
           >
-            <Search className="w-4 h-4 text-slate-500 shrink-0" strokeWidth={2.5} />
-            <span className="text-[13px] text-slate-500 font-medium truncate">Search hosts, rooms…</span>
+            <Search className="w-[18px] h-[18px] text-slate-700" strokeWidth={2.5} />
           </button>
 
-          {/* Leaderboard — gold premium pill with label */}
-          <button
-            aria-label="Leaderboard"
-            onClick={() => navigate('/leaderboard')}
-            className="shrink-0 h-9 px-3 rounded-full flex items-center gap-1.5 active:scale-95 touch-manipulation transition-transform"
-            style={{
-              background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 55%, #d97706 100%)',
-              border: '1px solid rgba(180, 83, 9, 0.4)',
-              boxShadow: '0 4px 12px -3px rgba(245, 158, 11, 0.45), inset 0 1px 0 rgba(255,255,255,0.55)',
-            }}
-          >
-            <Trophy
-              className="w-4 h-4 text-white drop-shadow-[0_1px_1px_rgba(120,53,15,0.55)]"
-              strokeWidth={2.5}
-              fill="rgba(255,255,255,0.25)"
-            />
-            <span className="text-[12px] font-bold text-white tracking-wide drop-shadow-[0_1px_1px_rgba(120,53,15,0.4)]">
-              Top
-            </span>
-          </button>
-        </div>
-
-        {/* Row 2: Sub Tabs - Centered */}
-        <div className="flex items-center justify-center px-3 pb-2">
+          {/* Sub Tabs - Centered */}
           <div className="flex items-center gap-0.5 bg-slate-100 rounded-full p-0.5 border border-slate-200/70">
             {(["popular", "live", "new", "following"] as SubTab[]).map((tab) => {
               const labels: Record<SubTab, string> = { popular: "Popular", live: "Live", new: "New", following: "Follow" };
@@ -606,7 +581,7 @@ const Index = () => {
                     setSubTab(tab);
                   }}
                   className={cn(
-                    "px-3 py-1 rounded-full text-xs font-semibold transition-all active:scale-95 touch-manipulation flex items-center gap-1",
+                    "px-2.5 py-1 rounded-full text-xs font-semibold transition-all active:scale-95 touch-manipulation flex items-center gap-1",
                     isActive ? "text-white shadow-md" : "text-slate-500 hover:text-slate-800"
                   )}
                   style={isActive ? { background: gradients[tab] } : undefined}
@@ -617,6 +592,20 @@ const Index = () => {
               );
             })}
           </div>
+
+          {/* Leaderboard Button - Right Side (icon only, white theme + gold trophy accent) */}
+          <button
+            aria-label="Leaderboard"
+            onClick={() => navigate('/leaderboard')}
+            className="absolute right-3 h-9 w-9 rounded-full flex items-center justify-center active:scale-95 touch-manipulation transition-transform"
+            style={{
+              background: 'linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)',
+              border: '1px solid rgba(15, 23, 42, 0.10)',
+              boxShadow: '0 2px 6px -2px rgba(15, 23, 42, 0.12), inset 0 1px 0 rgba(255,255,255,0.9)',
+            }}
+          >
+            <Trophy className="w-[18px] h-[18px] text-amber-500" strokeWidth={2.5} fill="rgba(245, 158, 11, 0.18)" />
+          </button>
         </div>
 
         {/* Country Filter - Compact */}
