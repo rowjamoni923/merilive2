@@ -280,7 +280,7 @@ export function CameraPreview({
 
       {/* Permission Request Button (when not started) */}
       {!stream && !isLoading && !error && !autoStart && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+        <div className="absolute inset-0 flex items-center justify-center bg-amber-50">
           <Button onClick={handleStart} className="gap-2">
             <Camera className="w-5 h-5" />
             Start Camera
