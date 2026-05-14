@@ -80,12 +80,12 @@ export default function ParcelDetailSheet({ parcel, isOpen, onClose, onClaim, is
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className="fixed bottom-0 left-0 right-0 z-50 max-h-[85vh] overflow-y-auto"
           >
-            <div className="relative rounded-t-3xl border-t border-amber-200/60 bg-gradient-to-b from-[#1a1025] to-[#0d0d0d] p-6 pb-10">
+            <div className="relative rounded-t-3xl border-t border-amber-200/60 bg-gradient-to-b from-[#FAF5EA] to-[#FFFBF2] p-6 pb-10">
               {/* Handle */}
-              <div className="absolute top-3 left-1/2 -translate-x-1/2 w-10 h-1 rounded-full bg-white/20" />
+              <div className="absolute top-3 left-1/2 -translate-x-1/2 w-10 h-1 rounded-full bg-amber-50" />
               
               {/* Close */}
-              <button onClick={handleClose} className="absolute top-4 right-4 text-slate-400 hover:text-white">
+              <button onClick={handleClose} className="absolute top-4 right-4 text-slate-400 hover:text-slate-900">
                 <X className="w-5 h-5" />
               </button>
 
@@ -196,7 +196,7 @@ export default function ParcelDetailSheet({ parcel, isOpen, onClose, onClaim, is
                         <span>{CONDITION_LABELS[template.unlock_condition] || 'Complete task'}</span>
                         <span>{parcel.current_progress}/{parcel.required_progress}</span>
                       </div>
-                      <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                      <div className="h-2 bg-amber-50/70 rounded-full overflow-hidden">
                         <motion.div
                           initial={{ width: 0 }}
                           animate={{ width: `${Math.min((parcel.current_progress / parcel.required_progress) * 100, 100)}%` }}

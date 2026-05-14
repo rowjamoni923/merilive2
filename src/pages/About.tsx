@@ -50,7 +50,7 @@ const About = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-slate-800 overflow-x-hidden">
+    <div className="min-h-screen bg-[#FFFBF2] text-slate-800 overflow-x-hidden">
       {/* JSON-LD Structured Data */}
       <script
         type="application/ld+json"
@@ -128,7 +128,7 @@ const About = () => {
             <Button
               size="lg"
               variant="outline"
-              className="border-amber-200/60 text-slate-800 hover:bg-white/10 font-bold text-lg px-8 py-6 rounded-2xl"
+              className="border-amber-200/60 text-slate-800 hover:bg-amber-50/70 font-bold text-lg px-8 py-6 rounded-2xl"
               onClick={() => openInApp(APK_DOWNLOAD_URL)}
             >
               <Download className="w-5 h-5 mr-2" />
@@ -159,7 +159,7 @@ const About = () => {
           {features.map((f, i) => (
             <motion.div
               key={f.title}
-              className="bg-white/5 border border-amber-200/60 rounded-2xl p-6 hover:bg-white/10 transition-all duration-300 group"
+              className="bg-white/5 border border-amber-200/60 rounded-2xl p-6 hover:bg-amber-50/70 transition-all duration-300 group"
               initial="hidden" whileInView="visible" viewport={{ once: true }}
               variants={fadeUp} custom={i}
             >
@@ -300,7 +300,7 @@ const About = () => {
             <Button
               size="lg"
               variant="outline"
-              className="border-amber-200/60 text-slate-800 hover:bg-white/10 font-bold rounded-2xl px-8 py-6"
+              className="border-amber-200/60 text-slate-800 hover:bg-amber-50/70 font-bold rounded-2xl px-8 py-6"
               onClick={() => openInApp(PLAY_STORE_URL)}
             >
               <ExternalLink className="w-5 h-5 mr-2" />
@@ -337,7 +337,7 @@ const About = () => {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-amber-200/60 text-slate-800 hover:bg-white/10 font-bold text-lg px-8 py-6 rounded-2xl"
+                className="border-amber-200/60 text-slate-800 hover:bg-amber-50/70 font-bold text-lg px-8 py-6 rounded-2xl"
                 onClick={() => openInApp(APK_DOWNLOAD_URL)}
               >
                 <Download className="w-5 h-5 mr-2" />

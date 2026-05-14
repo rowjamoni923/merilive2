@@ -56,7 +56,7 @@ export function CallEndedModal({
             <motion.div
               initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
-              className="max-w-sm mx-auto bg-gradient-to-r from-gray-900/95 via-gray-800/95 to-gray-900/95 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden"
+              className="max-w-sm mx-auto bg-gradient-to-r from-[#FFFBF2]/95 via-gray-800/95 to-[#F5EFDF]/95 backdrop-blur-xl rounded-2xl border border-amber-200/60 shadow-2xl overflow-hidden"
             >
               <div className="p-4">
                 <div className="flex items-center gap-3">
@@ -67,13 +67,13 @@ export function CallEndedModal({
 
                   {/* Text Content - NO diamond/earnings info for user privacy */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-white font-semibold text-base">
+                    <h3 className="text-slate-800 font-semibold text-base">
                       {endReason === 'declined' ? 'Call Declined' : 
                        endReason === 'missed' ? 'Call Missed' : 
                        endReason === 'insufficient_coins' ? 'Call Ended' :
                        'Call Ended'}
                     </h3>
-                    <p className="text-white/60 text-sm truncate">
+                    <p className="text-slate-600 text-sm truncate">
                       {endReason === 'insufficient_coins' 
                         ? 'Insufficient balance'
                         : endedBy === 'remote' 
@@ -84,9 +84,9 @@ export function CallEndedModal({
                   </div>
 
                   {/* Duration Badge - Simple, no cost info */}
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 flex-shrink-0">
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50/70 flex-shrink-0">
                     <Clock className="w-3.5 h-3.5 text-blue-400" />
-                    <span className="text-white text-sm font-medium">{formatDuration(duration)}</span>
+                    <span className="text-slate-800 text-sm font-medium">{formatDuration(duration)}</span>
                   </div>
                 </div>
               </div>
@@ -131,7 +131,7 @@ export function CallEndedModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 50 }}
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
-            className="relative w-full max-w-sm bg-gradient-to-br from-[#1a0a2e] via-[#0f0520] to-[#1a0a2e] rounded-3xl border border-white/10 shadow-2xl overflow-hidden"
+            className="relative w-full max-w-sm bg-gradient-to-br from-[#FAF5EA] via-[#FFFBF2] to-[#FAF5EA] rounded-3xl border border-amber-200/60 shadow-2xl overflow-hidden"
           >
             {/* Decorative Gradient */}
             <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-green-500/20 to-transparent" />
@@ -153,7 +153,7 @@ export function CallEndedModal({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15 }}
-                className="text-xl font-bold text-white mb-1"
+                className="text-xl font-bold text-slate-800 mb-1"
               >
                 {endedBy === 'remote' ? 'Caller Left' : 'Call Ended'}
               </motion.h2>
@@ -162,7 +162,7 @@ export function CallEndedModal({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="text-white/60 text-sm mb-6"
+                className="text-slate-600 text-sm mb-6"
               >
                 {endedBy === 'remote' 
                   ? `${remoteUserName} ended the call`
@@ -191,9 +191,9 @@ export function CallEndedModal({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3 }}
-                className="text-white/70 text-sm mb-6"
+                className="text-slate-700 text-sm mb-6"
               >
-                Call with <span className="text-white font-medium">{remoteUserName}</span>
+                Call with <span className="text-slate-800 font-medium">{remoteUserName}</span>
               </motion.p>
 
               {/* Stats Card */}
@@ -201,23 +201,23 @@ export function CallEndedModal({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.35 }}
-                className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10 mb-6"
+                className="bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-amber-200/60 mb-6"
               >
                 <div className="grid grid-cols-2 gap-4">
                   {/* Duration */}
                   <div className="text-center">
                     <div className="flex items-center justify-center gap-1.5 mb-1">
                       <Clock className="w-4 h-4 text-blue-400" />
-                      <span className="text-white/60 text-xs">Duration</span>
+                      <span className="text-slate-600 text-xs">Duration</span>
                     </div>
-                    <p className="text-white text-lg font-bold">{formatDuration(duration)}</p>
+                    <p className="text-slate-800 text-lg font-bold">{formatDuration(duration)}</p>
                   </div>
 
                   {/* Beans Earned */}
                   <div className="text-center">
                     <div className="flex items-center justify-center gap-1.5 mb-1">
                       <TrendingUp className="w-4 h-4 text-green-400" />
-                      <span className="text-white/60 text-xs">Earned</span>
+                      <span className="text-slate-600 text-xs">Earned</span>
                     </div>
                     <div className="flex items-center justify-center gap-1">
                       <BeansIcon size={18} />
@@ -250,7 +250,7 @@ export function CallEndedModal({
               >
                 <Button
                   onClick={onClose}
-                  className="w-full h-12 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium rounded-xl shadow-lg shadow-green-500/25"
+                  className="w-full h-12 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-slate-800 font-medium rounded-xl shadow-lg shadow-green-500/25"
                 >
                   Done
                 </Button>
