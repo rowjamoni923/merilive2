@@ -2051,8 +2051,8 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               }}
               className="w-full group relative"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/30 to-teal-500/30 rounded-xl translate-y-0.5 blur-sm" />
-              <div className="relative bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 rounded-xl p-2.5 overflow-hidden shadow-lg group-hover:shadow-xl transition-all duration-300 group-active:scale-95">
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-700/40 to-teal-900/40 rounded-xl translate-y-0.5 blur-sm" />
+              <div className="relative bg-gradient-to-br from-emerald-600 via-teal-700 to-cyan-800 rounded-xl p-2.5 overflow-hidden shadow-lg ring-1 ring-emerald-300/20 group-hover:shadow-xl transition-all duration-300 group-active:scale-95">
                 <div className="absolute inset-0 opacity-30">
                   <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-white/20 to-transparent rounded-full -translate-y-4 translate-x-4" />
                 </div>
