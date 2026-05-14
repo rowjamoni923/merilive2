@@ -937,35 +937,35 @@ const AgencyDashboard = () => {
             <div className="mx-3 mt-2">
               <div className={`rounded-2xl p-3 border shadow-lg ${
                 daysRemaining <= 5 
-                  ? 'bg-gradient-to-r from-red-900/80 to-red-800/60 border-red-500/40' 
+                  ? 'bg-gradient-to-r from-red-50 to-rose-50 border-red-200' 
                   : daysRemaining <= 10 
-                    ? 'bg-gradient-to-r from-amber-900/80 to-orange-800/60 border-amber-500/40'
-                    : 'bg-gradient-to-r from-blue-900/80 to-indigo-800/60 border-blue-500/40'
+                    ? 'bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200'
+                    : 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200'
               }`}>
                 <div className="flex items-center gap-2 mb-2">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    daysRemaining <= 5 ? 'bg-red-500/30' : daysRemaining <= 10 ? 'bg-amber-500/30' : 'bg-blue-500/30'
+                    daysRemaining <= 5 ? 'bg-red-100' : daysRemaining <= 10 ? 'bg-amber-100' : 'bg-blue-100'
                   }`}>
                     <Clock className={`w-4 h-4 ${
-                      daysRemaining <= 5 ? 'text-red-400' : daysRemaining <= 10 ? 'text-amber-400' : 'text-blue-400'
+                      daysRemaining <= 5 ? 'text-red-600' : daysRemaining <= 10 ? 'text-amber-600' : 'text-blue-600'
                     }`} />
                   </div>
                   <div className="flex-1">
-                    <p className="text-white text-xs font-bold">
+                    <p className="text-foreground text-xs font-bold">
                       ⚠️ {daysRemaining} Days Remaining
                     </p>
-                    <p className="text-white/85 text-[10px]">
+                    <p className="text-muted-foreground text-[10px]">
                       Minimum 10 active hosts required within 30 days
                     </p>
                   </div>
                   <div className={`text-lg font-black ${
-                    daysRemaining <= 5 ? 'text-red-400' : daysRemaining <= 10 ? 'text-amber-400' : 'text-blue-400'
+                    daysRemaining <= 5 ? 'text-red-600' : daysRemaining <= 10 ? 'text-amber-600' : 'text-blue-600'
                   }`}>
                     {activeHostCount}/10
                   </div>
                 </div>
-                <Progress value={progress} className="h-2 bg-white/10" />
-                <p className="text-white/75 text-[9px] mt-1.5 text-center">
+                <Progress value={progress} className="h-2 bg-white/70" />
+                <p className="text-muted-foreground text-[9px] mt-1.5 text-center">
                   {daysRemaining <= 5 
                     ? '⛔ Agency will be auto-deactivated if target not met!'
                     : `Add ${10 - activeHostCount} more hosts to secure your agency`
@@ -981,31 +981,31 @@ const AgencyDashboard = () => {
       {/* Pending Host Requests */}
       {pendingHosts.length > 0 && (
         <div className="mx-3 mt-2">
-          <div className="rounded-2xl bg-gradient-to-r from-amber-900/80 to-orange-800/60 border border-amber-500/40 p-3 shadow-lg">
+          <div className="rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 p-3 shadow-lg">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 bg-amber-500/30 rounded-full flex items-center justify-center">
-                <Bell className="w-4 h-4 text-amber-300" />
+              <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
+                <Bell className="w-4 h-4 text-amber-600" />
               </div>
               <div>
-                <p className="font-bold text-amber-100 text-sm">
+                <p className="font-bold text-amber-900 text-sm">
                   🔔 {pendingHosts.length} Pending Host Request{pendingHosts.length > 1 ? 's' : ''}
                 </p>
-                <p className="text-[10px] text-amber-300/70">Approve or reject host join requests</p>
+                <p className="text-[10px] text-amber-700">Approve or reject host join requests</p>
               </div>
             </div>
             <div className="space-y-2 max-h-48 overflow-y-auto">
               {pendingHosts.map((ph) => (
-                <div key={ph.id} className="flex items-center justify-between bg-black/20 rounded-xl p-2">
+                <div key={ph.id} className={`flex items-center justify-between rounded-xl p-2 ${premiumTileClass}`}>
                   <div className="flex items-center gap-2">
-                    <Avatar className="w-9 h-9 border-2 border-amber-500/40">
+                    <Avatar className="w-9 h-9 border-2 border-amber-200">
                       <AvatarImage src={ph.profile?.avatar_url || ''} />
-                      <AvatarFallback className="bg-amber-500/20 text-amber-200 text-xs">
+                      <AvatarFallback className="bg-amber-100 text-amber-700 text-xs">
                         {ph.profile?.display_name?.charAt(0) || '?'}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="text-white text-sm font-medium">{ph.profile?.display_name || 'Unknown'}</p>
-                      <p className="text-amber-300/60 text-[10px]">
+                      <p className="text-foreground text-sm font-medium">{ph.profile?.display_name || 'Unknown'}</p>
+                      <p className="text-muted-foreground text-[10px]">
                         {ph.profile?.app_uid ? `UID: ${ph.profile.app_uid}` : ''} • {new Date(ph.joined_at).toLocaleDateString()}
                       </p>
                     </div>
