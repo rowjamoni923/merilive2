@@ -244,7 +244,7 @@ const FollowingList = () => {
     return (
       <div
         key={record.id}
-        className="flex items-center gap-3 p-4 bg-card rounded-xl border border-border/50"
+        className="flex items-center gap-3 p-4 bg-white rounded-xl border border-amber-200/60 shadow-sm"
       >
         {/* Avatar */}
         <div 
