@@ -240,12 +240,12 @@ export const ProfileReelsSection = ({ userId, isOwnProfile }: ProfileReelsSectio
                     </DropdownMenuTrigger>
                     <DropdownMenuContent 
                       align="end" 
-                      className="w-40 bg-slate-900 border-white/10"
+                      className="w-40 bg-white border border-slate-200 shadow-lg"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <DropdownMenuItem 
                         onClick={() => handleTogglePrivacy(reel.id, reel.is_active)}
-                        className="text-white hover:bg-white/10 cursor-pointer gap-2"
+                        className="text-slate-700 hover:bg-slate-100 focus:bg-slate-100 cursor-pointer gap-2"
                       >
                         {reel.is_active ? (
                           <>
@@ -259,10 +259,10 @@ export const ProfileReelsSection = ({ userId, isOwnProfile }: ProfileReelsSectio
                           </>
                         )}
                       </DropdownMenuItem>
-                      <DropdownMenuSeparator className="bg-white/10" />
+                      <DropdownMenuSeparator className="bg-slate-200" />
                       <DropdownMenuItem 
                         onClick={() => setDeleteReelId(reel.id)}
-                        className="text-red-400 hover:bg-red-500/20 hover:text-red-300 cursor-pointer gap-2"
+                        className="text-red-600 hover:bg-red-50 focus:bg-red-50 hover:text-red-700 cursor-pointer gap-2"
                       >
                         <Trash2 className="w-4 h-4" />
                         Delete
@@ -278,16 +278,16 @@ export const ProfileReelsSection = ({ userId, isOwnProfile }: ProfileReelsSectio
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteReelId} onOpenChange={() => setDeleteReelId(null)}>
-        <AlertDialogContent className="bg-slate-900 border-white/10">
+        <AlertDialogContent className="bg-white border border-slate-200">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Delete this reel?</AlertDialogTitle>
-            <AlertDialogDescription className="text-white/60">
+            <AlertDialogTitle className="text-slate-900">Delete this reel?</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-600">
               This reel will be permanently deleted and cannot be recovered. Are you sure?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel 
-              className="bg-slate-800 border-white/10 text-white hover:bg-slate-700"
+              className="bg-white border border-slate-200 text-slate-700 hover:bg-slate-100"
               disabled={deleting}
             >
               Cancel
