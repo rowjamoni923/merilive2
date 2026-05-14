@@ -273,11 +273,11 @@ const DEFAULT_COUNTRY = COUNTRY_CODES[0];
                                setShowCountryPicker(false);
                                setSearchQuery("");
                              }}
-                             className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${
-                               selectedCountry.code === country.code && selectedCountry.country === country.country
-                                 ? 'bg-emerald-500/30 border border-emerald-400/50'
-                                 : 'hover:bg-amber-50/70'
-                             }`}
+                              className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${
+                                selectedCountry.code === country.code && selectedCountry.country === country.country
+                                  ? 'bg-emerald-100 border border-emerald-300'
+                                  : 'hover:bg-amber-50/70'
+                              }`}
                            >
                              <span className="text-2xl">{country.flag}</span>
                              <div className="flex-1 text-left">
