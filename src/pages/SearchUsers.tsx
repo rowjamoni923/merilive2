@@ -134,13 +134,18 @@ const SearchUsers = () => {
       // Clean the query - only digits allowed for app_uid search
       const cleanQuery = query.replace(/\D/g, '');
 
-      const uidPromise = cleanQuery.length > 0
-        ? supabase
-            .from('profiles_public')
-            .select('id, display_name, username, avatar_url, is_online, is_verified, is_host, country_flag, bio, tags, app_uid')
-            .eq('app_uid', cleanQuery)
-            .limit(50)
-        : Promise.resolve({ data: [] as UserProfile[] });
+      let uidPromise: PromiseLike<{ data: UserProfile[] | null }>;
+      if (cleanQuery.length === 0) {
+        uidPromise = Promise.resolve({ data: [] as UserProfile[] });
+      } else {
+        // app_uid is 10-digit zero-padded text. Try exact (padded) + partial match.
+        const padded = cleanQuery.padStart(10, '0');
+        uidPromise = supabase
+          .from('profiles_public')
+          .select('id, display_name, username, avatar_url, is_online, is_verified, is_host, country_flag, bio, tags, app_uid')
+          .or(`app_uid.eq.${padded},app_uid.ilike.%${cleanQuery}%`)
+          .limit(50) as any;
+      }
 
       const tagPromise = tags.length > 0
         ? supabase
@@ -392,17 +397,17 @@ const SearchUsers = () => {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
             <Input
-              placeholder="Enter App ID (8 digits)..."
+              placeholder="Enter App ID (10 digits)..."
               value={searchQuery}
               onChange={(e) => {
                 // Only allow digits
-                const value = e.target.value.replace(/\D/g, '').slice(0, 8);
+                const value = e.target.value.replace(/\D/g, '').slice(0, 10);
                 setSearchQuery(value);
               }}
               className="pl-10 pr-10 rounded-full bg-slate-100 border border-slate-200 text-slate-900 placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-slate-300"
               autoFocus
               inputMode="numeric"
-              maxLength={8}
+              maxLength={10}
             />
             {searchQuery && (
               <Button
