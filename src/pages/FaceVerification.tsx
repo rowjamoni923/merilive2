@@ -309,6 +309,25 @@ const FaceVerification = () => {
   const calibrationRef = useRef<PoseCalibration>(loadCachedCalibration() ?? DEFAULT_CALIB);
   const calibSamplesRef = useRef<{ yaw: number; pitch: number }[]>([]);
   const [calibrating, setCalibrating] = useState(false);
+  // ── Debug log: ring buffer of every poll tick + lifecycle event. Surfaced
+  // as a downloadable JSON report on failure so the user / support can see
+  // exactly which threshold (yaw/pitch/eyes/no-face) blocked verification
+  // and how many polls/timeouts occurred.
+  type DebugEntry = {
+    t: number; // ms since session start
+    kind: 'start' | 'tick' | 'no_face' | 'calib_done' | 'step_pass' | 'timeout' | 'finish' | 'antispoof_fail' | 'error';
+    [k: string]: unknown;
+  };
+  const debugLogRef = useRef<DebugEntry[]>([]);
+  const sessionStartRef = useRef<number>(0);
+  const consecutiveFailsRef = useRef<number>(0);
+  const [lastDebugReport, setLastDebugReport] = useState<string | null>(null);
+  const pushDebug = useCallback((entry: Omit<DebugEntry, 't'>) => {
+    const t = sessionStartRef.current ? Date.now() - sessionStartRef.current : 0;
+    const log = debugLogRef.current;
+    log.push({ t, ...entry });
+    if (log.length > 800) log.splice(0, log.length - 800);
+  }, []);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const instructionTimerRef = useRef<NodeJS.Timeout | null>(null);
   const poseCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
