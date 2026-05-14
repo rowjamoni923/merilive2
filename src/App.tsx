@@ -362,6 +362,7 @@ const NotificationSettings = lazy(lazyRetry(() => import("./pages/settings/Notif
 const GlobalScreenSecurity = lazy(lazyRetry(() => import("@/components/common/GlobalScreenSecurity")));
 const AndroidBackButtonHandler = lazy(lazyRetry(() => import("@/components/common/AndroidBackButtonHandler").then(m => ({ default: m.AndroidBackButtonHandler }))));
 const SplashScreen = lazy(lazyRetry(() => import("@/components/common/SplashScreen")));
+import ScrollToTop from "@/components/common/ScrollToTop";
 
 
 
