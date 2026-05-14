@@ -2,8 +2,8 @@
 
 _Generated 2026-05-14 23:59 UTC_
 
-- **Files with findings:** 36
-- **Total findings:** 276
+- **Files with findings:** 33
+- **Total findings:** 254
 
 ## Rules
 
@@ -13,7 +13,7 @@ _Generated 2026-05-14 23:59 UTC_
 | **M2** | Glass white/5-10 with light text | 13 |
 | **M3** | Faint body text (slate-400/gray-400/zinc-400/muted/50) | 40 |
 | **M4** | Mixed light→dark→light gradient | 0 |
-| **M5** | Pale 300/400 accent icon | 174 |
+| **M5** | Pale 300/400 accent icon | 152 |
 | **M6** | Glass border on dialog | 26 |
 
 ## Top files
@@ -29,12 +29,8 @@ _Generated 2026-05-14 23:59 UTC_
 | `src/pages/Chat.tsx` | 15 | M5:10 M3:5 |
 | `src/components/party/PartyGiftPanel.tsx` | 12 | M6:4 M5:5 M2:2 M3:1 |
 | `src/pages/Reels.tsx` | 9 | M1:2 M2:2 M5:3 M6:2 |
-| `src/pages/Level5HelperDashboard.tsx` | 7 | M5:7 |
 | `src/components/party/ProfessionalBottomBar.tsx` | 7 | M1:1 M5:3 M2:1 M6:2 |
-| `src/pages/Tasks.tsx` | 6 | M5:4 M6:2 |
 | `src/components/report/ReportUserDialog.tsx` | 6 | M5:5 M3:1 |
-| `src/components/rewards/DailyLoginPopup.tsx` | 6 | M5:6 |
-| `src/pages/HelperDashboard.tsx` | 5 | M5:5 |
 | `src/components/games/LiveGameSelector.tsx` | 5 | M1:1 M5:2 M2:1 M6:1 |
 | `src/pages/Leaderboard.tsx` | 4 | M3:4 |
 | `src/components/auth/PhoneSignInButton.tsx` | 4 | M3:4 |
@@ -47,9 +43,13 @@ _Generated 2026-05-14 23:59 UTC_
 | `src/pages/AgencyWithdrawal.tsx` | 2 | M6:2 |
 | `src/pages/Profile.tsx` | 2 | M3:2 |
 | `src/pages/SearchUsers.tsx` | 2 | M3:2 |
+| `src/pages/Tasks.tsx` | 2 | M6:2 |
 | `src/components/auth/BanPopupDialog.tsx` | 2 | M5:2 |
 | `src/components/games/GlobalGameOverlay.tsx` | 2 | M1:1 M6:1 |
 | `src/components/party/AdvancedPartyBottomBar.tsx` | 2 | M1:1 M5:1 |
+| `src/pages/Index.tsx` | 1 | M1:1 |
+| `src/pages/ProfileDetail.tsx` | 1 | M2:1 |
+| `src/components/chat/ChatGiftPanel.tsx` | 1 | M3:1 |
 
 ## Findings by file
 
@@ -286,18 +286,6 @@ _Generated 2026-05-14 23:59 UTC_
 | 987 | M2 | Glass white/5-10 with light text | `className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 active:bg-white/15 border border-white` |
 | 987 | M6 | Glass border on dialog | `className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 active:bg-white/15 border border-white` |
 
-### `src/pages/Level5HelperDashboard.tsx` — 7
-
-| Line | Rule | Issue | Class snippet |
-|-----:|------|-------|---------------|
-| 1669 | M5 | Pale 300/400 accent icon | `<span className="inline-block px-2 py-0.5 rounded bg-amber-100 border border-amber-500/40 text-amber-300 text-[10px] font-bold">` |
-| 1888 | M5 | Pale 300/400 accent icon | `<Badge className="bg-amber-100 text-amber-300 text-[10px] px-1.5 py-0">⚡ Merchant</Badge>` |
-| 2571 | M5 | Pale 300/400 accent icon | `<Label htmlFor="is-merchant-legacy" className="text-amber-300 font-medium text-sm cursor-pointer">` |
-| 2757 | M5 | Pale 300/400 accent icon | `<p className="text-green-300 font-semibold">Approved!</p>` |
-| 2903 | M5 | Pale 300/400 accent icon | `⚡ {g.name} <span className="text-[10px] text-amber-300/70 ml-1">(Auto Pay)</span>` |
-| 2995 | M5 | Pale 300/400 accent icon | `<p className="text-emerald-300 font-semibold text-sm">ZiniPay Auto Pay Setup</p>` |
-| 3248 | M5 | Pale 300/400 accent icon | `<Label htmlFor="is-merchant-country" className="text-amber-300 font-medium text-sm cursor-pointer">` |
-
 ### `src/components/party/ProfessionalBottomBar.tsx` — 7
 
 | Line | Rule | Issue | Class snippet |
@@ -310,17 +298,6 @@ _Generated 2026-05-14 23:59 UTC_
 | 390 | M6 | Glass border on dialog | `className="flex flex-col items-center gap-0.5 h-auto py-2 px-3 rounded-xl bg-white/10 border border-white/10"` |
 | 402 | M6 | Glass border on dialog | `className="flex flex-col items-center gap-0.5 h-auto py-2 px-3 rounded-xl bg-white/10 border border-white/10"` |
 
-### `src/pages/Tasks.tsx` — 6
-
-| Line | Rule | Issue | Class snippet |
-|-----:|------|-------|---------------|
-| 562 | M5 | Pale 300/400 accent icon | `<p className="text-amber-300 font-bold text-lg">{bonusSettings.beans_per_hour.toLocaleString()}</p>` |
-| 579 | M6 | Glass border on dialog | `: 'bg-white/5 border border-white/10'` |
-| 597 | M6 | Glass border on dialog | `<div className="mx-4 mb-4 p-3 rounded-xl bg-white/5 border border-white/10">` |
-| 601 | M5 | Pale 300/400 accent icon | `<p className="text-amber-300 font-bold text-sm">{(bonusProgress?.beans_earned \|\| 0).toLocaleString()}</p>` |
-| 611 | M5 | Pale 300/400 accent icon | `<p className="text-fuchsia-300 font-bold text-sm">Day {bonusProgress?.day_number \|\| 1}/{bonusSettings.eligible_days}</p>` |
-| 795 | M5 | Pale 300/400 accent icon | `<Star className="w-16 h-16 text-amber-300 mx-auto mb-4" />` |
-
 ### `src/components/report/ReportUserDialog.tsx` — 6
 
 | Line | Rule | Issue | Class snippet |
@@ -331,27 +308,6 @@ _Generated 2026-05-14 23:59 UTC_
 | 70 | M5 | Pale 300/400 accent icon | `iconColor: "text-amber-400",` |
 | 144 | M5 | Pale 300/400 accent icon | `<ShieldAlert className="w-5 h-5 text-red-400" />` |
 | 208 | M3 | Faint body text (slate-400/gray-400/zinc-400/muted/50) | `className="bg-white/70 border-amber-200/60 text-slate-800 placeholder:text-slate-400 min-h-[80px] resize-none rounded-xl focus:border-purple` |
-
-### `src/components/rewards/DailyLoginPopup.tsx` — 6
-
-| Line | Rule | Issue | Class snippet |
-|-----:|------|-------|---------------|
-| 141 | M5 | Pale 300/400 accent icon | `<Sparkles className="w-3 h-3 text-amber-300" />` |
-| 161 | M5 | Pale 300/400 accent icon | `<Sparkles className="absolute top-1/2 -left-2 -translate-y-1/2 w-3 h-3 text-fuchsia-300 drop-shadow-[0_0_8px_rgba(232,121,249,0.9)]" />` |
-| 299 | M5 | Pale 300/400 accent icon | `? "text-emerald-300/70"` |
-| 327 | M5 | Pale 300/400 accent icon | `className="w-6 h-6 text-amber-300 drop-shadow-[0_0_10px_rgba(245,158,11,0.8)]"` |
-| 380 | M5 | Pale 300/400 accent icon | `<p className="text-[9px] font-bold uppercase tracking-[0.24em] text-amber-300/80 mb-1.5">` |
-| 500 | M5 | Pale 300/400 accent icon | `className="text-center text-[11px] text-amber-300/75 mt-3 font-semibold tracking-wide"` |
-
-### `src/pages/HelperDashboard.tsx` — 5
-
-| Line | Rule | Issue | Class snippet |
-|-----:|------|-------|---------------|
-| 1686 | M5 | Pale 300/400 accent icon | `<span className="text-emerald-300 font-mono text-sm">{selectedPaymentMethod.account_number}</span>` |
-| 1722 | M5 | Pale 300/400 accent icon | `className="w-full mt-3 border-emerald-500/50 text-emerald-300 hover:bg-emerald-100"` |
-| 1944 | M5 | Pale 300/400 accent icon | `<p className="text-emerald-300 text-xs">` |
-| 1967 | M5 | Pale 300/400 accent icon | `<Badge className="bg-green-500/30 text-green-300 text-[10px]">Approved</Badge>` |
-| 2519 | M5 | Pale 300/400 accent icon | `<p className="text-emerald-300 text-xs">Transfer from wallet to your own diamond balance</p>` |
 
 ### `src/components/games/LiveGameSelector.tsx` — 5
 
@@ -451,6 +407,13 @@ _Generated 2026-05-14 23:59 UTC_
 |-----:|------|-------|---------------|
 | 398 | M3 | Faint body text (slate-400/gray-400/zinc-400/muted/50) | `<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />` |
 | 407 | M3 | Faint body text (slate-400/gray-400/zinc-400/muted/50) | `className="pl-10 pr-10 rounded-full bg-slate-100 border border-slate-200 text-slate-900 placeholder:text-slate-400 focus-visible:ring-1 focu` |
+
+### `src/pages/Tasks.tsx` — 2
+
+| Line | Rule | Issue | Class snippet |
+|-----:|------|-------|---------------|
+| 579 | M6 | Glass border on dialog | `: 'bg-white/5 border border-white/10'` |
+| 597 | M6 | Glass border on dialog | `<div className="mx-4 mb-4 p-3 rounded-xl bg-white/5 border border-white/10">` |
 
 ### `src/components/auth/BanPopupDialog.tsx` — 2
 
