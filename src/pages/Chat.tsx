@@ -3205,17 +3205,17 @@ const Chat = () => {
       <Dialog open={showCreateGroup} onOpenChange={setShowCreateGroup}>
         <DialogContent className="max-w-sm mx-auto border border-amber-200/60" style={{ background: 'linear-gradient(180deg, hsl(40 40% 99%) 0%, hsl(40 40% 98%) 100%)' }}>
           <DialogHeader>
-            <DialogTitle className="text-white">Create a group</DialogTitle>
+            <DialogTitle className="text-slate-800">Create a group</DialogTitle>
           </DialogHeader>
           <div className="space-y-6 py-4">
             <div className="space-y-2">
-              <Label htmlFor="groupName" className="text-slate-600">Group Name</Label>
+              <Label htmlFor="groupName" className="text-slate-700 font-medium">Group Name</Label>
               <Input
                 id="groupName"
                 placeholder="Enter group name"
                 value={newGroupName}
                 onChange={(e) => setNewGroupName(e.target.value)}
-                className="bg-white/[0.06] border-white/[0.08] text-white placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-purple-500/40"
+                className="bg-white border-amber-200/60 text-slate-800 placeholder:text-slate-400 focus-visible:ring-1 focus-visible:ring-purple-500/40"
               />
             </div>
 
