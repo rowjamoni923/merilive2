@@ -1847,7 +1847,7 @@ const FaceVerification = () => {
               >
                 🔄 Try Again
               </Button>
-              <p className="text-slate-400 text-xs text-center mt-3 px-8">
+              <p className="text-slate-600 text-xs text-center mt-3 px-8">
                 Please ensure good lighting and remove any face coverings before retrying.
               </p>
             </>
