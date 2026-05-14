@@ -309,13 +309,13 @@ export default function BlogPage() {
           <section className="py-16 px-4">
             <div className="container mx-auto">
               <div className="text-center mb-12">
-                <Badge className="mb-4 bg-purple-500/20 text-purple-300 border-purple-500/30">
+                <Badge className="mb-4 bg-pink-100 text-pink-700 border border-pink-200">
                   Features
                 </Badge>
-                <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                <h2 className="text-3xl md:text-4xl font-bold text-slate-800 mb-4">
                   Everything You Need
                 </h2>
-                <p className="text-muted-foreground max-w-2xl mx-auto">
+                <p className="text-slate-600 max-w-2xl mx-auto">
                   Discover powerful features designed to help creators grow and connect with their audience.
                 </p>
               </div>
@@ -328,15 +328,15 @@ export default function BlogPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
                   >
-                    <Card className="bg-white/5 border-white/10 hover:bg-white/10 transition-colors h-full">
+                    <Card className="bg-white border-amber-200/60 hover:border-pink-300 hover:shadow-lg hover:shadow-pink-500/10 transition-all h-full">
                       <CardContent className="p-6 text-center">
-                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center mx-auto mb-4">
-                          <feature.icon className="w-7 h-7 text-purple-400" />
+                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-100 to-rose-100 flex items-center justify-center mx-auto mb-4">
+                          <feature.icon className="w-7 h-7 text-pink-600" />
                         </div>
-                        <h3 className="text-lg font-semibold text-white mb-2">
+                        <h3 className="text-lg font-semibold text-slate-800 mb-2">
                           {feature.title}
                         </h3>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-slate-600">
                           {feature.description}
                         </p>
                       </CardContent>
