@@ -1024,13 +1024,9 @@ const ProfileDetail = () => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.2 }}
-                  className="mt-3 px-3 py-2 rounded-xl relative overflow-hidden mx-auto"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(168,85,247,0.08), rgba(236,72,153,0.06))',
-                    border: '1px solid rgba(168,85,247,0.12)',
-                  }}
+                  className="mt-3 px-3 py-2 rounded-xl relative overflow-hidden mx-auto bg-slate-50 border border-slate-100"
                 >
-                  <p className="text-sm text-white/70 leading-relaxed line-clamp-2 font-medium text-center">
+                  <p className="text-sm text-slate-600 leading-relaxed line-clamp-2 font-medium text-center">
                     ✨ {profile.bio}
                   </p>
                 </motion.div>
@@ -1055,12 +1051,7 @@ const ProfileDetail = () => {
           {/* Privileges & Animations - Premium Glass Card */}
           {(userPrivileges.frames.length > 0 || userPrivileges.entryBars.length > 0 || purchasedItems.length > 0) && (
             <motion.div
-              className="mt-4 p-4 rounded-2xl relative overflow-hidden"
-              style={{
-                background: 'linear-gradient(135deg, rgba(88,28,135,0.3) 0%, rgba(30,15,60,0.5) 50%, rgba(88,28,135,0.2) 100%)',
-                border: '1px solid rgba(168,85,247,0.2)',
-                boxShadow: '0 8px 32px rgba(88,28,135,0.15)',
-              }}
+              className="mt-4 p-4 rounded-2xl relative overflow-hidden profile-home-section"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
@@ -1076,7 +1067,7 @@ const ProfileDetail = () => {
               <div className="relative">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-base">✨</span>
-                  <span className="text-white font-bold text-sm">Privileges & Animations</span>
+                  <span className="text-slate-950 font-bold text-sm">Privileges & Animations</span>
                   <Badge className="bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white border-0 text-[9px] px-2 py-0.5 font-bold ml-auto">
                     Lv{level}
                   </Badge>
@@ -1200,7 +1191,7 @@ const ProfileDetail = () => {
           {/* Location & Language Section - Country flag ALWAYS visible (unless NONE);
               only city/region is hidden when profile owner enabled hide_location */}
           {profile.country_code !== 'NONE' && (
-          <div className="mt-4 p-3.5 rounded-2xl space-y-2.5" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+          <div className="mt-4 p-3.5 rounded-2xl space-y-2.5 profile-home-section">
             {/* Location Row */}
             <div className="flex items-center gap-2 flex-wrap">
               <div className="w-7 h-7 rounded-full bg-purple-500/15 flex items-center justify-center flex-shrink-0">
@@ -1238,9 +1229,9 @@ const ProfileDetail = () => {
             {profile.tags && profile.tags.length > 0 && (
               <div className="flex flex-wrap gap-2 pt-2 border-t border-white/5">
                 {profile.tags.map((tag, index) => {
-                  const style = tagStyles[tag] || { bg: "bg-white/5", text: "text-white/85", icon: "✨" };
+                    const style = tagStyles[tag] || { bg: "bg-slate-50", text: "text-slate-700", icon: "✨" };
                   return (
-                    <Badge key={index} className="gap-1 bg-white/5 text-white/85 border border-white/10 px-2 py-0.5 text-xs">
+                    <Badge key={index} className="gap-1 bg-slate-50 text-slate-700 border border-slate-200 px-2 py-0.5 text-xs">
                       <span className="text-xs">{style.icon}</span>
                       {tag}
                     </Badge>
