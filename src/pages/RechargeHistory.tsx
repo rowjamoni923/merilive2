@@ -269,7 +269,7 @@ const RechargeHistory = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full text-slate-800 hover:bg-white/20"
+              className="rounded-full text-white hover:bg-white/20"
               onClick={() => navigate(-1)}
             >
               <ArrowLeft className="w-5 h-5" />

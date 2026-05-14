@@ -486,7 +486,7 @@ const Tasks = () => {
             variant="ghost" 
             size="icon" 
             onClick={() => navigate(-1)}
-            className="text-slate-800 hover:bg-white/20"
+            className="text-white hover:bg-white/20"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>

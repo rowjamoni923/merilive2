@@ -865,7 +865,7 @@ const AgencyDashboard = () => {
                 variant="ghost"
                 size="sm"
                 onClick={copyAgencyCode}
- className="text-slate-900 hover:bg-white/20 h-8 w-8 p-0 rounded-lg"
+ className="text-white hover:bg-white/20 h-8 w-8 p-0 rounded-lg"
               >
                 {copiedCode ? (
                   <CheckCircle2 className="w-4 h-4" />

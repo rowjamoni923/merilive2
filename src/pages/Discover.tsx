@@ -335,7 +335,7 @@ const Discover = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full text-slate-800 hover:bg-white/20 h-8 w-8"
+              className="rounded-full text-white hover:bg-white/20 h-8 w-8"
               onClick={() => navigate(-1)}
             >
               <ArrowLeft className="w-5 h-5" />
@@ -344,7 +344,7 @@ const Discover = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full text-slate-800 hover:bg-white/20 h-8 w-8"
+              className="rounded-full text-white hover:bg-white/20 h-8 w-8"
               disabled={refreshing}
               onClick={async () => {
                 setRefreshing(true);

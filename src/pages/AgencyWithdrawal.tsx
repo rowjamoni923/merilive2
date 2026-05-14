@@ -2404,7 +2404,7 @@ const AgencyWithdrawal = () => {
       {/* Header */}
       <header className="flex-shrink-0 sticky top-0 z-40 bg-gradient-to-r from-brand-600 via-info-600 to-brand-700 text-white safe-area-top shadow-lg">
         <div className="px-4 py-4 flex items-center gap-3">
-          <Button variant="ghost" size="icon" className="text-slate-800 hover:bg-white/20 rounded-full" onClick={() => navigate(-1)}>
+          <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full" onClick={() => navigate(-1)}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex-1">
@@ -2412,7 +2412,7 @@ const AgencyWithdrawal = () => {
               <ArrowDownCircle className="w-5 h-5" />
               Agency Withdrawal
             </h1>
-            <p className="text-xs text-slate-600">{agency?.name}</p>
+            <p className="text-xs text-white/80">{agency?.name}</p>
           </div>
           <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
             <Sparkles className="w-5 h-5 text-warning-700" />

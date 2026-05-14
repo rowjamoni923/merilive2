@@ -184,7 +184,7 @@ export const CallConfirmModal = React.forwardRef<HTMLDivElement, CallConfirmModa
 
             <button
               onClick={onClose}
-              className="w-full py-3 rounded-xl font-medium text-slate-600 hover:text-slate-900 hover:bg-white/5 transition-all"
+              className="w-full py-3 rounded-xl font-medium text-slate-600 hover:text-white hover:bg-white/5 transition-all"
             >
               Cancel
             </button>

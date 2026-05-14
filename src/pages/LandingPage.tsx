@@ -414,7 +414,7 @@ const LandingPage = () => {
  {event.subtitle && <p className="text-slate-700/85 text-sm font-medium mb-1.5">{event.subtitle}</p>}
  {event.description && <p className="text-slate-700/60 text-sm max-w-xl leading-relaxed">{event.description}</p>}
                         {event.link_url && (
- <a href={event.link_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 mt-5 px-5 py-2.5 rounded-xl bg-white/15 backdrop-blur-xl border border-slate-200/25 text-sm font-bold text-slate-900 hover:bg-white/25 transition-all duration-300 shadow-lg group/link">
+ <a href={event.link_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 mt-5 px-5 py-2.5 rounded-xl bg-white/15 backdrop-blur-xl border border-slate-200/25 text-sm font-bold text-white hover:bg-white/25 transition-all duration-300 shadow-lg group/link">
                             {event.link_label || "Learn More"} <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
                           </a>
                         )}

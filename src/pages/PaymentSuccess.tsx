@@ -276,7 +276,7 @@ const PaymentSuccess = () => {
             ) : null}
             <div className="flex gap-3 pt-2">
               <Button onClick={() => navigate("/recharge")} variant="outline"
- className="flex-1 bg-white/10 border-amber-200/60 text-slate-900 hover:bg-white/20">
+ className="flex-1 bg-white/10 border-amber-200/60 text-white hover:bg-white/20">
                 <ArrowLeft className="w-4 h-4 mr-1" /> Recharge
               </Button>
               <Button onClick={() => navigate("/")}
