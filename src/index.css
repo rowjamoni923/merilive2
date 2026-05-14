@@ -1855,79 +1855,79 @@ body[data-admin-active="true"] [role="alertdialog"] button[class*="outline"]:hov
   background: hsl(230 12% 14%) !important;
 }
 
-[role="dialog"][class*="bg-white"],
-[role="alertdialog"][class*="bg-white"] {
+body[data-admin-active="true"] [role="dialog"][class*="bg-white"],
+body[data-admin-active="true"] [role="alertdialog"][class*="bg-white"] {
   background: hsl(230 14% 8%) !important;
 }
 
-[role="dialog"] [role="checkbox"],
-[role="dialog"] [role="switch"],
-[role="alertdialog"] [role="checkbox"],
-[role="alertdialog"] [role="switch"] {
+body[data-admin-active="true"] [role="dialog"] [role="checkbox"],
+body[data-admin-active="true"] [role="dialog"] [role="switch"],
+body[data-admin-active="true"] [role="alertdialog"] [role="checkbox"],
+body[data-admin-active="true"] [role="alertdialog"] [role="switch"] {
   border-color: hsl(225 15% 25%) !important;
   background: hsl(230 14% 10%) !important;
 }
 
-[role="dialog"] [role="checkbox"][data-state="checked"],
-[role="dialog"] [role="switch"][data-state="checked"],
-[role="alertdialog"] [role="checkbox"][data-state="checked"],
-[role="alertdialog"] [role="switch"][data-state="checked"] {
+body[data-admin-active="true"] [role="dialog"] [role="checkbox"][data-state="checked"],
+body[data-admin-active="true"] [role="dialog"] [role="switch"][data-state="checked"],
+body[data-admin-active="true"] [role="alertdialog"] [role="checkbox"][data-state="checked"],
+body[data-admin-active="true"] [role="alertdialog"] [role="switch"][data-state="checked"] {
   background: hsl(262 80% 58%) !important;
   border-color: hsl(262 80% 58%) !important;
 }
 
-[role="dialog"] [class*="Collapsible"],
-[role="dialog"] [class*="border rounded"],
-[role="alertdialog"] [class*="Collapsible"],
-[role="alertdialog"] [class*="border rounded"] {
+body[data-admin-active="true"] [role="dialog"] [class*="Collapsible"],
+body[data-admin-active="true"] [role="dialog"] [class*="border rounded"],
+body[data-admin-active="true"] [role="alertdialog"] [class*="Collapsible"],
+body[data-admin-active="true"] [role="alertdialog"] [class*="border rounded"] {
   border-color: hsl(225 15% 18%) !important;
 }
 
-[role="dialog"] [class*="text-muted"],
-[role="alertdialog"] [class*="text-muted"] {
+body[data-admin-active="true"] [role="dialog"] [class*="text-muted"],
+body[data-admin-active="true"] [role="alertdialog"] [class*="text-muted"] {
   color: hsl(215 20% 55%) !important;
 }
 
-[role="dialog"] [class*="Badge"][class*="outline"],
-[role="alertdialog"] [class*="Badge"][class*="outline"] {
+body[data-admin-active="true"] [role="dialog"] [class*="Badge"][class*="outline"],
+body[data-admin-active="true"] [role="alertdialog"] [class*="Badge"][class*="outline"] {
   border-color: hsl(225 15% 25%) !important;
   color: hsl(215 20% 82%) !important;
 }
 
-[role="dialog"] [class*="hover:bg-accent"]:hover,
-[role="alertdialog"] [class*="hover:bg-accent"]:hover {
+body[data-admin-active="true"] [role="dialog"] [class*="hover:bg-accent"]:hover,
+body[data-admin-active="true"] [role="alertdialog"] [class*="hover:bg-accent"]:hover {
   background: hsl(230 12% 14%) !important;
 }
 
-[role="dialog"] [role="tablist"],
-[role="alertdialog"] [role="tablist"] {
+body[data-admin-active="true"] [role="dialog"] [role="tablist"],
+body[data-admin-active="true"] [role="alertdialog"] [role="tablist"] {
   background: hsl(230 14% 8%) !important;
   border-color: hsl(225 15% 16%) !important;
 }
 
-[role="dialog"] [role="tab"],
-[role="alertdialog"] [role="tab"] {
+body[data-admin-active="true"] [role="dialog"] [role="tab"],
+body[data-admin-active="true"] [role="alertdialog"] [role="tab"] {
   color: hsl(215 20% 55%) !important;
 }
 
-[role="dialog"] [role="tab"][data-state="active"],
-[role="alertdialog"] [role="tab"][data-state="active"] {
+body[data-admin-active="true"] [role="dialog"] [role="tab"][data-state="active"],
+body[data-admin-active="true"] [role="alertdialog"] [role="tab"][data-state="active"] {
   background: linear-gradient(135deg, hsl(262 80% 58%) 0%, hsl(280 70% 50%) 100%) !important;
   color: white !important;
 }
 
-[role="dialog"] [class*="bg-green-"],
-[role="alertdialog"] [class*="bg-green-"] {
+body[data-admin-active="true"] [role="dialog"] [class*="bg-green-"],
+body[data-admin-active="true"] [role="alertdialog"] [class*="bg-green-"] {
   color: white !important;
 }
 
-[role="dialog"] [class*="bg-red-"],
-[role="alertdialog"] [class*="bg-red-"] {
+body[data-admin-active="true"] [role="dialog"] [class*="bg-red-"],
+body[data-admin-active="true"] [role="alertdialog"] [class*="bg-red-"] {
   color: white !important;
 }
 
-[role="dialog"] [class*="bg-blue-"],
-[role="alertdialog"] [class*="bg-blue-"] {
+body[data-admin-active="true"] [role="dialog"] [class*="bg-blue-"],
+body[data-admin-active="true"] [role="alertdialog"] [class*="bg-blue-"] {
   color: white !important;
 }
 
@@ -2380,9 +2380,9 @@ body[data-admin-active="true"] [role="alertdialog"] button[class*="outline"]:hov
 }
 
 /* Dialog — luxurious card surface */
-[data-radix-popper-content-wrapper] [role="dialog"],
-.admin-content [role="dialog"],
-[role="dialog"][data-state="open"] {
+body[data-admin-active="true"] [data-radix-popper-content-wrapper] [role="dialog"],
+body[data-admin-active="true"] .admin-content [role="dialog"],
+body[data-admin-active="true"] [role="dialog"][data-state="open"] {
   background: linear-gradient(180deg, hsl(230 14% 10%) 0%, hsl(230 14% 7%) 100%) !important;
   border: 1px solid hsl(225 15% 22%) !important;
   box-shadow:
@@ -2406,7 +2406,7 @@ body[data-admin-active="true"] [role="alertdialog"] button[class*="outline"]:hov
 }
 
 /* Sheet (drawer) — same luxury treatment */
-[role="dialog"][data-state="open"][data-side] {
+body[data-admin-active="true"] [role="dialog"][data-state="open"][data-side] {
   background: linear-gradient(180deg, hsl(230 14% 9%) 0%, hsl(230 14% 6%) 100%) !important;
   border-color: hsl(225 15% 22%) !important;
 }

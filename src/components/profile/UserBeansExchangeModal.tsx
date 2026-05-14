@@ -24,6 +24,41 @@ interface ExchangeTier {
   display_order: number;
 }
 
+interface CoinExchangeSettings {
+  beans_to_diamonds_rate: number;
+  exchange_fee_percent: number;
+  min_exchange_amount: number;
+}
+
+const normalizeCoinExchangeSettings = (value: unknown): CoinExchangeSettings | null => {
+  if (!value || typeof value !== "object") return null;
+  const raw = value as Partial<Record<keyof CoinExchangeSettings, unknown>>;
+  const rate = Number(raw.beans_to_diamonds_rate ?? 0);
+  const fee = Number(raw.exchange_fee_percent ?? 0);
+  const min = Number(raw.min_exchange_amount ?? 0);
+  if (!Number.isFinite(rate) || rate <= 0 || !Number.isFinite(min) || min <= 0) return null;
+
+  return {
+    beans_to_diamonds_rate: rate,
+    exchange_fee_percent: Number.isFinite(fee) && fee >= 0 ? fee : 0,
+    min_exchange_amount: min,
+  };
+};
+
+const parseAppSettingValue = (value: unknown) => {
+  if (typeof value !== "string") return value;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  if ((trimmed.startsWith("{") && trimmed.endsWith("}")) || (trimmed.startsWith("[") && trimmed.endsWith("]"))) {
+    try {
+      return JSON.parse(trimmed);
+    } catch {
+      return null;
+    }
+  }
+  return value;
+};
+
 interface UserBeansExchangeModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -36,6 +71,13 @@ function diamondsFor(tier: ExchangeTier, beans: number): number {
   if (!tier || beans <= 0) return 0;
   const bonus = 1 + (Number(tier.bonus_percent) || 0) / 100;
   return Math.floor(beans * Number(tier.exchange_rate) * bonus);
+}
+
+function diamondsForSettings(settings: CoinExchangeSettings, beans: number): number {
+  if (!settings || beans <= 0) return 0;
+  const rawDiamonds = Math.floor(beans / settings.beans_to_diamonds_rate);
+  const fee = Math.floor(rawDiamonds * settings.exchange_fee_percent / 100);
+  return Math.max(0, rawDiamonds - fee);
 }
 
 const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModalProps>(function UserBeansExchangeModal({
@@ -52,6 +94,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
   const [processing, setProcessing] = useState(false);
   const [customBeans, setCustomBeans] = useState("");
   const [useCustom, setUseCustom] = useState(false);
+  const [coinExchangeSettings, setCoinExchangeSettings] = useState<CoinExchangeSettings | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -61,6 +104,14 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
       setSelectedTier(null);
     }
   }, [open]);
+
+  const getDiamondsForTier = (tier: ExchangeTier | null, beans: number) => {
+    if (!tier) return 0;
+    if (tier.id.startsWith('settings-') && coinExchangeSettings) {
+      return diamondsForSettings(coinExchangeSettings, beans);
+    }
+    return diamondsFor(tier, beans);
+  };
 
   const fetchTiers = async () => {
     setLoading(true);
@@ -72,7 +123,31 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
     if (error) {
       toast({ title: 'Failed to load exchange tiers', description: error.message, variant: 'destructive' });
     }
-    setTiers((data as ExchangeTier[]) || []);
+    let activeTiers = (data as ExchangeTier[]) || [];
+    const { data: settingsRow } = await supabase
+      .from('app_settings')
+      .select('setting_value')
+      .eq('setting_key', 'coin_exchange')
+      .maybeSingle();
+    const settingsValue = parseAppSettingValue(settingsRow?.setting_value);
+    const settings = normalizeCoinExchangeSettings(settingsValue);
+    setCoinExchangeSettings(settings);
+
+    if (activeTiers.length === 0 && settings) {
+      const baseAmounts = [settings.min_exchange_amount, settings.min_exchange_amount * 5, settings.min_exchange_amount * 10]
+        .filter((amount, index, array) => amount > 0 && array.indexOf(amount) === index);
+
+      activeTiers = baseAmounts.map((amount, index) => ({
+        id: `settings-${amount}`,
+        tier_name: index === 0 ? 'Minimum' : index === 1 ? 'Popular' : 'Premium',
+        min_beans: amount,
+        max_beans: null,
+        exchange_rate: 1 / settings.beans_to_diamonds_rate,
+        bonus_percent: -settings.exchange_fee_percent,
+        display_order: index + 1,
+      }));
+    }
+    setTiers(activeTiers);
     setLoading(false);
   };
 
@@ -84,7 +159,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
       tiers.find(t => customBeansNum >= t.min_beans && (t.max_beans == null || customBeansNum <= t.max_beans)) || null
     );
   }, [customBeansNum, tiers]);
-  const customDiamonds = customTier ? diamondsFor(customTier, customBeansNum) : 0;
+  const customDiamonds = customTier ? getDiamondsForTier(customTier, customBeansNum) : 0;
   const canAffordCustom = customBeansNum > 0 && currentBeans >= customBeansNum && !!customTier;
 
   const handleExchange = async () => {
@@ -99,15 +174,15 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
       }
       beansToExchange = customBeansNum;
       diamondsToReceive = customDiamonds;
-      tierId = customTier.id;
+      tierId = customTier.id.startsWith('settings-') ? undefined : customTier.id;
     } else if (selectedTier) {
       // Quick-select uses tier's min_beans as the exchange amount.
       beansToExchange = selectedTier.min_beans;
-      diamondsToReceive = diamondsFor(selectedTier, selectedTier.min_beans);
-      tierId = selectedTier.id;
+      diamondsToReceive = getDiamondsForTier(selectedTier, selectedTier.min_beans);
+      tierId = selectedTier.id.startsWith('settings-') ? undefined : selectedTier.id;
     }
 
-    if (!beansToExchange || !diamondsToReceive || !tierId || !userId) return;
+    if (!beansToExchange || !diamondsToReceive || !userId) return;
 
     if (currentBeans < beansToExchange) {
       toast({ title: "Insufficient Beans", description: `You need ${beansToExchange.toLocaleString()} beans`, variant: "destructive" });
@@ -116,12 +191,13 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
 
     setProcessing(true);
     try {
-      const { data, error } = await supabase.rpc('exchange_user_beans_to_diamonds', {
+      const rpcArgs = {
         _user_id: userId,
         _beans_amount: beansToExchange,
         _diamonds_reward: diamondsToReceive,
-        _tier_id: tierId,
-      });
+        ...(tierId ? { _tier_id: tierId } : {}),
+      };
+      const { data, error } = await supabase.rpc('exchange_user_beans_to_diamonds', rpcArgs);
       if (error) throw error;
       const result = data as { success?: boolean; error?: string } | null;
       if (result && result.success === false) {
@@ -140,14 +216,14 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
       setSelectedTier(null);
       setCustomBeans("");
       setUseCustom(false);
-    } catch (error: any) {
-      toast({ title: "Exchange Failed", description: error.message || "Failed to exchange beans", variant: "destructive" });
+    } catch (error: unknown) {
+      toast({ title: "Exchange Failed", description: error instanceof Error ? error.message : "Failed to exchange beans", variant: "destructive" });
     } finally {
       setProcessing(false);
     }
   };
 
-  const selectedDiamonds = selectedTier ? diamondsFor(selectedTier, selectedTier.min_beans) : 0;
+  const selectedDiamonds = selectedTier ? getDiamondsForTier(selectedTier, selectedTier.min_beans) : 0;
   const isReady = useCustom ? canAffordCustom : !!selectedTier;
   const exchangeLabel = useCustom
     ? `Exchange ${customBeansNum.toLocaleString()} Beans`
@@ -156,36 +232,35 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#FFFBF2] border border-warning-500/15 max-w-md mx-4 rounded-3xl p-0 overflow-hidden [&>button]:hidden shadow-[0_0_80px_-20px_rgba(245,158,11,0.15)]">
+      <DialogContent className="bg-gradient-to-b from-warning-50 via-card to-background border border-warning-200 max-w-md mx-4 rounded-3xl p-0 overflow-hidden [&>button]:hidden shadow-2xl shadow-warning-900/10">
         <div className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-warning-600/20 via-warning-500/10 to-warning-600/20" />
-          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-warning-500/50 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-warning-100 via-card to-warning-100" />
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-warning-300 to-transparent" />
           <div className="relative p-5 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-warning-400 to-warning-600 flex items-center justify-center shadow-lg shadow-warning-500/30">
-                <ArrowDownUp className="w-4 h-4 text-black" />
+                <ArrowDownUp className="w-4 h-4 text-accent-foreground" />
               </div>
-              <h2 className="text-slate-800 font-bold text-lg tracking-tight">Beans → Diamonds</h2>
+              <h2 className="text-foreground font-bold text-lg tracking-tight">Beans → Diamonds</h2>
             </div>
             <button
               onClick={() => onOpenChange(false)}
-              className="w-8 h-8 rounded-full bg-white hover:bg-warning-50/70 border border-warning-200/60 flex items-center justify-center transition-all"
+              className="w-8 h-8 rounded-full bg-card hover:bg-warning-50 border border-warning-200 flex items-center justify-center transition-all shadow-sm"
             >
-              <X className="w-4 h-4 text-slate-600" />
+              <X className="w-4 h-4 text-muted-foreground" />
             </button>
           </div>
         </div>
 
         <div className="p-5 space-y-5">
-          <div className="relative overflow-hidden rounded-2xl border border-warning-500/20 bg-gradient-to-br from-warning-500/5 via-transparent to-warning-500/5 p-4">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-warning-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+          <div className="relative overflow-hidden rounded-2xl border border-warning-200 bg-card p-4 shadow-sm">
             <div className="relative flex items-center justify-center gap-3">
               <Beans3DIcon size={36} />
               <div className="text-center">
                 <span className="text-warning-700 font-bold text-3xl tracking-tight">
                   {currentBeans.toLocaleString()}
                 </span>
-                <p className="text-slate-600 text-xs font-medium mt-0.5">Available Beans</p>
+                <p className="text-muted-foreground text-xs font-medium mt-0.5">Available Beans</p>
               </div>
             </div>
           </div>
@@ -195,8 +270,8 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
               onClick={() => { setUseCustom(false); setCustomBeans(""); }}
               className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all duration-300 border ${
                 !useCustom
-                  ? 'bg-warning-500/15 border-warning-500/40 text-warning-700 shadow-[0_0_20px_-5px_rgba(245,158,11,0.3)]'
-                  : 'bg-white border-warning-200/60 text-slate-600 hover:text-slate-600 hover:border-warning-200/60'
+                  ? 'bg-warning-100 border-warning-300 text-warning-800 shadow-sm'
+                  : 'bg-card border-border text-muted-foreground hover:text-foreground hover:border-warning-200'
               }`}
             >
               <Sparkles className="w-3.5 h-3.5 inline mr-1.5" />
@@ -206,8 +281,8 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
               onClick={() => { setUseCustom(true); setSelectedTier(null); }}
               className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all duration-300 border ${
                 useCustom
-                  ? 'bg-info-500/15 border-info-500/40 text-info-700 shadow-[0_0_20px_-5px_rgba(6,182,212,0.3)]'
-                  : 'bg-white border-warning-200/60 text-slate-600 hover:text-slate-600 hover:border-warning-200/60'
+                  ? 'bg-info-50 border-info-200 text-info-800 shadow-sm'
+                  : 'bg-card border-border text-muted-foreground hover:text-foreground hover:border-info-200'
               }`}
             >
               Custom Amount
@@ -219,7 +294,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
               <div className="w-8 h-8 border-2 border-warning-500/30 border-t-amber-500 rounded-full animate-spin" />
             </div>
           ) : tiers.length === 0 ? (
-            <div className="py-10 text-center text-slate-600 text-sm">
+            <div className="py-10 text-center text-muted-foreground text-sm">
               No exchange tiers available right now.
             </div>
           ) : useCustom ? (
@@ -233,17 +308,17 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
                   placeholder="Enter beans amount..."
                   value={customBeans}
                   onChange={(e) => setCustomBeans(e.target.value)}
-                  className="w-full h-14 pl-12 pr-4 rounded-2xl bg-white border border-warning-200/60 text-slate-800 text-lg font-semibold placeholder:text-slate-600 focus:outline-none focus:border-info-500/50 focus:bg-info-500/5 transition-all"
+                  className="w-full h-14 pl-12 pr-4 rounded-2xl bg-card border border-warning-200 text-foreground text-lg font-semibold placeholder:text-muted-foreground focus:outline-none focus:border-info-300 focus:bg-info-50 transition-all"
                 />
               </div>
 
               {customBeansNum > 0 && customTier && (
-                <div className="flex items-center justify-center gap-3 py-3 px-4 rounded-2xl bg-gradient-to-r from-info-500/5 to-info-500/5 border border-info-500/15">
+                <div className="flex items-center justify-center gap-3 py-3 px-4 rounded-2xl bg-info-50 border border-info-100">
                   <div className="flex items-center gap-1.5">
                     <Beans3DIcon size={18} />
                     <span className="text-warning-700 font-bold">{customBeansNum.toLocaleString()}</span>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-slate-600" />
+                  <ArrowRight className="w-4 h-4 text-muted-foreground" />
                   <div className="flex items-center gap-1.5">
                     <Diamond3DIcon size={18} />
                     <span className="text-info-700 font-bold">{customDiamonds.toLocaleString()}</span>
@@ -266,7 +341,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
             <div className="grid grid-cols-2 gap-2.5">
               {tiers.map((tier) => {
                 const tierBeans = tier.min_beans;
-                const tierDiamonds = diamondsFor(tier, tierBeans);
+                const tierDiamonds = getDiamondsForTier(tier, tierBeans);
                 const canAfford = currentBeans >= tierBeans;
                 const isSelected = selectedTier?.id === tier.id;
 
@@ -277,28 +352,28 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
                     disabled={!canAfford}
                     className={`relative p-3.5 rounded-2xl border transition-all duration-300 group ${
                       isSelected
-                        ? 'border-info-400/60 bg-gradient-to-br from-info-500/15 to-info-600/10 shadow-[0_0_30px_-8px_rgba(6,182,212,0.4)] scale-[1.02]'
+                        ? 'border-info-300 bg-info-50 shadow-md shadow-info-900/10 scale-[1.02]'
                         : canAfford
-                          ? 'border-warning-200/60 bg-white hover:border-warning-500/30 hover:bg-warning-500/5'
-                          : 'border-warning-200/60 bg-white opacity-35 cursor-not-allowed'
+                          ? 'border-warning-200 bg-card hover:border-warning-300 hover:bg-warning-50'
+                          : 'border-border bg-muted opacity-50 cursor-not-allowed'
                     }`}
                   >
                     {isSelected && (
                       <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-info-500 flex items-center justify-center shadow-lg shadow-info-500/50">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-slate-800" />
+                        <CheckCircle2 className="w-3.5 h-3.5 text-primary-foreground" />
                       </div>
                     )}
 
                     <div className="text-center space-y-1.5">
                       {tier.tier_name && (
-                        <p className="text-[10px] uppercase tracking-wide text-slate-600">{tier.tier_name}</p>
+                        <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{tier.tier_name}</p>
                       )}
                       <div className="flex items-center justify-center gap-1.5">
                         <Beans3DIcon size={18} />
                         <span className="text-warning-700 font-bold text-base">{tierBeans.toLocaleString()}</span>
                       </div>
 
-                      <div className="text-slate-600 text-[10px]">→</div>
+                      <div className="text-muted-foreground text-[10px]">→</div>
 
                       <div className="flex items-center justify-center gap-1.5">
                         <Diamond3DIcon size={18} />
@@ -319,13 +394,13 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
             disabled={!isReady || processing}
             className={`w-full h-14 rounded-2xl text-base font-bold transition-all duration-300 border-0 ${
               isReady
-                ? 'bg-gradient-to-r from-warning-500 via-warning-500 to-warning-500 text-black shadow-[0_4px_30px_-5px_rgba(245,158,11,0.5)] hover:shadow-[0_4px_40px_-5px_rgba(245,158,11,0.7)]'
-                : 'bg-white text-slate-600 cursor-not-allowed'
+                ? 'bg-gradient-to-r from-primary via-secondary to-primary text-primary-foreground shadow-lg shadow-brand-900/20 hover:scale-[1.01]'
+                : 'bg-muted text-muted-foreground cursor-not-allowed'
             }`}
           >
             {processing ? (
               <div className="flex items-center gap-2">
-                <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                 Processing...
               </div>
             ) : isReady ? (
@@ -340,7 +415,7 @@ const UserBeansExchangeModal = forwardRef<HTMLDivElement, UserBeansExchangeModal
             )}
           </Button>
 
-          <p className="text-center text-slate-600 text-[11px]">
+          <p className="text-center text-muted-foreground text-[11px]">
             Exchanged diamonds will be added to your My Diamonds balance
           </p>
         </div>
