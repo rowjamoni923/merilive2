@@ -1368,17 +1368,17 @@ const ProfileDetail = () => {
             <div className="flex items-center justify-between mb-3">
               <button
                 onClick={() => navigate("/leaderboard")}
-                className="flex items-center gap-1 text-lg font-bold text-white"
+                className="flex items-center gap-1 text-lg font-bold text-slate-950"
               >
                 🎁 Gifts Received
-                <ChevronRight className="w-5 h-5 text-white/80" />
+                <ChevronRight className="w-5 h-5 text-slate-500" />
               </button>
-              <span className="text-sm text-white/75 font-medium">
+              <span className="text-sm text-slate-500 font-medium">
                 Total: {profile?.total_earnings?.toLocaleString() || 0} beans
               </span>
             </div>
 
-            <div className="rounded-2xl p-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div className="rounded-2xl p-4 profile-home-section">
               {giftsReceived.length > 0 ? (
                 <div className="w-full overflow-x-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent pb-2" style={{ WebkitOverflowScrolling: 'touch' }}>
                   <div className="flex gap-3 w-max">
@@ -1391,8 +1391,7 @@ const ProfileDetail = () => {
                           setSelectedGift(gift);
                           setShowGiftSendersModal(true);
                         }}
-                        className="flex-shrink-0 w-24 h-28 rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-white/5 transition-all"
-                        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+                        className="flex-shrink-0 w-24 h-28 rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-slate-50 transition-all bg-white border border-slate-100"
                       >
                         <div className="w-14 h-14 flex items-center justify-center text-3xl">
                           {gift.icon.startsWith("http") ? (
@@ -1416,7 +1415,7 @@ const ProfileDetail = () => {
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-6 text-white/70">
+                <div className="text-center py-6 text-slate-500">
                   <span className="text-3xl">💝</span>
                   <p className="text-sm mt-2">No gifts received yet</p>
                 </div>
@@ -1530,10 +1529,10 @@ const ProfileDetail = () => {
         >
           <button
             onClick={() => navigate("/search")}
-            className="flex items-center gap-1 text-lg font-bold mb-3 text-white"
+            className="flex items-center gap-1 text-lg font-bold mb-3 text-slate-950"
           >
             Groups
-            <ChevronRight className="w-5 h-5 text-white/80" />
+            <ChevronRight className="w-5 h-5 text-slate-500" />
           </button>
 
           {groups.length > 0 ? (
@@ -1544,8 +1543,7 @@ const ProfileDetail = () => {
                     key={group.id}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="flex-shrink-0 w-48 rounded-2xl p-4 text-left"
-                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+                    className="flex-shrink-0 w-48 rounded-2xl p-4 text-left profile-home-section"
                   >
                     <div className="flex items-center gap-3">
                       <Avatar className="w-12 h-12 border border-white/10">
@@ -1555,11 +1553,11 @@ const ProfileDetail = () => {
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-white/80 truncate flex items-center gap-1 text-sm">
+                        <p className="font-semibold text-slate-800 truncate flex items-center gap-1 text-sm">
                           <span>👨‍👩‍👧‍👦</span>
                           {group.name}
                         </p>
-                        <p className="text-xs text-white/70 flex items-center gap-1 mt-0.5">
+                        <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
                           <Users className="w-3 h-3" />
                           ({group.member_count || 0})
                         </p>
@@ -1570,9 +1568,9 @@ const ProfileDetail = () => {
               </div>
             </ScrollArea>
           ) : (
-            <div className="rounded-2xl p-6 text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-              <Users className="w-10 h-10 text-white/70 mx-auto mb-2" />
-              <p className="text-sm text-white/70">No groups joined yet</p>
+            <div className="rounded-2xl p-6 text-center profile-home-section">
+              <Users className="w-10 h-10 text-slate-400 mx-auto mb-2" />
+              <p className="text-sm text-slate-500">No groups joined yet</p>
             </div>
           )}
         </motion.div>
