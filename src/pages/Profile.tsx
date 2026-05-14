@@ -2010,25 +2010,24 @@ const [levelTiers, setLevelTiers] = useState<LevelTier[]>([]);
               }}
               className="group relative w-full text-left"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-amber-500/30 to-orange-500/30 rounded-xl translate-y-0.5 blur-sm" />
-              <div className="relative bg-gradient-to-br from-amber-400 via-yellow-400 to-orange-400 rounded-xl p-2 overflow-hidden shadow-lg group-active:scale-95 transition-transform">
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-600/40 to-orange-700/40 rounded-xl translate-y-0.5 blur-sm" />
+              <div className="relative bg-gradient-to-br from-amber-500 via-orange-500 to-amber-600 rounded-xl p-2 overflow-hidden shadow-lg ring-1 ring-amber-300/30 group-active:scale-95 transition-transform">
                 <div className="absolute inset-0 opacity-40">
                   <div className="absolute top-0 right-0 w-12 h-12 bg-gradient-to-br from-white/30 to-transparent rounded-full -translate-y-4 translate-x-4" />
                 </div>
                 
                 <div className="relative z-10">
                   <div className="flex items-center justify-between mb-0.5">
-                    <p className="text-amber-800 font-medium text-[8px]">My Beans</p>
-                     {/* Show exchange badge for regular users, arrow for hosts/agency */}
+                    <p className="text-amber-950 font-semibold text-[8px] tracking-wide uppercase">My Beans</p>
                      {!profile?.is_host && !profile?.is_agency_owner ? (
-                       <span className="text-[6px] bg-amber-700/80 text-amber-100 px-1 py-0.5 rounded-full font-medium">
+                       <span className="text-[6px] bg-amber-950/80 text-amber-50 px-1.5 py-0.5 rounded-full font-semibold tracking-wide">
                          Exchange
                        </span>
                      ) : ((isHostPersona && isFemale) || isAgencyOwner) && (
-                      <ChevronRight className="w-3 h-3 text-amber-800/60" />
+                      <ChevronRight className="w-3 h-3 text-amber-950/70" />
                     )}
                   </div>
-                  <p className={`text-xl font-bold drop-shadow-sm ${beans < 0 ? 'text-red-700' : 'text-amber-900'}`}>{beans.toLocaleString()}</p>
+                  <p className={`text-xl font-bold drop-shadow-sm ${beans < 0 ? 'text-red-900' : 'text-amber-950'}`}>{beans.toLocaleString()}</p>
                 </div>
                 
                 <div className="absolute right-1 bottom-1">
