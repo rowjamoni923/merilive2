@@ -2045,40 +2045,40 @@ const FaceVerification = () => {
         {/* Step 1: Basic Info */}
         {!userInfoDone && (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
-            <div className="bg-gradient-to-br from-rose-50 to-orange-50 rounded-3xl p-5 border border-purple-500/20">
-              <h2 className="font-bold text-slate-800 mb-5 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                  <User className="w-5 h-5 text-slate-800" />
+            <div className="bg-white rounded-3xl p-5 border border-purple-200 shadow-lg shadow-purple-500/5">
+              <h2 className="font-bold text-slate-900 mb-5 flex items-center gap-3 text-lg">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-md shadow-purple-500/30">
+                  <User className="w-5 h-5 text-white" />
                 </div>
                 Basic Information
               </h2>
               
               <div className="space-y-4">
                 <div>
-                  <Label className="text-slate-700 text-sm">Full Name *</Label>
+                  <Label className="text-slate-700 text-sm font-semibold">Full Name *</Label>
                   <Input
                     placeholder="Enter your name"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="bg-white/5 border-amber-200/60 text-slate-800 mt-1 h-12 rounded-xl"
+                    className="bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 mt-1.5 h-12 rounded-xl focus:border-purple-400 focus:ring-1 focus:ring-purple-400"
                   />
                 </div>
                 
                 <div>
-                  <Label className="text-slate-700 text-sm">Age *</Label>
+                  <Label className="text-slate-700 text-sm font-semibold">Age *</Label>
                   <Input
                     type="number"
                     placeholder="18+"
                     value={age}
                     onChange={(e) => setAge(e.target.value)}
-                    className="bg-white/5 border-amber-200/60 text-slate-800 mt-1 h-12 rounded-xl"
+                    className="bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 mt-1.5 h-12 rounded-xl focus:border-purple-400 focus:ring-1 focus:ring-purple-400"
                   />
                 </div>
                 
                 <div>
-                  <Label className="text-slate-700 text-sm">Language *</Label>
+                  <Label className="text-slate-700 text-sm font-semibold">Language *</Label>
                   <Select value={language} onValueChange={setLanguage}>
-                    <SelectTrigger className="bg-white/5 border-amber-200/60 text-slate-800 mt-1 h-12 rounded-xl">
+                    <SelectTrigger className="bg-white border-slate-200 text-slate-900 mt-1.5 h-12 rounded-xl focus:border-purple-400 focus:ring-1 focus:ring-purple-400">
                       <SelectValue placeholder="Select language" />
                     </SelectTrigger>
                     <SelectContent>
