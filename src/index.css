@@ -1710,10 +1710,12 @@ body > div[class*="fixed"][class*="backdrop-blur"] {
 }
 
 /* ============================================
-   DIALOG/MODAL — Portaled
+   ADMIN DIALOG/MODAL — Portaled (admin-only dark)
+   Note: Admin dialogs are portaled to <body>, so we scope
+   via body[data-admin-active="true"] which AdminLayout sets.
    ============================================ */
-[role="dialog"],
-[role="alertdialog"] {
+body[data-admin-active="true"] [role="dialog"],
+body[data-admin-active="true"] [role="alertdialog"] {
   --background: 230 15% 6%;
   --foreground: 210 40% 96%;
   --card: 230 14% 8%;
@@ -1732,70 +1734,61 @@ body > div[class*="fixed"][class*="backdrop-blur"] {
   color: hsl(210 40% 96%) !important;
 }
 
-[role="dialog"] h2,
-[role="dialog"] h3,
-[role="dialog"] [class*="DialogTitle"],
-[role="alertdialog"] h2,
-[role="alertdialog"] h3,
-[role="alertdialog"] [class*="DialogTitle"] {
+body[data-admin-active="true"] [role="dialog"] h2,
+body[data-admin-active="true"] [role="dialog"] h3,
+body[data-admin-active="true"] [role="dialog"] [class*="DialogTitle"],
+body[data-admin-active="true"] [role="alertdialog"] h2,
+body[data-admin-active="true"] [role="alertdialog"] h3,
+body[data-admin-active="true"] [role="alertdialog"] [class*="DialogTitle"] {
   color: hsl(210 40% 97%) !important;
 }
 
-[role="dialog"] [class*="DialogDescription"],
-[role="alertdialog"] [class*="DialogDescription"] {
+body[data-admin-active="true"] [role="dialog"] [class*="DialogDescription"],
+body[data-admin-active="true"] [role="alertdialog"] [class*="DialogDescription"] {
   color: hsl(215 20% 58%) !important;
 }
 
-[role="dialog"] label,
-[role="alertdialog"] label {
+body[data-admin-active="true"] [role="dialog"] label,
+body[data-admin-active="true"] [role="alertdialog"] label {
   color: hsl(215 20% 82%) !important;
 }
 
-[role="dialog"] input,
-[role="dialog"] textarea,
-[role="dialog"] select,
-[role="alertdialog"] input,
-[role="alertdialog"] textarea,
-[role="alertdialog"] select {
+body[data-admin-active="true"] [role="dialog"] input,
+body[data-admin-active="true"] [role="dialog"] textarea,
+body[data-admin-active="true"] [role="dialog"] select,
+body[data-admin-active="true"] [role="alertdialog"] input,
+body[data-admin-active="true"] [role="alertdialog"] textarea,
+body[data-admin-active="true"] [role="alertdialog"] select {
   background: hsl(230 14% 7%) !important;
   border-color: hsl(225 15% 20%) !important;
   color: hsl(210 40% 96%) !important;
 }
 
-[role="dialog"] input::placeholder,
-[role="dialog"] textarea::placeholder,
-[role="alertdialog"] input::placeholder,
-[role="alertdialog"] textarea::placeholder {
+body[data-admin-active="true"] [role="dialog"] input::placeholder,
+body[data-admin-active="true"] [role="dialog"] textarea::placeholder,
+body[data-admin-active="true"] [role="alertdialog"] input::placeholder,
+body[data-admin-active="true"] [role="alertdialog"] textarea::placeholder {
   color: hsl(215 15% 40%) !important;
 }
 
-[role="dialog"] p,
-[role="dialog"] span,
-[role="dialog"] div,
-[role="alertdialog"] p,
-[role="alertdialog"] span,
-[role="alertdialog"] div {
-  color: inherit;
-}
-
-[role="dialog"] button[class*="absolute"][class*="right"],
-[role="alertdialog"] button[class*="absolute"][class*="right"] {
+body[data-admin-active="true"] [role="dialog"] button[class*="absolute"][class*="right"],
+body[data-admin-active="true"] [role="alertdialog"] button[class*="absolute"][class*="right"] {
   color: hsl(215 20% 55%) !important;
 }
 
-[role="dialog"] button[class*="absolute"][class*="right"]:hover,
-[role="alertdialog"] button[class*="absolute"][class*="right"]:hover {
+body[data-admin-active="true"] [role="dialog"] button[class*="absolute"][class*="right"]:hover,
+body[data-admin-active="true"] [role="alertdialog"] button[class*="absolute"][class*="right"]:hover {
   color: hsl(210 40% 96%) !important;
 }
 
-[role="dialog"] button[class*="outline"],
-[role="alertdialog"] button[class*="outline"] {
+body[data-admin-active="true"] [role="dialog"] button[class*="outline"],
+body[data-admin-active="true"] [role="alertdialog"] button[class*="outline"] {
   border-color: hsl(225 15% 25%) !important;
   color: hsl(215 20% 85%) !important;
 }
 
-[role="dialog"] button[class*="outline"]:hover,
-[role="alertdialog"] button[class*="outline"]:hover {
+body[data-admin-active="true"] [role="dialog"] button[class*="outline"]:hover,
+body[data-admin-active="true"] [role="alertdialog"] button[class*="outline"]:hover {
   background: hsl(230 12% 14%) !important;
 }
 
