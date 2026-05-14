@@ -114,15 +114,15 @@ export default function VipNobleSection({ userId, userDiamonds, onAfterPurchase 
     <div className="space-y-4 px-4 mt-4">
       {/* ───── Daily Reward Card ───── */}
       {dailyStatus && dailyStatus.total_amount > 0 && (
-        <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-500/20 via-yellow-500/15 to-amber-500/20 border border-amber-500/40 backdrop-blur-sm">
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-100 via-yellow-50 to-amber-100 border border-amber-300/60 shadow-sm">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-amber-500/30 flex items-center justify-center">
-                <Gift className="w-6 h-6 text-amber-300" />
+              <div className="w-12 h-12 rounded-xl bg-amber-200/70 flex items-center justify-center">
+                <Gift className="w-6 h-6 text-amber-700" />
               </div>
               <div>
-                <div className="text-white font-bold text-base">Daily VIP Reward</div>
-                <div className="text-amber-200 text-xs">
+                <div className="text-slate-800 font-bold text-base">Daily VIP Reward</div>
+                <div className="text-slate-600 text-xs">
                   {dailyStatus.vip_amount > 0 && <>VIP +{dailyStatus.vip_amount} </>}
                   {dailyStatus.noble_amount > 0 && <>Noble +{dailyStatus.noble_amount}</>}
                 </div>
@@ -130,9 +130,9 @@ export default function VipNobleSection({ userId, userDiamonds, onAfterPurchase 
             </div>
             <div className="flex items-center gap-2">
               <div className="text-right">
-                <div className="text-amber-300 font-bold text-lg">+{dailyStatus.total_amount} 💎</div>
+                <div className="text-amber-700 font-bold text-lg">+{dailyStatus.total_amount} 💎</div>
                 {!dailyStatus.can_claim && nextClaimMs > 0 && (
-                  <div className="text-xs text-amber-200/70 flex items-center gap-1 justify-end">
+                  <div className="text-xs text-slate-500 flex items-center gap-1 justify-end">
                     <Clock className="w-3 h-3" />
                     {formatCountdown(nextClaimMs)}
                   </div>
@@ -154,9 +154,9 @@ export default function VipNobleSection({ userId, userDiamonds, onAfterPurchase 
       {/* ───── Active Noble banner ───── */}
       {noble && (
         <div
-          className="p-4 rounded-2xl border backdrop-blur-sm"
+          className="p-4 rounded-2xl border bg-white shadow-sm"
           style={{
-            background: `linear-gradient(135deg, ${noble.badge_color || '#FFD700'}33, transparent 70%)`,
+            background: `linear-gradient(135deg, ${noble.badge_color || '#FFD700'}26, #ffffff 70%)`,
             borderColor: `${noble.badge_color || '#FFD700'}66`,
           }}
         >
@@ -167,18 +167,18 @@ export default function VipNobleSection({ userId, userDiamonds, onAfterPurchase 
               <Crown className="w-10 h-10" style={{ color: noble.badge_color || '#FFD700' }} />
             )}
             <div className="flex-1">
-              <div className="text-white font-bold flex items-center gap-2">
+              <div className="text-slate-800 font-bold flex items-center gap-2">
                 {noble.rank_name}
-                <Badge variant="outline" className="text-xs border-amber-400 text-amber-300">Active</Badge>
+                <Badge variant="outline" className="text-xs border-amber-400 text-amber-700">Active</Badge>
               </div>
-              <div className="text-xs text-slate-300">
+              <div className="text-xs text-slate-500">
                 Expires {new Date(noble.expires_at).toLocaleDateString()}
               </div>
               <div className="flex flex-wrap gap-1 mt-2">
-                {noble.anti_kick_protection && <Badge variant="outline" className="text-xs border-emerald-400 text-emerald-300"><Shield className="w-3 h-3 mr-1" />Anti-Kick</Badge>}
-                {noble.stealth_mode && <Badge variant="outline" className="text-xs border-violet-400 text-violet-300"><Ghost className="w-3 h-3 mr-1" />Stealth</Badge>}
-                {noble.hide_real_level && <Badge variant="outline" className="text-xs border-slate-400 text-slate-300"><EyeOff className="w-3 h-3 mr-1" />Hide Lvl</Badge>}
-                {noble.recharge_bonus_percent > 0 && <Badge variant="outline" className="text-xs border-yellow-400 text-yellow-300"><Coins className="w-3 h-3 mr-1" />+{noble.recharge_bonus_percent}%</Badge>}
+                {noble.anti_kick_protection && <Badge variant="outline" className="text-xs border-emerald-400 text-emerald-700"><Shield className="w-3 h-3 mr-1" />Anti-Kick</Badge>}
+                {noble.stealth_mode && <Badge variant="outline" className="text-xs border-violet-400 text-violet-700"><Ghost className="w-3 h-3 mr-1" />Stealth</Badge>}
+                {noble.hide_real_level && <Badge variant="outline" className="text-xs border-slate-300 text-slate-600"><EyeOff className="w-3 h-3 mr-1" />Hide Lvl</Badge>}
+                {noble.recharge_bonus_percent > 0 && <Badge variant="outline" className="text-xs border-yellow-400 text-yellow-700"><Coins className="w-3 h-3 mr-1" />+{noble.recharge_bonus_percent}%</Badge>}
               </div>
             </div>
           </div>
@@ -188,11 +188,11 @@ export default function VipNobleSection({ userId, userDiamonds, onAfterPurchase 
       {/* ───── Noble Subscriptions ───── */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-white font-bold text-lg flex items-center gap-2">
-            <Crown className="w-5 h-5 text-amber-400" />
+          <h3 className="text-slate-800 font-bold text-lg flex items-center gap-2">
+            <Crown className="w-5 h-5 text-amber-500" />
             Noble Subscriptions
           </h3>
-          <span className="text-xs text-slate-400">Monthly</span>
+          <span className="text-xs text-slate-500">Monthly</span>
         </div>
 
         {loadingCards && (
