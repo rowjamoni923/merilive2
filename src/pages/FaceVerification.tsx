@@ -2146,8 +2146,8 @@ const FaceVerification = () => {
               )}
             </div>
 
-            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3">
-              <p className="text-blue-300 text-xs text-center">
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
+              <p className="text-blue-800 text-xs text-center">
                 📸 This photo will be compared with your face video to verify your identity. Make sure your face is clearly visible.
               </p>
             </div>
