@@ -1916,18 +1916,18 @@ body[data-admin-active="true"] [role="alertdialog"] [role="tab"][data-state="act
   color: white !important;
 }
 
-[role="dialog"] [class*="bg-green-"],
-[role="alertdialog"] [class*="bg-green-"] {
+body[data-admin-active="true"] [role="dialog"] [class*="bg-green-"],
+body[data-admin-active="true"] [role="alertdialog"] [class*="bg-green-"] {
   color: white !important;
 }
 
-[role="dialog"] [class*="bg-red-"],
-[role="alertdialog"] [class*="bg-red-"] {
+body[data-admin-active="true"] [role="dialog"] [class*="bg-red-"],
+body[data-admin-active="true"] [role="alertdialog"] [class*="bg-red-"] {
   color: white !important;
 }
 
-[role="dialog"] [class*="bg-blue-"],
-[role="alertdialog"] [class*="bg-blue-"] {
+body[data-admin-active="true"] [role="dialog"] [class*="bg-blue-"],
+body[data-admin-active="true"] [role="alertdialog"] [class*="bg-blue-"] {
   color: white !important;
 }
 
@@ -2380,9 +2380,9 @@ body[data-admin-active="true"] [role="alertdialog"] [role="tab"][data-state="act
 }
 
 /* Dialog — luxurious card surface */
-[data-radix-popper-content-wrapper] [role="dialog"],
-.admin-content [role="dialog"],
-[role="dialog"][data-state="open"] {
+body[data-admin-active="true"] [data-radix-popper-content-wrapper] [role="dialog"],
+body[data-admin-active="true"] .admin-content [role="dialog"],
+body[data-admin-active="true"] [role="dialog"][data-state="open"] {
   background: linear-gradient(180deg, hsl(230 14% 10%) 0%, hsl(230 14% 7%) 100%) !important;
   border: 1px solid hsl(225 15% 22%) !important;
   box-shadow:
