@@ -563,13 +563,13 @@ const Shop = () => {
       >
         {filteredItems.length === 0 ? (
           <div className="text-center py-16">
-            <div 
+            <div
               className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center"
-              style={{ background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.2)' }}
+              style={{ background: 'rgba(217,182,107,0.12)', border: '1px solid rgba(217,182,107,0.3)' }}
             >
-              <ShoppingBag className="w-10 h-10 text-purple-400/40" />
+              <ShoppingBag className="w-10 h-10 text-amber-600/60" />
             </div>
-            <p className="text-purple-300/40 text-sm">No items in this category</p>
+            <p className="text-slate-500 text-sm">No items in this category</p>
           </div>
         ) : (
           <div className={`grid ${isEntryAnimationCategory(selectedCategory) ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2'} gap-3`}>
@@ -587,18 +587,18 @@ const Shop = () => {
         )}
       </div>
 
-      {/* Item Detail Modal - Luxury */}
+      {/* Item Detail Modal - Light Luxury */}
       <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
-        <DialogContent 
+        <DialogContent
           className={`border-0 shadow-2xl ${
-            selectedItem && isEntryAnimationCategory(selectedItem.category) 
-              ? 'w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto' 
+            selectedItem && isEntryAnimationCategory(selectedItem.category)
+              ? 'w-[95vw] max-w-lg max-h-[90vh] overflow-y-auto'
               : 'max-w-sm'
           }`}
           style={{
-            background: 'linear-gradient(160deg, #2d1054 0%, #150830 50%, #0a0418 100%)',
-            border: '1px solid rgba(168,85,247,0.3)',
-            boxShadow: '0 25px 60px rgba(0,0,0,0.8), 0 0 40px rgba(168,85,247,0.2)',
+            background: 'linear-gradient(160deg, #FFFBF2 0%, #FAF5EA 50%, #F5EFDF 100%)',
+            border: '1px solid rgba(217,182,107,0.35)',
+            boxShadow: '0 25px 60px rgba(120,90,30,0.25), 0 0 40px rgba(251,191,36,0.12)',
           }}
         >
           {selectedItem && (
@@ -611,22 +611,22 @@ const Shop = () => {
 
               <div className="space-y-4">
                 {/* Preview */}
-                <div 
+                <div
                   className={`${
-                    isEntryAnimationCategory(selectedItem.category) 
-                      ? 'aspect-[9/16] min-h-[300px] max-h-[50vh]' 
+                    isEntryAnimationCategory(selectedItem.category)
+                      ? 'aspect-[9/16] min-h-[300px] max-h-[50vh]'
                       : 'aspect-square'
                   } rounded-2xl flex items-center justify-center p-6 relative overflow-hidden`}
                   style={{
-                    background: 'radial-gradient(circle at center, rgba(168,85,247,0.15) 0%, rgba(15,5,30,0.9) 70%)',
-                    border: '1px solid rgba(168,85,247,0.2)',
+                    background: 'radial-gradient(circle at center, rgba(251,191,36,0.18) 0%, rgba(255,251,242,0.95) 70%)',
+                    border: '1px solid rgba(217,182,107,0.3)',
                   }}
                 >
                   {selectedItem.animation_file_url?.endsWith('.svga') || selectedItem.animation_file_url?.endsWith('.json') ? (
                     isEntryAnimationCategory(selectedItem.category) && selectedItem.animation_file_url?.endsWith('.svga') ? (
                       <Suspense fallback={
                         <div className="w-full h-full flex items-center justify-center">
-                          <div className="w-8 h-8 border-3 border-purple-400/30 border-t-purple-400 rounded-full animate-spin" />
+                          <div className="w-8 h-8 border-3 border-amber-400/30 border-t-amber-500 rounded-full animate-spin" />
                         </div>
                       }>
                         <SVGAPlayerWithAudio
@@ -648,38 +648,38 @@ const Shop = () => {
                       </div>
                     )
                   ) : selectedItem.preview_url || selectedItem.animation_file_url ? (
-                    <img 
-                      src={selectedItem.animation_file_url || selectedItem.preview_url || ''} 
-                      alt={selectedItem.name} 
+                    <img
+                      src={selectedItem.animation_file_url || selectedItem.preview_url || ''}
+                      alt={selectedItem.name}
                       className={`max-w-[85%] max-h-[85%] object-contain drop-shadow-2xl mx-auto ${isEntryAnimationCategory(selectedItem.category) ? 'scale-110' : ''}`}
                       onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                     />
                   ) : (
-                    <Shield className="w-24 h-24 text-purple-400/40" strokeWidth={1} />
+                    <Shield className="w-24 h-24 text-amber-500/40" strokeWidth={1} />
                   )}
                 </div>
 
                 {selectedItem.description && (
-                  <p className="text-purple-200/50 text-sm text-center">{selectedItem.description}</p>
+                  <p className="text-slate-600 text-sm text-center">{selectedItem.description}</p>
                 )}
 
                 {/* Info Row */}
                 <div className="grid grid-cols-2 gap-2">
-                  <div 
+                  <div
                     className="rounded-xl p-3 text-center"
-                    style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.15)' }}
+                    style={{ background: 'rgba(255,255,255,0.85)', border: '1px solid rgba(217,182,107,0.3)' }}
                   >
-                    <p className="text-purple-300/50 text-xs mb-1">Price</p>
+                    <p className="text-slate-500 text-xs mb-1">Price</p>
                     <div className="flex items-center justify-center gap-1.5">
                       <Diamond3DIcon size={16} />
-                      <span className="text-amber-400 font-bold">{selectedItem.price_diamonds.toLocaleString()}</span>
+                      <span className="text-amber-700 font-bold">{selectedItem.price_diamonds.toLocaleString()}</span>
                     </div>
                   </div>
-                  <div 
+                  <div
                     className="rounded-xl p-3 text-center"
-                    style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.15)' }}
+                    style={{ background: 'rgba(255,255,255,0.85)', border: '1px solid rgba(217,182,107,0.3)' }}
                   >
-                    <p className="text-purple-300/50 text-xs mb-1">
+                    <p className="text-slate-500 text-xs mb-1">
                       {selectedItem.duration_days ? 'Duration' : 'Min Level'}
                     </p>
                     <p className="text-slate-800 font-bold">
@@ -690,16 +690,16 @@ const Shop = () => {
 
                 {/* Purchase Button */}
                 {isOwned(selectedItem.id) ? (
-                  <div 
-                    className="w-full py-3 rounded-full text-center font-bold text-emerald-300"
-                    style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)' }}
+                  <div
+                    className="w-full py-3 rounded-full text-center font-bold text-emerald-700"
+                    style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.35)' }}
                   >
                     ✓ Already Owned
                   </div>
                 ) : !meetsLevel(selectedItem.min_level) ? (
-                  <div 
-                    className="w-full py-3 rounded-full text-center font-bold text-red-300"
-                    style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)' }}
+                  <div
+                    className="w-full py-3 rounded-full text-center font-bold text-red-600"
+                    style={{ background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.30)' }}
                   >
                     <Lock className="w-4 h-4 inline mr-2" />
                     Requires Level {selectedItem.min_level}
