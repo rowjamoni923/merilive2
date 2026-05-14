@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { 
   ArrowLeft, 
   Building2,
@@ -72,6 +71,10 @@ import { recordClientError } from "@/utils/clientErrorLog";
 
 // Helper for formatting numbers with English numerals
 const fmtNum = (num: number | null | undefined) => formatNum(num);
+
+const premiumCardClass = "agency-premium-card";
+const premiumTileClass = "agency-premium-tile";
+const premiumActionClass = "agency-premium-action";
 
 interface Agency {
   id: string;
@@ -732,7 +735,12 @@ const AgencyDashboard = () => {
   };
 
   if (isLoading) {
-    return <LoadingSpinner fullScreen text="Loading Dashboard..." />;
+    return (
+      <div className="agency-dashboard-light min-h-screen flex flex-col items-center justify-center bg-background text-foreground">
+        <Loader2 className="w-8 h-8 animate-spin text-primary mb-3" />
+        <p className="text-sm font-semibold text-muted-foreground">Loading Dashboard...</p>
+      </div>
+    );
   }
 
   if (!agency) {
@@ -758,10 +766,10 @@ const AgencyDashboard = () => {
     switch (level) {
       case "A5": return { color: "from-purple-500 to-pink-500", icon: "👑", name: tierName || "Legend" };
       case "A4": return { color: "from-yellow-400 to-amber-500", icon: "🌟", name: tierName || "Elite" };
-      case "A3": return { color: "from-gray-300 to-gray-400", icon: "✨", name: tierName || "Pro" };
+      case "A3": return { color: "from-cyan-500 to-blue-500", icon: "✨", name: tierName || "Pro" };
       case "A2": return { color: "from-orange-400 to-red-400", icon: "🔥", name: tierName || "Rising" };
-      case "A1": return { color: "from-slate-400 to-slate-500", icon: "⭐", name: tierName || "Starter" };
-      default: return { color: "from-gray-400 to-gray-500", icon: "📌", name: tierName || "Basic" };
+      case "A1": return { color: "from-violet-500 to-fuchsia-500", icon: "⭐", name: tierName || "Starter" };
+      default: return { color: "from-violet-500 to-indigo-500", icon: "📌", name: tierName || "Basic" };
     }
   };
 
@@ -778,7 +786,7 @@ const AgencyDashboard = () => {
   ];
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-background overflow-y-auto overflow-x-hidden">
+    <div className="agency-dashboard-light fixed inset-0 flex flex-col overflow-y-auto overflow-x-hidden text-foreground">
       {/* Modern Header */}
       <div className="sticky top-0 z-50 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 flex-shrink-0 safe-area-top">
         <div className="flex items-center justify-between h-14 px-4">
@@ -815,7 +823,7 @@ const AgencyDashboard = () => {
         <div className={`bg-gradient-to-br ${levelInfo.color} rounded-2xl p-3 text-white shadow-xl relative overflow-hidden`}>
           {/* Decorative Elements */}
           <div className="absolute top-0 right-0 w-28 h-28 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-xl" />
-          <div className="absolute bottom-0 left-0 w-20 h-20 bg-black/10 rounded-full translate-y-1/2 -translate-x-1/2 blur-lg" />
+          <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2 blur-lg" />
           
           <div className="relative z-10">
             <div className="flex items-start gap-3">
@@ -928,35 +936,35 @@ const AgencyDashboard = () => {
             <div className="mx-3 mt-2">
               <div className={`rounded-2xl p-3 border shadow-lg ${
                 daysRemaining <= 5 
-                  ? 'bg-gradient-to-r from-red-900/80 to-red-800/60 border-red-500/40' 
+                  ? 'bg-gradient-to-r from-red-50 to-rose-50 border-red-200' 
                   : daysRemaining <= 10 
-                    ? 'bg-gradient-to-r from-amber-900/80 to-orange-800/60 border-amber-500/40'
-                    : 'bg-gradient-to-r from-blue-900/80 to-indigo-800/60 border-blue-500/40'
+                    ? 'bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200'
+                    : 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200'
               }`}>
                 <div className="flex items-center gap-2 mb-2">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    daysRemaining <= 5 ? 'bg-red-500/30' : daysRemaining <= 10 ? 'bg-amber-500/30' : 'bg-blue-500/30'
+                    daysRemaining <= 5 ? 'bg-red-100' : daysRemaining <= 10 ? 'bg-amber-100' : 'bg-blue-100'
                   }`}>
                     <Clock className={`w-4 h-4 ${
-                      daysRemaining <= 5 ? 'text-red-400' : daysRemaining <= 10 ? 'text-amber-400' : 'text-blue-400'
+                      daysRemaining <= 5 ? 'text-red-600' : daysRemaining <= 10 ? 'text-amber-600' : 'text-blue-600'
                     }`} />
                   </div>
                   <div className="flex-1">
-                    <p className="text-white text-xs font-bold">
+                    <p className="text-foreground text-xs font-bold">
                       ⚠️ {daysRemaining} Days Remaining
                     </p>
-                    <p className="text-white/85 text-[10px]">
+                    <p className="text-muted-foreground text-[10px]">
                       Minimum 10 active hosts required within 30 days
                     </p>
                   </div>
                   <div className={`text-lg font-black ${
-                    daysRemaining <= 5 ? 'text-red-400' : daysRemaining <= 10 ? 'text-amber-400' : 'text-blue-400'
+                    daysRemaining <= 5 ? 'text-red-600' : daysRemaining <= 10 ? 'text-amber-600' : 'text-blue-600'
                   }`}>
                     {activeHostCount}/10
                   </div>
                 </div>
-                <Progress value={progress} className="h-2 bg-white/10" />
-                <p className="text-white/75 text-[9px] mt-1.5 text-center">
+                <Progress value={progress} className="h-2 bg-white/70" />
+                <p className="text-muted-foreground text-[9px] mt-1.5 text-center">
                   {daysRemaining <= 5 
                     ? '⛔ Agency will be auto-deactivated if target not met!'
                     : `Add ${10 - activeHostCount} more hosts to secure your agency`
@@ -972,31 +980,31 @@ const AgencyDashboard = () => {
       {/* Pending Host Requests */}
       {pendingHosts.length > 0 && (
         <div className="mx-3 mt-2">
-          <div className="rounded-2xl bg-gradient-to-r from-amber-900/80 to-orange-800/60 border border-amber-500/40 p-3 shadow-lg">
+          <div className="rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 p-3 shadow-lg">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 bg-amber-500/30 rounded-full flex items-center justify-center">
-                <Bell className="w-4 h-4 text-amber-300" />
+              <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
+                <Bell className="w-4 h-4 text-amber-600" />
               </div>
               <div>
-                <p className="font-bold text-amber-100 text-sm">
+                <p className="font-bold text-amber-900 text-sm">
                   🔔 {pendingHosts.length} Pending Host Request{pendingHosts.length > 1 ? 's' : ''}
                 </p>
-                <p className="text-[10px] text-amber-300/70">Approve or reject host join requests</p>
+                <p className="text-[10px] text-amber-700">Approve or reject host join requests</p>
               </div>
             </div>
             <div className="space-y-2 max-h-48 overflow-y-auto">
               {pendingHosts.map((ph) => (
-                <div key={ph.id} className="flex items-center justify-between bg-black/20 rounded-xl p-2">
+                <div key={ph.id} className={`flex items-center justify-between rounded-xl p-2 ${premiumTileClass}`}>
                   <div className="flex items-center gap-2">
-                    <Avatar className="w-9 h-9 border-2 border-amber-500/40">
+                    <Avatar className="w-9 h-9 border-2 border-amber-200">
                       <AvatarImage src={ph.profile?.avatar_url || ''} />
-                      <AvatarFallback className="bg-amber-500/20 text-amber-200 text-xs">
+                      <AvatarFallback className="bg-amber-100 text-amber-700 text-xs">
                         {ph.profile?.display_name?.charAt(0) || '?'}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="text-white text-sm font-medium">{ph.profile?.display_name || 'Unknown'}</p>
-                      <p className="text-amber-300/60 text-[10px]">
+                      <p className="text-foreground text-sm font-medium">{ph.profile?.display_name || 'Unknown'}</p>
+                      <p className="text-muted-foreground text-[10px]">
                         {ph.profile?.app_uid ? `UID: ${ph.profile.app_uid}` : ''} • {new Date(ph.joined_at).toLocaleDateString()}
                       </p>
                     </div>
@@ -1072,7 +1080,7 @@ const AgencyDashboard = () => {
                     <p className="text-xs font-medium truncate">
                       {parentAgency.owner_profile.display_name || "Agency Owner"}
                     </p>
-                    <p className="text-[10px] text-white/85">Agency Owner</p>
+                    <p className="text-[10px] text-muted-foreground">Agency Owner</p>
                   </div>
                 </div>
               )}
@@ -1160,19 +1168,19 @@ const AgencyDashboard = () => {
 
             {/* Inline Withdrawal History */}
             {showWithdrawalHistory && (
-              <div className="mt-3 bg-white/95 backdrop-blur-md rounded-xl p-3 border border-slate-200 max-h-64 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+              <div className="mt-3 bg-white/95 backdrop-blur-md rounded-xl p-3 border border-border max-h-64 overflow-y-auto shadow-xl" style={{ WebkitOverflowScrolling: 'touch' }}>
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-xs font-semibold text-white/85">Withdrawal History</h4>
+                  <h4 className="text-xs font-semibold text-foreground">Withdrawal History</h4>
                   <button 
                     onClick={() => navigate("/agency-transfer-history")}
-                    className="text-[10px] text-cyan-300 hover:underline"
+                    className="text-[10px] text-primary font-semibold hover:underline"
                   >
                     View All →
                   </button>
                 </div>
                 
                 {withdrawals.length === 0 ? (
-                  <div className="text-center py-4 text-white/85 text-xs">
+                  <div className="text-center py-4 text-muted-foreground text-xs">
                     No withdrawal history yet
                   </div>
                 ) : (
@@ -1180,7 +1188,7 @@ const AgencyDashboard = () => {
                     {withdrawals.slice(0, 5).map((w) => (
                       <div 
                         key={w.id}
-                        className="bg-white/95 rounded-lg p-2.5 flex items-center justify-between border border-slate-200/40"
+                        className="bg-white rounded-lg p-2.5 flex items-center justify-between border border-border shadow-sm"
                       >
                         <div className="flex items-center gap-2">
                           {(() => {
@@ -1193,23 +1201,23 @@ const AgencyDashboard = () => {
                                   displayStatus === 'completed' ? 'bg-green-500/30' :
                                   displayStatus === 'pending' ? 'bg-yellow-500/30' :
                                   displayStatus === 'processing' ? 'bg-blue-500/30' :
-                                  displayStatus === 'rejected' ? 'bg-red-500/30' : 'bg-gray-500/30'
+                                  displayStatus === 'rejected' ? 'bg-red-100' : 'bg-muted'
                                 }`}>
                                   {displayStatus === 'completed' ? (
-                                    <CheckCircle2 className="w-4 h-4 text-green-400" />
+                                    <CheckCircle2 className="w-4 h-4 text-green-600" />
                                   ) : displayStatus === 'pending' ? (
-                                    <Clock className="w-4 h-4 text-yellow-400" />
+                                    <Clock className="w-4 h-4 text-yellow-600" />
                                   ) : displayStatus === 'processing' ? (
-                                    <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />
+                                    <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
                                   ) : (
-                                    <XCircle className="w-4 h-4 text-red-400" />
+                                    <XCircle className="w-4 h-4 text-red-600" />
                                   )}
                                 </div>
                                 <div>
-                                  <p className="text-xs font-semibold text-white">
+                                  <p className="text-xs font-semibold text-foreground">
                                     {(w.amount / coinsToUsdRate).toFixed(2)} USD
                                   </p>
-                                  <p className="text-[10px] text-white/75">
+                                  <p className="text-[10px] text-muted-foreground">
                                     {w.payment_method?.toUpperCase()} • {new Date(w.requested_at).toLocaleDateString()}
                                   </p>
                                 </div>
@@ -1223,10 +1231,10 @@ const AgencyDashboard = () => {
                             : w.status;
                           return (
                             <Badge className={`text-[10px] ${
-                              displayStatus === 'completed' ? 'bg-green-500/20 text-green-400' :
-                              displayStatus === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
-                              displayStatus === 'processing' ? 'bg-blue-500/20 text-blue-400' :
-                              'bg-red-500/20 text-red-400'
+                              displayStatus === 'completed' ? 'bg-green-100 text-green-700' :
+                              displayStatus === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                              displayStatus === 'processing' ? 'bg-blue-100 text-blue-700' :
+                              'bg-red-100 text-red-700'
                             } border-0`}>
                               {displayStatus}
                             </Badge>
@@ -1246,17 +1254,17 @@ const AgencyDashboard = () => {
       <div className="mx-4 mt-3">
         <div 
           onClick={() => navigate('/payroll-helper-guide')}
-          className="bg-gradient-to-r from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 rounded-xl p-3 cursor-pointer hover:from-indigo-500/30 hover:to-purple-500/30 transition-all active:scale-[0.98]"
+          className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100 rounded-2xl p-3 cursor-pointer hover:shadow-lg transition-all active:scale-[0.98]"
         >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
               <FileText className="w-5 h-5 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-white font-semibold text-sm">📖 Payroll Helper Guide</p>
-              <p className="text-white/85 text-[11px]">Learn roles, benefits & diamond trading</p>
+              <p className="text-foreground font-semibold text-sm">📖 Payroll Helper Guide</p>
+              <p className="text-muted-foreground text-[11px]">Learn roles, benefits & diamond trading</p>
             </div>
-            <ArrowRight className="w-4 h-4 text-white/75" />
+            <ArrowRight className="w-4 h-4 text-indigo-500" />
           </div>
         </div>
       </div>
@@ -1267,21 +1275,21 @@ const AgencyDashboard = () => {
         <div className="grid grid-cols-4 gap-3">
           <button
             onClick={() => navigate("/agency-host-management")}
-            className="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+            className={`${premiumActionClass} bg-gradient-to-br from-blue-500 to-cyan-500`}
           >
             <HostsIcon3D />
             <span className="text-xs font-medium mt-1">Hosts</span>
           </button>
           <button
             onClick={() => navigate("/agency-withdrawal")}
-            className="bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+            className={`${premiumActionClass} bg-gradient-to-br from-green-500 to-emerald-500`}
           >
             <WithdrawIcon3D />
             <span className="text-xs font-medium mt-1">Withdraw</span>
           </button>
           <button
             onClick={() => navigate("/agent-rank")}
-            className="bg-gradient-to-br from-yellow-500 to-orange-500 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+            className={`${premiumActionClass} bg-gradient-to-br from-yellow-500 to-orange-500`}
           >
             <RankingIcon3D />
             <span className="text-xs font-medium mt-1">Ranking</span>
@@ -1294,7 +1302,7 @@ const AgencyDashboard = () => {
                 setShowHelperDialog(true);
               }
             }}
-            className={`bg-gradient-to-br ${hasHelperAccess ? 'from-green-500 to-emerald-500' : helperPendingApplication ? 'from-yellow-500 to-orange-500' : 'from-purple-500 to-pink-500'} rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform relative flex flex-col items-center justify-center`}
+            className={`${premiumActionClass} bg-gradient-to-br ${hasHelperAccess ? 'from-green-500 to-emerald-500' : helperPendingApplication ? 'from-yellow-500 to-orange-500' : 'from-purple-500 to-pink-500'} relative`}
           >
             {hasHelperAccess && helperPendingCount > 0 && (
               <div className="absolute -top-2 -right-2 min-w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold px-1.5 shadow-lg animate-pulse border-2 border-white">
@@ -1315,21 +1323,21 @@ const AgencyDashboard = () => {
         <div className="grid grid-cols-3 gap-3 mt-3">
           <button
             onClick={() => navigate("/agency-coin-exchange")}
-            className="bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+            className={`${premiumActionClass} bg-gradient-to-br from-orange-500 to-red-500`}
           >
             <DiamondExchangeIcon3D />
             <span className="text-xs font-medium mt-1">Diamond Exchange</span>
           </button>
           <button
             onClick={() => navigate("/agency-policy")}
-            className="bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+            className={`${premiumActionClass} bg-gradient-to-br from-cyan-500 to-blue-600`}
           >
             <PolicyIcon3D />
             <span className="text-xs font-medium mt-1">Policy</span>
           </button>
           <button
             onClick={() => navigate("/agency-transfer-history")}
-            className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-4 text-white text-center shadow-lg hover:scale-105 transition-transform flex flex-col items-center justify-center"
+            className={`${premiumActionClass} bg-gradient-to-br from-indigo-500 to-purple-600`}
           >
             <HistoryIcon3D />
             <span className="text-xs font-medium mt-1">History</span>
@@ -1340,20 +1348,20 @@ const AgencyDashboard = () => {
 
       {/* Agency Information Card */}
       <div className="mx-4 mt-4">
-        <Card className="border-0 shadow-md bg-card">
+        <Card className={premiumCardClass}>
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
-              <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-                <Building2 className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                <Building2 className="w-4 h-4 text-purple-600" />
               </div>
               Agency Information
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-xl">
+            <div className={`flex items-center justify-between p-3 rounded-xl ${premiumTileClass}`}>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-                  <Hash className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <Hash className="w-5 h-5 text-purple-600" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Agency Code</p>
@@ -1362,10 +1370,10 @@ const AgencyDashboard = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-xl">
+            <div className={`flex items-center justify-between p-3 rounded-xl ${premiumTileClass}`}>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center">
-                  <Star className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
+                  <Star className="w-5 h-5 text-amber-600" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Agency Level</p>
@@ -1374,10 +1382,10 @@ const AgencyDashboard = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-xl">
+            <div className={`flex items-center justify-between p-3 rounded-xl ${premiumTileClass}`}>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
+                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                  <TrendingUp className="w-5 h-5 text-green-600" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Host Commission Rate</p>
@@ -1386,10 +1394,10 @@ const AgencyDashboard = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-xl">
+            <div className={`flex items-center justify-between p-3 rounded-xl ${premiumTileClass}`}>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                  <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <Calendar className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Created</p>
@@ -1404,20 +1412,20 @@ const AgencyDashboard = () => {
       {/* Tabs Section */}
       <div className="mx-4 mt-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full grid grid-cols-4 bg-muted/50 p-1 rounded-2xl h-12">
-            <TabsTrigger value="overview" className="text-xs rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-sm">
+          <TabsList className="w-full grid grid-cols-4 bg-white/90 border border-amber-100 p-1 rounded-2xl h-12 shadow-sm">
+            <TabsTrigger value="overview" className="text-xs rounded-xl text-muted-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-fuchsia-600 data-[state=active]:text-white data-[state=active]:shadow-sm">
               <BarChart3 className="w-4 h-4 mr-1" />
               Overview
             </TabsTrigger>
-            <TabsTrigger value="hosts" className="text-xs rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-sm">
+            <TabsTrigger value="hosts" className="text-xs rounded-xl text-muted-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-fuchsia-600 data-[state=active]:text-white data-[state=active]:shadow-sm">
               <Users className="w-4 h-4 mr-1" />
               Hosts
             </TabsTrigger>
-            <TabsTrigger value="subagents" className="text-xs rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-sm">
+            <TabsTrigger value="subagents" className="text-xs rounded-xl text-muted-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-fuchsia-600 data-[state=active]:text-white data-[state=active]:shadow-sm">
               <UserPlus className="w-4 h-4 mr-1" />
               Agents
             </TabsTrigger>
-            <TabsTrigger value="charts" className="text-xs rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-sm">
+            <TabsTrigger value="charts" className="text-xs rounded-xl text-muted-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-fuchsia-600 data-[state=active]:text-white data-[state=active]:shadow-sm">
               <TrendingUp className="w-4 h-4 mr-1" />
               Charts
             </TabsTrigger>
@@ -1426,11 +1434,11 @@ const AgencyDashboard = () => {
           {/* Overview Tab */}
           <TabsContent value="overview" className="mt-4 space-y-4">
             {/* Weekly Income Chart */}
-            <Card className="border-0 shadow-md bg-card">
+            <Card className={premiumCardClass}>
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-                    <TrendingUp className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <TrendingUp className="w-4 h-4 text-purple-600" />
                   </div>
                   Weekly Income
                 </CardTitle>
@@ -1470,61 +1478,61 @@ const AgencyDashboard = () => {
 
             {/* Performance Stats */}
             <div className="grid grid-cols-2 gap-3">
-              <Card className="border-0 shadow-md bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20">
+              <Card className="agency-premium-card bg-gradient-to-br from-purple-50 to-indigo-50">
                 <CardContent className="p-4">
-                  <div className="w-10 h-10 bg-purple-100 dark:bg-purple-800/50 rounded-xl flex items-center justify-center mb-2">
-                    <Gift className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                  <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center mb-2">
+                    <Gift className="w-5 h-5 text-purple-600" />
                   </div>
-                  <p className="text-2xl font-bold text-purple-700 dark:text-purple-300">
+                  <p className="text-2xl font-bold text-purple-700">
                     {fmtNum(performance?.total_income || 0)}
                   </p>
-                  <p className="text-sm text-purple-600 dark:text-purple-400">Weekly Income</p>
+                  <p className="text-sm text-purple-600">Weekly Income</p>
                 </CardContent>
               </Card>
               
-              <Card className="border-0 shadow-md bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20">
+              <Card className="agency-premium-card bg-gradient-to-br from-emerald-50 to-teal-50">
                 <CardContent className="p-4">
-                  <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-800/50 rounded-xl flex items-center justify-center mb-2">
-                    <Users className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                  <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center mb-2">
+                    <Users className="w-5 h-5 text-emerald-600" />
                   </div>
-                  <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">
+                  <p className="text-2xl font-bold text-emerald-700">
                     {performance?.new_hosts_count || 0}
                   </p>
-                  <p className="text-sm text-emerald-600 dark:text-emerald-400">New Hosts</p>
+                  <p className="text-sm text-emerald-600">New Hosts</p>
                 </CardContent>
               </Card>
               
-              <Card className="border-0 shadow-md bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20">
+              <Card className="agency-premium-card bg-gradient-to-br from-amber-50 to-orange-50">
                 <CardContent className="p-4">
-                  <div className="w-10 h-10 bg-amber-100 dark:bg-amber-800/50 rounded-xl flex items-center justify-center mb-2">
-                    <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                  <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center mb-2">
+                    <Clock className="w-5 h-5 text-amber-600" />
                   </div>
-                  <p className="text-2xl font-bold text-amber-700 dark:text-amber-300">
+                  <p className="text-2xl font-bold text-amber-700">
                     {(performance?.total_host_hours || 0).toFixed(1)}h
                   </p>
-                  <p className="text-sm text-amber-600 dark:text-amber-400">Live Hours</p>
+                  <p className="text-sm text-amber-600">Live Hours</p>
                 </CardContent>
               </Card>
               
-              <Card className="border-0 shadow-md bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20">
+              <Card className="agency-premium-card bg-gradient-to-br from-yellow-50 to-amber-50">
                 <CardContent className="p-4">
-                  <div className="w-10 h-10 bg-yellow-100 dark:bg-yellow-800/50 rounded-xl flex items-center justify-center mb-2">
-                    <Crown className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                  <div className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center mb-2">
+                    <Crown className="w-5 h-5 text-yellow-600" />
                   </div>
-                  <p className="text-2xl font-bold text-yellow-700 dark:text-yellow-300">
+                  <p className="text-2xl font-bold text-yellow-700">
                     {fmtNum(performance?.golden_host_income || 0)}
                   </p>
-                  <p className="text-sm text-yellow-600 dark:text-yellow-400">Golden Income</p>
+                  <p className="text-sm text-yellow-600">Golden Income</p>
                 </CardContent>
               </Card>
             </div>
 
             {/* Statistics Card */}
-            <Card className="border-0 shadow-md">
+            <Card className={premiumCardClass}>
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                    <Target className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Target className="w-4 h-4 text-blue-600" />
                   </div>
                   Total Statistics
                 </CardTitle>
@@ -1532,17 +1540,17 @@ const AgencyDashboard = () => {
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between py-3 border-b border-border">
                   <span className="text-muted-foreground">Total Host Earnings</span>
-                  <span className="font-bold text-emerald-600 dark:text-emerald-400">{fmtNum(totalHostEarnings)}</span>
+                  <span className="font-bold text-emerald-600">{fmtNum(totalHostEarnings)}</span>
                 </div>
                 <div className="flex items-center justify-between py-3 border-b border-border">
                   <span className="text-muted-foreground">Your Commission ({actualCommissionRate}%)</span>
-                  <span className="font-bold text-purple-600 dark:text-purple-400">
+                  <span className="font-bold text-purple-600">
                     {fmtNum(Math.floor(totalHostEarnings * actualCommissionRate / 100))}
                   </span>
                 </div>
                 <div className="flex items-center justify-between py-3 border-b border-border">
                   <span className="text-muted-foreground">Sub-Agent Commission</span>
-                  <span className="font-bold text-blue-600 dark:text-blue-400">{fmtNum(totalSubAgentEarnings)}</span>
+                  <span className="font-bold text-blue-600">{fmtNum(totalSubAgentEarnings)}</span>
                 </div>
                 <div className="flex items-center justify-between py-3">
                   <span className="text-muted-foreground">Agency Created</span>
@@ -1552,23 +1560,23 @@ const AgencyDashboard = () => {
             </Card>
 
             {/* Withdrawal History */}
-            <Card className="border-0 shadow-md bg-white">
+            <Card className={premiumCardClass}>
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-base flex items-center gap-2 text-white">
-                    <div className="w-10 h-10 bg-indigo-500/30 rounded-xl flex items-center justify-center">
-                      <Clock className="w-5 h-5 text-indigo-400" />
+                  <CardTitle className="text-base flex items-center gap-2 text-foreground">
+                    <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
+                      <Clock className="w-5 h-5 text-indigo-600" />
                     </div>
                     <div>
                       <span>Withdrawal History</span>
-                      <p className="text-xs font-normal text-white/75">{withdrawals.length} total requests</p>
+                      <p className="text-xs font-normal text-muted-foreground">{withdrawals.length} total requests</p>
                     </div>
                   </CardTitle>
                   <Button 
                     variant="ghost" 
                     size="sm" 
                     onClick={() => navigate('/agency-withdrawal')}
-                    className="text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/20"
+                    className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
                   >
                     View All
                     <ChevronRight className="w-4 h-4 ml-1" />
@@ -1577,7 +1585,7 @@ const AgencyDashboard = () => {
               </CardHeader>
               <CardContent>
                 {withdrawals.length === 0 ? (
-                  <div className="text-center py-8 text-white/75">
+                  <div className="text-center py-8 text-muted-foreground">
                     <Wallet className="w-12 h-12 mx-auto mb-2 opacity-50" />
                     <p>No withdrawal history yet</p>
                   </div>
@@ -1593,11 +1601,11 @@ const AgencyDashboard = () => {
                         : withdrawal.status;
                       
                       const statusConfig: Record<string, { iconBg: string; text: string }> = {
-                        completed: { iconBg: 'bg-emerald-500', text: 'text-emerald-400' },
-                        pending: { iconBg: 'bg-amber-500', text: 'text-amber-400' },
-                        processing: { iconBg: 'bg-blue-500', text: 'text-blue-400' },
-                        rejected: { iconBg: 'bg-red-500', text: 'text-red-400' },
-                        approved: { iconBg: 'bg-emerald-500', text: 'text-emerald-400' }
+                        completed: { iconBg: 'bg-emerald-500', text: 'text-emerald-600' },
+                        pending: { iconBg: 'bg-amber-500', text: 'text-amber-600' },
+                        processing: { iconBg: 'bg-blue-500', text: 'text-blue-600' },
+                        rejected: { iconBg: 'bg-red-500', text: 'text-red-600' },
+                        approved: { iconBg: 'bg-emerald-500', text: 'text-emerald-600' }
                       };
                       const config = statusConfig[displayStatus] || statusConfig.pending;
                       
@@ -1610,7 +1618,7 @@ const AgencyDashboard = () => {
                         <div 
                           key={withdrawal.id}
                           onClick={() => navigate('/agency-withdrawal')}
-                          className="flex items-center gap-3 p-3 rounded-xl bg-slate-100 hover:bg-slate-100 transition-colors cursor-pointer"
+                          className={`flex items-center gap-3 p-3 rounded-xl transition-colors cursor-pointer hover:shadow-md ${premiumTileClass}`}
                         >
                           {/* Status Icon */}
                           <div className={`w-12 h-12 rounded-xl ${config.iconBg} flex items-center justify-center shadow-lg shrink-0`}>
@@ -1625,15 +1633,15 @@ const AgencyDashboard = () => {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
                               <span className="text-lg">{countryFlag}</span>
-                              <span className="text-white font-bold">{fmtNum(withdrawal.amount)}</span>
-                              <span className="text-white/75 text-sm">Beans</span>
+                              <span className="text-foreground font-bold">{fmtNum(withdrawal.amount)}</span>
+                              <span className="text-muted-foreground text-sm">Beans</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm">
-                              <span className="bg-gradient-to-r from-pink-500/30 to-purple-500/30 text-pink-300 px-2 py-0.5 rounded-md text-xs font-medium border border-pink-500/30">
+                              <span className="bg-gradient-to-r from-pink-50 to-purple-50 text-pink-700 px-2 py-0.5 rounded-md text-xs font-medium border border-pink-100">
                                 {withdrawal.payment_method?.toUpperCase()}
                               </span>
-                              <span className="text-white/85">•</span>
-                              <span className="text-white/75 text-xs">
+                              <span className="text-muted-foreground">•</span>
+                              <span className="text-muted-foreground text-xs">
                                 {new Date(withdrawal.requested_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                               </span>
                             </div>
@@ -1659,11 +1667,11 @@ const AgencyDashboard = () => {
 
           {/* Hosts Tab */}
           <TabsContent value="hosts" className="mt-4 space-y-4">
-            <Card className="border-0 shadow-md">
+            <Card className="agency-premium-card">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <div className="w-8 h-8 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg flex items-center justify-center">
-                    <Crown className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
+                  <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                    <Crown className="w-4 h-4 text-yellow-600" />
                   </div>
                   Top Performers
                 </CardTitle>
@@ -1678,9 +1686,9 @@ const AgencyDashboard = () => {
                       className="flex items-center gap-3 py-3 border-b border-border last:border-0"
                     >
                       <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-                        index === 0 ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-400' :
-                        index === 1 ? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-white/85' :
-                        index === 2 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-400' :
+                        index === 0 ? 'bg-yellow-100 text-yellow-700' :
+                        index === 1 ? 'bg-gray-100 text-gray-700' :
+                        index === 2 ? 'bg-orange-100 text-orange-700' :
                         'bg-muted text-muted-foreground'
                       }`}>
                         {index + 1}
@@ -1702,7 +1710,7 @@ const AgencyDashboard = () => {
                         <p className="text-xs text-muted-foreground">Joined: {formatDate(host.joined_at)}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-emerald-600 dark:text-emerald-400">{fmtNum(host.profile?.total_earnings || 0)}</p>
+                        <p className="font-bold text-emerald-600">{fmtNum(host.profile?.total_earnings || 0)}</p>
                         <p className="text-xs text-muted-foreground">Earnings</p>
                       </div>
                     </div>
@@ -1720,22 +1728,22 @@ const AgencyDashboard = () => {
             </Card>
 
             {/* Host Invite Link Card */}
-            <Card className="border-0 shadow-md bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20">
+            <Card className="agency-premium-card bg-gradient-to-br from-blue-50 to-cyan-50">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="w-10 h-10 bg-blue-100 dark:bg-blue-800/50 rounded-xl flex items-center justify-center">
-                    <LinkIcon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <LinkIcon className="w-5 h-5 text-blue-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-blue-800 dark:text-blue-200">Host Invite Link</h3>
-                    <p className="text-xs text-blue-600 dark:text-blue-400">Share to recruit new hosts</p>
+                    <h3 className="font-semibold text-blue-800">Host Invite Link</h3>
+                    <p className="text-xs text-blue-600">Share to recruit new hosts</p>
                   </div>
                 </div>
                 <div className="flex gap-2">
                   <Button 
                     onClick={copyHostJoinLink}
                     variant="outline" 
-                    className="flex-1 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300"
+                    className="flex-1 border-blue-300 text-blue-700"
                   >
                     <Copy className="w-4 h-4 mr-2" />
                     Copy
@@ -1762,22 +1770,22 @@ const AgencyDashboard = () => {
 
           {/* Sub-Agents Tab */}
           <TabsContent value="subagents" className="mt-4 space-y-4">
-            <Card className="border-0 shadow-md bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20">
+            <Card className="agency-premium-card bg-gradient-to-br from-orange-50 to-amber-50">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="w-10 h-10 bg-orange-100 dark:bg-orange-800/50 rounded-xl flex items-center justify-center">
-                    <LinkIcon className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                  <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
+                    <LinkIcon className="w-5 h-5 text-orange-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-orange-800 dark:text-orange-200">Referral Link</h3>
-                    <p className="text-xs text-orange-600 dark:text-orange-400">Share to add sub-agents</p>
+                    <h3 className="font-semibold text-orange-800">Referral Link</h3>
+                    <p className="text-xs text-orange-600">Share to add sub-agents</p>
                   </div>
                 </div>
                 <div className="flex gap-2">
                   <Button 
                     onClick={copySubAgentLink}
                     variant="outline" 
-                    className="flex-1 border-orange-300 dark:border-orange-700 text-orange-700 dark:text-orange-300"
+                    className="flex-1 border-orange-300 text-orange-700"
                   >
                     <Copy className="w-4 h-4 mr-2" />
                     Copy
@@ -1794,21 +1802,21 @@ const AgencyDashboard = () => {
             </Card>
 
             <div className="grid grid-cols-2 gap-3">
-              <Card className="border-0 shadow-md">
+              <Card className="agency-premium-card">
                 <CardContent className="p-4 text-center">
-                  <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">{subAgents.length}</p>
+                  <p className="text-3xl font-bold text-orange-600">{subAgents.length}</p>
                   <p className="text-sm text-muted-foreground">Total Sub-Agents</p>
                 </CardContent>
               </Card>
-              <Card className="border-0 shadow-md">
+              <Card className="agency-premium-card">
                 <CardContent className="p-4 text-center">
-                  <p className="text-3xl font-bold text-green-600 dark:text-green-400">{fmtNum(totalSubAgentEarnings)}</p>
+                  <p className="text-3xl font-bold text-green-600">{fmtNum(totalSubAgentEarnings)}</p>
                   <p className="text-sm text-muted-foreground">Total Commission</p>
                 </CardContent>
               </Card>
             </div>
 
-            <Card className="border-0 shadow-md">
+            <Card className="agency-premium-card">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base">Sub-Agent List</CardTitle>
               </CardHeader>
@@ -1830,7 +1838,7 @@ const AgencyDashboard = () => {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold text-green-600 dark:text-green-400">{fmtNum(sa.total_earnings)}</p>
+                          <p className="font-bold text-green-600">{fmtNum(sa.total_earnings)}</p>
                           <p className="text-xs text-muted-foreground">{sa.commission_rate}%</p>
                         </div>
                       </div>
@@ -1849,11 +1857,11 @@ const AgencyDashboard = () => {
             </Card>
 
             {/* Sub-Agencies List */}
-            <Card className="border-0 shadow-md">
+            <Card className="agency-premium-card">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <div className="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg flex items-center justify-center">
-                    <Building2 className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                  <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
+                    <Building2 className="w-4 h-4 text-indigo-600" />
                   </div>
                   Sub-Agencies ({subAgencyCount})
                 </CardTitle>
@@ -1891,18 +1899,18 @@ const AgencyDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-md bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20">
+            <Card className="agency-premium-card bg-gradient-to-br from-purple-50 to-indigo-50">
               <CardContent className="p-4">
-                <h3 className="font-semibold text-purple-800 dark:text-purple-200 mb-3 flex items-center gap-2">
+                <h3 className="font-semibold text-purple-800 mb-3 flex items-center gap-2">
                   <Award className="w-5 h-5" />
                   Commission Structure
                 </h3>
-                <ul className="text-sm text-purple-700 dark:text-purple-300 space-y-2">
-                  <li className="flex items-center justify-between py-2 border-b border-purple-200 dark:border-purple-800">
+                <ul className="text-sm text-purple-700 space-y-2">
+                  <li className="flex items-center justify-between py-2 border-b border-purple-200">
                     <span>Sub-Agent Base Commission:</span>
                     <span className="font-bold">2%</span>
                   </li>
-                  <li className="flex items-center justify-between py-2 border-b border-purple-200 dark:border-purple-800">
+                  <li className="flex items-center justify-between py-2 border-b border-purple-200">
                     <span>Top Performer Bonus:</span>
                     <span className="font-bold">+1%</span>
                   </li>
@@ -1917,11 +1925,11 @@ const AgencyDashboard = () => {
 
           {/* Charts Tab */}
           <TabsContent value="charts" className="mt-4 space-y-4">
-            <Card className="border-0 shadow-md">
+            <Card className="agency-premium-card">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                    <TrendingUp className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <TrendingUp className="w-4 h-4 text-blue-600" />
                   </div>
                   Income Trend
                 </CardTitle>
@@ -1953,11 +1961,11 @@ const AgencyDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-md">
+            <Card className="agency-premium-card">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <div className="w-8 h-8 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center">
-                    <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                  <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
+                    <Clock className="w-4 h-4 text-amber-600" />
                   </div>
                   Live Hours
                 </CardTitle>
@@ -1983,11 +1991,11 @@ const AgencyDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-md">
+            <Card className="agency-premium-card">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                    <BarChart3 className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                    <BarChart3 className="w-4 h-4 text-green-600" />
                   </div>
                   Earnings Distribution
                 </CardTitle>
@@ -2033,26 +2041,26 @@ const AgencyDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-md bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20">
+            <Card className="agency-premium-card bg-gradient-to-br from-green-50 to-emerald-50">
               <CardContent className="p-4">
-                <h3 className="font-semibold text-green-800 dark:text-green-200 mb-3 flex items-center gap-2">
+                <h3 className="font-semibold text-green-800 mb-3 flex items-center gap-2">
                   <Zap className="w-5 h-5" />
                   Compared to Last Week
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-white/60 dark:bg-white/10 rounded-xl p-4 text-center">
-                    <div className="flex items-center justify-center gap-1 text-green-600 dark:text-green-400">
+                  <div className="bg-white/60 rounded-xl p-4 text-center">
+                    <div className="flex items-center justify-center gap-1 text-green-600">
                       <TrendingUp className="w-5 h-5" />
                       <span className="text-xl font-bold">+12%</span>
                     </div>
-                    <p className="text-xs text-green-700 dark:text-green-300 mt-1">Income Growth</p>
+                    <p className="text-xs text-green-700 mt-1">Income Growth</p>
                   </div>
-                  <div className="bg-white/60 dark:bg-white/10 rounded-xl p-4 text-center">
-                    <div className="flex items-center justify-center gap-1 text-blue-600 dark:text-blue-400">
+                  <div className="bg-white/60 rounded-xl p-4 text-center">
+                    <div className="flex items-center justify-center gap-1 text-blue-600">
                       <TrendingUp className="w-5 h-5" />
                       <span className="text-xl font-bold">+8%</span>
                     </div>
-                    <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">Host Activity</p>
+                    <p className="text-xs text-blue-700 mt-1">Host Activity</p>
                   </div>
                 </div>
               </CardContent>
@@ -2166,7 +2174,7 @@ const AgencyDashboard = () => {
                     </Avatar>
                     <div className="flex-1">
                       <p className="font-semibold">{parentAgency.owner_profile.display_name || "Agency Owner"}</p>
-                      <p className="text-xs text-white/85">Agency Owner</p>
+                      <p className="text-xs text-muted-foreground">Agency Owner</p>
                     </div>
                   </div>
                 )}
