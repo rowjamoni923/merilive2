@@ -374,31 +374,35 @@ function CampaignFloatingButton() {
 
   const handleContinueSelectedPayment = async () => {
     if (selectedPaymentTab === 'google') {
-      if (Capacitor.isNativePlatform()) {
-        try {
-          const diamonds = campaign.diamonds_amount;
-          const product = PLAY_STORE_PRODUCTS[diamonds];
-          const productId = product?.productId || Object.values(PLAY_STORE_PRODUCTS)[0]?.productId;
-          if (!productId) { toast({ title: 'Product not found', variant: 'destructive' }); return; }
-          const { data: { user } } = await supabase.auth.getUser();
-          if (!user) { toast({ title: 'Please login first', variant: 'destructive' }); return; }
-          const result = await playStoreBilling.purchase(productId, user.id);
-          if (result.success) {
-            localStorage.setItem(PURCHASED_KEY + campaign.id, 'true');
-            sessionStorage.removeItem(getCampaignSessionKey(campaign.id));
-            setPurchased(true);
-            setCampaign(null);
-            setRemainingSeconds(0);
-            setShowPopup(false);
-            toast({ title: 'Purchase successful!', description: 'Diamonds added to your account' });
-          } else {
-            toast({ title: 'Payment failed', description: result.error, variant: 'destructive' });
-          }
-        } catch {
-          toast({ title: 'Payment failed', variant: 'destructive' });
+      if (!isPlayStoreNative) {
+        // Web/iOS — gracefully redirect the user to local methods instead of
+        // an unprofessional toast pop. Prefetch in case the user lands here
+        // without having opened the Recommend tab yet.
+        setSelectedPaymentTab('recommend');
+        await fetchHelperPaymentMethods();
+        return;
+      }
+      try {
+        const diamonds = campaign.diamonds_amount;
+        const product = PLAY_STORE_PRODUCTS[diamonds];
+        const productId = product?.productId || Object.values(PLAY_STORE_PRODUCTS)[0]?.productId;
+        if (!productId) { toast({ title: 'Product not found', variant: 'destructive' }); return; }
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { toast({ title: 'Please login first', variant: 'destructive' }); return; }
+        const result = await playStoreBilling.purchase(productId, user.id);
+        if (result.success) {
+          localStorage.setItem(PURCHASED_KEY + campaign.id, 'true');
+          sessionStorage.removeItem(getCampaignSessionKey(campaign.id));
+          setPurchased(true);
+          setCampaign(null);
+          setRemainingSeconds(0);
+          setShowPopup(false);
+          toast({ title: 'Purchase successful!', description: 'Diamonds added to your account' });
+        } else {
+          toast({ title: 'Payment failed', description: result.error, variant: 'destructive' });
         }
-      } else {
-        toast({ title: 'Google Play', description: 'Available on Android app only' });
+      } catch {
+        toast({ title: 'Payment failed', variant: 'destructive' });
       }
       return;
     }
