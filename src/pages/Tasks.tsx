@@ -638,12 +638,12 @@ const Tasks = () => {
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: index * 0.1 }}
-                className={`bg-white/10 backdrop-blur-sm rounded-2xl p-4 shadow-md border-2 transition-all ${
+                className={`bg-white backdrop-blur-sm rounded-2xl p-4 shadow-md border-2 transition-all ${
                   status === 'claimed' 
-                    ? 'border-green-500/30 bg-green-500/10' 
+                    ? 'border-green-300 bg-green-50' 
                     : status === 'completed'
-                    ? 'border-amber-400/50 shadow-amber-500/10'
-                    : 'border-amber-200/40'
+                    ? 'border-amber-400 shadow-amber-300/30'
+                    : 'border-amber-200/60'
                 }`}
               >
                 <div className="flex items-center gap-4">
@@ -660,15 +660,15 @@ const Tasks = () => {
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-foreground">{task.title}</h3>
-                    <p className="text-xs text-muted-foreground mb-2">{task.description}</p>
+                    <h3 className="font-semibold text-slate-800">{task.title}</h3>
+                    <p className="text-xs text-slate-500 mb-2">{task.description}</p>
                     
                     {/* Progress Bar - hide for rating task */}
                     {task.requirement_type !== 'play_store_rating' && (
                       <div className="flex items-center gap-2">
                         <Progress 
                           value={progressPercent} 
-                          className="h-1.5 flex-1 bg-white/10"
+                          className="h-1.5 flex-1 bg-amber-100"
                         />
                         <span className="text-xs text-muted-foreground">
                           {task.requirement_type === 'live_minutes' 
