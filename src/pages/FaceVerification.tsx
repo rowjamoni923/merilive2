@@ -2221,10 +2221,10 @@ const FaceVerification = () => {
           animate={{ opacity: 1, x: 0 }}
           className="space-y-4"
         >
-          <div className="bg-gradient-to-br from-rose-50 to-orange-50 rounded-3xl p-5 border border-purple-500/20">
-            <h2 className="font-bold text-slate-800 mb-5 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                <User className="w-5 h-5 text-slate-800" />
+          <div className="bg-white rounded-3xl p-5 border border-purple-200 shadow-lg shadow-purple-500/5">
+            <h2 className="font-bold text-slate-900 mb-5 flex items-center gap-3 text-lg">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-md shadow-purple-500/30">
+                <User className="w-5 h-5 text-white" />
               </div>
               Basic Information
             </h2>
@@ -2232,13 +2232,13 @@ const FaceVerification = () => {
             {/* Profile Photo */}
             <div className="flex flex-col items-center mb-5">
               <div 
-                className="w-28 h-28 rounded-3xl bg-amber-50/70 border-2 border-dashed border-purple-400/50 flex items-center justify-center cursor-pointer hover:bg-amber-50/70 transition overflow-hidden shadow-lg"
+                className="w-28 h-28 rounded-3xl bg-purple-50 border-2 border-dashed border-purple-300 flex items-center justify-center cursor-pointer hover:bg-purple-100 transition overflow-hidden shadow-md"
                 onClick={() => photoInputRef.current?.click()}
               >
                 {photoPreview ? (
                   <img src={photoPreview} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
-                  <Camera className="w-10 h-10 text-purple-400" />
+                  <Camera className="w-10 h-10 text-purple-500" />
                 )}
               </div>
               <input 
@@ -2248,35 +2248,35 @@ const FaceVerification = () => {
                 className="hidden" 
                 onChange={handlePhotoSelect}
               />
-              <p className="text-xs text-slate-500 mt-2">Upload profile photo</p>
+              <p className="text-xs text-slate-600 mt-2">Upload profile photo</p>
             </div>
             
             <div className="space-y-4">
               <div>
-                <Label className="text-slate-700 text-sm">Full Name</Label>
+                <Label className="text-slate-700 text-sm font-semibold">Full Name</Label>
                 <Input
                   placeholder="Enter your name"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="bg-white/5 border-amber-200/60 text-slate-800 mt-1 h-12 rounded-xl"
+                  className="bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 mt-1.5 h-12 rounded-xl focus:border-purple-400 focus:ring-1 focus:ring-purple-400"
                 />
               </div>
               
               <div>
-                <Label className="text-slate-700 text-sm">Age</Label>
+                <Label className="text-slate-700 text-sm font-semibold">Age</Label>
                 <Input
                   type="number"
                   placeholder="18+"
                   value={age}
                   onChange={(e) => setAge(e.target.value)}
-                  className="bg-white/5 border-amber-200/60 text-slate-800 mt-1 h-12 rounded-xl"
+                  className="bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 mt-1.5 h-12 rounded-xl focus:border-purple-400 focus:ring-1 focus:ring-purple-400"
                 />
               </div>
               
               <div>
-                <Label className="text-slate-700 text-sm">Language</Label>
+                <Label className="text-slate-700 text-sm font-semibold">Language</Label>
                 <Select value={language} onValueChange={setLanguage}>
-                  <SelectTrigger className="bg-white/5 border-amber-200/60 text-slate-800 mt-1 h-12 rounded-xl">
+                  <SelectTrigger className="bg-white border-slate-200 text-slate-900 mt-1.5 h-12 rounded-xl focus:border-purple-400 focus:ring-1 focus:ring-purple-400">
                     <SelectValue placeholder="Select language" />
                   </SelectTrigger>
                   <SelectContent>
@@ -2292,7 +2292,7 @@ const FaceVerification = () => {
           </div>
           
           <Button
-            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 h-14 rounded-2xl text-lg font-bold"
+            className="w-full bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-600 hover:from-purple-500 hover:via-fuchsia-400 hover:to-pink-500 text-white h-14 rounded-2xl text-lg font-bold shadow-lg shadow-purple-600/25 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40 disabled:hover:scale-100"
             onClick={saveHostStep1}
             disabled={loading || !fullName.trim() || !age || parseInt(age || "0", 10) < 18 || !language || !photoFile}
           >
