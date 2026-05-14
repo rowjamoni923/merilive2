@@ -125,17 +125,19 @@ for (const file of targets) {
     if (line.includes("dark-ok")) continue;
 
     let next = line;
+    let lineHit = false;
     for (const r of REWRITES) {
       const before = next;
       next = next.replace(r.re, r.repl);
       if (next !== before) {
         const hits = (before.match(r.re) || []).length;
         stats.byRule[r.id] = (stats.byRule[r.id] || 0) + hits;
+        lineHit = true;
       }
     }
-    // collapse double spaces left after stripping `dark:` variants
-    next = next.replace(/(["'`])\s+/g, "$1").replace(/\s{2,}/g, " ");
-    if (next !== line) {
+    if (lineHit) {
+      // collapse extra whitespace inside class strings left by stripped `dark:` variants
+      next = next.replace(/(className=\{?["'`])\s+/g, "$1").replace(/\s+(["'`]\}?)/g, "$1").replace(/ {2,}/g, " ");
       lines[i] = next;
       stats.lines++;
       touched = true;
