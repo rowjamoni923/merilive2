@@ -182,6 +182,18 @@ const FaceVerification = () => {
   const [scanningStatus, setScanningStatus] = useState<'idle' | 'scanning' | 'pass' | 'fail'>('idle');
   const [poseHistory, setPoseHistory] = useState<{yaw:number,pitch:number}[]>([]);
   const [failedAttempts, setFailedAttempts] = useState(0);
+  // Live diagnostics — shown to the user during scanning so they understand
+  // exactly why the current step is not passing yet.
+  type LiveDiag = {
+    faceDetected: boolean;
+    eyesOpen: boolean;
+    yaw: number;
+    pitch: number;
+    progress: number;       // 0..1 how close current pose is to target
+    hint: string;           // short user-facing instruction
+    severity: 'ok' | 'warn' | 'error';
+  };
+  const [liveDiag, setLiveDiag] = useState<LiveDiag | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const instructionTimerRef = useRef<NodeJS.Timeout | null>(null);
   const poseCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
