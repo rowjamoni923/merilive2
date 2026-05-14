@@ -200,7 +200,7 @@ export default function VipNobleSection({ userId, userDiamonds, onAfterPurchase 
         )}
 
         {!loadingCards && cards.length === 0 && (
-          <div className="text-center text-slate-500 py-6 border border-dashed border-slate-700 rounded-xl">
+          <div className="text-center text-slate-500 py-6 border border-dashed border-amber-200/60 rounded-xl bg-white/60">
             No Noble ranks available yet.
           </div>
         )}
@@ -212,7 +212,7 @@ export default function VipNobleSection({ userId, userDiamonds, onAfterPurchase 
             return (
               <div
                 key={card.id}
-                className="rounded-2xl border border-white/10 bg-slate-900/80 overflow-hidden"
+                className="rounded-2xl border border-amber-200/60 bg-white shadow-sm overflow-hidden"
               >
                 <div
                   className="p-3 flex items-center justify-between gap-3"
@@ -227,14 +227,14 @@ export default function VipNobleSection({ userId, userDiamonds, onAfterPurchase 
                       <Crown className="w-8 h-8" style={{ color: card.badge_color || '#FFD700' }} />
                     )}
                     <div>
-                      <div className="text-white font-bold">{card.rank_name}</div>
-                      <div className="text-xs text-slate-400">
+                      <div className="text-slate-800 font-bold">{card.rank_name}</div>
+                      <div className="text-xs text-slate-500">
                         💎 {card.monthly_diamond_cost.toLocaleString()} · {card.duration_days}d
                       </div>
                     </div>
                   </div>
                   {isActive ? (
-                    <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-400">Active</Badge>
+                    <Badge className="bg-emerald-100 text-emerald-700 border-emerald-300">Active</Badge>
                   ) : (
                     <Button
                       size="sm"
@@ -248,15 +248,15 @@ export default function VipNobleSection({ userId, userDiamonds, onAfterPurchase 
                 </div>
                 <div className="p-3 space-y-2">
                   {card.description && (
-                    <p className="text-xs text-slate-400">{card.description}</p>
+                    <p className="text-xs text-slate-600">{card.description}</p>
                   )}
                   <div className="flex flex-wrap gap-1">
-                    {card.anti_kick_protection && <Badge variant="outline" className="text-xs border-emerald-500 text-emerald-400"><Shield className="w-3 h-3 mr-1" />Anti-Kick</Badge>}
-                    {card.stealth_mode && <Badge variant="outline" className="text-xs border-violet-500 text-violet-400"><Ghost className="w-3 h-3 mr-1" />Stealth</Badge>}
-                    {card.hide_real_level && <Badge variant="outline" className="text-xs border-slate-400 text-slate-300"><EyeOff className="w-3 h-3 mr-1" />Hide Lvl</Badge>}
-                    {card.recharge_bonus_percent > 0 && <Badge variant="outline" className="text-xs border-yellow-500 text-yellow-400">+{card.recharge_bonus_percent}% Recharge</Badge>}
-                    {card.daily_free_diamonds > 0 && <Badge variant="outline" className="text-xs border-cyan-500 text-cyan-400"><Gem className="w-3 h-3 mr-1" />{card.daily_free_diamonds}/day</Badge>}
-                    {card.monthly_free_diamonds > 0 && <Badge variant="outline" className="text-xs border-pink-500 text-pink-400"><Sparkles className="w-3 h-3 mr-1" />{card.monthly_free_diamonds}/mo</Badge>}
+                    {card.anti_kick_protection && <Badge variant="outline" className="text-xs border-emerald-400 text-emerald-700"><Shield className="w-3 h-3 mr-1" />Anti-Kick</Badge>}
+                    {card.stealth_mode && <Badge variant="outline" className="text-xs border-violet-400 text-violet-700"><Ghost className="w-3 h-3 mr-1" />Stealth</Badge>}
+                    {card.hide_real_level && <Badge variant="outline" className="text-xs border-slate-300 text-slate-600"><EyeOff className="w-3 h-3 mr-1" />Hide Lvl</Badge>}
+                    {card.recharge_bonus_percent > 0 && <Badge variant="outline" className="text-xs border-yellow-400 text-yellow-700">+{card.recharge_bonus_percent}% Recharge</Badge>}
+                    {card.daily_free_diamonds > 0 && <Badge variant="outline" className="text-xs border-cyan-400 text-cyan-700"><Gem className="w-3 h-3 mr-1" />{card.daily_free_diamonds}/day</Badge>}
+                    {card.monthly_free_diamonds > 0 && <Badge variant="outline" className="text-xs border-pink-400 text-pink-700"><Sparkles className="w-3 h-3 mr-1" />{card.monthly_free_diamonds}/mo</Badge>}
                   </div>
                   {card.entrance_animation_url && (
                     <div className="w-16 h-16 bg-slate-950 rounded overflow-hidden">
