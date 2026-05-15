@@ -175,6 +175,7 @@ const FaceVerification = () => {
   const videoInputRef = useRef<HTMLInputElement>(null);
   const hostPhotosInputRef = useRef<HTMLInputElement>(null);
   const [isRecording, setIsRecording] = useState(false);
+  const [troubleshootOpen, setTroubleshootOpen] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const videoStreamRef = useRef<MediaStream | null>(null);
