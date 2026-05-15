@@ -143,11 +143,11 @@ export function AdminPushNotificationBroadcast() {
       };
 
       if (formData.imageUrl) {
-        payload.image = formData.imageUrl;
+        payload.imageUrl = formData.imageUrl;
       }
 
       if (formData.targetType === "all") {
-        payload.send_to_all = true;
+        payload.target = "all";
       } else if (formData.targetType === "single") {
         // Find user by UID using raw query to avoid type recursion
         const { data: userData, error: userError } = await (supabase as any)
@@ -161,7 +161,7 @@ export function AdminPushNotificationBroadcast() {
           setIsSending(false);
           return;
         }
-        payload.user_id = userData[0].id;
+        payload.userId = userData[0].id;
       } else if (formData.targetType === "country") {
         // Get all users from the country
         const { data: countryUsers, error: countryError } = await (supabase as any)
@@ -174,7 +174,7 @@ export function AdminPushNotificationBroadcast() {
           setIsSending(false);
           return;
         }
-        payload.user_ids = countryUsers.map((u: { id: string }) => u.id);
+        payload.userIds = countryUsers.map((u: { id: string }) => u.id);
       }
 
       const { data, error } = await supabase.functions.invoke("send-push-notification", {
