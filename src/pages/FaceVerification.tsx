@@ -2361,7 +2361,7 @@ const FaceVerification = () => {
           </Button>
           <Button
             variant="outline"
-            className="w-full h-11 rounded-xl border-cyan-400 bg-cyan-50 text-cyan-800 hover:bg-cyan-100 hover:text-cyan-900 text-sm font-semibold leading-5 shadow-sm"
+            className="w-full h-11 rounded-xl border-slate-300 bg-white text-slate-800 hover:bg-slate-50 hover:text-slate-900 text-sm font-semibold leading-5 shadow-sm"
             onClick={runNeutralCalibration}
             disabled={!cameraReady || neutralCalibrating}
           >
@@ -2372,7 +2372,7 @@ const FaceVerification = () => {
               </>
             ) : (
               <>
-                <ScanFace className="w-4 h-4 mr-2" />
+                <ScanFace className="w-4 h-4 mr-2 text-slate-700" />
                 {neutralCalib && neutralCalib.capturedAt > 0 ? 'Recalibrate neutral pose' : 'Calibrate neutral pose (3s)'}
               </>
             )}
@@ -2385,7 +2385,7 @@ const FaceVerification = () => {
           )}
           <Button
             variant="outline"
-            className="w-full h-11 rounded-xl border-amber-400 bg-amber-50 text-amber-800 hover:bg-amber-100 hover:text-amber-900 text-sm font-semibold shadow-sm"
+            className="w-full h-11 rounded-xl border-slate-300 bg-white text-slate-700 hover:bg-slate-100 hover:text-slate-900 text-sm font-semibold shadow-sm"
             onClick={stopFaceCamera}
           >
             {localizedMsg.cancel}
