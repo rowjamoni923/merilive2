@@ -73,26 +73,23 @@ export async function warmAppImageCache(): Promise<void> {
     // Pull active banner-style assets in parallel. Each query is best-effort.
     const queries: Promise<any>[] = [];
 
-    queries.push(
-      supabase.from('event_popup_banners').select('image_url, banner_image_url').eq('is_active', true).limit(20)
-        .then(({ data }) => (data || []).forEach((r: any) => { push(r.image_url); push(r.banner_image_url); }))
-        .catch(() => {})
-    );
-    queries.push(
-      supabase.from('payment_banners' as any).select('image_url').eq('is_active', true).limit(20)
-        .then(({ data }) => (data || []).forEach((r: any) => push(r.image_url)))
-        .catch(() => {})
-    );
-    queries.push(
-      supabase.from('topup_campaigns' as any).select('banner_image_url, image_url').eq('is_active', true).limit(10)
-        .then(({ data }) => (data || []).forEach((r: any) => { push(r.banner_image_url); push(r.image_url); }))
-        .catch(() => {})
-    );
-    queries.push(
-      supabase.from('app_banners' as any).select('image_url').eq('is_active', true).limit(20)
-        .then(({ data }) => (data || []).forEach((r: any) => push(r.image_url)))
-        .catch(() => {})
-    );
+    const safe = async (fn: () => Promise<any>) => { try { await fn(); } catch {} };
+    queries.push(safe(async () => {
+      const { data } = await supabase.from('event_popup_banners').select('image_url, banner_image_url').eq('is_active', true).limit(20);
+      (data || []).forEach((r: any) => { push(r.image_url); push(r.banner_image_url); });
+    }));
+    queries.push(safe(async () => {
+      const { data } = await (supabase as any).from('payment_banners').select('image_url').eq('is_active', true).limit(20);
+      (data || []).forEach((r: any) => push(r.image_url));
+    }));
+    queries.push(safe(async () => {
+      const { data } = await (supabase as any).from('topup_campaigns').select('banner_image_url, image_url').eq('is_active', true).limit(10);
+      (data || []).forEach((r: any) => { push(r.banner_image_url); push(r.image_url); });
+    }));
+    queries.push(safe(async () => {
+      const { data } = await (supabase as any).from('app_banners').select('image_url').eq('is_active', true).limit(20);
+      (data || []).forEach((r: any) => push(r.image_url));
+    }));
 
     await Promise.allSettled(queries);
 
