@@ -600,7 +600,7 @@ const AdminFaceVerification = () => {
                       </div>
                     )}
 
-                    {submission.status === 'pending' && (
+                    {['pending', 'submitted', 'under_review'].includes(submission.status) && (
                       <div className="flex gap-2">
                         <Button
                           className="flex-1"
@@ -842,7 +842,7 @@ const AdminFaceVerification = () => {
                 )}
 
                 {/* Action Buttons */}
-                {selectedSubmission.status === 'pending' && (
+                {['pending', 'submitted', 'under_review'].includes(selectedSubmission.status) && (
                   <div className="space-y-2 pt-4">
                     <div className="flex gap-3">
                       <Button
