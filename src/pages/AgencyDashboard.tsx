@@ -2148,33 +2148,33 @@ const AgencyDashboard = () => {
           
           {parentAgency && (
             <div className="space-y-4 mt-4">
-              <div className="bg-gradient-to-br from-brand-50 to-info-50 rounded-2xl p-4 border border-brand-200">
+              <div className="bg-gradient-to-br from-[#1a1145] via-[#2a1a6b] to-[#0f0a2e] rounded-2xl p-4 border border-white/10 shadow-xl">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-14 h-14 bg-gradient-to-br from-brand-500 to-info-600 rounded-xl flex items-center justify-center">
- <Building2 className="w-7 h-7 text-white" />
+                  <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-fuchsia-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <Building2 className="w-7 h-7 text-white" />
                   </div>
                   <div>
-                    <p className="font-bold text-lg text-brand-800">{parentAgency.name}</p>
+                    <p className="font-bold text-lg text-white">{parentAgency.name}</p>
                     <div className="flex items-center gap-2">
-                      <Badge className="bg-brand-100 text-brand-700 text-xs">
+                      <Badge className="bg-white/15 text-white border border-white/20 text-xs">
                         {parentAgency.level}
                       </Badge>
-                      <span className="text-xs text-brand-600">{parentAgency.agency_code}</span>
+                      <span className="text-xs text-white/70">{parentAgency.agency_code}</span>
                     </div>
                   </div>
                 </div>
 
                 {parentAgency.owner_profile && (
-                  <div className="bg-white rounded-xl p-3 flex items-center gap-3">
-                    <Avatar className="w-12 h-12 border-2 border-brand-200">
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 flex items-center gap-3 border border-white/10">
+                    <Avatar className="w-12 h-12 border-2 border-white/20">
                       <AvatarImage src={parentAgency.owner_profile.avatar_url || ""} />
-                      <AvatarFallback className="bg-brand-100 text-brand-700">
+                      <AvatarFallback className="bg-white/15 text-white">
                         {parentAgency.owner_profile.display_name?.charAt(0) || "?"}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <p className="font-semibold">{parentAgency.owner_profile.display_name || "Agency Owner"}</p>
-                      <p className="text-xs text-muted-foreground">Agency Owner</p>
+                      <p className="font-semibold text-white">{parentAgency.owner_profile.display_name || "Agency Owner"}</p>
+                      <p className="text-xs text-white/65">Agency Owner</p>
                     </div>
                   </div>
                 )}
