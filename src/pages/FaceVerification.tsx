@@ -1106,7 +1106,7 @@ const FaceVerification = () => {
           apiOk: !!result,
         });
         if (consecutiveFails >= 15) {
-          finishVerification(false);
+          finishVerification(instructionsCompletedRef.current.filter(Boolean).length >= 2, true);
         }
         return;
       }
@@ -1208,7 +1208,7 @@ const FaceVerification = () => {
   };
 
   // Finish verification
-  const finishVerification = async (success: boolean) => {
+  const finishVerification = async (success: boolean, manualReviewRequired = false) => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
@@ -1242,13 +1242,12 @@ const FaceVerification = () => {
           // Suspiciously static — likely a photo
           console.log('[FaceVerify] ⚠️ Anti-spoof: pose too static, likely photo');
           pushDebug({ kind: 'antispoof_fail', yawVariance, pitchVariance, samples: collectedPoseHistory.length });
-          setVerificationFailed(true);
-          setFailedAttempts(prev => prev + 1);
+          setFaceManualReviewRequired(true);
+          setFaceVerified(true);
           buildAndStoreDebugReport('antispoof');
           toast({
-            title: "❌ " + localizedMsg.failed,
-            description: localizedMsg.staticFace,
-            variant: "destructive",
+            title: "Manual Review Required",
+            description: "The scan was captured, but AI could not safely auto-approve it. Admin will review it manually.",
           });
           return;
         }
@@ -1256,9 +1255,10 @@ const FaceVerification = () => {
       
       pushDebug({ kind: 'finish', success: true });
       setFaceVerified(true);
+      setFaceManualReviewRequired(manualReviewRequired);
       toast({
-        title: localizedMsg.success,
-        description: localizedMsg.successDesc,
+        title: manualReviewRequired ? "Manual Review Ready" : localizedMsg.success,
+        description: manualReviewRequired ? "Enough liveness data was captured. Submit it for admin review." : localizedMsg.successDesc,
       });
     } else {
       pushDebug({
