@@ -1806,6 +1806,14 @@ const FaceVerification = () => {
     const completedCount = instructionsCompleted.filter(Boolean).length;
     const progressPercent = (completedCount / faceInstructions.length) * 100;
     const borderColor = scanningStatus === 'pass' ? '#22c55e' : scanningStatus === 'fail' ? '#ef4444' : scanningStatus === 'scanning' ? '#eab308' : '#a855f7';
+    const completeFromPartialScan = () => {
+      const completed = instructionsCompletedRef.current.filter(Boolean).length;
+      if (completed < 2 || !faceChunksRef.current.length) {
+        toast({ title: 'Keep scanning', description: 'Complete at least forward + one side angle before manual review.', variant: 'destructive' });
+        return;
+      }
+      finishVerification(true, true);
+    };
 
     return (
     <div className="bg-gradient-to-br from-[#FFFBF2] to-[#FFFBF2] rounded-3xl p-5 border border-purple-500/20 shadow-2xl">
@@ -2376,6 +2384,15 @@ const FaceVerification = () => {
       
       {verificationFailed && (
         <div className="space-y-2">
+          {instructionsCompleted.filter(Boolean).length >= 2 && (
+            <Button
+              className="w-full h-14 bg-gradient-to-r from-emerald-600 to-cyan-600 rounded-2xl text-lg font-bold"
+              onClick={completeFromPartialScan}
+            >
+              <ShieldCheck className="w-6 h-6 mr-3" />
+              Submit for Manual Review
+            </Button>
+          )}
           <Button
             className="w-full h-14 bg-gradient-to-r from-amber-600 to-orange-600 rounded-2xl text-lg font-bold"
             onClick={resetVerification}
