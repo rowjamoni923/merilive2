@@ -3,13 +3,18 @@
 import "https://deno.land/std@0.224.0/dotenv/load.ts";
 import { assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
 
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? Deno.env.get("VITE_SUPABASE_URL")!;
-const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("VITE_SUPABASE_PUBLISHABLE_KEY")!;
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? Deno.env.get("VITE_SUPABASE_URL") ?? "";
+const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const ANON_KEY =
+  Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("VITE_SUPABASE_PUBLISHABLE_KEY") ?? "";
 
-assert(SUPABASE_URL, "SUPABASE_URL missing");
-assert(SERVICE_KEY, "SUPABASE_SERVICE_ROLE_KEY missing");
-assert(ANON_KEY, "SUPABASE_ANON_KEY missing");
+// CI/local without service role can't provision an admin session — skip cleanly.
+const CAN_RUN = !!(SUPABASE_URL && SERVICE_KEY && ANON_KEY);
+if (!CAN_RUN) {
+  console.warn(
+    "[admin-rpc-access-tests] SKIPPED — set SUPABASE_SERVICE_ROLE_KEY to run.",
+  );
+}
 
 const RPCS_NO_ARGS = [
   "get_admin_dashboard_stats",
