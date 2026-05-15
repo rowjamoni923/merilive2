@@ -146,6 +146,22 @@ video::-ms-media-controls {
     --live-game-card: 0 0% 96%;
     --live-game-flame: 18 94% 58%;
 
+    /* ───── Premium Surface Gradients (deep dark cards w/ white text) ─────
+       Single source of truth used by .surface-* utilities below.
+       Apply via Tailwind classes: surface-indigo / surface-emerald / surface-amber /
+       surface-sky / surface-rose / surface-parent. Pair with text-white tokens. */
+    --surface-indigo: linear-gradient(135deg, #1a1145 0%, #2a1a6b 50%, #0f0a2e 100%);
+    --surface-emerald: linear-gradient(135deg, #0a3d2e 0%, #0f6b4a 50%, #0a2e22 100%);
+    --surface-amber: linear-gradient(135deg, #3d2a07 0%, #7a5410 50%, #2e1f05 100%);
+    --surface-amber-warm: linear-gradient(135deg, #3d1f0a 0%, #7a3d10 50%, #2e1707 100%);
+    --surface-sky: linear-gradient(135deg, #0a2540 0%, #0f3a6b 50%, #081a30 100%);
+    --surface-rose: linear-gradient(135deg, #3d0a14 0%, #7a0f24 50%, #2e0810 100%);
+    --surface-parent: linear-gradient(135deg, #0a2540 0%, #1a1145 50%, #0f0a2e 100%);
+    --surface-border: rgba(255,255,255,0.08);
+    --surface-tile: rgba(255,255,255,0.10);
+    --surface-tile-strong: rgba(255,255,255,0.15);
+    --shadow-surface: 0 10px 30px -8px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06);
+
     /* Shadows - Light luxury (warm gold-tinted) */
     --shadow-glow: 0 0 30px -5px hsl(330 85% 55% / 0.25);
     --shadow-card: 0 4px 20px -4px rgba(180, 140, 60, 0.18), 0 0 0 1px rgba(180, 140, 60, 0.06);
