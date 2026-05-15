@@ -48,14 +48,14 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
     // Synchronous decision FIRST so we never spin forever if the edge fn is slow.
     const decideSync = () => {
       const session = getAdminSession();
-      const hasFlag = hasAdminAccessFlag() || hasOwnerAccessFlag();
       const accessToken = getAccessTokenFromURL();
       if (!mounted) return;
       if (isLoginRoute()) {
-        // Login route is ONLY accessible with a valid secret-link flag/token or an existing session.
-        // Without it, hide the panel entirely (show BlogPage) — no one should reach the login form
-        // just by typing /admin/auth.
-        if (session || hasFlag || accessToken) {
+        // STRICT: secret link mandatory every visit. Allowed only if:
+        //  - URL has ?access=<token> (will be validated below), OR
+        //  - User already has an active admin session (post-login refresh)
+        // Persistent localStorage flag alone is NOT enough — must come via secret link.
+        if (session || accessToken) {
           setIsAuthorized(true);
         } else {
           setIsAuthorized(false);
@@ -69,7 +69,8 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
         } else {
           setIsAuthorized(true);
         }
-      } else if (hasFlag || accessToken) {
+      } else if (accessToken) {
+        // Came via secret link but not yet logged in → allow (will redirect to /admin/auth).
         setIsAuthorized(true);
       } else {
         setIsAuthorized(false);
