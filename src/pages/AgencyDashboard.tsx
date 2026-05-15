@@ -2041,26 +2041,26 @@ const AgencyDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="agency-premium-card bg-gradient-to-br from-success-50 to-success-50">
+            <Card className="border-0 overflow-hidden relative shadow-xl bg-gradient-to-br from-[#0a3d2e] via-[#0f6b4a] to-[#0a2e22]">
               <CardContent className="p-4">
-                <h3 className="font-semibold text-success-800 mb-3 flex items-center gap-2">
-                  <Zap className="w-5 h-5" />
+                <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-emerald-300" />
                   Compared to Last Week
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-white/60 rounded-xl p-4 text-center">
-                    <div className="flex items-center justify-center gap-1 text-success-600">
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center border border-white/10">
+                    <div className="flex items-center justify-center gap-1 text-emerald-300">
                       <TrendingUp className="w-5 h-5" />
                       <span className="text-xl font-bold">+12%</span>
                     </div>
-                    <p className="text-xs text-success-700 mt-1">Income Growth</p>
+                    <p className="text-xs text-white/75 mt-1">Income Growth</p>
                   </div>
-                  <div className="bg-white/60 rounded-xl p-4 text-center">
-                    <div className="flex items-center justify-center gap-1 text-info-600">
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 text-center border border-white/10">
+                    <div className="flex items-center justify-center gap-1 text-sky-300">
                       <TrendingUp className="w-5 h-5" />
                       <span className="text-xl font-bold">+8%</span>
                     </div>
-                    <p className="text-xs text-info-700 mt-1">Host Activity</p>
+                    <p className="text-xs text-white/75 mt-1">Host Activity</p>
                   </div>
                 </div>
               </CardContent>
