@@ -40,6 +40,9 @@ export interface AdminSession {
 export const getAdminSessionToken = (): string => {
   if (!hasWindow()) return '';
   try {
+    if (!window.sessionStorage.getItem(ADMIN_SECRET_LINK_SESSION_KEY)) {
+      return '';
+    }
     const direct = window.localStorage.getItem(ADMIN_TOKEN_KEY);
     if (direct && direct.length >= 16) return direct;
     // Recovery: older sessions stored the server token only inside the session blob.
