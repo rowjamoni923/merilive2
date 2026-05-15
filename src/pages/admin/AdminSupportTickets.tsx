@@ -12,7 +12,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { adminSupabase as supabase } from "@/integrations/supabase/adminClient";
-import { getAdminSession } from "@/utils/adminSession";
 import { useToast } from "@/hooks/use-toast";
 import { 
   MessageCircle, Search, Loader2, Send, Clock, CheckCircle, 
@@ -52,7 +51,7 @@ interface SupportTicket {
 interface SupportMessage {
   id: string;
   ticket_id: string;
-  sender_id: string;
+  sender_id: string | null;
   sender_type: string;
   content: string;
   is_read: boolean;
@@ -164,6 +163,12 @@ const AdminSupportTickets = () => {
 
   const endSingleFlight = (key: string) => {
     inFlightActionsRef.current.delete(key);
+  };
+
+  const getCurrentSupportName = async () => {
+    const { data, error } = await supabase.rpc("admin_get_my_admin_user" as any).maybeSingle();
+    if (error) throw error;
+    return ((data as any)?.support_display_name?.trim() || (data as any)?.display_name || null) as string | null;
   };
 
   useEffect(() => {
