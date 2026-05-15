@@ -620,6 +620,7 @@ serve(async (req) => {
     }
 
     let faceMatchPercentage = 0;
+    let borderlineMatchWarning: string | null = null;
 
     if (referenceImageUrl) {
       // We have a reference image - do face comparison
@@ -638,21 +639,19 @@ serve(async (req) => {
           0,
         );
 
+        // ★ BORDERLINE POLICY ★
+        // Below threshold = NOT auto-reject. Save as pending + WARNING admin notes
+        // so admin always has the final say. Only HARD rejects (no_face, multiple_faces,
+        // underage, gender_mismatch, occluded) auto-reject above.
         if (faceMatchPercentage < MIN_FACE_MATCH_PERCENTAGE) {
-          return await rejectWithReason({
-            reasonCode: "face_match_below_threshold",
-            faceMatchPercentage,
-            extraContext: `Detected face match ${faceMatchPercentage.toFixed(1)}%.`,
-          });
+          borderlineMatchWarning = `⚠️ LOW MATCH: ${faceMatchPercentage.toFixed(1)}% (min ${MIN_FACE_MATCH_PERCENTAGE}%) — admin manual review required.`;
+          console.warn(`[auto-face-verify] Borderline match ${faceMatchPercentage.toFixed(1)}% — routing to admin instead of auto-reject`);
         }
       } catch (compareErr) {
-        // CompareFaces failed (e.g. InvalidImageFormatException)
+        // CompareFaces failed (e.g. InvalidImageFormatException) → flag for admin re-run, do NOT reject
         console.error(`[auto-face-verify] CompareFaces failed:`, compareErr);
-        return await rejectWithReason({
-          reasonCode: "face_match_below_threshold",
-          faceMatchPercentage: 0,
-          extraContext: "Face comparison failed and could not verify identity.",
-        });
+        borderlineMatchWarning = `⚠️ AWS COMPARE FAILED: ${(compareErr as Error)?.message || "unknown"} — admin can Re-run AWS Analysis from panel.`;
+        faceMatchPercentage = 0;
       }
     } else {
       // No reference image - strict reject (identity cannot be matched)
