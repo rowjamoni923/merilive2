@@ -1899,24 +1899,24 @@ const AgencyDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card className="agency-premium-card bg-gradient-to-br from-brand-50 to-info-50">
+            <Card className="border-0 overflow-hidden relative shadow-xl bg-gradient-to-br from-[#1a1145] via-[#2a1a6b] to-[#0f0a2e]">
               <CardContent className="p-4">
-                <h3 className="font-semibold text-brand-800 mb-3 flex items-center gap-2">
-                  <Award className="w-5 h-5" />
+                <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
+                  <Award className="w-5 h-5 text-amber-300" />
                   Commission Structure
                 </h3>
-                <ul className="text-sm text-brand-700 space-y-2">
-                  <li className="flex items-center justify-between py-2 border-b border-brand-200">
+                <ul className="text-sm text-white/85 space-y-2">
+                  <li className="flex items-center justify-between py-2 border-b border-white/10">
                     <span>Sub-Agent Base Commission:</span>
-                    <span className="font-bold">2%</span>
+                    <span className="font-bold text-amber-300">2%</span>
                   </li>
-                  <li className="flex items-center justify-between py-2 border-b border-brand-200">
+                  <li className="flex items-center justify-between py-2 border-b border-white/10">
                     <span>Top Performer Bonus:</span>
-                    <span className="font-bold">+1%</span>
+                    <span className="font-bold text-amber-300">+1%</span>
                   </li>
                   <li className="flex items-center justify-between py-2">
                     <span>10+ Referral Bonus:</span>
-                    <span className="font-bold">+0.5%</span>
+                    <span className="font-bold text-amber-300">+0.5%</span>
                   </li>
                 </ul>
               </CardContent>
