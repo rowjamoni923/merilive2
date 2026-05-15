@@ -1,15 +1,22 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Capacitor } from '@capacitor/core';
+import { getDeviceIdSync, getPersistentDeviceId } from '@/utils/persistentDeviceId';
 
 const IS_NATIVE = Capacitor.isNativePlatform();
-const SESSION_CHECK_MIN_INTERVAL_MS = 60_000;
-const PERIODIC_CHECK_INTERVAL_MS = 3 * 60_000;
+const SESSION_CHECK_MIN_INTERVAL_MS = IS_NATIVE ? 20_000 : 60_000;
+// On native we run a faster safety-net check (30s) — realtime is still primary,
+// but if the websocket drops the user must not be able to keep using a
+// revoked session for 3 minutes.
+const PERIODIC_CHECK_INTERVAL_MS = IS_NATIVE ? 30_000 : 3 * 60_000;
 const SESSION_ERROR_BACKOFF_BASE_MS = 60_000;
 const SESSION_ERROR_BACKOFF_MAX_MS = 10 * 60_000;
 const SESSION_CHECK_JITTER_MS = 7_000;
 
-// Generate a unique session ID for this device/tab
+// Generate a unique session ID for this device/tab.
+// Used only as a WEB fallback. On native we replace this with the hardware
+// device UUID (see resolveStableSessionId) so the same phone always gets the
+// same session id — no false-positive logouts of the user's own device.
 const generateSessionId = (): string => {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 };
@@ -20,6 +27,16 @@ const STORAGE_KEY = 'meri_session_id';
 const USER_KEY = 'meri_session_user_id';
 
 const getOrCreateSessionId = (): string => {
+  // On native: prefer the stable hardware device id so the SAME phone keeps
+  // the SAME session id across cold starts, app updates, even WebView data
+  // resets. This is the core of "100% reliable single-device" on Android.
+  if (IS_NATIVE) {
+    const hw = getDeviceIdSync();
+    if (hw && hw.startsWith('device_')) {
+      try { localStorage.setItem(STORAGE_KEY, hw); } catch { /* noop */ }
+      return hw;
+    }
+  }
   let sessionId = localStorage.getItem(STORAGE_KEY);
   if (!sessionId) {
     sessionId = generateSessionId();
@@ -37,6 +54,22 @@ const setStoredUserId = (userId: string) => {
 };
 
 const forceNewSessionId = (): string => {
+  // On native we DO NOT rotate the session id even on "fresh login" — a
+  // physical device only ever has one session id (its hardware UUID), so
+  // when the same user signs in again on the same phone the registration
+  // is a no-op (same id wins by definition), and when a DIFFERENT phone
+  // signs in, that other phone's hardware id replaces this one in DB →
+  // this device gets logged out via realtime/periodic check.
+  if (IS_NATIVE) {
+    const hw = getDeviceIdSync();
+    if (hw && hw.startsWith('device_')) {
+      try {
+        localStorage.setItem(STORAGE_KEY, hw);
+        sessionStorage.setItem(STORAGE_KEY, hw);
+      } catch { /* noop */ }
+      return hw;
+    }
+  }
   const newId = generateSessionId();
   // Save to BOTH so it persists across reload
   localStorage.setItem(STORAGE_KEY, newId);
@@ -45,8 +78,12 @@ const forceNewSessionId = (): string => {
 };
 
 const clearSessionId = () => {
-  localStorage.removeItem(STORAGE_KEY);
-  sessionStorage.removeItem(STORAGE_KEY);
+  // Keep the hardware-derived id on native so the next login from the same
+  // phone instantly re-registers the same id. Only wipe the user link.
+  if (!IS_NATIVE) {
+    localStorage.removeItem(STORAGE_KEY);
+    sessionStorage.removeItem(STORAGE_KEY);
+  }
   localStorage.removeItem(USER_KEY);
 };
 
