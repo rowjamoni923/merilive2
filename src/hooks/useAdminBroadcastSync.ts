@@ -89,6 +89,74 @@ const TOPIC_QUERY_KEYS: Record<string, string[][]> = {
   notification_templates: [['notification-templates']],
   admin_notices: [['admin-notices']],
   shop_items: [['shop-items'], ['shop']],
+
+  // Pkg37 additions
+  noble_cards: [['noble-cards']],
+  noble_tiers: [['noble-tiers']],
+  vip_medals: [['vip-medals']],
+  vip_perks: [['vip-perks']],
+  vip_exclusive_items: [['vip-exclusive-items']],
+  premium_animations_hidden: [['premium-animations-hidden']],
+  subscription_plans: [['subscription-plans']],
+
+  gift_categories: [['gift-categories']],
+  lucky_gift_config: [['lucky-gift-config']],
+  diamond_exchange_packages: [['diamond-exchange-packages']],
+  helper_diamond_packages: [['helper-diamond-packages']],
+
+  party_room_backgrounds: [['party-room-backgrounds']],
+  party_room_banners: [['party-room-banners']],
+  room_welcome_messages: [['room-welcome-messages']],
+  vehicle_entrances: [['vehicle-entrances']],
+  entry_name_bars: [['entry-name-bars']],
+  live_moderation_settings: [['live-moderation-settings']],
+
+  game_configs: [['game-configs']],
+  provider_games: [['provider-games']],
+
+  pk_reward_banners: [['pk-reward-banners']],
+  pk_competitions: [['pk-competitions']],
+
+  helper_payment_methods: [['helper-payment-methods']],
+  helper_country_payment_methods: [['helper-country-payment-methods']],
+  helper_accepted_payment_methods: [['helper-accepted-payment-methods']],
+  helper_assigned_countries: [['helper-assigned-countries']],
+  topup_helper_levels: [['topup-helper-levels']],
+  trader_level_tiers: [['trader-level-tiers']],
+  agency_faqs: [['agency-faqs']],
+  agency_policy_settings: [['agency-policy-settings']],
+
+  payment_gateways: [['payment-gateways']],
+  payment_methods: [['payment-methods-catalog']],
+  recharge_campaigns: [['recharge-campaigns']],
+
+  support_categories: [['support-categories']],
+  help_articles: [['help-articles']],
+
+  site_content: [['site-content']],
+  site_settings: [['site-settings']],
+  app_event_themes: [['app-event-themes']],
+  admin_music_library: [['admin-music-library']],
+  app_icon_registry: [['app-icon-registry']],
+
+  host_levels: [['host-levels']],
+  user_level_thresholds: [['user-level-thresholds']],
+
+  iptv_sources: [['iptv-sources']],
+  news_sources: [['news-sources']],
+  youtube_sources: [['youtube-sources']],
+  reel_categories: [['reel-categories']],
+
+  categories: [['categories']],
+  channels: [['channels']],
+  sports: [['sports']],
+  movies: [['movies']],
+  news: [['news']],
+  entertainment: [['entertainment']],
+  kids_content: [['kids-content']],
+  music: [['music']],
+  poster_images: [['poster-images']],
+  watchlist: [['watchlist']],
 };
 
 let globalChannel: ReturnType<typeof supabase.channel> | null = null;
