@@ -396,8 +396,8 @@ const AISupportChat = ({
     try {
       // Upload voice file
       const voiceFile = new File([audioBlob], "voice.webm", { type: "audio/webm" });
-      const url = await uploadFile(voiceFile, "voice");
-      if (!url) throw new Error("Upload failed");
+      const uploaded = await uploadFile(voiceFile, "voice");
+      if (!uploaded) throw new Error("Upload failed");
 
       // Transcribe using speech-to-text
       const reader = new FileReader();
@@ -438,7 +438,7 @@ const AISupportChat = ({
         role: "user",
         content: transcript ? `🎤 Voice: "${transcript}"` : "🎤 Sent a voice message",
         timestamp: new Date(),
-        attachmentUrl: url,
+        attachmentUrl: uploaded.previewUrl,
         attachmentType: "voice",
         voiceTranscript: transcript,
       };
@@ -451,7 +451,7 @@ const AISupportChat = ({
           sender_id: userId,
           sender_type: "user",
           content: transcript ? `🎤 Voice: "${transcript}"` : "🎤 Sent a voice message",
-          attachment_url: url,
+          attachment_url: uploaded.path,
           attachment_type: "voice",
           voice_transcript: transcript,
           translated_content: translatedTranscript || null,
