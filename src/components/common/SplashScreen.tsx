@@ -80,13 +80,18 @@ export function SplashScreen({ onComplete, minDuration = 2000 }: SplashScreenPro
             className="relative z-10"
           >
             <div
-              className="w-32 h-32 rounded-[28px] overflow-hidden ring-2 ring-pink-300/40"
+              className="relative w-32 h-32 rounded-full overflow-hidden"
               style={{
                 boxShadow:
-                  '0 20px 60px rgba(236,72,153,0.35), 0 0 0 1px rgba(236,72,153,0.12), inset 0 0 0 1px rgba(255,255,255,0.5)',
+                  '0 20px 60px rgba(236,72,153,0.35), 0 0 0 1px rgba(236,72,153,0.22)',
               }}
             >
-              <img src={appLogo} alt="MeriLive" className="w-full h-full object-cover" />
+              <img
+                src={appLogo}
+                alt="MeriLive"
+                className="absolute inset-0 block h-full w-full scale-[1.08] object-cover"
+                style={{ objectPosition: 'center center' }}
+              />
             </div>
           </motion.div>
 
