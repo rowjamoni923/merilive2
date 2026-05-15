@@ -96,8 +96,6 @@ const getLocalizedInstructions = (_countryName?: string) => [
   { id: 'center', direction: 'Look Forward', icon: ScanFace,       description: 'Keep your face straight towards the camera', checkPose: (p: { yaw: number; pitch: number }) => evaluatePose('center', p, DEFAULT_CALIB) },
   { id: 'left',   direction: 'Turn Left',    icon: ArrowLeftIcon,  description: 'Slowly turn your head to the left',          checkPose: (p: { yaw: number; pitch: number }) => evaluatePose('left',   p, DEFAULT_CALIB) },
   { id: 'right',  direction: 'Turn Right',   icon: ArrowRightIcon, description: 'Slowly turn your head to the right',         checkPose: (p: { yaw: number; pitch: number }) => evaluatePose('right',  p, DEFAULT_CALIB) },
-  { id: 'up',     direction: 'Look Up',      icon: ArrowUp,        description: 'Tilt your head upward slightly',             checkPose: (p: { yaw: number; pitch: number }) => evaluatePose('up',     p, DEFAULT_CALIB) },
-  { id: 'down',   direction: 'Look Down',    icon: ArrowDown,      description: 'Tilt your head downward slightly',           checkPose: (p: { yaw: number; pitch: number }) => evaluatePose('down',   p, DEFAULT_CALIB) },
 ];
 
 // Single English-only message set.
@@ -195,10 +193,11 @@ const FaceVerification = () => {
   // Video verification flow states
   const [verificationStarted, setVerificationStarted] = useState(false);
   const [currentInstruction, setCurrentInstruction] = useState(0);
-  const [instructionsCompleted, setInstructionsCompleted] = useState<boolean[]>([false, false, false, false, false]);
+  const [instructionsCompleted, setInstructionsCompleted] = useState<boolean[]>([false, false, false]);
   const [verificationRecording, setVerificationRecording] = useState(false);
   const [verificationTime, setVerificationTime] = useState(0);
   const [verificationFailed, setVerificationFailed] = useState(false);
+  const [faceManualReviewRequired, setFaceManualReviewRequired] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
   const [scanningStatus, setScanningStatus] = useState<'idle' | 'scanning' | 'pass' | 'fail'>('idle');
   const poseHistoryRef = useRef<{yaw:number,pitch:number}[]>([]);
@@ -312,7 +311,7 @@ const FaceVerification = () => {
   const instructionTimerRef = useRef<NodeJS.Timeout | null>(null);
   const poseCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const currentInstructionRef = useRef(0);
-  const instructionsCompletedRef = useRef<boolean[]>([false, false, false, false, false]);
+  const instructionsCompletedRef = useRef<boolean[]>([false, false, false]);
   // 3-angle stills captured live during pose check (for AWS Rekognition auto-approve)
   const capturedAnglesRef = useRef<{ center?: string; left?: string; right?: string }>({});
   const horizontalFirstTurnSignRef = useRef<number | null>(null);
