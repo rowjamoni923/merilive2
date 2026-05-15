@@ -146,7 +146,7 @@ export const AdminAnalyticsCharts = memo(() => {
     loadData();
   }, [loadData, timeRange]);
 
-  // Auto-refresh on relevant table changes
+  // Realtime push (Pkg37): instant invalidation, no polling
   useAdminRealtime(
     ['gift_transactions', 'private_calls', 'recharge_transactions', 'profiles'],
     () => loadData()

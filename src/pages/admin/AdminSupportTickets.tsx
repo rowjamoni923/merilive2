@@ -308,7 +308,7 @@ const AdminSupportTickets = () => {
     }
   }, [statusFilter, toast]);
 
-  // Realtime: auto-refresh on support_tickets or support_messages changes
+  // Realtime push (Pkg37): instant invalidation, no polling
   useAdminRealtime(['support_tickets', 'support_messages'], () => loadTickets(), 'admin-support-tickets-rt');
 
   const isLegacyAiSummaryMessage = (content?: string) =>
