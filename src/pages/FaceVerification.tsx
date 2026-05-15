@@ -1061,18 +1061,6 @@ const FaceVerification = () => {
         if (signedDy > c.turnYaw) return { hint: 'Hold — capturing right angle', severity: 'ok', progress: 1 };
         return { hint: horizontalFirstTurnSignRef.current == null ? 'Turn your head right slowly' : `Turn ~${Math.round(Math.max(c.turnYaw - signedDy, 0) + 4)}° more to your right`, severity: 'warn', progress };
       }
-      case 'up': {
-        const signedDp = (verticalFirstTiltSignRef.current ?? -1) * dp;
-        const progress = clamp(signedDp / (c.tiltPitch + 6));
-        if (signedDp > c.tiltPitch) return { hint: 'Hold — capturing up angle', severity: 'ok', progress: 1 };
-        return { hint: verticalFirstTiltSignRef.current == null ? 'Tilt your head up slowly' : `Tilt your head up ~${Math.round(Math.max(c.tiltPitch - signedDp, 0) + 3)}° more`, severity: 'warn', progress };
-      }
-      case 'down': {
-        const signedDp = -(verticalFirstTiltSignRef.current ?? -1) * dp;
-        const progress = clamp(signedDp / (c.tiltPitch + 6));
-        if (signedDp > c.tiltPitch) return { hint: 'Hold — capturing down angle', severity: 'ok', progress: 1 };
-        return { hint: verticalFirstTiltSignRef.current == null ? 'Tilt your head down slowly' : `Tilt your head down ~${Math.round(Math.max(c.tiltPitch - signedDp, 0) + 3)}° more`, severity: 'warn', progress };
-      }
       default:
         return { hint: 'Follow the on-screen instruction', severity: 'warn', progress: 0 };
     }
@@ -1165,9 +1153,6 @@ const FaceVerification = () => {
         const dp = pose.pitch - calib.baselinePitch;
         if (instruction.id === 'left' && horizontalFirstTurnSignRef.current == null && Math.abs(dy) > 6) {
           horizontalFirstTurnSignRef.current = Math.sign(dy) || 1;
-        }
-        if (instruction.id === 'up' && verticalFirstTiltSignRef.current == null && Math.abs(dp) > 5) {
-          verticalFirstTiltSignRef.current = Math.sign(dp) || -1;
         }
         const passed = evaluateAdaptivePose(instruction.id, pose, calib);
         const diag = computeStepDiag(instruction.id, pose, true, result.eyesOpen, calib);
