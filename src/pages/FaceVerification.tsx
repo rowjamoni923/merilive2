@@ -139,7 +139,7 @@ const FaceVerification = () => {
   const [rejectionReason, setRejectionReason] = useState<string | null>(null);
   
   // Native camera permission hook
-  const { getCameraStream, requestCameraPermission, isNativeApp } = useNativeCameraPermission();
+  const { getCameraStream, requestCameraPermission } = useNativeCameraPermission();
   
   // Determine verification type based on user gender
   const isHost = profile?.is_host;
@@ -201,7 +201,7 @@ const FaceVerification = () => {
   const [verificationFailed, setVerificationFailed] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
   const [scanningStatus, setScanningStatus] = useState<'idle' | 'scanning' | 'pass' | 'fail'>('idle');
-  const [poseHistory, setPoseHistory] = useState<{yaw:number,pitch:number}[]>([]);
+  const poseHistoryRef = useRef<{yaw:number,pitch:number}[]>([]);
   const [failedAttempts, setFailedAttempts] = useState(0);
   // Live diagnostics — shown to the user during scanning so they understand
   // exactly why the current step is not passing yet.
@@ -315,6 +315,8 @@ const FaceVerification = () => {
   const instructionsCompletedRef = useRef<boolean[]>([false, false, false, false, false]);
   // 3-angle stills captured live during pose check (for AWS Rekognition auto-approve)
   const capturedAnglesRef = useRef<{ center?: string; left?: string; right?: string }>({});
+  const horizontalFirstTurnSignRef = useRef<number | null>(null);
+  const verticalFirstTiltSignRef = useRef<number | null>(null);
 
   const attachFacePreviewStream = useCallback((stream: MediaStream) => {
     const videoEl = faceVideoRef.current;
@@ -394,7 +396,7 @@ const FaceVerification = () => {
     if (latestSubmission?.status === 'approved') {
       setVerificationStatus('verified');
       setRejectionReason(null);
-    } else if (latestSubmission?.status === 'pending') {
+    } else if (latestSubmission?.status === 'pending' || latestSubmission?.status === 'submitted') {
       setVerificationStatus('submitted');
       setRejectionReason(null);
     } else if (latestSubmission?.status === 'rejected') {
@@ -799,10 +801,7 @@ const FaceVerification = () => {
         faceStream.getTracks().forEach(track => track.stop());
         setFaceStream(null);
       }
-      
-      // Small delay to let the camera hardware fully release
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
+
       // getCameraStream already handles permission internally — no separate probe needed
       // This avoids the double getUserMedia issue that causes black screen on Android WebView
       const stream = await getCameraStream(false);
@@ -928,10 +927,12 @@ const FaceVerification = () => {
     setVerificationFailed(false);
     setVerificationTime(0);
     setScanningStatus('idle');
-    setPoseHistory([]);
+      poseHistoryRef.current = [];
     setLiveDiag(null); setCalibrating(false);
     faceChunksRef.current = [];
     capturedAnglesRef.current = {};
+      horizontalFirstTurnSignRef.current = null;
+      verticalFirstTiltSignRef.current = null;
     // Reset debug log for this attempt
     debugLogRef.current = [];
     sessionStartRef.current = Date.now();
@@ -950,9 +951,11 @@ const FaceVerification = () => {
         ? 'video/webm;codecs=vp9' 
         : MediaRecorder.isTypeSupported('video/webm') 
           ? 'video/webm' 
-          : 'video/mp4';
+          : '';
       
-      const mediaRecorder = new MediaRecorder(faceStream, { mimeType });
+      const mediaRecorder = mimeType
+        ? new MediaRecorder(faceStream, { mimeType })
+        : new MediaRecorder(faceStream);
       faceRecorderRef.current = mediaRecorder;
       
       mediaRecorder.ondataavailable = (e) => {
@@ -960,7 +963,7 @@ const FaceVerification = () => {
       };
       
       mediaRecorder.onstop = () => {
-        const blob = new Blob(faceChunksRef.current, { type: mimeType });
+        const blob = new Blob(faceChunksRef.current, { type: mediaRecorder.mimeType || mimeType || 'video/webm' });
         setFaceVerificationVideo(blob);
       };
       
@@ -1003,6 +1006,20 @@ const FaceVerification = () => {
     }
   };
 
+  const evaluateAdaptivePose = (
+    instrId: string,
+    pose: { yaw: number; pitch: number },
+    c: PoseCalibration,
+  ): boolean => {
+    const dy = pose.yaw - c.baselineYaw;
+    const dp = pose.pitch - c.baselinePitch;
+    if (instrId === 'left') return (horizontalFirstTurnSignRef.current ?? 1) * dy > c.turnYaw;
+    if (instrId === 'right') return -(horizontalFirstTurnSignRef.current ?? 1) * dy > c.turnYaw;
+    if (instrId === 'up') return (verticalFirstTiltSignRef.current ?? -1) * dp > c.tiltPitch;
+    if (instrId === 'down') return -(verticalFirstTiltSignRef.current ?? -1) * dp > c.tiltPitch;
+    return evaluatePose(instrId, pose, c);
+  };
+
   // Compute a precise, user-facing hint about why the current step is not
   // yet passing. Uses the live calibration so deltas are measured from the
   // user's natural pose, not absolute zero.
@@ -1034,24 +1051,28 @@ const FaceVerification = () => {
         return { hint: `Level your head (tilt ${dp > 0 ? 'up' : 'down'} ~${Math.round(adp - c.centerPitch + 4)}°)`, severity: 'warn', progress };
       }
       case 'left': {
-        const progress = clamp(dy / (c.turnYaw + 6));
-        if (dy > c.turnYaw) return { hint: 'Hold — capturing left angle', severity: 'ok', progress: 1 };
-        return { hint: `Turn ~${Math.round(Math.max(c.turnYaw - dy, 0) + 4)}° more to your left`, severity: 'warn', progress };
+        const signedDy = (horizontalFirstTurnSignRef.current ?? 1) * dy;
+        const progress = clamp(signedDy / (c.turnYaw + 6));
+        if (signedDy > c.turnYaw) return { hint: 'Hold — capturing left angle', severity: 'ok', progress: 1 };
+        return { hint: horizontalFirstTurnSignRef.current == null ? 'Turn your head left slowly' : `Turn ~${Math.round(Math.max(c.turnYaw - signedDy, 0) + 4)}° more to your left`, severity: 'warn', progress };
       }
       case 'right': {
-        const progress = clamp(-dy / (c.turnYaw + 6));
-        if (dy < -c.turnYaw) return { hint: 'Hold — capturing right angle', severity: 'ok', progress: 1 };
-        return { hint: `Turn ~${Math.round(Math.max(c.turnYaw + dy, 0) + 4)}° more to your right`, severity: 'warn', progress };
+        const signedDy = -(horizontalFirstTurnSignRef.current ?? 1) * dy;
+        const progress = clamp(signedDy / (c.turnYaw + 6));
+        if (signedDy > c.turnYaw) return { hint: 'Hold — capturing right angle', severity: 'ok', progress: 1 };
+        return { hint: horizontalFirstTurnSignRef.current == null ? 'Turn your head right slowly' : `Turn ~${Math.round(Math.max(c.turnYaw - signedDy, 0) + 4)}° more to your right`, severity: 'warn', progress };
       }
       case 'up': {
-        const progress = clamp(-dp / (c.tiltPitch + 6));
-        if (dp < -c.tiltPitch) return { hint: 'Hold — capturing up angle', severity: 'ok', progress: 1 };
-        return { hint: `Tilt your head up ~${Math.round(Math.max(c.tiltPitch + dp, 0) + 3)}° more`, severity: 'warn', progress };
+        const signedDp = (verticalFirstTiltSignRef.current ?? -1) * dp;
+        const progress = clamp(signedDp / (c.tiltPitch + 6));
+        if (signedDp > c.tiltPitch) return { hint: 'Hold — capturing up angle', severity: 'ok', progress: 1 };
+        return { hint: verticalFirstTiltSignRef.current == null ? 'Tilt your head up slowly' : `Tilt your head up ~${Math.round(Math.max(c.tiltPitch - signedDp, 0) + 3)}° more`, severity: 'warn', progress };
       }
       case 'down': {
-        const progress = clamp(dp / (c.tiltPitch + 6));
-        if (dp > c.tiltPitch) return { hint: 'Hold — capturing down angle', severity: 'ok', progress: 1 };
-        return { hint: `Tilt your head down ~${Math.round(Math.max(c.tiltPitch - dp, 0) + 3)}° more`, severity: 'warn', progress };
+        const signedDp = -(verticalFirstTiltSignRef.current ?? -1) * dp;
+        const progress = clamp(signedDp / (c.tiltPitch + 6));
+        if (signedDp > c.tiltPitch) return { hint: 'Hold — capturing down angle', severity: 'ok', progress: 1 };
+        return { hint: verticalFirstTiltSignRef.current == null ? 'Tilt your head down slowly' : `Tilt your head down ~${Math.round(Math.max(c.tiltPitch - signedDp, 0) + 3)}° more`, severity: 'warn', progress };
       }
       default:
         return { hint: 'Follow the on-screen instruction', severity: 'warn', progress: 0 };
@@ -1133,7 +1154,7 @@ const FaceVerification = () => {
       }
 
       // Track pose history for anti-spoof (photos have zero variance)
-      setPoseHistory(prev => [...prev.slice(-20), { yaw: pose.yaw, pitch: pose.pitch }]);
+      poseHistoryRef.current = [...poseHistoryRef.current.slice(-20), { yaw: pose.yaw, pitch: pose.pitch }];
       
       // Check current instruction using LIVE calibration
       const calib = calibrationRef.current;
@@ -1141,7 +1162,15 @@ const FaceVerification = () => {
       const instruction = faceInstructions[instrIdx];
       
       if (instruction && !instructionsCompletedRef.current[instrIdx]) {
-        const passed = evaluatePose(instruction.id, pose, calib);
+        const dy = pose.yaw - calib.baselineYaw;
+        const dp = pose.pitch - calib.baselinePitch;
+        if (instruction.id === 'left' && horizontalFirstTurnSignRef.current == null && Math.abs(dy) > 6) {
+          horizontalFirstTurnSignRef.current = Math.sign(dy) || 1;
+        }
+        if (instruction.id === 'up' && verticalFirstTiltSignRef.current == null && Math.abs(dp) > 5) {
+          verticalFirstTiltSignRef.current = Math.sign(dp) || -1;
+        }
+        const passed = evaluateAdaptivePose(instruction.id, pose, calib);
         const diag = computeStepDiag(instruction.id, pose, true, result.eyesOpen, calib);
         setLiveDiag({
           faceDetected: true, eyesOpen: result.eyesOpen,
@@ -1218,16 +1247,17 @@ const FaceVerification = () => {
     
     if (success) {
       // Anti-spoof check: verify pose variance (photos have near-zero variance)
-      if (poseHistory.length >= 3) {
-        const yaws = poseHistory.map(p => p.yaw);
-        const pitches = poseHistory.map(p => p.pitch);
+      const collectedPoseHistory = poseHistoryRef.current;
+      if (collectedPoseHistory.length >= 3) {
+        const yaws = collectedPoseHistory.map(p => p.yaw);
+        const pitches = collectedPoseHistory.map(p => p.pitch);
         const yawVariance = Math.max(...yaws) - Math.min(...yaws);
         const pitchVariance = Math.max(...pitches) - Math.min(...pitches);
         
         if (yawVariance < 5 && pitchVariance < 5) {
           // Suspiciously static — likely a photo
           console.log('[FaceVerify] ⚠️ Anti-spoof: pose too static, likely photo');
-          pushDebug({ kind: 'antispoof_fail', yawVariance, pitchVariance, samples: poseHistory.length });
+          pushDebug({ kind: 'antispoof_fail', yawVariance, pitchVariance, samples: collectedPoseHistory.length });
           setVerificationFailed(true);
           setFailedAttempts(prev => prev + 1);
           buildAndStoreDebugReport('antispoof');
@@ -1278,7 +1308,7 @@ const FaceVerification = () => {
     setFaceVerificationVideo(null);
     setFaceVerified(false);
     setScanningStatus('idle');
-    setPoseHistory([]);
+    poseHistoryRef.current = [];
     setLiveDiag(null); setCalibrating(false);
     if (poseCheckIntervalRef.current) {
       clearInterval(poseCheckIntervalRef.current);
@@ -1994,7 +2024,7 @@ const FaceVerification = () => {
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="absolute left-3 right-3 bottom-[120px] pointer-events-auto max-h-[42%] overflow-y-auto"
+                className="absolute left-3 right-3 bottom-3 pointer-events-auto max-h-[30%] overflow-y-auto"
               >
                 <div className={`rounded-2xl backdrop-blur-xl px-3.5 py-3 border shadow-lg ${
                   liveDiag.severity === 'ok'
