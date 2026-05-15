@@ -1806,6 +1806,7 @@ const FaceVerification = () => {
             {verificationRecording ? `Step ${currentInstruction + 1} of ${faceInstructions.length}` : 'AI-powered identity verification'}
           </p>
         </div>
+      </div>
 
       {/* Progress Bar */}
       {verificationRecording && (
