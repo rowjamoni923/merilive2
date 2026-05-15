@@ -614,7 +614,7 @@ const AdminFaceVerification = () => {
                             if (!canApprove) {
                               toast({
                                 title: 'Approval blocked',
-                                description: `Minimum ${MIN_FACE_MATCH_PERCENTAGE}% face match and full data required.`,
+                                description: 'Required verification media is incomplete. Open details to review or re-run AWS.',
                                 variant: 'destructive',
                               });
                               return;
@@ -915,7 +915,7 @@ const AdminFaceVerification = () => {
                     </div>
                     {!canApproveSelected && (
                       <p className="text-[11px] text-amber-300/70 text-center">
-                        Standard Approve disabled — face match below {MIN_FACE_MATCH_PERCENTAGE}% or data incomplete. Use Override (logged) or Re-run AWS.
+                        Standard Approve disabled — required verification media is incomplete. Use Override only after manual visual confirmation, or Re-run AWS.
                       </p>
                     )}
                   </div>
