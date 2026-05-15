@@ -318,7 +318,7 @@ export const useSingleDeviceSession = (userId: string | null) => {
     if (!userId) return;
 
     const channel = supabase
-      .channel(`session-${userId}`)
+      .channel(`session-${userId}-${sessionId.current.slice(-8)}-${Math.random().toString(36).slice(2, 8)}`)
       .on(
         'postgres_changes',
         {
