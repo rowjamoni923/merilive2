@@ -141,9 +141,12 @@ const EventPopupBanner = () => {
             />
 
             {/* Countdown Timer Badge */}
-            <div className="absolute top-2 left-2 flex items-center gap-1.5 bg-white/80 backdrop-blur-sm rounded-full px-3 py-1.5 border border-amber-200/60 z-10">
-              <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-              <span className="text-white text-xs font-medium">
+            <div className="absolute top-3 left-3 flex items-center gap-2 bg-slate-900/85 backdrop-blur-md rounded-full pl-2.5 pr-3 py-1.5 border border-white/10 shadow-lg z-10">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75 animate-ping" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-rose-500" />
+              </span>
+              <span className="text-white text-[11px] font-semibold tabular-nums tracking-wide">
                 {Math.max(0, autoDismiss - elapsed)}s
               </span>
             </div>
@@ -152,12 +155,13 @@ const EventPopupBanner = () => {
             {canSkip ? (
               <button
                 onClick={handleDismiss}
-                className="absolute top-2 right-2 w-10 h-10 rounded-full bg-white/80 border border-amber-200/60 flex items-center justify-center shadow-lg text-white z-10"
+                aria-label="Close"
+                className="absolute top-3 right-3 w-10 h-10 rounded-full bg-slate-900/85 backdrop-blur-md border border-white/15 flex items-center justify-center shadow-lg text-white hover:bg-slate-900 active:scale-95 transition z-10"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5" strokeWidth={2.5} />
               </button>
             ) : (
-              <div className="absolute top-2 right-2 px-3 py-1.5 rounded-full bg-white/80 border border-amber-200/60 text-slate-600 text-xs z-10">
+              <div className="absolute top-3 right-3 px-3 py-1.5 rounded-full bg-slate-900/85 backdrop-blur-md border border-white/10 text-white/90 text-[11px] font-medium tabular-nums z-10 shadow-lg">
                 Skip in {Math.max(0, skipDelay - elapsed)}s
               </div>
             )}
