@@ -6,16 +6,13 @@ const hasWindow = () => typeof window !== 'undefined';
 
 const readFlag = (key: string): boolean => {
   if (!hasWindow()) return false;
-  return (
-    window.sessionStorage.getItem(key) === 'true' ||
-    window.localStorage.getItem(key) === 'true'
-  );
+  return window.sessionStorage.getItem(key) === 'true';
 };
 
 const writeFlag = (key: string, value: 'true' | 'false') => {
   if (!hasWindow()) return;
   window.sessionStorage.setItem(key, value);
-  window.localStorage.setItem(key, value);
+  window.localStorage.removeItem(key);
 };
 
 const removeFlag = (key: string) => {
@@ -29,15 +26,12 @@ export const setAdminLinkToken = (token: string) => {
   const normalized = token.trim();
   if (!normalized) return;
   window.sessionStorage.setItem(ADMIN_LINK_TOKEN_KEY, normalized);
-  window.localStorage.setItem(ADMIN_LINK_TOKEN_KEY, normalized);
+  window.localStorage.removeItem(ADMIN_LINK_TOKEN_KEY);
 };
 
 export const getAdminLinkToken = (): string | null => {
   if (!hasWindow()) return null;
-  return (
-    window.sessionStorage.getItem(ADMIN_LINK_TOKEN_KEY) ||
-    window.localStorage.getItem(ADMIN_LINK_TOKEN_KEY)
-  );
+  return window.sessionStorage.getItem(ADMIN_LINK_TOKEN_KEY);
 };
 
 /**
@@ -45,19 +39,11 @@ export const getAdminLinkToken = (): string | null => {
  */
 export const syncAdminAccessToSession = () => {
   if (!hasWindow()) return;
-
-  if (window.localStorage.getItem(ADMIN_ACCESS_KEY) === 'true') {
-    window.sessionStorage.setItem(ADMIN_ACCESS_KEY, 'true');
-  }
-
-  if (window.localStorage.getItem(OWNER_ACCESS_KEY) === 'true') {
-    window.sessionStorage.setItem(OWNER_ACCESS_KEY, 'true');
-  }
-
-  const adminLinkToken = window.localStorage.getItem(ADMIN_LINK_TOKEN_KEY);
-  if (adminLinkToken) {
-    window.sessionStorage.setItem(ADMIN_LINK_TOKEN_KEY, adminLinkToken);
-  }
+  // Secret-link unlock is tab-scoped only. Remove legacy persistent unlocks so
+  // a bookmarked /admin URL can never reuse yesterday's access flag.
+  window.localStorage.removeItem(ADMIN_ACCESS_KEY);
+  window.localStorage.removeItem(OWNER_ACCESS_KEY);
+  window.localStorage.removeItem(ADMIN_LINK_TOKEN_KEY);
 };
 
 export const hasAdminAccessFlag = (): boolean => {

@@ -44,11 +44,12 @@ export default function AdminAuth() {
   // If already signed in, redirect
   useEffect(() => {
     const existing = getAdminSession();
-    if (existing) {
+    const hasSecretLink = !!searchParams.get('access');
+    if (existing && hasSecretLink) {
       grantAdminAccess(existing.is_owner);
       navigate('/admin', { replace: true });
     }
-  }, [navigate]);
+  }, [navigate, searchParams]);
 
   // Poll device status while in pending state — auto-redirect when owner approves
   useEffect(() => {

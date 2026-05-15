@@ -88,6 +88,33 @@ const adminFetch: typeof fetch = (input, init) => {
 
   let url = urlString(input);
   const method = (opts.method || 'GET').toUpperCase();
+  const isAdminRest = url.includes('/rest/v1/');
+  const isAdminRpc = url.includes('/rest/v1/rpc/');
+  const isLoginRpc = isAdminRpc && [
+    'admin_authenticate',
+    'admin_request_device_access',
+    'admin_check_device_status',
+  ].some((name) => url.includes(`/rest/v1/rpc/${name}`));
+
+  // Do not let protected admin reads/RPCs fire without the dedicated server
+  // session token. This prevents the dashboard from flashing and spamming
+  // "admin only" errors when someone opens /admin without the secret link.
+  if (!token && isAdminRest && !isLoginRpc) {
+    const path = url.replace(SUPABASE_URL, '').split('?')[0];
+    const message = 'No admin session token — open the admin panel from the secret link and log in again';
+    recordAdminError({
+      kind: isAdminRpc ? 'rpc' : 'rest',
+      label: `${method} ${path}`,
+      status: 401,
+      message,
+      detail: message,
+      url,
+    });
+    return Promise.resolve(new Response(JSON.stringify({ message }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    }));
+  }
 
   // Apply safety limit only on simple GET reads.
   if (method === 'GET' || method === 'HEAD') {

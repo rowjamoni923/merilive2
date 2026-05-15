@@ -3,7 +3,7 @@ import { Loader2 } from "lucide-react";
 import BlogPage from "@/pages/BlogPage";
 import { Navigate, useLocation } from "react-router-dom";
 import { getAdminSession, getAdminSessionToken, clearAdminSession } from "@/utils/adminSession";
-import { hasAdminAccessFlag, hasOwnerAccessFlag, grantAdminAccess, setAdminLinkToken } from "@/utils/adminAccessStorage";
+import { grantAdminAccess, setAdminLinkToken } from "@/utils/adminAccessStorage";
 import { adminSupabase } from "@/integrations/supabase/adminClient";
 
 /**
@@ -12,9 +12,9 @@ import { adminSupabase } from "@/integrations/supabase/adminClient";
  * Now uses the dedicated admin session (independent from user app auth).
  *
  * Logic:
- * 1. URL has `?access=<token>` → validate token via edge function, set flags, allow login page
- * 2. Has admin session → allow admin panel
- * 3. On /admin/auth or /admin/login → always render the login page (regardless of session)
+ * 1. URL has `?access=<token>` → validate token via edge function, set tab-scoped flag, allow login page
+ * 2. Has admin session AND this tab came from a secret link → allow admin panel
+ * 3. Direct /admin/auth or /admin/login without a secret link → show BlogPage
  * 4. Otherwise → show BlogPage (no admin panel hint)
  */
 
@@ -52,11 +52,13 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
       if (!mounted) return;
       if (isLoginRoute()) {
         // STRICT: secret link mandatory every visit. Allowed only if:
-        //  - URL has ?access=<token> (will be validated below), OR
+        //  - URL has ?access=<token> AND edge validation succeeds, OR
         //  - User already has an active admin session (post-login refresh)
         // Persistent localStorage flag alone is NOT enough — must come via secret link.
-        if (session || accessToken) {
+        if (session) {
           setIsAuthorized(true);
+        } else if (accessToken) {
+          setIsAuthorized(null);
         } else {
           setIsAuthorized(false);
         }
@@ -70,8 +72,8 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
           setIsAuthorized(true);
         }
       } else if (accessToken) {
-        // Came via secret link but not yet logged in → allow (will redirect to /admin/auth).
-        setIsAuthorized(true);
+        // Came via secret link but not yet logged in → wait for validation.
+        setIsAuthorized(null);
       } else {
         setIsAuthorized(false);
       }
@@ -98,10 +100,12 @@ export default function AdminAccessGuard({ children }: AdminAccessGuardProps) {
               setHasValidToken(true);
               setIsAuthorized(true);
             }
+          } else if (mounted) {
+            setIsAuthorized(false);
           }
         } catch (e) {
           console.warn('[AdminAccessGuard] token validation failed/timed out', e);
-          // Fall back: if user already had a flag from a previous valid visit, keep it.
+          if (mounted && !getAdminSession()) setIsAuthorized(false);
         }
       })();
     }
