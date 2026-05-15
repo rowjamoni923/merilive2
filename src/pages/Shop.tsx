@@ -118,9 +118,9 @@ const ShopItemCard = ({
       onClick={onPreview}
       className="relative rounded-2xl overflow-hidden cursor-pointer group"
       style={{
-        background: 'linear-gradient(160deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.03) 100%)',
-        border: '1px solid rgba(255,255,255,0.10)',
-        boxShadow: '0 6px 22px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06)',
+        background: 'linear-gradient(160deg, #FFFBF2 0%, #FAF5EA 50%, #F5EFDF 100%)',
+        border: '1px solid rgba(217,182,107,0.35)',
+        boxShadow: '0 6px 22px rgba(180,140,40,0.12), inset 0 1px 0 rgba(255,255,255,0.7)',
       }}
     >
       {/* Featured indicator */}
@@ -145,9 +145,9 @@ const ShopItemCard = ({
       <div className={`${isFullWidth ? 'aspect-[16/10] min-h-[160px]' : 'aspect-square'} flex items-center justify-center p-3 relative overflow-hidden`}>
         {/* Subtle radial glow */}
         <div
-          className="absolute inset-0 opacity-50"
+          className="absolute inset-0 opacity-60"
           style={{
-            background: 'radial-gradient(circle at center, rgba(168,85,247,0.18) 0%, transparent 70%)',
+            background: 'radial-gradient(circle at center, rgba(251,191,36,0.18) 0%, rgba(255,251,242,0.0) 70%)',
           }}
         />
 
@@ -178,8 +178,8 @@ const ShopItemCard = ({
             />
           )
         ) : (
-          <div className="w-16 h-16 rounded-2xl bg-white/[0.06] flex items-center justify-center border border-white/10">
-            <Shield className="w-10 h-10 text-white/40" strokeWidth={1.5} />
+          <div className="w-16 h-16 rounded-2xl bg-amber-100/40 flex items-center justify-center border border-amber-300/40">
+            <Shield className="w-10 h-10 text-amber-600/50" strokeWidth={1.5} />
           </div>
         )}
       </div>
@@ -187,15 +187,15 @@ const ShopItemCard = ({
       {/* Item Info */}
       <div className="px-3 pb-3 space-y-2">
         {/* Name */}
-        <p className="text-white text-sm font-semibold truncate text-center drop-shadow-sm">{item.name}</p>
+        <p className="text-slate-800 text-sm font-semibold truncate text-center">{item.name}</p>
 
         {/* Price with diamond icon */}
         <div className="flex items-center justify-center gap-1.5">
           <Diamond3DIcon size={14} />
-          <span className="text-white/90 text-xs font-bold">
+          <span className="text-slate-800 text-xs font-bold">
             {item.price_diamonds.toLocaleString()}
             {item.duration_days && (
-              <span className="text-white/55 font-normal">/{item.duration_days}day</span>
+              <span className="text-slate-500 font-normal">/{item.duration_days}day</span>
             )}
           </span>
         </div>
@@ -477,16 +477,16 @@ const Shop = () => {
     <div
       className="fixed inset-0 flex flex-col overflow-hidden"
       style={{
-        background: 'linear-gradient(180deg, #0d0619 0%, #16082b 40%, #1a0a2e 100%)',
+        background: 'linear-gradient(180deg, #FFFBF2 0%, #FAF5EA 40%, #F5EFDF 100%)',
       }}
     >
-      {/* Header - Premium dark glass */}
+      {/* Header - Light luxury glass */}
       <div
         className="sticky top-0 z-50 safe-area-top"
         style={{
-          background: 'linear-gradient(135deg, rgba(26,10,46,0.85) 0%, rgba(22,8,43,0.85) 100%)',
-          borderBottom: '1px solid rgba(255,255,255,0.08)',
-          boxShadow: '0 4px 24px rgba(0,0,0,0.35)',
+          background: 'linear-gradient(135deg, rgba(255,251,242,0.92) 0%, rgba(245,239,223,0.92) 100%)',
+          borderBottom: '1px solid rgba(217,182,107,0.30)',
+          boxShadow: '0 4px 18px rgba(180,140,40,0.10)',
           backdropFilter: 'blur(14px)',
         }}
       >
@@ -495,23 +495,23 @@ const Shop = () => {
             size="icon"
             variant="ghost"
             onClick={() => navigate(-1)}
-            className="text-white/85 hover:bg-white/10 w-9 h-9 rounded-full"
+            className="text-slate-700 hover:bg-amber-100/60 w-9 h-9 rounded-full"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
 
-          <h1 className="text-lg font-bold text-white tracking-wide drop-shadow-sm">My Store</h1>
+          <h1 className="text-lg font-bold text-slate-800 tracking-wide">My Store</h1>
 
           <div className="flex items-center gap-2">
             <div
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
               style={{
-                background: 'linear-gradient(135deg, rgba(147,51,234,0.30) 0%, rgba(99,102,241,0.22) 100%)',
-                border: '1px solid rgba(168,85,247,0.40)',
+                background: 'linear-gradient(135deg, rgba(251,191,36,0.20) 0%, rgba(217,182,107,0.18) 100%)',
+                border: '1px solid rgba(217,182,107,0.45)',
               }}
             >
               <Diamond3DIcon size={14} />
-              <span className="text-white text-sm font-bold">{userDiamonds.toLocaleString()}</span>
+              <span className="text-slate-800 text-sm font-bold">{userDiamonds.toLocaleString()}</span>
             </div>
           </div>
         </div>
@@ -521,7 +521,7 @@ const Shop = () => {
       <div
         className="px-4 py-3"
         style={{
-          background: 'linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 100%)',
+          background: 'linear-gradient(180deg, rgba(255,255,255,0.4) 0%, transparent 100%)',
         }}
       >
         <ScrollArea className="w-full whitespace-nowrap">
@@ -533,14 +533,14 @@ const Shop = () => {
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
                   className={`rounded-full flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 px-5 py-2 text-sm font-semibold transition-all duration-300 ${
-                    isActive ? 'text-white' : 'text-white/75'
+                    isActive ? 'text-white' : 'text-slate-700'
                   }`}
                   style={isActive ? {
                     background: 'linear-gradient(135deg, hsl(243 75% 55%) 0%, hsl(270 75% 55%) 50%, hsl(292 84% 60%) 100%)',
-                    boxShadow: '0 4px 18px rgba(147,51,234,0.45), inset 0 1px 0 rgba(255,255,255,0.20)',
+                    boxShadow: '0 4px 18px rgba(147,51,234,0.40), inset 0 1px 0 rgba(255,255,255,0.20)',
                   } : {
-                    background: 'rgba(255,255,255,0.06)',
-                    border: '1px solid rgba(255,255,255,0.10)',
+                    background: 'rgba(255,255,255,0.7)',
+                    border: '1px solid rgba(217,182,107,0.30)',
                   }}
                 >
                   <cat.icon className="w-3.5 h-3.5" />
