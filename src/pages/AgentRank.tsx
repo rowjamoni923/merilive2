@@ -333,13 +333,13 @@ const AgentRank = () => {
                         {isFirst ? '🥇' : isSecond ? '🥈' : '🥉'}
                       </div>
                       <div className="flex items-center justify-center gap-1">
-                        <Gem className="w-3.5 h-3.5 text-cyan-400" />
-                        <span className={`text-sm font-black ${isFirst ? 'text-yellow-300' : 'text-cyan-300'}`}>
+                        <Gem className="w-3.5 h-3.5 text-cyan-300" />
+                        <span className="text-sm font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">
                           {formatNumber(reward.reward_coins)}
                         </span>
                       </div>
                       {reward.reward_badge && (
-                        <p className="text-[9px] text-white/60 mt-1 truncate font-medium">{reward.reward_badge}</p>
+                        <p className="text-[9px] text-white/80 mt-1 truncate font-medium">{reward.reward_badge}</p>
                       )}
                     </div>
                   </div>
@@ -407,7 +407,7 @@ const AgentRank = () => {
                   </div>
 
                   {/* Name */}
-                  <p className={`text-white font-bold text-center truncate w-full ${isChamp ? 'text-sm' : 'text-xs'}`}>
+                  <p className={`text-white font-bold text-center truncate w-full drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] ${isChamp ? 'text-sm' : 'text-xs'}`}>
                     {entry.agency_name?.slice(0, isChamp ? 14 : 10)}
                   </p>
 
@@ -417,11 +417,11 @@ const AgentRank = () => {
                   {/* Metric Value - Shield Style */}
                   <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full border ${
                     isChamp 
-                      ? 'bg-gradient-to-r from-yellow-500/20 to-amber-500/20 border-yellow-500/30' 
-                      : 'bg-white/[0.06] border-white/20'
+                      ? 'bg-gradient-to-r from-yellow-500/25 to-amber-500/25 border-yellow-400/50' 
+                      : 'bg-white/10 border-white/25'
                   }`}>
-                    <Gem className={`${isChamp ? 'w-4 h-4' : 'w-3.5 h-3.5'} text-cyan-400`} />
-                    <span className={`font-black ${isChamp ? 'text-sm text-yellow-300' : 'text-xs text-cyan-300'}`}>
+                    <Gem className={`${isChamp ? 'w-4 h-4' : 'w-3.5 h-3.5'} text-cyan-300`} />
+                    <span className={`font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)] ${isChamp ? 'text-sm' : 'text-xs'}`}>
                       {formatNumber(entry.metric_value)}
                     </span>
                   </div>
@@ -429,8 +429,8 @@ const AgentRank = () => {
                   {/* Reward badge */}
                   {reward && (
                     <div className="flex items-center gap-0.5 mt-1">
-                      <Gift className="w-3 h-3 text-yellow-400/70" />
-                      <span className="text-[9px] text-yellow-400/70 font-bold">+{formatNumber(reward.reward_coins)}</span>
+                      <Gift className="w-3 h-3 text-yellow-300" />
+                      <span className="text-[9px] text-yellow-200 font-bold">+{formatNumber(reward.reward_coins)}</span>
                     </div>
                   )}
                 </motion.div>
@@ -493,21 +493,21 @@ const AgentRank = () => {
                   <div className="flex-1 min-w-0">
                     <p className="text-white font-semibold text-[13px] truncate">{agency.agency_name}</p>
                     <div className="flex items-center gap-1.5 mt-0.5">
-                      <Users className="w-3 h-3 text-white/60" />
-                      <span className="text-[11px] text-white/60 font-medium">{agency.total_hosts} hosts</span>
+                      <Users className="w-3 h-3 text-white/75" />
+                      <span className="text-[11px] text-white/75 font-medium">{agency.total_hosts} hosts</span>
                     </div>
                   </div>
                   
                   {/* Value */}
                   <div className="text-right flex flex-col items-end gap-0.5">
                     <div className="flex items-center gap-1">
-                      <Gem className="w-3.5 h-3.5 text-cyan-400" />
-                      <span className="text-cyan-300 font-black text-sm">{formatNumber(agency.metric_value)}</span>
+                      <Gem className="w-3.5 h-3.5 text-cyan-300" />
+                      <span className="text-white font-black text-sm">{formatNumber(agency.metric_value)}</span>
                     </div>
                     {reward && (
                       <div className="flex items-center gap-0.5">
-                        <Gift className="w-2.5 h-2.5 text-yellow-400/60" />
-                        <span className="text-[9px] text-yellow-400/60 font-bold">+{formatNumber(reward.reward_coins)}</span>
+                        <Gift className="w-2.5 h-2.5 text-yellow-300" />
+                        <span className="text-[9px] text-yellow-200 font-bold">+{formatNumber(reward.reward_coins)}</span>
                       </div>
                     )}
                   </div>
