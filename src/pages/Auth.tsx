@@ -2806,8 +2806,8 @@ const Auth = () => {
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-2xl">{selectedCountry.flag}</span>
-                      <span className="text-slate-800 font-semibold">{selectedCountry.code}</span>
-                      <span className="text-slate-500 text-sm">{selectedCountry.name}</span>
+                      <span className="text-slate-900 font-bold tracking-tight">{selectedCountry.code}</span>
+                      <span className="text-slate-700 text-sm font-medium">{selectedCountry.name}</span>
                     </div>
                     <ChevronDown className={`w-5 h-5 text-slate-500 transition-transform ${showCountryPicker ? 'rotate-180' : ''}`} />
                   </button>
