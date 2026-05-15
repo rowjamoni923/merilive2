@@ -675,7 +675,8 @@ function CampaignFloatingButton() {
                     <img
                       src={campaign.banner_image_url}
                       alt=""
-                      className="w-full h-full object-cover rounded-full"
+                      className="absolute inset-0 m-auto w-full h-full object-contain rounded-full"
+                      style={{ objectPosition: 'center center' }}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
