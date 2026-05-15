@@ -852,6 +852,8 @@ const Recharge = () => {
     } catch (error) {
       console.error('Error fetching level 5 helper payment methods:', error);
       recordClientError({ label: "Recharge.key", message: error instanceof Error ? error.message : String(error) });
+    } finally {
+      setHelperMethodsLoading(false);
     }
   }, [userCountryCode]);
 
