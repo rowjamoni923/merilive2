@@ -157,7 +157,7 @@ public class NativePermissionsPlugin extends Plugin {
             ret.put("notifications", true);
         }
         Log.i(TAG, "canRequestAgain -> " + ret.toString());
-        return; // keep below, just for readability
+        call.resolve(ret);
     }
 
     private boolean canRequest(String permission) {
