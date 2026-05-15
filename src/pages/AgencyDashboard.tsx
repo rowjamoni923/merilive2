@@ -1478,51 +1478,51 @@ const AgencyDashboard = () => {
 
             {/* Performance Stats */}
             <div className="grid grid-cols-2 gap-3">
-              <Card className="agency-premium-card bg-gradient-to-br from-brand-50 to-info-50">
+              <Card className="border-0 overflow-hidden relative shadow-xl bg-gradient-to-br from-[#1a1145] via-[#2a1a6b] to-[#0f0a2e]">
                 <CardContent className="p-4">
-                  <div className="w-10 h-10 bg-brand-100 rounded-xl flex items-center justify-center mb-2">
-                    <Gift className="w-5 h-5 text-brand-600" />
+                  <div className="w-10 h-10 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center mb-2 border border-white/10">
+                    <Gift className="w-5 h-5 text-white" />
                   </div>
-                  <p className="text-2xl font-bold text-brand-700">
+                  <p className="text-2xl font-bold text-white">
                     {fmtNum(performance?.total_income || 0)}
                   </p>
-                  <p className="text-sm text-brand-600">Weekly Income</p>
+                  <p className="text-sm text-white/75">Weekly Income</p>
                 </CardContent>
               </Card>
               
-              <Card className="agency-premium-card bg-gradient-to-br from-success-50 to-success-50">
+              <Card className="border-0 overflow-hidden relative shadow-xl bg-gradient-to-br from-[#0a3d2e] via-[#0f6b4a] to-[#0a2e22]">
                 <CardContent className="p-4">
-                  <div className="w-10 h-10 bg-success-100 rounded-xl flex items-center justify-center mb-2">
-                    <Users className="w-5 h-5 text-success-600" />
+                  <div className="w-10 h-10 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center mb-2 border border-white/10">
+                    <Users className="w-5 h-5 text-white" />
                   </div>
-                  <p className="text-2xl font-bold text-success-700">
+                  <p className="text-2xl font-bold text-white">
                     {performance?.new_hosts_count || 0}
                   </p>
-                  <p className="text-sm text-success-600">New Hosts</p>
+                  <p className="text-sm text-white/75">New Hosts</p>
                 </CardContent>
               </Card>
               
-              <Card className="agency-premium-card bg-gradient-to-br from-warning-50 to-warning-50">
+              <Card className="border-0 overflow-hidden relative shadow-xl bg-gradient-to-br from-[#3d1f0a] via-[#7a3d10] to-[#2e1707]">
                 <CardContent className="p-4">
-                  <div className="w-10 h-10 bg-warning-100 rounded-xl flex items-center justify-center mb-2">
-                    <Clock className="w-5 h-5 text-warning-600" />
+                  <div className="w-10 h-10 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center mb-2 border border-white/10">
+                    <Clock className="w-5 h-5 text-white" />
                   </div>
-                  <p className="text-2xl font-bold text-warning-700">
+                  <p className="text-2xl font-bold text-white">
                     {(performance?.total_host_hours || 0).toFixed(1)}h
                   </p>
-                  <p className="text-sm text-warning-600">Live Hours</p>
+                  <p className="text-sm text-white/75">Live Hours</p>
                 </CardContent>
               </Card>
               
-              <Card className="agency-premium-card bg-gradient-to-br from-warning-50 to-warning-50">
+              <Card className="border-0 overflow-hidden relative shadow-xl bg-gradient-to-br from-[#3d2a07] via-[#8a5a10] to-[#2e1f05]">
                 <CardContent className="p-4">
-                  <div className="w-10 h-10 bg-warning-100 rounded-xl flex items-center justify-center mb-2">
-                    <Crown className="w-5 h-5 text-warning-600" />
+                  <div className="w-10 h-10 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center mb-2 border border-white/10">
+                    <Crown className="w-5 h-5 text-amber-200" />
                   </div>
-                  <p className="text-2xl font-bold text-warning-700">
+                  <p className="text-2xl font-bold text-white">
                     {fmtNum(performance?.golden_host_income || 0)}
                   </p>
-                  <p className="text-sm text-warning-600">Golden Income</p>
+                  <p className="text-sm text-white/75">Golden Income</p>
                 </CardContent>
               </Card>
             </div>
