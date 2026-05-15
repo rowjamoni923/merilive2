@@ -794,9 +794,9 @@ const AgencyDashboard = () => {
             onClick={() => navigate(-1)}
             className="p-2 -ml-2 hover:bg-white/10 rounded-full transition-colors"
           >
- <ArrowLeft className="w-5 h-5 text-slate-900" />
+ <ArrowLeft className="w-5 h-5 text-white" />
           </button>
- <h1 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+ <h1 className="text-lg font-bold text-white flex items-center gap-2">
             <Sparkles className="w-5 h-5" />
             Agency Dashboard
           </h1>
@@ -804,7 +804,7 @@ const AgencyDashboard = () => {
             onClick={() => navigate("/agent-rank")}
             className="p-2 hover:bg-white/10 rounded-full transition-colors"
           >
- <Trophy className="w-5 h-5 text-slate-900" />
+ <Trophy className="w-5 h-5 text-white" />
           </button>
         </div>
       </div>
@@ -820,7 +820,7 @@ const AgencyDashboard = () => {
 
       {/* Agency Hero Card - Compact */}
       <div className="mx-3 -mt-0 relative">
- <div className={`bg-gradient-to-br ${levelInfo.color} rounded-2xl p-3 text-slate-900 shadow-xl relative overflow-hidden`}>
+ <div className={`bg-gradient-to-br ${levelInfo.color} rounded-2xl p-3 text-white shadow-xl relative overflow-hidden`}>
           {/* Decorative Elements */}
           <div className="absolute top-0 right-0 w-28 h-28 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-xl" />
           <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2 blur-lg" />
@@ -848,7 +848,7 @@ const AgencyDashboard = () => {
                   </div>
                 </div>
                 <h2 className="text-lg font-bold truncate">{agency.name}</h2>
- <p className="text-slate-700/75 text-xs flex items-center gap-1">
+ <p className="text-white/80 text-xs flex items-center gap-1">
                   <Percent className="w-3 h-3" />
                   <span className="font-semibold">{actualCommissionRate}%</span> Commission Rate
                 </p>
@@ -858,7 +858,7 @@ const AgencyDashboard = () => {
             {/* Agency Code Card - Compact */}
  <div className="mt-3 bg-white/15 backdrop-blur-sm rounded-xl p-2.5 flex items-center justify-between border border-slate-200/20">
               <div>
- <p className="text-slate-700/60 text-[10px] uppercase tracking-wide">Agency Code</p>
+ <p className="text-white/70 text-[10px] uppercase tracking-wide">Agency Code</p>
                 <p className="font-mono font-bold text-base tracking-wider">{agency.agency_code}</p>
               </div>
               <Button
@@ -883,7 +883,7 @@ const AgencyDashboard = () => {
               >
                 <Users className="w-3.5 h-3.5 mx-auto mb-0.5" />
                 <p className="text-sm font-bold">{hosts.length || agency.total_hosts}</p>
- <p className="text-[7px] text-slate-700/60 uppercase">Hosts</p>
+ <p className="text-[7px] text-white/70 uppercase">Hosts</p>
                 {pendingHosts.length > 0 && (
                   <span className="absolute -top-1 -right-1 w-5 h-5 bg-danger-500 rounded-full text-[10px] font-bold flex items-center justify-center animate-pulse">
                     {pendingHosts.length}
@@ -896,7 +896,7 @@ const AgencyDashboard = () => {
               >
                 <UserPlus className="w-3.5 h-3.5 mx-auto mb-0.5" />
                 <p className="text-sm font-bold">{subAgencyCount || subAgents.length}</p>
- <p className="text-[7px] text-slate-700/60 uppercase">Agents</p>
+ <p className="text-[7px] text-white/70 uppercase">Agents</p>
               </button>
               <div 
  className="bg-white/15 backdrop-blur-sm rounded-lg p-1.5 text-center border border-slate-200/10 overflow-hidden"
@@ -907,7 +907,7 @@ const AgencyDashboard = () => {
                     ? `${(agencyBeansBalance / 1000000).toFixed(1)}M`
                     : `${(agencyBeansBalance / 1000).toFixed(0)}K`}
                 </p>
- <p className="text-[7px] text-slate-700/60 uppercase">Beans</p>
+ <p className="text-[7px] text-white/70 uppercase">Beans</p>
               </div>
               <button 
                 onClick={() => navigate("/agency-host-management?filter=online")}
@@ -915,7 +915,7 @@ const AgencyDashboard = () => {
               >
                 <Activity className="w-3.5 h-3.5 mx-auto mb-0.5 text-success-300" />
                 <p className="text-sm font-bold text-success-300">{onlineHosts}</p>
- <p className="text-[7px] text-slate-700/60 uppercase">Online</p>
+ <p className="text-[7px] text-white/70 uppercase">Online</p>
               </button>
             </div>
           </div>
@@ -1014,7 +1014,7 @@ const AgencyDashboard = () => {
                       size="sm"
                       onClick={() => handleApproveHost(ph.host_id)}
                       disabled={approvingHostId === ph.host_id || rejectingHostId === ph.host_id}
- className="bg-success-600 hover:bg-success-500 text-slate-900 h-7 px-3 text-xs rounded-lg"
+ className="bg-success-600 hover:bg-success-500 text-white h-7 px-3 text-xs rounded-lg"
                     >
                       {approvingHostId === ph.host_id ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3 mr-1" />}
                       Approve
@@ -1048,20 +1048,20 @@ const AgencyDashboard = () => {
                     <Building2 className="w-6 h-6" />
                   </div>
                   <div>
- <p className="text-slate-700/60 text-[10px] uppercase tracking-wide">Parent Agency</p>
+ <p className="text-white/70 text-[10px] uppercase tracking-wide">Parent Agency</p>
                     <p className="font-bold">{parentAgency.name}</p>
                     <div className="flex items-center gap-2 mt-0.5">
- <Badge className="bg-white/20 text-slate-900 text-[10px] h-4 px-1.5">
+ <Badge className="bg-white/20 text-white text-[10px] h-4 px-1.5">
                         {parentAgency.level}
                       </Badge>
- <span className="text-xs text-slate-700/60">{parentAgency.agency_code}</span>
+ <span className="text-xs text-white/70">{parentAgency.agency_code}</span>
                     </div>
                   </div>
                 </div>
                 <Button
                   onClick={() => setShowParentContactModal(true)}
                   size="sm"
- className="bg-white/20 hover:bg-white/30 text-slate-900 border-0 h-8"
+ className="bg-white/20 hover:bg-white/30 text-white border-0 h-8"
                 >
                   <MessageCircle className="w-4 h-4 mr-1" />
                   Contact
@@ -1072,7 +1072,7 @@ const AgencyDashboard = () => {
                 <div className="mt-2 bg-white/10 rounded-lg p-2 flex items-center gap-2">
  <Avatar className="w-8 h-8 border border-slate-200/30">
                     <AvatarImage src={parentAgency.owner_profile.avatar_url || ""} />
- <AvatarFallback className="bg-white/20 text-slate-900 text-xs">
+ <AvatarFallback className="bg-white/20 text-white text-xs">
                       {parentAgency.owner_profile.display_name?.charAt(0) || "?"}
                     </AvatarFallback>
                   </Avatar>
@@ -1107,15 +1107,15 @@ const AgencyDashboard = () => {
                   <Coins className="w-5 h-5" />
                 </div>
                 <div>
- <p className="text-slate-700/75 text-[10px] uppercase tracking-wide flex items-center gap-1">
+ <p className="text-white/80 text-[10px] uppercase tracking-wide flex items-center gap-1">
                     Total Beans <ChevronRight className="w-3 h-3" />
                   </p>
                   <p className="text-xl font-bold">{fmtNum(agencyBeansBalance)}</p>
- <p className="text-[9px] text-slate-700/85">Tap to view commission history</p>
+ <p className="text-[9px] text-white/85">Tap to view commission history</p>
                 </div>
               </button>
               <div className="text-right bg-white/20 backdrop-blur-sm rounded-lg p-2">
- <p className="text-slate-700/75 text-[10px] flex items-center gap-0.5 justify-end">
+ <p className="text-white/80 text-[10px] flex items-center gap-0.5 justify-end">
                   <DollarSign className="w-2.5 h-2.5" />
                   USD Value
                 </p>
@@ -1130,7 +1130,7 @@ const AgencyDashboard = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <span className="text-sm">{localCurrency.flag}</span>
- <span className="text-xs text-slate-700/75">{localCurrency.code} Value</span>
+ <span className="text-xs text-white/80">{localCurrency.code} Value</span>
                 </div>
                 <span className="text-sm font-bold text-info-200">
                   {localCurrency.symbol}{localValue.toFixed(2)}
@@ -1141,8 +1141,8 @@ const AgencyDashboard = () => {
             {/* Exchange Rate Info - Compact */}
  <div className="bg-white/15 backdrop-blur-sm rounded-lg p-2 flex items-center justify-between mb-2 border border-slate-200/20">
               <div className="flex items-center gap-1.5">
- <ArrowRightLeft className="w-3 h-3 text-slate-700/60" />
- <span className="text-xs text-slate-700/75">Exchange Rate</span>
+ <ArrowRightLeft className="w-3 h-3 text-white/70" />
+ <span className="text-xs text-white/80">Exchange Rate</span>
               </div>
               <span className="text-[10px] font-semibold">
                 {fmtNum(coinsToUsdRate)} Beans = $1 | $1 = {localCurrency.symbol}{localExchangeRate.toFixed(2)}
@@ -1152,14 +1152,14 @@ const AgencyDashboard = () => {
             <div className="grid grid-cols-2 gap-2">
               <Button
                 onClick={() => navigate("/agency-withdrawal")}
- className="bg-white/20 hover:bg-white/30 text-slate-900 border-0 h-9 text-xs"
+ className="bg-white/20 hover:bg-white/30 text-white border-0 h-9 text-xs"
               >
                 <Wallet className="w-4 h-4 mr-1.5" />
                 Withdraw
               </Button>
               <Button
                 onClick={() => setShowWithdrawalHistory(!showWithdrawalHistory)}
- className={`${showWithdrawalHistory ?'bg-white/40' :'bg-white/20'} hover:bg-white/30 text-slate-900 border-0 h-9 text-xs`}
+ className={`${showWithdrawalHistory ?'bg-white/40' :'bg-white/20'} hover:bg-white/30 text-white border-0 h-9 text-xs`}
               >
                 <Calendar className="w-4 h-4 mr-1.5" />
                 History
@@ -1258,7 +1258,7 @@ const AgencyDashboard = () => {
         >
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-info-500 to-brand-600 rounded-xl flex items-center justify-center shadow-lg">
- <FileText className="w-5 h-5 text-slate-900" />
+ <FileText className="w-5 h-5 text-white" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-foreground font-semibold text-sm">📖 Payroll Helper Guide</p>
@@ -1305,7 +1305,7 @@ const AgencyDashboard = () => {
             className={`${premiumActionClass} bg-gradient-to-br ${hasHelperAccess ? 'from-success-500 to-success-500' : helperPendingApplication ? 'from-warning-500 to-warning-500' : 'from-brand-500 to-brand-500'} relative`}
           >
             {hasHelperAccess && helperPendingCount > 0 && (
- <div className="absolute -top-2 -right-2 min-w-6 h-6 bg-danger-500 rounded-full flex items-center justify-center text-slate-900 text-xs font-bold px-1.5 shadow-lg animate-pulse border-2 border-slate-200">
+ <div className="absolute -top-2 -right-2 min-w-6 h-6 bg-danger-500 rounded-full flex items-center justify-center text-white text-xs font-bold px-1.5 shadow-lg animate-pulse border-2 border-slate-200">
                 {helperPendingCount > 99 ? '99+' : helperPendingCount}
               </div>
             )}
@@ -1413,19 +1413,19 @@ const AgencyDashboard = () => {
       <div className="mx-4 mt-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="w-full grid grid-cols-4 bg-white/90 border border-warning-100 p-1 rounded-2xl h-12 shadow-sm">
- <TabsTrigger value="overview" className="text-xs rounded-xl text-muted-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-brand-600 data-[state=active]:to-brand-600 data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">
+ <TabsTrigger value="overview" className="text-xs rounded-xl text-muted-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-brand-600 data-[state=active]:to-brand-600 data-[state=active]:text-white data-[state=active]:shadow-sm">
               <BarChart3 className="w-4 h-4 mr-1" />
               Overview
             </TabsTrigger>
- <TabsTrigger value="hosts" className="text-xs rounded-xl text-muted-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-brand-600 data-[state=active]:to-brand-600 data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">
+ <TabsTrigger value="hosts" className="text-xs rounded-xl text-muted-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-brand-600 data-[state=active]:to-brand-600 data-[state=active]:text-white data-[state=active]:shadow-sm">
               <Users className="w-4 h-4 mr-1" />
               Hosts
             </TabsTrigger>
- <TabsTrigger value="subagents" className="text-xs rounded-xl text-muted-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-brand-600 data-[state=active]:to-brand-600 data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">
+ <TabsTrigger value="subagents" className="text-xs rounded-xl text-muted-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-brand-600 data-[state=active]:to-brand-600 data-[state=active]:text-white data-[state=active]:shadow-sm">
               <UserPlus className="w-4 h-4 mr-1" />
               Agents
             </TabsTrigger>
- <TabsTrigger value="charts" className="text-xs rounded-xl text-muted-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-brand-600 data-[state=active]:to-brand-600 data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">
+ <TabsTrigger value="charts" className="text-xs rounded-xl text-muted-foreground data-[state=active]:bg-gradient-to-r data-[state=active]:from-brand-600 data-[state=active]:to-brand-600 data-[state=active]:text-white data-[state=active]:shadow-sm">
               <TrendingUp className="w-4 h-4 mr-1" />
               Charts
             </TabsTrigger>
@@ -1622,11 +1622,11 @@ const AgencyDashboard = () => {
                         >
                           {/* Status Icon */}
                           <div className={`w-12 h-12 rounded-xl ${config.iconBg} flex items-center justify-center shadow-lg shrink-0`}>
- {displayStatus ==='pending' && <Clock className="w-6 h-6 text-slate-900" />}
- {displayStatus ==='processing' && <Loader2 className="w-6 h-6 text-slate-900 animate-spin" />}
- {displayStatus ==='completed' && <CheckCircle2 className="w-6 h-6 text-slate-900" />}
- {displayStatus ==='approved' && <CheckCircle2 className="w-6 h-6 text-slate-900" />}
- {displayStatus ==='rejected' && <Clock className="w-6 h-6 text-slate-900" />}
+ {displayStatus ==='pending' && <Clock className="w-6 h-6 text-white" />}
+ {displayStatus ==='processing' && <Loader2 className="w-6 h-6 text-white animate-spin" />}
+ {displayStatus ==='completed' && <CheckCircle2 className="w-6 h-6 text-white" />}
+ {displayStatus ==='approved' && <CheckCircle2 className="w-6 h-6 text-white" />}
+ {displayStatus ==='rejected' && <Clock className="w-6 h-6 text-white" />}
                           </div>
                           
                           {/* Content */}
@@ -1750,7 +1750,7 @@ const AgencyDashboard = () => {
                   </Button>
                   <Button 
                     onClick={shareHostJoinLink}
- className="flex-1 bg-info-500 hover:bg-info-600 text-slate-900"
+ className="flex-1 bg-info-500 hover:bg-info-600 text-white"
                   >
                     <Share2 className="w-4 h-4 mr-2" />
                     Share
@@ -1792,7 +1792,7 @@ const AgencyDashboard = () => {
                   </Button>
                   <Button 
                     onClick={shareSubAgentLink}
- className="flex-1 bg-warning-500 hover:bg-warning-600 text-slate-900"
+ className="flex-1 bg-warning-500 hover:bg-warning-600 text-white"
                   >
                     <Share2 className="w-4 h-4 mr-2" />
                     Share
@@ -1872,7 +1872,7 @@ const AgencyDashboard = () => {
                     {subAgencies.map((sa: any) => (
                       <div key={sa.id} className="flex items-center gap-3 py-3 border-b border-border last:border-0">
                         <div className="w-10 h-10 bg-gradient-to-br from-info-500 to-brand-600 rounded-xl flex items-center justify-center">
- <Building2 className="w-5 h-5 text-slate-900" />
+ <Building2 className="w-5 h-5 text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium truncate">{sa.name}</p>
@@ -2078,7 +2078,7 @@ const AgencyDashboard = () => {
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <div className="w-10 h-10 bg-gradient-to-br from-warning-500 to-warning-500 rounded-xl flex items-center justify-center">
- <Clock className="w-5 h-5 text-slate-900" />
+ <Clock className="w-5 h-5 text-white" />
                   </div>
                   Application Pending
                 </DialogTitle>
@@ -2137,7 +2137,7 @@ const AgencyDashboard = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <div className="w-10 h-10 bg-gradient-to-br from-brand-500 to-info-600 rounded-xl flex items-center justify-center">
- <MessageCircle className="w-5 h-5 text-slate-900" />
+ <MessageCircle className="w-5 h-5 text-white" />
               </div>
               Contact Parent Agency
             </DialogTitle>
@@ -2151,7 +2151,7 @@ const AgencyDashboard = () => {
               <div className="bg-gradient-to-br from-brand-50 to-info-50 rounded-2xl p-4 border border-brand-200">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-14 h-14 bg-gradient-to-br from-brand-500 to-info-600 rounded-xl flex items-center justify-center">
- <Building2 className="w-7 h-7 text-slate-900" />
+ <Building2 className="w-7 h-7 text-white" />
                   </div>
                   <div>
                     <p className="font-bold text-lg text-brand-800">{parentAgency.name}</p>
