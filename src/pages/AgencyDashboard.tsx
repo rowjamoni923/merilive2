@@ -934,37 +934,35 @@ const AgencyDashboard = () => {
         if (activeHostCount < 10 && daysRemaining > 0) {
           return (
             <div className="mx-3 mt-2">
-              <div className={`rounded-2xl p-3 border shadow-lg ${
+              <div className={`rounded-2xl p-3 border shadow-xl ${
                 daysRemaining <= 5 
-                  ? 'bg-gradient-to-r from-danger-50 to-danger-50 border-danger-200' 
+                  ? 'bg-gradient-to-r from-[#3d0a14] via-[#7a0f24] to-[#2e0810] border-rose-400/20' 
                   : daysRemaining <= 10 
-                    ? 'bg-gradient-to-r from-warning-50 to-warning-50 border-warning-200'
-                    : 'bg-gradient-to-r from-info-50 to-info-50 border-info-200'
+                    ? 'bg-gradient-to-r from-[#3d2a07] via-[#7a5410] to-[#2e1f05] border-amber-400/20'
+                    : 'bg-gradient-to-r from-[#0a2540] via-[#0f3a6b] to-[#081a30] border-sky-400/20'
               }`}>
                 <div className="flex items-center gap-2 mb-2">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    daysRemaining <= 5 ? 'bg-danger-100' : daysRemaining <= 10 ? 'bg-warning-100' : 'bg-info-100'
-                  }`}>
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white/15 backdrop-blur-sm border border-white/10">
                     <Clock className={`w-4 h-4 ${
-                      daysRemaining <= 5 ? 'text-danger-600' : daysRemaining <= 10 ? 'text-warning-600' : 'text-info-600'
+                      daysRemaining <= 5 ? 'text-rose-200' : daysRemaining <= 10 ? 'text-amber-200' : 'text-sky-200'
                     }`} />
                   </div>
                   <div className="flex-1">
-                    <p className="text-foreground text-xs font-bold">
+                    <p className="text-white text-xs font-bold">
                       {daysRemaining} Days Remaining
                     </p>
-                    <p className="text-muted-foreground text-[10px]">
+                    <p className="text-white/70 text-[10px]">
                       Minimum 10 active hosts required within 30 days
                     </p>
                   </div>
                   <div className={`text-lg font-black ${
-                    daysRemaining <= 5 ? 'text-danger-600' : daysRemaining <= 10 ? 'text-warning-600' : 'text-info-600'
+                    daysRemaining <= 5 ? 'text-rose-200' : daysRemaining <= 10 ? 'text-amber-200' : 'text-sky-200'
                   }`}>
                     {activeHostCount}/10
                   </div>
                 </div>
-                <Progress value={progress} className="h-2 bg-white/70" />
-                <p className="text-muted-foreground text-[9px] mt-1.5 text-center">
+                <Progress value={progress} className="h-2 bg-white/15" />
+                <p className="text-white/70 text-[9px] mt-1.5 text-center">
                   {daysRemaining <= 5 
                     ? 'Agency will be auto-deactivated if target is not met'
                     : `Add ${10 - activeHostCount} more hosts to secure your agency`
