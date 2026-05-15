@@ -85,21 +85,26 @@ export const requestCameraPermission = async (): Promise<boolean> => {
 // MICROPHONE PERMISSION - Native dialog, no browser
 // =====================================================
 export const requestMicrophonePermission = async (): Promise<boolean> => {
+  permLog('requestMic.start', { native: isNativeApp() });
   if (isNativeApp()) {
     try {
       const permission = await MeriPermissions.requestMicrophone();
+      permLog('requestMic.result', { granted: permission.microphone, all: permission });
       return permission.microphone;
     } catch (error) {
+      permLog('requestMic.error', { error: String(error) });
       console.error('Native microphone permission error:', error);
       return false;
     }
   }
-  
+
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     stream.getTracks().forEach(track => track.stop());
+    permLog('requestMic.result', { granted: true, source: 'web' });
     return true;
-  } catch {
+  } catch (e) {
+    permLog('requestMic.result', { granted: false, source: 'web', error: String(e) });
     return false;
   }
 };
@@ -108,11 +113,14 @@ export const requestMicrophonePermission = async (): Promise<boolean> => {
 // LOCATION PERMISSION - Native dialog, no browser
 // =====================================================
 export const requestLocationPermission = async (): Promise<boolean> => {
+  permLog('requestLocation.start', { native: isNativeApp() });
   if (isNativeApp()) {
     try {
       const permission = await MeriPermissions.requestLocation();
+      permLog('requestLocation.result', { granted: permission.location, all: permission });
       return permission.location;
     } catch (error) {
+      permLog('requestLocation.error', { error: String(error) });
       console.error('Native location permission error:', error);
       return false;
     }
@@ -121,8 +129,8 @@ export const requestLocationPermission = async (): Promise<boolean> => {
   // Web fallback
   return new Promise((resolve) => {
     navigator.geolocation.getCurrentPosition(
-      () => resolve(true),
-      () => resolve(false),
+      () => { permLog('requestLocation.result', { granted: true, source: 'web' }); resolve(true); },
+      (e) => { permLog('requestLocation.result', { granted: false, source: 'web', error: String(e?.message || e) }); resolve(false); },
       { timeout: 5000 }
     );
   });
@@ -132,11 +140,14 @@ export const requestLocationPermission = async (): Promise<boolean> => {
 // NOTIFICATION PERMISSION - Native dialog, no browser
 // =====================================================
 export const requestNotificationPermission = async (): Promise<boolean> => {
+  permLog('requestNotif.start', { native: isNativeApp() });
   if (isNativeApp()) {
     try {
       const permission = await MeriPermissions.requestNotifications();
+      permLog('requestNotif.result', { granted: permission.notifications, all: permission });
       return permission.notifications;
     } catch (error) {
+      permLog('requestNotif.error', { error: String(error) });
       console.error('Native notification permission error:', error);
       return false;
     }
@@ -145,8 +156,10 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
   // Web fallback
   if ('Notification' in window) {
     const result = await Notification.requestPermission();
+    permLog('requestNotif.result', { granted: result === 'granted', source: 'web', state: result });
     return result === 'granted';
   }
+  permLog('requestNotif.result', { granted: false, source: 'web', reason: 'unsupported' });
   return false;
 };
 
